@@ -1,0 +1,42 @@
+# --- everything-cli / Claude Code pipeline state ---
+# Transient handoff artifacts, flow-state, health pulses.
+.agent-workspace/
+
+# Session telemetry written by the everything-cli harness.
+# knowledge/solutions/ and other curated content under knowledge/ stays tracked.
+knowledge/skill-telemetry.jsonl
+knowledge/**/*.telemetry.jsonl
+
+# Plugin cache / local install scratch (if a dev ever symlinks here).
+.claude/plugins/cache/
+
+# Per-user Claude Code settings — .claude/settings.json stays shared, only .local is ignored.
+.claude/settings.local.json
+.claude/**/settings.local.json
+
+# --- Secrets ---
+.env
+.env.*
+!.env.example
+
+# --- OS cruft ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Editor / IDE ---
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+*.swp
+*.swo
+*~
+
+# --- Future toolchains (safe to keep pre-emptively) ---
+node_modules/
+dist/
+build/
+*.log
+.cache/
+.tmp/

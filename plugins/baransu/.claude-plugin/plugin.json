@@ -1,0 +1,10 @@
+{
+  "name": "baransu",
+  "version": "0.1.0",
+  "description": "バランス — governance skills that balance thinking and execution. Forces alignment, research, and explicit approval before any implementation work begins.",
+  "author": {
+    "name": "ben.tsai",
+    "email": "ben.tsai@hy-tech.com.tw"
+  },
+  "keywords": ["governance", "planning", "design", "think", "architecture", "decision"]
+}
