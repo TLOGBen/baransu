@@ -74,4 +74,4 @@ plugins/
 
 ## 授權
 
-尚未決定。
+[MIT](./LICENSE) © 2026 ben.tsai

@@ -72,4 +72,4 @@ Next skill is planned as a /think downstream consumer — positioning goal is "t
 ## What's Intentionally Absent
 
 - **No build / test / lint commands** — no package manifest or toolchain yet. Do not fabricate `npm test` / `pytest` / similar. Update this section when one is introduced.
-- **No license declared** — do not invent one in `plugin.json` or elsewhere without the user's explicit say-so.
+- **License**: MIT (see `LICENSE`). Declared in `plugin.json` and `README.md`.
