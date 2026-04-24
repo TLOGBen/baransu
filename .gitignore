@@ -10,6 +10,12 @@ knowledge/**/*.telemetry.jsonl
 # Plugin cache / local install scratch (if a dev ever symlinks here).
 .claude/plugins/cache/
 
+# Runtime lock files written by ScheduleWakeup / /loop.
+.claude/scheduled_tasks.lock
+
+# Per-skill eval + optimization workspaces (transient artifacts from skill-creator).
+plugins/*/skills/*-workspace/
+
 # Per-user Claude Code settings — .claude/settings.json stays shared, only .local is ignored.
 .claude/settings.local.json
 .claude/**/settings.local.json
