@@ -154,6 +154,18 @@ For **needs-judgment** items, batch-ask via AskUserQuestion. Let the question co
 
 ---
 
+## Gotchas — two symmetric traps
+
+This skill has tripped on both in one session. They mirror each other and both show up during a live review run as well as during skill editing.
+
+**Trap 1 — Over-correcting from perspective zeal.** During a review run, a perspective naturally finds real-but-off-goal issues and packages them as action items. During skill editing, the equivalent is adding "iron rules" / "what this is NOT" / numeric caps to defend against imagined failures. The fix is the same in both modes: if a finding (or a proposed rule) cannot point to the explicit review goal — or, for edits, to an observed past incident — it stays advisory, or doesn't get added. A reviewer chasing its lane's native concerns without goal anchoring hits this trap.
+
+**Trap 2 — Over-cutting by dropping load-bearing mechanisms.** The mirror image. Mechanisms that look like prose redundancy are sometimes the only thing keeping the machinery anchored. The **goal input** (Stage 1) and the **fourth balance-check question** (Stage 6) are the concrete examples — silently assuming them instead of writing them down produced perspective drift on the first real run. When trimming, every deleted mechanism must be absorbed by something that remains; "implicit" is not a destination. A dispatcher that skips goal derivation and hopes reviewers self-anchor hits this trap.
+
+The warning for maintainers and for invocation-time reviewers is the same: **「複雜度需要證明自己的價值」** for additions, **「精簡不能讓 load-bearing 機制變成默認」** for cuts.
+
+---
+
 ## Core constraints
 
 - **Perspective, not persona** — agent files must not contain "you are a senior X" voice.
