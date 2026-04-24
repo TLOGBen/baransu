@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Intent
 
-`baransu` is a Claude Code **plugin marketplace** distributing one governance-focused plugin, also named `baransu`. The plugin's theme is バランス ("balance") — forcing alignment and approval before execution, and surgical multi-perspective verification after. Currently ships two skills: `/think` (deliberate before building) and `/review` (independent multi-perspective re-verification of any model output).
+`baransu` is a Claude Code **plugin marketplace** distributing one governance-focused plugin, also named `baransu`. The plugin's theme is バランス ("balance") — forcing alignment and approval before execution, and surgical multi-perspective verification after. Currently ships three skills: `/think` (deliberate before building), `/review` (independent multi-perspective re-verification of any model output), and `/analyze` (goal-anchored spec builder for medium-to-large tasks).
 
 ## Actual Layout
 
@@ -14,12 +14,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 plugins/
   baransu/
     .claude-plugin/
-      plugin.json              # plugin manifest (v0.1.5)
+      plugin.json              # plugin manifest (v0.1.6)
     skills/
       think/
         SKILL.md               # governance skill — align/research/approve before code
       review/
         SKILL.md               # governance skill — isolated multi-perspective re-verification
+      analyze/
+        SKILL.md               # governance skill — goal-anchored spec builder for medium-to-large tasks
     agents/
       architecture-reviewer.md # perspective agent — structural coherence, boundaries, overreach
       quality-reviewer.md      # perspective agent — claim-vs-implementation, logic, edges
@@ -62,6 +64,23 @@ Key design properties to preserve when editing `review/SKILL.md` or the three ag
 
 When iterating: keep `review/SKILL.md` lean. If a new iron rule or disclaimer section feels like an obvious addition, that is usually the moment to resist — this skill has already been through one cycle of ballooning to ~270 lines via exactly that pattern before being cut back. The opposite trap is cutting too aggressively and leaving load-bearing mechanisms (like the goal input) implicit; that produced perspective drift the first time around. The safe posture: anything that earns its place on the spec's core principle of **「複雜度需要證明自己的價值」** stays; anything that doesn't, cuts.
 
+### `/baransu:analyze` — spec builder for medium-to-large tasks
+
+Goal-anchored spec generator. Takes a task description, expands it into five spec layers written to `.claude/analyze/{date}-{slug}/`, validates cross-layer alignment with subagents, then hands off to execute.
+
+Key design properties to preserve when editing `analyze/SKILL.md`:
+
+- **English body, 繁體中文 output.** Same convention as `/think` and `/review`.
+- **Five layer order is a constraint.** goal → requirement → design → test → task. Each layer depends on the one above for its precision. Do not reorder.
+- **test layer is in the review chain.** Subagent 1 checks task ↔ test alignment; Subagent 2 checks design ↔ requirement ↔ goal. If test is removed from the chain, task boundary conditions lose their testability anchor.
+- **Stage 0 lightweight alignment, not /think's three rounds.** /analyze asks for a one-sentence goal and does a scope gate (reject small tasks). It does not replace /think's full alignment ceremony; /think handles direction-uncertain tasks, /analyze handles tasks where the direction is already known.
+- **Auto-correct is one round, goal/requirement layers are immutable.** Only design / test / task layers are auto-correctable. goal.md and requirement.md represent user intent and can only change with explicit user confirmation.
+- **Cross-layer subagents ≠ /review.** /review asks "what's wrong with this layer?"; /analyze's subagents ask "are these two layers consistent?" Different question, different dispatch, do not conflate.
+- **Golden templates embedded in SKILL.md.** Each stage contains a full markdown template for its output file. Preserve template structure — downstream tasks copy these templates.
+- **Task sizing rule is explicit.** One task = one session: no cross-group coordination needed, no waiting on other tasks' output, changes in one module layer only.
+
+When iterating: keep `analyze/SKILL.md` under 400 lines (currently 303). The golden templates take up most of the space — preserve them. The stage instructions should be terse directives, not explanatory prose.
+
 ## Install Flow (for testing locally)
 
 ```
@@ -91,7 +110,8 @@ These come from `~/.claude/CLAUDE.md` and apply here unless this file overrides 
 
 ## Roadmap (informal)
 
-A /think-downstream **implementer** skill is still planned (separate from `/review`) — positioning goal is "trust /think's approval, strip redundant ceremony, finish simple tasks in minutes not hours". `/review` is the audit-side counterpart, not the implementer itself. Final design for the implementer will be produced via `/baransu:think` (dogfooding). Do not pre-scaffold it.
+- `/analyze` shipped in v0.1.6 — goal-anchored spec builder for medium-to-large tasks.
+- A /think-downstream **implementer** skill is still planned (separate from `/review`) — positioning goal is "trust /think's approval, strip redundant ceremony, finish simple tasks in minutes not hours". `/review` is the audit-side counterpart, not the implementer itself. Final design for the implementer will be produced via `/baransu:think` (dogfooding). Do not pre-scaffold it.
 
 ## What's Intentionally Absent
 

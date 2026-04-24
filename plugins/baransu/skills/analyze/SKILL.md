@@ -1,0 +1,307 @@
+---
+name: analyze
+description: Goal-anchored spec builder for medium-to-large tasks. Expands a task into five spec layers (goal → requirement → design → test → task) written to .claude/analyze/{date}-{slug}/. Dispatches cross-layer subagents to validate alignment, auto-corrects once, then hands off to execute. Use when a task spans ≥ 2 interdependent modules and context rot is a real risk. User-facing output in Traditional Chinese (繁體中文).
+---
+
+# analyze — define done before execution
+
+The canonical failure mode of large-task execution is context rot: the model generates while it plans, loses the original intent across auto-compacts and session resets, and produces a system that matches neither the goal nor the requirements. The fix is to define completion first — write goal, requirements, design, tests, and tasks in that order, each layer anchored to the one above — then hand the spec to a fresh execution session.
+
+This skill does not execute code. It produces five spec documents that an execute skill (or a fresh session) consumes. The separation matters: definition and execution carry different failure modes and should never share the same context.
+
+The body below is English (agent-facing). All user-visible output is in **Traditional Chinese (繁體中文)**.
+
+---
+
+## Stage 0 — Lightweight alignment + scope gate
+
+Two steps before any file is written.
+
+### A. Get a one-sentence goal
+
+Ask the user (繁中): 「請用一句話描述本次目標，以及預計會動到的主要模組或範圍。」
+
+This sentence becomes the seed for `goal.md`. If the user passes a /think-approved plan or a longer description, extract the core sentence and confirm it in one line before proceeding.
+
+### B. Scope gate
+
+Reject if the task is clearly small:
+- Single-file change with no cross-module impact
+- Changes that affect only one layer and one area, with no other layer depending on the result
+
+Rejection (繁中): 「這個任務的規模適合直接執行或走 /think；/analyze 是為中大型、跨模組任務設計的。建議：[具體替代方案]。」
+
+On borderline cases, proceed — err toward running /analyze rather than rejecting a task that turns out larger than expected.
+
+### C. Derive slug and directory
+
+Slug: lowercase, hyphens for spaces, ASCII only, max 30 characters, from the goal sentence.
+
+All spec files share one directory:
+```
+.claude/analyze/{YYYY-MM-DD}-{slug}/
+```
+
+Use today's date from the `currentDate` context. Confirm the path to the user in one line before writing.
+
+---
+
+## Stage 1 — Goal layer → `goal.md`
+
+Write `goal.md`. Fill every section — do not leave template placeholders.
+
+```markdown
+# Goal
+
+## 目標（Goal）
+{一句話：完成後的世界和現在有什麼不同}
+
+## 驗收標準（Criteria）
+{可觀察的條件清單；Agent 可用這個清單判斷任務是否完成}
+- [ ] {criterion 1}
+- [ ] {criterion 2}
+- [ ] {criterion 3}
+
+## 範圍（Scope）
+
+### 包含（In scope）
+- {item}
+
+### 不包含（Out of scope）
+- {item — and why it's excluded}
+```
+
+After writing, show the `goal.md` content to the user and ask in one line: 「以上 goal 和驗收標準有需要調整的嗎？沒有的話我繼續。」Wait for confirmation before proceeding to Stage 2.
+
+---
+
+## Stage 2 — Requirements layer → `requirement.md`
+
+Derive requirements from `goal.md`. Each requirement is a discrete condition the system must satisfy. One goal typically yields 2–5 requirements.
+
+```markdown
+# Requirements
+
+## REQ-001: {requirement title}
+
+**描述**：{one sentence — what the system must do}
+
+### Scenarios
+
+**Scenario 1: {scenario name}**
+- **Given** {precondition}
+- **When** {action}
+- **Then** {expected outcome}
+- **And** {additional outcome, if needed}
+
+**Scenario 2: {scenario name}**
+- **Given** ...
+- **When** ...
+- **Then** ...
+
+---
+
+## REQ-002: {requirement title}
+
+**描述**：...
+
+### Scenarios
+...
+```
+
+Number sequentially: `REQ-001`, `REQ-002`, … These numbers are referenced by task files; do not change them after writing.
+
+---
+
+## Stage 3 — Design layer → `design.md`
+
+Produce technical design. Let the task shape which diagrams are needed — include what is informative, skip what adds no new information. Not every task needs every diagram.
+
+```markdown
+# Design
+
+## 系統架構
+{說明主要元件與其職責；文字說明或 Mermaid 圖均可}
+
+## 整體操作流程
+{使用者操作 → 系統回應 → 狀態轉換}
+\`\`\`mermaid
+flowchart TD
+  A[使用者動作] --> B[系統處理] --> C[狀態更新]
+\`\`\`
+
+## 畫面關聯（前端任務適用）
+\`\`\`mermaid
+flowchart LR
+  PageA --> PageB --> PageC
+\`\`\`
+
+## API Sequence（每支 API 一張，後端任務適用）
+\`\`\`mermaid
+sequenceDiagram
+  participant Client
+  participant Server
+  participant DB
+  Client->>Server: POST /endpoint
+  Server->>DB: query
+  DB-->>Server: result
+  Server-->>Client: response
+\`\`\`
+
+## 整體資料流
+\`\`\`mermaid
+flowchart TD
+  Frontend --> API --> Service --> DB
+\`\`\`
+
+## 資料模型
+{主要實體及其欄位；用表格或 Mermaid ER 圖}
+
+## 錯誤處理策略
+{各層如何處理、傳遞、最終向使用者呈現錯誤}
+```
+
+---
+
+## Stage 4 — Test layer → `test.md`
+
+Define the testing strategy that verifies the implementation satisfies requirements. This layer participates in the subagent review chain: Agent 1 (Stage 6) checks that task boundaries produce testable seams and that test.md's edge cases cover the conditions task-*.md creates.
+
+```markdown
+# Test Strategy
+
+## E2E 測試策略
+{關鍵使用者流程；每條對應哪個 Criteria}
+
+| 場景 | 起點 | 終點 | 對應 Criteria |
+|------|------|------|--------------|
+| {scenario} | {start} | {end} | {criterion ref} |
+
+## 整合測試策略
+{跨層邊界的驗證；哪些服務或元件需要實際啟動}
+
+| 測試目標 | 涉及層 | 關鍵驗證點 |
+|---------|--------|-----------|
+| {target} | {layers} | {assertion} |
+
+## 關鍵邊界條件
+{哪些邊界條件必須有測試覆蓋；連結到對應需求}
+
+- {edge case — REQ-XXX}
+- {edge case — REQ-XXX}
+```
+
+---
+
+## Stage 5 — Task layer → `task-{group}.md`
+
+Decompose the work into tasks. Start from the innermost reusable layer and work outward. Each group becomes a separate file.
+
+### Task sizing rule
+
+One task = one session can complete it independently. A task passes if:
+- It does not require coordination with another task-group to proceed
+- Its implementation does not depend on output from another task not yet complete
+- Its changes concentrate in one module layer (not simultaneously spanning service + dao + controller + frontend)
+
+If a natural task fails the above, split it.
+
+### Group naming examples
+
+**Backend**: `shared` (utils, enums, consts) → `data` (models, migrations, DAOs) → `service` (business logic) → `api` (endpoints, middleware) → `integration` (wiring, config)
+
+**Frontend**: `shared` (components, utils) → `api` (clients, mappers) → `feature` (page logic, state)
+
+**Full-stack**: use both, innermost backend first.
+
+Cap at 8 group files. If work exceeds 8 groups, add `wave.md` that divides groups into Wave 1 / Wave 2 with explicit dependency notes between waves.
+
+### Task file template
+
+```markdown
+# Tasks: {group name}
+
+## TASK-{group}-01: {task title}
+
+**需求追溯**：REQ-XXX
+**目標**：{one sentence — what will exist or work when this task is done}
+**驗收標準**：
+- [ ] {observable criterion}
+- [ ] {observable criterion}
+
+### 步驟
+
+#### {Step group 1 — e.g., 建立資料結構}
+- [ ] {concrete action}
+- [ ] {concrete action}
+
+#### {Step group 2 — e.g., 實作邏輯}
+- [ ] {concrete action}
+- [ ] {concrete action}
+
+---
+
+## TASK-{group}-02: {task title}
+...
+```
+
+Every task must have at least one requirement reference (`REQ-XXX`). Do not invent requirement numbers not defined in `requirement.md`.
+
+---
+
+## Stage 6 — Cross-layer subagent review
+
+Dispatch 3 subagents in parallel Tasks, each in a clean context. Pass each: the directory path, all generated spec content, and its specific review question.
+
+**Agent 1 — task ↔ test alignment**
+
+Review question: 「task-*.md 的每個 task 是否都有 test.md 裡對應的測試覆蓋錨點？task 產生的邊界條件（例如空值、並發、超時）是否在 test.md 的邊界條件清單中被覆蓋？有沒有 task 產出了一個功能，但 test.md 裡找不到驗證它的策略？」
+
+**Agent 2 — test ↔ design alignment**
+
+Review question: 「test.md 的整合測試策略是否對應到 design.md 架構圖中的跨層邊界？test.md 列出的關鍵邊界條件，design.md 有沒有對應的錯誤處理策略？E2E 測試流程能不能在 design.md 的操作流程圖上走通？」
+
+**Agent 3 — design ↔ requirement ↔ goal alignment**
+
+Review question: 「design.md 的架構和資料流是否能支撐 requirement.md 的所有情境（Given-When-Then）？requirement.md 的每條需求是否都能追溯到 goal.md 的 Criteria？有沒有 Criteria 在 requirement.md 裡沒有任何需求對應？」
+
+### After receiving findings
+
+Auto-correct the spec files to address findings. One round only. Changes allowed: fix broken requirement references, add missing test cases, add missing data flow entries, correct mermaid diagrams that contradict the text.
+
+Changes not allowed during auto-correct: modify `goal.md` or `requirement.md` semantics (those represent user intent; changing them requires user confirmation).
+
+If after auto-correction findings are still substantial (not just wording), pause with:
+
+「spec 驗收後仍有未解問題，需要你確認：
+[摘要問題，條列]
+請說明如何處理，或直接修改對應的 spec 檔案。」
+
+---
+
+## Stage 7 — Handoff
+
+List all generated files with their paths. Then:
+
+**If an execute skill is available**, pass the spec directory:
+
+「spec 完成，路徑：`.claude/analyze/{date}-{slug}/`。正在交接給 execute，task 執行順序請參考 task-*.md 的 group 順序。」
+
+**If no execute skill is detected**, prompt the user:
+
+「spec 已完成，路徑：`.claude/analyze/{date}-{slug}/`
+
+下一步選擇：
+1. 在新 session 中開始依 task-*.md 逐一執行（建議：每個 task 獨立 session）
+2. 呼叫你的 execute skill 並以上述路徑作為輸入」
+
+---
+
+## Constraints
+
+- Do not write production code, scaffolding, or config files during Stages 1-6. The only output is the five spec documents.
+- Do not call `/review` from within this skill. Cross-layer subagents answer alignment questions ("are these two layers consistent?"), not per-layer quality questions ("what's wrong with this layer?"). These are different questions.
+- Auto-correction is one round. No silent looping.
+- `goal.md` and `requirement.md` are user-intent layers. Do not modify their semantics during auto-correct. Only design / test / task layers are auto-correctable.
+- Never invent requirement numbers. Every `REQ-XXX` reference in task files must have a matching entry in `requirement.md`.
+- All user-visible output is Traditional Chinese (繁體中文). English appears only in this SKILL.md body, in code identifiers, file paths, and diagram labels the task itself uses.

@@ -1,11 +1,11 @@
 {
   "name": "baransu",
-  "version": "0.1.5",
-  "description": "バランス — governance skills that balance thinking and execution. Ships /think (align-research-approve before code) and /review (multi-perspective isolated re-verification of model output).",
+  "version": "0.1.6",
+  "description": "バランス — governance skills that balance thinking and execution. Ships /think (align-research-approve before code), /review (multi-perspective isolated re-verification of model output), and /analyze (goal-anchored spec builder for medium-to-large tasks).",
   "author": {
     "name": "ben.tsai",
     "email": "ben.tsai@hy-tech.com.tw"
   },
   "license": "MIT",
-  "keywords": ["governance", "planning", "design", "think", "review", "architecture", "decision", "audit", "verification"]
+  "keywords": ["governance", "planning", "design", "think", "review", "analyze", "spec", "architecture", "decision", "audit", "verification"]
 }

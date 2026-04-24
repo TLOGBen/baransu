@@ -6,15 +6,15 @@
   },
   "metadata": {
     "description": "バランス — a Claude Code plugin marketplace",
-    "version": "0.1.5"
+    "version": "0.1.6"
   },
   "plugins": [
     {
       "name": "baransu",
       "source": "./plugins/baransu",
-      "description": "バランス — governance skills that balance thinking and execution. Ships /think (deliberate before building) and /review (independent multi-perspective re-verification of model output).",
+      "description": "バランス — governance skills that balance thinking and execution. Ships /think (deliberate before building), /review (independent multi-perspective re-verification of model output), and /analyze (goal-anchored spec builder for medium-to-large tasks).",
       "category": "governance",
-      "tags": ["planning", "design", "decision", "think", "review", "audit", "verification"]
+      "tags": ["planning", "design", "decision", "think", "review", "analyze", "spec", "audit", "verification"]
     }
   ]
 }
