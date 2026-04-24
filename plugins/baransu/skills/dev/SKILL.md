@@ -37,7 +37,7 @@ Create all tasks before executing any. This makes the completion criteria visibl
 - TASK-01: 撰寫紅燈測試
 - TASK-02: 確認紅燈（預期失敗）
 - TASK-03: 撰寫綠燈實作
-- TASK-04: 確認綠燈通過 → 送 /review
+- TASK-04: 確認綠燈通過
 
 **Cosmetic path** — call TaskCreate for each:
 - TASK-01: 實作變更
@@ -65,7 +65,7 @@ Run the project's existing test command.
 |---|---|
 | Test fails | Red confirmed. Mark TASK-02 complete. Proceed to TASK-03. |
 | Test passes | Stop. Report: 「紅燈測試通過了，代表這個測試驗的是既有行為，不是新行為。請修改測試後重試。」Do not proceed to TASK-03. |
-| Compile error | Stop. The test itself may be malformed. Report: 「紅燈階段出現編譯錯誤，請先修正測試語法再繼續。」Do not count as a Green retry. |
+| Compile error | Stop. The test itself may be malformed. Report: 「紅燈階段出現編譯錯誤，請先修正測試語法再繼續。」Fix the test and restart from TASK-01. Does not count as a Green retry. |
 
 ### TASK-03 — 撰寫綠燈實作
 
@@ -83,7 +83,7 @@ Run the project's existing test command.
 |---|---|
 | Tests pass, no regression | Green confirmed. Mark TASK-04 complete. Proceed to Stage 4. |
 | Test fails (1st attempt) | Auto-retry: revise the implementation without stopping or asking the user. Run again. |
-| Test fails (2nd attempt) | Two consecutive failures. Invoke `/baransu:think` automatically. Pass context: original task goal + the two test failure summaries (not full stack traces) + the red test code. After /think completes, /dev resumes from TASK-03. If Green fails again after this /think-assisted resume: stop completely. Report: 「/think 對焦後仍無法通過測試，建議重新評估任務範圍或設計。」Do not invoke /think again. |
+| Test fails (2nd attempt) | Two consecutive failures. Invoke `/baransu:think` automatically. Pass context: original task goal + the two test failure summaries (not full stack traces) + the red test code. After /think completes: mark TASK-03 in-progress, rewrite implementation (TASK-03), then run TASK-04 once (two-attempt counter resets for this resumed round). If this gate run fails, stop completely. Report: 「/think 對焦後仍無法通過測試，建議重新評估任務範圍或設計。」Do not invoke /think again. |
 | Compile error | Fix the compile error and re-run. Does **not** count as a retry attempt — only test runner failures count toward the two-attempt limit. |
 
 ---
@@ -102,7 +102,9 @@ Mark TASK-01 complete.
 
 Call `/baransu:review` with:
 - **Review goal**: the task goal sentence from Stage 0
-- **Claim checklist**: the completed task list and what was done, skipped, or deferred
+- **Claim checklist**: each task in the task list and its completion status (all tasks are complete on a success path)
+
+If the cosmetic path was taken, mark TASK-02 complete after `/review` returns.
 
 **Only invoke /review if work completed successfully** (TDD Green gate passed, or cosmetic change applied). If the session ended on the failure path (Green failed after /think re-alignment), do not invoke /review — there is nothing to review.
 
@@ -114,5 +116,5 @@ Call `/baransu:review` with:
 - Never modify the test during the Green phase. The test is the spec; implementation must satisfy it as written.
 - Cosmetic classification is final once made. Do not re-classify mid-execution.
 - The /think invocation on double Green failure is automatic — do not ask the user first.
-- The /think-assisted resume gets one more attempt. If it fails, stop completely; no further auto-/think invocations.
+- The /think-assisted resume rewrites the implementation (TASK-03) and gets one more gate run (TASK-04); the two-attempt counter resets for this round. If the gate run fails, stop completely; no further auto-/think invocations.
 - All user-visible output is Traditional Chinese (繁體中文). English appears only in this SKILL.md body, code identifiers, and file paths.
