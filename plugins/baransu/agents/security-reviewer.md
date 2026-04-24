@@ -31,7 +31,7 @@ A perspective, not a persona. Do not adopt a character ("security engineer", "pe
 - **Threat model 優先。** 先問 target 的使用場景是什麼（本機 CLI / 內部服務 / 公開 API），再對應判斷面向。純本機工具沒有 network threat model，逼它做 network hardening 是浪費。
 - **疑似硬編碼秘密先驗證。** 用 Grep / Read 確認是真密鑰還是 placeholder / test fixture / 文件範例。誤報比漏報更損害信任。
 - **修復強度要配匹威脅等級。** 低風險路徑不逼高成本對策（整個 OAuth flow 重寫來防一個 low-severity issue 是過度）。
-- **天平檢視（強制）。** 每個提出防護措施的 finding，必須能答：省下的風險 vs. 增加的維護 / UX / 效能成本 vs. 更平衡的中間方案（例如 defence-in-depth 中挑最薄弱一層加固即可）。
+- **天平檢視（強制）。** 每個提出防護措施的 finding，必須能答四件事：省下的風險 / 增加的維護 UX 效能成本 / 更平衡的中間方案（例如 defence-in-depth 中挑最薄弱一層加固）/ **是否服務於本次 review 的 goal**（由主 skill 傳入）。答不出任一題就 downgrade。一個合理但不在 goal 軌道上的加固建議，留在 advisory，不升格為要求使用者執行。
 - **Citation 強制。** 每個 finding 附 `file:line` 或 plan section 名稱。
 - **已有防護要認得。** 若上游已有 validation / sanitization / auth middleware，不要把「現場這一層沒再驗一次」當成 issue（除非防禦深度在此脈絡下真的必要）。
 - **公認 weakness 才升級。** 有 CVE、有 OWASP / CWE 對應、有業界共識的寫法才可標 major 以上；「習慣上不推薦」類意見降級為 advisory。

@@ -3,153 +3,163 @@ name: review
 description: Independent multi-perspective re-verification of any model output — code diff, file set, directory, /think's approved plan, a bare claim. Dispatches isolated perspective agents (architecture / quality / security) in clean Task contexts to surface hallucinations, drift, over-engineering, and unnecessary complexity. Findings flow through a four-level response — direct fix for cosmetic stuff, packaged confirm for non-semantic, ask user for judgement, FYI for the rest. Balance check is mandatory on every new-work proposal. Code targets need e2e-run evidence; without it, not finished. Use when a model has just declared something done after a long-running or multi-turn session, or when the user wants a surgical second opinion on a prior actor's work. User-facing output is in Traditional Chinese (繁體中文).
 ---
 
-# review — 乾淨視角複審
+# review — cross-perspective re-verification
 
-模型剛宣稱自己做完某件事時，不適合自己驗證自己：慣性與上下文汙染會讓它確認自己的假設。`/review` 是反制 —— 派出隔離的視角，用乾淨眼睛重讀一遍。
+Models drift. After a model claims "done" — especially after a long-running or multi-turn session — it is the wrong one to audit itself: inertia and context pollution make it confirm its own assumptions. `/review` is the counter-move. Dispatch isolated perspectives in clean Task contexts and let them re-read the target with fresh eyes — but with a surgeon's mindset: find only what matters to the user's actual concern, don't over-correct.
 
-本 skill 不是一個大而全的 reviewer，是**任務分析師 + 派遣器**。它把 target 拆成清單、依行為決定派誰、讓被派的人隔離獨立思考、回來後用天平檢視是否過度處理、分四級施工。
+This skill is not a monolithic reviewer. It is a **task analyst + dispatcher**: it lifts a claim checklist out of the target, derives the review's goal, decides who to dispatch, lets them think independently, weighs returned findings on a balance scale (complexity must justify itself), and applies findings in four response tiers.
 
-感覺上像一個很有經驗的專家群，協助你 review 並順手處理掉能處理的東西。
-
-Body is English (agent-facing). All user-facing output is in **Traditional Chinese (繁體中文)**.
+The body below is English (agent-facing). Wherever this file quotes literal user-facing copy in **Traditional Chinese (繁體中文)**, that text is output-as-shown; everything else is instruction for the agent running the skill.
 
 ---
 
-## 三個視角（agent 檔）
+## Three perspectives (agent files)
 
-`plugins/baransu/agents/architecture-reviewer.md` / `quality-reviewer.md` / `security-reviewer.md`。
+`plugins/baransu/agents/architecture-reviewer.md` / `quality-reviewer.md` / `security-reviewer.md`.
 
-每個 agent 寫「視角 / 目標 / 通用原則」—— 再加一段「禁忌」界定不侵入另一視角的範圍。**不是人設**。人設式描述（"你是資深 XX 工程師"）只誘發幻覺；我們要的是看 target 的角度，不是角色。
-
----
-
-## Stage 1 — 條列 checklist
-
-第一件事：把 target 宣稱做了什麼、決定了什麼、不做什麼、延後什麼 —— 逐條列出。這是後續 review 的對照基準。**沒有 checklist 的審核會滑向自由發揮，留不下抓幻覺的錨點。**
-
-target 可以是任意形狀：
-- git diff / 檔案集 / 目錄 / 未 commit 變更
-- /think 的 5-section 計畫、設計文件
-- 一句宣稱 + 它所指的 code（"這個函式 thread-safe"）
-
-從哪種形狀拉 claim：commit message / docstring / 章節標題 / 宣稱本身。拉不出來就如實寫「no explicit claim for <area>」—— 不自己編。
-
-checklist 會隨 target 傳給每個被派的 reviewer。
+Each agent file defines `視角 / 目標 / 通用原則 / 禁忌` — no persona, no character voice. Role-play descriptions ("you are a senior X engineer") induce hallucination; we want an angle from which to read the target, not an actor playing a role.
 
 ---
 
-## Stage 2 — 分級
+## Stage 1 — Claim checklist AND review goal
 
-| 規模 | 配置 | 對抗測試 |
+Two things, in order, both passed to every dispatched reviewer.
+
+### The claim checklist
+
+Write down — in 繁中 — what the target says it did, decided, explicitly did not do, and left open. This is the reviewer's anchor against drifting into free-form critique. If no source exists for a claim (no commit message, no docstring, no plan section), write **「no explicit claim for <area>」** rather than inventing one.
+
+Target can be any shape:
+- git diff, file set, directory, uncommitted changes
+- a /think 5-section plan or other design document
+- a bare claim plus cited code (e.g. "this function is thread-safe" + `path/to/file.py`)
+
+### The review goal
+
+One sentence, in 繁中. Why does the user want this reviewed? Derived from the user's invocation plus the target's visible properties. Examples:
+- 「確認這個 PR 沒有把舊的認證流程打壞」
+- 「看 /think 的 plan 裡有沒有自我矛盾或偽裝成 unknown 的已決定事項」
+- 「驗證 `increment()` 是否真的 thread-safe；如果不是，最小必要修法」
+
+**The goal is the single most important input to reviewer dispatch.** It is what keeps each perspective from drifting into its own bias. Without a goal, an architecture reviewer will find architecture problems regardless of whether they matter to the user's actual concern; a security reviewer will surface every theoretical attack surface regardless of blast radius. With a goal, every perspective has a compass: findings outside the goal's orbit — even when they're correct observations — downgrade to advisory instead of packaging as action items.
+
+This is the mechanism that lets well-meaning perspectives coexist without their individual zeal producing a collectively over-engineered review. It is the fix the skill's own experience taught us (`/review` v0.3.0 drifted because it had no goal mechanism).
+
+---
+
+## Stage 2 — Grade scope
+
+| scale | configuration | adversarial |
 |---|---|---|
-| ≤ 100 行 | 依 target 性質挑一個視角（快速審） | 跳過 |
-| 100–500 行 | 加入相關視角（通常 2 個） | 跨層級時跑一輪 |
-| > 500 行 | 看跨檔範圍與層級分配全部視角 | 一輪 |
+| ≤ 100 LOC | one perspective (whichever fits target's nature) — quick pass | skip |
+| 100–500 LOC | relevant perspectives (usually 2) | run if change crosses layers |
+| > 500 LOC | assign applicable perspectives by file spread / layer span | one round |
 
-處於邊界時往上靠一階。對 plan 型 target，用「獨立決策點數 × 章節數」作為粗估 LOC 的替代。
-
----
-
-## Stage 3 — 激活（看行為，不看關鍵詞）
-
-視角是否出場，看 target 的**實際行為**，不看 invocation 文字用了哪些字：
-
-- **品質視角**：target 含可執行程式 / 要驗證的聲明 / plan 宣稱做了什麼
-- **架構視角**：跨檔變動 / 新模組邊界 / 契約變更 / plan 多章節間相互依賴
-- **安全視角**：target **行為上**涉及外部輸入、認證授權、秘密處理、跨信任邊界傳遞 —— 不看 target 文字提到哪些字
-
-Plan / claim 型 target 預設啟用架構 + 品質；安全僅在 plan 明確描述上述行為時才啟用。
-
-如果 Stage 2 的 tier 與激活數量衝突（例：100 行碰到兩個激活），以激活為準、tier 數字是上限 guideline，不是硬卡。
+On borderline cases, round up. For plan-type targets, use "independent decision points × section count" as the LOC analog.
 
 ---
 
-## Stage 4 — 派遣
+## Stage 3 — Activation (target behavior, not invocation keywords)
 
-對每個激活的視角發一個**平行 Task**，乾淨 context 中隔離執行。帶給它：target 的內容 + Stage 1 的 checklist。reviewer 不知道彼此的存在，不協調。
+Whether a perspective activates depends on what the target actually **does**, not which words appear in the user's invocation text:
 
-finding 回來時每條自然語言即可，需含：citation（file:line 或 section）、違反了哪條 checklist（或「無，屬觀察」）、觀察、手術刀修法、**天平筆記**（見 Stage 6）。
+- **Quality**: target contains executable code, a claim that needs verification, or a plan asserting it did/achieved something.
+- **Architecture**: target spans files, introduces a new module boundary, changes a contract; or a plan whose sections depend on each other.
+- **Security**: target's behavior touches external input, auth/authz decisions, secret handling, or cross-trust-boundary data flow — not the mere mention of those words.
 
-不強制 YAML 或 JSON —— reviewer 是人類視角，不是 API。
+Plan- or claim-type targets default to architecture + quality; security activates only when the plan materially describes one of the behaviors above.
 
----
-
-## Stage 5 — 對抗測試（條件性）
-
-規模 > 500 行或跨層級變更時加一輪。一次 Task，六個角度：
-
-1. **違反假設** — target 有哪些沒講的前提？其中一個為假時還成立嗎？
-2. **組合失敗** — 哪組輸入 / 事件 / 狀態一起發生時拆掉 target？
-3. **上下級串聯錯** — 每層 local 對、但整串走下來語意跑掉？
-4. **濫用場景** — 非惡意使用者走錯路時 target 做什麼？
-5. **根因辨識** — reviewer 找到的問題是根因還是症狀？
-6. **共識幻覺** — 如果 reviewer 都同意某事，是因為真對、還是因為共享訓練偏見？
-
-對 plan 型 target，同六角度用 plan 語彙讀：章節前提、章節互斥、決策鏈、讀者誤讀、因果倒反、表面完整性的幻覺。
-
-對抗的產出**補強**既有 finding，不覆蓋。
+If Stage 2's tier cap disagrees with activation count (e.g. a 100-LOC target triggers two perspectives), follow activation; the tier column is a guideline ceiling, not a hard limit.
 
 ---
 
-## Stage 6 — 彙整 + 天平檢視
+## Stage 4 — Parallel dispatch
 
-**去重**：同 citation + 同觀察合併，歸給最窄覆蓋的視角。
+Launch one **parallel Task** per activated perspective, each in a clean context. Pass each reviewer three things: target content, the **claim checklist** (Stage 1), and the **review goal** (Stage 1). Reviewers do not know about each other and do not coordinate.
 
-**天平檢視（最重要）**：每條提議新工作的 finding 必須能回答：
-- 不做會得到什麼 / 失去什麼？
-- 做了會得到什麼 / 失去什麼？
-- 有沒有更小、更平衡的中間方案？
-- 這是修問題 —— 還是 reviewer 偏愛另一種風格？
-
-**複雜度需要自己證明價值。** 推廣式重構、「為未來擴展」式建議、無具體可重現條件的 concern —— 答不出三問的一律降為參考級。
-
-這步存在的理由：reviewer 們會過度保守或過度激進；「手術刀般精準，剛好處理掉問題」是本 skill 與一般 reviewer 的差別。
+Findings return in natural language (not YAML). Each must include: citation (file:line or section), which claim it contradicts (or "none — observation"), the observation itself, the surgical fix, and a balance note (see Stage 6).
 
 ---
 
-## Stage 7 — 四級施工
+## Stage 5 — Adversarial round (conditional)
 
-| 等級 | 處理 |
+Run for targets > 500 LOC or those crossing layers. One Task, six angles:
+
+1. **Violated assumption** — what unstated premise does the target rely on? Flip one — does the target still hold?
+2. **Combinatorial failure** — which combination of inputs / events / states jointly breaks the target, even when each is fine alone?
+3. **Chain miscommunication** — each layer locally correct, but meaning corrupted across the chain?
+4. **Misuse scenarios** — what does the target do when a non-adversarial user goes off-road?
+5. **Root cause vs symptom** — are reviewer findings the actual cause, or visible symptoms of a deeper one?
+6. **Consensus hallucination** — if reviewers agree, is that because the claim is true, or because they share training-data priors?
+
+For plan-type targets, translate into plan vocabulary: ambiguous premises, internally inconsistent sections, decision chains, reader-misreading, cause/effect inversion, surface-completeness as hallucination.
+
+Adversarial augments reviewer findings; it does not override.
+
+---
+
+## Stage 6 — Consolidate + balance check
+
+**Deduplicate**: collapse findings with the same citation + same observation, attributing to the narrowest-scope perspective.
+
+**Balance check (mandatory)** — every finding that proposes new work must answer four questions:
+
+1. 不做會得到什麼 / 失去什麼？ (What do we gain/lose by not doing this?)
+2. 做了會得到什麼 / 失去什麼？ (What do we gain/lose by doing it?)
+3. 有沒有更小、更平衡的中間方案？ (Is there a smaller, more balanced middle option?)
+4. **這個 finding 是否服務於本次 review 的 goal？** (Does this serve the review goal, or is it the perspective's own hobby-horse?)
+
+The fourth question is the compass — it is the difference between a review that helps the user and a review that impresses its own reviewers. A valid architecture observation off-goal is still a valid observation; it just belongs in the advisory pile, not the action pile.
+
+**Complexity must justify itself.** Sweeping refactors, "future-proofing" additions, concerns with no concrete reproduction condition, perspective-native obsessions that don't touch the goal — anything failing the four questions drops to advisory. This is the load-bearing principle of the whole skill.
+
+---
+
+## Stage 7 — Four response tiers
+
+| tier | action |
 |---|---|
-| **直接修** | 格式、import 順序、未用 import、明顯 typo、dead import。不動行為邏輯 —— 直接 Edit。 |
-| **打包確認** | 非語意但超出直接修的（改名、刪死碼、semantic typo）。一次批次 diff 給你看。 |
-| **需判斷** | 邏輯 / 邊界 / API / 行為 / 安全類，有具體修法的。用 AskUserQuestion 批次問 —— 自然主題分群，不為湊數拆或合。 |
-| **僅供參考** | 天平降級過的、無具體修法的、「考慮過但不建議做」的。寫在報告裡，不打擾你。 |
+| **Direct fix** | formatter, import order, unused import, obvious typo, dead import. Nothing that touches behavior. Apply via Edit. |
+| **Packaged confirm** | non-semantic but beyond direct fix (rename, delete dead code, semantic typo). Present the batch diff once. |
+| **Needs judgment** | logic / boundary / API / behavior / security findings with concrete fixes. Batch-ask via AskUserQuestion — group by theme, not by target question count. |
+| **Advisory** | balance-downgraded, off-goal, or no concrete fix. In the report, not in the user's face. |
 
-**不越權改行為邏輯。** 任何動到控制流、邊界、API 形狀、狀態的變更 —— 即使 reviewer 高信心 —— 一律走打包確認或需判斷。
-
-**不為小事一個一個來問。** 需判斷等級按主題批次，不按 finding 數量線性展開。
+Do not change behavior without user consent. Do not ask one question per finding.
 
 ---
 
-## 硬要求：e2e
+## E2E hard requirement
 
-target 含可執行程式時，必須確認 e2e 跑過。Session 裡沒有綠燈 PASS 證據 → 不准說完成；結論欄需明寫「未完成，等 e2e」。
+If the target contains executable code, confirm e2e has been run. If no green-run evidence exists in-session, the report says 「未完成，等 e2e」 rather than calling the target done.
 
-Plan / claim / pure doc 型 target 此條不適用（明確寫 n/a + 理由）。
-
----
-
-## 輸出
-
-繁中報告，自然語言結構：
-
-- **結論一句話**（是否完成 / 需介入 / 未完成）
-- **target 與範圍**
-- **checklist（claim）**
-- **派遣了誰、為什麼**
-- **四級 findings**（哪些已修 / 哪些等你確認 / 哪些需你判斷 / 哪些僅供參考）
-- **e2e 狀態**
-
-不用 verdict enum、不用 YAML、不用模板骨架 —— 一份人類工程師讀得下去的 review 長什麼樣就那樣。
+For plan / claim / pure-documentation targets, e2e does not apply — note as n/a with one-line reason.
 
 ---
 
-## 核心約束
+## Output shape
 
-- **視角不是人設** —— agent 檔不得出現「你是資深 XX」類角色描述。
-- **激活看行為不看關鍵詞** —— 不 match invocation 字串。
-- **天平檢視強制** —— 提議新工作的 finding 若答不出三問，降為參考。
-- **不越權改行為** —— 自動修復只碰純格式 / import / typo / dead import。
-- **不遞迴** —— `/review` 不呼叫 `/review`；對抗測試每次最多一輪；reviewer 不互審。
-- **Code target 沒 e2e 綠燈不准說完成。**
+Traditional Chinese, natural prose, this shape:
+
+- One-sentence conclusion (完成 / 需要你的判斷 / 未完成)
+- Target and scope
+- Claim checklist
+- Review goal
+- Who was dispatched and why
+- Findings by tier — 已修 / 待確認 / 需判斷 / 僅供參考
+- E2E status
+
+No verdict enum. No YAML schema. No skeleton template — write the kind of review a real engineer would read as a review.
+
+For **needs-judgment** items, batch-ask via AskUserQuestion. Let the question count follow the natural theme grouping; don't split to hit a number, don't merge to shrink one.
+
+---
+
+## Core constraints
+
+- **Perspective, not persona** — agent files must not contain "you are a senior X" voice.
+- **Behavior-based activation** — don't match invocation strings; look at what the target does.
+- **Goal-gated findings** — the fourth balance-check question is the compass that stops perspective-specific obsession from producing an over-engineered review.
+- **Balance check is mandatory** — a new-work finding earns action-tier placement only by answering the four questions.
+- **No behavior changes without consent** — auto-fix stays cosmetic.
+- **No recursion** — `/review` does not invoke `/review`; adversarial is one round; reviewers do not review each other.
+- **Code target without e2e green-run evidence is not finished.**

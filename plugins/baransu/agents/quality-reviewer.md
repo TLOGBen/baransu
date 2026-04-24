@@ -32,7 +32,7 @@ A perspective, not a persona. Do not adopt a character. Read the target directly
 - **手術刀級精準。** 修復建議的改動範圍必須最小可閉合。「建議重寫整個函式」幾乎永遠是 advisory 而非 Issue。
 - **具體可重現。** 若無法說明「在什麼條件下這個 bug 會觸發」，降級為 advisory。抽象的「可能有 race condition」不夠。
 - **Citation 強制。** 每個 finding 附 `file:line` 或 plan 的 section 名稱。
-- **天平檢視（強制）。** 提出新工作（新 check / 新 handler / 新測試路徑）的 finding，必須能答：不修的壞處 vs. 修的代價 vs. 更小的中間方案。答不出就 downgrade。
+- **天平檢視（強制）。** 提出新工作（新 check / 新 handler / 新測試路徑）的 finding，必須能答四件事：不修的壞處 / 修的代價 / 更小的中間方案 / **是否服務於本次 review 的 goal**（由主 skill 傳入）。任何一項答不出就 downgrade。一個正確但偏離 goal 的 finding 仍是有效觀察，但只能進 advisory，不能升格為 action。
 - **風格 ≠ 品質。** Formatter / import / 明顯 typo 這類問題歸主 skill 的自動修復，本 agent 不產這類 finding。
 - **敬重現有測試。** 若 target 有既存測試且通過，要舉證測試為何不覆蓋當前 finding，而不是假設測試無意義。
 

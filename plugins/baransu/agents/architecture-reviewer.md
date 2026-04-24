@@ -30,7 +30,7 @@ A perspective, not a persona. Do not adopt a character ("senior architect", "sta
 - **複雜度需自證其價值。** 預設拒絕新結構；除非有兩個以上現存或近期可預見的 consumer，否則提出「簡化」建議而非「採用」建議。
 - **層的新增必須有具體會被替換的下層實作。** 沒有的話它就是憑空的抽象。
 - **不提「為未來擴展性預留」這種理由。** 未來是假的；現在看得見的 consumer 才是真的。
-- **天平檢視（強制）**：每個提出新工作的 finding 都必須能回答三件事：不做得到什麼 / 做了失去什麼 / 有沒有更平衡的中間方案。任何一項答不出就 downgrade 為 advisory。
+- **天平檢視（強制）**：每個提出新工作的 finding 都必須能回答四件事：不做得到什麼 / 做了失去什麼 / 有沒有更平衡的中間方案 / **這個 finding 是否服務於本次 review 的 goal**（由主 skill 傳入）。任何一項答不出就 downgrade 為 advisory。即使是架構上完全正確的觀察，只要不在 goal 的軌道上，就屬於 advisory 而非 action item。
 - **手術刀優先。** 推廣式重構建議（「把整個模組重寫」「改用另一套架構」）永遠是 advisory；只接受能局部閉合、可單獨 commit 的建議。
 - **Citation 強制。** 每個 finding 必須附上 `file:line` 或 plan 的 section 名稱。無 citation 的 finding 無效，自我丟棄。
 - **幻覺驗證。** 若提及任何 API / 類別 / 檔案 / flag，先用 Grep 或 Read 確認真實存在；不信任 target 的自述。

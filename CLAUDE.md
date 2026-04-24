@@ -50,16 +50,17 @@ Task-analyst + dispatcher. Re-verifies any model output — code diff, file set,
 
 Key design properties to preserve when editing `review/SKILL.md` or the three agent files:
 
-- **Principle-led, not rule-enumerated.** SKILL.md is ~155 lines of flow + principles, not a legalistic contract. When tempted to add an iron rule, a "What /review is NOT" disclaimer, a verdict enum, or a numeric cap (e.g. "≤4 questions"), first check whether it's defending against a real failure or the author's own anxiety. Most additions lose against the spec's core line: **"複雜度需要證明自己的價值"**.
-- **Main skill is pure orchestrator.** No per-perspective review rubric lives in `skills/review/SKILL.md`; those live in `agents/*-reviewer.md`. Main skill owns only: flow, dispatch, triage.
-- **Agents are perspectives, not personas.** Every `agents/*-reviewer.md` uses `視角 / 目標 / 通用原則 / 禁忌`. Role-play descriptions ("you are a senior …") are banned; they induce hallucination. The spec asked for the first three — the 禁忌 fourth section earns its place only as a lane-keeper between agents.
-- **Activation looks at target behavior, not invocation keywords.** Dispatch decisions depend on what the target actually does (opens a socket, persists data, writes to disk, has cross-layer change, is a plan document) — never on strings in the user's invocation text.
-- **Auto-fix is cosmetic-only.** Formatter / imports / typo / dead-import. Anything semantic — control flow, boundaries, API, state — goes to packaged confirm or needs-judgement.
-- **Balance check is mandatory.** Every new-work finding must pass the 不做 / 做 / 中間方案 trio. Failing findings downgrade to advisory. This is the load-bearing principle — surgical precision over ceremony.
-- **E2E hard gate** for code targets: no in-session green-run evidence → results say "not finished, e2e pending".
-- **繁體中文 user-facing output; English agent-facing body.** Same convention as `/think`.
+- **English body, 繁體中文 output.** SKILL.md body is agent-facing English; every user-visible string (headings, questions, report sections) is 繁體中文. Same convention as `/think`. Writing the body in 繁中 is a regression — catch and revert.
+- **Goal input is load-bearing.** The main skill derives a one-sentence 繁中 **review goal** in Stage 1 alongside the claim checklist, and passes both to every dispatched reviewer. Without the goal, well-meaning perspectives each find their own zone's issues regardless of relevance and the review bloats. With the goal, the fourth balance-check question — 「是否服務於 goal」 — downgrades off-topic findings to advisory, even when the finding itself is correct. This is the mechanism the skill's own dogfood session exposed as missing; deleting it is a regression.
+- **Principle-led, not rule-enumerated.** SKILL.md is ~165 lines of flow + principles, not a legalistic contract. When tempted to add an iron rule, a "What /review is NOT" disclaimer, a verdict enum, or a numeric cap (e.g. "≤4 questions"), first check whether it's defending against a real failure or the author's own anxiety. Most additions lose against the spec's core line: **「複雜度需要證明自己的價值」**.
+- **Main skill is pure orchestrator.** No per-perspective review rubric lives in `skills/review/SKILL.md`; those live in `agents/*-reviewer.md`. Main skill owns: flow, dispatch, goal derivation, triage.
+- **Agents are perspectives, not personas.** Every `agents/*-reviewer.md` uses `視角 / 目標 / 通用原則 / 禁忌`. Role-play descriptions ("you are a senior …") are banned — they induce hallucination. The original spec asked for the first three; the 禁忌 fourth section earns its place only as a lane-keeper between agents.
+- **Activation looks at target behavior, not invocation keywords.** Dispatch decisions depend on what the target actually does (opens a socket, persists data, crosses layers, is a plan document) — never on strings in the user's invocation text.
+- **Auto-fix is cosmetic-only.** Formatter / imports / typo / dead-import. Anything semantic — control flow, boundaries, API, state — goes to packaged confirm or needs-judgment.
+- **Balance check is mandatory, with four questions.** Every new-work finding must answer: 不做 / 做 / 中間方案 / **是否服務於 goal**. Failing any one downgrades to advisory.
+- **E2E hard gate** for code targets: no in-session green-run evidence → results say 「未完成，等 e2e」.
 
-When iterating: keep `review/SKILL.md` lean (currently 155 lines). If a new iron rule or disclaimer section feels like an obvious addition, that's usually the moment to resist — the pre-v0.3.0 version of this skill ballooned to 271 lines through exactly that pattern before being cut back.
+When iterating: keep `review/SKILL.md` lean. If a new iron rule or disclaimer section feels like an obvious addition, that is usually the moment to resist — this skill has already been through one cycle of ballooning to ~270 lines via exactly that pattern before being cut back. The opposite trap is cutting too aggressively and leaving load-bearing mechanisms (like the goal input) implicit; that produced perspective drift the first time around. The safe posture: anything that earns its place on the spec's core principle of **「複雜度需要證明自己的價值」** stays; anything that doesn't, cuts.
 
 ## Install Flow (for testing locally)
 
