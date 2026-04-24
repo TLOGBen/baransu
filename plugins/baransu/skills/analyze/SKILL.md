@@ -284,13 +284,25 @@ If after auto-correction findings are still substantial (not just wording), paus
 
 ## Stage 7 — Handoff
 
-List all generated files with their paths. Then:
+List all generated files with their paths. Then call `AskUserQuestion`:
 
-**If an execute skill is available**, pass the spec directory:
+```
+question: "spec 完成。接下來怎麼做？"
+header:   "下一步"
+options:
+  1. label: "送 /review 再決定 【推薦】"
+     description: "用 /baransu:review 對完成的 spec 文件做整體品質複審，review 完成後再決定執行方式。"
+  2. label: "直接交接 execute（完全授權）"
+     description: "找出 execute skill 並傳入 spec 目錄路徑，自主執行，不再過問使用者。"
+  3. label: "手動決定"
+     description: "列出 spec 路徑，讓使用者自行決定下一步（新 session 逐一執行，或呼叫 execute）。"
+```
 
-「spec 完成，路徑：`.claude/analyze/{date}-{slug}/`。正在交接給 execute，task 執行順序請參考 task-*.md 的 group 順序。」
+**Option 1 — 送 /review 再決定.** Invoke `/baransu:review` on the generated spec files. Review goal: 「確認五層 spec 的品質與一致性，找出任何可能影響執行的遺漏或矛盾」. After review, the user naturally loops back to this gate.
 
-**If no execute skill is detected**, prompt the user:
+**Option 2 — 直接交接 execute（完全授權）.** Find the execute skill and pass the spec directory path. Execute autonomously without asking the user for further confirmation.
+
+**Option 3 — 手動決定.**
 
 「spec 已完成，路徑：`.claude/analyze/{date}-{slug}/`
 
@@ -303,7 +315,7 @@ List all generated files with their paths. Then:
 ## Constraints
 
 - Do not write production code, scaffolding, or config files during Stages 1-6. The only output is the five spec documents.
-- Do not call `/review` from within this skill. Cross-layer subagents answer alignment questions ("are these two layers consistent?"), not per-layer quality questions ("what's wrong with this layer?"). These are different questions.
+- Do not call `/review` from within Stages 1-6. Cross-layer subagents answer alignment questions ("are these two layers consistent?"), not per-layer quality questions ("what's wrong with this layer?"). These are different questions. Stage 7 may offer /review as a handoff option — that is a post-spec quality check, not an in-spec alignment check.
 - Auto-correction is one round. No silent looping.
 - `goal.md` and `requirement.md` are user-intent layers. Do not modify their semantics during auto-correct. Only design / test / task layers are auto-correctable.
 - Never invent requirement numbers. Every `REQ-XXX` reference in task files must have a matching entry in `requirement.md`.

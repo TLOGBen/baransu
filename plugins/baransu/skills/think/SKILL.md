@@ -99,7 +99,7 @@ C. Official-first check  — framework-native / stdlib / well-maintained lib
 D. Premise validation    — pwd, existing ADRs, prior art
 E. Attack + complexity   — self-refute; file-count & component-count grading; deps list
 F. Final plan            — the five-section schema
-G. Approval              — AskUserQuestion with three fixed options
+G. Approval              — AskUserQuestion with four options; downstream is /dev (small) or /analyze (medium-large)
 ```
 
 Do **not** read any files, run any shell commands, or fetch any URLs before Stage A completes. The whole point of Stage A is to close the gap between Claude's understanding and the user's intent. Touching the codebase first anchors you to what's already there instead of what the user actually wants.
@@ -268,36 +268,43 @@ Produce **exactly** this structure, in 繁體中文, with these exact section ti
 
 ## Stage G — Approval (the three-way gate)
 
-After the plan is presented, call `AskUserQuestion` with these three options. Keep the labels short and stable — same wording every invocation, so they're predictable to the user and cache-friendly.
+After the plan is presented, call `AskUserQuestion` with these four options. Keep the labels short and stable — same wording every invocation, so they're predictable to the user and cache-friendly.
 
 ```
 question: "要怎麼處理這份計畫？"
 header:   "決定"
 options:
-  1. label: "批准實作 【推薦】"
-     description: "接受這份計畫；接下來我會找出最適合接手實作的 skill，摘要重點並直接交接過去。"
-  2. label: "還有地方要對焦"
+  1. label: "送 /review 再決定 【推薦】"
+     description: "先用 /baransu:review 對這份計畫做獨立複審，review 完成後再決定是否批准實作。"
+  2. label: "批准實作（完全授權）"
+     description: "接受這份計畫；接下來我會找出最適合接手實作的 skill，摘要重點並直接交接過去。執行過程中自主判斷，不再過問使用者。"
+  3. label: "還有地方要對焦"
      description: "某一節沒收斂；我會再用 AskUserQuestion 問你具體是哪一部分，然後只帶著你指出的修正重新提案（不重跑整個流程）。"
-  3. label: "放棄"
+  4. label: "放棄"
      description: "整個方向不對或不想做了；結束 /think，不交接。"
 ```
 
 ### Handling each choice
 
-**Option 1 — 批准實作.** You are done with the deliberation phase. Do two things:
+**Option 1 — 送 /review 再決定.** Invoke `/baransu:review` on the five-section plan. Derive the review goal from the user's invocation context (typically: 「確認這份計畫邏輯自洽、沒有設計矛盾、KD 無遺漏 unknown」). After /review presents its findings: if findings point to substantive gaps — missing decisions, logic contradictions, underspecified Unknowns — treat them as Option 3 input and revise the affected section with the finding folded in, then re-present this gate. If findings are advisory or minor, return to this gate and let the user choose Option 2 or 3. The full loop is: `/think → /review → /think (revision) → gate → downstream`.
 
-1. Scan the available skills (the list shown to you at session start) and identify which one is most naturally the implementer of the approved plan. Typical candidates: an `execute`/`implement` skill, a code-writing skill, a TDD skill, a migration skill. If none clearly fits, say so — 「沒有完美接手的 skill，建議直接進入手寫實作」.
-2. Produce a one-paragraph **handoff summary** in 繁體中文: what was approved, the key constraints, the first concrete step of implementation. Then immediately invoke (or recommend invoking) that skill with this summary as its input. Do not re-discuss the plan — it's approved.
+**Option 2 — 批准實作（完全授權）.** You are done with the deliberation phase. Do two things:
 
-**Option 2 — 還有地方要對焦.** Call `AskUserQuestion` again, asking which specific part isn't right (Building? a decision? a constraint?). When the user answers, **restart only the affected stage** with the user's new constraint folded in. Do *not* run Stage A → G from scratch. Open the re-proposal with one sentence: 「本次修改了 X 假設/約束，因此 Y 和 Z 有調整」 so the diff is visible.
+1. Identify the downstream skill based on task size:
+   - **Small task** (single module, no cross-module dependencies, fits one session): invoke `/baransu:dev`.
+   - **Medium-to-large task** (spans ≥2 interdependent modules, context-rot risk): invoke `/baransu:analyze`.
+   - If neither skill is available, say so — 「沒有完美接手的 skill，建議直接進入手寫實作」.
+2. Produce a one-paragraph **handoff summary** in 繁體中文: what was approved, the key constraints, the first concrete step of implementation. Immediately invoke the identified skill with this summary as its input. Execute autonomously; do not ask the user for further confirmation during implementation unless a destructive or irreversible action arises.
 
-**Option 3 — 放棄.** End the skill. Don't argue. Don't offer a simplified version. If the user later returns with a different angle, that's a fresh `/think`.
+**Option 3 — 還有地方要對焦.** Call `AskUserQuestion` again, asking which specific part isn't right (Building? a decision? a constraint?). When the user answers, **restart only the affected stage** with the user's new constraint folded in. Do *not* run Stage A → G from scratch. Open the re-proposal with one sentence: 「本次修改了 X 假設/約束，因此 Y 和 Z 有調整」 so the diff is visible.
+
+**Option 4 — 放棄.** End the skill. Don't argue. Don't offer a simplified version. If the user later returns with a different angle, that's a fresh `/think`.
 
 ---
 
 ## When the user rejects a proposal mid-flow (not via Option 2)
 
-If the user pushes back in free text instead of using Option 2 — same rules apply. Never restart from Stage A.
+If the user pushes back in free text instead of using Option 3 — same rules apply. Never restart from Stage A.
 
 - Ask: 「哪個部分不符合預期？」 — force them to name a specific section.
 - Come back with a narrower proposal. Lead with: 「本次修改了哪個假設或約束」 so they see the delta.
@@ -319,7 +326,7 @@ Do not loop more than 3 re-proposals on the same plan. If the third is also reje
 
 - **Ghost unknowns.** An `Unknowns` section full of bureaucratic placeholders ("scaling strategy: TBD", "monitoring: TODO") is worse than an empty one. If an unknown doesn't have (a) a specific question, (b) a reason it can be deferred, (c) a person/time to resolve it — it doesn't belong in Unknowns, it belongs back in Key decisions and unresolved.
 
-- **Approval drift.** The user says "looks good, go ahead" in free text instead of picking Option 1 via `AskUserQuestion`. Accept it, but say: 「收到，把這當成 Option 1 批准實作」 so there's a clear recorded moment. The three-option gate is the audit trail.
+- **Approval drift.** The user says "looks good, go ahead" in free text instead of picking an option via `AskUserQuestion`. Accept it, but say: 「收到，把這當成批准實作（完全授權）」 so there's a clear recorded moment. The four-option gate is the audit trail.
 
 - **"Can we just add X?" during Stage F.** Users often want to tack on one more thing after seeing the plan. If it's small and fits, fine — fold it into Building and note it in Key decisions. If it's a real extension (new file, new decision), treat it as Option 2 (還有地方要對焦) and re-propose.
 
