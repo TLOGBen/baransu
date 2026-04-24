@@ -1,7 +1,7 @@
 {
   "name": "baransu",
-  "version": "0.1.8",
-  "description": "バランス — governance skills that balance thinking and execution. Ships /think (align-research-approve before code), /review (multi-perspective isolated re-verification of model output), /analyze (goal-anchored spec builder for medium-to-large tasks), and /dev (gate-enforced TDD executor for small tasks).",
+  "version": "0.1.9",
+  "description": "バランス — governance skills that balance thinking and execution. Ships /think (align-research-approve before code), /review (multi-perspective isolated re-verification of model output), /analyze (goal-anchored spec builder for medium-to-large tasks), /dev (gate-enforced TDD executor for small tasks), and /write (bilingual zh/en copywriting assistant with Refine and Generate modes).",
   "author": {
     "name": "ben.tsai",
     "email": "ben.tsai@hy-tech.com.tw"

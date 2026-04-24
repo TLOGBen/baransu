@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Intent
 
-`baransu` is a Claude Code **plugin marketplace** distributing one governance-focused plugin, also named `baransu`. The plugin's theme is バランス ("balance") — forcing alignment and approval before execution, and surgical multi-perspective verification after. Currently ships four skills: `/think` (deliberate before building), `/review` (independent multi-perspective re-verification of any model output), `/analyze` (goal-anchored spec builder for medium-to-large tasks), and `/dev` (gate-enforced TDD executor for small tasks).
+`baransu` is a Claude Code **plugin marketplace** distributing one governance-focused plugin, also named `baransu`. The plugin's theme is バランス ("balance") — forcing alignment and approval before execution, and surgical multi-perspective verification after. Currently ships five skills: `/think` (deliberate before building), `/review` (independent multi-perspective re-verification of any model output), `/analyze` (goal-anchored spec builder for medium-to-large tasks), `/dev` (gate-enforced TDD executor for small tasks), and `/write` (bilingual zh/en copywriting assistant).
 
 ## Actual Layout
 
@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 plugins/
   baransu/
     .claude-plugin/
-      plugin.json              # plugin manifest (v0.1.7)
+      plugin.json              # plugin manifest (v0.1.9)
     skills/
       think/
         SKILL.md               # governance skill — align/research/approve before code
@@ -24,6 +24,8 @@ plugins/
         SKILL.md               # governance skill — goal-anchored spec builder for medium-to-large tasks
       dev/
         SKILL.md               # governance skill — gate-enforced TDD executor for small tasks
+      write/
+        SKILL.md               # copywriting skill — bilingual zh/en Refine + Generate assistant
     agents/
       architecture-reviewer.md # perspective agent — structural coherence, boundaries, overreach
       quality-reviewer.md      # perspective agent — claim-vs-implementation, logic, edges
@@ -99,6 +101,20 @@ Key design properties to preserve when editing `dev/SKILL.md`:
 - **/review only on success.** If the session ends on a failure path, do not invoke /review — there is nothing to review. Review goal = task goal sentence; claim checklist = the task list.
 - **Downstream of /think.** /think → /dev is the small-task pipeline. /think → /analyze is the medium-large pipeline. /dev does not read `/analyze`'s task-*.md files — that is the future `/execute` skill's job.
 
+### `/baransu:write` — bilingual copywriting assistant (zh/en)
+
+Accepts a language prefix (`zh`/`en`) or auto-detects from content. Classifies input as Refine (existing text → Before/After with rule annotations) or Generate (request prompt → finished piece with format/tone note). Applies embedded rule sets: zh uses sparanoid compact rules (spacing, punctuation, numbers, proper nouns); en uses four core English copywriting rules (Oxford comma, active voice, sentence length ≤25 words, parallel structure).
+
+Key design properties to preserve when editing `write/SKILL.md`:
+
+- **English body, exception output.** Unlike other baransu skills, user-visible content output is in the language specified by prefix or auto-detection, not locked to Traditional Chinese. Operational notifications (mode detected, fallback used, errors) remain Traditional Chinese. This exception must be declared in an explicit `User-facing language` section in SKILL.md — not only in frontmatter.
+- **Prefix determines both rule set and output language simultaneously.** `zh` = zh rules + zh output; `en` = en rules + en output. These cannot be set independently.
+- **Prefix-content mismatch: Refine stops, Generate continues.** If prefix language and content language differ, Refine mode reports the mismatch and asks user to re-invoke; Generate mode is unaffected (prefix determines output language of the generated piece, not the language of the request prompt).
+- **Mode detection: refine keyword + existing body beats imperative tone.** If input has request-tone phrasing but also contains a refine keyword (潤色/改寫/修改/revise/edit) paired with existing text, Refine wins. Uncertainty defaults to Generate (cost of generating is lower than silently discarding user content).
+- **Vague topic fallback in Generate: topic ambiguous, not format absent.** Fallback (short prose 3–5 sentences + notification) fires when the topic itself is too vague to proceed, not when format keywords are absent. Format-keyword absence silently defaults to short prose via the detection table's catch-all row.
+- **zh rule set: 4 sparanoid compact rules.** Spacing, punctuation, numbers, proper nouns. This is one rule beyond the plan's original KD1 scope (排版/標點/數字) — the 4th rule (proper noun capitalization) was accepted as a non-destructive expansion.
+- **Single-pass only.** No iterative loop; user re-invokes for adjustments.
+
 ## Install Flow (for testing locally)
 
 ```
@@ -130,6 +146,7 @@ These come from `~/.claude/CLAUDE.md` and apply here unless this file overrides 
 
 - `/analyze` shipped in v0.1.6 — goal-anchored spec builder for medium-to-large tasks.
 - `/dev` shipped in v0.1.7 — gate-enforced TDD executor for small tasks; downstream of `/think`.
+- `/write` shipped in v0.1.9 — bilingual zh/en copywriting assistant; Refine + Generate dual-mode; language prefix controls both rule set and output language.
 - A `/execute` skill for the `/analyze` downstream is still planned — heavy orchestration, reads task-*.md spec files, injects content into subagents. Different scope from `/dev`. Final design via `/baransu:think` (dogfooding). Do not pre-scaffold it.
 
 ## What's Intentionally Absent
