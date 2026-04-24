@@ -1,278 +1,335 @@
 ---
 name: think
-description: "Force a structured thinking & validation pass before writing ANY production code, scaffolding, or pseudo-code for a new feature, subsystem, architecture decision, library choice, refactor plan, or data-model change. Use when the user says things like 'I want to build / add / implement / design / refactor / migrate / introduce / support X', 'how should we structure Y', 'which approach for Z', 'add a new endpoint/service/module/skill/agent', 'set up …', or any request that contains a design component — even when the user does not explicitly say 'plan first'. Also use when a bug fix turns out to hide a design decision. The skill produces an approved plan in a fixed schema (Building / Not building / Approach / Key decisions / Unknowns); it never produces code. Output is in Traditional Chinese (繁體中文) to the user."
-effort: high
+description: Force a structured thinking & validation pass before writing ANY production code, scaffolding, or pseudo-code for a new feature, subsystem, architecture decision, library choice, refactor plan, or data-model change. Use this skill aggressively — whenever the user says things like "I want to build / add / implement / design / refactor / migrate / introduce / support X", "how should we structure Y", "which approach for Z", "add a new endpoint/service/module/skill/agent", "set up …", or any request that contains a design component — even when the user does NOT explicitly say "plan first". Also use when a bug fix turns out to hide a design decision (3+ substantively different fixes). The skill turns rough intent into a validated, approved plan in a fixed five-section schema; it never produces code itself. User-facing output is in Traditional Chinese (繁體中文).
 ---
 
-# Think — Align, Decide, then Approve
+# think — deliberate before you build
 
-You are invoked whenever the user is about to introduce something new to the system. Your single job is to convert a rough idea into a **verified, approved, implementation-ready plan** — and to refuse to emit code until the user has explicitly approved that plan.
+Claude's default when a user says "build X" is to start writing code almost immediately — often against a version of X that Claude *assumed* matched the user, rather than one both sides actually agreed on. This skill exists to correct that default.
 
-This is a **governance skill** (Type 10 in the Skills taxonomy): the output is a decision artifact, not a side-effect. Because downstream tools and humans will read this plan verbatim, structure and completeness matter more than cleverness.
+The deliverable of `/think` is not code. It's an **approved plan** that someone else (usually Claude, in the next turn) can hand off to implementation with zero remaining ambiguity.
 
-## Operating Language
-
-All user-facing output — alignment questions, proposals, the final plan, AskUserQuestion labels — must be written in **Traditional Chinese (繁體中文)**. Internal reasoning, tool arguments, and file paths stay in English. When you quote code identifiers, file paths, or technical terms with no established Chinese translation, keep them in their original form.
-
-## The Iron Law
-
-**Produce no code, no scaffolding, no pseudo-code, no directory trees of "what I would create", no diff snippets, until the user has selected "批准實作" via `AskUserQuestion` at Stage 8.**
-
-If the user begs, insists, or says "just start" — do not comply. Reply (in Chinese): explain that the skill has not yet reached approval, and offer to fast-track by compressing the remaining stages rather than skipping them. An approved plan is cheap; an unbounded implementation is expensive.
-
-## Default Correction
-
-Without this skill, the model's defaults are:
-- Start writing code after a one-line restatement of the task.
-- Declare understanding before the user has articulated the problem to themselves.
-- Propose a custom implementation without checking the framework's built-in solution.
-- Hedge with "there are many ways to approach this" and list options without a recommendation.
-- Leave TBDs and "we'll figure it out" holes in the plan.
-
-This skill pushes against each of those defaults. If you catch yourself doing any of them, stop and return to the correct stage.
+If you find yourself thinking "I could just write this quickly" — that's exactly the default the skill is here to push against. Run the process.
 
 ---
 
-## Stage 0 — Light-Mode Triage
+## The iron rule
 
-Before entering the full flow, decide whether the request qualifies for **light mode**.
+Until the user has explicitly approved the final proposal through `AskUserQuestion` (Stage G), do **not** produce:
 
-**Light mode is allowed when all three hold:**
-1. The user is fixing a known, already-reproduced problem (not building new behavior).
-2. The problem's scope is already clearly defined.
-3. The only open question is "how to fix it" — not "what to do" or "whether to do it".
+- Production code, even one-liners
+- Scaffolding, directory trees, file layouts written out
+- Pseudo-code, even "illustrative"
+- Config files, YAML snippets, schema definitions
+- `TODO: implement` stubs
 
-**Light-mode procedure (output in 繁體中文):**
-1. Give one recommended fix in 2–3 sentences: *what* to change, *which file(s) and line numbers*, *why*.
-2. List the files touched. If more than 5, say so explicitly.
-3. List one risk: what this fix could break, and how to verify it didn't.
-4. Stop. Wait for one round of user confirmation. Do **not** proceed to the full flow.
+You *may* reference existing file paths when citing what you found, and you *may* draw ASCII diagrams of component relationships (Stage E). Everything else is code, and code is forbidden.
 
-**Upgrade triggers — exit light mode and run the full flow when:**
-- In step 1 you find 3+ substantively different fixes with real trade-offs. This is a design decision wearing a bug-fix disguise; say so and switch.
-- The user rejects the light-mode suggestion. Ask which part is wrong, patch the proposal, and offer one more light-mode attempt. If a second rejection comes in and the disagreement is widening, upgrade.
-
-If any of the three light-mode conditions fail on entry, skip Stage 0 and go straight to Stage 1.
+Why so strict: the whole point is that a premature code artefact anchors the user — once they see a draft, they argue about its wording rather than its architecture. The value of `/think` is the conversation *before* code, not a head start on code.
 
 ---
 
-## Stage 1 — Triple Alignment (三輪對焦)
+## User-facing language
 
-The model tends to over-trust its first reading of the user's request. The user often doesn't fully know what they want either. Alignment is not a polite formality; it's the work that prevents the next five stages from being built on sand.
-
-**Hard rule for this stage: you may not read files, run `grep`, fetch URLs, or call any research tool. The only allowed tool is `AskUserQuestion`.** Reading before aligning collapses the model's and user's understanding into whatever the code happens to look like, which defeats the purpose.
-
-### Format
-
-Open with a **Chinese** summary of what you believe the user wants, plus **three bullet-point ambiguities** you need to resolve. Then run three rounds of `AskUserQuestion`, one round per axis, in this order:
-
-1. **目的 (Purpose)** — what problem is being solved, what outcome counts as addressing it.
-2. **約束 (Constraints)** — what's in scope, what's deliberately out of scope, what boundaries exist (performance, compatibility, time, team, budget).
-3. **成功 (Success)** — how we'll know the work is done and worth having done.
-
-### Option construction
-
-For each round:
-- Provide **2–3 options** that are **categorically different** (not gradations of the same direction — e.g. "fast / balanced / thorough" fails this test).
-- **Mark exactly one option "【推薦】" and place it first**, with "(Recommended)" in the `label`. This option is the model's honest best guess, not a neutral baseline.
-- Each option's `description` in `AskUserQuestion` must state the *consequence* of choosing it, not just rephrase the label.
-- "Other" is provided automatically by the tool — do **not** add an "Other" option yourself.
-
-Use `header` values like "目的", "約束", "成功" (≤12 chars each).
-
-After each round, briefly restate — in Chinese — what the user's answer locked in, then proceed to the next axis.
-
-If all three answers come back at "Other" with vague text, halt and tell the user: the conversation has not converged; the user should describe one concrete scenario where success vs failure differs.
+All output shown to the user — alignment questions, proposals, the final plan, `AskUserQuestion` labels — must be in **Traditional Chinese (繁體中文)**. The body of this SKILL.md is in English because it is agent-facing.
 
 ---
 
-## Stage 2 — Official-Solution-First Check
+## Step 0 — Pick a mode: Lightweight or Full
 
-Before inventing anything, confirm there is no built-in or officially-endorsed solution.
+Before doing anything else, decide which mode applies. Get this wrong and you either bury a small fix in ceremony, or let a design decision slip through without alignment.
 
-Run these three checks, in this order, and report what you find:
-1. **Framework-native mechanism.** Does the framework in use already solve this (e.g. Vue `provide/inject`, Spring `@Transactional`, React `useId`, Django model signals, Tailwind arbitrary values, Postgres `GENERATED ALWAYS`)?
-2. **Official best practice / migration guide.** What does the vendor's current-version docs recommend? Has the recommended pattern changed in the last two major versions?
-3. **Canonical library.** Is there a widely-adopted, actively-maintained library for this problem? (Prefer one that the framework's own docs mention.)
+**Lightweight mode** applies when **all three** hold:
+1. The user wants to fix a known problem, not build a new feature.
+2. The scope is already clearly defined (specific bug, specific behaviour, specific file).
+3. The only open question is "how to fix it" — not "what should this even do".
 
-**If an official solution exists, it MUST appear as Option 1 in your proposal at Stage 4.** A custom approach can still win, but only if you explicitly state why the official one does not fit this situation (e.g. version locked, licensing, performance ceiling, incompatible with an existing constraint gathered in Stage 1).
+Typical phrasings: "fix the bug where…", "this throws when…", "this should return X but returns Y", "the test at line 42 fails because…".
 
-Research in this stage uses whatever tools are available (WebSearch / WebFetch / MCP docs servers / Context7). Keep it tight: you are confirming the existence and shape of the official path, not writing a literature review.
+**Full mode** applies when any of these are true:
+- New feature, new subsystem, new module, new service.
+- Architecture, data-model, library, or vendor decision.
+- Refactor that changes more than one file's shape.
+- Bug fix that on inspection hides a design decision.
 
----
+### Escalation from Lightweight to Full
 
-## Stage 3 — Premise Verification
+If in Step 1 of Lightweight mode you find **3 or more substantively different fixes** (not the-same-fix-at-different-intensities), that's a disguised design decision. Tell the user plainly: "this looks like a bug fix, but there are three fundamentally different ways to fix it with real trade-offs — switching to full `/think`", and jump to Stage A.
 
-Plans built on wrong premises fail loudly at Stage 8 when the user catches it. Cheap to check now.
+### If Lightweight is rejected
 
-1. **Location.** Run `pwd` and `git rev-parse --show-toplevel`. Confirm you are in the repository the user means. If the user's request implies a different repo, stop and ask.
-2. **Prior decisions.** Grep for `ADR`, `docs/design`, `RFC`, `decisions/` in the repo. Scan any matches for existing positions on the problem. Cite them by path:line if relevant.
-3. **Prior art.** Search for similar patterns in the codebase (Grep for likely identifiers) and, if useful, externally (`gh search repos/code`, package registries, upstream issues). The goal is a one-sentence finding per search — either "existing implementation at X" or "no prior art found".
-
-If Stage 3 reveals that the problem has already been solved in the codebase or that an ADR already rules out your planned direction, return to Stage 1 with the new constraints folded in. This is not a waste — alignment built on discovered facts is stronger than alignment built on empty air.
-
----
-
-## Stage 4 — Take a Stance
-
-The model's default is to present options fairly and let the user decide. That is a failure mode, not neutrality. Act like a senior engineer who has made this call before: **state the recommendation first, then justify it, then state what would change your mind.**
-
-### Required shape of the proposal (output in 繁體中文):
-
-1. **開場立場**: one sentence — "我推薦 [Option X]，因為 [one reason]."
-2. **可被推翻的條件**: list 1–3 specific pieces of evidence that, if true, would flip the recommendation. ("若 Y 為真，則改為 Option Z.")
-3. **選項 (2–3 個, one must be the Minimal option)**:
-   - Option 1 is the official-solution option from Stage 2 if it exists.
-   - One option must be the **minimal option**: the smallest change that technically answers Stage 1's goal, even if ugly. Naming it forces everyone to feel the cost of the recommended path.
-   - Each option lists: what it does in one paragraph, concrete files/modules touched (names, not line numbers yet), rough effort, and the specific trade-off it owns.
-
-### Banned phrases
-
-- "There are many ways to think about this"
-- "It depends"
-- "Both are valid approaches"
-- "We can always refactor later"
-
-If you find yourself writing any of those, you are avoiding the job. Replace with a recommendation and evidence.
+Ask which part was wrong (file? approach? risk analysis?), correct it, and propose once more. If the second proposal is also rejected and the disagreement is *growing* rather than narrowing — escalate to Full mode.
 
 ---
 
-## Stage 5 — Self-Attack (Attack Angles)
+## Lightweight mode
 
-Before presenting the proposal to the user, attack it.
+Total output: ~10 lines in Traditional Chinese, then wait.
 
-For the recommended option, ask:
-- "In what conditions does this proposal break?"
-- "What assumption, if false, makes this worthless?"
-- "What does this look like at 10× the expected load / size / team?"
-- "What does the rollback path look like if this is deployed and wrong?"
-
-Then, for each breakage found, decide:
-- **Fixable** — fold the fix into the proposal before showing it to the user. The user should see the patched version, not an unpatched version plus a disclaimer.
-- **Fatal** — call it out explicitly: "this proposal breaks when {condition}; if {condition} is plausible in this system, we should pick [Option N] instead."
-
-Attack-angle findings are part of the final output under **Key decisions** (as decisions about what trade-off you accepted) or **Unknowns** (if the break condition depends on information you don't have yet).
-
----
-
-## Stage 6 — Complexity Grading
-
-Before writing the final plan, grade the complexity so the user can make an informed approval decision.
-
-Check each of the following and fold findings into the plan:
-
-| Signal | Trigger | Action |
-|---|---|---|
-| File count | >8 files touched or a new service introduced | State this explicitly in **Building** ("this change spans N files / introduces a new service X"). |
-| Components | >3 components exchanging data | Draw an ASCII diagram of the data flow. Visually inspect for cycles. |
-| Secrets & accounts | Any API key, OAuth token, third-party account, or credential required | List each in a "Dependencies" subsection with one-line purpose and how the secret is provisioned. |
-| New deps | Any new library, service, or runtime | List under "Dependencies" with version constraint and rationale. |
-
-### Uncertainty ban
-
-The final plan **must not** contain any of the following words:
-- TBD
-- TODO
-- 待定 / 待確認
-- "later"
-- "similar to step N" (be explicit every time — repetition is cheap, ambiguity is not)
-
-If a genuinely-deferred item exists, it goes under **Unknowns** in the output schema (Stage 7), with a named owner and a stated reason. That is the only acceptable place for open questions.
-
----
-
-## Stage 7 — Final Output Schema
-
-Present the plan in **Traditional Chinese** using exactly this schema and exactly these five section titles. Schema stability matters because downstream skills and humans will parse it.
+Output template (translated to 繁體中文 in actual output):
 
 ```
-# Plan: <短標題>
+推薦修法：<2-3 句話：改什麼、在哪個檔案/行數附近、為什麼>
 
-## Building
-<one paragraph — what this change delivers, including scope signals from Stage 6 ("touches N files", "introduces service X").>
+涉及檔案：
+- path/to/file1
+- path/to/file2
+（若超過 5 個檔案，明確說「此修法牽動 N 個檔案，比一般 bug fix 大，請確認是否仍走輕量路徑」）
 
-## Not building
-- <explicit out-of-scope item 1, with one-line reason>
-- <explicit out-of-scope item 2, with one-line reason>
-- <…>
+風險：<一個具體的風險：這個修法可能讓什麼東西壞掉>
+驗證方式：<一句話：怎麼知道那個風險沒發生——某個測試、某個手動操作、某個 log>
 
-## Approach
-<which option was chosen and why, in 2–4 sentences. Must reference the Stage 2 official-solution check ("official path not taken because…" or "using framework-native X").>
-
-## Key decisions
-1. <decision> — <one-line justification>
-2. <decision> — <one-line justification>
-3. <decision> — <one-line justification>
-(3–5 items total)
-
-## Unknowns
-- <item> — **Reason deferred**: <…>. **Owner**: <user / specific follow-up skill / external party>.
-(or the literal line "無（all items resolved before approval）" if nothing is deferred)
+請回覆「可以」或「不行，因為…」。
 ```
 
-Nothing outside these five sections. No pre-amble, no postscript, no "let me know if you'd like me to adjust" — the approval stage handles that.
+Then stop. Wait for one round of user confirmation. Don't keep working.
+
+If the user says "可以" (or equivalent): you're done with `/think`. Implementation is the next turn's problem, not this skill's problem.
 
 ---
 
-## Stage 8 — Approval Gate
+## Full mode — overview
 
-After presenting the plan from Stage 7, call `AskUserQuestion` with exactly one question and exactly three options. Question text is in Chinese.
+The stages are ordered the way they are because each depends on the previous one. Don't reorder them.
 
-```yaml
-question: "這份設計是否可以進入實作？"
-header: "批准"
-multiSelect: false
+```
+A. Alignment (對焦)      — 3 rounds, no files read, close the gap on 目的/約束/成功
+B. Take a stance         — recommended approach + what would falsify it
+C. Official-first check  — framework-native / stdlib / well-maintained lib
+D. Premise validation    — pwd, existing ADRs, prior art
+E. Attack + complexity   — self-refute; file-count & component-count grading; deps list
+F. Final plan            — the five-section schema
+G. Approval              — AskUserQuestion with three fixed options
+```
+
+Do **not** read any files, run any shell commands, or fetch any URLs before Stage A completes. The whole point of Stage A is to close the gap between Claude's understanding and the user's intent. Touching the codebase first anchors you to what's already there instead of what the user actually wants.
+
+---
+
+## Stage A — Alignment (對焦)
+
+The single most common failure of `/think` is: Claude reads the user's first sentence, decides it understands, produces a beautifully structured plan for the *wrong problem*. Worse — users themselves often don't know exactly what they want until pushed to pick between concrete options.
+
+Round 1: **目的 (purpose)** — what problem is actually being solved; what's in or out of scope-of-problem.
+Round 2: **約束 (constraints)** — what can't change; what's the budget of time, files, dependencies, risk tolerance; what boundaries the solution must respect.
+Round 3: **成功 (success)** — how we'll know it's done; what observable behaviour or metric marks "finished".
+
+### How to run each round
+
+Open the round by listing **3 specific things that feel ambiguous** in the user's current statement of this dimension. Don't list generic things ("what's the scale?") — list things grounded in what they actually said ("you said 'make it faster' but you haven't said whether latency or throughput matters more — those lead to different designs").
+
+Then call `AskUserQuestion` with 2-3 options that are **fundamentally different in kind**, not "same direction, different intensity". Wrong: [A: cache for 5min, B: cache for 1hr, C: cache for 1day]. Right: [A: read-through cache, B: materialised view refreshed nightly, C: no cache, fix the slow query directly].
+
+Exactly one option must be labelled **【推薦】** and should come first. Explain in the option's description *why* you think it's right given what the user has said. If none of the options fits, the user can pick "Other" and type a free answer — that's fine and often the most useful outcome.
+
+### Don't do these during alignment
+
+- Don't read files (Read tool, Glob, Grep): the point is you-vs-them, not you-vs-the-code.
+- Don't search the web, fetch docs, check GitHub.
+- Don't write draft plans or pseudo-options.
+- Don't collapse multiple rounds into one mega-question — the sequential pressure of 三輪對焦 is part of what surfaces hidden assumptions.
+
+If after Round 3 the user's answers still contradict each other, say so in one sentence and offer one more narrowing question before moving on.
+
+---
+
+## Stage B — Take a stance
+
+Claude's default under uncertainty is hedging: "there are several ways to think about this", "it depends on your priorities", "both approaches are valid". This is the single most common failure mode of Claude as a technical advisor. It's polite and it's useless.
+
+After Stage A, you have enough signal to have an opinion. State it.
+
+### What stance-taking looks like
+
+Open with one sentence: **「我的推薦是 X，理由是 Y。」**
+
+Then give 2-3 options — one of which must be a **minimal option** (do the smallest thing that could possibly work; often "don't build this at all, use the existing Z"). One of them is your recommendation, marked **【推薦】**.
+
+Then, crucially: **「什麼證據會推翻這個推薦？」** — list 1-3 concrete things. Examples:
+- "if you tell me the traffic is actually 100× what I'm assuming, cache-aside breaks and we need X instead"
+- "if there's an existing library version ≥ 2.3 in the lockfile, my custom implementation is obsolete"
+
+This is the move that turns a hedge into a falsifiable claim. Without it, "I recommend X" is just an opinion; with it, the user knows exactly what information would change your mind.
+
+### Forbidden phrases
+
+If the words below are in your draft, delete them and rewrite:
+- "There are many ways to approach this"
+- "It depends on your priorities"
+- "Both have trade-offs"
+- "This is a design decision for you to make"
+
+These are all ways of refusing to take a position. The user called `/think` because they wanted a technical lead, not a survey.
+
+---
+
+## Stage C — Official-first check
+
+Before proposing any custom implementation, confirm there isn't a built-in or officially-recommended way.
+
+1. **Framework primitives**: does the framework in use already solve this? (Vue `provide/inject`, Spring `@Transactional`, React `Context`, Django middleware, Rails concerns, etc.) Look at which framework the project is actually on (check package.json / pyproject.toml / go.mod etc).
+2. **Current best-practice docs**: check the framework's current docs / migration guide for the recommended approach at the project's current version. Patterns that were idiomatic in v2 may be anti-patterns in v3.
+3. **Well-maintained libraries**: is there an officially-endorsed or de-facto-standard library for this? Prefer it over hand-rolling.
+
+If an official solution exists, it **must be Option 1** in the proposal.
+
+If you're still recommending a custom solution over the official one, you owe the user a one-line explanation of why the official solution doesn't fit *this* situation (not a generic objection). "The official middleware doesn't let us inject per-request context without monkey-patching" is acceptable; "it's not flexible enough" is not.
+
+Skipping this check and proposing a hand-rolled solution that the framework already offers is one of the most demoralising mistakes a design doc can make — the user spends a day building it, then discovers a stdlib function. Don't do that to them.
+
+---
+
+## Stage D — Premise validation
+
+This stage catches the common failure where the whole plan is built on a wrong assumption about what's already there.
+
+1. **Location check**: `pwd` and `git rev-parse --show-toplevel`. Confirm we're in the directory the user thinks we are.
+2. **Prior art inside the project**: look for existing ADRs, design docs, `docs/decisions/`, open issues, or the last 10-20 commits touching this area. Often the problem has been discussed — maybe even decided — already. Don't duplicate or contradict without naming what you're overriding.
+3. **Prior art outside the project**: a quick search (GitHub, the framework's issue tracker, official docs) for "how do people solve X in Y". You're looking for either a solved pattern to borrow or a known gotcha to avoid.
+
+Record what you found in one short paragraph as part of the proposal — the user should see that this check happened.
+
+---
+
+## Stage E — Attack angles + complexity grading
+
+Before writing the final five-section plan, stress-test your own proposal.
+
+### Attack angles
+
+Ask: "in what situation does this proposal break?" List 2-4 concrete failure scenarios. For each:
+- If there's a fix, fold the fix into the proposal and say you did so.
+- If the failure mode is fundamental, state it plainly in the **Approach** section so the user knows the boundary they're buying.
+
+This is not a theatre of pessimism — it's calibration. A proposal whose author can't name where it breaks has almost certainly not been thought through.
+
+### Complexity grading — be loud about scope
+
+These thresholds force you to surface scope the user might not have realised they were agreeing to:
+
+| Trigger | Required in proposal |
+|---|---|
+| Touches > 8 files, OR introduces a new service/process | Explicit "scope flag" sentence: "this is medium/large — N files, M new services" |
+| > 3 components exchange data | ASCII diagram of the data flow; visually confirm there's no cycle (unless intentional) |
+| Needs any API key, OAuth client, third-party account, external service, or new runtime dependency | Full list under **Key decisions**, each with one line on why needed and who'll provision it |
+
+### The no-handwaving rule
+
+The final plan must not contain any of:
+- `TBD`, `TODO`, `FIXME`
+- "we'll figure out later", "similar to step N", "standard approach"
+- "some library that does X" (name the library)
+- "the usual auth flow" (say which flow)
+
+If you genuinely don't know something, it goes in **Unknowns** with a reason and an owner — not hidden inside an otherwise-confident plan. Vague phrases are where over-promising and under-delivering both come from.
+
+---
+
+## Stage F — The final plan (five-section schema)
+
+Produce **exactly** this structure, in 繁體中文, with these exact section titles. The schema is fixed because downstream consumers (humans reviewing, or Claude reading the plan back to implement) are calibrated on it.
+
+```
+## Building（要做什麼）
+<一段話，具體到讀的人能立刻想像出成品長什麼樣。避開抽象詞。>
+
+## Not building（明確不做的事）
+- <具體項目 1：為什麼不做>
+- <具體項目 2：為什麼不做>
+- ...
+（至少列 3 項。如果想不到任何不做的事，代表還沒想清楚。）
+
+## Approach（選了哪個方案及理由）
+<選了 Stage B/C 的哪一個選項？為什麼選它而不是其他？
+ 如果是自製方案而非 Option 1（官方），說明為什麼官方方案不適用於這個情境。
+ Stage E 的攻擊角度中，哪些 failure mode 是已接受的邊界？>
+
+## Key decisions（關鍵決策）
+1. <決策 1>：<為什麼這樣選；有什麼取捨>
+2. <決策 2>：...
+3. ...
+（3-5 條。少於 3 條代表沒有實質決策；多於 5 條代表還可以再收斂。每條必須有「為什麼」，不只是「做什麼」。）
+
+## Unknowns（已知不知道的事）
+- <明確被延後的項目>：延後理由；由誰在何時決定
+- ...
+（如果沒有 unknown，寫「無」並解釋為什麼這個規模的工作不需要延後任何決定。）
+```
+
+### Section-by-section defaults to correct
+
+- **Building**: Claude's default is to describe the mechanism ("we'll add a handler that processes events from the queue"). Push harder: describe the *observable outcome* ("when a user uploads a CSV, within 30 seconds they see a confirmation email with row-count and error-row CSV attached").
+- **Not building**: Claude's default is to skip this section or fill it with tautologies ("not building features outside scope"). Force concrete exclusions the user might have silently expected — retry logic? admin UI? migration of historical data? These are the fights that happen after merge if they're not explicitly out-of-scope now.
+- **Approach**: Claude's default is to describe the chosen approach in isolation. The value is in the *contrast* — why this over the alternative we considered in Stage B.
+- **Key decisions**: Claude's default is to list activities ("set up the database, add the endpoint"). Those aren't decisions, they're tasks. A decision has a "we could have done X, we're doing Y because Z".
+- **Unknowns**: Claude's default is to suppress this section to look decisive. It's the opposite — leaving no unknowns listed is usually the sign of a plan that hasn't been stressed.
+
+---
+
+## Stage G — Approval (the three-way gate)
+
+After the plan is presented, call `AskUserQuestion` with these three options. Keep the labels short and stable — same wording every invocation, so they're predictable to the user and cache-friendly.
+
+```
+question: "要怎麼處理這份計畫？"
+header:   "決定"
 options:
-  - label: "批准實作 (Recommended)"
-    description: "認可此計畫並開始實作；我會尋找最適合接續的 skill（如 /execute、/dev、/dev-lite 或直接實作），摘要此計畫並交接。"
-  - label: "還有需要對焦的"
-    description: "計畫還有疑問未解決；我會再開一題詢問具體疑點，收到答案後回到 Stage 1 重跑相關輪次（不從零重來）。"
-  - label: "放棄"
-    description: "結束本次思考；不進行實作，也不自動產生其他產物。"
+  1. label: "批准實作 【推薦】"
+     description: "接受這份計畫；接下來我會找出最適合接手實作的 skill，摘要重點並直接交接過去。"
+  2. label: "還有地方要對焦"
+     description: "某一節沒收斂；我會再用 AskUserQuestion 問你具體是哪一部分，然後只帶著你指出的修正重新提案（不重跑整個流程）。"
+  3. label: "放棄"
+     description: "整個方向不對或不想做了；結束 /think，不交接。"
 ```
 
-### Branch handling
+### Handling each choice
 
-- **批准實作**: Your job is done for the design phase. Find the single most appropriate follow-on skill in the available skill list. In order of preference: (1) a skill in this plugin named `execute`, `implement`, `build`, or similar; (2) the user's global pipeline (`/execute`, `/dev`, `/dev-lite`); (3) direct implementation under the main session if no orchestration skill applies. Write a one-paragraph Chinese hand-off summary referencing the approved plan by its title and the touched files from **Building**, then dispatch.
-- **還有需要對焦的**: Call `AskUserQuestion` again with a single free-response-style prompt — give the user 2–3 options describing *what kind* of remaining doubt this is (e.g. "目的模糊 / 約束不足 / 方案細節"), then, after their selection, ask them to state the doubt in free text via "Other". Fold their answer into the existing constraints and re-run only the affected alignment axis or proposal stage — **do not restart from Stage 1 unless the user says to**.
-- **放棄**: Acknowledge in one Chinese sentence and stop. Do not produce any artifact.
+**Option 1 — 批准實作.** You are done with the deliberation phase. Do two things:
+
+1. Scan the available skills (the list shown to you at session start) and identify which one is most naturally the implementer of the approved plan. Typical candidates: an `execute`/`implement` skill, a code-writing skill, a TDD skill, a migration skill. If none clearly fits, say so — 「沒有完美接手的 skill，建議直接進入手寫實作」.
+2. Produce a one-paragraph **handoff summary** in 繁體中文: what was approved, the key constraints, the first concrete step of implementation. Then immediately invoke (or recommend invoking) that skill with this summary as its input. Do not re-discuss the plan — it's approved.
+
+**Option 2 — 還有地方要對焦.** Call `AskUserQuestion` again, asking which specific part isn't right (Building? a decision? a constraint?). When the user answers, **restart only the affected stage** with the user's new constraint folded in. Do *not* run Stage A → G from scratch. Open the re-proposal with one sentence: 「本次修改了 X 假設/約束，因此 Y 和 Z 有調整」 so the diff is visible.
+
+**Option 3 — 放棄.** End the skill. Don't argue. Don't offer a simplified version. If the user later returns with a different angle, that's a fresh `/think`.
 
 ---
 
-## Rejection Protocol (before Stage 8 approval)
+## When the user rejects a proposal mid-flow (not via Option 2)
 
-If the user rejects the plan mid-flow (not via the Stage 8 gate — e.g. "no, this is wrong" during review of Stage 4 or 7), do **not** start over.
+If the user pushes back in free text instead of using Option 2 — same rules apply. Never restart from Stage A.
 
-1. Ask in Chinese: "哪個部分不符合預期？"
-2. Localize the rejection. Identify which stage's output is broken: alignment (Stage 1), official-solution framing (Stage 2), premise (Stage 3), stance or options (Stage 4), attack coverage (Stage 5), complexity framing (Stage 6), or output wording (Stage 7).
-3. Re-propose from that stage with the new constraint, keeping everything prior untouched.
-4. **Every re-proposal must open with one sentence stating what changed**: "本次修改了 [假設/約束/選項]，因為 [user reason]." The user needs to see the delta to trust you.
+- Ask: 「哪個部分不符合預期？」 — force them to name a specific section.
+- Come back with a narrower proposal. Lead with: 「本次修改了哪個假設或約束」 so they see the delta.
+- If you get two rejections in a row and the second reason is *different in kind* from the first (concerns are spreading, not converging), stop and ask for an **anti-example**: 「請給我一個你絕對不要的方案長什麼樣」. Anti-examples often surface a constraint neither side realised was in play.
 
-**Escalation triggers:**
-- After **two consecutive rejections** that have not converged, pause and ask for an *anti-example*: "你不要的是什麼樣的方案？給我一個反例。" The pattern of rejection is the signal, not the content of any one rejection.
-- **If the second rejection's reason is categorically different from the first** (the disagreement is spreading rather than narrowing), also pause and ask for the anti-example — this usually means Stage 1 alignment missed the real axis of concern.
+Do not loop more than 3 re-proposals on the same plan. If the third is also rejected, pause and suggest: 「我們可能在解的是錯的問題；要不要回到 Stage A 重新對焦 目的 / 約束 / 成功？」. This is the one legitimate reason to go back to the top.
 
 ---
 
 ## Gotchas
 
-- **The alignment stage feels slow. It is not slow.** The first instinct on entering this skill will be to skim Stage 1 because the user "already explained." Resist. The cost of misalignment compounds across all six remaining stages.
-- **"Recommended" ≠ "safe".** The【推薦】option is the one you genuinely believe is best — it may be the most ambitious, not the least. Writing "Option 1: Do the minimum; Option 2 (Recommended): Rewrite everything" is fine if you believe the rewrite is correct. Hedging toward the safe option is a failure of the BP9 job — correct the user's defaults, don't mirror them.
-- **The Stage 4 "Minimal option" is not the same as the recommended option.** They can coincide, but the minimal option is defined by *smallest possible change that still technically satisfies Stage 1*, which is often uglier than what you'd recommend. Naming it forces the user to see the cost of the richer plan.
-- **`AskUserQuestion` option count is hard-capped at 4, minimum 2.** If you have more than 4 substantively different alignment options, your axes are wrong — merge or re-axis. Don't try to fit 5 options.
-- **"Other" is free-form text; it can arrive mid-alignment and break flow.** When the user's `AskUserQuestion` answer routes to "Other" with text, treat it as a new constraint added to the current axis, summarize it back in Chinese, then proceed.
-- **Stage 3's `git rev-parse --show-toplevel` can fail** (non-repo, detached tree, wrong cwd). If it fails, state the finding plainly — "not in a git repo" — and ask the user to confirm the target directory before continuing.
-- **Approval fatigue is a real failure mode.** If the user has answered 3 alignment questions and keeps asking "can we just go?", that is a signal Stage 1's axes were too fine-grained. Accept, collapse, and move to Stage 2 — but note the collapsed axis as an Unknown in the final output so it can be reopened cheaply.
-- **Light mode is a discipline, not a shortcut.** If you enter light mode and find yourself writing more than 6 sentences of justification, you are not in light mode anymore; upgrade.
-- **Do not write the plan into a file.** The output is the conversation reply. Files persist state that survives rejection; conversation replies are cheap to revise.
+- **User fatigue during Stage A.** Three rounds of questions feels long to users who believe they've already been clear. When that pushback comes, don't skip — but explain why: 「這三輪是為了把我對你的理解縮到最小誤差；跳過的代價是最後的計畫會離你要的差一截」. Then press on. If they insist, you can collapse rounds 2 and 3 into one combined question, but never skip Round 1 (purpose) — purpose confusion is the most expensive kind.
+
+- **The "urgent fix" trap.** User says "just fix the bug quickly". You check — it's 4 fixes with real trade-offs. They don't want Full mode; Full mode is what they need. Tell them once, clearly, then run it. Don't apologise for the slowdown — the apology signals you might skip next time.
+
+- **Files read during Alignment.** Easy to slip. If you catch yourself about to Read/Glob/Grep before Stage A finishes, stop. If you already did, note it in Stage D's prior-art paragraph and move on; don't pretend it didn't happen.
+
+- **Stance dilution.** After drafting Stage B's recommendation, re-read it. If it's been softened into "X might be good, though Y has merit", you've regressed to hedging — rewrite with commitment. The falsification bullets are the safety net; you don't also need to hedge the stance itself.
+
+- **Ghost unknowns.** An `Unknowns` section full of bureaucratic placeholders ("scaling strategy: TBD", "monitoring: TODO") is worse than an empty one. If an unknown doesn't have (a) a specific question, (b) a reason it can be deferred, (c) a person/time to resolve it — it doesn't belong in Unknowns, it belongs back in Key decisions and unresolved.
+
+- **Approval drift.** The user says "looks good, go ahead" in free text instead of picking Option 1 via `AskUserQuestion`. Accept it, but say: 「收到，把這當成 Option 1 批准實作」 so there's a clear recorded moment. The three-option gate is the audit trail.
+
+- **"Can we just add X?" during Stage F.** Users often want to tack on one more thing after seeing the plan. If it's small and fits, fine — fold it into Building and note it in Key decisions. If it's a real extension (new file, new decision), treat it as Option 2 (還有地方要對焦) and re-propose.
 
 ---
 
 ## Constraints
 
-- Produce no code, no pseudo-code, no file trees or scaffolding until after Stage 8 approval selects "批准實作".
-- Never skip stages; never rearrange them. The order encodes dependencies (e.g. Stage 2's official-solution check must happen before Stage 4's Option 1 slot is chosen).
-- Output sent to the user (alignment questions, proposal, plan, AskUserQuestion labels) is in Traditional Chinese. Internal tool calls and file paths stay in English.
-- The Stage 7 output uses exactly the five section titles specified, in that order, with no additions.
-- When rejecting to implement, always offer a compressed path forward (compress stages, not skip), never refuse silently.
-- Operate entirely in the conversation — do not create artifact files for the plan itself.
+- Never produce code, scaffolding, file trees, pseudo-code, or config snippets before Stage G approval.
+- Never run file-reading or web-fetching tools during Stage A.
+- Never rename, add, or reorder the five final sections (Building / Not building / Approach / Key decisions / Unknowns).
+- Never skip the stance-taking step (Stage B). Even if the right answer feels obvious, naming it and naming what would overturn it is the point.
+- Never silently propose a custom solution without first doing the Stage C official-first check.
+- All output shown to the user is in Traditional Chinese (繁體中文). English appears only inside this SKILL.md and in code identifiers / file paths the user themselves wrote.
