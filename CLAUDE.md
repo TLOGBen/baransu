@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 plugins/
   baransu/
     .claude-plugin/
-      plugin.json              # plugin manifest (v0.2.0)
+      plugin.json              # plugin manifest (v0.1.5)
     skills/
       think/
         SKILL.md               # governance skill — align/research/approve before code
@@ -42,7 +42,7 @@ Key design properties to preserve when editing `SKILL.md`:
 - **Stage ordering encodes dependencies** (e.g. Stage 2's official-solution check feeds Stage 4's Option 1 slot). Do not reorder.
 - **Type 10 governance inverts some Skills BPs**: rigid contract steps are a feature, not railroading. See `ch2-擴充Agent/02-Skills.md` Type 10 section for the rationale.
 
-When iterating on this skill, keep it under 500 lines (currently ~278) and avoid putting dynamic strings (timestamps, IDs, paths) in SKILL.md itself — they break prompt cache prefix stability.
+When iterating on this skill, keep it under 500 lines (currently 335) and avoid putting dynamic strings (timestamps, IDs, paths) in SKILL.md itself — they break prompt cache prefix stability.
 
 ### `/baransu:review` — independent multi-perspective verification
 
@@ -52,7 +52,7 @@ Key design properties to preserve when editing `review/SKILL.md` or the three ag
 
 - **English body, 繁體中文 output.** SKILL.md body is agent-facing English; every user-visible string (headings, questions, report sections) is 繁體中文. Same convention as `/think`. Writing the body in 繁中 is a regression — catch and revert.
 - **Goal input is load-bearing.** The main skill derives a one-sentence 繁中 **review goal** in Stage 1 alongside the claim checklist, and passes both to every dispatched reviewer. Without the goal, well-meaning perspectives each find their own zone's issues regardless of relevance and the review bloats. With the goal, the fourth balance-check question — 「是否服務於 goal」 — downgrades off-topic findings to advisory, even when the finding itself is correct. This is the mechanism the skill's own dogfood session exposed as missing; deleting it is a regression.
-- **Principle-led, not rule-enumerated.** SKILL.md is ~165 lines of flow + principles, not a legalistic contract. When tempted to add an iron rule, a "What /review is NOT" disclaimer, a verdict enum, or a numeric cap (e.g. "≤4 questions"), first check whether it's defending against a real failure or the author's own anxiety. Most additions lose against the spec's core line: **「複雜度需要證明自己的價值」**.
+- **Principle-led, not rule-enumerated.** SKILL.md is ~177 lines of flow + principles, not a legalistic contract. When tempted to add an iron rule, a "What /review is NOT" disclaimer, a verdict enum, or a numeric cap (e.g. "≤4 questions"), first check whether it's defending against a real failure or the author's own anxiety. Most additions lose against the spec's core line: **「複雜度需要證明自己的價值」**. The skill has a dedicated Gotchas section capturing the two symmetric traps (add-too-much / cut-too-much) this drifted into during its own construction — read it before editing.
 - **Main skill is pure orchestrator.** No per-perspective review rubric lives in `skills/review/SKILL.md`; those live in `agents/*-reviewer.md`. Main skill owns: flow, dispatch, goal derivation, triage.
 - **Agents are perspectives, not personas.** Every `agents/*-reviewer.md` uses `視角 / 目標 / 通用原則 / 禁忌`. Role-play descriptions ("you are a senior …") are banned — they induce hallucination. The original spec asked for the first three; the 禁忌 fourth section earns its place only as a lane-keeper between agents.
 - **Activation looks at target behavior, not invocation keywords.** Dispatch decisions depend on what the target actually does (opens a socket, persists data, crosses layers, is a plan document) — never on strings in the user's invocation text.
