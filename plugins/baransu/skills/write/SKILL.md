@@ -85,6 +85,8 @@ Report classification to the user in one line before proceeding:
 
 Apply the rule set for the detected language (zh rules or en rules from the embedded sets above).
 
+Also read `references/writing-principles.md` for the detected language and apply applicable style principles. When a style principle triggers a change, add a style tag to the 修正說明 (e.g., `動詞直用`、`具象優先`、`Cut filler`、`Short words`).
+
 Additionally, read context cues (salutation style, register of existing vocabulary, audience implied by content) to infer appropriate tone (formal / conversational) and adjust word choice where the rule set does not dictate a specific change. Tone adjustment is supplementary — it does not override mechanical rule application.
 
 **Output format**:
@@ -101,8 +103,8 @@ Additionally, read context cues (salutation style, register of existing vocabula
 - [規則標記]：[具體改動說明]
 ```
 
-Rule tag examples for zh: `空格規則`、`標點規則`、`數字規則`、`專有名詞`、`語氣調整`.
-Rule tag examples for en: `Oxford comma`、`Active voice`、`Sentence length`、`Parallel structure`、`Tone`.
+Rule tag examples for zh: `空格規則`、`標點規則`、`數字規則`、`專有名詞`、`語氣調整`、`動詞直用`、`「的」克制`、`具象優先`、`空洞形容詞`、`密度克制`.
+Rule tag examples for en: `Oxford comma`、`Active voice`、`Sentence length`、`Parallel structure`、`Tone`、`No stale metaphors`、`Cut filler`、`Short words`、`One idea`.
 
 If no rules were triggered and no tone adjustment is needed, output:
 > 「文字已符合規則，無需修改。」
@@ -110,6 +112,8 @@ If no rules were triggered and no tone adjustment is needed, output:
 ---
 
 ## Stage 3 — Execute: Generate path
+
+Before generating, read `references/writing-principles.md` for the detected language. Apply those principles while composing — do not generate first and revise after.
 
 **Format detection** from topic keywords in the request:
 

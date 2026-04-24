@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 plugins/
   baransu/
     .claude-plugin/
-      plugin.json              # plugin manifest (v0.1.9)
+      plugin.json              # plugin manifest (v0.2.0)
     skills/
       think/
         SKILL.md               # governance skill — align/research/approve before code
@@ -113,6 +113,7 @@ Key design properties to preserve when editing `write/SKILL.md`:
 - **Mode detection: refine keyword + existing body beats imperative tone.** If input has request-tone phrasing but also contains a refine keyword (潤色/改寫/修改/revise/edit) paired with existing text, Refine wins. Uncertainty defaults to Generate (cost of generating is lower than silently discarding user content).
 - **Vague topic fallback in Generate: topic ambiguous, not format absent.** Fallback (short prose 3–5 sentences + notification) fires when the topic itself is too vague to proceed, not when format keywords are absent. Format-keyword absence silently defaults to short prose via the detection table's catch-all row.
 - **zh rule set: 4 sparanoid compact rules.** Spacing, punctuation, numbers, proper nouns. This is one rule beyond the plan's original KD1 scope (排版/標點/數字) — the 4th rule (proper noun capitalization) was accepted as a non-destructive expansion.
+- **Writing style principles in `references/writing-principles.md`** (BP4 progressive disclosure): both Refine and Generate read this file on demand. Content follows BP9 framework — Claude's observed default deviations with before/after corrections (余光中 for zh, Orwell for en), not abstract aesthetic statements. Refine adds style tags (`動詞直用`、`Cut filler` etc.) to 修正說明 when triggered; Generate applies principles while composing, not after. Do not embed these principles in SKILL.md — they belong in references/.
 - **Single-pass only.** No iterative loop; user re-invokes for adjustments.
 
 ## Install Flow (for testing locally)
