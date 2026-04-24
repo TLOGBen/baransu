@@ -46,20 +46,20 @@ When iterating on this skill, keep it under 500 lines (currently ~278) and avoid
 
 ### `/baransu:review` — independent multi-perspective verification
 
-Stateless, user-triggered orchestrator that re-verifies any model output — code diffs, file sets, directories, /think's approved plans, bare claims — by dispatching **isolated** perspective agents in clean Task contexts and triaging findings into four tiers (safe auto-fix / packaged confirm / ask user / FYI). Deliberately **not** a pipeline gate, **not** role-play based, **not** keyword-activated.
+Task-analyst + dispatcher. Re-verifies any model output — code diff, file set, directory, /think's approved plan, a bare claim — by dispatching **isolated** perspective agents in clean Task contexts, then triaging findings into four response levels (direct fix / packaged confirm / ask user / FYI).
 
 Key design properties to preserve when editing `review/SKILL.md` or the three agent files:
 
-- **Main skill is a pure orchestrator.** No review rubric lives in `skills/review/SKILL.md`; rubrics live in `agents/*-reviewer.md`. If the main skill starts to grow its own rubric, push it down to the agent layer.
-- **Agents are perspectives, not personas.** Every `agents/*-reviewer.md` uses the fixed 4-section structure: `視角 / 目標 / 通用原則 / 禁忌`. Role-play descriptions ("you are a senior …") are explicitly banned; they induce hallucination.
-- **Activation is property-based, not keyword-based.** Dispatching a reviewer depends on target properties (has auth surface, cross-layer change, executable code, plan type, etc.), never on matching words in the user's invocation.
-- **Auto-fix blast radius is locked** to formatter / imports / typos / dead imports. Any change touching control flow / boundaries / API / logic / state must go to Tier 2 (packaged confirm). Do not expand under any circumstance.
-- **Balance check is mandatory** in Stage 6: every new-work finding must pass 不做的代價 / 做的代價 / 中間方案. Findings that fail downgrade to FYI.
-- **E2E hard gate** for code targets: if test infra is present and no green run evidence exists in-session, verdict = INCOMPLETE regardless of other findings being clean.
-- **No recursion** and **no pipeline coupling**: `/review` never invokes `/review`; adversarial test runs once; the skill never reads `flow-state.json` or emits handoff envelopes.
-- **English prose, Traditional Chinese output** — same convention as `/think`. Body of SKILL.md is agent-facing English; every user-visible artefact (claim checklist, findings, AskUserQuestion labels, final report) is 繁中.
+- **Principle-led, not rule-enumerated.** SKILL.md is ~155 lines of flow + principles, not a legalistic contract. When tempted to add an iron rule, a "What /review is NOT" disclaimer, a verdict enum, or a numeric cap (e.g. "≤4 questions"), first check whether it's defending against a real failure or the author's own anxiety. Most additions lose against the spec's core line: **"複雜度需要證明自己的價值"**.
+- **Main skill is pure orchestrator.** No per-perspective review rubric lives in `skills/review/SKILL.md`; those live in `agents/*-reviewer.md`. Main skill owns only: flow, dispatch, triage.
+- **Agents are perspectives, not personas.** Every `agents/*-reviewer.md` uses `視角 / 目標 / 通用原則 / 禁忌`. Role-play descriptions ("you are a senior …") are banned; they induce hallucination. The spec asked for the first three — the 禁忌 fourth section earns its place only as a lane-keeper between agents.
+- **Activation looks at target behavior, not invocation keywords.** Dispatch decisions depend on what the target actually does (opens a socket, persists data, writes to disk, has cross-layer change, is a plan document) — never on strings in the user's invocation text.
+- **Auto-fix is cosmetic-only.** Formatter / imports / typo / dead-import. Anything semantic — control flow, boundaries, API, state — goes to packaged confirm or needs-judgement.
+- **Balance check is mandatory.** Every new-work finding must pass the 不做 / 做 / 中間方案 trio. Failing findings downgrade to advisory. This is the load-bearing principle — surgical precision over ceremony.
+- **E2E hard gate** for code targets: no in-session green-run evidence → results say "not finished, e2e pending".
+- **繁體中文 user-facing output; English agent-facing body.** Same convention as `/think`.
 
-When iterating: keep `review/SKILL.md` under 500 lines (currently ~230); keep each agent file focused on its single perspective (~60 lines each) and resist adding cross-cutting advice — that belongs in the orchestrator.
+When iterating: keep `review/SKILL.md` lean (currently 155 lines). If a new iron rule or disclaimer section feels like an obvious addition, that's usually the moment to resist — the pre-v0.3.0 version of this skill ballooned to 271 lines through exactly that pattern before being cut back.
 
 ## Install Flow (for testing locally)
 

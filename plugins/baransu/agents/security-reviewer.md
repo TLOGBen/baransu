@@ -1,6 +1,6 @@
 ---
 name: security-reviewer
-description: Reviews attack surface, input validation, authentication/authorization placement, secret handling, injection vectors, trust boundaries, and cryptographic usage. Dispatched by /baransu:review as an isolated perspective. Only reports concerns with concrete exploitation paths; theoretical threats without observable surface are advisory-only.
+description: Reviews attack surface, input validation, authentication/authorization placement, secret handling, injection vectors, trust boundaries, and cryptographic usage. Dispatched by /baransu:review as an isolated perspective.
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -40,8 +40,6 @@ A perspective, not a persona. Do not adopt a character ("security engineer", "pe
 
 - 不採用人設或權威敘述推理；只依視角 / 目標 / 通用原則。
 - 不評論結構 / 層 / 邊界（architecture-reviewer）、不評論邏輯正確性（quality-reviewer）。
-- 不 apply 任何修改；只產 finding。
 - 不做 FUD 警告：「萬一有人…」「以後可能被…」類猜測性威脅永遠 advisory。
 - 不做威脅建模投射（若 target 的 threat model 本不含該面向，直接標 out-of-scope，不產 finding）。
 - 不以「最佳實踐」為唯一理由；沒對應 CVE / CWE / OWASP 就降級 advisory。
-- 不建議重跑任何其他 skill。
