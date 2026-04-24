@@ -216,10 +216,13 @@ If a natural task fails the above, split it.
 
 Cap at 8 group files. If work exceeds 8 groups, add `wave.md` that divides groups into Wave 1 / Wave 2 with explicit dependency notes between waves.
 
+Before writing task files, note which groups must complete before another can start. Capture this as the `前置群組` field at the top of each file.
+
 ### Task file template
 
 ```markdown
 # Tasks: {group name}
+**前置群組**：{names of groups that must finish first, or 無}
 
 ## TASK-{group}-01: {task title}
 
