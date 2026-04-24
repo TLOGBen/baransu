@@ -51,9 +51,11 @@ This is the mechanism that lets well-meaning perspectives coexist without their 
 
 | scale | configuration | adversarial |
 |---|---|---|
-| ≤ 100 LOC | one perspective (whichever fits target's nature) — quick pass | skip |
+| ≤ 100 LOC | one perspective (whichever fits target's nature) — quick pass | skip* |
 | 100–500 LOC | relevant perspectives (usually 2) | run if change crosses layers |
 | > 500 LOC | assign applicable perspectives by file spread / layer span | one round |
+
+*Any semantic risk signal (auth/session/JWT, data mutation, external API integration, payments) overrides skip and adds an adversarial pass regardless of LOC tier.
 
 On borderline cases, round up. For plan-type targets, use "independent decision points × section count" as the LOC analog.
 
@@ -83,7 +85,7 @@ Findings return in natural language (not YAML). Each must include: citation (fil
 
 ## Stage 5 — Adversarial round (conditional)
 
-Run for targets > 500 LOC or those crossing layers. One Task, six angles:
+Run after all Stage 4 Tasks have returned (not in parallel with Stage 4). Receive Stage 4 findings as inline input — list them in the adversarial reasoning context so angles 5 and 6 have concrete material to work with. Six angles:
 
 1. **Violated assumption** — what unstated premise does the target rely on? Flip one — does the target still hold?
 2. **Combinatorial failure** — which combination of inputs / events / states jointly breaks the target, even when each is fine alone?
