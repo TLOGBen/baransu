@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Intent
 
-`baransu` is a Claude Code **plugin marketplace** distributing one governance-focused plugin, also named `baransu`. The plugin's theme is バランス ("balance") — forcing alignment and approval before execution. Currently ships a single skill: `/think`.
+`baransu` is a Claude Code **plugin marketplace** distributing one governance-focused plugin, also named `baransu`. The plugin's theme is バランス ("balance") — forcing alignment and approval before execution, and surgical multi-perspective verification after. Currently ships two skills: `/think` (deliberate before building) and `/review` (independent multi-perspective re-verification of any model output).
 
 ## Actual Layout
 
@@ -14,10 +14,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 plugins/
   baransu/
     .claude-plugin/
-      plugin.json              # plugin manifest (v0.1.0)
+      plugin.json              # plugin manifest (v0.2.0)
     skills/
       think/
         SKILL.md               # governance skill — align/research/approve before code
+      review/
+        SKILL.md               # governance skill — isolated multi-perspective re-verification
+    agents/
+      architecture-reviewer.md # perspective agent — structural coherence, boundaries, overreach
+      quality-reviewer.md      # perspective agent — claim-vs-implementation, logic, edges
+      security-reviewer.md     # perspective agent — attack surface, input trust, secrets
 ```
 
 **Critical distinction**: `.claude-plugin/marketplace.json` at the repo root is the *catalog*; `plugins/baransu/.claude-plugin/plugin.json` is the *plugin manifest*. Never merge them. Component dirs (`skills/`, `agents/`, etc.) go at the **plugin root** (`plugins/baransu/`), not inside `.claude-plugin/` and not at the repo root.
@@ -37,6 +43,23 @@ Key design properties to preserve when editing `SKILL.md`:
 - **Type 10 governance inverts some Skills BPs**: rigid contract steps are a feature, not railroading. See `ch2-擴充Agent/02-Skills.md` Type 10 section for the rationale.
 
 When iterating on this skill, keep it under 500 lines (currently ~278) and avoid putting dynamic strings (timestamps, IDs, paths) in SKILL.md itself — they break prompt cache prefix stability.
+
+### `/baransu:review` — independent multi-perspective verification
+
+Stateless, user-triggered orchestrator that re-verifies any model output — code diffs, file sets, directories, /think's approved plans, bare claims — by dispatching **isolated** perspective agents in clean Task contexts and triaging findings into four tiers (safe auto-fix / packaged confirm / ask user / FYI). Deliberately **not** a pipeline gate, **not** role-play based, **not** keyword-activated.
+
+Key design properties to preserve when editing `review/SKILL.md` or the three agent files:
+
+- **Main skill is a pure orchestrator.** No review rubric lives in `skills/review/SKILL.md`; rubrics live in `agents/*-reviewer.md`. If the main skill starts to grow its own rubric, push it down to the agent layer.
+- **Agents are perspectives, not personas.** Every `agents/*-reviewer.md` uses the fixed 4-section structure: `視角 / 目標 / 通用原則 / 禁忌`. Role-play descriptions ("you are a senior …") are explicitly banned; they induce hallucination.
+- **Activation is property-based, not keyword-based.** Dispatching a reviewer depends on target properties (has auth surface, cross-layer change, executable code, plan type, etc.), never on matching words in the user's invocation.
+- **Auto-fix blast radius is locked** to formatter / imports / typos / dead imports. Any change touching control flow / boundaries / API / logic / state must go to Tier 2 (packaged confirm). Do not expand under any circumstance.
+- **Balance check is mandatory** in Stage 6: every new-work finding must pass 不做的代價 / 做的代價 / 中間方案. Findings that fail downgrade to FYI.
+- **E2E hard gate** for code targets: if test infra is present and no green run evidence exists in-session, verdict = INCOMPLETE regardless of other findings being clean.
+- **No recursion** and **no pipeline coupling**: `/review` never invokes `/review`; adversarial test runs once; the skill never reads `flow-state.json` or emits handoff envelopes.
+- **English prose, Traditional Chinese output** — same convention as `/think`. Body of SKILL.md is agent-facing English; every user-visible artefact (claim checklist, findings, AskUserQuestion labels, final report) is 繁中.
+
+When iterating: keep `review/SKILL.md` under 500 lines (currently ~230); keep each agent file focused on its single perspective (~60 lines each) and resist adding cross-cutting advice — that belongs in the orchestrator.
 
 ## Install Flow (for testing locally)
 
@@ -67,7 +90,7 @@ These come from `~/.claude/CLAUDE.md` and apply here unless this file overrides 
 
 ## Roadmap (informal)
 
-Next skill is planned as a /think downstream consumer — positioning goal is "trust /think's approval, strip redundant ceremony, finish simple tasks in minutes not hours". Final design will be produced via `/baransu:think` itself (dogfooding). Do not pre-scaffold it.
+A /think-downstream **implementer** skill is still planned (separate from `/review`) — positioning goal is "trust /think's approval, strip redundant ceremony, finish simple tasks in minutes not hours". `/review` is the audit-side counterpart, not the implementer itself. Final design for the implementer will be produced via `/baransu:think` (dogfooding). Do not pre-scaffold it.
 
 ## What's Intentionally Absent
 
