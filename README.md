@@ -14,14 +14,15 @@ baransu 的設計主軸是**平衡**：
 
 ## 目前狀態
 
-**v0.1.5** — 兩個 skill 上線。
+**v0.1.6** — 三個 skill 上線。
 
 | Skill | 角色 | 觸發 | 產出 |
 |-------|------|------|------|
 | `/baransu:think` | 做之前：對焦與批准 | 使用者說要做新功能／設計／架構決策時自動觸發；也可手動呼叫 | 經過三輪對焦 + 官方解檢查 + 自我反駁 + 複雜度分級 + 明確批准的五段式計畫 |
 | `/baransu:review` | 做之後：獨立多視角複審 | 手動呼叫，通常在某個長流程宣稱完成後 | 派遣隔離視角（架構／品質／安全）在乾淨 context 中審視目標，加一輪對抗測試（> 500 行或跨層級時），findings 分四級（直修／打包確認／需判斷／僅供參考），每條過天平四問，code target 必須 e2e 跑過才能說完成 |
+| `/baransu:analyze` | 做之前：中大型任務規格展開 | 手動呼叫，任務跨 ≥ 2 個相依模組且有 context rot 風險時 | 五層 spec（goal → requirement → design → test → task）落在 `.claude/analyze/{date}-{slug}/`，3 個跨層 subagent 驗收對齊，自動修正一輪後交接 execute |
 
-兩個 skill 的共通約束：
+三個 skill 的共通約束：
 - **英文 body，繁中輸出** — SKILL.md 主體給 agent 讀，繁中留給最終使用者。
 - **絕不越權改行為** — `/think` 未批准前一行程式碼都不出；`/review` 的自動修復只碰格式／import／typo／dead import。
 - **複雜度需要證明自己的價值** — skill 本身的任何新段落、新規則都要過天平四問才能留下。
@@ -34,12 +35,14 @@ baransu 的設計主軸是**平衡**：
 plugins/
   baransu/
     .claude-plugin/
-      plugin.json              # 插件 manifest (v0.1.5)
+      plugin.json              # 插件 manifest (v0.1.6)
     skills/
       think/
         SKILL.md               # 做之前的對焦與批准
       review/
         SKILL.md               # 做之後的獨立多視角複審
+      analyze/
+        SKILL.md               # 做之前：中大型任務規格展開（五層 spec）
     agents/
       architecture-reviewer.md # 視角：結構、邊界、過度抽象
       quality-reviewer.md      # 視角：宣稱對不對實作、邏輯、邊界
@@ -80,9 +83,18 @@ plugins/
 ```
 適合用在某個長流程剛宣稱完成、多輪 session 累積了上下文污染、或你想要一份手術刀般精準的第二意見時。
 
+**`/analyze` — 做之前（中大型任務）**
+```
+/baransu:analyze                   # 開始規格展開
+```
+任務跨 ≥ 2 個相依模組、有 context rot 風險時使用。skill 帶你從一句話目標出發，依序展開五層文件（goal → requirement → design → test → task），每份文件落在 `.claude/analyze/{date}-{slug}/`，最後由 3 個 subagent 做跨層驗收，修正後交接 execute。
+
+與 `/think` 的分工：`/think` 做方向對焦（任務方向不確定時）；`/analyze` 做規格展開（方向已知、任務夠大時）。
+
 ## 路線
 
-下一個 skill 預計是 `/think` 的下游**實作者**（暫定 `/execute`，方向是「信任 `/think` 的批准、剝除重複 ceremony、讓簡單任務能在分鐘級完成」）。`/review` 是審核側的對位，不是實作者本身。詳細設計將透過 `/baransu:think` 本身產出 —— dogfood。
+- `/analyze` 已在 v0.1.6 上線。
+- 下一個 skill 預計是 `/think` 的下游**實作者**（暫定 `/execute`，方向是「信任 `/think` 的批准、剝除重複 ceremony、讓簡單任務能在分鐘級完成」）。`/review` 是審核側的對位，不是實作者本身。詳細設計將透過 `/baransu:think` 本身產出 —— dogfood。
 
 ## 開發慣例
 
