@@ -25,7 +25,18 @@ These apply across all steps. The review-agent rule and the spec-read-only rule 
 
 ---
 
-## Step 0 — Spec Validation
+## Step 0 — Design.md soft-read + Spec Validation
+
+### Design.md soft-read
+
+Before spec validation, check for a DESIGN.md at the project root:
+1. Run `git rev-parse --show-toplevel 2>/dev/null`. If the command fails or returns empty,
+   skip silently — no error output.
+2. If `{root}/DESIGN.md` exists, read it into context and output one line in 繁中:
+   「已載入 DESIGN.md，視覺規格已參考」
+3. If absent, skip silently. Non-blocking.
+
+### Spec Validation
 
 Validate the provided spec directory. Check: (1) directory exists, (2) `goal.md`, `requirement.md`, `design.md`, `test.md` are present, (3) at least one `task-{group}.md` is present.
 
