@@ -1,288 +1,256 @@
-# /baransu:execute — TDAID orchestration skill
+---
+name: execute
+description: "TDAID orchestration engine for medium-to-large tasks built from /analyze spec. Reads a spec directory, builds a dependency DAG, drives each task group through Summarize→Impl→Review TDAID loops via subagents, runs E2E and Final-Review, and writes final-report.md. Triggers: '/baransu:execute', 'execute the plan', 'run the spec', 'implement the analyze result', '開始執行', '跑 execute', '依照 analyze 執行'."
+argument-hint: "<spec-dir-path>"
+user-invocable: true
+---
 
-Reads an Analyze spec directory, builds a dependency DAG, classifies execution as XL/L/M, drives each task group through a Summarize→Impl→Review while-loop, handles blocking and smart-friend escalation, runs E2E and Final-Review, then writes `final-report.md`.
+Long-running orchestration engine for medium-to-large tasks. This body is English (agent-facing). All user-visible output is **Traditional Chinese (繁體中文)**.
 
-The body below is English (agent-facing). All user-visible output is in **Traditional Chinese (繁體中文)**.
+## 目標
+
+Read an `/analyze` spec directory. Execute every task through a Summarize → Impl → Review TDAID loop with subagent context isolation. Run E2E tests and Final-Review. Write `final-report.md`. Never stop early — if a task is blocked, escalate and continue unblocked work.
 
 ---
 
-## Core constraints
+## 核心限制 (Hard Constraints)
 
+These apply across all steps. The review-agent rule and the spec-read-only rule are the two most commonly violated — they are the first things to re-read at Steps 4, 5, and 6 entry after any auto-compact.
+
+- **review-agent is never optional.** Every task — documentation, scripts, config, code — goes through review-agent after each impl-agent attempt. `TaskUpdate status=completed` is only reachable as the result of a review-agent outcome for the current impl attempt. Marking a task ✅ without dispatching review-agent first is a constraint violation.
 - **Analyze spec directory is read-only.** Never Edit or Write any file under `.claude/analyze/`. Any execution path that attempts this must stop immediately and escalate as a structural blocker.
-- **Subagent depth = 1.** Do not invoke skills that themselves dispatch parallel Tasks + AskUserQuestion. The `agents/*.md` files in this plugin are designed for depth-1 dispatch only.
-- **All tasks created before execution begins.** Use Task Tool Create to register every group × task in Stage 2. Do not create tasks mid-execution.
-- **Working files are in `.claude/execute/`, not `.claude/analyze/`.** Edit/Write is permitted under the execute working directory.
-- **Re-read at Stage 4/5/6 entry** — before entering Stage 4, 5, or 6, re-read this SKILL.md's corresponding stage and these Core constraints. Confirm specifically: `failure_count`/`compile_error_count` semantics (§Stage 4c), cascade-blocked propagation (§Stage 4d), `merge_retry_count` cap (§Stage 4e), E2E single-retry limit (§Stage 5), Final-Review single-fixer limit (§Stage 6). These are the rules most likely to be displaced by auto-compact during a long execution session.
+- **Subagent depth = 1.** Agents in `agents/*.md` are stateless leaf nodes. They do not dispatch further subagents.
+- **All Task Tools created before execution begins.** Register every group × task via TaskCreate in Step 2. No mid-execution task creation.
+- **Working files live under `.claude/execute/`.** Edit and Write are only permitted in the execute working directory.
 
 ---
 
-## Stage 0 — Spec validation + confirm.md
+## Step 0 — Spec Validation
 
-### 0a. Validate input path
+Validate the provided spec directory. Check: (1) directory exists, (2) `goal.md`, `requirement.md`, `design.md`, `test.md` are present, (3) at least one `task-{group}.md` is present.
 
-The user provides a spec directory path (e.g. `.claude/analyze/2026-04-25-my-feature/`).
+Derive `{date}-{slug}` from the spec directory name (same date + slug segment). Write confirm.md at `.claude/execute/{date}-{slug}/execute/confirm.md`. Template: `references/output-formats.md §confirm.md`.
 
-Check:
-1. Directory exists
-2. `goal.md`, `requirement.md`, `design.md`, `test.md` are all present
-3. At least one `task-{group}.md` is present
+**Done when:** All required files confirmed present; confirm.md written with file list and timestamps.
 
-If directory does not exist → output 「找不到 Analyze spec 目錄，請先執行 /baransu:analyze」and stop.
-
-If any required file is missing → list missing files in output, write confirm.md with missing files noted, escalate to user with 「spec 文件不完整，缺少：{list}，無法繼續執行」and stop.
-
-### 0b. Write confirm.md
-
-Derive `{date}-{slug}` from the spec directory's directory name (same date + slug segment).
-
-Write `.claude/execute/{date}-{slug}/execute/confirm.md`:
-
-```markdown
-# Confirm — Execute Session
-
-session_start: {ISO 8601}
-spec_dir: {provided path}
-classification: {filled after Stage 1}
-
-## 已讀取文件
-
-| 檔案 | 讀取時間 |
-|------|---------|
-| goal.md | {timestamp} |
-| requirement.md | {timestamp} |
-| design.md | {timestamp} |
-| test.md | {timestamp} |
-| task-{group}.md | {timestamp} |
-
-## DAG 分析
-{filled after Stage 1}
-```
+**Fallback:** Directory missing → output 「找不到 Analyze spec 目錄，請先執行 /baransu:analyze」and stop. Files missing → list them, write confirm.md with gaps noted, escalate 「spec 文件不完整，缺少：{list}，無法繼續執行」and stop.
 
 ---
 
-## Stage 1 — DAG analysis + XL/L/M classification
+## Step 1 — Dependency Analysis + Classification
 
-### 1a. Build the dependency DAG
+**1a. Build DAG.** Read every `task-{group}.md`. Extract the `前置群組` field. Build a directed graph: node = group, edge A→B = group B depends on A.
 
-Read every `task-{group}.md`. For each file, extract the `前置群組` field (the line immediately after the heading). Build a directed graph:
-- Node: group name
-- Edge: A → B means group B's `前置群組` includes A
+**1b. BFS topological sort.** Level 0 = groups with `前置群組：無`. Level N = groups whose every predecessor is at Level ≤ N−1. Maximum parallel frontier width = max groups at any single level.
 
-### 1b. Compute maximum parallel frontier width
+**1c. Classify.**
 
-Use BFS topological-sort:
-1. Level 0: all groups with `前置群組：無`
-2. Level 1: groups whose every predecessor is at Level 0
-3. Continue until all groups assigned
-
-Maximum parallel frontier width = max count of groups at any single BFS level.
-
-### 1c. Classify
-
-| Width | Classification | Parallel Workflows | Worktrees |
-|-------|---------------|-------------------|-----------|
-| ≥ 4 | XL | 4 (serialize excess groups) | 4 gitworktrees |
+| Max width | Class | Parallel workflows | Worktrees |
+|-----------|-------|--------------------|-----------|
+| ≥ 4 | XL | 4 (serialize excess per wave) | 4 gitworktrees |
 | 2–3 | L | width count | gitworktree per group |
 | 1 | M | 1 | none (main branch) |
 
-For XL when a frontier has > 4 groups, pick the first 4 by document order; remaining wait for the next wave.
+When the DAG allows ≥ 2 groups at the same level, run them in parallel — do not serialize L-class groups sequentially. For XL waves with > 4 groups, pick the first 4 by document order; remainder wait for the next wave.
 
-### 1d. Pre-scan (Advisory)
+**1d. Pre-scan for file conflicts.** For group pairs in the same frontier level, scan their `步驟` sections for identical file paths. If confident overlap exists: serialize those two groups (move the later one to the next level), record reason in task-map.md.
 
-For each pair of groups in the same frontier level, scan their `步驟` sections for identical file paths. If overlap is detected:
-- Add a warning note to that group's row in task-map.md
-- Serialize those two groups (move the later one to the next frontier level)
-- Record reason in task-map.md notes
+**1e. Update confirm.md.** Fill `classification` and `DAG 分析` sections.
 
-If step descriptions are ambiguous, prefer the no-overlap assumption over misdetection. Advisory means: only flag when confident.
+**Done when:** DAG built, all groups assigned frontier levels, classification decided, confirm.md updated.
 
-### 1e. Update confirm.md
-
-Fill in `classification` and `DAG 分析` sections in confirm.md.
+**Fallback:** Malformed or missing `前置群組` → assume no predecessors; note in task-map.md.
 
 ---
 
-## Stage 2 — Task Tool creation
+## Step 2 — Task Tool Creation
 
-Before any implementation begins, use Task Tool Create to register every group × task combination. Process groups in topological order:
+Register every group × task before any implementation begins:
 
 ```
-For each group at each frontier level (topological order):
+For each group (topological order):
   For each TASK-{group}-NN in task-{group}.md:
     TaskCreate: title="{group} / TASK-{group}-NN: {task title}", status=pending
     Record: Task Tool ID → (group, task-id) mapping
 ```
 
-Do not begin Stage 3 until all tasks are created.
+**Done when:** Every task registered. Do not begin Step 3 until all TaskCreate calls complete.
 
 ---
 
-## Stage 3 — Work document initialization
+## Step 3 — Work Document Initialization
 
-### 3a. task-map.md
+Write:
+- `.claude/execute/{date}-{slug}/execute/task-map.md` — maps Task Tool IDs to groups and checklist files. Template: `references/output-formats.md §task-map.md`.
+- `.claude/execute/{date}-{slug}/execute/impl-checklist-{group}.md` (one per group) — copies `驗收標準` items from each task in `task-{group}.md`, adds blank `Review 結果:` and `備註:` fields. Template: `references/output-formats.md §impl-checklist`.
 
-Write `.claude/execute/{date}-{slug}/execute/task-map.md`:
-
-```markdown
-# Task Map
-
-| Task Tool ID | Group | Task ID | Impl-Checklist | Notes |
-|-------------|-------|---------|----------------|-------|
-| {id} | {group} | TASK-{group}-NN | impl-checklist-{group}.md | {pre-scan warnings} |
-```
-
-### 3b. impl-checklist-{group}.md
-
-For each group, write `.claude/execute/{date}-{slug}/execute/impl-checklist-{group}.md`:
-
-Copy the `驗收標準` checklist items from each task in `task-{group}.md`:
-
-```markdown
-# Impl Checklist: {group}
-
-前置群組：{value from task file}
-
-## TASK-{group}-01: {title}
-需求追溯：REQ-XXX
-- [ ] {criterion from task file}
-Review 結果：
-備註：
-```
+**Done when:** task-map.md and all impl-checklist files written.
 
 ---
 
-## Stage 4 — TDAID Loop
+## Step 4 — TDAID Loop
 
-> **Re-read checkpoint**: Before executing this stage, re-read this SKILL.md §Stage 4c (TDAID loop, `failure_count`/`compile_error_count` semantics) and §Stage 4d (cascade-blocked propagation). These are the most drift-sensitive rules in this skill.
+> **Re-read checkpoint:** Before entering Step 4, re-read §核心限制 and this entire step. Confirm review-agent dispatch is mandatory, `failure_count`/`compile_error_count` semantics (§4b Phase 2–3), cascade-blocked propagation (§4c), and merge retry cap (§4d). These are the rules most vulnerable to drift during long sessions.
 
-### 4a. Execution order
+### 4a. Execution order + worktrees
 
-Process groups by frontier level (topological order). Within each level, groups with the same level run as parallel Impl Workflows.
+Process groups by frontier level (topological order). Groups at the same level run in parallel.
 
-For **M**: single workflow, main branch.
-For **L/XL**: create one gitworktree per group in the current frontier:
-```
+For **M**: single workflow, main branch. No worktrees.
+
+For **L/XL**: create one gitworktree per group in the current wave before dispatching any impl-agent for that wave:
+```bash
 git worktree add .git/worktrees/{group} -b execute/{date}-{slug}/{group}
 ```
 
-### 4b. Per-group Impl Workflow
+### 4b. Per-task TDAID loop
 
 For each group, for each task in document order:
 
-1. Dispatch **summarize-agent** with:
-   - `spec_dir`: the Analyze spec directory path
-   - `task_id`: TASK-{group}-NN
-   - `output_path`: `.claude/execute/{date}-{slug}/execute/context/{group}-{task-id}-ctx.md`
+**Phase 1 — Summarize**
 
-2. Run TDAID loop for this task (see 4c).
+Dispatch **summarize-agent** with `spec_dir`, `task_id`, and `output_path`. The agent produces `context/{group}-{task-id}-ctx.md` containing all eight fields:
 
-### 4c. TDAID loop (single task)
+| Field | Source |
+|-------|--------|
+| Goal | Full objective from goal.md |
+| Requirements | REQ-XXX entries this task traces to |
+| Scenarios | Relevant Given/When/Then from requirement.md |
+| Task | Task title, goal sentence, and acceptance criteria |
+| Design | Relevant sections from design.md |
+| Test | Relevant test strategy from test.md |
+| Constraints | Naming rules, architecture constraints, scope boundaries |
+| Files | Files to create / delete / modify (from task 步驟) |
+
+**Phase 2 — Impl** (Write Tests → Prove Red → Impl Green)
 
 ```
 failure_count = 0
-compile_error_count = 0  # tracks compile errors after smart-friend dispatched
+compile_error_count = 0  # only counted after smart-friend has been dispatched
 
 LOOP:
   Dispatch impl-agent with:
-    - ctx_content: contents of context/{group}-{task-id}-ctx.md
-    - worktree_path: path for this group (or main for M)
-    - refactor_mode: false (set to true only when review signals it)
-    - correction_strategy: from smart-friend output if failure_count == 2
+    - ctx_path:            context/{group}-{task-id}-ctx.md
+    - worktree_path:       group worktree path (or null for M)
+    - refactor_mode:       false  (set true only when review signals it)
+    - correction_strategy: smart-friend output if failure_count == 2
 
-  if impl-agent status == ⚠️ (Red gate not passed):
-    # test was already passing — wrong test, not new behavior
-    report to user and stop this task (mark blocked: Red gate failed)
-    break
+  CASE impl-agent status == ⚠️  (Red gate not passed — test already passing):
+    Report: "Red gate not passed: test was already passing before impl"
+    Mark task BLOCKED (reason: Red gate failed — wrong test)
+    TaskUpdate: status=blocked
+    escalate to user
+    break LOOP
 
-  if impl-agent status == ❌ AND failure detail mentions compile error:
-    # compile error does NOT count toward failure_count
-    if failure_count >= 2:  # smart-friend already dispatched; cap compile-error loops
+  CASE impl-agent status == ❌  AND failure detail mentions compile error:
+    # Compile errors do NOT count toward failure_count
+    if failure_count >= 2:
       compile_error_count += 1
       if compile_error_count >= 3:
-        mark task BLOCKED (reason: smart-friend 後仍有 3 次 compile error)
+        Mark task BLOCKED (reason: 持續 compile error after smart-friend)
         TaskUpdate: status=blocked
         escalate to user: 「TASK-{group}-NN blocked：smart-friend 後持續 compile error」
         break LOOP
-    continue LOOP
+    continue LOOP  # retry without incrementing failure_count
 
-  Dispatch review-agent with:
-    - impl_result: impl-agent output
-    - ctx_path: context/{group}-{task-id}-ctx.md
-    - checklist_path: impl-checklist-{group}.md
-    - worktree_path: path for this group (null for M)
-    - task_classification: M | L | XL
+  → proceed to Phase 3 (impl-agent returned Green, no compile error)
+```
 
-  SWITCH review tier:
+**Phase 3 — Review** (Verify Green → optional Refactor → Review quality)
 
-    CASE "direct fix":
-      review-agent applies fix inline (authorized via its Edit tool)
-      mark task ✅ (Task Tool status = completed)
-      break LOOP
+> This phase is mandatory. Do not mark a task ✅ before dispatching review-agent for the current impl attempt.
 
-    CASE "advisory":
-      mark task ✅ (Task Tool status = completed)
-      break LOOP
+Dispatch **review-agent** with:
+- `impl_result`: impl-agent output
+- `ctx_path`: context/{group}-{task-id}-ctx.md
+- `checklist_path`: impl-checklist-{group}.md
+- `worktree_path`: group worktree path (null for M)
+- `task_classification`: M | L | XL
 
-    CASE "packaged confirm (quality)" AND task is L/XL AND refactor_signal == true:
-      dispatch impl-agent again with refactor_mode=true (does NOT count as failure)
-      dispatch review-agent again with same worktree_path + task_classification
-      SWITCH second_review.tier:
+**Interpreting review-agent output and routing:**
+
+review-agent returns one of five tiers. Map them to actions as follows:
+
+```
+SWITCH review_tier:
+
+  CASE "direct fix":
+    # review-agent applied a cosmetic fix inline
+    mark task ✅
+    TaskUpdate: status=completed
+    break LOOP
+
+  CASE "advisory":
+    # findings are informational; no action required
+    mark task ✅
+    TaskUpdate: status=completed
+    break LOOP
+
+  CASE "packaged confirm (quality)"  # code quality / standards / arch / security
+    if task_classification is L or XL  AND  review.refactor_signal == true:
+      # Refactor phase: at most once per task for L/XL
+      Dispatch impl-agent with refactor_mode=true  ← does NOT count as failure_count
+      Dispatch review-agent again (same inputs)
+      SWITCH second_review_tier:
         CASE "direct fix" | "advisory" | "packaged confirm (quality)":
-          mark task ✅ (Task Tool status = completed)
+          mark task ✅
+          TaskUpdate: status=completed
           break LOOP
         CASE "packaged confirm (correctness)" | "needs judgment":
           failure_count += 1
-          continue LOOP  # re-enters normal failure path; compile-error exception still applies
-
-    CASE "packaged confirm (quality)" AND (task is M OR refactor_signal == false):
-      # treat as advisory for M tasks
+          → go to failure escalation logic below
+    else:
+      # M task, or no refactor signal: treat as advisory
       mark task ✅
+      TaskUpdate: status=completed
       break LOOP
 
-    CASE "packaged confirm (correctness)" OR "needs judgment":
-      failure_count += 1
-
-      if review.spec_contradiction != false:
-        mark task BLOCKED (reason: spec contradiction — {details})
-        TaskUpdate: status=blocked
-        escalate to user: 「TASK-{group}-NN blocked：{spec_contradiction 說明}」
-        break LOOP
-
-      if failure_count >= 3:
-        reason = "3 consecutive impl failures"
-        if smart_friend_output is defined AND smart_friend_output.spec_issue != false:
-          reason += "；smart-friend 診斷：" + smart_friend_output.spec_issue
-        mark task BLOCKED (reason)
-        TaskUpdate: status=blocked
-        escalate to user with reason
-        break LOOP
-
-      if failure_count == 2:
-        dispatch smart-friend-agent with:
-          - task_goal: Task.目標 from ctx.md
-          - spec_excerpts: Requirements + Design + Test excerpts from ctx.md
-          - failure_summary_1: review findings from attempt 1
-          - failure_summary_2: review findings from attempt 2
-        # smart-friend output is passed to next impl dispatch as correction_strategy
-        continue LOOP
-
-      continue LOOP  # failure_count == 1
+  CASE "packaged confirm (correctness)"  OR  "needs judgment":
+    # Primary failure: tests incomplete, Green not verified, or impl incorrect
+    failure_count += 1
+    → go to failure escalation logic below
 ```
 
-### 4d. Cascade-blocked propagation
+**Failure escalation logic** (reached from correctness/judgment cases):
 
-After each task is marked BLOCKED, first evaluate group-level status:
-- A group is **group-blocked** if ANY of its tasks is marked BLOCKED.
+```
+  if review.spec_contradiction != false:
+    Mark task BLOCKED (reason: spec contradiction — {details})
+    TaskUpdate: status=blocked
+    escalate to user: 「TASK-{group}-NN blocked：{spec_contradiction 說明}」
+    break LOOP
 
-Then check downstream groups. For each group G where:
-- G's `前置群組` list contains at least one group-blocked group
-- AND G has no non-blocked, non-completed predecessors remaining
+  if failure_count >= 3:
+    reason = "3 consecutive impl failures"
+    if smart_friend_output defined AND smart_friend_output.spec_issue != false:
+      reason += "；smart-friend 診斷：" + smart_friend_output.spec_issue
+    Mark task BLOCKED (reason)
+    TaskUpdate: status=blocked
+    escalate to user with reason
+    break LOOP
 
-→ Mark G as cascade-blocked. TaskUpdate all of G's tasks to status=cascade-blocked.
+  if failure_count == 2:
+    Dispatch smart-friend-agent with:
+      - task_goal:         Task.目標 from ctx.md
+      - spec_excerpts:     Requirements + Design + Test from ctx.md
+      - failure_summary_1: review findings from attempt 1
+      - failure_summary_2: review findings from attempt 2
+    # smart-friend output becomes correction_strategy for next impl dispatch
+    continue LOOP
 
-Record in final-report: direct blocked vs cascade-blocked separately.
+  continue LOOP  # failure_count == 1: retry with review findings
+```
 
-### 4e. Merge Point (L/XL only)
+### 4c. Cascade-blocked propagation
+
+After each task is marked BLOCKED, evaluate group-level status:
+- A group is **group-blocked** if ANY of its tasks is BLOCKED.
+
+For each downstream group G where `前置群組` contains at least one group-blocked group: mark G **cascade-blocked**. TaskUpdate all G's tasks to cascade-blocked.
+
+Record direct-blocked vs cascade-blocked separately in final-report.
+
+### 4d. Merge Point (L/XL only)
 
 After all tasks in a frontier level complete (✅, blocked, or cascade-blocked):
 
@@ -292,164 +260,158 @@ last_failed_tests = null
 
 LOOP:
   Dispatch merge-agent with:
-    - worktree_paths: list of worktree paths for this frontier level
-    - target_branch: main
-    - test_command: from test.md (look for a "Green" or unit test command)
-    - failed_tests: last_failed_tests (null on first dispatch)
+    - worktree_paths:  list of worktree paths for this level
+    - target_branch:   main
+    - test_command:    from test.md
+    - failed_tests:    last_failed_tests (null on first dispatch)
 
-  if merge-agent status == ✅:
+  CASE merge-agent status == ✅:
     proceed to next frontier level
     break
 
-  if merge-agent status == ❌ (semantic conflict):
+  CASE merge-agent status == ❌  (semantic conflict):
     escalate to user immediately with conflict_details
-    mark all pending downstream groups as blocked (reason: merge conflict)
+    mark all pending downstream groups BLOCKED (reason: merge conflict)
     record in final-report blocked list
-    break  # do not proceed
+    break
 
-  if merge-agent status == ⚠️ (Green broken):
+  CASE merge-agent status == ⚠️  (Green broken):
     last_failed_tests = merge-agent failed_tests
     merge_retry_count += 1
     if merge_retry_count >= 3:
       escalate to user: 「Merge 後 Green 仍未通過，已重試 2 次」
-      mark all pending downstream groups as blocked
+      mark all pending downstream groups BLOCKED
       break
     continue LOOP
 ```
 
+**Done when (Step 4):** All frontier levels processed. All tasks are ✅, blocked, or cascade-blocked.
+
 ---
 
-## Stage 5 — E2E Test
+## Step 5 — E2E Test
 
-> **Re-read checkpoint**: Before executing this stage, re-read this SKILL.md §Stage 5 (E2E failure clustering + single-retry limit).
+> **Re-read checkpoint:** Before entering, re-read this step. Confirm single-retry limit for E2E.
 
-All frontier levels must be processed (merged to main) before Stage 5.
+Read `test.md` for the E2E startup command (typically in the E2E 測試策略 section). Use Monitor tool to observe long-running test output.
 
-### 5a. Read E2E command
-
-Read `test.md`. Look for an E2E startup command (typically in the E2E 測試策略 section). If none found → record「E2E 跳過：test.md 未提供啟動命令」in final-report and proceed to Stage 6.
-
-### 5b. Run E2E
-
-Execute the E2E startup command via Bash. Monitor output.
+If no command found → record 「E2E 跳過：test.md 未提供啟動命令」in final-report; proceed to Step 6.
 
 If E2E passes → record ✅ in final-report.
 
 If E2E fails:
-1. Group independent failure clusters (one cluster per failing feature area). If feature area boundaries are unclear, treat each failing test as its own cluster.
-2. Dispatch one **e2e-fix-agent** per cluster (parallel, independent)
-   - Provide each with: `e2e_failure_report`, `e2e_strategy`, `relevant_files`
-3. After all fix agents complete, re-run E2E
-4. If passes → record ✅
-5. If still fails → record ❌ with details in final-report blocked section; proceed to Stage 6
+1. Group independent failure clusters (one per failing feature area; if boundaries unclear, one cluster per failing test)
+2. Dispatch one **e2e-fix-agent** per cluster in parallel
+3. Re-run E2E (Monitor)
+4. Passes → ✅. Still fails → record ❌ with details in final-report blocked section; proceed to Step 6.
+
+**Done when:** E2E result recorded (✅ / ❌ / skipped).
+
+**Fallback:** If Monitor is unavailable, run via Bash and parse output. If E2E command produces no output after 5 minutes, record as ❌ timeout.
 
 ---
 
-## Stage 6 — Final-Review + Fixer
+## Step 6 — Final-Review + Final-Fixer
 
-> **Re-read checkpoint**: Before executing this stage, re-read this SKILL.md §Stage 6 (Final-Review triggers + single-fixer limit: fixer runs once, not twice).
-
-### 6a. Final-Review
+> **Re-read checkpoint:** Before entering, confirm: final-fixer runs exactly once, never twice.
 
 Dispatch **final-review-agent** with:
 - `requirement_path`: path to requirement.md
-- `test_dir`: test directory path (parse from test.md integration/E2E strategy sections; default to `tests/` if no explicit path is stated)
+- `test_dir`: parse from test.md integration/E2E sections; default to `tests/`
 
-If `needs_fixer: false` → record final-review conclusion in final-report and proceed to Stage 7.
+If `needs_fixer: false` → record conclusion in final-report; proceed to Step 7.
 
 If `needs_fixer: true`:
-1. Dispatch **final-fixer-agent** with:
-   - `coverage_report`: final-review-agent's Coverage Report
-   - `requirement_excerpts`: full text of ❌ REQ-XXX entries from requirement.md
-   - `design_excerpts`: design.md sections relevant to ❌ REQs
-2. After fixer completes, dispatch final-review-agent again
-3. If now `needs_fixer: false` → proceed to Stage 7
-4. If still `needs_fixer: true` → record remaining gaps in final-report blocked section; proceed to Stage 7 (do **not** invoke fixer again)
+1. Dispatch **final-fixer-agent** with: `coverage_report`, `requirement_excerpts` (full text of ❌ REQ-XXX entries), `design_excerpts` (design.md sections relevant to ❌ REQs)
+2. After fixer completes, dispatch final-review-agent again (same inputs)
+3. If `needs_fixer: false` → proceed to Step 7
+4. If still `needs_fixer: true` → record remaining gaps in final-report blocked section; proceed to Step 7. **Do not invoke fixer again.**
 
-### 6b. Advisory findings
+Advisory notes from Coverage Report → record in final-report; do not trigger fixer.
 
-Any `advisory_notes` from the Coverage Report → record in final-report; do not trigger Final-Fixer.
+**Done when:** Final-review result recorded (✅ / gaps listed).
 
 ---
 
-## Stage 7 — final-report.md + cleanup
+## Step 7 — final-report.md + Cleanup
 
-### 7a. Write final-report.md
+Write `.claude/execute/{date}-{slug}/execute/final-report.md`. Template: `references/output-formats.md §final-report.md`.
 
-Write `.claude/execute/{date}-{slug}/execute/final-report.md`:
-
-```markdown
-# Final Report — /baransu:execute
-
-session: {date}-{slug}
-spec_dir: {path}
-completed_at: {ISO 8601}
-
-## 整體結果
-Requirements 達成率：N/M（N 個 REQ-XXX 有對應綠燈測試）
-
-## Task 完成狀態
-| Group | Task | 狀態 | 備註 |
-|-------|------|------|------|
-| {group} | TASK-{group}-NN | ✅ | |
-| {group} | TASK-{group}-NN | ❌ blocked | {reason} |
-| {group} | TASK-{group}-NN | ❌ cascade-blocked | 前置群組 {X} blocked |
-
-## E2E 測試結果
-{✅ 通過 / ❌ 失敗原因 + 建議 / ⏭️ 跳過：test.md 未提供啟動命令}
-
-## Final-Review 結論
-{✅ 通過 / 殘餘問題（advisory notes）}
-
-## Blocked 項目
-| Task | 類型 | 詳情 |
-|------|------|------|
-| TASK-{group}-NN | 連續失敗 3 次 | smart-friend 結論：{...} |
-| TASK-{group}-NN | cascade-blocked | 前置群組 {group} blocked |
-| TASK-{group}-NN | spec 矛盾 | REQ-XXX 與 REQ-YYY 衝突：{...} |
-| TASK-{group}-NN | merge 語意衝突 | 衝突檔案：{...} |
-```
-
-### 7b. Worktree cleanup
-
-After final-report.md is written, remove all gitworktrees created during this session:
-
+Remove all gitworktrees created this session:
 ```bash
 git worktree remove .git/worktrees/{group} --force
-git branch -d execute/{date}-{slug}/{group}
+git branch -D execute/{date}-{slug}/{group}
 ```
 
-### 7c. Session end output (繁體中文)
-
+Output to user (繁體中文):
 ```
 /baransu:execute 完成。
-
 spec_dir: {path}
-completed_at: {timestamp}
-
+completed_at: {ISO 8601}
 整體結果：{N}/{M} REQ 達成率
 final-report.md: .claude/execute/{date}-{slug}/execute/final-report.md
-
-{若有 blocked 項目，列出清單}
+{若有 blocked 項目，條列清單}
 ```
+
+**Done when:** final-report.md written; all worktrees removed; user notified.
 
 ---
 
-## Error handling reference
+## Gotchas
 
-| Error | Detection | Action |
-|-------|-----------|--------|
-| spec 目錄不存在 | Stage 0 | Reject, tell user to run /analyze |
-| spec 文件缺失 | Stage 0 | List missing files, escalate |
-| Impl 失敗 1 次 | TDAID loop | Retry with review findings |
-| Impl 失敗 2 次 | TDAID loop | Dispatch smart-friend, then retry |
-| Impl 失敗 3 次 | TDAID loop | BLOCKED |
-| spec 矛盾 | review-agent | BLOCKED, escalate |
-| Merge 語意衝突 | Merge point | Escalate, BLOCKED downstream |
-| Merge Green 破壞（第 1 或 2 次）| Merge point | Retry merge-agent（含 failed_tests）|
-| Merge Green 破壞（第 3 次）| Merge point | BLOCKED downstream, escalate |
-| E2E 失敗 | Stage 5 | e2e-fix-agent(s), one re-run |
-| E2E Fix 後仍失敗 | Stage 5 | Record ❌, continue |
-| Final-Review 有缺口 | Stage 6 | final-fixer-agent once, one re-run |
-| Final-Review 仍有缺口 | Stage 6 | Record as blocked, continue |
-| 任何寫入 Analyze 文件的嘗試 | All stages | Immediate structural blocker, escalate |
+- **[review-agent bypass trap]**: Documentation, script, and config tasks feel like they "have nothing to test". The orchestrator rationalizes skipping review-agent because impl-agent reported success. This is the failure mode: review-agent verifies impl-checklist-{group}.md acceptance criteria, not just unit tests. `TaskUpdate status=completed` is only reachable after a review-agent outcome.
+  Solution: Re-read §核心限制 before marking any task ✅.
+
+- **[compile error vs failure_count]**: After impl-agent returns ❌ with a compile error, `failure_count` must NOT increment. Counting compile errors as failures triggers smart-friend early and wastes the retry budget on syntax issues.
+  Solution: Only `failure_count++` on review-agent "packaged confirm (correctness)" or "needs judgment" returns.
+
+- **[final-fixer one-pass cap]**: If Final-Review is still `needs_fixer: true` after the fixer pass, record remaining gaps as BLOCKED and proceed to Step 7. Looping back to dispatch the fixer again is a constraint violation.
+  Solution: The re-read checkpoint at Step 6 entry is the enforcement reminder.
+
+- **[refactor only for L/XL]**: Refactor is dispatched at most once per task, and only for L/XL tasks when review-agent signals `refactor_signal`. M tasks treat "packaged confirm (quality)" as advisory — no refactor dispatch, task marks ✅.
+  Solution: Check `task_classification` before dispatching refactor-mode impl-agent.
+
+- **[Red gate ⚠️ vs impl failure ❌]**: ⚠️ means the test was already passing before impl started — wrong test design. This is not a failure_count increment; it is an immediate BLOCKED with escalation. Do not retry impl.
+  Solution: The ⚠️ / ❌ branch in §4b Phase 2 is explicit; re-read before handling impl-agent status.
+
+- **[merge branch deletion]**: Use `git branch -D` (force delete), never `git branch -d`. The execute branch was pushed but not PR-merged, so `-d` fails.
+  Solution: Always `-D` for `execute/{date}-{slug}/{group}` branches.
+
+- **[task-map.md missing during merge]**: merge-agent needs to know which impl-checklist files exist. If task-map.md was not written in Step 3 before starting Step 4, merge-agent cannot verify coverage. Step 3 must complete fully before Step 4 begins.
+  Solution: The Step 2 / Step 3 "Done when" gates enforce ordering.
+
+---
+
+## Constraints
+
+- Analyze spec directory is read-only across all steps; hooks intercept any write attempts.
+- All Task Tools are created in Step 2 before any implementation starts.
+- Each task passes through review-agent for every impl attempt.
+- Gitworktrees are created for any parallel execution (L/XL); removed in Step 7 after final-report.md is written.
+- final-fixer-agent is dispatched at most once per session.
+- smart-friend-agent is dispatched at most once per task (when failure_count reaches 2).
+- compile errors do not increment failure_count.
+- All user-visible output is Traditional Chinese (繁體中文).
+- Working files go under `.claude/execute/{date}-{slug}/execute/`.
+
+---
+
+## Error Reference
+
+| Condition | Detection point | Action |
+|-----------|-----------------|--------|
+| Spec dir missing | Step 0 | Stop; tell user to run /analyze |
+| Spec file missing | Step 0 | List gaps; escalate; stop |
+| Red gate not passed ⚠️ | §4b Phase 2 | BLOCKED (wrong test); escalate |
+| Compile error ❌ | §4b Phase 2 | Retry; does NOT count toward failure_count |
+| Impl failure (correctness/judgment) | §4b Phase 3 | failure_count++; retry |
+| failure_count == 2 | §4b escalation | Dispatch smart-friend; retry |
+| failure_count == 3 | §4b escalation | BLOCKED |
+| Spec contradiction | review-agent output | BLOCKED; escalate |
+| Merge semantic conflict ❌ | §4d | BLOCKED downstream; escalate |
+| Merge Green broken × 3 | §4d | BLOCKED downstream; escalate |
+| E2E fails | Step 5 | e2e-fix-agents (one cluster per agent); one re-run |
+| E2E still fails after fix | Step 5 | Record ❌; continue to Step 6 |
+| Final-Review needs_fixer: true | Step 6 | final-fixer once; one re-review |
+| Final-Review still needs_fixer: true | Step 6 | Record remaining gaps as BLOCKED; proceed |
+| Write attempt to analyze dir | All steps | Immediate structural blocker; escalate |
