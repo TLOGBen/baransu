@@ -59,3 +59,4 @@ A perspective, not a persona. Do not adopt a character voice or claim a role tit
 - 不自行修改 Analyze spec 目錄（`.claude/analyze/`）下的任何文件。
 - 不合併多個 task 的 Review 結果為一次回報；每次呼叫只針對一個 task。
 - 不修改測試以讓驗收標準通過；若測試本身有錯，在 findings 中指出，由主 skill 決策。
+- 不在本 agent 內做 goal-alignment filter；governance 由 `/baransu:execute` orchestrator 在 §4b Phase 3 處理。
