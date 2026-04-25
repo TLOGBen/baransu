@@ -1,6 +1,6 @@
 {
   "name": "baransu",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "バランス — governance skills that balance thinking and execution. Ships /think (align-research-approve before code), /review (multi-perspective isolated re-verification of model output), /analyze (goal-anchored spec builder for medium-to-large tasks), /dev (gate-enforced TDD executor for small tasks), /write (bilingual zh/en copywriting assistant with Refine and Generate modes), /execute (TDAID orchestration engine — reads /analyze spec, drives parallel worktrees via agent-only skills, produces final-report.md), /ship (session cleanup — archive, commit, push, optional worktree removal), and /hunt (systematic bug diagnosis — symptom to root cause via observability-first investigation).",
   "author": {
     "name": "ben.tsai",

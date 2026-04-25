@@ -291,7 +291,7 @@ options:
 **Option 2 — 批准實作（完全授權）.** You are done with the deliberation phase. Do two things:
 
 1. Identify the downstream skill based on task size:
-   - **Small task** (single module, no cross-module dependencies, fits one session): invoke `/baransu:dev`.
+   - **Small task** (single-file or single-area change that fits one session): invoke `/baransu:dev`.
    - **Medium-to-large task** (spans ≥2 interdependent modules, context-rot risk): invoke `/baransu:analyze`.
    - If neither skill is available, say so — 「沒有完美接手的 skill，建議直接進入手寫實作」.
 2. Produce a one-paragraph **handoff summary** in 繁體中文: what was approved, the key constraints, the first concrete step of implementation. Immediately invoke the identified skill with this summary as its input. Execute autonomously; do not ask the user for further confirmation during implementation unless a destructive or irreversible action arises.

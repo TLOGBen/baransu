@@ -69,6 +69,19 @@ When these appear, the diagnosis is moving in the right direction:
 
 ---
 
+## Locate — 定位獵物
+
+Tool Scan 選好工具後，先回答以下問題再加任何工具：
+
+1. **現象時序**：bug 出現在哪個操作或事件之後？（HTTP 請求、排程任務、使用者操作、資料同步）
+2. **重現資料**：有可以觸發 bug 的資料嗎？（request payload、DB 記錄、log excerpt）
+3. **髒資料特徵**：髒資料和正常資料的差異是什麼？（哪個欄位、哪個值、哪個條件）
+4. **環境確認**：能在測試環境重現嗎？還是只在 production？
+
+這四個問題決定你把第一個觀測點放在哪裡。不能回答這四個問題就加 log = 在不知道獵物位置的森林裡亂佈陷阱。
+
+---
+
 ## Instrumentation — 🎯 HUNT-id Tagging
 
 所有診斷用工具（log 行、failing assertion、test probe）**必須帶 HUNT-id tag**。
@@ -140,6 +153,8 @@ Activate when: 「以前能跑，現在壞了」或「更新後壞了」。
 | Before You Fix 未完成就要修復 | 停。完成呼叫鏈分析和測試矩陣後再繼續。 |
 | 外部工具失敗 | 先診斷原因（server 跑嗎？config 正確？），再換工具。 |
 | Visual / 渲染 bug | 靜態分析優先（DevTools layers、stacking context），加 log 是第二步。 |
+| 調查性 DB 測試 | Transaction 必定 Rollback，不真正修改資料。 |
+| 調查性落檔 / 外部 API 呼叫 | 用 Mock 防止真實寫出；email / webhook 不可真的送出。 |
 
 ---
 
@@ -171,6 +186,10 @@ Activate when: 「以前能跑，現在壞了」或「更新後壞了」。
 
 對於曾修過又再現的 bug，「已解決」的條件是：(1) 迴歸測試在舊 code 失敗、新 code 通過；(2) 測試在 project test suite 裡；(3) commit message 說明再現原因與防止方式。
 
+確認根因後，根據任務規模路由修復：
+- 單一改動點、少量 code → 呼叫 `/baransu:dev`
+- 多檔案、需要設計決策或跨模組影響 → 呼叫 `/baransu:analyze`
+
 ### Handoff 格式（三次假說失敗後使用）
 
 ```
@@ -191,14 +210,17 @@ Activate when: 「以前能跑，現在壞了」或「更新後壞了」。
 
 ---
 
-狩獵完成後，建議在 `reference/` 下建立 hunt case 文件（格式見 `references/hunt-case-template.md`），記錄根因和修復過程供日後查閱。
+狩獵完成後，在 `.claude/hunt-report/HUNT-YYYY-NNN.md` 建立 hunt case 文件（格式見 `references/hunt-case-template.md`），記錄根因和修復過程供日後查閱。用 `hunt-search.py`（見 `references/hunt-search.py`）搜尋歷史案例。
 
 ---
 
 ## Core constraints
 
 - Do not touch code before stating the root cause in one sentence.
+- Locate step (four questions) must complete before adding the first instrument.
 - Before You Fix (impact analysis + test matrix) is mandatory before any fix.
 - All diagnostic instrumentation must carry a HUNT-id tag; remove all after root cause is confirmed.
 - Confirm or Discard: one instrument at a time; contradicted hypotheses are discarded completely, not patched.
 - Three failed hypotheses triggers Handoff format, not another guess.
+- DB-connected investigation tests must use transactions that always rollback.
+- File writes and external API calls in investigation tests must use mocks.

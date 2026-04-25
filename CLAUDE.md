@@ -147,12 +147,14 @@ Key design properties to preserve when editing `ship/SKILL.md`:
 
 ### `/baransu:hunt` — systematic bug investigation
 
-Waza-style, no explicit phases. Key design properties:
+Waza-style. Key design properties:
 
 - **Observability-first tool selection.** Tool Scan picks the tool that can observe the problem's layer — not the first available. Playwright → MCP db query → LSP → bash logging → static read.
+- **Locate gate is mandatory before Instrumentation.** Four-question check (event sequence, reproduction data, dirty data characteristics, environment) must complete before adding the first instrument.
 - **Before You Fix is a hard gate.** Call chain analysis + test matrix (unchanged and multi-X scenarios) must complete before any fix.
 - **🎯HUNT-id tagging is mandatory.** All diagnostic instrumentation carries a tag. One cleanup sweep after root cause is confirmed.
 - **Confirm or Discard.** One instrument at a time. Contradicted hypotheses are discarded completely, not patched. Three failures → Handoff format.
+- **Investigation safety.** DB-connected tests must always rollback; file writes and external calls must use mocks. Hunt reports saved to `.claude/hunt-report/`; searchable via `hunt-search.py`.
 
 ## 禁止事項
 
