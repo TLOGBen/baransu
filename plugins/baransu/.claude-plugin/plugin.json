@@ -1,11 +1,11 @@
 {
   "name": "baransu",
-  "version": "0.2.1",
-  "description": "バランス — governance skills that balance thinking and execution. Ships /think (align-research-approve before code), /review (multi-perspective isolated re-verification of model output), /analyze (goal-anchored spec builder for medium-to-large tasks), /dev (gate-enforced TDD executor for small tasks), and /write (bilingual zh/en copywriting assistant with Refine and Generate modes).",
+  "version": "0.3.0",
+  "description": "バランス — governance skills that balance thinking and execution. Ships /think (align-research-approve before code), /review (multi-perspective isolated re-verification of model output), /analyze (goal-anchored spec builder for medium-to-large tasks), /dev (gate-enforced TDD executor for small tasks), /write (bilingual zh/en copywriting assistant with Refine and Generate modes), and /execute (TDAID orchestration engine — reads /analyze spec, drives parallel worktrees via agent-only skills, produces final-report.md).",
   "author": {
     "name": "ben.tsai",
     "email": "ben.tsai@hy-tech.com.tw"
   },
   "license": "MIT",
-  "keywords": ["governance", "planning", "design", "think", "review", "analyze", "spec", "architecture", "decision", "audit", "verification"]
+  "keywords": ["governance", "planning", "design", "think", "review", "analyze", "spec", "architecture", "decision", "audit", "verification", "execute", "tdaid", "orchestration"]
 }

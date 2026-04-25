@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Intent
 
-`baransu` is a Claude Code **plugin marketplace** distributing one governance-focused plugin, also named `baransu`. The plugin's theme is バランス ("balance") — forcing alignment and approval before execution, and surgical multi-perspective verification after. Currently ships five skills: `/think` (deliberate before building), `/review` (independent multi-perspective re-verification of any model output), `/analyze` (goal-anchored spec builder for medium-to-large tasks), `/dev` (gate-enforced TDD executor for small tasks), and `/write` (bilingual zh/en copywriting assistant).
+`baransu` is a Claude Code **plugin marketplace** distributing one governance-focused plugin, also named `baransu`. The plugin's theme is バランス ("balance") — forcing alignment and approval before execution, and surgical multi-perspective verification after. Currently ships six skills: `/think` (deliberate before building), `/review` (independent multi-perspective re-verification of any model output), `/analyze` (goal-anchored spec builder for medium-to-large tasks), `/dev` (gate-enforced TDD executor for small tasks), `/write` (bilingual zh/en copywriting assistant), and `/execute` (TDAID orchestration engine for medium-to-large tasks; reads `/analyze` spec, drives parallel worktrees via agent-only skills, produces `final-report.md`).
 
 ## Actual Layout
 
@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 plugins/
   baransu/
     .claude-plugin/
-      plugin.json              # plugin manifest (v0.2.0)
+      plugin.json              # plugin manifest (v0.3.0)
     skills/
       think/
         SKILL.md               # governance skill — align/research/approve before code
@@ -26,10 +26,20 @@ plugins/
         SKILL.md               # governance skill — gate-enforced TDD executor for small tasks
       write/
         SKILL.md               # copywriting skill — bilingual zh/en Refine + Generate assistant
+      execute/
+        SKILL.md               # orchestration skill — TDAID engine for medium-to-large tasks
     agents/
       architecture-reviewer.md # perspective agent — structural coherence, boundaries, overreach
       quality-reviewer.md      # perspective agent — claim-vs-implementation, logic, edges
       security-reviewer.md     # perspective agent — attack surface, input trust, secrets
+      summarize-agent.md       # execute agent — extracts 8-field task context from spec
+      impl-agent.md            # execute agent — Red/Green TDD implementation cycle
+      review-agent.md          # execute agent — four-tier semantic review (direct impl, no /review call)
+      smart-friend-agent.md    # execute agent — root-cause diagnosis after 2 consecutive failures
+      e2e-fix-agent.md         # execute agent — fixes E2E failure clusters
+      final-review-agent.md    # execute agent — REQ-XXX coverage verification
+      final-fixer-agent.md     # execute agent — supplements missing tests/impl for uncovered REQs
+      merge-agent.md           # execute agent — git merge + Green confirmation for parallel worktrees
 ```
 
 **Critical distinction**: `.claude-plugin/marketplace.json` at the repo root is the *catalog*; `plugins/baransu/.claude-plugin/plugin.json` is the *plugin manifest*. Never merge them. Component dirs (`skills/`, `agents/`, etc.) go at the **plugin root** (`plugins/baransu/`), not inside `.claude-plugin/` and not at the repo root.
@@ -99,7 +109,7 @@ Key design properties to preserve when editing `dev/SKILL.md`:
 - **Compile errors are distinct from test failures.** At Red: compile error = malformed test, stop; does not count toward Green retry limit. At Green: fix and re-run, does NOT count toward the two-attempt limit.
 - **Cosmetic classification is final.** Model decides at Stage 0; no re-classification mid-execution. Cosmetic = zero semantic runtime impact.
 - **/review only on success.** If the session ends on a failure path, do not invoke /review — there is nothing to review. Review goal = task goal sentence; claim checklist = the task list.
-- **Downstream of /think.** /think → /dev is the small-task pipeline. /think → /analyze is the medium-large pipeline. /dev does not read `/analyze`'s task-*.md files — that is the future `/execute` skill's job.
+- **Downstream of /think.** /think → /dev is the small-task pipeline. /think → /analyze is the medium-large pipeline. /dev does not read `/analyze`'s task-*.md files — that is `/execute`'s job.
 
 ### `/baransu:write` — bilingual copywriting assistant (zh/en)
 
@@ -115,6 +125,25 @@ Key design properties to preserve when editing `write/SKILL.md`:
 - **zh rule set: 4 sparanoid compact rules.** Spacing, punctuation, numbers, proper nouns. This is one rule beyond the plan's original KD1 scope (排版/標點/數字) — the 4th rule (proper noun capitalization) was accepted as a non-destructive expansion.
 - **Writing style principles in `references/writing-principles.md`** (BP4 progressive disclosure): both Refine and Generate read this file on demand. Content follows BP9 framework — Claude's observed default deviations with before/after corrections (余光中 for zh, Orwell for en), not abstract aesthetic statements. Refine adds style tags (`動詞直用`、`Cut filler` etc.) to 修正說明 when triggered; Generate applies principles while composing, not after. Do not embed these principles in SKILL.md — they belong in references/.
 - **Single-pass only.** No iterative loop; user re-invokes for adjustments.
+
+### `/baransu:execute` — TDAID orchestration engine for medium-to-large tasks
+
+Reads an `/analyze` spec directory, builds a dependency DAG, classifies XL/L/M, drives each task group through a Summarize→Impl→Review while-loop via 8 agent-only skill files, handles blocking and smart-friend escalation, runs E2E and Final-Review, then writes `final-report.md`.
+
+Key design properties to preserve when editing `execute/SKILL.md` or the agent files:
+
+- **English body, 繁體中文 output.** Same convention as all other skills.
+- **Analyze spec directory is strictly read-only.** No Edit/Write under `.claude/analyze/`. This is enforced as a structural blocker (Stage 0), not just advisory. Do not weaken it.
+- **Subagent depth = 1.** The 8 `agents/*.md` files are designed for depth-1 dispatch only — they cannot themselves dispatch parallel Tasks + AskUserQuestion. `review-agent.md` in particular MUST implement four-tier semantics directly; it must NOT call `/baransu:review`. That would violate the depth limit.
+- **All Task Tool entries created before execution begins.** Stage 2 registers every group × task via TaskCreate before Stage 3 starts. No mid-execution task creation.
+- **failure_count semantics are precise.** Compile errors do NOT count. Packaged confirm (quality) does NOT count (triggers refactor pass for L/XL only). Only packaged confirm (correctness) and needs-judgment count. smart-friend dispatched at count==2; BLOCKED at count==3.
+- **Merge retry cap = 2.** After 2 ⚠️ Green-broken merge retries, block downstream and escalate. Without the cap, the merge retry loop is unbounded.
+- **cascade-blocked propagation is explicit.** After any task is BLOCKED, Stage 4d checks downstream groups and marks them cascade-blocked. Report separates direct-blocked from cascade-blocked.
+- **pre-scan is advisory only.** File overlap between parallel groups generates a warning in task-map.md and may serialize those groups, but false positives are expensive — prefer the no-overlap assumption when descriptions are ambiguous. Merge Point is the real safety net.
+- **final-fixer runs once.** If Final-Review still `needs_fixer: true` after one fixer pass, record remaining gaps as blocked and proceed to Stage 7 — do not invoke fixer again.
+- **agent files follow established pattern.** YAML frontmatter (name, description, tools) + `視角 / 目標 / 通用原則 / 禁忌`. No role-play persona descriptions. Fixed static content at file HEAD for prompt cache stability.
+
+When iterating: `execute/SKILL.md` targets ~250 lines. Agent files are each ~40–60 lines. The TDAID loop pseudocode (Stage 4c) is load-bearing — the precise failure_count conditions and compile-error exception must not be simplified away.
 
 ## Install Flow (for testing locally)
 
@@ -148,7 +177,7 @@ These come from `~/.claude/CLAUDE.md` and apply here unless this file overrides 
 - `/analyze` shipped in v0.1.6 — goal-anchored spec builder for medium-to-large tasks.
 - `/dev` shipped in v0.1.7 — gate-enforced TDD executor for small tasks; downstream of `/think`.
 - `/write` shipped in v0.1.9 — bilingual zh/en copywriting assistant; Refine + Generate dual-mode; language prefix controls both rule set and output language.
-- A `/execute` skill for the `/analyze` downstream is still planned — heavy orchestration, reads task-*.md spec files, injects content into subagents. Different scope from `/dev`. Final design via `/baransu:think` (dogfooding). Do not pre-scaffold it.
+- `/execute` shipped in v0.3.0 — TDAID orchestration engine for the `/analyze` downstream. Reads `task-*.md` spec files, classifies XL/L/M via DAG BFS, drives parallel worktrees via 8 agent-only skill files, runs E2E and Final-Review, produces `final-report.md`. Spec designed via `/baransu:think` + `/baransu:analyze` dogfood.
 
 ## What's Intentionally Absent
 
