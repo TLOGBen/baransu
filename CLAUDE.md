@@ -61,8 +61,6 @@ Key design properties to preserve when editing `SKILL.md`:
 - **Stage G is a four-option gate.** "送 /review 再決定" is 【推薦】 (Option 1); "批准實作（完全授權）" is Option 2. Option 1 handling is a review→think loop: if /review finds substantive gaps, revise the plan via Option 3 mechanism and re-present the gate. Option 2 downstream routing: small task → `/baransu:dev`, medium-large → `/baransu:analyze`.
 - **Type 10 governance inverts some Skills BPs**: rigid contract steps are a feature, not railroading. See `ch2-擴充Agent/02-Skills.md` Type 10 section for the rationale.
 
-When iterating on this skill, keep it under 500 lines and avoid putting dynamic strings (timestamps, IDs, paths) in SKILL.md itself — they break prompt cache prefix stability.
-
 ### `/baransu:review` — independent multi-perspective verification
 
 Task-analyst + dispatcher. Re-verifies any model output — code diff, file set, directory, /think's approved plan, a bare claim — by dispatching **isolated** perspective agents in clean Task contexts, then triaging findings into four response levels (direct fix / packaged confirm / ask user / FYI).
@@ -70,16 +68,14 @@ Task-analyst + dispatcher. Re-verifies any model output — code diff, file set,
 Key design properties to preserve when editing `review/SKILL.md` or the three agent files:
 
 - **English body, 繁體中文 output.** SKILL.md body is agent-facing English; every user-visible string (headings, questions, report sections) is 繁體中文. Same convention as `/think`. Writing the body in 繁中 is a regression — catch and revert.
-- **Goal input is load-bearing.** The main skill derives a one-sentence 繁中 **review goal** in Stage 1 alongside the claim checklist, and passes both to every dispatched reviewer. Without the goal, well-meaning perspectives each find their own zone's issues regardless of relevance and the review bloats. With the goal, the fourth balance-check question — 「是否服務於 goal」 — downgrades off-topic findings to advisory, even when the finding itself is correct. This is the mechanism the skill's own dogfood session exposed as missing; deleting it is a regression.
-- **Principle-led, not rule-enumerated.** SKILL.md is ~177 lines of flow + principles, not a legalistic contract. When tempted to add an iron rule, a "What /review is NOT" disclaimer, a verdict enum, or a numeric cap (e.g. "≤4 questions"), first check whether it's defending against a real failure or the author's own anxiety. Most additions lose against the spec's core line: **「複雜度需要證明自己的價值」**. The skill has a dedicated Gotchas section capturing the two symmetric traps (add-too-much / cut-too-much) this drifted into during its own construction — read it before editing.
+- **Goal input is load-bearing.** The main skill derives a one-sentence 繁中 **review goal** in Stage 1 alongside the claim checklist, and passes both to every dispatched reviewer. Without the goal, well-meaning perspectives each find their own zone's issues regardless of relevance and the review bloats. With the goal, the fourth balance-check question — 「是否服務於 goal」 — downgrades off-topic findings to advisory, even when the finding itself is correct. Deleting it is a regression.
+- **Principle-led, not rule-enumerated.** SKILL.md is ~177 lines of flow + principles, not a legalistic contract. The skill has a dedicated Gotchas section capturing two symmetric traps (add-too-much / cut-too-much) — read it before editing.
 - **Main skill is pure orchestrator.** No per-perspective review rubric lives in `skills/review/SKILL.md`; those live in `agents/*-reviewer.md`. Main skill owns: flow, dispatch, goal derivation, triage.
-- **Agents are perspectives, not personas.** Every `agents/*-reviewer.md` uses `視角 / 目標 / 通用原則 / 禁忌`. Role-play descriptions ("you are a senior …") are banned — they induce hallucination. The original spec asked for the first three; the 禁忌 fourth section earns its place only as a lane-keeper between agents.
-- **Activation looks at target behavior, not invocation keywords.** Dispatch decisions depend on what the target actually does (opens a socket, persists data, crosses layers, is a plan document) — never on strings in the user's invocation text.
-- **Auto-fix is cosmetic-only.** Formatter / imports / typo / dead-import. Anything semantic — control flow, boundaries, API, state — goes to packaged confirm or needs-judgment.
+- **Agents are perspectives, not personas.** Every `agents/*-reviewer.md` uses `視角 / 目標 / 通用原則 / 禁忌`. Role-play descriptions ("you are a senior …") are banned — they induce hallucination.
+- **Activation looks at target behavior, not invocation keywords.**
+- **Auto-fix is cosmetic-only.** Anything semantic goes to packaged confirm or needs-judgment.
 - **Balance check is mandatory, with four questions.** Every new-work finding must answer: 不做 / 做 / 中間方案 / **是否服務於 goal**. Failing any one downgrades to advisory.
 - **E2E hard gate** for code targets: no in-session green-run evidence → results say 「未完成，等 e2e」.
-
-When iterating: keep `review/SKILL.md` lean. If a new iron rule or disclaimer section feels like an obvious addition, that is usually the moment to resist — this skill has already been through one cycle of ballooning to ~270 lines via exactly that pattern before being cut back. The opposite trap is cutting too aggressively and leaving load-bearing mechanisms (like the goal input) implicit; that produced perspective drift the first time around. The safe posture: anything that earns its place on the spec's core principle of **「複雜度需要證明自己的價值」** stays; anything that doesn't, cuts.
 
 ### `/baransu:analyze` — spec builder for medium-to-large tasks
 
@@ -89,15 +85,12 @@ Key design properties to preserve when editing `analyze/SKILL.md`:
 
 - **English body, 繁體中文 output.** Same convention as `/think` and `/review`.
 - **Five layer order is a constraint.** goal → requirement → design → test → task. Each layer depends on the one above for its precision. Do not reorder.
-- **test layer is in the review chain.** Three subagents in parallel: Agent 1 (task ↔ test alignment), Agent 2 (test ↔ design alignment), Agent 3 (design ↔ requirement ↔ goal alignment). If test is removed from the chain, task boundary conditions lose their testability anchor.
-- **Stage 7 offers /review as handoff option.** The Constraints "Do not call /review" applies to Stages 1-6 only; Stage 7 may invoke /review as a post-spec quality check. These are different questions — alignment vs. quality.
-- **Stage 0 lightweight alignment, not /think's three rounds.** /analyze asks for a one-sentence goal and does a scope gate (reject small tasks). It does not replace /think's full alignment ceremony; /think handles direction-uncertain tasks, /analyze handles tasks where the direction is already known.
-- **Auto-correct is one round, goal/requirement layers are immutable.** Only design / test / task layers are auto-correctable. goal.md and requirement.md represent user intent and can only change with explicit user confirmation.
-- **Cross-layer subagents ≠ /review.** /review asks "what's wrong with this layer?"; /analyze's subagents ask "are these two layers consistent?" Different question, different dispatch, do not conflate.
-- **Golden templates embedded in SKILL.md.** Each stage contains a full markdown template for its output file. Preserve template structure — downstream tasks copy these templates.
+- **test layer is in the review chain.** Three subagents in parallel: Agent 1 (task ↔ test alignment), Agent 2 (test ↔ design alignment), Agent 3 (design ↔ requirement ↔ goal alignment).
+- **Stage 7 offers /review as handoff option.** The Constraints "Do not call /review" applies to Stages 1-6 only; Stage 7 may invoke /review as a post-spec quality check.
+- **Auto-correct is one round, goal/requirement layers are immutable.** Only design / test / task layers are auto-correctable.
+- **Cross-layer subagents ≠ /review.** /review asks "what's wrong with this layer?"; /analyze's subagents ask "are these two layers consistent?" Different question, do not conflate.
+- **Golden templates embedded in SKILL.md.** Preserve template structure — downstream tasks copy these templates.
 - **Task sizing rule is explicit.** One task = one session: no cross-group coordination needed, no waiting on other tasks' output, changes in one module layer only.
-
-When iterating: keep `analyze/SKILL.md` under 400 lines. The golden templates take up most of the space — preserve them. The stage instructions should be terse directives, not explanatory prose.
 
 ### `/baransu:dev` — gate-enforced TDD executor for small tasks
 
@@ -108,9 +101,9 @@ Key design properties to preserve when editing `dev/SKILL.md`:
 - **English body, 繁體中文 output.** Same convention as all other skills.
 - **All tasks created upfront in Stage 1.** TDD path: 4 tasks (Red test, Red gate, Green impl, Green gate → review). Cosmetic path: 2 tasks (implement, review). Never create tasks mid-execution.
 - **Gate logic is hard, not advisory.** Red gate: test must fail — if it passes, stop and report (wrong test, not new behavior). Green gate: fail×1 = auto-retry impl; fail×2 = auto-invoke `/baransu:think` with task goal + two failure summaries + red test code; if /think-assisted resume also fails, stop completely.
-- **Compile errors are distinct from test failures.** At Red: compile error = malformed test, stop; does not count toward Green retry limit. At Green: fix and re-run, does NOT count toward the two-attempt limit.
+- **Compile errors are distinct from test failures.** At Red: compile error = malformed test, stop. At Green: fix and re-run, does NOT count toward the two-attempt limit.
 - **Cosmetic classification is final.** Model decides at Stage 0; no re-classification mid-execution. Cosmetic = zero semantic runtime impact.
-- **/review only on success.** If the session ends on a failure path, do not invoke /review — there is nothing to review. Review goal = task goal sentence; claim checklist = the task list.
+- **/review only on success.** If the session ends on a failure path, do not invoke /review.
 - **Downstream of /think.** /think → /dev is the small-task pipeline. /think → /analyze is the medium-large pipeline. /dev does not read `/analyze`'s task-*.md files — that is `/execute`'s job.
 
 ### `/baransu:write` — bilingual copywriting assistant (zh/en)
@@ -119,13 +112,12 @@ Accepts a language prefix (`zh`/`en`) or auto-detects from content. Classifies i
 
 Key design properties to preserve when editing `write/SKILL.md`:
 
-- **English body, exception output.** Unlike other baransu skills, user-visible content output is in the language specified by prefix or auto-detection, not locked to Traditional Chinese. Operational notifications (mode detected, fallback used, errors) remain Traditional Chinese. This exception must be declared in an explicit `User-facing language` section in SKILL.md — not only in frontmatter.
+- **English body, exception output.** Content output is in the language specified by prefix or auto-detection. Operational notifications remain Traditional Chinese. This exception must be declared in an explicit `User-facing language` section in SKILL.md.
 - **Prefix determines both rule set and output language simultaneously.** `zh` = zh rules + zh output; `en` = en rules + en output. These cannot be set independently.
-- **Prefix-content mismatch: Refine stops, Generate continues.** If prefix language and content language differ, Refine mode reports the mismatch and asks user to re-invoke; Generate mode is unaffected (prefix determines output language of the generated piece, not the language of the request prompt).
-- **Mode detection: refine keyword + existing body beats imperative tone.** If input has request-tone phrasing but also contains a refine keyword (潤色/改寫/修改/revise/edit) paired with existing text, Refine wins. Uncertainty defaults to Generate (cost of generating is lower than silently discarding user content).
-- **Vague topic fallback in Generate: topic ambiguous, not format absent.** Fallback (short prose 3–5 sentences + notification) fires when the topic itself is too vague to proceed, not when format keywords are absent. Format-keyword absence silently defaults to short prose via the detection table's catch-all row.
-- **zh rule set: 4 sparanoid compact rules.** Spacing, punctuation, numbers, proper nouns. This is one rule beyond the plan's original KD1 scope (排版/標點/數字) — the 4th rule (proper noun capitalization) was accepted as a non-destructive expansion.
-- **Writing style principles in `references/writing-principles.md`** (BP4 progressive disclosure): both Refine and Generate read this file on demand. Content follows BP9 framework — Claude's observed default deviations with before/after corrections (余光中 for zh, Orwell for en), not abstract aesthetic statements. Refine adds style tags (`動詞直用`、`Cut filler` etc.) to 修正說明 when triggered; Generate applies principles while composing, not after. Do not embed these principles in SKILL.md — they belong in references/.
+- **Prefix-content mismatch: Refine stops, Generate continues.**
+- **Mode detection: refine keyword + existing body beats imperative tone.** Uncertainty defaults to Generate.
+- **Vague topic fallback in Generate: topic ambiguous, not format absent.**
+- **Writing style principles in `references/writing-principles.md`** (BP4 progressive disclosure): both Refine and Generate read this file on demand. Do not embed these principles in SKILL.md.
 - **Single-pass only.** No iterative loop; user re-invokes for adjustments.
 
 ### `/baransu:execute` — TDAID orchestration engine for medium-to-large tasks
@@ -139,13 +131,11 @@ Key design properties to preserve when editing `execute/SKILL.md` or the agent f
 - **Subagent depth = 1.** The 8 `agents/*.md` files are designed for depth-1 dispatch only — they cannot themselves dispatch parallel Tasks + AskUserQuestion. `review-agent.md` in particular MUST implement four-tier semantics directly; it must NOT call `/baransu:review`. That would violate the depth limit.
 - **All Task Tool entries created before execution begins.** Stage 2 registers every group × task via TaskCreate before Stage 3 starts. No mid-execution task creation.
 - **failure_count semantics are precise.** Compile errors do NOT count. Packaged confirm (quality) does NOT count (triggers refactor pass for L/XL only). Only packaged confirm (correctness) and needs-judgment count. smart-friend dispatched at count==2; BLOCKED at count==3.
-- **Merge retry cap = 2.** After 2 ⚠️ Green-broken merge retries, block downstream and escalate. Without the cap, the merge retry loop is unbounded.
+- **Merge retry cap = 2.** After 2 ⚠️ Green-broken merge retries, block downstream and escalate.
 - **cascade-blocked propagation is explicit.** After any task is BLOCKED, Stage 4d checks downstream groups and marks them cascade-blocked. Report separates direct-blocked from cascade-blocked.
-- **pre-scan is advisory only.** File overlap between parallel groups generates a warning in task-map.md and may serialize those groups, but false positives are expensive — prefer the no-overlap assumption when descriptions are ambiguous. Merge Point is the real safety net.
-- **final-fixer runs once.** If Final-Review still `needs_fixer: true` after one fixer pass, record remaining gaps as blocked and proceed to Stage 7 — do not invoke fixer again.
+- **pre-scan is advisory only.** File overlap between parallel groups generates a warning in task-map.md; prefer the no-overlap assumption when descriptions are ambiguous.
+- **final-fixer runs once.** If Final-Review still `needs_fixer: true` after one fixer pass, record remaining gaps as blocked and proceed to Stage 7.
 - **agent files follow established pattern.** YAML frontmatter (name, description, tools) + `視角 / 目標 / 通用原則 / 禁忌`. No role-play persona descriptions. Fixed static content at file HEAD for prompt cache stability.
-
-When iterating: `execute/SKILL.md` targets ~250 lines. Agent files are each ~40–60 lines. The TDAID loop pseudocode (Stage 4c) is load-bearing — the precise failure_count conditions and compile-error exception must not be simplified away.
 
 ### `/baransu:ship` — session cleanup
 
@@ -158,6 +148,13 @@ Key design properties to preserve when editing `ship/SKILL.md`:
 - **Step 1 is the empty-state gate.** If all three source directories are empty or absent, output a message and stop. Do not commit or push an empty session.
 - **Collision suffix is deterministic.** Timestamp suffix (`-{unix_timestamp}`) resolves name collisions in `.claude/archived/` without interactive prompts.
 - **Worktree cleanup is conditional on detection.** Only executes when `git rev-parse --git-dir` output contains `.git/worktrees/`. Branch deletion after worktree removal is part of the same step.
+
+## 禁止事項
+
+- **絕對不許** 在 `plugin.json` 加 `skills` array：Claude Code 用 filesystem 自動發現 skills，`v0.3.0` 曾誤加隨即移除。
+- **絕對不許** `review-agent` 呼叫 `/baransu:review`：subagent 深度 = 1 硬性限制，必須直接實作四層語義；呼叫會觸發 AskUserQuestion + parallel Tasks，違反深度限制。
+- **不許** 在 `/ship` Step 5 用 `git branch -d`：push 後未 merge，`-d` 必然失敗；兩個子命令都要 `git -C "$MAIN_REPO"` + `-D`。
+- **不許** 簡化 `failure_count` / `compile_error_count` 的區分：compile error 不計入 failure_count，這個語義不能被「優化」掉，否則 TDAID loop 重試行為會錯誤。
 
 ## Install Flow (for testing locally)
 
@@ -181,10 +178,12 @@ Remote install:
 
 These come from `~/.claude/CLAUDE.md` and apply here unless this file overrides them:
 
-- **everything-cli pipeline** (`/panel-review → /eidos → /execute`) is the default for non-trivial changes elsewhere, but **inside this repo** the skill-authoring work is small enough that `/dev-lite` or direct edits are usually appropriate. Note: for designing *new skills within baransu*, dogfood `/baransu:think` itself.
+- **Search First**: before creating any new skill, agent, or pattern, search `plugins/baransu/skills/` and `plugins/baransu/agents/` for existing implementations. Re-use and adapt before creating from scratch.
+- **everything-cli pipeline** (`/panel-review → /eidos → /execute`) is the default for non-trivial changes elsewhere, but **inside this repo** skill-authoring work is small enough that direct edits are usually appropriate. For designing *new skills within baransu*, dogfood `/baransu:think` itself.
 - **Read-before-write**: re-Read any file in the same turn before Edit/Write, even if read earlier in the session.
 - **Handoff artifacts** land in `.agent-workspace/handoff/` and are gitignored.
 - **Commit style**: conventional commits (`feat:`, `fix:`, `docs:`, …). Attribution lines disabled globally.
+- **CLAUDE.md size target**: keep under 200 lines. If it grows beyond that, trim advisory prose before adding new content.
 
 ## Roadmap (informal)
 
