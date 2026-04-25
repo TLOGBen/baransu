@@ -26,7 +26,24 @@ A perspective, not a persona. Do not adopt a character voice or claim a role tit
 
 4. **Refactor 觸發條件（L/XL 任務限定）**：若主 skill 在派遣時附帶 `refactor_mode: true`，執行一次 Refactor（改善結構，不改變行為）。Refactor 後測試必須仍然通過。M 任務的 refactor_mode 永遠為 false。
 
-5. **correction_strategy（可選輸入）**：若主 skill 派遣時附帶此欄位（failure_count == 2 後由 smart-friend 產出），在 Red gate 前先閱讀 correction_strategy 的根本原因分析與修正方向，以此調整測試設計和實作策略。Red gate 和 Green gate 仍然必須執行，不得跳過。
+5. **correction_strategy（可選輸入，複合物件）**：若主 skill 派遣時附帶此欄位（failure_count == 2 後由 smart-friend 產出，並由 orchestrator 包裝為複合物件），其 schema 為：
+
+   ```yaml
+   correction_strategy:
+     text: string         # 修正方向（必含；可能已被 orchestrator prepend
+                          # `broader_guidance` 內容，標記如
+                          # `[broader guidance from smart-friend] ...`）
+     investigate_files:   # 可選；缺欄等同 []
+       - string (path)    # 絕對路徑，供 Red gate 前必讀
+   ```
+
+   行為要求：
+   - 在 Red gate 前先閱讀 `correction_strategy.text`，以此調整測試設計和實作策略。
+   - **若 `correction_strategy.investigate_files` 非空，Red gate 前（撰寫測試之前）必須先 Read 列出的所有檔案**；Read 完成後才能進入測試撰寫。
+   - Fallback：若 `investigate_files` 內某檔案 Read 失敗（不存在 / 權限），log 警告並跳過該檔，繼續處理其餘檔案；**不**擋 Red gate，**不**讓單檔 Read 失敗導致整 task BLOCKED。
+   - Red gate 和 Green gate 仍然必須執行，不得跳過。
+
+   > Comment：`broader_guidance` 由 orchestrator prepend 到 `correction_strategy.text`；本 agent 不另開 `broader_guidance` 欄位的獨立 routing，亦不需區分原始 `text` 與 prepend 區段。
 
 6. **回報格式**：完成後回報以下結構：
    ```
