@@ -15,6 +15,14 @@ The body below is English (agent-facing). All user-visible output is in **Tradit
 
 ## Stage 0 — Receive task and classify
 
+### Design.md soft-read
+
+Before task classification, check for a DESIGN.md at the project root:
+1. Run `git rev-parse --show-toplevel`. If it fails, skip silently.
+2. If `{root}/DESIGN.md` exists, read it into context and output one line in 繁中:
+   「已載入 DESIGN.md，視覺規格已參考」
+3. If absent, skip silently. This check is non-blocking and does not affect any gate.
+
 Accept the task from one of two sources:
 - **Standalone**: user describes the task directly in the invocation
 - **/think handoff**: /think's Stage G handoff summary is the input

@@ -17,6 +17,14 @@ The body below is English (agent-facing). All user-visible output is in **Tradit
 
 Two steps before any file is written.
 
+### Design.md soft-read
+
+Before Step A, check for a DESIGN.md at the project root:
+1. Run `git rev-parse --show-toplevel`. If it fails, skip silently.
+2. If `{root}/DESIGN.md` exists, read it into context and output one line in 繁中:
+   「已載入 DESIGN.md，視覺規格已參考」
+3. If absent, skip silently. This check is non-blocking and does not affect any gate.
+
 ### A. Get a one-sentence goal
 
 Ask the user (繁中): 「請用一句話描述本次目標，以及預計會動到的主要模組或範圍。」
