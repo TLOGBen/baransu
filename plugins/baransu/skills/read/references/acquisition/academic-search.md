@@ -22,7 +22,7 @@ The script outputs a JSON array. Each entry contains:
   "abstract_preview": "First 2–3 sentences of the abstract...",
   "pdf_url": "https://example.com/paper.pdf",
   "doi": "10.1234/example",
-  "source": "arxiv"
+  "source": "semantic_scholar"
 }
 ```
 
