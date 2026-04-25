@@ -5,6 +5,9 @@
 # Archived session work files (baransu /ship output — local only).
 .claude/archived/
 
+# Skill eval / optimization workspaces (transient, local only).
+eval-workspace/
+
 # Session telemetry written by the everything-cli harness.
 # knowledge/solutions/ and other curated content under knowledge/ stays tracked.
 knowledge/skill-telemetry.jsonl
