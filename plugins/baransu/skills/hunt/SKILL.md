@@ -14,7 +14,7 @@ metadata:
 
 # Hunt — Diagnose Before You Fix
 
-開始狩獵時，第一行輸出 🥷
+Output 🥷 as the first line when hunt begins.
 
 A patch applied to a symptom creates a new bug somewhere else.
 
@@ -22,19 +22,21 @@ A patch applied to a symptom creates a new bug somewhere else.
 > 「根因是 [X]，因為 [證據]。」
 Name a specific file, function, line, or condition. "A state management issue" is not a hypothesis. "Stale cache in `useUser` at `src/hooks/user.ts:42` because the dependency array is missing `userId`" is.
 
+The body below is English (agent-facing). All user-facing output is in **Traditional Chinese (繁體中文)**.
+
 ---
 
 ## Rationalization Watch
 
-When these surface, stop and re-examine:
+When these thought patterns surface, stop and re-examine:
 
-| 思維 | 實際意義 | 規則 |
+| Thought pattern | What it actually means | Rule |
 |------|---------|------|
-| 「試試這個」 | 沒有假說，隨機亂走 | 停。先寫出假說再行動。 |
-| 「我確定是 X」 | 信心不是證據 | 找一個能證偽它的工具再說。 |
-| 「應該跟上次一樣」 | 用已知模式套新症狀 | 從頭重讀執行路徑。 |
-| 「我這邊跑得起來」 | 環境差異就是 bug | 逐一列出每個環境差異再說。 |
-| 「再重啟應該就好了」 | 迴避錯誤訊息 | 原文讀最後一條錯誤。重啟不超過兩次而沒有新證據。 |
+| "Let's try this" | No hypothesis — random walk | Stop. Write the hypothesis first, then act. |
+| "I'm certain it's X" | Confidence is not evidence | Find one tool that can falsify it before proceeding. |
+| "Probably the same as last time" | Mapping a known pattern onto a new symptom | Re-read the execution path from scratch. |
+| "It works on my side" | Environment difference IS the bug | List every environment difference, then proceed. |
+| "Restarting should fix it" | Avoiding the error message | Read the last error verbatim. Do not restart more than twice without new evidence. |
 
 ---
 
@@ -42,79 +44,79 @@ When these surface, stop and re-examine:
 
 When these appear, the diagnosis is moving in the right direction:
 
-| 思維 | 意義 | 下一步 |
+| Signal | Meaning | Next step |
 |------|------|------|
-| 「這筆 log 符合假說」 | 找到正向證據 | 再找一個獨立證據交叉確認。 |
-| 「我能預測下一個錯誤會是什麼」 | Mental model 成形 | 執行預測；若吻合，模型正確。 |
-| 「根因在 A，症狀出現在 B」 | 傳播路徑已理解 | 從 A 到 B 的呼叫鏈逐個確認。 |
-| 「我能寫一個在舊 code 上失敗的測試」 | 假說夠具體可測 | 先寫測試再動 code。 |
+| "This log entry matches the hypothesis" | Positive evidence found | Find one independent cross-confirmation before fixing. |
+| "I can predict what the next error will be" | Mental model is forming | Execute the prediction; if it matches, the model is correct. |
+| "Root cause is in A, symptom appears in B" | Propagation path understood | Walk the call chain from A to B one frame at a time. |
+| "I can write a test that fails on the old code" | Hypothesis is concrete enough to test | Write the test before touching code. |
 
-進展的聲稱必須對應上述至少一個信號。
+Progress claims must map to at least one of the above signals.
 
 ---
 
 ## Tool Scan
 
-調查開始前，選擇**能觀測到問題發生層的工具**，不是第一個可用的工具：
+Before investigating, pick the tool that can **observe the layer where the problem occurs** — not the first available tool:
 
-| 工具 | 可觀測的層 | 選它的時機 |
+| Tool | Observable layer | When to use |
 |------|---------|---------|
-| playwright / browser automation | UI 行為、渲染結果 | 視覺錯誤、表單流程、前端邏輯 |
-| MCP db query tool | 資料狀態、schema | 資料不一致、FK 錯誤、狀態值異常 |
-| LSP findReferences | 呼叫鏈結構 | 誰呼叫這個 method、哪裡會被影響 |
-| bash logging / runtime instrument | Runtime 中間值 | 非預期分支路徑、條件判斷值 |
-| 靜態讀 code | 靜態結構 | 以上都無法觀測到問題層時 |
+| playwright / browser automation | UI behavior, render output | Visual errors, form flows, frontend logic |
+| MCP db query tool | Data state, schema | Data inconsistency, FK errors, abnormal state values |
+| LSP findReferences | Call chain structure | Who calls this method, what could be affected |
+| bash logging / runtime instrument | Runtime intermediate values | Unexpected branch paths, condition values |
+| Static code read | Static structure | When none of the above can observe the problem layer |
 
-如果問題發生層不確定，先用 bash logging 確認症狀出現的模組，再選精確工具。
+If the problem layer is uncertain, use bash logging first to confirm which module the symptom appears in, then choose the precise tool.
 
 ---
 
 ## Locate — 定位獵物
 
-Tool Scan 選好工具後，先回答以下問題再加任何工具：
+After selecting a tool in Tool Scan, answer these four questions before adding any instrument:
 
-1. **現象時序**：bug 出現在哪個操作或事件之後？（HTTP 請求、排程任務、使用者操作、資料同步）
-2. **重現資料**：有可以觸發 bug 的資料嗎？（request payload、DB 記錄、log excerpt）
-3. **髒資料特徵**：髒資料和正常資料的差異是什麼？（哪個欄位、哪個值、哪個條件）
-4. **環境確認**：能在測試環境重現嗎？還是只在 production？
+1. **Event sequence**: Which operation or event does the bug appear after? (HTTP request, scheduled job, user action, data sync)
+2. **Reproduction data**: Is there data available that triggers the bug? (request payload, DB record, log excerpt)
+3. **Dirty data characteristics**: How does the dirty data differ from normal? (which field, which value, which condition)
+4. **Environment**: Can the bug be reproduced in a test environment, or only in production?
 
-這四個問題決定你把第一個觀測點放在哪裡。不能回答這四個問題就加 log = 在不知道獵物位置的森林裡亂佈陷阱。
+These four questions determine where the first observation point goes. Adding a log before answering these questions = setting traps in a forest without knowing where the prey is.
 
 ---
 
 ## Instrumentation — 🎯 HUNT-id Tagging
 
-所有診斷用工具（log 行、failing assertion、test probe）**必須帶 HUNT-id tag**。
+All diagnostic tools (log lines, failing assertions, test probes) **must carry a HUNT-id tag**.
 
-- Tag 格式見 `references/hunt-case-template.md`
-- `grep "🎯HUNT-[id]"` 一次找到所有診斷工具
-- 找到根因後，**一次清除**所有帶 tag 的診斷工具，確認 build 仍通過
+- Tag format: see `references/hunt-case-template.md`
+- `grep "🎯HUNT-[id]"` finds all diagnostic tools at once
+- After root cause is confirmed, **remove all tagged tools in one sweep** and verify the build still passes
 
-Log 二分法：每輪只加 2-3 個觀測點，不是 20 個。
+Log bisection: add only 2–3 observation points per round, not 20.
 ```
-第 1 輪：suspect 入口 / 中間 / 出口各一個觀測點 → 確認問題在哪個區段
-第 2 輪：出問題的區段內再加 2-3 個觀測點 → 再收斂
-第 3 輪：通常可定位到 5-10 行以內
+Round 1: one point each at suspect entry / middle / exit → determine which segment contains the problem
+Round 2: 2–3 more points inside the problematic segment → narrow further
+Round 3: usually locates within 5–10 lines
 ```
 
 ---
 
 ## Before You Fix
 
-修復前兩件事都要完成，缺一不可：
+Both must be complete before any fix. Neither is optional.
 
-### 1. 呼叫鏈分析
+### 1. Call chain analysis
 
-- 直接呼叫者（LSP findReferences / graphify / code search）
-- 這段 code 影響的業務場景
-- 高風險點（最可能「改 A 壞 B」的地方）
+- Direct callers (LSP findReferences / graphify / code search)
+- Business scenarios affected by this code
+- High-risk points (the most likely places to "fix A, break B")
 
-### 2. 測試矩陣
+### 2. Test matrix
 
-針對要修改的邏輯，列出維度 × 邊界值的組合：
-- 每個維度的邊界值都要覆蓋
-- **unchanged 場景最容易漏**（版本號、時間戳、FK 可能需要同步）
-- **multi-X 場景最容易出問題**（multi-org、multi-tenant、multi-item）
+For the logic being modified, enumerate dimension × boundary value combinations:
+- Cover boundary values for every dimension
+- **Unchanged scenarios are the most likely to be missed** (version numbers, timestamps, FKs may need synchronization)
+- **Multi-X scenarios are the most error-prone** (multi-org, multi-tenant, multi-item)
 
 Build the matrix before entering any fix. A fix without a test matrix is a symptom patch.
 
@@ -122,11 +124,11 @@ Build the matrix before entering any fix. A fix without a test matrix is a sympt
 
 ## Confirm or Discard
 
-每次只加**一個**最小化工具（一行 log、一個 failing assertion、或最小測試案例）。
+Add only **one** minimal instrument at a time (one log line, one failing assertion, or one minimal test case).
 
-執行後：
-- 證據**支持假說** → 再找一個獨立證據交叉確認，再進入修復。
-- 證據**反駁假說** → **完全丟棄假說**。不是修補，不是解釋。用剛學到的資訊重新定向。
+After executing:
+- Evidence **supports the hypothesis** → find one independent cross-confirmation, then proceed to fix.
+- Evidence **contradicts the hypothesis** → **discard the hypothesis completely**. Not patch, not explain. Reorient using what was just learned.
 
 A preserved-but-contradicted hypothesis produces a new bug. Discard completely.
 
@@ -134,43 +136,45 @@ A preserved-but-contradicted hypothesis produces a new bug. Discard completely.
 
 ## Bisect Mode
 
-Activate when: 「以前能跑，現在壞了」或「更新後壞了」。
+Activate when: "It worked before and now it's broken" or "It broke after an update."
 
-1. 找 `last-known-good`：用最近的 tag，不用日期或 raw SHA。(`git tag --sort=-version:refname | head -5`)
-2. 在 bisect 開始前，定義 **pass/fail 測試指令**。指令必須可自動執行、產出明確 exit code。寫下來，每步重用同一個。
-3. 執行：`git bisect start` → `git bisect bad`（當前）→ `git bisect good <tag>`。讓 bisect 引導，不跳步。
-4. bisect 指出 commit 後：只讀那個 commit 的 diff，不讀周邊歷史。
+1. Find `last-known-good`: use the most recent tag, not a date or raw SHA. (`git tag --sort=-version:refname | head -5`)
+2. Before starting bisect, define a **pass/fail test command**. The command must be auto-executable and produce a clear exit code. Write it down; reuse the same command at every step.
+3. Execute: `git bisect start` → `git bisect bad` (current) → `git bisect good <tag>`. Let bisect guide — do not skip steps.
+4. When bisect identifies a commit: read only that commit's diff. Do not read surrounding history.
 
 ---
 
 ## Hard Rules
 
-| 條件 | 動作 |
+| Condition | Action |
 |------|------|
-| 修復後同症狀再現 | 停。假說未完成。重讀執行路徑，不再碰 code。 |
-| 「先試試這個」出現 | 停。寫出假說再行動。 |
-| 三次假說失敗 | 切換 Handoff 格式（見 Output）。 |
-| Before You Fix 未完成就要修復 | 停。完成呼叫鏈分析和測試矩陣後再繼續。 |
-| 外部工具失敗 | 先診斷原因（server 跑嗎？config 正確？），再換工具。 |
-| Visual / 渲染 bug | 靜態分析優先（DevTools layers、stacking context），加 log 是第二步。 |
-| 調查性 DB 測試 | Transaction 必定 Rollback，不真正修改資料。 |
-| 調查性落檔 / 外部 API 呼叫 | 用 Mock 防止真實寫出；email / webhook 不可真的送出。 |
+| Same symptom recurs after fix | Stop. Hypothesis was incomplete. Re-read the execution path. Do not touch code again. |
+| "Let's try this" appears | Stop. Write the hypothesis before acting. |
+| Three hypothesis failures | Switch to Handoff format (see Output). |
+| Before You Fix incomplete when fix is attempted | Stop. Complete call chain analysis and test matrix first. |
+| External tool fails | Diagnose the cause first (is the server running? is config correct?) before switching tools. |
+| Visual / render bug | Static analysis first (DevTools layers, stacking context); logging is the second step. |
+| DB investigation test | Transaction must always rollback. Do not modify real data. |
+| Investigation involves file writes / external API calls | Use mocks to prevent real writes; emails and webhooks must not actually send. |
 
 ---
 
 ## Gotchas
 
-| 情境 | 規則 |
+| Scenario | Rule |
 |------|------|
-| 多實體比對（multi-org / multi-tenant） | 用業務鍵（SEQ / CODE / NAME）比對，不用 ID。 |
-| unchanged 項目的同步 | 版本號 / 時間戳 / FK 可能需要同步，即使「沒有變化」的項目。 |
-| Clone 後繼承 ID | Clone 後覆蓋 PK 和 FK，不繼承來源的 ID。 |
-| Stack trace 指向函式庫深處 | 往回走 3 個 frame 到自己的 code；bug 幾乎都在那裡。 |
-| 平行 pipeline 某段顯示 RUNNING | 逐段隔離測試；每段正確不代表組合正確。 |
+| Multi-entity comparison (multi-org / multi-tenant) | Compare by business key (SEQ / CODE / NAME), not ID. |
+| Synchronizing unchanged items | Version numbers, timestamps, and FKs may need updating even for "unchanged" items. |
+| Inheriting IDs after clone | Overwrite PK and FK after cloning; do not inherit source IDs. |
+| Stack trace pointing deep into a library | Walk back 3 frames to your own code; the bug is almost always there. |
+| One segment shows RUNNING in a parallel pipeline | Test each segment in isolation; each segment being correct does not mean the combination is. |
 
 ---
 
 ## Output
+
+All user-facing output is in Traditional Chinese (繁體中文).
 
 ### 成功格式
 
@@ -186,9 +190,9 @@ Activate when: 「以前能跑，現在壞了」或「更新後壞了」。
 
 對於曾修過又再現的 bug，「已解決」的條件是：(1) 迴歸測試在舊 code 失敗、新 code 通過；(2) 測試在 project test suite 裡；(3) commit message 說明再現原因與防止方式。
 
-確認根因後，根據任務規模路由修復：
-- 單一改動點、少量 code → 呼叫 `/baransu:dev`
-- 多檔案、需要設計決策或跨模組影響 → 呼叫 `/baransu:analyze`
+After confirming root cause, route the fix by task scope:
+- Single change point, small amount of code → invoke `/baransu:dev`
+- Multiple files, design decision needed, or cross-module impact → invoke `/baransu:analyze`
 
 ### Handoff 格式（三次假說失敗後使用）
 
@@ -210,7 +214,7 @@ Activate when: 「以前能跑，現在壞了」或「更新後壞了」。
 
 ---
 
-狩獵完成後，在 `.claude/hunt-report/HUNT-YYYY-NNN.md` 建立 hunt case 文件（格式見 `references/hunt-case-template.md`），記錄根因和修復過程供日後查閱。用 `hunt-search.py`（見 `references/hunt-search.py`）搜尋歷史案例。
+After completing the hunt, create a case file at `.claude/hunt-report/HUNT-YYYY-NNN.md` (format: `references/hunt-case-template.md`) to record the root cause and fix for future reference. Use `hunt-search.py` (see `references/hunt-search.py`) to search past cases.
 
 ---
 

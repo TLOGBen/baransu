@@ -149,6 +149,7 @@ Key design properties to preserve when editing `ship/SKILL.md`:
 
 Waza-style. Key design properties:
 
+- **English body, 繁體中文 output.** Same convention as all other skills.
 - **Observability-first tool selection.** Tool Scan picks the tool that can observe the problem's layer — not the first available. Playwright → MCP db query → LSP → bash logging → static read.
 - **Locate gate is mandatory before Instrumentation.** Four-question check (event sequence, reproduction data, dirty data characteristics, environment) must complete before adding the first instrument.
 - **Before You Fix is a hard gate.** Call chain analysis + test matrix (unchanged and multi-X scenarios) must complete before any fix.
