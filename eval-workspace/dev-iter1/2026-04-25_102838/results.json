@@ -1,0 +1,1390 @@
+{
+  "exit_reason": "max_iterations (5)",
+  "original_description": "Small-task implementation with gate-enforced TDD. Trigger immediately when: (1) the user gives a casual go-ahead after issues or fixes have been identified \u2014 \u300c\u4e00\u8d77\u8655\u7406\u5427\u300d\u300c\u76f4\u63a5\u6539\u300d\u300c\u53bb\u505a\u300d\u300c\u5e6b\u6211\u4fee\u300d\u300c\u597d\u5c31\u9019\u6a23\u300d\u300c\u53ef\u4ee5\u4e86\u300dor any equivalent confirmation; (2) the user selects an option from a presented list of fixes or choices \u2014 \"A - 2\", \"\u9078 1\", \"Option 2\", \"\u7b2c\u4e00\u500b\", or any short pick after options were shown; (3) a concrete task arrives directly or is handed off from /think with an approved plan; (4) scope is clear and fits one session. Builds a TaskCreate checklist upfront, executes Red\u2192Green with hard gates, then passes to /baransu:review. Cosmetic-only changes (comments, dead imports, renames, formatting) skip Red/Green and go straight to review. User-facing output in Traditional Chinese (\u7e41\u9ad4\u4e2d\u6587).",
+  "best_description": "Small-task implementation with gate-enforced TDD. Trigger immediately when: (1) the user gives a casual go-ahead after issues or fixes have been identified \u2014 \u300c\u4e00\u8d77\u8655\u7406\u5427\u300d\u300c\u76f4\u63a5\u6539\u300d\u300c\u53bb\u505a\u300d\u300c\u5e6b\u6211\u4fee\u300d\u300c\u597d\u5c31\u9019\u6a23\u300d\u300c\u53ef\u4ee5\u4e86\u300dor any equivalent confirmation; (2) the user selects an option from a presented list of fixes or choices \u2014 \"A - 2\", \"\u9078 1\", \"Option 2\", \"\u7b2c\u4e00\u500b\", or any short pick after options were shown; (3) a concrete task arrives directly or is handed off from /think with an approved plan; (4) scope is clear and fits one session. Builds a TaskCreate checklist upfront, executes Red\u2192Green with hard gates, then passes to /baransu:review. Cosmetic-only changes (comments, dead imports, renames, formatting) skip Red/Green and go straight to review. User-facing output in Traditional Chinese (\u7e41\u9ad4\u4e2d\u6587).",
+  "best_score": "4/8",
+  "best_train_score": "6/12",
+  "best_test_score": "4/8",
+  "final_description": "Use when the user is done deciding and wants code written or changed now \u2014 not explained, reviewed, or planned. The signal is execution intent: change commands and go-aheads in any language ('fix it', 'go', '\u4fee\u6389', '\u90fd\u5e6b\u6211\u4fee', '\u6539\u6389', '\u597d\u5c31\u9019\u6a23', '\u4e00\u8d77\u8655\u7406', '\u958b\u59cb\u505a'), option picks from a list you presented, or a /think-approved plan handed off for implementation. The message is often short because context was already established \u2014 that assumed context is the trigger, not a reason to hesitate. TDD gates enforced automatically. Skip for questions, explanations, design discussions, code review requests, and standalone test writing.",
+  "iterations_run": 5,
+  "holdout": 0.4,
+  "train_size": 12,
+  "test_size": 8,
+  "history": [
+    {
+      "iteration": 1,
+      "description": "Small-task implementation with gate-enforced TDD. Trigger immediately when: (1) the user gives a casual go-ahead after issues or fixes have been identified \u2014 \u300c\u4e00\u8d77\u8655\u7406\u5427\u300d\u300c\u76f4\u63a5\u6539\u300d\u300c\u53bb\u505a\u300d\u300c\u5e6b\u6211\u4fee\u300d\u300c\u597d\u5c31\u9019\u6a23\u300d\u300c\u53ef\u4ee5\u4e86\u300dor any equivalent confirmation; (2) the user selects an option from a presented list of fixes or choices \u2014 \"A - 2\", \"\u9078 1\", \"Option 2\", \"\u7b2c\u4e00\u500b\", or any short pick after options were shown; (3) a concrete task arrives directly or is handed off from /think with an approved plan; (4) scope is clear and fits one session. Builds a TaskCreate checklist upfront, executes Red\u2192Green with hard gates, then passes to /baransu:review. Cosmetic-only changes (comments, dead imports, renames, formatting) skip Red/Green and go straight to review. User-facing output in Traditional Chinese (\u7e41\u9ad4\u4e2d\u6587).",
+      "train_passed": 6,
+      "train_failed": 6,
+      "train_total": 12,
+      "train_results": [
+        {
+          "query": "OK\uff0c\u958b\u59cb\u505a\u5427",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u90fd\u5e6b\u6211\u4fee\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u597d\u5c31\u9019\u6a23\uff0c\u5e6b\u6211\u6539\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u4e00\u8d77\u8655\u7406\u5427",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "A - 2",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "/think \u8dd1\u5b8c\u4e86\uff0c\u6279\u51c6\uff0c\u53bb\u5be6\u4f5c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u89e3\u91cb\u4e00\u4e0b useEffect cleanup \u9019\u6bb5 code \u70ba\u4ec0\u9ebc\u8981\u56de\u50b3 function",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u5e6b\u6211\u5beb\u9019\u500b function \u7684\u55ae\u5143\u6e2c\u8a66",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "dev \u90a3\u908a\u4e5f\u770b\u4e00\u4e0b",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u5e6b\u6211\u60f3\u60f3\u9019\u500b caching \u529f\u80fd\u8981\u600e\u9ebc\u8a2d\u8a08\uff0c\u76ee\u524d Redis \u9084\u6c92\u52a0\u9032\u4f86",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u9019\u6bb5 code review \u4e00\u4e0b",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u4f60\u89ba\u5f97\u7528 GraphQL \u9084\u662f REST \u6bd4\u8f03\u597d",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ],
+      "test_passed": 4,
+      "test_failed": 4,
+      "test_total": 8,
+      "test_results": [
+        {
+          "query": "\u9078 Option 2\uff0c\u57f7\u884c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u76f4\u63a5\u6539\u5427\uff0c\u9019\u6a23\u5c31\u597d",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u9078\u7b2c\u4e00\u500b\uff0c\u53bb\u505a",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u9019\u5e7e\u500b\u554f\u984c\u4e00\u6b21\u4fee\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "check \u4e00\u4e0b\u9019\u6bb5 Go \u7684 goroutine \u6709\u6c92\u6709 race condition",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u770b\u4e00\u4e0b skill.md \u90a3\u908a\u6709\u6c92\u6709\u554f\u984c",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u9019\u500b PR \u7684\u6539\u52d5\u908f\u8f2f\u6709\u6c92\u6709\u554f\u984c",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u5e6b\u6211\u898f\u5283\u4e00\u4e0b\u4e0b\u9031\u8981\u505a\u7684 auth \u6a21\u7d44\u91cd\u69cb",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ],
+      "passed": 6,
+      "failed": 6,
+      "total": 12,
+      "results": [
+        {
+          "query": "OK\uff0c\u958b\u59cb\u505a\u5427",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u90fd\u5e6b\u6211\u4fee\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u597d\u5c31\u9019\u6a23\uff0c\u5e6b\u6211\u6539\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u4e00\u8d77\u8655\u7406\u5427",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "A - 2",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "/think \u8dd1\u5b8c\u4e86\uff0c\u6279\u51c6\uff0c\u53bb\u5be6\u4f5c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u89e3\u91cb\u4e00\u4e0b useEffect cleanup \u9019\u6bb5 code \u70ba\u4ec0\u9ebc\u8981\u56de\u50b3 function",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u5e6b\u6211\u5beb\u9019\u500b function \u7684\u55ae\u5143\u6e2c\u8a66",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "dev \u90a3\u908a\u4e5f\u770b\u4e00\u4e0b",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u5e6b\u6211\u60f3\u60f3\u9019\u500b caching \u529f\u80fd\u8981\u600e\u9ebc\u8a2d\u8a08\uff0c\u76ee\u524d Redis \u9084\u6c92\u52a0\u9032\u4f86",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u9019\u6bb5 code review \u4e00\u4e0b",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u4f60\u89ba\u5f97\u7528 GraphQL \u9084\u662f REST \u6bd4\u8f03\u597d",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "description": "Implementation executor \u2014 use when the user has decided what to do and wants code written immediately. Triggers on: brief go-aheads and approvals in any language ('OK', '\u597d', '\u53bb\u505a', '\u4e00\u8d77', 'do it', '\u4fee\u6389', '\u958b\u59cb'), option picks from a presented list, or a /think handoff ready for execution. The defining signal: direction is set, execution should begin now. Enforces Red\u2192Green TDD gates for new behavior; cosmetic-only changes skip testing. Skip for explanations, design questions, code review requests, and open-ended exploration.",
+      "train_passed": 6,
+      "train_failed": 6,
+      "train_total": 12,
+      "train_results": [
+        {
+          "query": "OK\uff0c\u958b\u59cb\u505a\u5427",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u90fd\u5e6b\u6211\u4fee\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u597d\u5c31\u9019\u6a23\uff0c\u5e6b\u6211\u6539\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "A - 2",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u4e00\u8d77\u8655\u7406\u5427",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "/think \u8dd1\u5b8c\u4e86\uff0c\u6279\u51c6\uff0c\u53bb\u5be6\u4f5c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u89e3\u91cb\u4e00\u4e0b useEffect cleanup \u9019\u6bb5 code \u70ba\u4ec0\u9ebc\u8981\u56de\u50b3 function",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "dev \u90a3\u908a\u4e5f\u770b\u4e00\u4e0b",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u5e6b\u6211\u5beb\u9019\u500b function \u7684\u55ae\u5143\u6e2c\u8a66",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u9019\u6bb5 code review \u4e00\u4e0b",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u5e6b\u6211\u60f3\u60f3\u9019\u500b caching \u529f\u80fd\u8981\u600e\u9ebc\u8a2d\u8a08\uff0c\u76ee\u524d Redis \u9084\u6c92\u52a0\u9032\u4f86",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u4f60\u89ba\u5f97\u7528 GraphQL \u9084\u662f REST \u6bd4\u8f03\u597d",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ],
+      "test_passed": 4,
+      "test_failed": 4,
+      "test_total": 8,
+      "test_results": [
+        {
+          "query": "\u9078 Option 2\uff0c\u57f7\u884c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u76f4\u63a5\u6539\u5427\uff0c\u9019\u6a23\u5c31\u597d",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u9078\u7b2c\u4e00\u500b\uff0c\u53bb\u505a",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u9019\u5e7e\u500b\u554f\u984c\u4e00\u6b21\u4fee\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u9019\u500b PR \u7684\u6539\u52d5\u908f\u8f2f\u6709\u6c92\u6709\u554f\u984c",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "check \u4e00\u4e0b\u9019\u6bb5 Go \u7684 goroutine \u6709\u6c92\u6709 race condition",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u5e6b\u6211\u898f\u5283\u4e00\u4e0b\u4e0b\u9031\u8981\u505a\u7684 auth \u6a21\u7d44\u91cd\u69cb",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u770b\u4e00\u4e0b skill.md \u90a3\u908a\u6709\u6c92\u6709\u554f\u984c",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ],
+      "passed": 6,
+      "failed": 6,
+      "total": 12,
+      "results": [
+        {
+          "query": "OK\uff0c\u958b\u59cb\u505a\u5427",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u90fd\u5e6b\u6211\u4fee\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u597d\u5c31\u9019\u6a23\uff0c\u5e6b\u6211\u6539\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "A - 2",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u4e00\u8d77\u8655\u7406\u5427",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "/think \u8dd1\u5b8c\u4e86\uff0c\u6279\u51c6\uff0c\u53bb\u5be6\u4f5c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u89e3\u91cb\u4e00\u4e0b useEffect cleanup \u9019\u6bb5 code \u70ba\u4ec0\u9ebc\u8981\u56de\u50b3 function",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "dev \u90a3\u908a\u4e5f\u770b\u4e00\u4e0b",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u5e6b\u6211\u5beb\u9019\u500b function \u7684\u55ae\u5143\u6e2c\u8a66",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u9019\u6bb5 code review \u4e00\u4e0b",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u5e6b\u6211\u60f3\u60f3\u9019\u500b caching \u529f\u80fd\u8981\u600e\u9ebc\u8a2d\u8a08\uff0c\u76ee\u524d Redis \u9084\u6c92\u52a0\u9032\u4f86",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u4f60\u89ba\u5f97\u7528 GraphQL \u9084\u662f REST \u6bd4\u8f03\u597d",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "iteration": 3,
+      "description": "Invoke when the user has decided and wants code written immediately. The trigger is intent, not message length \u2014 but these activations are often brief because direction was already established: short approvals in any language ('OK', 'do it', 'go', '\u597d', '\u53bb\u505a', '\u4fee\u6389', '\u5e6b\u6211\u4fee', '\u4e00\u8d77', '\u90fd\u4fee', '\u958b\u59cb'), option picks from a list shown earlier ('A', '2', '\u9078\u7b2c\u4e00\u500b'), or a /think handoff approved for execution. The common thread: the user is approving or selecting, not asking or exploring. Enforces TDD gating automatically. Do not invoke for questions, explanations, design discussions, standalone test-writing, or code review.",
+      "train_passed": 6,
+      "train_failed": 6,
+      "train_total": 12,
+      "train_results": [
+        {
+          "query": "\u90fd\u5e6b\u6211\u4fee\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "OK\uff0c\u958b\u59cb\u505a\u5427",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u597d\u5c31\u9019\u6a23\uff0c\u5e6b\u6211\u6539\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u4e00\u8d77\u8655\u7406\u5427",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "/think \u8dd1\u5b8c\u4e86\uff0c\u6279\u51c6\uff0c\u53bb\u5be6\u4f5c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "A - 2",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u89e3\u91cb\u4e00\u4e0b useEffect cleanup \u9019\u6bb5 code \u70ba\u4ec0\u9ebc\u8981\u56de\u50b3 function",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "dev \u90a3\u908a\u4e5f\u770b\u4e00\u4e0b",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u5e6b\u6211\u5beb\u9019\u500b function \u7684\u55ae\u5143\u6e2c\u8a66",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u9019\u6bb5 code review \u4e00\u4e0b",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u5e6b\u6211\u60f3\u60f3\u9019\u500b caching \u529f\u80fd\u8981\u600e\u9ebc\u8a2d\u8a08\uff0c\u76ee\u524d Redis \u9084\u6c92\u52a0\u9032\u4f86",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u4f60\u89ba\u5f97\u7528 GraphQL \u9084\u662f REST \u6bd4\u8f03\u597d",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ],
+      "test_passed": 4,
+      "test_failed": 4,
+      "test_total": 8,
+      "test_results": [
+        {
+          "query": "\u9078 Option 2\uff0c\u57f7\u884c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u76f4\u63a5\u6539\u5427\uff0c\u9019\u6a23\u5c31\u597d",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u9078\u7b2c\u4e00\u500b\uff0c\u53bb\u505a",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u9019\u5e7e\u500b\u554f\u984c\u4e00\u6b21\u4fee\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u9019\u500b PR \u7684\u6539\u52d5\u908f\u8f2f\u6709\u6c92\u6709\u554f\u984c",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "check \u4e00\u4e0b\u9019\u6bb5 Go \u7684 goroutine \u6709\u6c92\u6709 race condition",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u770b\u4e00\u4e0b skill.md \u90a3\u908a\u6709\u6c92\u6709\u554f\u984c",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u5e6b\u6211\u898f\u5283\u4e00\u4e0b\u4e0b\u9031\u8981\u505a\u7684 auth \u6a21\u7d44\u91cd\u69cb",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ],
+      "passed": 6,
+      "failed": 6,
+      "total": 12,
+      "results": [
+        {
+          "query": "\u90fd\u5e6b\u6211\u4fee\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "OK\uff0c\u958b\u59cb\u505a\u5427",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u597d\u5c31\u9019\u6a23\uff0c\u5e6b\u6211\u6539\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u4e00\u8d77\u8655\u7406\u5427",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "/think \u8dd1\u5b8c\u4e86\uff0c\u6279\u51c6\uff0c\u53bb\u5be6\u4f5c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "A - 2",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u89e3\u91cb\u4e00\u4e0b useEffect cleanup \u9019\u6bb5 code \u70ba\u4ec0\u9ebc\u8981\u56de\u50b3 function",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "dev \u90a3\u908a\u4e5f\u770b\u4e00\u4e0b",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u5e6b\u6211\u5beb\u9019\u500b function \u7684\u55ae\u5143\u6e2c\u8a66",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u9019\u6bb5 code review \u4e00\u4e0b",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u5e6b\u6211\u60f3\u60f3\u9019\u500b caching \u529f\u80fd\u8981\u600e\u9ebc\u8a2d\u8a08\uff0c\u76ee\u524d Redis \u9084\u6c92\u52a0\u9032\u4f86",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u4f60\u89ba\u5f97\u7528 GraphQL \u9084\u662f REST \u6bd4\u8f03\u597d",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "iteration": 4,
+      "description": "Code implementation skill. Trigger when the user sends a brief execution signal \u2014 a short authorization to start coding, not a fresh request for information. Recognizable categories: one-word go-aheads in any language, \"fix them all\" or \"change it\" directives, option picks from a presented list, and plan approvals after /think. The defining signal: the message assumes prior coding context and says \"go ahead\" rather than \"what/how/why\". Brief messages that would be puzzling without prior context still count \u2014 brevity signals established direction, not lack of intent. Skip for explanations, design questions, code review requests, and standalone test writing. Enforces TDD automatically.",
+      "train_passed": 6,
+      "train_failed": 6,
+      "train_total": 12,
+      "train_results": [
+        {
+          "query": "\u90fd\u5e6b\u6211\u4fee\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "OK\uff0c\u958b\u59cb\u505a\u5427",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u597d\u5c31\u9019\u6a23\uff0c\u5e6b\u6211\u6539\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "/think \u8dd1\u5b8c\u4e86\uff0c\u6279\u51c6\uff0c\u53bb\u5be6\u4f5c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u4e00\u8d77\u8655\u7406\u5427",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "A - 2",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u5e6b\u6211\u5beb\u9019\u500b function \u7684\u55ae\u5143\u6e2c\u8a66",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u89e3\u91cb\u4e00\u4e0b useEffect cleanup \u9019\u6bb5 code \u70ba\u4ec0\u9ebc\u8981\u56de\u50b3 function",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "dev \u90a3\u908a\u4e5f\u770b\u4e00\u4e0b",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u5e6b\u6211\u60f3\u60f3\u9019\u500b caching \u529f\u80fd\u8981\u600e\u9ebc\u8a2d\u8a08\uff0c\u76ee\u524d Redis \u9084\u6c92\u52a0\u9032\u4f86",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u4f60\u89ba\u5f97\u7528 GraphQL \u9084\u662f REST \u6bd4\u8f03\u597d",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u9019\u6bb5 code review \u4e00\u4e0b",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ],
+      "test_passed": 4,
+      "test_failed": 4,
+      "test_total": 8,
+      "test_results": [
+        {
+          "query": "\u9078 Option 2\uff0c\u57f7\u884c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u76f4\u63a5\u6539\u5427\uff0c\u9019\u6a23\u5c31\u597d",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u9019\u500b PR \u7684\u6539\u52d5\u908f\u8f2f\u6709\u6c92\u6709\u554f\u984c",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u9019\u5e7e\u500b\u554f\u984c\u4e00\u6b21\u4fee\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u9078\u7b2c\u4e00\u500b\uff0c\u53bb\u505a",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "check \u4e00\u4e0b\u9019\u6bb5 Go \u7684 goroutine \u6709\u6c92\u6709 race condition",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u770b\u4e00\u4e0b skill.md \u90a3\u908a\u6709\u6c92\u6709\u554f\u984c",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u5e6b\u6211\u898f\u5283\u4e00\u4e0b\u4e0b\u9031\u8981\u505a\u7684 auth \u6a21\u7d44\u91cd\u69cb",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ],
+      "passed": 6,
+      "failed": 6,
+      "total": 12,
+      "results": [
+        {
+          "query": "\u90fd\u5e6b\u6211\u4fee\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "OK\uff0c\u958b\u59cb\u505a\u5427",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u597d\u5c31\u9019\u6a23\uff0c\u5e6b\u6211\u6539\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "/think \u8dd1\u5b8c\u4e86\uff0c\u6279\u51c6\uff0c\u53bb\u5be6\u4f5c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u4e00\u8d77\u8655\u7406\u5427",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "A - 2",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u5e6b\u6211\u5beb\u9019\u500b function \u7684\u55ae\u5143\u6e2c\u8a66",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u89e3\u91cb\u4e00\u4e0b useEffect cleanup \u9019\u6bb5 code \u70ba\u4ec0\u9ebc\u8981\u56de\u50b3 function",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "dev \u90a3\u908a\u4e5f\u770b\u4e00\u4e0b",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u5e6b\u6211\u60f3\u60f3\u9019\u500b caching \u529f\u80fd\u8981\u600e\u9ebc\u8a2d\u8a08\uff0c\u76ee\u524d Redis \u9084\u6c92\u52a0\u9032\u4f86",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u4f60\u89ba\u5f97\u7528 GraphQL \u9084\u662f REST \u6bd4\u8f03\u597d",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u9019\u6bb5 code review \u4e00\u4e0b",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "iteration": 5,
+      "description": "Use when the user is done deciding and wants code written or changed now \u2014 not explained, reviewed, or planned. The signal is execution intent: change commands and go-aheads in any language ('fix it', 'go', '\u4fee\u6389', '\u90fd\u5e6b\u6211\u4fee', '\u6539\u6389', '\u597d\u5c31\u9019\u6a23', '\u4e00\u8d77\u8655\u7406', '\u958b\u59cb\u505a'), option picks from a list you presented, or a /think-approved plan handed off for implementation. The message is often short because context was already established \u2014 that assumed context is the trigger, not a reason to hesitate. TDD gates enforced automatically. Skip for questions, explanations, design discussions, code review requests, and standalone test writing.",
+      "train_passed": 6,
+      "train_failed": 6,
+      "train_total": 12,
+      "train_results": [
+        {
+          "query": "OK\uff0c\u958b\u59cb\u505a\u5427",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u90fd\u5e6b\u6211\u4fee\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u597d\u5c31\u9019\u6a23\uff0c\u5e6b\u6211\u6539\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "/think \u8dd1\u5b8c\u4e86\uff0c\u6279\u51c6\uff0c\u53bb\u5be6\u4f5c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u4e00\u8d77\u8655\u7406\u5427",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "A - 2",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u5e6b\u6211\u5beb\u9019\u500b function \u7684\u55ae\u5143\u6e2c\u8a66",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "dev \u90a3\u908a\u4e5f\u770b\u4e00\u4e0b",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u89e3\u91cb\u4e00\u4e0b useEffect cleanup \u9019\u6bb5 code \u70ba\u4ec0\u9ebc\u8981\u56de\u50b3 function",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u5e6b\u6211\u60f3\u60f3\u9019\u500b caching \u529f\u80fd\u8981\u600e\u9ebc\u8a2d\u8a08\uff0c\u76ee\u524d Redis \u9084\u6c92\u52a0\u9032\u4f86",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u4f60\u89ba\u5f97\u7528 GraphQL \u9084\u662f REST \u6bd4\u8f03\u597d",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u9019\u6bb5 code review \u4e00\u4e0b",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ],
+      "test_passed": 4,
+      "test_failed": 4,
+      "test_total": 8,
+      "test_results": [
+        {
+          "query": "\u9078 Option 2\uff0c\u57f7\u884c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u9078\u7b2c\u4e00\u500b\uff0c\u53bb\u505a",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u76f4\u63a5\u6539\u5427\uff0c\u9019\u6a23\u5c31\u597d",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u9019\u5e7e\u500b\u554f\u984c\u4e00\u6b21\u4fee\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u9019\u500b PR \u7684\u6539\u52d5\u908f\u8f2f\u6709\u6c92\u6709\u554f\u984c",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "check \u4e00\u4e0b\u9019\u6bb5 Go \u7684 goroutine \u6709\u6c92\u6709 race condition",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u770b\u4e00\u4e0b skill.md \u90a3\u908a\u6709\u6c92\u6709\u554f\u984c",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u5e6b\u6211\u898f\u5283\u4e00\u4e0b\u4e0b\u9031\u8981\u505a\u7684 auth \u6a21\u7d44\u91cd\u69cb",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ],
+      "passed": 6,
+      "failed": 6,
+      "total": 12,
+      "results": [
+        {
+          "query": "OK\uff0c\u958b\u59cb\u505a\u5427",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u90fd\u5e6b\u6211\u4fee\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u597d\u5c31\u9019\u6a23\uff0c\u5e6b\u6211\u6539\u6389",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "/think \u8dd1\u5b8c\u4e86\uff0c\u6279\u51c6\uff0c\u53bb\u5be6\u4f5c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u4e00\u8d77\u8655\u7406\u5427",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "A - 2",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u5e6b\u6211\u5beb\u9019\u500b function \u7684\u55ae\u5143\u6e2c\u8a66",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "dev \u90a3\u908a\u4e5f\u770b\u4e00\u4e0b",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u89e3\u91cb\u4e00\u4e0b useEffect cleanup \u9019\u6bb5 code \u70ba\u4ec0\u9ebc\u8981\u56de\u50b3 function",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u5e6b\u6211\u60f3\u60f3\u9019\u500b caching \u529f\u80fd\u8981\u600e\u9ebc\u8a2d\u8a08\uff0c\u76ee\u524d Redis \u9084\u6c92\u52a0\u9032\u4f86",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u4f60\u89ba\u5f97\u7528 GraphQL \u9084\u662f REST \u6bd4\u8f03\u597d",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "\u9019\u6bb5 code review \u4e00\u4e0b",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ]
+    }
+  ]
+}

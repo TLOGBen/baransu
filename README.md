@@ -40,6 +40,42 @@ baransu 是第二次。
 
 ---
 
+## 推薦工作流
+
+依任務規模選流程。收尾統一走 `/ship`。
+
+**大型新功能（方向未定）**
+```
+/think → /analyze → /execute {spec目錄} → /ship
+```
+`/think` 三輪對焦確認方向，`/analyze` 展開五層 spec，`/execute` 驅動完整 TDAID 流程。
+
+**大型任務（方向已定）**
+```
+/analyze → /execute {spec目錄} → /ship
+```
+方向清楚，直接從 spec 建構開始，跳過 `/think`。
+
+**小型任務（單一模組、一個 session 可完成）**
+```
+/think → /dev → /ship
+```
+`/dev` 走 Red/Green gate，完成後自動呼叫 `/review`。
+
+**已有 spec**
+```
+/execute .claude/analyze/{date}-{slug}/ → /ship
+```
+
+**文字 copywriting**
+```
+/write zh [貼入文字或寫請求]
+/write en [paste text or write a request]
+```
+不產生工作檔案，無需 `/ship`。
+
+---
+
 ## 安裝
 
 ```
