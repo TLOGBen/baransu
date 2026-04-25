@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Intent
 
-`baransu` is a Claude Code **plugin marketplace** distributing one governance-focused plugin, also named `baransu`. The plugin's theme is バランス ("balance") — forcing alignment and approval before execution, and surgical multi-perspective verification after. Currently ships six skills: `/think` (deliberate before building), `/review` (independent multi-perspective re-verification of any model output), `/analyze` (goal-anchored spec builder for medium-to-large tasks), `/dev` (gate-enforced TDD executor for small tasks), `/write` (bilingual zh/en copywriting assistant), and `/execute` (TDAID orchestration engine for medium-to-large tasks; reads `/analyze` spec, drives parallel worktrees via agent-only skills, produces `final-report.md`).
+`baransu` is a Claude Code **plugin marketplace** distributing one governance-focused plugin, also named `baransu`. The plugin's theme is バランス ("balance") — forcing alignment and approval before execution, and surgical multi-perspective verification after. Currently ships seven skills: `/think` (deliberate before building), `/review` (independent multi-perspective re-verification of any model output), `/analyze` (goal-anchored spec builder for medium-to-large tasks), `/dev` (gate-enforced TDD executor for small tasks), `/write` (bilingual zh/en copywriting assistant), `/execute` (TDAID orchestration engine for medium-to-large tasks; reads `/analyze` spec, drives parallel worktrees via agent-only skills, produces `final-report.md`), and `/ship` (session cleanup — archive work files, commit, push, optional worktree removal).
 
 ## Actual Layout
 
@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 plugins/
   baransu/
     .claude-plugin/
-      plugin.json              # plugin manifest (v0.3.0)
+      plugin.json              # plugin manifest (v0.3.1)
     skills/
       think/
         SKILL.md               # governance skill — align/research/approve before code
@@ -28,6 +28,8 @@ plugins/
         SKILL.md               # copywriting skill — bilingual zh/en Refine + Generate assistant
       execute/
         SKILL.md               # orchestration skill — TDAID engine for medium-to-large tasks
+      ship/
+        SKILL.md               # cleanup skill — archive, commit, push, optional worktree removal
     agents/
       architecture-reviewer.md # perspective agent — structural coherence, boundaries, overreach
       quality-reviewer.md      # perspective agent — claim-vs-implementation, logic, edges
@@ -145,6 +147,18 @@ Key design properties to preserve when editing `execute/SKILL.md` or the agent f
 
 When iterating: `execute/SKILL.md` targets ~250 lines. Agent files are each ~40–60 lines. The TDAID loop pseudocode (Stage 4c) is load-bearing — the precise failure_count conditions and compile-error exception must not be simplified away.
 
+### `/baransu:ship` — session cleanup
+
+Archives work directories, commits all changes, pushes to origin, and optionally removes the current git worktree. Fully automatic — no user confirmation.
+
+Key design properties to preserve when editing `ship/SKILL.md`:
+
+- **English body, 繁體中文 output.** Same convention as all other skills.
+- **Archive scope is fixed.** `.claude/tmp/`, `.claude/analyze/`, `.claude/execute/` only. Do not make this configurable — selective archiving belongs to the user's own workflow.
+- **Step 1 is the empty-state gate.** If all three source directories are empty or absent, output a message and stop. Do not commit or push an empty session.
+- **Collision suffix is deterministic.** Timestamp suffix (`-{unix_timestamp}`) resolves name collisions in `.claude/archived/` without interactive prompts.
+- **Worktree cleanup is conditional on detection.** Only executes when `git rev-parse --git-dir` output contains `.git/worktrees/`. Branch deletion after worktree removal is part of the same step.
+
 ## Install Flow (for testing locally)
 
 ```
@@ -178,6 +192,7 @@ These come from `~/.claude/CLAUDE.md` and apply here unless this file overrides 
 - `/dev` shipped in v0.1.7 — gate-enforced TDD executor for small tasks; downstream of `/think`.
 - `/write` shipped in v0.1.9 — bilingual zh/en copywriting assistant; Refine + Generate dual-mode; language prefix controls both rule set and output language.
 - `/execute` shipped in v0.3.0 — TDAID orchestration engine for the `/analyze` downstream. Reads `task-*.md` spec files, classifies XL/L/M via DAG BFS, drives parallel worktrees via 8 agent-only skill files, runs E2E and Final-Review, produces `final-report.md`. Spec designed via `/baransu:think` + `/baransu:analyze` dogfood.
+- `/ship` shipped in v0.3.1 — session cleanup skill. Archives `.claude/tmp/` + `.claude/analyze/` + `.claude/execute/` to `.claude/archived/`, commits all pending changes, pushes to origin, removes the current git worktree if detected. Designed via `/baransu:think` dogfood.
 
 ## What's Intentionally Absent
 

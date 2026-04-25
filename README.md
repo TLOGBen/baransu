@@ -36,6 +36,7 @@ baransu 是第二次。
 | `/dev` | 小任務的執行層。先把清單建好，再走 Red/Green gate：測試要真的失敗，實作要真的通過。純格式變更直接略過。完成後自動呼叫 `/review`。 |
 | `/write` | 雙語 copywriting 助理。貼入現有文字，套用排版規則與寫作風格原則（zh 參考余光中，en 參考 Orwell），輸出逐條說明的 Before/After；給出請求，生成格式、語氣、用字都對準的成品。 |
 | `/execute` | 中大型任務的自動執行引擎。讀取 `/analyze` 產出的 spec 目錄（`.claude/analyze/{date}-{slug}/`），以前置群組 DAG 計算並行度（XL/L/M），透過 8 個 agent-only skill 驅動完整 TDAID 流程（並行 worktree + E2E + Final-Review），直到 Requirements 100% 通過為止，產出 `final-report.md`。需先完成 `/analyze`。範例：`/baransu:execute .claude/analyze/2026-04-25-my-feature/` |
+| `/ship` | session 結束後的清理工具。將 `.claude/tmp/`、`.claude/analyze/`、`.claude/execute/` 歸檔至 `.claude/archived/`，執行 `git add -A` + commit + push，並在 git worktree 環境下自動清理 worktree 與分支。完全自動，無需人工確認。 |
 
 ---
 
