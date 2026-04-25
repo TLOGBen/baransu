@@ -176,4 +176,5 @@ The warning for maintainers and for invocation-time reviewers is the same: **「
 - **Balance check is mandatory** — a new-work finding earns action-tier placement only by answering the four questions.
 - **No behavior changes without consent** — auto-fix stays cosmetic.
 - **No recursion** — `/review` does not invoke `/review`; adversarial is one round; reviewers do not review each other.
+- **Re-read before Stage 6** — before consolidating Stage 4–5 findings (§Stage 6), re-read this SKILL.md §Stage 6 (four balance-check questions + tier definitions). In sessions reviewing large targets, context accumulates significantly between Stage 4 dispatch and Stage 6 consolidation; the balance check is the load-bearing mechanism most vulnerable to attention decay. Light protection is intentional — /review sessions are short and rarely trigger more than one auto-compact; dual-layer (Core constraints + stage-adjacent) is not needed here.
 - **Code target without e2e green-run evidence is not finished.**

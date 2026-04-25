@@ -195,6 +195,8 @@ Define the testing strategy that verifies the implementation satisfies requireme
 
 ## Stage 5 — Task layer → `task-{group}.md`
 
+> **Re-read checkpoint**: Before beginning task decomposition, re-read this SKILL.md §Stage 5 (task sizing rule, group naming, wave.md cap). The sizing and dependency rules are the most judgment-heavy part of /analyze and are vulnerable to attention decay after Stages 1–4.
+
 Decompose the work into tasks. Start from the innermost reusable layer and work outward. Each group becomes a separate file.
 
 ### Task sizing rule
@@ -254,17 +256,23 @@ Every task must have at least one requirement reference (`REQ-XXX`). Do not inve
 
 ## Stage 6 — Cross-layer subagent review
 
-Dispatch 3 subagents in parallel Tasks, each in a clean context. Pass each: the directory path, all generated spec content, and its specific review question.
+Dispatch 3 subagents in parallel Tasks, each in a clean context. Pass each agent: the spec_dir path, its required file list (below), and its specific review question. Each agent reads its required files independently via Read tool — do not pass all spec content inline.
 
 **Agent 1 — task ↔ test alignment**
+
+Required files: `task-*.md`, `test.md`
 
 Review question: 「task-*.md 的每個 task 是否都有 test.md 裡對應的測試覆蓋錨點？task 產生的邊界條件（例如空值、並發、超時）是否在 test.md 的邊界條件清單中被覆蓋？有沒有 task 產出了一個功能，但 test.md 裡找不到驗證它的策略？」
 
 **Agent 2 — test ↔ design alignment**
 
+Required files: `test.md`, `design.md`
+
 Review question: 「test.md 的整合測試策略是否對應到 design.md 架構圖中的跨層邊界？test.md 列出的關鍵邊界條件，design.md 有沒有對應的錯誤處理策略？E2E 測試流程能不能在 design.md 的操作流程圖上走通？」
 
 **Agent 3 — design ↔ requirement ↔ goal alignment**
+
+Required files: `design.md`, `requirement.md`, `goal.md`
 
 Review question: 「design.md 的架構和資料流是否能支撐 requirement.md 的所有情境（Given-When-Then）？requirement.md 的每條需求是否都能追溯到 goal.md 的 Criteria？有沒有 Criteria 在 requirement.md 裡沒有任何需求對應？」
 

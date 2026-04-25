@@ -76,6 +76,7 @@ Key design properties to preserve when editing `review/SKILL.md` or the three ag
 - **Auto-fix is cosmetic-only.** Anything semantic goes to packaged confirm or needs-judgment.
 - **Balance check is mandatory, with four questions.** Every new-work finding must answer: 不做 / 做 / 中間方案 / **是否服務於 goal**. Failing any one downgrades to advisory.
 - **E2E hard gate** for code targets: no in-session green-run evidence → results say 「未完成，等 e2e」.
+- **Re-read before Stage 6 (Core constraints).** Stage 6 consolidation is the single moment most vulnerable to attention decay in a /review session — the four balance-check questions and tier definitions must be recalled precisely there. Single-layer protection (Core constraints only) is intentional: /review sessions are short and rarely trigger more than one auto-compact, so dual-layer would be overhead without benefit.
 
 ### `/baransu:analyze` — spec builder for medium-to-large tasks
 
@@ -86,6 +87,7 @@ Key design properties to preserve when editing `analyze/SKILL.md`:
 - **English body, 繁體中文 output.** Same convention as `/think` and `/review`.
 - **Five layer order is a constraint.** goal → requirement → design → test → task. Each layer depends on the one above for its precision. Do not reorder.
 - **test layer is in the review chain.** Three subagents in parallel: Agent 1 (task ↔ test alignment), Agent 2 (test ↔ design alignment), Agent 3 (design ↔ requirement ↔ goal alignment).
+- **Stage 6 dispatch passes path + required-file-list per agent; agents self-read.** Agent 1 reads `task-*.md` + `test.md`; Agent 2 reads `test.md` + `design.md`; Agent 3 reads `design.md` + `requirement.md` + `goal.md`. Main skill does not pre-read or inline spec content — each agent loads only what its review question needs.
 - **Stage 7 offers /review as handoff option.** The Constraints "Do not call /review" applies to Stages 1-6 only; Stage 7 may invoke /review as a post-spec quality check.
 - **Auto-correct is one round, goal/requirement layers are immutable.** Only design / test / task layers are auto-correctable.
 - **Cross-layer subagents ≠ /review.** /review asks "what's wrong with this layer?"; /analyze's subagents ask "are these two layers consistent?" Different question, do not conflate.
@@ -136,6 +138,7 @@ Key design properties to preserve when editing `execute/SKILL.md` or the agent f
 - **pre-scan is advisory only.** File overlap between parallel groups generates a warning in task-map.md; prefer the no-overlap assumption when descriptions are ambiguous.
 - **final-fixer runs once.** If Final-Review still `needs_fixer: true` after one fixer pass, record remaining gaps as blocked and proceed to Stage 7.
 - **agent files follow established pattern.** YAML frontmatter (name, description, tools) + `視角 / 目標 / 通用原則 / 禁忌`. No role-play persona descriptions. Fixed static content at file HEAD for prompt cache stability.
+- **Re-read at Stage 4/5/6 entry (Core constraints + stage-adjacent checkpoints).** /execute sessions are long and survive multiple auto-compacts. Dual-layer protection: Core constraints (global, survives compacts) + stage-adjacent re-read checkpoint at Stage 4 (before 4a), Stage 5, and Stage 6 entry. At each checkpoint, confirm: `failure_count`/`compile_error_count` semantics, cascade-blocked propagation, merge_retry_count cap, E2E single-retry limit, Final-Review single-fixer limit.
 
 ### `/baransu:ship` — session cleanup
 

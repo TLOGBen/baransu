@@ -12,6 +12,7 @@ The body below is English (agent-facing). All user-visible output is in **Tradit
 - **Subagent depth = 1.** Do not invoke skills that themselves dispatch parallel Tasks + AskUserQuestion. The `agents/*.md` files in this plugin are designed for depth-1 dispatch only.
 - **All tasks created before execution begins.** Use Task Tool Create to register every group × task in Stage 2. Do not create tasks mid-execution.
 - **Working files are in `.claude/execute/`, not `.claude/analyze/`.** Edit/Write is permitted under the execute working directory.
+- **Re-read at Stage 4/5/6 entry** — before entering Stage 4, 5, or 6, re-read this SKILL.md's corresponding stage and these Core constraints. Confirm specifically: `failure_count`/`compile_error_count` semantics (§Stage 4c), cascade-blocked propagation (§Stage 4d), `merge_retry_count` cap (§Stage 4e), E2E single-retry limit (§Stage 5), Final-Review single-fixer limit (§Stage 6). These are the rules most likely to be displaced by auto-compact during a long execution session.
 
 ---
 
@@ -151,6 +152,8 @@ Review 結果：
 ---
 
 ## Stage 4 — TDAID Loop
+
+> **Re-read checkpoint**: Before executing this stage, re-read this SKILL.md §Stage 4c (TDAID loop, `failure_count`/`compile_error_count` semantics) and §Stage 4d (cascade-blocked propagation). These are the most drift-sensitive rules in this skill.
 
 ### 4a. Execution order
 
@@ -318,6 +321,8 @@ LOOP:
 
 ## Stage 5 — E2E Test
 
+> **Re-read checkpoint**: Before executing this stage, re-read this SKILL.md §Stage 5 (E2E failure clustering + single-retry limit).
+
 All frontier levels must be processed (merged to main) before Stage 5.
 
 ### 5a. Read E2E command
@@ -341,6 +346,8 @@ If E2E fails:
 ---
 
 ## Stage 6 — Final-Review + Fixer
+
+> **Re-read checkpoint**: Before executing this stage, re-read this SKILL.md §Stage 6 (Final-Review triggers + single-fixer limit: fixer runs once, not twice).
 
 ### 6a. Final-Review
 
