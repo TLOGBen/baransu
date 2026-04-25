@@ -1,6 +1,6 @@
 ---
 name: dev
-description: Gate-enforced TDD executor for small tasks. Receives a concrete task (described directly or handed off from /think), builds a TaskCreate checklist upfront, then executes Red→Green with hard gates before invoking /baransu:review. Cosmetic-only changes (comments, dead imports, renames, formatting) skip Red/Green and go straight to review. Use when direction is known and scope fits one session. User-facing output in Traditional Chinese (繁體中文).
+description: Small-task implementation with gate-enforced TDD. Trigger immediately when: (1) the user gives a casual go-ahead after issues or fixes have been identified — 「一起處理吧」「直接改」「去做」「幫我修」「好就這樣」「可以了」or any equivalent confirmation; (2) the user selects an option from a presented list of fixes or choices — "A - 2", "選 1", "Option 2", "第一個", or any short pick after options were shown; (3) a concrete task arrives directly or is handed off from /think with an approved plan; (4) scope is clear and fits one session. Builds a TaskCreate checklist upfront, executes Red→Green with hard gates, then passes to /baransu:review. Cosmetic-only changes (comments, dead imports, renames, formatting) skip Red/Green and go straight to review. User-facing output in Traditional Chinese (繁體中文).
 ---
 
 # dev — gate-enforced TDD for small tasks
@@ -83,7 +83,7 @@ Run the project's existing test command.
 |---|---|
 | Tests pass, no regression | Green confirmed. Mark TASK-04 complete. Proceed to Stage 4. |
 | Test fails (1st attempt) | Auto-retry: revise the implementation without stopping or asking the user. Run again. |
-| Test fails (2nd attempt) | Two consecutive failures. Invoke `/baransu:think` automatically. Pass context: original task goal + the two test failure summaries (not full stack traces) + the red test code. After /think completes: mark TASK-03 in-progress, rewrite implementation (TASK-03), then run TASK-04 once (two-attempt counter resets for this resumed round). If this gate run fails, stop completely. Report: 「/think 對焦後仍無法通過測試，建議重新評估任務範圍或設計。」Do not invoke /think again. |
+| Test fails (2nd attempt) | Stop. Report: 「綠燈連續失敗兩次。若方向有疑問，可呼叫 /baransu:think 重新對焦後再試；若確認方向無誤，請直接重試。」Do not continue automatically. |
 | Compile error | Fix the compile error and re-run. Does **not** count as a retry attempt — only test runner failures count toward the two-attempt limit. |
 
 ---
@@ -104,9 +104,9 @@ Call `/baransu:review` with:
 - **Review goal**: the task goal sentence from Stage 0
 - **Claim checklist**: each task in the task list and its completion status (all tasks are complete on a success path)
 
-If the cosmetic path was taken, mark TASK-02 complete after `/review` returns.
+If the cosmetic path was taken, mark TASK-02 complete before calling `/review`.
 
-**Only invoke /review if work completed successfully** (TDD Green gate passed, or cosmetic change applied). If the session ended on the failure path (Green failed after /think re-alignment), do not invoke /review — there is nothing to review.
+**Only invoke /review if work completed successfully** (TDD Green gate passed, or cosmetic change applied). If the session ended on a failure path, do not invoke /review — there is nothing to review.
 
 ---
 
@@ -115,6 +115,4 @@ If the cosmetic path was taken, mark TASK-02 complete after `/review` returns.
 - Never skip the Red gate. Even when the test "obviously" fails, run it and confirm.
 - Never modify the test during the Green phase. The test is the spec; implementation must satisfy it as written.
 - Cosmetic classification is final once made. Do not re-classify mid-execution.
-- The /think invocation on double Green failure is automatic — do not ask the user first.
-- The /think-assisted resume rewrites the implementation (TASK-03) and gets one more gate run (TASK-04); the two-attempt counter resets for this round. If the gate run fails, stop completely; no further auto-/think invocations.
 - All user-visible output is Traditional Chinese (繁體中文). English appears only in this SKILL.md body, code identifiers, and file paths.

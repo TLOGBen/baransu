@@ -23,7 +23,7 @@ Until the user has explicitly approved the final proposal through `AskUserQuesti
 - Config files, YAML snippets, schema definitions
 - `TODO: implement` stubs
 
-You *may* reference existing file paths when citing what you found, and you *may* draw ASCII diagrams of component relationships (Stage E). Everything else is code, and code is forbidden.
+You *may* reference existing file paths when citing what you found, and you *may* draw ASCII diagrams of component relationships (Stage E). ASCII diagrams must show logical component, service, or data-flow relationships only — no directory names, file paths, or module paths. Everything else is code, and code is forbidden.
 
 Why so strict: the whole point is that a premature code artefact anchors the user — once they see a draft, they argue about its wording rather than its architecture. The value of `/think` is the conversation *before* code, not a head start on code.
 
@@ -266,7 +266,7 @@ Produce **exactly** this structure, in 繁體中文, with these exact section ti
 
 ---
 
-## Stage G — Approval (the three-way gate)
+## Stage G — Approval (the four-option gate)
 
 After the plan is presented, call `AskUserQuestion` with these four options. Keep the labels short and stable — same wording every invocation, so they're predictable to the user and cache-friendly.
 
@@ -279,7 +279,7 @@ options:
   2. label: "批准實作（完全授權）"
      description: "接受這份計畫；接下來我會找出最適合接手實作的 skill，摘要重點並直接交接過去。執行過程中自主判斷，不再過問使用者。"
   3. label: "還有地方要對焦"
-     description: "某一節沒收斂；我會再用 AskUserQuestion 問你具體是哪一部分，然後只帶著你指出的修正重新提案（不重跑整個流程）。"
+     description: "某一節沒收斂；我會先確認新的疑慮是延伸還是另一件事——若是延伸，只重啟受影響的 stage；若是另一件事，從 Stage A 重新對焦。"
   4. label: "放棄"
      description: "整個方向不對或不想做了；結束 /think，不交接。"
 ```
@@ -296,13 +296,16 @@ options:
    - If neither skill is available, say so — 「沒有完美接手的 skill，建議直接進入手寫實作」.
 2. Produce a one-paragraph **handoff summary** in 繁體中文: what was approved, the key constraints, the first concrete step of implementation. Immediately invoke the identified skill with this summary as its input. Execute autonomously; do not ask the user for further confirmation during implementation unless a destructive or irreversible action arises.
 
-**Option 3 — 還有地方要對焦.** Call `AskUserQuestion` again, asking which specific part isn't right (Building? a decision? a constraint?). When the user answers, **restart only the affected stage** with the user's new constraint folded in. Do *not* run Stage A → G from scratch. Open the re-proposal with one sentence: 「本次修改了 X 假設/約束，因此 Y 和 Z 有調整」 so the diff is visible.
+**Option 3 — 還有地方要對焦.** Call `AskUserQuestion` to find out what needs re-alignment. Then determine whether the new concern is an **extension** of the current direction or a **different concern**:
+
+- **Extension** (same goal, same problem, deeper constraint or refinement): restart only the affected stage with the user's new constraint folded in. Open the re-proposal with one sentence: 「本次修改了 X 假設/約束，因此 Y 和 Z 有調整」 so the diff is visible. If the extension path is taken three consecutive times without convergence, treat as a different concern and restart from Stage A.
+- **Different concern** (goal changes, problem reframed, direction diverges): restart from Stage A. State clearly: 「這是一個不同的問題方向，重新從 Stage A 對焦。」
 
 **Option 4 — 放棄.** End the skill. Don't argue. Don't offer a simplified version. If the user later returns with a different angle, that's a fresh `/think`.
 
 ---
 
-## When the user rejects a proposal mid-flow (not via Option 2)
+## When the user rejects a proposal mid-flow (not via Option 3)
 
 If the user pushes back in free text instead of using Option 3 — same rules apply. Never restart from Stage A.
 
