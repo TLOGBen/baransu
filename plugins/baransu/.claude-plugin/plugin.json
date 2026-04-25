@@ -1,7 +1,7 @@
 {
   "name": "baransu",
-  "version": "0.3.7",
-  "description": "バランス — governance skills that balance thinking and execution. Ships /think (align-research-approve before code), /review (multi-perspective isolated re-verification of model output), /analyze (goal-anchored spec builder for medium-to-large tasks), /dev (gate-enforced TDD executor for small tasks), /write (bilingual zh/en copywriting assistant with Refine and Generate modes), /execute (TDAID orchestration engine — reads /analyze spec, drives parallel worktrees via agent-only skills, produces final-report.md), /ship (session cleanup — archive, commit, push, optional worktree removal), /hunt (systematic bug diagnosis — symptom to root cause via observability-first investigation), and /read (universal content capture — URL/path/glob/Chrome/clipboard/--topic to offline Markdown via markitdown).",
+  "version": "0.3.8",
+  "description": "バランス — governance skills that balance thinking and execution. Ships /think (align-research-approve before code), /review (multi-perspective isolated re-verification of model output), /analyze (goal-anchored spec builder for medium-to-large tasks), /dev (gate-enforced TDD executor for small tasks), /write (bilingual zh/en copywriting assistant with Refine and Generate modes), /execute (TDAID orchestration engine — reads /analyze spec, drives parallel worktrees via agent-only skills, produces final-report.md), /ship (session cleanup — archive, commit, push, optional worktree removal), /hunt (systematic bug diagnosis — symptom to root cause via observability-first investigation), /read (universal content capture — URL/path/glob/Chrome/clipboard/--topic to offline Markdown via markitdown), and /design (UI/UX design spec generator — gen/lint/preset modes, outputs DESIGN.md in Stitch 9-section format with Kami design vocabulary).",
   "author": {
     "name": "ben.tsai",
     "email": "ben.tsai@hy-tech.com.tw"

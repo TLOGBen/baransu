@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Intent
 
-`baransu` is a Claude Code **plugin marketplace** distributing one governance-focused plugin, also named `baransu`. The plugin's theme is バランス ("balance") — forcing alignment and approval before execution, and surgical multi-perspective verification after. Currently ships eight skills: `/think` (deliberate before building), `/review` (independent multi-perspective re-verification of any model output), `/analyze` (goal-anchored spec builder for medium-to-large tasks), `/dev` (gate-enforced TDD executor for small tasks), `/write` (bilingual zh/en copywriting assistant), `/execute` (TDAID orchestration engine for medium-to-large tasks; reads `/analyze` spec, drives parallel worktrees via agent-only skills, produces `final-report.md`), `/ship` (session cleanup — archive work files, commit, push, optional worktree removal), and `/hunt` (systematic bug diagnosis — symptom to root cause via observability-first investigation, log bisection, and impact-gated fixing).
+`baransu` is a Claude Code **plugin marketplace** distributing one governance-focused plugin, also named `baransu`. The plugin's theme is バランス ("balance") — forcing alignment and approval before execution, and surgical multi-perspective verification after. Currently ships ten skills: `/think` (deliberate before building), `/review` (independent multi-perspective re-verification of any model output), `/analyze` (goal-anchored spec builder for medium-to-large tasks), `/dev` (gate-enforced TDD executor for small tasks), `/write` (bilingual zh/en copywriting assistant), `/execute` (TDAID orchestration engine for medium-to-large tasks), `/ship` (session cleanup), `/hunt` (systematic bug diagnosis), `/read` (universal content capture — URL/path/glob/Chrome to offline Markdown), and `/design` (UI/UX design spec generator — gen/lint/preset, outputs DESIGN.md in Stitch 9-section format).
 
 ## Actual Layout
 
@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 plugins/
   baransu/
     .claude-plugin/
-      plugin.json              # plugin manifest (v0.3.4)
+      plugin.json              # plugin manifest (v0.3.8)
     skills/
       think/
         SKILL.md               # governance skill — align/research/approve before code
@@ -34,18 +34,14 @@ plugins/
         SKILL.md               # investigation skill — symptom→root cause via observability-first + impact-gated fix
         references/
           hunt-case-template.md  # hunt case YAML template for recording investigations
+      design/
+        SKILL.md               # design skill — gen/lint/preset modes, outputs DESIGN.md in Stitch 9-section format
+        references/
+          paper-preset.md      # 「紙」warm parchment preset (Kami color tokens + Charter/TsangerJinKai02)
     agents/
-      architecture-reviewer.md # perspective agent — structural coherence, boundaries, overreach
-      quality-reviewer.md      # perspective agent — claim-vs-implementation, logic, edges
-      security-reviewer.md     # perspective agent — attack surface, input trust, secrets
-      summarize-agent.md       # execute agent — extracts 8-field task context from spec
-      impl-agent.md            # execute agent — Red/Green TDD implementation cycle
-      review-agent.md          # execute agent — four-tier semantic review (direct impl, no /review call)
-      smart-friend-agent.md    # execute agent — root-cause diagnosis after 2 consecutive failures
-      e2e-fix-agent.md         # execute agent — fixes E2E failure clusters
-      final-review-agent.md    # execute agent — REQ-XXX coverage verification
-      final-fixer-agent.md     # execute agent — supplements missing tests/impl for uncovered REQs
-      merge-agent.md           # execute agent — git merge + Green confirmation for parallel worktrees
+      # Perspective agents: architecture-reviewer.md  quality-reviewer.md  security-reviewer.md
+      # Execute agents:     summarize-agent.md  impl-agent.md  review-agent.md  smart-friend-agent.md
+      #                     e2e-fix-agent.md  final-review-agent.md  final-fixer-agent.md  merge-agent.md
 ```
 
 **Critical distinction**: `.claude-plugin/marketplace.json` at the repo root is the *catalog*; `plugins/baransu/.claude-plugin/plugin.json` is the *plugin manifest*. Never merge them. Component dirs (`skills/`, `agents/`, etc.) go at the **plugin root** (`plugins/baransu/`), not inside `.claude-plugin/` and not at the repo root.
@@ -147,8 +143,6 @@ Key design properties to preserve when editing `ship/SKILL.md`:
 
 ### `/baransu:hunt` — systematic bug investigation
 
-Waza-style. Key design properties:
-
 - **English body, 繁體中文 output.** Same convention as all other skills.
 - **Observability-first tool selection.** Tool Scan picks the tool that can observe the problem's layer — not the first available. Playwright → MCP db query → LSP → bash logging → static read.
 - **Locate gate is mandatory before Instrumentation.** Four-question check (event sequence, reproduction data, dirty data characteristics, environment) must complete before adding the first instrument.
@@ -157,6 +151,10 @@ Waza-style. Key design properties:
 - **Confirm or Discard.** One instrument at a time. Contradicted hypotheses are discarded completely, not patched. Three failures → Handoff format.
 - **Investigation safety.** DB-connected tests must always rollback; file writes and external calls must use mocks. Hunt reports saved to `.claude/hunt-report/`; searchable via `hunt-search.py`.
 
+### `/baransu:design` — UI/UX design spec generator
+
+Three modes: `gen` (question-guided DESIGN.md), `lint` (Stitch 9-section + Kami 10 invariants), `preset [name]` (apply preset; built-in: 「紙」warm parchment). **Key distinction**: uppercase `DESIGN.md` at project root = UI visual spec; lowercase `design.md` in `.claude/analyze/` = technical architecture layer — never confuse the two. Mode dispatch is case-sensitive (`lint` exact match only); preset discovery scans `references/*-preset.md`; gen and preset both overwrite without confirmation.
+
 ## 禁止事項
 
 - **絕對不許** 在 `plugin.json` 加 `skills` array：Claude Code 用 filesystem 自動發現 skills，`v0.3.0` 曾誤加隨即移除。
@@ -164,18 +162,13 @@ Waza-style. Key design properties:
 - **不許** 在 `/ship` Step 5 用 `git branch -d`：push 後未 merge，`-d` 必然失敗；兩個子命令都要 `git -C "$MAIN_REPO"` + `-D`。
 - **不許** 簡化 `failure_count` / `compile_error_count` 的區分：compile error 不計入 failure_count，這個語義不能被「優化」掉，否則 TDAID loop 重試行為會錯誤。
 
-## Install Flow (for testing locally)
+## Install Flow
 
 ```
-/plugin marketplace add /home/vakarve/projects/baransu
+# Local:  /plugin marketplace add /home/vakarve/projects/baransu
+# Remote: /plugin marketplace add https://git.hy-tech.com.tw/ben.tsai/baransu.git
 /plugin install baransu@baransu
-/plugin validate                    # or: claude plugin validate
-```
-
-Remote install:
-```
-/plugin marketplace add https://git.hy-tech.com.tw/ben.tsai/baransu.git
-/plugin install baransu@baransu
+/plugin validate
 ```
 
 ## Versioning
@@ -187,7 +180,6 @@ Remote install:
 From `~/.claude/CLAUDE.md` unless overridden. For new skills, dogfood `/baransu:think`.
 
 - **Read-before-write**: re-Read any file before Edit/Write in the same turn.
-- **Handoff artifacts** land in `.agent-workspace/handoff/` and are gitignored.
 - **Commit style**: conventional commits. Attribution lines disabled globally.
 - **CLAUDE.md size target**: keep under 200 lines. Trim advisory prose before adding.
 
@@ -196,8 +188,9 @@ From `~/.claude/CLAUDE.md` unless overridden. For new skills, dogfood `/baransu:
 - `/execute` v0.3.0 — TDAID orchestration engine; parallel worktrees via 8 agent-only skills, produces `final-report.md`.
 - `/ship` v0.3.1 — session cleanup; archives work dirs, commits, pushes, optional worktree removal.
 - `/hunt` v0.3.4 — systematic bug diagnosis; Waza-style observability-first + impact-gated fixing.
+- `/read` v0.3.6 — universal content capture; URL/path/glob/Chrome/clipboard/--topic to offline Markdown.
+- `/design` v0.3.8 — UI/UX design spec generator; gen/lint/preset, DESIGN.md in Stitch 9-section + Kami format.
 
 ## What's Intentionally Absent
 
 - **No build / test / lint commands** — no toolchain yet. Do not fabricate `npm test` / `pytest`. Update when introduced.
-- **License**: MIT (`LICENSE`, `plugin.json`, `README.md`).

@@ -38,6 +38,8 @@ baransu 是第二次。
 | `/execute` | 中大型任務的自動執行引擎。讀取 `/analyze` 產出的 spec 目錄（`.claude/analyze/{date}-{slug}/`），以前置群組 DAG 計算並行度（XL/L/M），透過 8 個 agent-only skill 驅動完整 TDAID 流程（並行 worktree + E2E + Final-Review），直到 Requirements 100% 通過為止，產出 `final-report.md`。需先完成 `/analyze`。範例：`/baransu:execute .claude/analyze/2026-04-25-my-feature/` |
 | `/ship` | session 結束後的清理工具。將 `.claude/tmp/`、`.claude/analyze/`、`.claude/execute/` 歸檔至 `.claude/archived/`，執行 `git add -A` + commit + push，並在 git worktree 環境下自動清理 worktree 與分支。完全自動，無需人工確認。 |
 | `/hunt` | 狩獵 bug 的執行協議。工具掃描選對觀測層，定位症狀（事件時序、重現資料、髒資料特徵），log 二分法每輪最多三個觀測點往內收斂，直到能用一句話說出根因——指名 file:line，不接受「可能是狀態問題」。修前強制呼叫鏈分析和測試矩陣，修後路由至 `/dev` 或 `/analyze` 收尾。 |
+| `/read` | 萬用內容擷取工具。URL、本地路徑、glob、Chrome 分頁、剪貼簿，一律轉成離線 Markdown，儲存至指定目錄。學術論文模式（`--topic`）自動查詢並下載相關文獻。 |
+| `/design` | UI/UX 設計規格生成器。三種模式：`gen`（問題引導式，生成九段 DESIGN.md）、`lint`（對照 Stitch 九段結構＋Kami 十不變量，輸出具名違規報告）、`preset [名稱]`（整包套用 preset，內建「紙」暖調羊皮紙色系）。輸出至專案根目錄 `DESIGN.md`，可選寫入 `CLAUDE.md` 傳遞設計語境。 |
 
 ---
 
