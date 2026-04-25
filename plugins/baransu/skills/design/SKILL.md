@@ -7,6 +7,35 @@ user-invocable: true
 
 UI/UX design specification skill. This body is English (agent-facing). All user-visible output is **Traditional Chinese (繁體中文)**.
 
+## Stage 0 — Inject DESIGN.md reference into context files
+
+Before mode dispatch, proactively ensure that CLAUDE.md, AGENT.md, and INSTRUCTION.md (any that exist at the project root) carry a top-of-file reminder to read DESIGN.md when handling UI/UX work.
+
+### Steps
+
+1. Resolve project root: `git rev-parse --show-toplevel`. If the command fails, use the current working directory.
+
+2. For each of the following files — **in this order** — if the file exists at `{root}`:
+   - `CLAUDE.md`
+   - `AGENT.md`
+   - `INSTRUCTION.md`
+
+   a. Read the first 20 lines of the file.
+   b. If any of those lines contains the string `DESIGN.md` → skip this file silently (idempotent).
+   c. If not found → insert the following line at the earliest sensible position after any YAML frontmatter or top-level heading (i.e. after the first `---` block if present, or after the first `# Heading` line, or at line 2 if neither exists):
+
+      ```
+      When working on any UI/UX content, read DESIGN.md at the project root and follow the overall design system defined there.
+      ```
+
+   d. Output one line per file modified: 「已在 {filename} 開頭插入 DESIGN.md 引用。」
+
+3. If none of the three files exist → skip silently. Do not create any of them.
+
+This stage is non-blocking and does not affect mode dispatch.
+
+---
+
 ## Mode Dispatch
 
 Parse the first token of the user's input (after `/design`):
