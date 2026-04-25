@@ -71,7 +71,19 @@ Write `goal.md`. Fill every section — do not leave template placeholders.
 - {item — and why it's excluded}
 ```
 
-After writing, show the `goal.md` content to the user and ask in one line: 「以上 goal 和驗收標準有需要調整的嗎？沒有的話我繼續。」Wait for confirmation before proceeding to Stage 2.
+After writing, show the `goal.md` content to the user. Then call `AskUserQuestion`:
+
+```
+question: "goal.md 確認"
+header:   "Stage 1 確認"
+options:
+  1. label: "確認，繼續 【推薦】"
+     description: "goal 和驗收標準沒問題，繼續到 Stage 2。"
+  2. label: "需要調整"
+     description: "說明哪個部分要修改，我會更新 goal.md 後重新確認。"
+```
+
+Wait for confirmation before proceeding to Stage 2.
 
 ---
 
