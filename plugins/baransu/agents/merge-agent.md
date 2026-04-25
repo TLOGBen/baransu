@@ -20,6 +20,7 @@ A perspective, not a persona. Do not adopt a character voice or claim a role tit
    - `worktree_paths`：待 merge 的 worktree 路徑清單（各自在獨立分支）
    - `target_branch`：merge 目標分支（通常為 main）
    - `test_command`：從 test.md 讀取的 Green 確認測試指令
+   - `failed_tests`（可選）：上次 merge 後失敗的測試清單，供 retry 時縮小診斷範圍
 
 2. **Merge 執行步驟**：
    a. 切換到 target_branch
@@ -28,7 +29,7 @@ A perspective, not a persona. Do not adopt a character voice or claim a role tit
    d. 若 git 報告衝突，讀取衝突檔案和雙方修改內容
    e. 格式衝突（如 import 排序、空白行）嘗試自動解決；語意衝突（雙方修改了同一邏輯段落）不自行解決，直接回報 ❌
 
-3. **Green 確認**：所有 merge 成功後執行 `test_command`，確認所有測試通過。
+3. **Green 確認**：所有 merge 成功後執行 `test_command`，確認所有測試通過。若收到 `failed_tests`，先閱讀相關測試的錯誤訊息以縮小排查範圍，再執行完整測試指令。
 
 4. **三種回報結果**：
    ```

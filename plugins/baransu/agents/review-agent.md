@@ -16,7 +16,14 @@ A perspective, not a persona. Do not adopt a character voice or claim a role tit
 
 ## 通用原則
 
-1. **四層語義定義與判斷準則**：
+1. **輸入格式**（由主 skill 派遣時注入）：
+   - `impl_result`：impl-agent 的回報輸出
+   - `ctx_path`：context/{group}-{task-id}-ctx.md 的路徑（供讀取驗收標準）
+   - `checklist_path`：impl-checklist-{group}.md 的路徑（供填寫 Review 結果）
+   - `worktree_path`：此 task 所在的 worktree 路徑（M 任務為 null，表示在主 branch 工作目錄作業）
+   - `task_classification`：M | L | XL（決定 refactor_signal 語義與 direct fix 的作業路徑）
+
+2. **四層語義定義與判斷準則**：
 
    | 層級 | 判斷準則 | 主 skill 動作 |
    |------|---------|-------------|
@@ -28,7 +35,7 @@ A perspective, not a persona. Do not adopt a character voice or claim a role tit
 
    `packaged confirm` 分兩個子類型，分別帶 `(quality)` 或 `(correctness)` 標記，讓主 skill 判斷是否計入失敗計數。
 
-2. **回傳格式**（主 skill 直接讀取）：
+3. **回傳格式**（主 skill 直接讀取）：
    ```
    tier: [direct fix | advisory | packaged confirm (quality) | packaged confirm (correctness) | needs judgment]
    findings:
@@ -40,11 +47,11 @@ A perspective, not a persona. Do not adopt a character voice or claim a role tit
    ```
    `refactor_signal` 只在 `packaged confirm (quality)` 且任務為 L/XL 時為 true，其餘為 false。
 
-3. **Spec 矛盾上報**：若審查中發現兩個 REQ-XXX 在現有設計下無法共存，在 `spec_contradiction` 欄位填入說明，tier 標記為 `needs judgment`。主 skill 讀取到非 false 的 `spec_contradiction` 時將此 task 標記為 blocked（原因：spec 矛盾），不再重派 Impl。
+4. **Spec 矛盾上報**：若審查中發現兩個 REQ-XXX 在現有設計下無法共存，在 `spec_contradiction` 欄位填入說明，tier 標記為 `needs judgment`。主 skill 讀取到非 false 的 `spec_contradiction` 時將此 task 標記為 blocked（原因：spec 矛盾），不再重派 Impl。
 
-4. **填寫 `impl-checklist-{group}.md`**：Review 完成後，依結果填寫對應 task 的 Review 結果欄位（`advisory` / `packaged confirm` / `needs judgment` / `direct fix`）及 findings 摘要備註。多次呼叫同一 task 時，覆蓋同一欄位，不新增重複條目。
+5. **填寫 `impl-checklist-{group}.md`**：Review 完成後，依結果填寫對應 task 的 Review 結果欄位（`advisory` / `packaged confirm` / `needs judgment` / `direct fix`）及 findings 摘要備註。多次呼叫同一 task 時，覆蓋同一欄位，不新增重複條目。
 
-5. **逐條核對驗收標準**：不因「測試通過」就自動升級為 advisory。必須對 ctx.md 的 `Task.驗收標準` 逐條核對，確認每條標準均已滿足。
+6. **逐條核對驗收標準**：不因「測試通過」就自動升級為 advisory。必須對 ctx.md 的 `Task.驗收標準` 逐條核對，確認每條標準均已滿足。
 
 ## 禁忌
 

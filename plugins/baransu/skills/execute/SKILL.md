@@ -177,6 +177,7 @@ For each group, for each task in document order:
 
 ```
 failure_count = 0
+compile_error_count = 0  # tracks compile errors after smart-friend dispatched
 
 LOOP:
   Dispatch impl-agent with:
@@ -192,12 +193,21 @@ LOOP:
 
   if impl-agent status == ❌ AND failure detail mentions compile error:
     # compile error does NOT count toward failure_count
+    if failure_count >= 2:  # smart-friend already dispatched; cap compile-error loops
+      compile_error_count += 1
+      if compile_error_count >= 3:
+        mark task BLOCKED (reason: smart-friend 後仍有 3 次 compile error)
+        TaskUpdate: status=blocked
+        escalate to user: 「TASK-{group}-NN blocked：smart-friend 後持續 compile error」
+        break LOOP
     continue LOOP
 
   Dispatch review-agent with:
     - impl_result: impl-agent output
     - ctx_path: context/{group}-{task-id}-ctx.md
     - checklist_path: impl-checklist-{group}.md
+    - worktree_path: path for this group (null for M)
+    - task_classification: M | L | XL
 
   SWITCH review tier:
 
@@ -212,9 +222,14 @@ LOOP:
 
     CASE "packaged confirm (quality)" AND task is L/XL AND refactor_signal == true:
       dispatch impl-agent again with refactor_mode=true (does NOT count as failure)
-      dispatch review-agent again
-      mark task ✅
-      break LOOP
+      dispatch review-agent again with same worktree_path + task_classification
+      SWITCH second_review.tier:
+        CASE "direct fix" | "advisory" | "packaged confirm (quality)":
+          mark task ✅ (Task Tool status = completed)
+          break LOOP
+        CASE "packaged confirm (correctness)" | "needs judgment":
+          failure_count += 1
+          continue LOOP  # re-enters normal failure path; compile-error exception still applies
 
     CASE "packaged confirm (quality)" AND (task is M OR refactor_signal == false):
       # treat as advisory for M tasks
@@ -231,9 +246,12 @@ LOOP:
         break LOOP
 
       if failure_count >= 3:
-        mark task BLOCKED (reason: 3 consecutive impl failures)
+        reason = "3 consecutive impl failures"
+        if smart_friend_output is defined AND smart_friend_output.spec_issue != false:
+          reason += "；smart-friend 診斷：" + smart_friend_output.spec_issue
+        mark task BLOCKED (reason)
         TaskUpdate: status=blocked
-        escalate to user: 「TASK-{group}-NN blocked after 3 failures」
+        escalate to user with reason
         break LOOP
 
       if failure_count == 2:
@@ -250,8 +268,11 @@ LOOP:
 
 ### 4d. Cascade-blocked propagation
 
-After each task is marked BLOCKED, check downstream groups. For each group G where:
-- G's `前置群組` list contains at least one blocked group
+After each task is marked BLOCKED, first evaluate group-level status:
+- A group is **group-blocked** if ANY of its tasks is marked BLOCKED.
+
+Then check downstream groups. For each group G where:
+- G's `前置群組` list contains at least one group-blocked group
 - AND G has no non-blocked, non-completed predecessors remaining
 
 → Mark G as cascade-blocked. TaskUpdate all of G's tasks to status=cascade-blocked.
@@ -264,13 +285,15 @@ After all tasks in a frontier level complete (✅, blocked, or cascade-blocked):
 
 ```
 merge_retry_count = 0
-
-Dispatch merge-agent with:
-  - worktree_paths: list of worktree paths for this frontier level
-  - target_branch: main
-  - test_command: from test.md (look for a "Green" or unit test command)
+last_failed_tests = null
 
 LOOP:
+  Dispatch merge-agent with:
+    - worktree_paths: list of worktree paths for this frontier level
+    - target_branch: main
+    - test_command: from test.md (look for a "Green" or unit test command)
+    - failed_tests: last_failed_tests (null on first dispatch)
+
   if merge-agent status == ✅:
     proceed to next frontier level
     break
@@ -282,12 +305,12 @@ LOOP:
     break  # do not proceed
 
   if merge-agent status == ⚠️ (Green broken):
+    last_failed_tests = merge-agent failed_tests
     merge_retry_count += 1
-    if merge_retry_count >= 2:
+    if merge_retry_count >= 3:
       escalate to user: 「Merge 後 Green 仍未通過，已重試 2 次」
       mark all pending downstream groups as blocked
       break
-    # retry: dispatch merge-agent again with failed_tests as additional context
     continue LOOP
 ```
 
@@ -308,7 +331,7 @@ Execute the E2E startup command via Bash. Monitor output.
 If E2E passes → record ✅ in final-report.
 
 If E2E fails:
-1. Group independent failure clusters (one cluster per failing feature area)
+1. Group independent failure clusters (one cluster per failing feature area). If feature area boundaries are unclear, treat each failing test as its own cluster.
 2. Dispatch one **e2e-fix-agent** per cluster (parallel, independent)
    - Provide each with: `e2e_failure_report`, `e2e_strategy`, `relevant_files`
 3. After all fix agents complete, re-run E2E
@@ -323,7 +346,7 @@ If E2E fails:
 
 Dispatch **final-review-agent** with:
 - `requirement_path`: path to requirement.md
-- `test_dir`: test directory path
+- `test_dir`: test directory path (parse from test.md integration/E2E strategy sections; default to `tests/` if no explicit path is stated)
 
 If `needs_fixer: false` → record final-review conclusion in final-report and proceed to Stage 7.
 
@@ -416,8 +439,8 @@ final-report.md: .claude/execute/{date}-{slug}/execute/final-report.md
 | Impl 失敗 3 次 | TDAID loop | BLOCKED |
 | spec 矛盾 | review-agent | BLOCKED, escalate |
 | Merge 語意衝突 | Merge point | Escalate, BLOCKED downstream |
-| Merge Green 破壞 ≤2 次 | Merge point | Retry merge-agent |
-| Merge Green 破壞 >2 次 | Merge point | BLOCKED downstream, escalate |
+| Merge Green 破壞（第 1 或 2 次）| Merge point | Retry merge-agent（含 failed_tests）|
+| Merge Green 破壞（第 3 次）| Merge point | BLOCKED downstream, escalate |
 | E2E 失敗 | Stage 5 | e2e-fix-agent(s), one re-run |
 | E2E Fix 後仍失敗 | Stage 5 | Record ❌, continue |
 | Final-Review 有缺口 | Stage 6 | final-fixer-agent once, one re-run |
