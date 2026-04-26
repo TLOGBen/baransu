@@ -5,6 +5,10 @@
 # Archived session work files (baransu /ship output — local only).
 .claude/archived/
 
+# Transient baransu workspace dirs — local only, archived by /ship into .claude/archived/.
+.claude/dev/
+.claude/think/
+
 # Skill eval / optimization workspaces (transient, local only).
 eval-workspace/
 

@@ -1,6 +1,6 @@
 ---
 name: ship
-description: Session cleanup — archives .claude/tmp/, .claude/analyze/, .claude/execute/ to .claude/archived/, commits all pending changes, pushes to origin, and removes the current git worktree if running inside one.
+description: Session cleanup — archives .claude/tmp/, .claude/analyze/, .claude/execute/, .claude/think/, .claude/dev/ to .claude/archived/, commits all pending changes, pushes to origin, and removes the current git worktree if running inside one.
 ---
 
 # /baransu:ship — session cleanup
@@ -13,10 +13,10 @@ No user confirmation required. Five steps run automatically.
 
 ## Step 1 — Detect
 
-Check whether `.claude/tmp/`, `.claude/analyze/`, `.claude/execute/` contain any items.
+Check whether `.claude/tmp/`, `.claude/analyze/`, `.claude/execute/`, `.claude/think/`, `.claude/dev/` contain any items.
 
 ```bash
-find .claude/tmp .claude/analyze .claude/execute -maxdepth 1 -mindepth 1 2>/dev/null | head -1
+find .claude/tmp .claude/analyze .claude/execute .claude/think .claude/dev -maxdepth 1 -mindepth 1 2>/dev/null | head -1
 ```
 
 If no items found → output 「沒有可歸檔的工作檔案，結束。」 and stop. Do not proceed.
@@ -27,7 +27,7 @@ If no items found → output 「沒有可歸檔的工作檔案，結束。」 an
 
 Create `.claude/archived/` if it does not exist.
 
-For each of `tmp`, `analyze`, `execute`: for each item directly inside the source directory:
+For each of `tmp`, `analyze`, `execute`, `think`, `dev`: for each item directly inside the source directory:
 - Destination: `.claude/archived/{item_name}`
 - If destination already exists: rename it to `.claude/archived/{item_name}-{unix_timestamp}` first
 - Move item to destination
