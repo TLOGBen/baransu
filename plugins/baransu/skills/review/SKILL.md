@@ -17,7 +17,7 @@ The body below is English (agent-facing). Wherever this file quotes literal user
 
 `plugins/baransu/agents/architecture-reviewer.md` / `quality-reviewer.md` / `security-reviewer.md`.
 
-Each agent file defines `視角 / 目標 / 通用原則 / 禁忌` — no persona, no character voice. Role-play descriptions ("you are a senior X engineer") induce hallucination; we want an angle from which to read the target, not an actor playing a role.
+Each agent file defines `Perspective / Mission / Principles / Lane-keeping` — no persona, no character voice. Role-play descriptions ("you are a senior X engineer") induce hallucination; we want an angle from which to read the target, not an actor playing a role.
 
 ---
 
@@ -44,6 +44,8 @@ One sentence, in 繁中. Why does the user want this reviewed? Derived from the 
 **The goal is the single most important input to reviewer dispatch.** It is what keeps each perspective from drifting into its own bias. Without a goal, an architecture reviewer will find architecture problems regardless of whether they matter to the user's actual concern; a security reviewer will surface every theoretical attack surface regardless of blast radius. With a goal, every perspective has a compass: findings outside the goal's orbit — even when they're correct observations — downgrade to advisory instead of packaging as action items.
 
 This is the mechanism that lets well-meaning perspectives coexist without their individual zeal producing a collectively over-engineered review. It is the fix the skill's own experience taught us (`/review` v0.3.0 drifted because it had no goal mechanism).
+
+If the dispatcher's first impulse is to skip goal derivation and let reviewers self-anchor, treat that as the load-bearing trap in live-review form. "Implicit goal" is never a destination — every dispatched reviewer must receive a written goal sentence.
 
 ---
 
@@ -81,6 +83,8 @@ Launch one **parallel Task** per activated perspective, each in a clean context.
 
 Findings return in natural language (not YAML). Each must include: citation (file:line or section), which claim it contradicts (or "none — observation"), the observation itself, the surgical fix, and a balance note (see Stage 6).
 
+No recursion: this dispatch is the only depth /review uses. /review does not invoke /review, adversarial (Stage 5) is exactly one round, and reviewers do not review each other.
+
 ---
 
 ## Stage 5 — Adversarial round (conditional)
@@ -102,6 +106,8 @@ Adversarial augments reviewer findings; it does not override.
 
 ## Stage 6 — Consolidate + balance check
 
+Before consolidating, re-read this section's four balance-check questions — context accumulates between Stage 4 dispatch and Stage 6 consolidation, and the balance check is the load-bearing mechanism most vulnerable to attention decay.
+
 **Deduplicate**: collapse findings with the same citation + same observation, attributing to the narrowest-scope perspective.
 
 **Balance check (mandatory)** — every finding that proposes new work must answer four questions:
@@ -114,6 +120,10 @@ Adversarial augments reviewer findings; it does not override.
 The fourth question is the compass — it is the difference between a review that helps the user and a review that impresses its own reviewers. A valid architecture observation off-goal is still a valid observation; it just belongs in the advisory pile, not the action pile.
 
 **Complexity must justify itself.** Sweeping refactors, "future-proofing" additions, concerns with no concrete reproduction condition, perspective-native obsessions that don't touch the goal — anything failing the four questions drops to advisory. This is the load-bearing principle of the whole skill.
+
+When a perspective surfaces a real-but-off-goal observation, the load-bearing rule applies: if it cannot be traced back to the explicit review goal, it must drop to advisory, never package as an action item.
+
+The fourth question itself is load-bearing — silently assuming it instead of asking it produced perspective drift on past runs. Treat it as a written check at every consolidation, not as ambient atmosphere.
 
 ---
 
@@ -156,25 +166,5 @@ For **needs-judgment** items, batch-ask via AskUserQuestion. Let the question co
 
 ---
 
-## Gotchas — two symmetric traps
-
-This skill has tripped on both in one session. They mirror each other and both show up during a live review run as well as during skill editing.
-
-**Trap 1 — Over-correcting from perspective zeal.** During a review run, a perspective naturally finds real-but-off-goal issues and packages them as action items. During skill editing, the equivalent is adding "iron rules" / "what this is NOT" / numeric caps to defend against imagined failures. The fix is the same in both modes: if a finding (or a proposed rule) cannot point to the explicit review goal — or, for edits, to an observed past incident — it stays advisory, or doesn't get added. A reviewer chasing its lane's native concerns without goal anchoring hits this trap.
-
-**Trap 2 — Over-cutting by dropping load-bearing mechanisms.** The mirror image. Mechanisms that look like prose redundancy are sometimes the only thing keeping the machinery anchored. The **goal input** (Stage 1) and the **fourth balance-check question** (Stage 6) are the concrete examples — silently assuming them instead of writing them down produced perspective drift on the first real run. When trimming, every deleted mechanism must be absorbed by something that remains; "implicit" is not a destination. A dispatcher that skips goal derivation and hopes reviewers self-anchor hits this trap.
-
-The warning for maintainers and for invocation-time reviewers is the same: **「複雜度需要證明自己的價值」** for additions, **「精簡不能讓 load-bearing 機制變成默認」** for cuts.
-
----
-
-## Core constraints
-
-- **Perspective, not persona** — agent files must not contain "you are a senior X" voice.
-- **Behavior-based activation** — don't match invocation strings; look at what the target does.
-- **Goal-gated findings** — the fourth balance-check question is the compass that stops perspective-specific obsession from producing an over-engineered review.
-- **Balance check is mandatory** — a new-work finding earns action-tier placement only by answering the four questions.
-- **No behavior changes without consent** — auto-fix stays cosmetic.
-- **No recursion** — `/review` does not invoke `/review`; adversarial is one round; reviewers do not review each other.
-- **Re-read before Stage 6** — before consolidating Stage 4–5 findings (§Stage 6), re-read this SKILL.md §Stage 6 (four balance-check questions + tier definitions). In sessions reviewing large targets, context accumulates significantly between Stage 4 dispatch and Stage 6 consolidation; the balance check is the load-bearing mechanism most vulnerable to attention decay. Light protection is intentional — /review sessions are short and rarely trigger more than one auto-compact; dual-layer (Core constraints + stage-adjacent) is not needed here.
-- **Code target without e2e green-run evidence is not finished.**
+「複雜度需要證明自己的價值」 for additions.
+「精簡不能讓 load-bearing 機制變成默認」 for cuts.

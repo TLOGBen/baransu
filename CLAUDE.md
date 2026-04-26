@@ -96,7 +96,7 @@ Invoke with `/baransu:<name>`. To edit a skill, read its `SKILL.md` — design c
 | `/write` | Bilingual copywriting: `zh`/`en` prefix; Refine (existing text) or Generate (new) |
 | `/ship` | Session cleanup: archive `.claude/` dirs, commit, push, optional worktree removal |
 | `/hunt` | Bug diagnosis: symptom → root cause via observability-first investigation |
-| `/read` | Capture any content to offline Markdown: URL, path, glob, Chrome, `--topic` |
+| `/read` | Capture any content to offline Markdown: URL, path, glob, Chrome, `--topic`, `--web`, `--gh`, `--x` |
 | `/design` | UI/UX spec: `gen` (guided), `lint` (Stitch+Kami), `preset <name>` |
 | `/learn` | Research pipeline: Collect→Digest→Outline→Fill In→Refine; `--brief` stops at Digest |
 

@@ -6,7 +6,7 @@ description: >
   --chrome (active Chrome tab), --clipboard (clipboard text), --topic "keyword" (academic paper search).
   Saves raw original to .claude/read/raw/{slug}/ and converted Markdown to .claude/read/material/{slug}/index.md.
   Supports markitdown auto-install, WSL2/Linux/macOS/Windows, Chrome soft dependency (degraded mode if unavailable).
-argument-hint: "[URL | path | glob | --topic 'keyword' | --chrome | --clipboard]"
+argument-hint: "[URL | path | glob | --topic 'keyword' | --web 'keyword' | --gh 'keyword' | --x 'keyword' | --chrome | --clipboard]"
 user-invocable: true
 ---
 
@@ -73,29 +73,47 @@ Read `references/acquisition/academic-search.md`.
 
 Display paper list and wait for user selection. After selection, continue with the selected paper's PDF URL or DOI URL as described in that reference.
 
-### 2. `--chrome`
+### 2. `--web "keyword"`
+
+Read `references/acquisition/web-search.md`.
+
+Use the WebSearch tool to fetch candidate URLs, present them via AskUserQuestion (per `§AskUserQuestion 互動規格`), then route the selected URL through `/read`'s existing URL routing (§9).
+
+### 3. `--gh "keyword"`
+
+Read `references/acquisition/gh-search.md`.
+
+Run `gh search repos` to fetch candidate repos, present them via AskUserQuestion, then route the selected GitHub URL through web-static.md GitHub section.
+
+### 4. `--x "keyword"`
+
+If `$CHROME_AVAILABLE=false`: output 「Chrome 未連線，--x 模式無法使用」 and stop.
+
+Otherwise: Read `references/acquisition/x-search.md`. The lane delegates to `web-dynamic.md` WSL2 path for Chrome MCP navigation, runs schema-level health check, extracts tweet URLs via regex, presents them via AskUserQuestion, then routes the selected tweet URL through existing URL routing.
+
+### 5. `--chrome`
 
 If `$CHROME_AVAILABLE=false`: output 「chrome-tab 模式暫時不可用，請改用 URL 模式」 and stop.
 
 Otherwise: Read `references/acquisition/chrome-tab.md` and follow the MCP call sequence described there.
 
-### 3. `--clipboard`
+### 6. `--clipboard`
 
 Read `references/acquisition/clipboard.md` and follow the platform clipboard commands described there.
 
-### 4. Glob pattern
+### 7. Glob pattern
 
 Detected when input contains `*`, `?`, or `[`.
 
 Read `references/acquisition/local-file.md` (glob section). Each matched file runs stages 1–3 independently. If zero matches, output 「無匹配項目：{pattern}」 and stop.
 
-### 5. Local path
+### 8. Local path
 
 Run `test -e "{input}"` to verify the path exists.
 
 If exists: Read `references/acquisition/local-file.md` (single-path section).
 
-### 6. URL
+### 9. URL
 
 Starts with `http://` or `https://`. Apply URL pattern routing:
 
@@ -103,9 +121,9 @@ Starts with `http://` or `https://`. Apply URL pattern routing:
 - URL ends with `.pdf` OR HEAD request `curl -sI "{url}" | grep -i "content-type: application/pdf"` matches → Read `references/acquisition/web-static.md` (PDF URL section)
 - Other URLs → attempt proxy cascade (Read `references/acquisition/web-static.md`); after proxy cascade completes, check if result is < 500 bytes or contains SPA feature strings (`<app-root`, `<div id="root"`, `__NEXT_DATA__`, `window.__NUXT__`); if SPA detected → Read `references/acquisition/web-dynamic.md`
 
-### 7. Unrecognized input
+### 10. Unrecognized input
 
-Output 「無法識別輸入：{input}。請使用 URL、本地路徑、glob、--chrome、--clipboard 或 --topic。」
+Output 「無法識別輸入：{input}。請使用 URL、本地路徑、glob、--chrome、--clipboard、--topic、--web、--gh 或 --x。」
 
 ---
 
@@ -196,6 +214,7 @@ captured_at: "{ISO 8601 timestamp}"
 conversion_tool: "markitdown {version}"
 slug: "{final-slug}"
 platform: "{$PLATFORM value}"
+acquire_via: "{search:web|search:gh|search:x|topic|chrome|clipboard|url|local}"
 ---
 ```
 
@@ -222,6 +241,43 @@ Append row: `| {source_url} | {final-slug} | {title} | {captured_at} |`
 ```
 
 For glob batches of 10+ items, compress to: `成功 N 筆，失敗 M 筆` without listing each path.
+
+## AskUserQuestion 互動規格
+
+This section is the single source of truth for keyword-search lanes that present candidates via AskUserQuestion. The four lanes — `--web`, `--gh`, `--x`, and the upgraded `--topic` — share this spec; their reference files (`web-search.md`, `gh-search.md`, `x-search.md`, `academic-search.md`) reference this section instead of redefining its rules.
+
+### Capacity
+
+- AskUserQuestion's hard ceiling is **4 options per round**.
+- Every round reserves **1 slot for an escape option** (label: `「以上都不選」`). The remaining 3 slots are usable for results.
+- Maximum result slots across the worst case = 3 rounds × 3 result slots = **9**.
+
+### Result-count to round mapping
+
+| Result count `N` | Rounds | Per-round result slots |
+|------------------|--------|------------------------|
+| `N ≤ 3` | 1 | `N` (each result slot fills, plus escape) |
+| `4 ≤ N ≤ 6` | 2 | 3, then `N - 3` |
+| `7 ≤ N ≤ 9` | 3 | 3, 3, then `N - 6` |
+| `N ≥ 10` | 3 | 3, 3, 3 (truncated to first 9 by lane's native sort order; no local re-ranking) |
+
+Each round always carries the escape option in addition to its result slots.
+
+### Multi-round semantics
+
+- The user picks a single result. Selection in any round **terminates the sequence** (single-pick semantics) — the orchestrator does not advance to subsequent rounds for that lane invocation.
+- The `acquire` phase processes only the single picked candidate.
+
+### Escape behaviour
+
+- Selecting `「以上都不選」` in any round terminates the lane immediately.
+- No `material/{slug}/` is produced; no `raw/{slug}/` is retained for the search-page intermediate.
+- The orchestrator outputs `「使用者放棄選擇」` and stops.
+
+### Cross-lane invariant
+
+- Lanes do **not** apply 1-5 scoring or re-rank candidates locally.
+- Lane-side schema-level health checks (e.g. `--x` substring guards) are acquire-stage failures — not candidate scoring — and apply before this section's flow runs.
 
 ## Constraints
 

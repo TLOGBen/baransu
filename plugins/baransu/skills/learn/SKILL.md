@@ -73,15 +73,67 @@ Note: the paper selection UI is shown to the user, not performed silently inside
 
 Do NOT call `/read`. Read `.claude/read/material/{slug}/index.md` directly.
 
-If the file does not exist: output 「slug 不存在，請先執行 /read 擷取」 and stop.
-
 If the file exists: append `.claude/read/material/{slug}/index.md` to `$SOURCES`.
+
+If the file does not exist: do NOT stop. **Fall through to §3.5 — 純文字主題 fan-out fallback** (the input is treated as a bare topic, not a slug typo).
+
+### 3.5. 純文字主題 (Bare Topic) — fan-out fallback
+
+Triggered when §3 matches the syntactic shape of a slug but `.claude/read/material/{slug}/index.md` does not exist. The input is interpreted as a research topic; `/learn` runs an automatic fan-out across four search lanes.
+
+**Lanes** (parallel where possible):
+
+| Lane | Underlying tool | Adapter thinness | Cite path (if thick) |
+|------|-----------------|------------------|----------------------|
+| `academic` | `search-papers.py` | Thin (invoke + normalize) | — |
+| `web` | WebSearch tool | Thin (invoke + normalize) | — |
+| `gh` | `gh search repos` | **Thick** — must reuse escape rule from `references/acquisition/gh-search.md §Search Command` (lines specifying single-quote form + `'\''` escape) by **anchor cite**, never fork the literal text. The bare `{topic}` from §3.5 invocation IS the user-supplied keyword for §Search Command Step 1; apply Step 1 escape verbatim before substitution. | `references/acquisition/gh-search.md §Search Command`, §Failure Modes |
+| `x` | Chrome MCP via `web-dynamic.md` WSL2 path | **Thick** — must reuse the 5-rule schema-level health check from `references/acquisition/x-search.md §Schema-level Health Check` and the candidate regex from §Candidate Extraction by **anchor cite**, never fork. | `references/acquisition/x-search.md §Search Phase`, §Schema-level Health Check, §Candidate Extraction |
+
+**Lane fail-mode mapping (Theme A)**: All four lanes invoke their underlying tools directly (not via `/read --{lane}`); each ref's Failure Modes / Health Check / No Results sections are reused as **lane-status mapping rules**, not as `/learn`-level stops. Specifically: any condition that the ref says "stop" maps to `{lane}: failed (...)` or `{lane}: 0 hits (no results)` per the three-state surface below; `/learn` never propagates the lane's stop verb.
+
+**Parallelism model**:
+- The three single-call lanes (`academic`, `web`, `gh`) launch in fan-out turn 1 as a batch tool-call set together with the X lane's `tabs_create_mcp` first step.
+- X lane proceeds in turn 2 (`navigate` to `https://x.com/search?q={url-encoded-topic}`) and turn 3 (`get_page_text` + schema check + candidate regex extract).
+- Other 3 lanes return candidates in turn 1; X lane returns in turn 3. Accept the +3 turn startup delay for X — do not spawn sub-agents to flatten it.
+
+**Per-lane timeout** (defaults; implementation may adjust based on observed latency):
+- `academic`: 60s (search-papers.py latency)
+- `web`: 30s
+- `gh`: 30s
+- `x`: 45s (Chrome MCP 4-step sequence)
+
+**Soft-failure invariant**:
+- Any single lane failure (timeout / API error / 0 results / schema-check fail / Chrome unavailable) does NOT stop the other lanes.
+- At least 1 lane returning ≥1 candidate is sufficient to continue to Stage 2.
+- All four lanes failing → first emit the per-lane status surface (the three-state lines below) so the user sees which lanes were `0 hits (no results)` vs `failed (timeout|api_error|...)`, then output 「所有 lane 均無結果，請嘗試其他關鍵字或手動跑 /read」 and stop. The aggregate message MUST NOT replace the per-lane breakdown — both appear, in that order.
+- This invariant differs from `/read --web|--gh|--x` (which stops on any failure) by design: `/read` is interactive single-source, `/learn` is automated multi-source.
+
+**Lane status surface** (one line per lane, three states):
+- `{lane}: N hits` (success with N candidates)
+- `{lane}: 0 hits (no results)` (lane ran successfully but returned empty)
+- `{lane}: failed (timeout|api_error|chrome_unavailable|schema_check_fail|cli_missing)` (transient or environmental failure)
+
+The three-state form ensures the user can distinguish a real zero-result from a transient failure that may warrant a manual retry.
+
+**Candidate pool merging**:
+- Each lane's candidates are written into `$SOURCES` as `{path, lane}` tuples (the `lane` field carries `academic|web|gh|x`; for inputs from §1/§2/§3, the `lane` field is `null`).
+- Deduplicate across lanes by `url` exact-string equality (no fuzzy normalization; trailing slash / query string differences are kept distinct, Stage 2 will surface them and the user can drop duplicates during the trim step).
+
+**Disambiguation note** (slug vs topic):
+- `/learn react` (single word, slug shape, slug-file exists) → §3 reads existing material.
+- `/learn react` (slug-file does NOT exist) → §3.5 fan-out on topic "react".
+- `/learn react hooks` (multi-arg, slug shape per arg) → handled by §4 mixed input rule: each argument is processed individually. `react` → §3 → fan-out (if missing); `hooks` → §3 → fan-out (if missing). To search a multi-word topic explicitly as one query, use `/learn --topic "react hooks"`. The §4 reading is authoritative; multi-word bare input is NOT auto-joined into a single fan-out topic.
+- `/learn ./typo.md` (path prefix `./`) → fails §3 explicitly; behaviour outside the slug branch — currently no §1/§2 routing for local paths in `/learn`. Treat as user error: output 「未識別輸入：{input}」 and stop. Do NOT fall through to §3.5 for inputs with explicit path prefixes.
+- `/learn` (no argument) or `/learn ""` (empty string argument) → output 「請提供 URL、--topic 「關鍵字」或 slug」 and stop. Do NOT enter §3.5 fan-out with an empty topic (would trigger four no-op searches).
+- `/learn --brief slug-not-found` → §3 falls through to §3.5 fan-out using slug as topic; the `--brief` flag is honored at Stage 2's stop path regardless of how Stage 1 resolved sources (i.e. brief output is generated from fan-out's filtered candidates).
+- `/learn --brief` (flag only, no topic) → output 「請提供 URL、--topic 「關鍵字」或 slug」 and stop. Same as no-argument case.
 
 ### 4. Mixed input (multiple arguments of different types)
 
-Process each argument sequentially using the rules above (URL → --topic → slug). Each resolved argument appends its material path to `$SOURCES`.
+Process each argument sequentially using the rules above (URL → --topic → slug → §3.5 fan-out). Each resolved argument appends its material paths (with `lane` tuples) to `$SOURCES`.
 
-If any individual argument fails (slug not found, /read error), stop immediately with the relevant error message.
+If any individual argument fails after fallback (e.g. fan-out also returns nothing), stop immediately with the relevant error message.
 
 ### Source list handoff
 
@@ -114,7 +166,43 @@ Scale: 1 = very low, 5 = very high. Each criterion is scored independently.
 
 ### 3. Present scoring table for user confirmation
 
-Display the scoring results in a 繁中 table for the user to review:
+Display the scoring results in a 繁中 table for the user to review.
+
+**Layout rule**: count distinct **non-null** `lane` values in `$SOURCES`.
+- 0 distinct (all sources have `lane=null`, i.e. URL/slug-only inputs from §1/§2/§3): combined form, no lane attribution needed.
+- ≥1 distinct (any source has non-null `lane`, even if only one lane survived a fan-out): **lane-grouped form**. Each non-null lane gets its own sub-table; sources with `lane=null` group under a `## direct` heading. This preserves fan-out provenance even when the user-facing pool is small.
+
+**Lane-grouped form** (when fan-out was triggered):
+
+```
+## 消化評分結果
+
+請確認以下評分，並回覆要保留哪些來源。若所有來源均可接受，請回覆「全部保留」。
+
+## academic
+| 來源 slug | 多情境適用性 | 預測力 | 通用性 |
+|-----------|-------------|--------|--------|
+| {slug-a1} | {1-5}       | {1-5}  | {1-5}  |
+
+## web
+| 來源 slug | 多情境適用性 | 預測力 | 通用性 |
+|-----------|-------------|--------|--------|
+| {slug-w1} | {1-5}       | {1-5}  | {1-5}  |
+
+## gh
+| 來源 slug | 多情境適用性 | 預測力 | 通用性 |
+|-----------|-------------|--------|--------|
+| {slug-g1} | {1-5}       | {1-5}  | {1-5}  |
+
+## x
+| 來源 slug | 多情境適用性 | 預測力 | 通用性 |
+|-----------|-------------|--------|--------|
+| {slug-x1} | {1-5}       | {1-5}  | {1-5}  |
+```
+
+Each per-lane sub-table caps at the lane's hit count (no further truncation). Scoring is `visual judgment 1-5` per criterion as in §2; for high-volume pools (>20 candidates) the per-cell judgment is necessarily coarser — this is the accepted trade-off for keeping the spec uniform across lanes.
+
+**Combined form** (single-lane or non-fan-out inputs):
 
 ```
 ## 消化評分結果

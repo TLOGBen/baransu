@@ -1,0 +1,9 @@
+# Read Index
+
+| source_url | slug | title | captured_at |
+|-----------|------|-------|------------|
+| https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents | effective-context-engineering-for-ai-agents | Effective context engineering for AI agents | 2026-04-26T00:48:00+08:00 |
+| https://www.anthropic.com/engineering/harness-design-long-running-apps | harness-design-long-running-apps | Harness design for long-running application development | 2026-04-26T00:48:30+08:00 |
+| https://blog.langchain.com/context-engineering-for-agents/ | context-engineering-langchain | Context Engineering (LangChain) | 2026-04-26T00:49:00+08:00 |
+| https://blog.jetbrains.com/research/2025/12/efficient-context-management/ | jetbrains-smarter-context-management | Cutting Through the Noise: Smarter Context Management for LLM-Powered Agents | 2026-04-26T00:49:30+08:00 |
+| https://www.primeintellect.ai/blog/rlm | recursive-language-models | Recursive Language Models: the paradigm of 2026 | 2026-04-26T00:50:00+08:00 |
