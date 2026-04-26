@@ -137,6 +137,21 @@ Requirements 達成率：N/M（N 個 REQ-XXX 有對應綠燈測試）
 ## 產出清單
 
 {list of created/modified files, one per line}
+
+## Goal-Alignment Filter Metric
+
+<!-- goal_alignment_filter_metric — observation block; counters accumulated in §4b Phase 3, written here at Step 7. -->
+
+total_findings_count: {N}
+downgraded_to_advisory_count: {M}
+
+<!--
+Placeholder note: 若 total_findings_count > 0，則 downgrade_rate =
+downgraded_to_advisory_count / total_findings_count（即 M/N）。未來三次
+spec 後評估，若降級率（M/N）持續 > 50%，須回看 R2 行為（filter 過鬆或
+reviewer 大量產 off-goal finding）。
+-->
 ```
 
 The **Blocked 項目** section is omitted entirely when there are no blocked tasks.
+The **Goal-Alignment Filter Metric** section is always emitted (counters default to `0` when no review fired).
