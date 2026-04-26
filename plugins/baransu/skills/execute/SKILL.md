@@ -22,6 +22,7 @@ These apply across all steps. The review-agent rule and the spec-read-only rule 
 - **Subagent depth = 1.** Agents in `agents/*.md` are stateless leaf nodes. They do not dispatch further subagents.
 - **All Task Tools created before execution begins.** Register every group × task via TaskCreate in Step 2. No mid-execution task creation.
 - **Working files live under `.claude/execute/`.** Edit and Write are only permitted in the execute working directory.
+- **Goal-Alignment Filter is hard governance.** `failure_count` accounting is affected by the filter (off-goal findings are downgraded to advisory and do not increment the counter), but findings tied to 驗收標準直接失敗 are protected by the hard invariant — they keep their original tier and still increment `failure_count`.
 
 ---
 
@@ -144,7 +145,10 @@ LOOP:
     - ctx_path:            context/{group}-{task-id}-ctx.md
     - worktree_path:       group worktree path (or null for M)
     - refactor_mode:       false  (set true only when review signals it)
-    - correction_strategy: smart-friend output if failure_count == 2
+    - correction_strategy: composite object {text, investigate_files} when
+                           failure_count == 2 (built from smart-friend output;
+                           see "Composite correction_strategy" note below).
+                           Omit on rounds 1–2.
 
   CASE impl-agent status == ⚠️  (Red gate not passed — test already passing):
     Report: "Red gate not passed: test was already passing before impl"
@@ -218,9 +222,89 @@ SWITCH review_tier:
 
   CASE "packaged confirm (correctness)"  OR  "needs judgment":
     # Primary failure: tests incomplete, Green not verified, or impl incorrect
-    failure_count += 1
-    → go to failure escalation logic below
+    # → first run the Goal-Alignment Filter sub-step below; failure_count
+    #   accounting happens AFTER the filter has had a chance to downgrade
+    #   off-goal findings.
+    → go to Goal-Alignment Filter sub-step below
 ```
+
+**Goal-Alignment Filter** (applies to: `packaged confirm (correctness)`, `needs judgment`)
+
+Applicability gate. This sub-step runs ONLY when the SWITCH above landed on
+`packaged confirm (correctness)` or `needs judgment`. For `advisory`,
+`direct fix`, and `packaged confirm (quality)` the filter is **skipped**
+and the original SWITCH outcome stands unchanged.
+
+Purpose. review-agent is a finding-producing perspective; governance lives
+here. Some findings reviewer raises are **off-goal observations** (style,
+unrelated polish) that should not block the task. The filter walks each
+finding and decides whether it serves `ctx.md → Task.目標` / corresponds
+to a `Task.驗收標準` failure. Off-goal findings are downgraded to advisory
+and do not contribute to `failure_count`.
+
+Finding-level loop:
+
+```
+# Initial counter accumulation: every finding observed feeds the metric.
+total_findings_count += len(findings)
+
+FOR each finding F in review.findings:
+  # Step 1 — does F correspond to a 驗收標準 failure (semantic coverage)?
+  is_acceptance_failure = semantic_match(F.observation, ctx.Task.驗收標準)
+  # Step 2 — does F serve Task.目標?
+  serves_goal           = semantic_match(F.observation, ctx.Task.目標)
+
+  IF is_acceptance_failure:
+    # Hard invariant — see below. F keeps its original tier; never downgraded.
+    F.downgraded_to_advisory = false
+  ELIF serves_goal:
+    # On-goal but not acceptance-bound: keep original tier.
+    F.downgraded_to_advisory = false
+  ELSE:
+    # Off-goal observation. Downgrade to advisory.
+    F.downgraded_to_advisory = true
+    downgraded_to_advisory_count += 1
+END FOR
+```
+
+**Hard invariant — 驗收標準直接失敗 finding 不可 downgrade 為 advisory.**
+Any finding whose observation corresponds to a 驗收標準直接失敗
+(`is_acceptance_failure == true`) **不可**被 goal-alignment 邏輯
+downgrade 為 advisory；該 finding 維持原 tier，並依原邏輯計入
+`failure_count`。invariant 是 R2 的下界，不是建議。
+
+Filter 判斷準則：以驗收標準語意覆蓋範圍判斷，而非字面引用編號。若
+finding 的 observation 描述了某個失敗條件，而 `Task.驗收標準` 任一
+條目的語意涵蓋此條件，即視為「對應驗收標準直接失敗」並受 invariant
+保護 — 即使 finding 文字不只字面引用驗收標準編號（例如 finding 寫
+「authentication middleware 未掛載」、驗收標準寫「endpoint 必須要求
+授權」即構成語意覆蓋）。
+
+Post-step — review-level tier 重新計算 (re-tier):
+
+```
+# After all findings have been classified, recompute the review-level tier.
+remaining = [F for F in review.findings if not F.downgraded_to_advisory]
+
+IF every F in review.findings was downgraded to advisory  (remaining is empty):
+  # All findings off-goal → review-level tier 改 advisory；task 走 ✅ 路徑。
+  review_tier = "advisory"
+  failure_count is NOT incremented   # filter absorbed the failure
+  mark task ✅
+  TaskUpdate: status=completed
+  break LOOP
+
+ELSE:
+  # At least one finding survives (acceptance failure or on-goal). Keep
+  # original tier (correctness / judgment) for routing.
+  failure_count += 1
+  → go to failure escalation logic below
+```
+
+`total_findings_count` and `downgraded_to_advisory_count` are the source
+of truth for the matching `goal_alignment_filter_metric` block in Step 7's
+`final-report.md`; both counters live across the task's full TDAID loop
+and are emitted at report time.
 
 **Failure escalation logic** (reached from correctness/judgment cases):
 
@@ -242,15 +326,44 @@ SWITCH review_tier:
 
   if failure_count == 2:
     Dispatch smart-friend-agent with:
-      - task_goal:         Task.目標 from ctx.md
-      - spec_excerpts:     Requirements + Design + Test from ctx.md
+      - ctx_path:          context/{group}-{task-id}-ctx.md
+      - worktree_path:     group worktree path (or null for M)
       - failure_summary_1: review findings from attempt 1
       - failure_summary_2: review findings from attempt 2
-    # smart-friend output becomes correction_strategy for next impl dispatch
+    # smart-friend returns {root_cause, correction_strategy, spec_issue,
+    # investigate_files, broader_guidance}. Orchestrator builds the composite
+    # correction_strategy for the next impl dispatch as described in
+    # "Composite correction_strategy" below.
     continue LOOP
 
   continue LOOP  # failure_count == 1: retry with review findings
 ```
+
+**Composite `correction_strategy`** (built by orchestrator from smart-friend output for the next impl dispatch):
+
+```
+correction_strategy:
+  text: |
+    [broader guidance from smart-friend]
+    {smart-friend.broader_guidance}
+    [/broader guidance]
+
+    {smart-friend.correction_strategy}
+  investigate_files: {smart-friend.investigate_files}   # passed through as-is; absent → []
+```
+
+Rules:
+- `broader_guidance` is **prepended** to `text` wrapped in the paired markers
+  `[broader guidance from smart-friend]` ... `[/broader guidance]` so newlines
+  or special characters in the over-scope note cannot bleed into the body.
+  Both markers MUST appear (paired); never emit one without the other.
+- If `smart-friend.broader_guidance` is empty (`""` or absent), still wrap the
+  empty string with the paired markers — downstream parsing relies on the pair.
+- `investigate_files` is forwarded verbatim; orchestrator does not filter it.
+- This composite schema is consumed by **`agents/impl-agent.md` 通用原則 5
+  (`correction_strategy`)**, which mandates Read-before-Red-gate on every
+  path in `investigate_files`. Field names here MUST match that schema
+  exactly; any drift is a cross-file invariant violation.
 
 ### 4c. Cascade-blocked propagation
 
@@ -348,6 +461,9 @@ Advisory notes from Coverage Report → record in final-report; do not trigger f
 
 Write `.claude/execute/{date}-{slug}/execute/final-report.md`. Template: `references/output-formats.md §final-report.md`.
 
+When emitting the report:
+- 將 §4b Phase 3 累加的 `total_findings_count` 與 `downgraded_to_advisory_count` 寫入 `## Goal-Alignment Filter Metric` 段（即 `goal_alignment_filter_metric` block）。若整個 session 內無任何 review-agent 回傳（counters 從未遞增），兩值皆寫 `0`，metric 段仍須輸出（不得省略）。filter 行為與降級判斷準則維持 §4b Phase 3 定義，本步驟僅做序列化，不重新計算。
+
 Remove all gitworktrees created this session:
 ```bash
 git worktree remove .git/worktrees/{group} --force
@@ -391,6 +507,9 @@ final-report.md: .claude/execute/{date}-{slug}/execute/final-report.md
 - **[task-map.md missing during merge]**: merge-agent needs to know which impl-checklist files exist. If task-map.md was not written in Step 3 before starting Step 4, merge-agent cannot verify coverage. Step 3 must complete fully before Step 4 begins.
   Solution: The Step 2 / Step 3 "Done when" gates enforce ordering.
 
+- **[goal-alignment over-filter trap]**: When the Goal-Alignment Filter downgrades all reviewer-initiated off-goal findings to advisory, an acceptance-criteria failure finding can be misclassified as off-goal and silently downgraded too. That collapses back to the [review-agent bypass trap] failure mode — the task marks ✅ while a 驗收標準直接失敗 finding was suppressed.
+  Solution: The hard invariant is the floor — a finding that traces to 驗收標準直接失敗 keeps its original tier and still increments `failure_count`. review-agent 「逐條核對驗收標準」 is the supporting check that keeps the invariant honest; never let the filter run without it.
+
 ---
 
 ## Constraints
@@ -402,6 +521,7 @@ final-report.md: .claude/execute/{date}-{slug}/execute/final-report.md
 - final-fixer-agent is dispatched at most once per session.
 - smart-friend-agent is dispatched at most once per task (when failure_count reaches 2).
 - compile errors do not increment failure_count.
+- failure_count 計算受 Goal-Alignment Filter 影響（off-goal findings 降為 advisory 不計入）；驗收標準失敗 finding 不受 filter 影響（hard invariant）。
 - All user-visible output is Traditional Chinese (繁體中文).
 - Working files go under `.claude/execute/{date}-{slug}/execute/`.
 
@@ -426,3 +546,5 @@ final-report.md: .claude/execute/{date}-{slug}/execute/final-report.md
 | Final-Review needs_fixer: true | Step 6 | final-fixer once; one re-review |
 | Final-Review still needs_fixer: true | Step 6 | Record remaining gaps as BLOCKED; proceed |
 | Write attempt to analyze dir | All steps | Immediate structural blocker; escalate |
+| Filter downgraded finding to advisory | §4b Phase 3 | 正常路徑；計入 metric，不增 failure_count |
+| Invariant violation: 驗收標準失敗 finding 被誤降級 | §4b Phase 3 filter sub-step | Structural blocker; escalate (hard invariant breach) |
