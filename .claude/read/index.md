@@ -7,3 +7,4 @@
 | https://blog.langchain.com/context-engineering-for-agents/ | context-engineering-langchain | Context Engineering (LangChain) | 2026-04-26T00:49:00+08:00 |
 | https://blog.jetbrains.com/research/2025/12/efficient-context-management/ | jetbrains-smarter-context-management | Cutting Through the Noise: Smarter Context Management for LLM-Powered Agents | 2026-04-26T00:49:30+08:00 |
 | https://www.primeintellect.ai/blog/rlm | recursive-language-models | Recursive Language Models: the paradigm of 2026 | 2026-04-26T00:50:00+08:00 |
+| https://x.com/intuitiveml/status/2048912026018484317 | the-self-healing-agent-harness | The Self-Healing Agent Harness | 2026-04-28T22:03:20+08:00 |
