@@ -12,9 +12,9 @@
     {
       "name": "baransu",
       "source": "./plugins/baransu",
-      "description": "バランス — governance skills that balance thinking and execution. Ships /think (deliberate before building), /review (independent multi-perspective re-verification of model output), /analyze (goal-anchored spec builder for medium-to-large tasks), /dev (gate-enforced TDD executor for small tasks), and /write (bilingual zh/en copywriting assistant).",
+      "description": "バランス — governance skills that balance thinking and execution. Ships /think (deliberate before building), /review (independent multi-perspective re-verification), /analyze (goal-anchored spec builder), /dev (gate-enforced TDD executor), /write (bilingual zh/en copywriting), /execute (TDAID orchestration for /analyze specs), /ship (session cleanup), /hunt (bug diagnosis), /read (offline Markdown capture), /design (UI/UX spec generator), /learn (research digest pipeline), plus the cron-driven self-healing harness — /grade (5-dim rubric scoring), /triage (cluster + investigator + 5-black auto-fix), and /bridge (head-to-head replay with Δ-gate).",
       "category": "governance",
-      "tags": ["planning", "design", "decision", "think", "review", "analyze", "dev", "tdd", "spec", "audit", "verification", "write", "copywriting", "bilingual"]
+      "tags": ["planning", "design", "decision", "think", "review", "analyze", "dev", "tdd", "spec", "audit", "verification", "write", "copywriting", "bilingual", "execute", "tdaid", "orchestration", "ship", "cleanup", "hunt", "debug", "read", "learn", "design-spec", "harness", "self-healing", "telemetry", "grade", "triage", "bridge", "cron"]
     }
   ]
 }

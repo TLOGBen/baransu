@@ -9,6 +9,10 @@
 .claude/dev/
 .claude/think/
 
+# self-healing harness telemetry — local only
+# Directory persists by virtue of telemetry being written into it; no .gitkeep needed.
+.claude/harness/
+
 # Skill eval / optimization workspaces (transient, local only).
 eval-workspace/
 
@@ -48,6 +52,11 @@ desktop.ini
 *.swp
 *.swo
 *~
+
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
 
 # --- Future toolchains (safe to keep pre-emptively) ---
 node_modules/
