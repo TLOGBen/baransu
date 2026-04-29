@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-`baransu` is a Claude Code plugin distributing eleven governance skills. Theme: バランス — deliberate before executing, verify after.
+`baransu` is a Claude Code plugin distributing fourteen governance skills (eleven user-facing + three cron-driven self-healing harness skills). Theme: バランス — deliberate before executing, verify after.
 
 ## Working Principles
 

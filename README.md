@@ -66,6 +66,16 @@ baransu 是第二次。
 | `/read` | 萬用內容擷取工具。URL、本地路徑、glob、Chrome 分頁、剪貼簿一律轉成離線 Markdown，儲存至指定目錄。四個搜尋擴充：`--topic` 學術論文、`--web` 一般網頁、`--gh` GitHub repo/code/issue、`--x` X (Twitter)；先列結果，互動式挑選後才下載。 |
 | `/learn` | 把素材整理成讀書筆記。輸入 URL、`--topic` 學術關鍵字、或 `/read` 抓回的素材代號（`.claude/read/material/` 下的資料夾名，例如 `effective-context-engineering`）；每份素材會出一張五欄重點摘要，加 `--outline` 會再續寫成完整大綱與填好內容的筆記。產物放在 `.claude/learn/`。 |
 
+### 自我治癒型
+
+baransu 自己的觀察與修補閉環。Cron 自動觸發、user-level hooks 收集 telemetry、5-黑閘擋住失控的 LLM 自我修補。三個 skill 互為接力，不單獨用：`/grade` 打分 → `/triage` 抓最差的群挖根因 →（夠嚴重才）走 5-黑閘 auto-fix；`/bridge` 是手動 replay 比對 main vs 修補後分支。
+
+| Skill | 核心介紹 |
+|---|---|
+| `/grade` | 對 baransu 自己的 telemetry 評分。每天 cron 跑一次：從 `.claude/harness/telemetry.jsonl` 讀近 24 小時 row，每條按 5 維 equal-weight rubric（completeness / correctness / idempotency / recoverability / observability）算分，輸出 `grade.jsonl`。累積到一定量會把 `tune_review_due_since` 標起來提醒人重新檢視 rubric weight。防的是這件事：harness 自己的品質默默退化、沒人發現。 |
+| `/triage` | 對 `/grade` 跑出 poor cluster 的接力處理。先派 `investigator-agent`（read-only，KD#1 結構守門）做根因調查並產出 `evidence_bundle.json`；severity_aggregate ≥ 0.5 才走 auto-fix sub-flow。auto-fix 在隔離 worktree 內跑，過 5 道黑閘才允許 push：denylist 9 條（hooks/agents/.git/.claude/settings 等 self-write surface 全擋）+ absolute-path preflight + attempt cap K=3 + daily quota=5 + 全程 deterministic 不靠 LLM 自我約束。任一閘不過直接 escalate 給人。 |
+| `/bridge` | 手動 head-to-head replay。在隔離 worktree 拿同一份 telemetry corpus（≥ 50 條 completed row）對 main 與 target branch 各跑一次，比 5 維 rubric 平均分；Δ-gate 統計顯著性閘門通過才認可變更，否則回 inconclusive。防的是這件事：LLM 改動看起來沒壞但悄悄退化平均品質。 |
+
 ### 收尾型
 
 session 結束的清理與交付。

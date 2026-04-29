@@ -1,11 +1,11 @@
 {
   "name": "baransu",
-  "version": "1.1.1",
-  "description": "バランス — governance skills that balance thinking and execution. Ships /think, /review, /analyze, /dev, /write, /execute, /ship, /hunt, /read, /design, and /learn.",
+  "version": "1.1.2",
+  "description": "バランス — governance skills that balance thinking and execution. Ships /think, /review, /analyze, /dev, /write, /execute, /ship, /hunt, /read, /design, /learn, plus the cron-driven self-healing harness skills /grade (5-dim rubric scoring), /triage (cluster + investigator + 5-black auto-fix), and /bridge (head-to-head replay with Δ-gate).",
   "author": {
     "name": "ben.tsai",
     "email": "ben.tsai@hy-tech.com.tw"
   },
   "license": "MIT",
-  "keywords": ["governance", "planning", "design", "think", "review", "analyze", "spec", "architecture", "decision", "audit", "verification", "execute", "tdaid", "orchestration", "ship", "cleanup"]
+  "keywords": ["governance", "planning", "design", "think", "review", "analyze", "spec", "architecture", "decision", "audit", "verification", "execute", "tdaid", "orchestration", "ship", "cleanup", "harness", "self-healing", "telemetry", "grade", "triage", "bridge", "cron"]
 }
