@@ -99,6 +99,9 @@ Invoke with `/baransu:<name>`. To edit a skill, read its `SKILL.md` — design c
 | `/read` | Capture any content to offline Markdown: URL, path, glob, Chrome, `--topic`, `--web`, `--gh`, `--x` |
 | `/design` | UI/UX spec: `gen` (guided), `lint` (Stitch+Kami), `preset <name>` |
 | `/learn` | Research pipeline: Collect→Digest→Outline→Fill In→Refine; `--brief` stops at Digest |
+| `/grade` | 對 baransu skill telemetry 評分：cron 觸發 5 維 equal-weight rubric，輸出 grade.jsonl |
+| `/triage` | 從 grade.jsonl 聚類 poor verdict、派 investigator-agent、走 5-black 閘門 auto-fix |
+| `/bridge` | 手動 head-to-head replay：在隔離 worktree 比對 main vs target branch，Δ-gate 統計閘門 |
 
 All skills: English body, 繁體中文 user output. Do not change this convention in any skill.
 
@@ -127,7 +130,7 @@ These have each caused regressions — do not "optimize" them away:
 
 ## No Build / Test Commands
 
-No toolchain yet. Do not fabricate `npm test` / `pytest`. Update this section when a toolchain is introduced.
+The plugin itself ships no build toolchain. The self-healing harness includes its own structural and pytest tests under `tests/`; run them via the per-suite shell scripts and `python3 -m pytest tests/scripts/` for the Python unit tests.
 
 ## Commit Style
 
