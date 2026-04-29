@@ -10,6 +10,14 @@
 #   5) .claude/harness/state.json exists and is valid JSON (jq parseable)
 #   6) initial state.json: daily_push_count == 0
 #      AND daily_push_date == today's date (YYYY-MM-DD)
+#   7) §4 partition contract anchors present:
+#        - 'grade owns' literal
+#        - 'triage owns' literal
+#        - '跨 partition' literal (cross-partition prohibition)
+#        - 'read-merge-write' literal
+#   8) writer attribution corrected:
+#        - 'auto-fix investigator subagent' count == 0 in schema doc
+#        - '/triage 自動修補子流程' literal present
 #
 # Exit 0 on full pass; non-zero (and prints reason) on any failure.
 
@@ -69,5 +77,23 @@ TODAY="$(date +%Y-%m-%d)"
 [ "$COUNT" = "0" ] || fail "initial state.json daily_push_count must be 0; got: $COUNT"
 [ "$DATE" = "$TODAY" ] || fail "initial state.json daily_push_date must be today ($TODAY); got: $DATE"
 
-echo "PASS: state-json-schema.md + state.json structural checks (doc 4 fields + quota=5 + reset clause + valid JSON + counter=0 + date=$TODAY)"
+# (7) §4 partition contract anchors
+# These four literal anchors document the new partition contract:
+#   - grade owns / triage owns: the partition table headers/rows
+#   - 跨 partition: cross-partition write prohibition clause
+#   - read-merge-write: writer atomic contract (read full -> modify own -> rename)
+grep -q 'grade owns' "$DOC" || fail "schema §4 missing 'grade owns' partition anchor"
+grep -q 'triage owns' "$DOC" || fail "schema §4 missing 'triage owns' partition anchor"
+grep -q '跨 partition' "$DOC" || fail "schema §4 missing '跨 partition' (cross-partition prohibition) anchor"
+grep -q 'read-merge-write' "$DOC" || fail "schema §4 missing 'read-merge-write' atomic contract anchor"
+
+# (8) writer attribution correction (REQ-006 Scenario 2 + KD#1 alignment)
+# The triage-partition fields must NOT credit the read-only investigator
+# subagent as their writer; the new attribution names the /triage auto-fix
+# sub-flow running inside an isolated worktree.
+WRONG_WRITER_HITS="$(grep -c 'auto-fix investigator subagent' "$DOC" || true)"
+[ "$WRONG_WRITER_HITS" = "0" ] || fail "schema doc must not contain 'auto-fix investigator subagent' (KD#1 read-only invariant); hits=$WRONG_WRITER_HITS"
+grep -q '/triage 自動修補子流程' "$DOC" || fail "schema doc missing '/triage 自動修補子流程' writer attribution literal"
+
+echo "PASS: state-json-schema.md + state.json structural checks (doc 4 fields + quota=5 + reset clause + valid JSON + counter=0 + date=$TODAY + partition anchors + writer attribution)"
 exit 0
