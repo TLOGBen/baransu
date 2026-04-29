@@ -47,17 +47,42 @@ from pathlib import Path
 from typing import Optional
 
 # ---------------------------------------------------------------------------
-# Path-redaction patterns (locked by KD#5 / spec EDGE-2). Sensitive paths are
-# DROPPED from the list, not replaced with a placeholder — the schema says
-# "整條跳過". A path matches when its basename OR full path matches any glob.
+# Path-redaction patterns (REQ-004 / TASK-hooks-02). Sensitive paths are
+# MASKED — emitted as ``{"path": "<REDACTED:sensitive>", "plus": <n>,
+# "minus": <n>}`` so the +N/-N audit signal survives while the path itself
+# is hidden. A path matches when its basename OR full path matches any glob.
+#
+# Glob set covers common secret-file families:
+#   .env*, *.env.*           — dotenv variants (.env, myapp.env.bak.txt)
+#   *secret*, *credential*,  — generic secret/credential filenames
+#   *creds*
+#   *.pem, *.key,            — PEM / key files
+#   *.crt, *.cer             — TLS certs
+#   id_*, *_rsa*,            — SSH key variants (id_rsa, id_ed25519, id_ecdsa)
+#   *_ed25519*, *_ecdsa*
+#   kubeconfig*              — kubeconfig and bak variants
+#   .aws/*, .ssh/*           — directory-rooted secret stores
 # ---------------------------------------------------------------------------
+
+REDACTED_PATH_PLACEHOLDER: str = "<REDACTED:sensitive>"
 
 REDACT_PATH_GLOBS: tuple[str, ...] = (
     ".env*",
+    "*.env.*",
     "*secret*",
     "*credential*",
+    "*creds*",
     "*.pem",
     "*.key",
+    "id_*",
+    "*_rsa*",
+    "*_ed25519*",
+    "*_ecdsa*",
+    "kubeconfig*",
+    ".aws/*",
+    ".ssh/*",
+    "*.crt",
+    "*.cer",
 )
 
 
@@ -207,22 +232,27 @@ def _parse_numstat(text: str) -> list[dict]:
 
 
 def _redact_diff(rows: list[dict]) -> list[dict]:
-    """Drop entries whose path matches a redaction glob.
+    """Mask entries whose path matches a redaction glob.
 
-    Returns a new list of ``{path, plus, minus}`` dicts. Surviving entries
-    keep their +N/-N counts intact.
+    Returns a new list of ``{path, plus, minus}`` dicts. Sensitive paths
+    are emitted with ``path`` replaced by ``<REDACTED:sensitive>`` while
+    the +N/-N counts stay intact — that preserves the audit signal
+    ("a sensitive file was touched, here's how big the change was")
+    without leaking the filename itself. Non-string ``path`` values are
+    still dropped (they cannot be safely emitted).
     """
     safe: list[dict] = []
     for r in rows:
         path = r.get("path") if isinstance(r, dict) else None
         if not isinstance(path, str):
             continue
-        if _is_sensitive_path(path):
-            continue
+        out_path = (
+            REDACTED_PATH_PLACEHOLDER if _is_sensitive_path(path) else path
+        )
         # Re-shape to lock down to the 3 allowed keys (no diff literal).
         safe.append(
             {
-                "path": path,
+                "path": out_path,
                 "plus": int(r.get("plus", 0) or 0),
                 "minus": int(r.get("minus", 0) or 0),
             }

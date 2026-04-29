@@ -36,6 +36,12 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 
 REDACTION_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
+    # GitLab personal access tokens.
+    ("gitlab_token", re.compile(r"glpat-[A-Za-z0-9_\-]{20,}")),
+    # GitHub tokens (classic + fine-grained + app + user-to-server + refresh).
+    ("github_token", re.compile(r"gh[opusr]_[A-Za-z0-9_\-]{20,}")),
+    # AWS access key id.
+    ("aws_key", re.compile(r"AKIA[0-9A-Z]{16}")),
     # PEM private key block — multi-line; remove the entire block.
     (
         "private_key",
@@ -47,12 +53,33 @@ REDACTION_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     # marker is missing (e.g. a truncated paste). The full multi-line
     # `private_key` pattern above runs first; this only fires on leftovers.
     ("pem_fragment", re.compile(r"-----BEGIN [A-Z ]+(?: PRIVATE KEY)?-----")),
-    # GitLab personal access tokens.
-    ("gitlab_token", re.compile(r"glpat-[A-Za-z0-9_\-]{20,}")),
-    # GitHub tokens (classic + fine-grained + app + user-to-server + refresh).
-    ("github_token", re.compile(r"gh[opusr]_[A-Za-z0-9_\-]{20,}")),
-    # AWS access key id.
-    ("aws_key", re.compile(r"AKIA[0-9A-Z]{16}")),
+    # JWT — three base64url segments separated by dots; the first two
+    # must start with `eyJ` (the base64-encoded `{"` prefix of the
+    # header/payload JSON). The third segment (signature) is plain
+    # base64url. Requiring the `eyJ` anchor on the first two segments
+    # rejects ordinary hex hashes and base64 blobs that lack dots.
+    (
+        "jwt",
+        re.compile(
+            r"eyJ[A-Za-z0-9_\-]+\.eyJ[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+"
+        ),
+    ),
+    # Slack tokens — bot/app/admin/refresh/legacy variants.
+    ("slack_token", re.compile(r"xox[baprs]-[A-Za-z0-9\-]{10,}")),
+    # Stripe live/test secret keys.
+    ("stripe_key", re.compile(r"sk_(?:live|test)_[A-Za-z0-9]{16,}")),
+    # GCP service account JSON `private_key` field. Anchored on the JSON
+    # key to capture the whole `"private_key": "..."` field, including
+    # the JSON-escaped `\n` PEM body. This runs after `private_key` /
+    # `pem_fragment`, which may have already masked the inner BEGIN
+    # marker — the surrounding JSON field still matches and is rewritten
+    # to the gcp_pk_json placeholder so the type label is correct.
+    (
+        "gcp_pk_json",
+        re.compile(r'"private_key"\s*:\s*"[^"]*"'),
+    ),
+    # Azure SAS token query parameter.
+    ("azure_sas", re.compile(r"[?&]sig=[A-Za-z0-9%_+/=\-]{20,}")),
     # Generic secret = value / secret: value (case-insensitive). The
     # whitespace classes are intentionally line-local ([ \t]) so this catch-all
     # cannot reach across newlines and swallow already-classified tokens

@@ -180,7 +180,8 @@ else
 fi
 
 # -------------------------------------------------------------------------
-# Test 3: EDGE-2 path redaction — 5 sensitive + 1 normal; sensitive dropped.
+# Test 3: EDGE-2 path redaction — 5 sensitive + 1 normal; sensitive paths
+# masked as "<REDACTED:sensitive>" (audit signal preserved with +N -N).
 # -------------------------------------------------------------------------
 T3="$TMPROOT/t3"
 mkdir -p "$T3/.claude/harness"
@@ -194,11 +195,12 @@ run_hook "$T3" "$PAYLOAD" "$DIFF" "$COMMIT" || true
 ROW=$(cat "$T3/.claude/harness/telemetry.jsonl")
 DIFF_OUT=$(echo "$ROW" | jq -c .diff_summary_redacted)
 LEN=$(echo "$DIFF_OUT" | jq 'length')
-KEPT_PATH=$(echo "$DIFF_OUT" | jq -r '.[0].path // empty')
-KEPT_PLUS=$(echo "$DIFF_OUT" | jq -r '.[0].plus // empty')
-KEPT_MINUS=$(echo "$DIFF_OUT" | jq -r '.[0].minus // empty')
+MASK_COUNT=$(echo "$DIFF_OUT" | jq '[.[] | select(.path == "<REDACTED:sensitive>")] | length')
+NORMAL_ROW=$(echo "$DIFF_OUT" | jq -c '[.[] | select(.path == "src/main.py")] | .[0]')
+NORMAL_PLUS=$(echo "$NORMAL_ROW" | jq -r '.plus // empty')
+NORMAL_MINUS=$(echo "$NORMAL_ROW" | jq -r '.minus // empty')
 
-# All 5 sensitive substrings absent
+# All 5 sensitive substrings absent (literal paths must not leak post-mask)
 SENSITIVE_HIT=0
 for s in ".env.production" "config/secret.yaml" "aws.credentials" "certs/server.pem" "db.key"; do
   if echo "$DIFF_OUT" | grep -qF "$s"; then
@@ -207,11 +209,11 @@ for s in ".env.production" "config/secret.yaml" "aws.credentials" "certs/server.
   fi
 done
 if [ $SENSITIVE_HIT -eq 0 ]; then
-  if [ "$LEN" = "1" ] && [ "$KEPT_PATH" = "src/main.py" ] \
-       && [ "$KEPT_PLUS" = "12" ] && [ "$KEPT_MINUS" = "3" ]; then
-    ok "T3 redaction: 5 sensitive dropped, normal path kept with +12 -3 intact"
+  if [ "$LEN" = "6" ] && [ "$MASK_COUNT" = "5" ] \
+       && [ "$NORMAL_PLUS" = "12" ] && [ "$NORMAL_MINUS" = "3" ]; then
+    ok "T3 redaction: 5 sensitive masked + 1 normal kept with +12 -3 intact"
   else
-    bad "T3 redaction: expected 1 entry {src/main.py, +12, -3}; got $DIFF_OUT"
+    bad "T3 redaction: expected 6 rows (5 mask + src/main.py +12 -3); LEN=$LEN MASK=$MASK_COUNT NORMAL=$NORMAL_ROW"
   fi
 fi
 
@@ -460,6 +462,119 @@ elif [ "$HASH" != "9999999999999999999999999999999999999999" ]; then
   bad "T10 strict CAS: commit_hash not merged (got $HASH)"
 else
   ok "T10 strict CAS: malformed state preserved, non-state fields merged"
+fi
+
+# -------------------------------------------------------------------------
+# Test INT-7: PostToolUse mask + audit signal — secrets.env (+5 -3) +
+# legitimate.py (+12 -4) → both rows present in diff_summary_redacted;
+# secrets.env path is masked to "<REDACTED:sensitive>" while the +N/-N
+# numbers stay intact. This is the load-bearing assertion for
+# REQ-004 Scenario 7 (drop→mask, audit signal preserved).
+# -------------------------------------------------------------------------
+TI7="$TMPROOT/ti7"
+mkdir -p "$TI7/.claude/harness"
+mkrow "s-int-7" "in_progress" "null" "null" "null" "int-7" "[]" \
+  > "$TI7/.claude/harness/telemetry.jsonl"
+PAYLOAD='{"session_id":"s-int-7"}'
+DIFF=$(jq -n -c '[
+  {path:"secrets.env", plus:5, minus:3},
+  {path:"legitimate.py", plus:12, minus:4}
+]')
+COMMIT='"7777777777777777777777777777777777777777"'
+run_hook "$TI7" "$PAYLOAD" "$DIFF" "$COMMIT" || true
+
+ROW=$(cat "$TI7/.claude/harness/telemetry.jsonl")
+DIFF_OUT=$(echo "$ROW" | jq -c .diff_summary_redacted)
+LEN=$(echo "$DIFF_OUT" | jq 'length')
+MASK_ROW=$(echo "$DIFF_OUT" | jq -c '[.[] | select(.path == "<REDACTED:sensitive>")] | .[0]')
+MASK_PLUS=$(echo "$MASK_ROW" | jq -r '.plus // empty')
+MASK_MINUS=$(echo "$MASK_ROW" | jq -r '.minus // empty')
+NORMAL_ROW=$(echo "$DIFF_OUT" | jq -c '[.[] | select(.path == "legitimate.py")] | .[0]')
+NORMAL_PLUS=$(echo "$NORMAL_ROW" | jq -r '.plus // empty')
+NORMAL_MINUS=$(echo "$NORMAL_ROW" | jq -r '.minus // empty')
+
+if echo "$DIFF_OUT" | grep -qF "secrets.env"; then
+  bad "INT-7 mask: literal 'secrets.env' leaked into diff_summary_redacted"
+elif [ "$LEN" != "2" ]; then
+  bad "INT-7 mask: expected 2 rows, got $LEN (DIFF_OUT=$DIFF_OUT)"
+elif [ "$MASK_PLUS" != "5" ] || [ "$MASK_MINUS" != "3" ]; then
+  bad "INT-7 mask: secrets.env audit signal lost — got +$MASK_PLUS -$MASK_MINUS (want +5 -3)"
+elif [ "$NORMAL_PLUS" != "12" ] || [ "$NORMAL_MINUS" != "4" ]; then
+  bad "INT-7 mask: legitimate.py mutated — got +$NORMAL_PLUS -$NORMAL_MINUS (want +12 -4)"
+else
+  ok "INT-7 mask: secrets.env masked as <REDACTED:sensitive> (+5 -3 preserved); legitimate.py untouched (+12 -4)"
+fi
+
+# -------------------------------------------------------------------------
+# Test INT-8: glob coverage for variant filenames —
+# myapp.env.bak.txt / id_ed25519 / kubeconfig / aws_creds.txt.
+# All four must be masked as "<REDACTED:sensitive>".
+# Covers globs: *.env.* / id_* / kubeconfig* / *creds*.
+# -------------------------------------------------------------------------
+TI8="$TMPROOT/ti8"
+mkdir -p "$TI8/.claude/harness"
+mkrow "s-int-8" "in_progress" "null" "null" "null" "int-8" "[]" \
+  > "$TI8/.claude/harness/telemetry.jsonl"
+PAYLOAD='{"session_id":"s-int-8"}'
+DIFF=$(jq -n -c '[
+  {path:"myapp.env.bak.txt", plus:1, minus:0},
+  {path:"id_ed25519", plus:2, minus:0},
+  {path:"kubeconfig", plus:3, minus:1},
+  {path:"aws_creds.txt", plus:4, minus:2}
+]')
+COMMIT='"8888888888888888888888888888888888888888"'
+run_hook "$TI8" "$PAYLOAD" "$DIFF" "$COMMIT" || true
+
+ROW=$(cat "$TI8/.claude/harness/telemetry.jsonl")
+DIFF_OUT=$(echo "$ROW" | jq -c .diff_summary_redacted)
+LEN=$(echo "$DIFF_OUT" | jq 'length')
+MASK_COUNT=$(echo "$DIFF_OUT" | jq '[.[] | select(.path == "<REDACTED:sensitive>")] | length')
+
+LEAK_HIT=0
+for s in "myapp.env.bak.txt" "id_ed25519" "kubeconfig" "aws_creds.txt"; do
+  if echo "$DIFF_OUT" | grep -qF "$s"; then
+    LEAK_HIT=1
+    bad "INT-8 glob: literal '$s' leaked (glob did not match)"
+  fi
+done
+if [ $LEAK_HIT -eq 0 ]; then
+  if [ "$LEN" = "4" ] && [ "$MASK_COUNT" = "4" ]; then
+    ok "INT-8 glob: all 4 variant filenames masked as <REDACTED:sensitive>"
+  else
+    bad "INT-8 glob: expected 4 mask rows, got LEN=$LEN MASK=$MASK_COUNT (DIFF_OUT=$DIFF_OUT)"
+  fi
+fi
+
+# -------------------------------------------------------------------------
+# Test B15: boundary — diff entirely composed of sensitive paths (no
+# legitimate row to anchor on). Under drop semantics this would yield an
+# empty list; under mask semantics it must yield N rows all masked.
+# This is the assertion that distinguishes mask-vs-drop empirically.
+# -------------------------------------------------------------------------
+TB15="$TMPROOT/tb15"
+mkdir -p "$TB15/.claude/harness"
+mkrow "s-b15" "in_progress" "null" "null" "null" "b15" "[]" \
+  > "$TB15/.claude/harness/telemetry.jsonl"
+PAYLOAD='{"session_id":"s-b15"}'
+DIFF=$(jq -n -c '[
+  {path:".env", plus:1, minus:0},
+  {path:".ssh/id_rsa", plus:2, minus:1},
+  {path:"server.crt", plus:3, minus:0}
+]')
+COMMIT='"b15b15b15b15b15b15b15b15b15b15b15b15b15b"'
+run_hook "$TB15" "$PAYLOAD" "$DIFF" "$COMMIT" || true
+
+ROW=$(cat "$TB15/.claude/harness/telemetry.jsonl")
+DIFF_OUT=$(echo "$ROW" | jq -c .diff_summary_redacted)
+LEN=$(echo "$DIFF_OUT" | jq 'length')
+MASK_COUNT=$(echo "$DIFF_OUT" | jq '[.[] | select(.path == "<REDACTED:sensitive>")] | length')
+
+if [ "$LEN" = "0" ]; then
+  bad "B15 all-sensitive: diff_summary_redacted is empty (drop semantics survived; expected mask)"
+elif [ "$LEN" != "3" ] || [ "$MASK_COUNT" != "3" ]; then
+  bad "B15 all-sensitive: expected 3 mask rows, got LEN=$LEN MASK=$MASK_COUNT (DIFF_OUT=$DIFF_OUT)"
+else
+  ok "B15 all-sensitive: 3 rows all masked as <REDACTED:sensitive> (mask vs drop distinguishable)"
 fi
 
 # -------------------------------------------------------------------------
