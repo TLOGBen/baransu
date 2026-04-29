@@ -108,9 +108,9 @@ assert "12. bridge-replay script reference" \
 assert "13. Δ-gate threshold (Δ … 0.15 / |Δ| … 0.15)" \
   "grep -Eq '(Δ|delta).{0,12}0\\.15|0\\.15.{0,12}(Δ|delta)' \"$SKILL\""
 
-# ---- Assertion 14: corpus check (≥ N or ≥ 20) for inconclusive handling ----
-assert "14. Corpus check (≥ N or ≥ 20) for inconclusive handling" \
-  "grep -Eq 'corpus.{0,40}(≥|>=).{0,4}(N|20)|(≥|>=).{0,4}(N|20).{0,40}corpus|inconclusive' \"$SKILL\""
+# ---- Assertion 14: corpus check (≥ N or ≥ 50) for inconclusive handling ----
+assert "14. Corpus check (≥ N or ≥ 50) for inconclusive handling" \
+  "grep -Eq 'corpus.{0,40}(≥|>=).{0,4}(N|50)|(≥|>=).{0,4}(N|50).{0,40}corpus|inconclusive' \"$SKILL\""
 
 # ---- Summary ----
 TOTAL=$((PASS + FAIL))

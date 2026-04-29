@@ -3,7 +3,7 @@
 # Covers: corpus < N user-facing message, Stage 3 inconclusive message,
 #         cleanup contract on inconclusive / refused-to-run paths,
 #         bridge-replay.sh trap coverage (verify-only),
-#         documented default N = 20.
+#         documented default N = 50.
 set -u
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -117,12 +117,12 @@ if grep -E '^[[:space:]]*trap[[:space:]]+.+EXIT.*INT.*TERM|^[[:space:]]*trap[[:s
 fi
 assert "4. bridge-replay.sh trap covers EXIT INT TERM" "$trap_ok"
 
-# ---- Assertion 5: SKILL.md documents default N = 20. ----
-n20_ok=false
-if grep -Eq 'N[[:space:]]*=[[:space:]]*20|corpus.{0,40}20|default.{0,10}20|預設.{0,5}20|預設 N|Default N is 20' "$SKILL"; then
-  n20_ok=true
+# ---- Assertion 5: SKILL.md documents default N = 50. ----
+n50_ok=false
+if grep -Eq 'N[[:space:]]*=[[:space:]]*50|corpus.{0,40}50|default.{0,10}50|預設.{0,5}50|預設 N|Default N is 50' "$SKILL"; then
+  n50_ok=true
 fi
-assert "5. Default N=20 documented in SKILL.md" "$n20_ok"
+assert "5. Default N=50 documented in SKILL.md" "$n50_ok"
 
 # ---- Summary ----
 TOTAL=$((PASS + FAIL))
