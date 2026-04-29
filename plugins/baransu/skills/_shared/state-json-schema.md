@@ -1,10 +1,11 @@
 # state.json Schema (authoritative)
 
-> **Scope**: every consumer of `.claude/harness/state.json` (the auto-fix
-> investigator subagent invoked by `/triage`, plus `/grade` for observation
-> writes) MUST treat this document as the single source of truth for the
-> state record shape. Field names, types, writer attribution, daily reset
-> semantics and the daily push quota = 5 hard cap are locked here.
+> **Scope**: every consumer of `.claude/harness/state.json` (the `/triage`
+> 自動修補子流程 running inside an isolated worktree, plus `/grade` for
+> observation writes) MUST treat this document as the single source of
+> truth for the state record shape. Field names, types, writer attribution,
+> partition ownership, daily reset semantics and the daily push quota = 5
+> hard cap are locked here.
 >
 > **Format**: a single JSON object (NOT JSON Lines).
 > Path: `.claude/harness/state.json` (gitignored under `.claude/harness/`).
@@ -25,10 +26,10 @@ further forward-compat slots.
 
 | 欄位 | 型別 | 寫入者 | 寫入時機 | 範例值 |
 |------|------|--------|----------|--------|
-| `daily_push_count` | int (≥ 0) | auto-fix investigator subagent | 每次 push 成功後 +1；reset 時設為 0 | `0` |
-| `daily_push_date` | string (ISO date `YYYY-MM-DD`, 本機時區) | auto-fix investigator subagent | 初始化時 / reset 時寫入今日 | `"2026-04-29"` |
+| `daily_push_count` | int (≥ 0) | `/triage` 自動修補子流程 (in isolated worktree) | 每次 push 成功後 +1；reset 時設為 0 | `0` |
+| `daily_push_date` | string (ISO date `YYYY-MM-DD`, 本機時區) | `/triage` 自動修補子流程 (in isolated worktree) | 初始化時 / reset 時寫入今日 | `"2026-04-29"` |
 | `last_grade_run_at` | string (ISO 8601 datetime) **or** null | `/grade` skill | `/grade` 跑完後寫入；尚未跑過時為 `null` | `"2026-04-29T03:00:00Z"` |
-| `last_triage_run_at` | string (ISO 8601 datetime) **or** null | `/triage` skill | `/triage` 跑完後寫入；尚未跑過時為 `null` | `"2026-04-29T03:05:00Z"` |
+| `last_triage_run_at` | string (ISO 8601 datetime) **or** null | `/triage` 自動修補子流程 (in isolated worktree) | `/triage` 跑完後寫入；尚未跑過時為 `null` | `"2026-04-29T03:05:00Z"` |
 | `tune_review_due_since` | string (ISO 8601 datetime) **or** null | `/grade` skill | `/grade` 累積 ≥ 50 條 `terminal_state == "completed"` row 後寫入；user 跑 `/grade --tune-acknowledged` 後清回 `null`。未觸發前為 `null`。 | `"2026-04-29T03:00:00Z"` |
 | `cumulative_completed_count` | int (≥ 0) **or** null | `/grade` skill | `/grade` 跑完更新；用來判斷是否觸發 `tune_review_due` 旗標。`/grade` 從未跑過時為 `null`。 | `0` |
 
@@ -87,27 +88,77 @@ daily quota = 5 的硬閘判斷。
 
 ---
 
-## 4. Atomic write expectation
+## 4. Partition contract + read-merge-write atomic
 
-state.json 屬「單一 JSON object 全量覆寫」型檔案。寫入須為 atomic 以避免
-cron 自癒迴圈與 manual 觸發並發毀檔：
+state.json 是 **3-writer 共享單檔**（不是單 writer）。為避免 writer 互相
+覆寫對方的欄位，schema 採 **explicit partition 隔離 + read-merge-write
+atomic** 契約 —— 沒有 flock，partition 規則本身就保證寫入不衝突。
+
+### 4.1 Partition table
+
+每個欄位精確屬於一個 partition；partition 定義了哪一個 writer 可以寫
+該欄位。Writer 跨 partition 寫禁止。
+
+| Partition | Writer | Owns (3 fields) |
+|-----------|--------|-----------------|
+| `grade` | `/grade` skill (`grade-collector.py` + `--tune-acknowledged`) | `last_grade_run_at`, `cumulative_completed_count`, `tune_review_due_since` |
+| `triage` | `/triage` 自動修補子流程 (in isolated worktree, via `push-gate.sh`) | `daily_push_count`, `daily_push_date`, `last_triage_run_at` |
+
+- **grade owns**: `last_grade_run_at`, `cumulative_completed_count`,
+  `tune_review_due_since`
+- **triage owns**: `daily_push_count`, `daily_push_date`, `last_triage_run_at`
+
+> Writer attribution canonical name (grep anchor): /triage 自動修補子流程
+> (in isolated worktree). 此字面在 cron / runbook / KD#1 read-only invariant
+> 文件中作為唯一指涉名 —— investigator-agent (read-only) 不再被誤標為
+> 寫入者，與 KD#1 對齊。
+
+### 4.2 Cross-partition write prohibition
+
+**跨 partition 寫禁止**：
+
+- `/grade` 的 writer (`grade-collector.py` 與 `--tune-acknowledged` code path)
+  **僅可** mutate grade-partition 三欄；嚴禁碰 triage-partition 任一欄。
+- `/triage` 自動修補子流程 (in isolated worktree) 的 writer (`push-gate.sh`)
+  **僅可** mutate triage-partition 三欄；嚴禁碰 grade-partition 任一欄。
+- 任何違反 cross-partition 規則的程式碼路徑由 `INV-7` grep lint
+  （`plugins/baransu/scripts/check-invariants.sh`）抓出，cron / CI
+  exit non-zero 拒絕。
+
+### 4.3 Read-merge-write atomic contract
+
+每個 writer **必須** 走以下四步流程，使對方 partition 的欄位 byte-for-byte
+不動（含未列名於 §1 的下游擴充欄位 / 未來 schema 欄位）：
 
 ```
-atomic_write(state):
-    write state to .claude/harness/state.json.tmp
-    rename .claude/harness/state.json.tmp -> .claude/harness/state.json
+read-merge-write(my_partition_updates):
+    1. read full state.json into memory (含對方 partition + unknown keys)
+    2. modify ONLY own-partition keys (依 my_partition_updates)
+    3. serialize merged state to .claude/harness/state.json.tmp
+    4. atomic rename(2): .claude/harness/state.json.tmp -> .claude/harness/state.json
 ```
 
 說明：
 
-- **temp-file + rename** 即可，不需要 flock —— state.json 屬單一 writer
-  （auto-fix investigator subagent 在 isolated worktree 內 mutate；`/grade`、
-  `/triage` 觀測欄位寫入時機與 auto-fix 不重疊）。
+- **read full → modify own → temp + rename**：步驟 1 必須讀「整個」
+  state.json 而非只讀自己 partition 的欄位；步驟 2 嚴禁碰 own-partition
+  以外任何 key（含對方 partition 欄位、未知欄位、forward-compat 槽）。
 - 同一目錄下的 `rename(2)` 在 POSIX 為 atomic，可保證讀者要嘛看到舊檔、
   要嘛看到新檔，不會看到半寫狀態。
+- 沒有 `flock` —— partition 隔離本身保證 grade writer 與 triage writer
+  之間不會互相覆寫；交錯任意順序跑亦保留所有欄位（REQ-005 Scenario 4
+  100 次交錯 invocation 驗證）。
 - state.json 屬 harness-owned scratch space（`.gitignore` 覆蓋的
-  `.claude/harness/` 內），auto-fix 對其 mutation 不違反 KD#6
-  「auto-fix 永不 touch 主 repo working tree」。
+  `.claude/harness/` 內），`/triage` 自動修補子流程在 isolated worktree
+  內對其 mutation 不違反 KD#6「auto-fix 永不 touch 主 repo working tree」。
+
+### 4.4 Forward-compat under read-merge-write
+
+read-merge-write 步驟 1 讀整檔保留對方 partition 之外，亦保留 **未知欄位**
+byte-identical（B11 / B17 邊界）：未列名於 §1 的下游擴充欄位（例如未來
+TASK 加入的 `last_bridge_run_at`）由 partition guard **僅限 own-partition
+寫入面**；讀取與 merge 不限制 unknown keys。Writer 不得 reject 或 drop
+未知欄位。
 
 ---
 
