@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# check-invariants.sh — verify the 6 KD invariants and 5 auto-fix safety
-# edges declared by the self-healing harness spec (REQ-006 / INV-1..6).
+# check-invariants.sh — verify the 6 KD invariants, 5 auto-fix safety
+# edges, and 3 INV-7 partition lint sub-checks declared by the self-healing
+# harness spec (REQ-005 / REQ-006 / INV-1..7).
 #
-# Output: exactly 11 lines, one per invariant + edge:
+# Output: exactly 14 lines, one per invariant + edge + INV-7 sub-check:
 #   PASS|FAIL: INV-1 <description>
 #   PASS|FAIL: INV-2 <description>
 #   PASS|FAIL: INV-3 <description>
@@ -14,10 +15,13 @@
 #   PASS|FAIL: EDGE-3 <description>
 #   PASS|FAIL: EDGE-4 <description>
 #   PASS|FAIL: EDGE-5 <description>
+#   PASS|FAIL: INV-7a <description>
+#   PASS|FAIL: INV-7b <description>
+#   PASS|FAIL: INV-7c <description>
 # Followed by a one-line summary.
 #
 # Exit codes:
-#   0 — all 11 PASS
+#   0 — all 14 PASS
 #   1 — at least one FAIL
 #   2 — structural error (missing required tool / file)
 #
@@ -34,7 +38,7 @@
 # Manual smoke test (negative case — invariant deliberately broken):
 #   1. Edit .gitignore and remove the `.claude/harness/` line.
 #   2. Run this script — expect `FAIL: EDGE-1 ...` + exit 1.
-#   3. Restore the line; re-run — expect all 11 PASS + exit 0.
+#   3. Restore the line; re-run — expect all 14 PASS + exit 0.
 
 # Note: NOT using `set -e` — we want every check to run even if earlier
 # checks emit non-zero exits. We do use `set -u` for undefined-var safety.
@@ -319,24 +323,30 @@ check_edge2() {
 
 # ------------------------------------------------------------------------
 # EDGE-3 — /triage push denylist covers 5 paths.
+#
+# Note: the authoritative location of the 5 denylist literals moved from
+# `/triage SKILL.md` to `plugins/baransu/scripts/push-gate.sh` when the
+# enforcement layer landed (TASK-enforcement-01 / commit bcaedde). The
+# SKILL.md now defers to push-gate.sh for the literal list. We grep the
+# script directly so the check tracks the actual source of truth.
 # ------------------------------------------------------------------------
 check_edge3() {
-  local triage_skill="$BARANSU_ROOT/plugins/baransu/skills/triage/SKILL.md"
-  if [ ! -f "$triage_skill" ]; then
-    report FAIL "EDGE-3" "/triage SKILL.md missing at $triage_skill"
+  local push_gate="$BARANSU_ROOT/plugins/baransu/scripts/push-gate.sh"
+  if [ ! -f "$push_gate" ]; then
+    report FAIL "EDGE-3" "push-gate.sh missing at $push_gate"
     return
   fi
   local missing=""
   for pat in '.github/' 'plugin.json' 'marketplace.json' '.gitignore' 'scripts/'; do
-    if ! grep -qF "$pat" "$triage_skill"; then
+    if ! grep -qF "$pat" "$push_gate"; then
       missing="${missing} $pat"
     fi
   done
   if [ -n "$missing" ]; then
-    report FAIL "EDGE-3" "/triage SKILL.md denylist missing paths:$missing"
+    report FAIL "EDGE-3" "push-gate.sh denylist missing paths:$missing"
     return
   fi
-  report PASS "EDGE-3" "/triage SKILL.md push denylist covers 5 paths (.github/, plugin.json, marketplace.json, .gitignore, scripts/)"
+  report PASS "EDGE-3" "push-gate.sh push denylist covers 5 paths (.github/, plugin.json, marketplace.json, .gitignore, scripts/)"
 }
 
 # ------------------------------------------------------------------------
@@ -386,7 +396,80 @@ check_edge5() {
 }
 
 # ------------------------------------------------------------------------
-# Run all 11 checks (deterministic order — INV first, then EDGE).
+# INV-7 — state.json partition contract (REQ-005).
+#
+# Three sub-checks (a/b/c) verify the explicit partition rule:
+#   grade owns:  last_grade_run_at, cumulative_completed_count, tune_review_due_since
+#   triage owns: daily_push_count, daily_push_date, last_triage_run_at
+#
+# - INV-7a: schema doc carries both `grade owns` and `triage owns` literals.
+# - INV-7b: grade-collector.py does NOT mutate any triage-partition key.
+#           Stricter regex matches subscript assignment form (e.g.
+#           `state["daily_push_count"] = X`) but NOT dict-literal references
+#           or frozenset references that legitimately name those keys.
+# - INV-7c: push-gate.sh does NOT mutate any grade-partition key. Matches
+#           jq-style `.last_grade_run_at = "..."` and shell variable
+#           `.last_grade_run_at=...` patterns; pure read access (`.X` with
+#           no `=`) is fine.
+#
+# Cross-partition writes are forbidden (KD#1 + REQ-005). This grep lint
+# catches violations; CI / cron rejects on exit non-zero.
+# ------------------------------------------------------------------------
+check_inv7a() {
+  local schema="$BARANSU_ROOT/plugins/baransu/skills/_shared/state-json-schema.md"
+  if [ ! -f "$schema" ]; then
+    report FAIL "INV-7a" "state-json-schema.md missing at $schema"
+    return
+  fi
+  if ! grep -qF 'grade owns' "$schema"; then
+    report FAIL "INV-7a" "state-json-schema.md lacks 'grade owns' partition literal"
+    return
+  fi
+  if ! grep -qF 'triage owns' "$schema"; then
+    report FAIL "INV-7a" "state-json-schema.md lacks 'triage owns' partition literal"
+    return
+  fi
+  report PASS "INV-7a" "state-json-schema.md declares partition table ('grade owns' + 'triage owns')"
+}
+
+check_inv7b() {
+  local collector="$BARANSU_ROOT/plugins/baransu/scripts/grade-collector.py"
+  if [ ! -f "$collector" ]; then
+    report FAIL "INV-7b" "grade-collector.py missing at $collector"
+    return
+  fi
+  # Stricter regex: subscript assignment form only. Matches
+  #   state["daily_push_count"] = 0
+  # but NOT dict-literal references like `"daily_push_count": 0`
+  # nor frozenset references like `{"daily_push_count", ...}`.
+  if grep -qE '\[[[:space:]]*["'"'"'](daily_push_count|daily_push_date|last_triage_run_at)["'"'"'][[:space:]]*\][[:space:]]*=' "$collector"; then
+    local hit
+    hit=$(grep -nE '\[[[:space:]]*["'"'"'](daily_push_count|daily_push_date|last_triage_run_at)["'"'"'][[:space:]]*\][[:space:]]*=' "$collector" | head -1)
+    report FAIL "INV-7b" "grade-collector.py mutates triage-partition key (cross-partition write): $hit"
+    return
+  fi
+  report PASS "INV-7b" "grade-collector.py does not mutate triage-partition keys"
+}
+
+check_inv7c() {
+  local push_gate="$BARANSU_ROOT/plugins/baransu/scripts/push-gate.sh"
+  if [ ! -f "$push_gate" ]; then
+    report FAIL "INV-7c" "push-gate.sh missing at $push_gate"
+    return
+  fi
+  # Match jq-style mutation `.last_grade_run_at = "..."` (with optional
+  # whitespace before `=`). Pure read access `.X` (no `=`) is allowed.
+  if grep -qE '\.(last_grade_run_at|cumulative_completed_count|tune_review_due_since)[[:space:]]*=' "$push_gate"; then
+    local hit
+    hit=$(grep -nE '\.(last_grade_run_at|cumulative_completed_count|tune_review_due_since)[[:space:]]*=' "$push_gate" | head -1)
+    report FAIL "INV-7c" "push-gate.sh mutates grade-partition key (cross-partition write): $hit"
+    return
+  fi
+  report PASS "INV-7c" "push-gate.sh does not mutate grade-partition keys"
+}
+
+# ------------------------------------------------------------------------
+# Run all 14 checks (deterministic order — INV-1..6, EDGE-1..5, INV-7a..c).
 # ------------------------------------------------------------------------
 check_inv1
 check_inv2
@@ -399,9 +482,12 @@ check_edge2
 check_edge3
 check_edge4
 check_edge5
+check_inv7a
+check_inv7b
+check_inv7c
 
 echo
-echo "Summary: ${PASS_COUNT} PASS / ${FAIL_COUNT} FAIL (expected 11 PASS)"
+echo "Summary: ${PASS_COUNT} PASS / ${FAIL_COUNT} FAIL (expected 14 PASS)"
 
 if [ "$FAIL_COUNT" -gt 0 ]; then
   exit 1

@@ -41,7 +41,7 @@ Usage shape:
 
 - `<target_branch>` — required; the branch holding the v2 SKILL.md to evaluate.
 - `--skill <name>` — optional; the skill being compared (e.g. `think`, `dev`). Default: infer from the diff between main and the target branch.
-- `--corpus-size N` — optional; default `20`. Minimum number of completed prompts required to produce a non-inconclusive verdict.
+- `--corpus-size N` — optional; default `50`. Minimum number of completed prompts required to produce a non-inconclusive verdict.
 - `--allow-untrusted` — opt-in flag, see Stage 0.
 
 If the user invokes `/bridge` without arguments, ask once for the target branch and exit. Do not guess.
@@ -52,11 +52,11 @@ If the user invokes `/bridge` without arguments, ask once for the target branch 
 
 Five things must be true before any worktree is created. If any of them fail, refuse to run and print the reason in 繁體中文.
 
-1. **Telemetry corpus check** — `.claude/harness/telemetry.jsonl` exists and contains at least N entries with `terminal_state == "completed"` and a non-empty `prompt_text`. Default N is 20 (overridable via `--corpus-size`). Insufficient corpus → refuse to run, exit non-zero, do **not** call `bridge-replay.sh` (no worktree is ever created on this path). Required user-facing 繁中 message template:
+1. **Telemetry corpus check** — `.claude/harness/telemetry.jsonl` exists and contains at least N entries with `terminal_state == "completed"` and a non-empty `prompt_text`. Default N is 50 (overridable via `--corpus-size`). Insufficient corpus → refuse to run, exit non-zero, do **not** call `bridge-replay.sh` (no worktree is ever created on this path). Required user-facing 繁中 message template:
 
-   > 「目前 telemetry corpus 僅 X 條 completed row（門檻 N=20），暫時無法跑 head-to-head replay。建議：累積至 ≥ 20 條 completed.prompt_text 後再呼叫 `/bridge`。」
+   > 「目前 telemetry corpus 僅 X 條 completed row（門檻 N=50），暫時無法跑 head-to-head replay。建議：累積至 ≥ 50 條 completed.prompt_text 後再呼叫 `/bridge`。」
 
-   Substitute `X` with the actual matched count and `N` with the effective threshold (the `--corpus-size` value if provided, otherwise 20).
+   Substitute `X` with the actual matched count and `N` with the effective threshold (the `--corpus-size` value if provided, otherwise 50).
 
 2. **Target branch exists locally** — `git rev-parse --verify <target_branch>` must succeed. If it doesn't, ask the user to fetch first. Do not auto-fetch silently.
 
@@ -155,7 +155,7 @@ Decide and emit:
 
   > 「樣本不足以判定 pass / fail（mean v1 = X、mean v2 = Y、樣本數 K < 統計閾值 T）。結果：inconclusive；建議累積更多 telemetry 後重跑 `/bridge`。」
 
-  Substitute `X` / `Y` with the computed means, `K` with the post-filter sample size, and `T` with the effective threshold (default 20). Exit non-zero so callers cannot mistake inconclusive for pass.
+  Substitute `X` / `Y` with the computed means, `K` with the post-filter sample size, and `T` with the effective threshold (default 50). Exit non-zero so callers cannot mistake inconclusive for pass.
 - **fail** — `Δ ≤ -0.15` (i.e. v2 is at least 0.15 worse on average). Print top-N degraded prompts (largest negative per-prompt delta) with prompt_id + Δ, plus a「不要 promote」suggestion, exit non-zero.
 - **pass** — neither of the above (`Δ > -0.15` with sufficient corpus). Print Δ + a「可考慮 promote」suggestion, exit 0.
 
