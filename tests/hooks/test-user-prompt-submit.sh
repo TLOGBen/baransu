@@ -206,6 +206,42 @@ else
 fi
 
 # -------------------------------------------------------------------------
+# Test 3.label_integrity: secret_kv catch-all must NOT cannibalise
+# placeholders produced by earlier specific patterns. Trigger condition:
+# prompt has `(token|key|secret|password|api[_-]?key)` prefix + secret value
+# matching a specific pattern (jwt/aws_key/stripe/slack/azure_sas). The
+# specific pattern runs first → placeholder. secret_kv must skip the
+# placeholder (negative lookahead `(?!<REDACTED:)`), preserving the
+# specific label.
+# -------------------------------------------------------------------------
+declare -a LABEL_INTEGRITY_CASES=(
+  "kv_jwt|api_key=eyJabc.eyJdef.signature123|<REDACTED:jwt>|<REDACTED:secret_kv>"
+  "kv_aws|key=AKIAIOSFODNN7EXAMPLE|<REDACTED:aws_key>|<REDACTED:secret_kv>"
+  "kv_slack|secret: xoxb-1234567890-AbCdEfGhIjKlMnOp|<REDACTED:slack_token>|<REDACTED:secret_kv>"
+  "kv_stripe|password=sk_live_4eC39HqLyjWDarjtT1zdp7dc|<REDACTED:stripe_key>|<REDACTED:secret_kv>"
+)
+
+for entry in "${LABEL_INTEGRITY_CASES[@]}"; do
+  IFS='|' read -r tag prompt expected_keep expected_absent <<< "$entry"
+  TDIR="$TMPROOT/t3_label_$tag"
+  mkdir -p "$TDIR/.claude/harness"
+  PAYLOAD=$(jq -n --arg sid "s-label-$tag" --arg p "$prompt" \
+    '{session_id:$sid, prompt:$p}')
+  ( cd "$TDIR" && CLAUDE_PROJECT_DIR="$TDIR" printf '%s' "$PAYLOAD" | "$HOOK" ) || true
+  if [ ! -f "$TDIR/.claude/harness/telemetry.jsonl" ]; then
+    bad "T3.label_$tag: telemetry.jsonl not created"
+    continue
+  fi
+  REDACTED=$(jq -r .prompt_text "$TDIR/.claude/harness/telemetry.jsonl")
+  if echo "$REDACTED" | grep -qF "$expected_keep" \
+     && ! echo "$REDACTED" | grep -qF "$expected_absent"; then
+    ok "T3.label_$tag: specific label '$expected_keep' preserved (not cannibalised to secret_kv)"
+  else
+    bad "T3.label_$tag: expected '$expected_keep' kept and '$expected_absent' absent; got '$REDACTED'"
+  fi
+done
+
+# -------------------------------------------------------------------------
 # Test 4: redaction negative (benign prompt unchanged)
 # -------------------------------------------------------------------------
 T4="$TMPROOT/t4"

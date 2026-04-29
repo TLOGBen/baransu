@@ -322,13 +322,19 @@ check_edge2() {
 }
 
 # ------------------------------------------------------------------------
-# EDGE-3 — /triage push denylist covers 5 paths.
+# EDGE-3 — /triage push denylist covers all 9 paths.
 #
-# Note: the authoritative location of the 5 denylist literals moved from
+# Note: the authoritative location of the denylist literals moved from
 # `/triage SKILL.md` to `plugins/baransu/scripts/push-gate.sh` when the
 # enforcement layer landed (TASK-enforcement-01 / commit bcaedde). The
 # SKILL.md now defers to push-gate.sh for the literal list. We grep the
 # script directly so the check tracks the actual source of truth.
+#
+# All 9 denylist patterns must be present (5 baseline + 4 self-write
+# surface: harness's own hooks/, agents/, .git/, .claude/settings*.json).
+# Without lint coverage on the latter 4, a future commit could remove
+# them from push-gate.sh without `check-invariants.sh` flagging the
+# regression — the most critical self-write defenses go silently.
 # ------------------------------------------------------------------------
 check_edge3() {
   local push_gate="$BARANSU_ROOT/plugins/baransu/scripts/push-gate.sh"
@@ -337,7 +343,8 @@ check_edge3() {
     return
   fi
   local missing=""
-  for pat in '.github/' 'plugin.json' 'marketplace.json' '.gitignore' 'scripts/'; do
+  for pat in '.github/' 'plugin.json' 'marketplace.json' '.gitignore' 'scripts/' \
+             'plugins/baransu/hooks/' 'plugins/baransu/agents/' '.git/' '.claude/settings'; do
     if ! grep -qF "$pat" "$push_gate"; then
       missing="${missing} $pat"
     fi
@@ -346,7 +353,7 @@ check_edge3() {
     report FAIL "EDGE-3" "push-gate.sh denylist missing paths:$missing"
     return
   fi
-  report PASS "EDGE-3" "push-gate.sh push denylist covers 5 paths (.github/, plugin.json, marketplace.json, .gitignore, scripts/)"
+  report PASS "EDGE-3" "push-gate.sh push denylist covers 9 paths (.github/, plugin.json, marketplace.json, .gitignore, scripts/, plugins/baransu/hooks/, plugins/baransu/agents/, .git/, .claude/settings)"
 }
 
 # ------------------------------------------------------------------------

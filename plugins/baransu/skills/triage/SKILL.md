@@ -184,21 +184,33 @@ row at Stage 3.
 ### Investigator read-only invariant (KD#1 / INT-5)
 
 The `investigator-agent` is a **perspective-class, read-only** subagent.
-The contract is enforced two ways:
+The contract is enforced by **defense in depth**, NOT by a single tool
+whitelist — the whitelist alone cannot prevent every mutation, since
+`Bash` is in the list and a sufficiently coercive prompt could ask it to
+shell-out (`> file`, `git add`, `chmod`). Three layers cooperate:
 
 - **Tool whitelist**: the agent's `tools` list (in
-  `plugins/baransu/agents/investigator-agent.md`) excludes Edit / Write /
-  Bash-with-write — this is the structural enforcement.
-- **Pre/post `git status` check (INT-5a)**: the snapshot taken at
-  Stage 0 step 4 is compared against `git status --porcelain` after the
-  investigator returns. If they differ, the investigator violated the
-  read-only contract; the run aborts and the cluster's `evidence_bundle`
-  is rejected (it is **not** treated as legitimate evidence — the caller
-  surfaces an error signal and the row is not written).
+  `plugins/baransu/agents/investigator-agent.md`) is `Read, Grep, Glob,
+  Bash`. This narrows the *initial* attack surface — Edit / Write /
+  NotebookEdit / Task are excluded — but is **not** the final enforcer.
+- **Agent-body lane-keeping (instruction-level)**: the agent body
+  declares an explicit Forbidden list (no `git add`/`commit`/`push`/
+  `branch`/`worktree`, no `>` redirects, no `chmod`, no Edit/Write tool
+  calls). The agent is instructed to refuse any prompt asking for them.
+- **Pre/post `git status` postcheck (INT-5a — the structural enforcer)**:
+  the snapshot taken at Stage 0 step 4 is compared against
+  `git status --porcelain` after the investigator returns. If they
+  differ, the investigator violated the read-only contract; the run
+  aborts and the cluster's `evidence_bundle` is rejected (it is **not**
+  treated as legitimate evidence — the caller surfaces an error signal
+  and the row is not written). This postcheck is the load-bearing
+  enforcement: it would catch a mutation even if the whitelist + lane
+  instructions both failed.
 - **Negative case (INT-5b)**: if a mock prompt tries to coerce the
   investigator into a write/git op, the dispatcher intercepts (or the
-  agent self-rejects). `git status` stays clean; the rejection surfaces
-  as an error to `/triage`'s caller; no fabricated evidence is merged.
+  agent self-rejects per lane-keeping). `git status` stays clean; the
+  rejection surfaces as an error to `/triage`'s caller; no fabricated
+  evidence is merged.
 
 > Hard constraint (KD#1): `investigator-agent` performs ZERO git ops
 > (no `git add` / `commit` / `push` / `branch` / `worktree`), writes

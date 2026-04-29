@@ -84,10 +84,15 @@ REDACTION_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     # whitespace classes are intentionally line-local ([ \t]) so this catch-all
     # cannot reach across newlines and swallow already-classified tokens
     # (e.g. a PEM block on the line below a "key:" prefix).
+    # The (?!<REDACTED:) negative lookahead prevents this catch-all from
+    # re-eating a placeholder that an earlier specific pattern already produced
+    # (e.g. `key=<REDACTED:jwt>` must keep the jwt label, not collapse to
+    # secret_kv). Without the lookahead, prefixes in the keyword list
+    # (token/key/secret/password/api[_-]?key) cause label cannibalisation.
     (
         "secret_kv",
         re.compile(
-            r"(?i)\b(?:token|key|secret|password|api[_-]?key)[ \t]*[=:][ \t]*\S+"
+            r"(?i)\b(?:token|key|secret|password|api[_-]?key)[ \t]*[=:][ \t]*(?!<REDACTED:)\S+"
         ),
     ),
 ]

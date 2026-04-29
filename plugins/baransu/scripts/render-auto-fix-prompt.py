@@ -62,6 +62,17 @@ ESCAPED_END = "[END_untrusted-excerpt]"
 # control char regex: \x00-\x1F minus \t (0x09) and \n (0x0A)
 _CONTROL_CHAR_RE = re.compile(r"[\x00-\x08\x0b-\x1f]")
 
+# Fence forgery escape — match fence-shaped strings with ANY whitespace
+# between BEGIN/END and `untrusted-excerpt` (not just one ASCII space).
+# Variants seen in injection attempts: two spaces, tab, NBSP (U+00A0),
+# ideographic space (U+3000). Python's `\s` with default UNICODE flag
+# already covers all of them. Bracket variants: ASCII `[ ]` and full-width
+# `［ ］` (U+FF3B / U+FF3D) — handled by two regexes (different bracket
+# bytes mean a single regex with character classes is harder to read than
+# two narrow ones).
+_FENCE_RE = re.compile(r"\[(BEGIN|END)\s+untrusted-excerpt\]")
+_FULLWIDTH_FENCE_RE = re.compile(r"［(BEGIN|END)\s+untrusted-excerpt］")
+
 
 # ---------------------------------------------------------------------------
 # Step primitives
@@ -78,9 +89,21 @@ def _step2_escape_backticks(text: str) -> str:
 
 
 def _step3_escape_marker_literals(text: str) -> str:
-    """Step 3: escape literal fence markers (space -> underscore)."""
-    text = text.replace(REAL_BEGIN_FENCE, ESCAPED_BEGIN)
-    text = text.replace(REAL_END_FENCE, ESCAPED_END)
+    """Step 3: escape fence markers — any whitespace, ASCII + full-width brackets.
+
+    A literal `[BEGIN untrusted-excerpt]` (or `[END untrusted-excerpt]`) inside
+    a citation could trick a downstream LLM into closing the fence early. The
+    escape replaces the inner space with an underscore so the result is no
+    longer a recognised fence. We accept any whitespace (`\\s+` includes ASCII
+    space, tab, NBSP, ideographic space) between the directive and the rest,
+    and accept full-width brackets `［ ］` as an additional bypass surface.
+    """
+    text = _FENCE_RE.sub(
+        lambda m: f"[{m.group(1)}_untrusted-excerpt]", text
+    )
+    text = _FULLWIDTH_FENCE_RE.sub(
+        lambda m: f"［{m.group(1)}_untrusted-excerpt］", text
+    )
     return text
 
 

@@ -548,6 +548,46 @@ test_t11_nine_deny_enumeration() {
 }
 
 # ---------------------------------------------------------------------------
+# T12: subdir-nested denylist coverage (root-anchored glob hardening).
+# Original globs `.gitignore` and `.claude/settings*.json` only matched the
+# repo root. A nested config like `tools/.gitignore` or
+# `subdir/.claude/settings.json` would silently bypass the denylist. This
+# test pins the `**/...` variants so a future regression that drops them
+# is caught.
+# ---------------------------------------------------------------------------
+test_t12_nested_denylist_variants() {
+  local sandbox repo state tl out rc
+  local -a nested_paths=(
+    "tools/.gitignore"
+    "subdir/.claude/settings.json"
+  )
+  for path in "${nested_paths[@]}"; do
+    sandbox="$(mktemp -d)"
+    repo="$sandbox/repo"
+    state="$sandbox/state.json"
+    tl="$sandbox/telemetry.jsonl"
+    make_fixture_with_diff_path "$repo" "$path"
+    write_state_json "$state" 0 "2026-04-29"
+    write_empty_telemetry "$tl"
+
+    out="$(run_gate "$repo" "$state" "$tl" "cluster_x" 2>&1)"
+    rc=$?
+    if [[ $rc -ne 1 ]]; then
+      echo "    nested deny path '$path' rc=$rc (expected 1); out=$out"
+      rm -rf "$sandbox"
+      return 1
+    fi
+    if ! echo "$out" | grep -q "escalate=requires_human"; then
+      echo "    nested deny path '$path' missing requires_human: $out"
+      rm -rf "$sandbox"
+      return 1
+    fi
+    rm -rf "$sandbox"
+  done
+  return 0
+}
+
+# ---------------------------------------------------------------------------
 # Run
 # ---------------------------------------------------------------------------
 
@@ -569,6 +609,7 @@ run_test "T9  multi-step reset+exhaust (B5)"             test_t9_multi_step_rese
 run_test "T10a denylist beats attempt-cap"               test_t10_order_deny_beats_attempt_cap
 run_test "T10b preflight beats quota"                    test_t10_order_preflight_beats_quota
 run_test "T11 9-deny enumeration + negative"             test_t11_nine_deny_enumeration
+run_test "T12 nested denylist variants (subdir)"         test_t12_nested_denylist_variants
 
 echo ""
 echo "Summary: $PASS passed, $FAIL failed."

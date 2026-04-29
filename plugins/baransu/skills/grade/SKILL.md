@@ -23,8 +23,10 @@ The body below is English (agent-facing). All user-visible output is in
 - **Manual** — user invokes `/baransu:grade` (e.g. `「幫我跑 grade」`,
   `「對昨天的 skill 打分」`).
 - **Tune-acknowledged reset** — `/baransu:grade --tune-acknowledged`
-  resets `state.json.tune_review_due_since` to null. (Wired via
-  TASK-skills-grade-02; this SKILL.md states the intent.)
+  resets `state.json.tune_review_due_since` to null. **DEFERRED**: not
+  yet implemented in `grade-collector.py`; the flag currently returns
+  unrecognized-flag. See `## --tune-acknowledged flag (manual reset)` below
+  for the spec'd behaviour and current workaround.
 
 ---
 
@@ -168,19 +170,27 @@ Where:
 Then exit 0. The 繁中 block is the canonical user-facing artefact;
 downstream `/triage` reads `grade.jsonl` directly, not stdout.
 
-### `--tune-acknowledged` flag (manual reset)
+### `--tune-acknowledged` flag (manual reset) — **DEFERRED, not yet implemented**
+
+> **Status**: this section describes a future-spec'd command. It is **not**
+> wired in the current `grade-collector.py` — running `/baransu:grade
+> --tune-acknowledged` today returns an unrecognized-flag error. Until
+> implemented, manually edit `state.json.tune_review_due_since` to `null`
+> if a reset is genuinely needed. Tracked as follow-up; the partition
+> contract in `_shared/state-json-schema.md` §4 already accommodates this
+> writer landing under the `/grade` partition.
 
 When the user has reviewed the accumulated `grade.jsonl` and decided
-on the next rubric weight policy, they invoke:
+on the next rubric weight policy, they would invoke:
 
 ```
 /baransu:grade --tune-acknowledged
 ```
 
-This short-circuits the normal pipeline (no Stage 1 read, no Stage 2
-collector run, no Stage 3 threshold check). The skill performs a
-single mutation: it loads `state.json`, sets
-`state.json.tune_review_due_since = null`, and atomically writes the
+The intended behaviour: short-circuit the normal pipeline (no Stage 1
+read, no Stage 2 collector run, no Stage 3 threshold check). The skill
+performs a single mutation: load `state.json`, set
+`state.json.tune_review_due_since = null`, and atomically write the
 file back. It then prints a 繁中 confirmation line:
 
 ```

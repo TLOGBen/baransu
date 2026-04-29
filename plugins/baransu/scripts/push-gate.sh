@@ -90,12 +90,12 @@ while IFS= read -r p; do
   if [[ "$p" == .github/** ]] \
      || [[ "$p" == **/plugin.json ]] \
      || [[ "$p" == **/marketplace.json ]] \
-     || [[ "$p" == .gitignore ]] \
+     || [[ "$p" == .gitignore ]] || [[ "$p" == **/.gitignore ]] \
      || [[ "$p" == **/scripts/** ]] \
      || [[ "$p" == plugins/baransu/hooks/** ]] \
      || [[ "$p" == plugins/baransu/agents/** ]] \
      || [[ "$p" == .git/** ]] \
-     || [[ "$p" == .claude/settings*.json ]]; then
+     || [[ "$p" == .claude/settings*.json ]] || [[ "$p" == **/.claude/settings*.json ]]; then
     denylist_hit="$p"
     break
   fi
