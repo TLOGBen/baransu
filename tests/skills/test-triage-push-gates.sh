@@ -1,16 +1,31 @@
 #!/usr/bin/env bash
-# Structural test for /triage SKILL.md Stage 4.2 — auto-fix push five-gate
-# pipeline (TASK-skills-triage-03).
+# Structural test for /triage SKILL.md Stage 4.2 — push-gate.sh call
+# (TASK-enforcement-03).
 #
-# Asserts the 5 push gates are documented in order, denylist paths are
-# enumerated, EDGE-3/4/5 cases are described, INT-7 reproducibility hook
-# (BARANSU_HARNESS_FAKE_NOW) is present, escalate enum values are mentioned,
-# and the attempt_history mutation contract (telemetry.jsonl as authority,
-# flock + atomic write) is referenced.
+# After the enforcement-03 rewrite, Stage 4.2 stops describing the 5 gates
+# in prose and instead instructs the caller to invoke the deterministic
+# bash gate script:
+#
+#     bash plugins/baransu/scripts/push-gate.sh \
+#         <cluster_id> <worktree> <state> <telemetry>
+#
+# The asserts below verify that the new contract is in place:
+#   1. Stage 4.2 H3 heading present
+#   2. literal `push-gate.sh` reference inside the 4.2 region
+#   3. CLI signature includes <cluster_id>, <worktree>, <state>, <telemetry>
+#      argument tokens
+#   4. exit code -> escalate enum mapping table present:
+#        exit 0 -> git push allowed
+#        exit 1 -> escalate=requires_human / escalate_human / daily_quota_exceeded
+#        exit 2 -> structural error / abort
+#   5. BARANSU_HARNESS_FAKE_NOW reproducibility hook present
+#   6. EDGE-3 / EDGE-4 / EDGE-5 case descriptions ALIGN to "invoke
+#      push-gate.sh + observe exit code" (rather than prose comparison).
+#   7. Stage 4.2 must NOT carry the prose-level "依序檢查 5 gates" listing
+#      (those internals have been rebased to push-gate.sh itself).
 
 set -u
 
-# Resolve repo root (worktree root) regardless of where this is invoked.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
@@ -33,8 +48,7 @@ if [[ ! -f "${SKILL_PATH}" ]]; then
   exit 1
 fi
 
-# Extract the Stage 4.2 region: everything from `### 4.2 ` up to the next
-# `### 4.[3-9]` heading or `## ` heading (whichever first).
+# Extract Stage 4.2 region: from `### 4.2 ` to next `### 4.[3-9] ` or `## ` heading.
 region="$(awk '
   /^### 4\.2[[:space:]]/ { in_region = 1; print; next }
   in_region && /^### 4\.[3-9][[:space:]]/ { exit }
@@ -47,127 +61,103 @@ if [[ -z "${region}" ]]; then
   region=""
 fi
 
-# 1. Section heading: `### 4.2` followed by something + 'push 閘門' or 'push gates'.
-if grep -qE '^### 4\.2[[:space:]].*(push 閘門|push gates|push 五黑|five-gate push)' "${SKILL_PATH}"; then
-  pass "1. Stage 4.2 heading present with push-gate keyword"
+# 1. Stage 4.2 H3 heading present.
+if grep -qE '^### 4\.2[[:space:]]' "${SKILL_PATH}"; then
+  pass "1. Stage 4.2 H3 heading present"
 else
-  fail "1. Stage 4.2 heading missing or lacks 'push 閘門' / 'push gates' keyword"
+  fail "1. Stage 4.2 H3 heading missing"
 fi
 
-# 2. 5 gates listed in order — grep for each keyword in the 4.2 region.
-gate_keywords=('gitignore' 'redaction' 'denylist' 'attempt cap|K=3' 'daily quota|daily push.*5')
-gate_labels=('gitignore' 'redaction' 'denylist' 'attempt cap / K=3' 'daily quota / daily push 5')
-gate_idx=0
-all_gates_found=1
-for kw in "${gate_keywords[@]}"; do
-  if echo "${region}" | grep -qiE "${kw}"; then
-    pass "2.$((gate_idx + 1)) gate keyword '${gate_labels[$gate_idx]}' present"
+# 2. literal `push-gate.sh` reference.
+if echo "${region}" | grep -qF 'push-gate.sh'; then
+  pass "2. literal 'push-gate.sh' present in Stage 4.2 region"
+else
+  fail "2. 'push-gate.sh' literal missing — Stage 4.2 must invoke the gate script"
+fi
+
+# 3. CLI signature args present.
+for arg_token in '<cluster_id>' '<worktree' '<state' '<telemetry'; do
+  if echo "${region}" | grep -qF "${arg_token}"; then
+    pass "3.${arg_token} CLI arg token '${arg_token}' documented"
   else
-    fail "2.$((gate_idx + 1)) gate keyword '${gate_labels[$gate_idx]}' missing"
-    all_gates_found=0
+    fail "3.${arg_token} CLI arg token '${arg_token}' missing"
   fi
-  gate_idx=$((gate_idx + 1))
 done
 
-# 3. Denylist 5 paths: `.github/`, `plugin.json`, `marketplace.json`, `.gitignore`, `scripts/`.
-denylist_paths=('.github/' 'plugin.json' 'marketplace.json' '.gitignore' 'scripts/')
-deny_idx=0
-for p in "${denylist_paths[@]}"; do
-  if echo "${region}" | grep -qF "${p}"; then
-    pass "3.$((deny_idx + 1)) denylist path '${p}' enumerated"
-  else
-    fail "3.$((deny_idx + 1)) denylist path '${p}' missing"
-  fi
-  deny_idx=$((deny_idx + 1))
-done
-
-# 4. Gate ordering described: 1->2->3->4->5 sequence reference.
-if echo "${region}" | grep -qE '1[^0-9].*2[^0-9].*3[^0-9].*4[^0-9].*5' \
-   || echo "${region}" | grep -qE '依序|in order|sequential|按順序|按序'; then
-  pass "4. gate ordering (1->2->3->4->5 / 依序) described"
+# 4. Exit code -> escalate enum mapping table:
+#    exit 0 (happy / git push allowed),
+#    exit 1 (escalate=requires_human / escalate_human / daily_quota_exceeded),
+#    exit 2 (structural error / abort).
+if echo "${region}" | grep -qE 'exit (code )?0' \
+   && echo "${region}" | grep -qiE 'git push|push allowed|allow.*push|happy'; then
+  pass "4a. exit 0 mapping (git push / happy) documented"
 else
-  fail "4. gate ordering not described (need '依序' / 'in order' / '1...2...3...4...5')"
+  fail "4a. exit 0 mapping missing (need 'exit 0' AND ('git push' / 'push allowed' / 'happy'))"
 fi
 
-# 5. EDGE-3 case described: mock /dev touches marketplace.json -> abort.
-if echo "${region}" | grep -qE 'EDGE-3' \
-   && echo "${region}" | grep -qF 'marketplace.json'; then
-  pass "5. EDGE-3 case (marketplace.json -> abort) described"
-else
-  fail "5. EDGE-3 case missing (need 'EDGE-3' AND 'marketplace.json' near each other)"
-fi
-
-# 6. EDGE-4 case described: 3rd consecutive cluster fail -> escalate_human.
-if echo "${region}" | grep -qE 'EDGE-4' \
-   && echo "${region}" | grep -qE 'escalate_human'; then
-  pass "6. EDGE-4 case (3rd fail -> escalate_human) described"
-else
-  fail "6. EDGE-4 case missing (need 'EDGE-4' AND 'escalate_human')"
-fi
-
-# 7. EDGE-5 case described: 6th push of day -> daily_quota_exceeded.
-if echo "${region}" | grep -qE 'EDGE-5' \
+if echo "${region}" | grep -qE 'exit (code )?1' \
+   && echo "${region}" | grep -qF 'escalate=' \
+   && echo "${region}" | grep -qF 'requires_human' \
+   && echo "${region}" | grep -qF 'escalate_human' \
    && echo "${region}" | grep -qF 'daily_quota_exceeded'; then
-  pass "7. EDGE-5 case (6th push -> daily_quota_exceeded) described"
+  pass "4b. exit 1 -> escalate enum mapping (3 enums) documented"
 else
-  fail "7. EDGE-5 case missing (need 'EDGE-5' AND 'daily_quota_exceeded')"
+  fail "4b. exit 1 enum mapping missing (need 'exit 1' AND 'escalate=' AND all of 'requires_human' / 'escalate_human' / 'daily_quota_exceeded')"
 fi
 
-# 8. INT-7 reproducibility: BARANSU_HARNESS_FAKE_NOW.
+if echo "${region}" | grep -qE 'exit (code )?2' \
+   && echo "${region}" | grep -qiE 'structural|abort|stderr'; then
+  pass "4c. exit 2 mapping (structural error / abort) documented"
+else
+  fail "4c. exit 2 mapping missing (need 'exit 2' AND 'structural'/'abort'/'stderr')"
+fi
+
+# 5. BARANSU_HARNESS_FAKE_NOW reproducibility env var.
 if echo "${region}" | grep -qF 'BARANSU_HARNESS_FAKE_NOW'; then
-  pass "8. INT-7 reproducibility hook 'BARANSU_HARNESS_FAKE_NOW' present"
+  pass "5. 'BARANSU_HARNESS_FAKE_NOW' env var documented"
 else
-  fail "8. 'BARANSU_HARNESS_FAKE_NOW' env var missing (INT-7 reproducibility)"
+  fail "5. 'BARANSU_HARNESS_FAKE_NOW' env var missing"
 fi
 
-# 9. Escalate enum values: requires_human, escalate_human, daily_quota_exceeded.
-escalate_values=('requires_human' 'escalate_human' 'daily_quota_exceeded')
-esc_idx=0
-for v in "${escalate_values[@]}"; do
-  if echo "${region}" | grep -qF "${v}"; then
-    pass "9.$((esc_idx + 1)) escalate enum '${v}' mentioned"
+# 6. EDGE-3 / EDGE-4 / EDGE-5 case descriptions aligned to "invoke
+#    push-gate.sh + observe exit code".
+for edge in EDGE-3 EDGE-4 EDGE-5; do
+  if echo "${region}" | grep -qF "${edge}"; then
+    pass "6.${edge}a token '${edge}' present"
   else
-    fail "9.$((esc_idx + 1)) escalate enum '${v}' missing"
+    fail "6.${edge}a token '${edge}' missing"
   fi
-  esc_idx=$((esc_idx + 1))
 done
 
-# 10. attempt_history mutation contract: telemetry.jsonl authority + append element +
-#     flock + atomic write referenced.
-contract_ok=1
-if echo "${region}" | grep -qF 'attempt_history'; then
-  pass "10a. 'attempt_history' referenced"
+# Each EDGE-X case region (between its bullet and next blank line / next EDGE)
+# should mention exit-code-based observation (exit 0/1/2) so the description
+# ties to push-gate.sh contract rather than prose comparison.
+edge_section="$(echo "${region}" | awk '/EDGE-[345]/,/^$/')"
+if echo "${edge_section}" | grep -qE 'exit (code )?[012]'; then
+  pass "6b. EDGE-3/4/5 cases reference exit-code observation (push-gate.sh contract)"
 else
-  fail "10a. 'attempt_history' not referenced"
-  contract_ok=0
+  fail "6b. EDGE-3/4/5 cases do not reference 'exit 0/1/2' — should align to push-gate.sh observation"
 fi
 
-if echo "${region}" | grep -qF 'telemetry.jsonl'; then
-  pass "10b. 'telemetry.jsonl' referenced as authority"
-else
-  fail "10b. 'telemetry.jsonl' not referenced"
-  contract_ok=0
+# 7. Stage 4.2 region must NOT carry the prose-level "依序" + 5 gates listing
+#    (rebased to push-gate.sh internals). We treat presence of *both* the
+#    "依序" / "in order" sequencing language *and* the explicit 5 gate names
+#    inline as a regression to the old contract.
+has_in_order=0
+if echo "${region}" | grep -qE '依序|in order|按順序|sequential.*gate'; then
+  has_in_order=1
 fi
+gate_keywords_inside=0
+for kw in 'gitignore' 'redaction' 'denylist' 'attempt cap' 'daily.*quota'; do
+  if echo "${region}" | grep -qiE "${kw}"; then
+    gate_keywords_inside=$((gate_keywords_inside + 1))
+  fi
+done
 
-if echo "${region}" | grep -qiE 'append.*element|append a'; then
-  pass "10c. 'append element' contract referenced"
+if (( has_in_order == 1 )) && (( gate_keywords_inside >= 4 )); then
+  fail "7. Stage 4.2 still lists prose-level '依序 5 gates' breakdown (must rebase to push-gate.sh internals)"
 else
-  fail "10c. 'append element' contract not referenced"
-  contract_ok=0
-fi
-
-if echo "${region}" | grep -qiE 'flock'; then
-  pass "10d. 'flock' concurrency-protection referenced"
-else
-  fail "10d. 'flock' not referenced"
-  contract_ok=0
-fi
-
-if echo "${region}" | grep -qiE 'atomic.*(rename|write)|temp.*rename'; then
-  pass "10e. 'atomic temp+rename write' referenced"
-else
-  fail "10e. atomic temp+rename write not referenced"
-  contract_ok=0
+  pass "7. Stage 4.2 does not carry the prose-level '依序 5 gates' breakdown"
 fi
 
 echo ""
