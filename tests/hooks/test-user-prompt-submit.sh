@@ -122,6 +122,10 @@ declare -a REDACTION_CASES=(
   "github_token|here is ghp_abcDEF1234567890ghijKLmnoP|<REDACTED:github_token>"
   "aws_key|aws id AKIAIOSFODNN7EXAMPLE here|<REDACTED:aws_key>"
   "secret_kv|password=hunter2supersecret in config|<REDACTED:secret_kv>"
+  "jwt|Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIi.signaturepart please|<REDACTED:jwt>"
+  "slack_token|slack incoming xoxb-1234567890-AbCdEfGhIjKlMnOp here|<REDACTED:slack_token>"
+  "stripe_key|prod key sk_live_4eC39HqLyjWDarjtT1zdp7dc rotate it|<REDACTED:stripe_key>"
+  "azure_sas|blob url https://acct.blob.core.windows.net/c/b?sv=2021-08-06&ss=b&sig=Q5XR%2BabcdefghijklMnOpQrstUvWx%3D end|<REDACTED:azure_sas>"
 )
 
 for i in "${!REDACTION_CASES[@]}"; do
@@ -142,6 +146,26 @@ for i in "${!REDACTION_CASES[@]}"; do
     bad "T3.$tag: expected '$expected' in prompt_text, got '$REDACTED'"
   fi
 done
+
+# GCP service account JSON: PEM body with JSON-escaped \n literals (not real newlines).
+# The whole "private_key": "..." field must be redacted to <REDACTED:gcp_pk_json>.
+T3GCP="$TMPROOT/t3_gcp_pk_json"
+mkdir -p "$T3GCP/.claude/harness"
+GCP_PROMPT='credentials: {"type": "service_account", "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDexample\n-----END PRIVATE KEY-----\n", "client_email": "x@y.iam.gserviceaccount.com"}'
+PAYLOAD=$(jq -n --arg sid "s-red-gcp" --arg p "$GCP_PROMPT" \
+  '{session_id:$sid, prompt:$p}')
+( cd "$T3GCP" && CLAUDE_PROJECT_DIR="$T3GCP" printf '%s' "$PAYLOAD" | "$HOOK" ) || true
+if [ ! -f "$T3GCP/.claude/harness/telemetry.jsonl" ]; then
+  bad "T3.gcp_pk_json: telemetry.jsonl not created"
+else
+  REDACTED=$(jq -r .prompt_text "$T3GCP/.claude/harness/telemetry.jsonl")
+  if echo "$REDACTED" | grep -qF "<REDACTED:gcp_pk_json>" \
+     && ! echo "$REDACTED" | grep -qF "MIIEvgIBADANBgkqhkiG"; then
+    ok "T3.gcp_pk_json: JSON private_key field masked, PEM body removed"
+  else
+    bad "T3.gcp_pk_json: expected <REDACTED:gcp_pk_json> with PEM body removed; got '$REDACTED'"
+  fi
+fi
 
 # PEM private key block (multi-line; pass via --arg with literal newlines)
 T3PEM="$TMPROOT/t3_pem"
