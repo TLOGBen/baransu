@@ -17,12 +17,10 @@ function deterministic (no log-line parsing, no time / random input) and
 maps cleanly across distinct error modes.
 
 For each cluster row we compute:
-  - ``severity_dims``: arithmetic mean per dim across constituent grade rows.
-    Note: ``grade.dims`` are quality scores (high = good). Per ctx.md and
-    schema §6 the spec accepts mean as the deterministic aggregator and
-    documents the semantic ambiguity (high quality_dim = least severe).
-    We follow ctx.md literally; downstream `/triage` SKILL may invert
-    later, this script is the executor only.
+  - ``severity_dims``: ``1 - mean(grade.dims)`` per dim across constituent
+    grade rows. Polarity is reversed at this layer so that high grade
+    quality (high dims) yields low severity and low grade quality (low
+    dims) yields high severity.
   - ``severity_aggregate``: ``sum(severity_dims) / 5`` (locked equal weight).
   - ``escalate``: ``false`` (boolean). The /triage SKILL.md layer maps
     this to the 3-value enum (``false`` / ``requires_human`` /
@@ -176,7 +174,7 @@ def mean_dims(grade_rows: list[dict]) -> dict[str, float]:
             value = dims.get(name) if isinstance(dims, dict) else None
             if isinstance(value, (int, float)):
                 total += float(value)
-        out[name] = total / n
+        out[name] = 1.0 - (total / n)
     return out
 
 

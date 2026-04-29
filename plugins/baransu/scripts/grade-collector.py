@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from collections import Counter
 from datetime import datetime, timedelta, timezone
@@ -75,6 +76,15 @@ DEFAULT_STATE = ".claude/harness/state.json"
 # Risk path patterns for scope_blast (per schema: *.lock and migrations/*).
 RISK_LOCK_SUFFIX = ".lock"
 RISK_MIGRATION_PREFIX = "migrations/"
+
+# state.json partition contract (REQ-005). Cross-partition writes are
+# forbidden; write_state() asserts the input only contains grade keys.
+GRADE_PARTITION_KEYS: frozenset[str] = frozenset(
+    {"last_grade_run_at", "cumulative_completed_count", "tune_review_due_since"}
+)
+TRIAGE_PARTITION_KEYS: frozenset[str] = frozenset(
+    {"daily_push_count", "daily_push_date", "last_triage_run_at"}
+)
 
 
 # ---------------------------------------------------------------------------
@@ -347,12 +357,64 @@ def load_state(path: Path) -> dict:
         return {}
 
 
-def write_state(path: Path, state: dict) -> None:
+def _bootstrap_defaults(now: datetime) -> dict:
+    """Default values for all 6 partition keys on first run.
+
+    Both partitions are bootstrapped — even though grade-collector only writes
+    its own keys, the file must contain triage defaults so push-gate's first
+    invocation does not crash on missing keys (per ctx.md bootstrap_first_run).
+    """
+    return {
+        # grade partition
+        "last_grade_run_at": None,
+        "cumulative_completed_count": 0,
+        "tune_review_due_since": None,
+        # triage partition
+        "daily_push_count": 0,
+        "daily_push_date": now.strftime("%Y-%m-%d"),
+        "last_triage_run_at": None,
+    }
+
+
+def write_state(path: Path, updates: dict) -> None:
+    """Atomic read-merge-write of state.json (REQ-005 partition contract).
+
+    Contract:
+      1. Reject any cross-partition writes — `updates` may contain ONLY keys
+         from GRADE_PARTITION_KEYS. Triage keys (or anything else) trigger
+         AssertionError, surfacing the bug immediately.
+      2. Read the current state from disk (treat missing/empty as bootstrap).
+      3. Merge: own-partition keys overwrite; all other keys (triage partition
+         and unknown future keys) preserved byte-identical.
+      4. Write to a sibling temp file and os.replace() onto the target — one
+         rename(2) call, atomic on POSIX.
+
+    No flock — partition isolation is the concurrency guarantee. Anyone
+    violating the partition rule trips the assert here and (CI-side) the
+    INV-7 grep lint.
+    """
+    extraneous = set(updates) - GRADE_PARTITION_KEYS
+    assert not extraneous, (
+        "write_state(): cross-partition write rejected; "
+        f"non-grade keys not allowed: {sorted(extraneous)}"
+    )
+
     path.parent.mkdir(parents=True, exist_ok=True)
+
+    now = datetime.now(timezone.utc)
+    existing = load_state(path)
+
+    merged = dict(_bootstrap_defaults(now))
+    # Existing values (incl. triage partition + unknown future keys) override
+    # bootstrap defaults — we never silently re-default a populated key.
+    merged.update(existing)
+    # Own-partition updates win last.
+    merged.update(updates)
+
     tmp = path.with_suffix(path.suffix + ".tmp")
     with tmp.open("w", encoding="utf-8") as f:
-        json.dump(state, f, ensure_ascii=False, sort_keys=True)
-    tmp.replace(path)
+        json.dump(merged, f, ensure_ascii=False, sort_keys=True)
+    os.replace(tmp, path)
 
 
 # ---------------------------------------------------------------------------
@@ -391,15 +453,21 @@ def main(argv: list[str] | None = None) -> int:
     write_grade_jsonl(output_path, verdicts)
 
     cumulative_completed_count = len(completed_rows)
-    state = load_state(state_path)
-    state["cumulative_completed_count"] = cumulative_completed_count
-    state["last_grade_run_at"] = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+    # Read existing state for tune_review_due_since CAS check; do NOT pass
+    # the full state to write_state — write_state only accepts grade-partition
+    # updates and merges them onto the on-disk file itself.
+    existing = load_state(state_path)
+
+    updates: dict[str, Any] = {
+        "cumulative_completed_count": cumulative_completed_count,
+        "last_grade_run_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
 
     if cumulative_completed_count >= TUNE_TRIGGER_THRESHOLD:
-        # Only set tune_review_due_since if not already set (per state schema:
-        # user runs --tune-acknowledged to clear; we don't keep bumping it).
-        if not state.get("tune_review_due_since"):
-            state["tune_review_due_since"] = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+        # CAS: only set tune_review_due_since if originally null. User runs
+        # --tune-acknowledged to clear; we don't keep bumping it.
+        if not existing.get("tune_review_due_since"):
+            updates["tune_review_due_since"] = now.strftime("%Y-%m-%dT%H:%M:%SZ")
         # Structured signal: keep both forms for grep-friendliness — JSON for
         # machines, plain for human eyeballs.
         signal = {
@@ -409,10 +477,11 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(signal, sort_keys=True))
         print(f"tune_review_due: true (cumulative_completed_count={cumulative_completed_count}, threshold>=50)")
     else:
-        # Ensure key is present-and-null for downstream consumers.
-        state.setdefault("tune_review_due_since", None)
+        # Ensure key is present-and-null on disk if not already populated.
+        if "tune_review_due_since" not in existing:
+            updates["tune_review_due_since"] = None
 
-    write_state(state_path, state)
+    write_state(state_path, updates)
     return 0
 
 
