@@ -15,10 +15,13 @@
 
 ---
 
-## 1. Top-level fields (4, locked for this task)
+## 1. Top-level fields (authoritative)
 
-The following 4 fields are required by TASK-shared-04 acceptance criteria.
-The schema is **open to additive extension** — see §5 for forward-compat.
+The following 6 fields are authoritative. Fields 1–4 are required by
+TASK-shared-04 acceptance criteria; fields 5–6 are owned by
+TASK-skills-grade-02 and live alongside the original four (no separate
+section). The schema is **open to additive extension** — see §5 for
+further forward-compat slots.
 
 | 欄位 | 型別 | 寫入者 | 寫入時機 | 範例值 |
 |------|------|--------|----------|--------|
@@ -26,9 +29,16 @@ The schema is **open to additive extension** — see §5 for forward-compat.
 | `daily_push_date` | string (ISO date `YYYY-MM-DD`, 本機時區) | auto-fix investigator subagent | 初始化時 / reset 時寫入今日 | `"2026-04-29"` |
 | `last_grade_run_at` | string (ISO 8601 datetime) **or** null | `/grade` skill | `/grade` 跑完後寫入；尚未跑過時為 `null` | `"2026-04-29T03:00:00Z"` |
 | `last_triage_run_at` | string (ISO 8601 datetime) **or** null | `/triage` skill | `/triage` 跑完後寫入；尚未跑過時為 `null` | `"2026-04-29T03:05:00Z"` |
+| `tune_review_due_since` | string (ISO 8601 datetime) **or** null | `/grade` skill | `/grade` 累積 ≥ 50 條 `terminal_state == "completed"` row 後寫入；user 跑 `/grade --tune-acknowledged` 後清回 `null`。未觸發前為 `null`。 | `"2026-04-29T03:00:00Z"` |
+| `cumulative_completed_count` | int (≥ 0) **or** null | `/grade` skill | `/grade` 跑完更新；用來判斷是否觸發 `tune_review_due` 旗標。`/grade` 從未跑過時為 `null`。 | `0` |
 
 > 「最後一次跑時間」兩欄為觀測用（design.md 流程 1 SeqDiag 的觀察點），
 > 不影響 daily quota 判斷邏輯。
+>
+> `tune_review_due_since` 與 `cumulative_completed_count` 由 TASK-skills-grade-02
+> 升級為 authoritative：CAS 寫入規則為「僅當原值為 `null` 才寫入新時間」，
+> 避免覆寫先前 due since（見 task ctx Constraints）。`--tune-acknowledged`
+> 是唯一允許將 `tune_review_due_since` 清回 `null` 的路徑（KD#4 禁止 auto-reset）。
 
 ---
 
@@ -103,39 +113,47 @@ atomic_write(state):
 
 ## 5. Forward-compat（下游欄位擴充預告）
 
-design.md 在資料模型節列出的 state.json 權威 schema 共 6 欄位，本文件鎖
-前 4 欄位（task-shared-04 範圍）。後續任務將以**附加欄位**方式擴充：
+design.md 在資料模型節列出的 state.json 權威 schema 共 6 欄位，§1 已將
+全部 6 欄位列為 authoritative：
 
-- **TASK-skills-grade-02** 將加入：
-  - `tune_review_due_since`：ISO 8601 datetime / null。`/grade` 累積 ≥ 50 條
-    `terminal_state == "completed"` row 後寫入；user 跑
-    `/grade --tune-acknowledged` 後清回 null。
-  - `cumulative_completed_count`：int。`/grade` 跑完更新；用來判斷是否觸發
-    `tune_review_due` 旗標。
+- **TASK-shared-04** 鎖定前 4 欄位（`daily_push_count`、`daily_push_date`、
+  `last_grade_run_at`、`last_triage_run_at`）。
+- **TASK-skills-grade-02** 將 `tune_review_due_since`、
+  `cumulative_completed_count` 從原本的 forward-compat 註記升級為 §1 中的
+  authoritative 欄位（owner 為 `/grade` skill）。
 
-> 本 task 範圍**不** redefine 或設定該兩欄位的初值。schema 採 open-to-extension
-> 設計：未列名於 §1 的欄位視為下游擴充槽，不違反本 schema。
+> schema 採 open-to-extension 設計：未列名於 §1 的欄位仍視為下游擴充槽，
+> 不違反本 schema；本節保留供更下游任務（若有）登記其欄位 owner。
 
 ---
 
 ## 6. Example state.json
 
-初始檔內容（auto-fix 從未跑過時的 baseline）：
+初始檔內容（auto-fix 從未跑過時的 baseline；`tune_review_due_since` 與
+`cumulative_completed_count` 在尚未觸發前為 `null`）：
 
 ```json
-{"daily_push_count": 0, "daily_push_date": "2026-04-29", "last_grade_run_at": null, "last_triage_run_at": null}
+{"daily_push_count": 0, "daily_push_date": "2026-04-29", "last_grade_run_at": null, "last_triage_run_at": null, "tune_review_due_since": null, "cumulative_completed_count": null}
 ```
 
-`/grade` 跑過一次後（`last_grade_run_at` 已寫入）：
+`/grade` 跑過一次但累積尚未跨閾值（`cumulative_completed_count` 已寫入，
+`tune_review_due_since` 仍為 `null`）：
 
 ```json
-{"daily_push_count": 0, "daily_push_date": "2026-04-29", "last_grade_run_at": "2026-04-29T03:00:00Z", "last_triage_run_at": null}
+{"daily_push_count": 0, "daily_push_date": "2026-04-29", "last_grade_run_at": "2026-04-29T03:00:00Z", "last_triage_run_at": null, "tune_review_due_since": null, "cumulative_completed_count": 12}
+```
+
+`/grade` 累積跨 ≥ 50 條 completed row 後（`tune_review_due_since` 已寫入
+ISO 時間，等待 user 手動 `/grade --tune-acknowledged`）：
+
+```json
+{"daily_push_count": 0, "daily_push_date": "2026-04-29", "last_grade_run_at": "2026-04-29T03:00:00Z", "last_triage_run_at": null, "tune_review_due_since": "2026-04-29T03:00:00Z", "cumulative_completed_count": 50}
 ```
 
 當日已用滿 daily quota = 5（後續 push 全 abort）：
 
 ```json
-{"daily_push_count": 5, "daily_push_date": "2026-04-29", "last_grade_run_at": "2026-04-29T03:00:00Z", "last_triage_run_at": "2026-04-29T03:05:00Z"}
+{"daily_push_count": 5, "daily_push_date": "2026-04-29", "last_grade_run_at": "2026-04-29T03:00:00Z", "last_triage_run_at": "2026-04-29T03:05:00Z", "tune_review_due_since": null, "cumulative_completed_count": 12}
 ```
 
 ---
