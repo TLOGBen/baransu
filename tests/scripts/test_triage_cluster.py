@@ -368,5 +368,83 @@ class TestSchemaCompliance(TriageClusterTestBase):
                 )
 
 
+# ---------------------------------------------------------------------------
+# Test 6: Polarity reversal — high quality (high dims) -> low severity, and
+#         low quality (low dims) -> high severity. Per REQ-001.
+# ---------------------------------------------------------------------------
+
+class TestPolarityReversal(TriageClusterTestBase):
+    def test_worst_cluster_dims_zero_yields_high_severity(self) -> None:
+        """grade dims all 0.0 (worst quality) -> severity_aggregate >= 0.8."""
+        zero_dims = {
+            "outcome_quality": 0.0,
+            "iteration_velocity": 0.0,
+            "scope_blast": 0.0,
+            "human_override_rate": 0.0,
+            "failure_recurrence": 0.0,
+        }
+        grade_rows = [
+            make_grade_row(sid, quality="poor", aggregate=0.0, dims=zero_dims)
+            for sid in ("s-w1", "s-w2", "s-w3")
+        ]
+        telemetry_rows = [
+            make_telemetry_row(sid, skill_name="dev", final_state="tests_failed")
+            for sid in ("s-w1", "s-w2", "s-w3")
+        ]
+        write_jsonl(self.grade, grade_rows)
+        write_jsonl(self.telemetry, telemetry_rows)
+
+        result = run_triage(self.grade, self.telemetry, self.output)
+        self.assertEqual(result.returncode, 0, msg=f"stderr={result.stderr}")
+
+        triage_rows = self.read_triage_rows()
+        self.assertGreaterEqual(len(triage_rows), 1, "expected >=1 cluster row")
+        for r in triage_rows:
+            self.assertGreaterEqual(
+                r["severity_aggregate"],
+                0.8,
+                msg=(
+                    "worst-quality cluster (dims all 0.0) must yield "
+                    f"severity_aggregate >= 0.8; got row={r}"
+                ),
+            )
+
+    def test_best_cluster_dims_high_yields_low_severity(self) -> None:
+        """grade dims all 0.9 (best quality among poor) -> severity_aggregate <= 0.2."""
+        high_dims = {
+            "outcome_quality": 0.9,
+            "iteration_velocity": 0.9,
+            "scope_blast": 0.9,
+            "human_override_rate": 0.9,
+            "failure_recurrence": 0.9,
+        }
+        # Quality stays "poor" so the row enters triage; only dims differ.
+        grade_rows = [
+            make_grade_row(sid, quality="poor", aggregate=0.9, dims=high_dims)
+            for sid in ("s-b1", "s-b2")
+        ]
+        telemetry_rows = [
+            make_telemetry_row(sid, skill_name="dev", final_state="tests_failed")
+            for sid in ("s-b1", "s-b2")
+        ]
+        write_jsonl(self.grade, grade_rows)
+        write_jsonl(self.telemetry, telemetry_rows)
+
+        result = run_triage(self.grade, self.telemetry, self.output)
+        self.assertEqual(result.returncode, 0, msg=f"stderr={result.stderr}")
+
+        triage_rows = self.read_triage_rows()
+        self.assertGreaterEqual(len(triage_rows), 1, "expected >=1 cluster row")
+        for r in triage_rows:
+            self.assertLessEqual(
+                r["severity_aggregate"],
+                0.2,
+                msg=(
+                    "best-quality cluster (dims all 0.9) must yield "
+                    f"severity_aggregate <= 0.2; got row={r}"
+                ),
+            )
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
