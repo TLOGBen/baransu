@@ -13,13 +13,17 @@ No user confirmation required. Five steps run automatically.
 
 ## Step 1 — Detect
 
-Check whether `.claude/tmp/`, `.claude/analyze/`, `.claude/execute/`, `.claude/think/`, `.claude/dev/` contain any items.
+Check both whether the workspace dirs hold archivable items AND whether the git working tree has pending changes. Stop only when **both** are empty — otherwise there is still work to ship even when one side is empty.
 
 ```bash
-find .claude/tmp .claude/analyze .claude/execute .claude/think .claude/dev -maxdepth 1 -mindepth 1 2>/dev/null | head -1
+ARCHIVE_ITEMS=$(find .claude/tmp .claude/analyze .claude/execute .claude/think .claude/dev -maxdepth 1 -mindepth 1 2>/dev/null | head -1)
+GIT_DIRTY=$(git status --porcelain 2>/dev/null | head -1)
 ```
 
-If no items found → output 「沒有可歸檔的工作檔案，結束。」 and stop. Do not proceed.
+Decision:
+
+- If `ARCHIVE_ITEMS` is empty AND `GIT_DIRTY` is empty → output 「沒有可歸檔的工作檔案，git 也乾淨，結束。」 and stop. Do not proceed.
+- Otherwise → continue with Step 2–4 (Step 2 / Step 3 each have their own empty-input fallback; Step 4 pushes unconditionally so unpushed commits from earlier sessions still land).
 
 ---
 
