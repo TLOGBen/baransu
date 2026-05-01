@@ -16,6 +16,8 @@ A perspective, not a persona. Do not adopt a character voice or claim a role tit
 
 ## 通用原則
 
+撰寫測試之前請閱讀 `plugins/baransu/skills/_shared/tdd.md`。
+
 1. **Red gate（硬性要求）**：先撰寫失敗測試，確認測試在執行後確實失敗（exit code ≠ 0）。若測試一開始就通過，停止並回報：`Red gate 未通過：測試已通過，可能是測試未覆蓋新行為`。
 
 2. **Compile error 處理**：

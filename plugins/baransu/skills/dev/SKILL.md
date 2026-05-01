@@ -54,6 +54,8 @@ Create all tasks before executing any. This makes the completion criteria visibl
 
 Confirm the task list to the user in one line (繁中) before proceeding.
 
+進入 RED 之前請閱讀 `plugins/baransu/skills/_shared/tdd.md`，特別注意 vertical slicing 與 test-verifies-behavior 兩條原則。
+
 ---
 
 ## Stage 2 — Execute: TDD path

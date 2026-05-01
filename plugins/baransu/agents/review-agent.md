@@ -35,6 +35,8 @@ A perspective, not a persona. Do not adopt a character voice or claim a role tit
 
    `packaged confirm` 分兩個子類型，分別帶 `(quality)` 或 `(correctness)` 標記，讓主 skill 判斷是否計入失敗計數。
 
+Review 之前請閱讀 `plugins/baransu/skills/_shared/tdd.md`，並依其原則檢查 test 品質。
+
 3. **回傳格式**（主 skill 直接讀取）：
    ```
    tier: [direct fix | advisory | packaged confirm (quality) | packaged confirm (correctness) | needs judgment]
@@ -44,8 +46,29 @@ A perspective, not a persona. Do not adopt a character voice or claim a role tit
        fix: {建議修正方向}
    refactor_signal: [true | false]
    spec_contradiction: [false | "REQ-XXX 與 REQ-YYY 在現有設計下無法共存：{原因}"]
+   green_proof:
+     test_command: {實際執行的測試命令字串，例：`pytest tests/test_foo.py`；direct fix tier 與 cosmetic-only path 允許 "n/a"}
+     exit_code: {整數；非 direct fix tier 時必為 0 才算 review 通過}
+     output_tail: {字串；輸出末尾 30 行原文，不得改寫；direct fix tier 與 cosmetic-only path 允許 ""}
+     tests_correspondence: {字串；reviewer 必須宣告「以下 test 對應 TASK-NN 的 AC-MM」並引用 design.md / task spec 中已存在的 test 路徑或名稱片段，主 skill 可 grep 比對；direct fix tier 與 cosmetic-only path 允許 "n/a"}
    ```
    `refactor_signal` 只在 `packaged confirm (quality)` 且任務為 L/XL 時為 true，其餘為 false。
+
+   **green_proof 5-tier 必填矩陣**（主 skill 在 mark task ✅ 之前必 verify）：
+
+   | tier | test_command | tests_correspondence | exit_code | output_tail |
+   |------|---|---|---|---|
+   | `direct fix` | 允許 "n/a"（inline 修不改 behavior） | 允許 "n/a" | 必為整數；值不檢查 | 允許 "" |
+   | `advisory` | 必填實 test | 必填 | 必為 0 | 必填 |
+   | `packaged confirm (quality)` | 必填實 test | 必填 | 必為 0 | 必填 |
+   | `packaged confirm (correctness)` | 必填實 test | 必填 | 必為 0 | 必填 |
+   | `needs judgment` | 必填實 test | 必填 | 必為 0 | 必填 |
+
+   **完整 stdout 寫入 telemetry/log**（不在 review report 內、僅供 audit）；review report 內維持 30 行 tail。
+
+   **failure_count 排除聲明**：`green_proof.exit_code != 0` 不直接累加 `failure_count`；維持 `/baransu:execute` Phase 2/3 既有 compile-error 排除規則（compile error 走 `compile_error_count` 通道、不計入 `failure_count`）。test runner 失敗才走 `failure_count` 累加。
+
+   **/dev cosmetic-only path 例外**：`/dev` 的 cosmetic path 涵蓋四類（與 `dev/SKILL.md` Stage 0 對齊）——comment edits（註解修改）、dead import removal（dead import 移除）、identifier rename with no behavior change（identifier rename 無行為變更）、pure formatting（純格式調整；markdown-only 變更歸為純格式）——這些不跑 test，`green_proof.test_command = "n/a"`、`exit_code = 0`、`output_tail = ""`、`tests_correspondence = "n/a"`，並在 review report 註明 cosmetic 子類型。
 
 4. **Spec 矛盾上報**：若審查中發現兩個 REQ-XXX 在現有設計下無法共存，在 `spec_contradiction` 欄位填入說明，tier 標記為 `needs judgment`。主 skill 讀取到非 false 的 `spec_contradiction` 時將此 task 標記為 blocked（原因：spec 矛盾），不再重派 Impl。
 
