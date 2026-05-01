@@ -79,6 +79,19 @@ Schema for `triage.jsonl` is locked in
 
 ## Stage 0 — Environment check
 
+0. Cron silent-failure health check (inline). **First action of `/triage`.**
+   ```sh
+   python3 plugins/baransu/scripts/health_check.py \
+     --state .claude/harness/state.json \
+     --threshold-hours 36
+   ```
+   - Inspects `last_grade_run_at`; emits a 4–6 line 繁中 warning to stdout
+     when missing / null / older than 36h. Healthy state is silent.
+   - **Always exits 0** — observational only; never blocks triage.
+   - `/triage` carries this same probe (despite typically firing after
+     `/grade` on cron) because `/triage` SKILL.md own description allows
+     manual trigger as a legitimate path; the health check must catch
+     the manual-only path too.
 1. Confirm `.claude/harness/grade.jsonl` exists and is non-empty.
    - If missing or empty → print 繁中
      `「grade.jsonl 不存在或為空，沒有可分流的 verdict；結束。」`

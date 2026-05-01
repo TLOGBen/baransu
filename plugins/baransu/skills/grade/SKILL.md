@@ -1,6 +1,6 @@
 ---
 name: grade
-description: Score baransu skill telemetry along a deterministic 5-dimension equal-weight rubric. Trigger immediately when the user asks to 「打分」 / 「評分這幾天的 skill 表現」 / 「評估 skill 表現」 / 「跑 grade」 / "grade telemetry" / "score skills" / "run rubric". Also fires on the daily cron schedule (00:00) inside the self-healing harness. Reads `.claude/harness/telemetry.jsonl` (only `terminal_state == "completed"` rows), invokes `plugins/baransu/scripts/grade-collector.py` to compute 5 baransu-native dimensions (outcome_quality, iteration_velocity, scope_blast, human_override_rate, failure_recurrence), writes per-row verdicts to `.claude/harness/grade.jsonl`, and prints a `tune_review_due: true` signal once cumulative completed rows ≥ 50. Stage 0 also invokes the harness-reaper to flip stale (>24h) `in_progress` rows to `interrupted`. User-facing output is in Traditional Chinese (繁體中文).
+description: Score baransu skill telemetry along a deterministic 5-dimension equal-weight rubric. Trigger immediately when the user asks to 「打分」 / 「評分這幾天的 skill 表現」 / 「評估 skill 表現」 / 「跑 grade」 / "grade telemetry" / "score skills" / "run rubric". Also fires on the daily cron schedule (00:00) inside the self-healing harness. Reads `.claude/harness/telemetry.jsonl` (only `terminal_state == "completed"` rows), invokes `plugins/baransu/scripts/grade-collector.py` to compute 5 baransu-native dimensions (outcome_quality, iteration_velocity, scope_blast, human_override_rate, failure_recurrence), writes per-row verdicts to `.claude/harness/grade.jsonl`, and prints a `tune_review_due: true` signal once cumulative completed rows ≥ 50. Stage 0 first runs an inline cron silent-failure health check via `plugins/baransu/scripts/health_check.py` (warns when `last_grade_run_at` is missing / null / older than 36h; always exits 0), then invokes the harness-reaper to flip stale (>24h) `in_progress` rows to `interrupted`. User-facing output is in Traditional Chinese (繁體中文).
 ---
 
 # grade — score completed telemetry rows on a deterministic rubric
@@ -45,8 +45,21 @@ Schema for `grade.jsonl` is locked in
 
 ---
 
-## Stage 0 — Environment check + harness-reaper
+## Stage 0 — Pre-flight: health probe + telemetry check + harness-reaper
 
+0. Cron silent-failure health check (inline). **First action of `/grade`.**
+   ```sh
+   python3 plugins/baransu/scripts/health_check.py \
+     --state .claude/harness/state.json \
+     --threshold-hours 36
+   ```
+   - Inspects `last_grade_run_at`; emits a 4–6 line 繁中 warning to stdout
+     when missing / null / older than 36h. Healthy state is silent.
+   - **Always exits 0** — the warning is observational; it never blocks
+     the grading pipeline.
+   - The warning points to `plugins/baransu/skills/grade/CRON.md` rather
+     than printing CronCreate / crontab literals (CRON.md is the single
+     SoT for registration commands).
 1. Confirm `.claude/harness/telemetry.jsonl` exists and is non-empty.
    - If missing: print 繁中 `「telemetry.jsonl 不存在或為空，沒有可打分的資料；結束。」` and exit 0 (no error — the harness simply has nothing to grade yet).
 2. Invoke the staleness sweep:
