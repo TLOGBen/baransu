@@ -1,0 +1,15 @@
+{
+  "description": "Wiki sync on session end — computes slug diff and updates .claude/wiki/ for projects that have it",
+  "hooks": {
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/wiki-sync.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}
