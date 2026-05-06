@@ -1,0 +1,18 @@
+# Stub generated from $source_md.
+# Review before copying to ~/.codex/agents/$name.toml.
+# See codex-skill-transfer references/plugin-mapping.md for the mapping rules.
+
+name = "$name"
+description = "$description"
+
+developer_instructions = """
+$instructions
+"""
+
+# Choose what to fill in below; all are optional and inherit from parent if absent.
+#
+# model = "gpt-5.4"
+# model_reasoning_effort = "high"      # low | medium | high | max
+# sandbox_mode = "workspace-write"     # read-only | workspace-write | danger-full-access
+# mcp_servers = []                     # list of MCP server ids the agent may invoke
+# nickname_candidates = []             # cosmetic names for spawned instances

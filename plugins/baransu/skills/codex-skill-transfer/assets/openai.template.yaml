@@ -1,0 +1,5 @@
+interface:
+  display_name: "$display_name"
+  short_description: "$short_description"
+policy:
+  allow_implicit_invocation: false

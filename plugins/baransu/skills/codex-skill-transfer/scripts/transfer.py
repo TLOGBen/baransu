@@ -1,24 +1,51 @@
 #!/usr/bin/env python3
-"""Batch-port Claude Code skills to Codex format.
+"""Port Claude Code material to Codex format.
 
 Usage:
-    python3 transfer.py <source-skills-dir> <output-skills-dir>
+    python3 transfer.py <source-dir> <output-dir>
 
-Reads every immediate subdirectory of <source-skills-dir> that contains a
-SKILL.md, applies the transformation rules documented in references/mapping.md,
-and writes the Codex version under <output-skills-dir>/<skill-name>/.
+Direction is one-way: Claude is the source of truth (where the user's main
+work lives), Codex is the secondary target. Three input shapes are auto-
+detected:
 
-Skills containing `context: fork` are skipped with a clear warning, since the
-correct strategy is human judgment — see mapping.md §5.
+  - **Plugin** (source has `.claude-plugin/plugin.json`):
+        Translates the plugin manifest via assets/codex-plugin.template.json,
+        batch-transfers all skills under `<source>/skills/`, and emits TOML
+        stubs (assets/agent-stub.template.toml) for each `<source>/agents/*.md`.
+        Output tree:
+          <output>/.codex-plugin/plugin.json
+          <output>/skills/<name>/...
+          <output>/.codex-agents-templates/*.toml
+
+  - **Single skill** (source has SKILL.md directly):
+        Transfers one skill into <output>/<skill-name>/.
+
+  - **Skills batch** (source's children each have SKILL.md):
+        Transfers every child into <output>/<skill-name>/.
+
+Skills containing `context: fork` are skipped with a clear warning. Codex has
+a real equivalent (native Subagents at `~/.codex/agents/{name}.toml`) but the
+mapping crosses the skill-package boundary into the user's Codex config; see
+references/skill-mapping.md §5 for the three viable paths.
+
+Marketplace catalog conversion is NOT automated; see
+references/marketplace-mapping.md for the inline rules and
+assets/codex-marketplace.template.json for a starting copy.
 
 The script is intentionally conservative: when a rewrite is ambiguous, it
-emits a `# TODO(codex-transfer): ...` marker in the body rather than guessing.
+emits a `<!-- TODO(codex-transfer): ... -->` marker rather than guessing.
+
+Output shapes (plugin.json, agents/openai.yaml, agent stub TOML) live in
+assets/*.template.* — editing those changes the output without touching the
+script.
 """
 
 from __future__ import annotations
 
+import json
 import re
 import shutil
+import string
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -28,6 +55,37 @@ try:
 except ImportError:
     sys.stderr.write("Missing dependency: pyyaml. Install with `pip install pyyaml`.\n")
     sys.exit(2)
+
+
+# ---------------------------------------------------------------------------
+# Asset template rendering
+# ---------------------------------------------------------------------------
+# Output shapes live in assets/*.template.*. Each placeholder is `$name`-style
+# (Python string.Template). For JSON outputs, values are passed through
+# json.dumps()[1:-1] first to escape quotes/control chars; for YAML and TOML
+# we accept simple values only and rely on the caller to keep them safe.
+
+ASSETS_DIR = Path(__file__).resolve().parent.parent / "assets"
+
+
+def _json_escape(value: str) -> str:
+    """Return a JSON-safe inline string body (without surrounding quotes)."""
+    return json.dumps(str(value), ensure_ascii=False)[1:-1]
+
+
+def render_template(template_name: str, context: dict, mode: str = "json") -> str:
+    """Render assets/<template_name> by substituting context placeholders.
+
+    `mode` controls escaping: 'json' for JSON outputs (escape quotes/control
+    chars), 'plain' for YAML/TOML where the caller passed already-safe values.
+    """
+    path = ASSETS_DIR / template_name
+    text = path.read_text(encoding="utf-8")
+    if mode == "json":
+        safe = {k: _json_escape(v) for k, v in context.items()}
+    else:
+        safe = {k: str(v) for k, v in context.items()}
+    return string.Template(text).substitute(safe)
 
 
 CLAUDE_ONLY_DROP = {
@@ -151,11 +209,8 @@ def translate_frontmatter(fm: dict, report: TransferReport) -> tuple[dict, dict 
 
     if fm.get("disable-model-invocation") is True:
         openai_yaml = {
-            "interface": {
-                "display_name": str(fm["name"]).replace("-", " ").title(),
-                "short_description": str(fm["description"]).split(".")[0][:120],
-            },
-            "policy": {"allow_implicit_invocation": False},
+            "display_name": str(fm["name"]).replace("-", " ").title(),
+            "short_description": str(fm["description"]).split(".")[0][:120],
         }
         report.mapped.append("`disable-model-invocation: true` → `agents/openai.yaml` policy")
 
@@ -245,17 +300,29 @@ def rewrite_body(
     return body
 
 
-def write_skill(target: Path, frontmatter: dict, body: str, openai_yaml: dict | None) -> None:
+def write_skill(
+    target: Path,
+    frontmatter: dict,
+    body: str,
+    openai_meta: dict | None,
+) -> None:
+    """Write SKILL.md and (when policy is locked down) agents/openai.yaml.
+
+    The openai.yaml output uses assets/openai.template.yaml so its shape
+    stays in sync with the references/skill-mapping.md §2 example.
+    `openai_meta` carries display_name and short_description; passing None
+    means no openai.yaml is emitted.
+    """
     target.mkdir(parents=True, exist_ok=True)
     fm_text = yaml.safe_dump(frontmatter, sort_keys=False, allow_unicode=True).strip()
     skill_md = f"---\n{fm_text}\n---\n\n{body.lstrip()}"
     (target / "SKILL.md").write_text(skill_md, encoding="utf-8")
-    if openai_yaml is not None:
+    if openai_meta is not None:
         (target / "agents").mkdir(exist_ok=True)
-        (target / "agents" / "openai.yaml").write_text(
-            yaml.safe_dump(openai_yaml, sort_keys=False, allow_unicode=True),
-            encoding="utf-8",
+        rendered = render_template(
+            "openai.template.yaml", openai_meta, mode="plain"
         )
+        (target / "agents" / "openai.yaml").write_text(rendered, encoding="utf-8")
 
 
 SKILL_DIR_ENV = re.compile(r"\$\{CLAUDE_SKILL_DIR\}")
@@ -327,8 +394,14 @@ def transfer_one(source: Path, output_root: Path) -> TransferReport:
     if fm.get("context") == "fork" or "agent" in fm:
         report.skipped = True
         report.skip_reason = (
-            "`context: fork` / `agent` — Codex 無 forked subagent，"
-            "拒絕產出檔案以免靜默丟失執行邊界。請人工重設計後再轉。"
+            "`context: fork` / `agent` 偵測到。Codex 有對應方案，但跨越 skill 包與 user 配置邊界，"
+            "需人工選路：\n"
+            "    1. 原生 Subagents（推薦，重 IO 隔離）：在 `~/.codex/agents/{name}.toml` "
+            "建對應 TOML，body 改寫為「Spawn a `{name}` subagent...」。\n"
+            "    2. Skill chain（輕量，無隔離）：拆兩個 skill，body 末加 `$next-skill` mention。\n"
+            "    3. Codex MCP + Agents SDK（重型，程式化）：跑 `codex mcp-server`，"
+            "外部 SDK 用 handoffs 編排。\n"
+            "    詳見 `references/mapping.md` §5。"
         )
         return report
 
@@ -351,6 +424,201 @@ def transfer_one(source: Path, output_root: Path) -> TransferReport:
     write_skill(target, new_fm, new_body, openai_yaml)
     copy_aux(source, target, report)
     return report
+
+
+# ---------------------------------------------------------------------------
+# Plugin / marketplace mode (added v0.3.0)
+# ---------------------------------------------------------------------------
+# Three input shapes are recognized:
+#   - skills-batch: <dir>/<child>/SKILL.md ...    (the original mode)
+#   - single-skill: <dir>/SKILL.md                (treated as batch-of-one)
+#   - plugin:       <dir>/.claude-plugin/plugin.json  (NEW; full plugin port)
+#
+# Plugin mode produces:
+#   <out>/.codex-plugin/plugin.json     ← translated manifest
+#   <out>/skills/<name>/...               ← each skill via existing pipeline
+#   <out>/.codex-agents-templates/*.toml  ← stubs for each agents/*.md (manual)
+# It does NOT emit `.codex/agents/*.toml` directly — that lives in the user's
+# config dir, outside the plugin package boundary (see mapping.md §5).
+
+
+def detect_mode(source: Path) -> str:
+    if (source / ".claude-plugin" / "plugin.json").is_file():
+        return "plugin"
+    if (source / "SKILL.md").is_file():
+        return "single-skill"
+    if any(
+        (c / "SKILL.md").is_file()
+        for c in source.iterdir()
+        if c.is_dir()
+    ):
+        return "skills-batch"
+    return "unknown"
+
+
+def translate_plugin_manifest(claude_pj: dict, has_skills: bool) -> tuple[dict, list[str], list[str]]:
+    """Translate Claude Code plugin.json → Codex .codex-plugin/plugin.json.
+
+    Returns (codex_pj, mapped_notes, dropped_notes). Codex requires
+    name/version/description and (per the build docs) an explicit `skills`
+    pointer when the plugin bundles skills.
+    """
+    out: dict = {}
+    mapped: list[str] = []
+    dropped: list[str] = []
+
+    if "name" not in claude_pj:
+        raise ValueError("plugin.json missing required `name`")
+    out["name"] = claude_pj["name"]
+
+    out["version"] = str(claude_pj.get("version") or "0.1.0-codex")
+    if "version" not in claude_pj:
+        mapped.append("`version` 缺，補入 `0.1.0-codex` (Codex 必填 semver)")
+
+    out["description"] = str(claude_pj.get("description") or claude_pj["name"])
+    if "description" not in claude_pj:
+        mapped.append("`description` 缺，以 `name` 暫代 (Codex 必填)")
+
+    for k in ("author", "homepage", "repository", "license", "keywords"):
+        if k in claude_pj:
+            out[k] = claude_pj[k]
+
+    # Codex is manifest-driven: components must be pointed at explicitly.
+    # Claude is filesystem-driven, so plugin.json typically omits these.
+    if has_skills:
+        out["skills"] = "./skills/"
+        mapped.append("加入 `skills: \"./skills/\"` 指標 (Codex manifest-driven)")
+
+    out["interface"] = {
+        "displayName": str(out["name"]).replace("-", " ").title(),
+        "shortDescription": out["description"][:120],
+    }
+    mapped.append("加入 `interface` 預設 (display_name + short_description)")
+
+    # Claude-side fields that have no Codex equivalent at the plugin level.
+    for k in ("commands", "lspServers", "agents"):
+        if k in claude_pj:
+            dropped.append(f"`{k}` (Claude-only at plugin level; agents 走 user-side `.codex/agents/*.toml`)")
+
+    return out, mapped, dropped
+
+
+def emit_agent_stub(agent_md: Path, dest: Path) -> None:
+    """Emit a TOML stub from a Claude agent .md, using the golden template.
+
+    The user must review and copy the result into their own ~/.codex/agents/.
+    This script never writes to the user's config directory.
+    """
+    name = agent_md.stem
+    body = agent_md.read_text(encoding="utf-8")
+
+    # Best-effort: pull `description:` from frontmatter if present.
+    desc = ""
+    fm_end = body.find("\n---", 4) if body.startswith("---\n") else -1
+    if fm_end > 0:
+        try:
+            fm = yaml.safe_load(body[4:fm_end]) or {}
+            if isinstance(fm, dict):
+                desc = str(fm.get("description") or "").splitlines()[0][:200]
+        except yaml.YAMLError:
+            pass
+
+    instructions = body[fm_end + 4 :].lstrip("\n") if fm_end > 0 else body
+    # TOML triple-quoted strings need internal """ sequences escaped.
+    instructions_safe = instructions.replace('"""', '\\"""')
+
+    rendered = render_template(
+        "agent-stub.template.toml",
+        {
+            "source_md": agent_md.name,
+            "name": name,
+            "description": desc.replace('"', '\\"'),
+            "instructions": instructions_safe,
+        },
+        mode="plain",
+    )
+    dest.write_text(rendered, encoding="utf-8")
+
+
+def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[TransferReport], dict]:
+    """Plugin-mode entry point. Returns (skill_reports, plugin_summary).
+
+    The output_root is the *plugin* output directory (not its parent), so:
+      output_root/.codex-plugin/plugin.json
+      output_root/skills/<name>/...
+      output_root/.codex-agents-templates/*.toml
+    """
+    summary: dict = {
+        "manifest_mapped": [],
+        "manifest_dropped": [],
+        "agent_stubs": 0,
+        "skill_count": 0,
+    }
+
+    pj_path = plugin_root / ".claude-plugin" / "plugin.json"
+    with pj_path.open(encoding="utf-8") as f:
+        claude_pj = json.load(f)
+
+    skills_dir = plugin_root / "skills"
+    has_skills = skills_dir.is_dir() and any(
+        (c / "SKILL.md").is_file() for c in skills_dir.iterdir() if c.is_dir()
+    )
+
+    codex_pj, mapped, dropped = translate_plugin_manifest(claude_pj, has_skills)
+    summary["manifest_mapped"] = mapped
+    summary["manifest_dropped"] = dropped
+
+    # Clear and rewrite the entire plugin output (same rerun-correctness
+    # principle as transfer_one).
+    if output_root.exists():
+        shutil.rmtree(output_root)
+    output_root.mkdir(parents=True)
+
+    cp_dir = output_root / ".codex-plugin"
+    cp_dir.mkdir()
+    # When the manifest exactly matches the golden template's shape (skills
+    # bundled, no extra fields beyond the standard pass-through set), use the
+    # template; otherwise fall back to a JSON dump. This keeps the common
+    # case auditable against assets/codex-plugin.template.json.
+    standard_keys = {"name", "version", "description", "skills", "interface"}
+    if has_skills and set(codex_pj.keys()) <= standard_keys:
+        rendered = render_template(
+            "codex-plugin.template.json",
+            {
+                "name": codex_pj["name"],
+                "version": codex_pj["version"],
+                "description": codex_pj["description"],
+                "display_name": codex_pj["interface"]["displayName"],
+                "short_description": codex_pj["interface"]["shortDescription"],
+            },
+            mode="json",
+        )
+        (cp_dir / "plugin.json").write_text(rendered, encoding="utf-8")
+    else:
+        (cp_dir / "plugin.json").write_text(
+            json.dumps(codex_pj, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+
+    skill_reports: list[TransferReport] = []
+    if has_skills:
+        out_skills = output_root / "skills"
+        out_skills.mkdir()
+        for child in sorted(skills_dir.iterdir()):
+            if not child.is_dir() or not (child / "SKILL.md").is_file():
+                continue
+            skill_reports.append(transfer_one(child, out_skills))
+        summary["skill_count"] = len(skill_reports)
+
+    agents_dir = plugin_root / "agents"
+    if agents_dir.is_dir():
+        stub_dir = output_root / ".codex-agents-templates"
+        stub_dir.mkdir()
+        for md in sorted(agents_dir.glob("*.md")):
+            emit_agent_stub(md, stub_dir / f"{md.stem}.toml")
+            summary["agent_stubs"] += 1
+
+    return skill_reports, summary
 
 
 def main(argv: list[str]) -> int:
@@ -376,19 +644,44 @@ def main(argv: list[str]) -> int:
             "overlap; choose a non-overlapping output directory.\n"
         )
         return 2
-    output_root.mkdir(parents=True, exist_ok=True)
+    mode = detect_mode(source_root)
 
-    reports: list[TransferReport] = []
-    for child in sorted(source_root.iterdir()):
-        if not child.is_dir():
-            continue
-        if not (child / "SKILL.md").is_file():
-            continue
-        reports.append(transfer_one(child, output_root))
-
-    print(f"# Codex Transfer Batch Report\n")
-    print(f"- 處理 {len(reports)} 個 skill")
-    print(f"- 輸出: `{output_root}`\n")
+    if mode == "plugin":
+        skill_reports, summary = transfer_plugin(source_root, output_root)
+        print(f"# Codex Transfer — Plugin Mode\n")
+        print(f"- 來源 plugin: `{source_root}`")
+        print(f"- 輸出 plugin: `{output_root}`")
+        print(f"- 寫入 `.codex-plugin/plugin.json`")
+        if summary["manifest_mapped"]:
+            print(f"- Manifest 翻譯：")
+            for n in summary["manifest_mapped"]:
+                print(f"    - {n}")
+        if summary["manifest_dropped"]:
+            print(f"- Manifest 已捨棄：")
+            for n in summary["manifest_dropped"]:
+                print(f"    - {n}")
+        if summary["agent_stubs"]:
+            print(
+                f"- Agent stubs 已產出 {summary['agent_stubs']} 份至 "
+                f"`.codex-agents-templates/`（請人工檢視後複製至 `~/.codex/agents/`）"
+            )
+        print(f"- Skills 處理：{summary['skill_count']} 個\n")
+        reports = skill_reports
+    else:
+        output_root.mkdir(parents=True, exist_ok=True)
+        reports = []
+        if mode == "single-skill":
+            reports.append(transfer_one(source_root, output_root))
+        else:  # skills-batch or unknown (treat as batch)
+            for child in sorted(source_root.iterdir()):
+                if not child.is_dir():
+                    continue
+                if not (child / "SKILL.md").is_file():
+                    continue
+                reports.append(transfer_one(child, output_root))
+        print(f"# Codex Transfer Batch Report\n")
+        print(f"- 處理 {len(reports)} 個 skill")
+        print(f"- 輸出: `{output_root}`\n")
     for r in reports:
         print(r.render())
 

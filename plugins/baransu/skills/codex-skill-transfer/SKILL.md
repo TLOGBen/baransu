@@ -1,169 +1,117 @@
 ---
 name: codex-skill-transfer
-description: "Port a Claude Code skill (SKILL.md) to OpenAI Codex format (.agents/skills/{name}/). Use this skill whenever the user wants to convert, port, migrate, mirror, or generate a Codex-compatible version of an existing Claude Code skill — including phrasings like 「轉成 codex 版」「給 codex 用」「port to codex」「make this work in codex」「Codex 對應」. Also trigger when the user asks how a specific Claude frontmatter field (disable-model-invocation, context fork, allowed-tools, $ARGUMENTS, !`cmd` injection, etc.) maps to Codex."
+description: "Port Claude Code skills, plugins, or marketplace catalogs to OpenAI Codex format. Claude is the source of truth; Codex is a one-way derived target. Handles single SKILL.md, batches, and whole plugins (.claude-plugin/plugin.json → .codex-plugin/plugin.json + agent-stub TOMLs). Use whenever the user wants to convert, port, migrate, mirror, or generate a Codex-compatible version of Claude Code material — phrasings like 「轉成 codex 版」「給 codex 用」「port to codex」「整個 plugin 轉過去」「make this work in codex」「Codex 對應」. Also trigger when the user asks how a specific Claude field (disable-model-invocation, context fork, allowed-tools, $ARGUMENTS, !`cmd` injection, plugin.json, marketplace.json, etc.) maps to Codex."
 license: Apache-2.0
 compatibility: Designed for Claude Code; output targets Codex CLI. Optional `skills-ref` CLI for validation.
 metadata:
   author: baransu
-  version: "0.1.0"
+  version: "0.4.0"
 ---
 
 # Codex Skill Transfer
 
-Port a Claude Code skill to a Codex-compatible skill so the same workflow runs under both tools. Output goes to a sibling directory the user nominates (typically `codex-skills/{name}/` or `~/.agents/skills/{name}/`).
+One-way port from Claude Code → Codex. Claude is canonical; this skill produces the Codex shadow.
 
-## Why this is needed
+## Direction is one-way (Claude → Codex)
 
-Claude Code and Codex both follow the [agentskills.io](https://agentskills.io) open standard, so the SKILL.md body and the required `name` / `description` frontmatter fields are portable as-is. The friction is in three places:
+The user keeps editing on the Claude side. Each rerun regenerates the Codex output from the current Claude source. The Codex output is **derived**, not authoritative — never edit it by hand expecting changes to flow back.
 
-1. **Vendor-specific frontmatter** — Claude has 11+ extension fields (`disable-model-invocation`, `context: fork`, `argument-hint`, `hooks`, `paths`, `shell`, etc.) that Codex does not honor.
-2. **Dynamic context injection** — `` !`shell command` `` and ` ```! ` blocks are pre-processed by Claude Code before the model sees them; Codex has no equivalent and the model would receive the literal backtick syntax.
-3. **Argument substitution** — `$ARGUMENTS`, `$0`, `$N`, `$name` placeholders are Claude-specific; Codex passes user input as a regular message.
+## Step 1 — Identify the source shape
 
-This skill knows how to translate each of these, and what to flag for manual review when no clean translation exists (notably `context: fork`).
+Look at the source path the user gave you. Pick the matching mode:
 
-## When to invoke
+| Source path looks like | Mode | What it produces |
+|---|---|---|
+| `<dir>/.claude-plugin/plugin.json` exists | **Plugin** | Full Codex plugin tree with manifest, skills, agent stubs |
+| `<dir>/SKILL.md` exists at the top level | **Single skill** | One `<output>/<skill-name>/` |
+| `<dir>` has children that each contain `SKILL.md` | **Skills batch** | One subdir per child |
+| `<dir>/.claude-plugin/marketplace.json` exists | **Marketplace** (manual) | See [`references/marketplace-mapping.md`](references/marketplace-mapping.md); not script-automated |
 
-Trigger on any of these signals:
-- The user names a skill and asks to port / convert / mirror to Codex
-- The user provides a `SKILL.md` path and asks for a Codex version
-- The user asks how a Claude frontmatter field maps to Codex
-- The user asks to batch-convert all skills in a plugin or directory
+`scripts/transfer.py` auto-detects Plugin / Single skill / Skills batch and dispatches. Marketplace is the only mode that always needs human work.
 
-Do **not** trigger for: writing a new skill from scratch (use `/skill-creator` or `/baransu:think`); editing an existing Claude skill in place.
+## Step 2 — Run the transfer
 
-## Inputs and outputs
-
-**Inputs**
-- `<source-skill-dir>` — a directory containing `SKILL.md` (and optionally `scripts/`, `references/`, `assets/`)
-- `<output-dir>` — where to write the Codex version (default: sibling `codex-skills/{name}/`)
-
-**Outputs**
-- `<output-dir>/SKILL.md` — translated frontmatter + body
-- `<output-dir>/agents/openai.yaml` — only when needed (see §3)
-- `<output-dir>/scripts/`, `references/`, `assets/` — copied verbatim if present
-- A short transfer report listing: lossless mappings, lossy mappings, dropped fields, manual-review flags
-
-## Procedure
-
-### 1. Read and parse
-
-Read the source `SKILL.md`. Split YAML frontmatter from Markdown body. If frontmatter is malformed or `name`/`description` is missing, stop and report — the source is not a valid agentskills.io skill.
-
-Verify the directory name equals the frontmatter `name` (the open spec requires this). If they differ, prefer the directory name and warn the user.
-
-### 2. Translate frontmatter
-
-Apply the mapping rules in `references/mapping.md`. The shape is:
-
-- **Pass through**: `name`, `description`, `license`, `compatibility`, `metadata` — these are open-standard fields. If the source lacks `compatibility` or `metadata.version`, add reasonable defaults (`compatibility: Designed for Claude Code; ported to Codex` and `metadata.version: "0.1.0-codex"`).
-- **Pass through with caveat**: `allowed-tools` — kept (it's an experimental open-standard field), but Codex may currently ignore it. Note in the report.
-- **Move to `agents/openai.yaml`**: `disable-model-invocation: true` becomes `policy.allow_implicit_invocation: false`. Only emit `agents/openai.yaml` when at least one field needs to move there.
-- **Drop with body rewrite**: `argument-hint`, `arguments` — these inform body-side rewrites of `$ARGUMENTS`/`$N`/`$name`, then the field itself is removed.
-- **Drop**: `user-invocable`, `model`, `effort`, `hooks`, `paths`, `shell` — no Codex equivalent. Document the loss in the report.
-- **Flag for manual review**: `context: fork` and `agent` — Codex has no forked-subagent concept; the skill needs structural redesign. Translate the body as best as possible but mark the output `SKILL.md` with a top comment block warning the user.
-
-### 3. Rewrite the body
-
-The body is mostly portable. Apply these surgical rewrites:
-
-**Dynamic shell injection**: replace `` !`<cmd>` `` (inline) and ` ```! ... ``` ` (block) with imperative instructions. Example:
-
-```markdown
-## Current changes
-
-!`git diff HEAD`
-```
-
-becomes:
-
-```markdown
-## Current changes
-
-Run `git diff HEAD` and read its output before producing the summary below.
-```
-
-The principle: keep the *intent* (the model sees the diff), but shift execution from Claude Code's pre-processor to a tool call inside the Codex session.
-
-**Argument substitution**: rewrite each placeholder to a natural-language reference.
-
-| Claude form | Codex rewrite (suggested) |
-|-------------|---------------------------|
-| `$ARGUMENTS` | "the user-provided arguments" |
-| `$0`, `$1`, `$2` | "the first / second / third argument the user provided" |
-| `$ARGUMENTS[0]` | same as `$0` |
-| `$name` (declared via `arguments:`) | the named role, e.g. "the issue number" |
-| `${CLAUDE_SESSION_ID}` | drop or replace with "the current session" |
-| `${CLAUDE_SKILL_DIR}` | replace with the absolute path the script will be invoked from, OR keep relative paths from the skill root |
-| `${CLAUDE_EFFORT}` | drop |
-
-**`agentskills.io` references**: leave untouched — the standard is shared.
-
-**Claude-specific tooling references**: scan the body for mentions of `subagent_type`, `Task tool`, `AskUserQuestion`, `TodoWrite`, `Skill tool` — these are Claude Code surface APIs. Either rewrite to Codex equivalents (when known) or replace with neutral language ("ask the user", "track the steps internally"). Flag remaining unresolved references in the report.
-
-### 4. Copy auxiliary files
-
-If the source has `scripts/`, `references/`, or `assets/`, copy them verbatim to the output. These are generally portable.
-
-For shell scripts in `scripts/`: scan for hard-coded `${CLAUDE_SKILL_DIR}` and rewrite to relative paths from the skill root, since Codex does not provide that env var.
-
-### 5. Validate
-
-If `skills-ref` is on PATH, run `skills-ref validate <output-dir>` and include the result in the report. Otherwise, perform an internal check against the open spec rules listed in `references/mapping.md` (frontmatter-only).
-
-### 6. Emit transfer report
-
-End with a 繁中 report following this template:
-
-```
-## Codex Transfer Report — {name}
-
-- 來源: {source-skill-dir}
-- 輸出: {output-dir}
-
-### 完整保留 (lossless)
-- {list of fields and content unchanged}
-
-### 翻譯處理 (mapped)
-- {Claude field → Codex equivalent}
-
-### 動態注入改寫 (rewrites)
-- {N 處 `!cmd` injection 改寫為指令}
-- {M 處 $ARGUMENTS 改寫}
-
-### 已捨棄 (dropped, no Codex equivalent)
-- {fields with no target}
-
-### ⚠️ 需人工檢視 (manual review)
-- {context: fork / agent / unresolved tool references}
-
-### 驗證
-- skills-ref: {pass / fail / not-installed}
-```
-
-## Two execution modes
-
-### Mode A: inline (default)
-
-Read the source, apply the rules above, write the output, print the report. This is the right default for one-off conversions where the user wants to inspect each change.
-
-### Mode B: scripted batch
-
-If the user asks to convert many skills (e.g. "convert all baransu skills"), invoke `scripts/transfer.py`:
+Default invocation for any of the three automated modes:
 
 ```bash
-python3 scripts/transfer.py <source-skills-dir> <output-skills-dir>
+python3 scripts/transfer.py <claude-source> <codex-output>
 ```
 
-The script implements the same rules deterministically and emits one combined report. Use this when consistency across many skills matters more than per-skill inspection. The script intentionally refuses to write files for skills containing `context: fork` — those need human attention.
+The script refuses if `<codex-output>` overlaps the source — there is a real data-loss path otherwise (rerun would `rmtree` the source). Always pick a separate output directory.
+
+For inline (in-conversation) execution without the script — when the user wants to inspect every change — read the source file(s), apply the rules in the relevant reference (see Step 3), and write the output yourself. The rules are deterministic enough that inline and scripted runs converge.
+
+## Step 3 — Follow the rules in the right reference
+
+The transformation is layered; each reference owns one layer. Read the matching one for the work in front of you, not all three:
+
+- [`references/skill-mapping.md`](references/skill-mapping.md) — SKILL.md frontmatter + body rewrites. Covers the `disable-model-invocation` → `agents/openai.yaml` move, `$ARGUMENTS` → natural language, `` !`cmd` `` → imperative TODO, the `context: fork` three-paths decision, and tool-API rewrites. **This is the file to read for any per-skill question.**
+- [`references/plugin-mapping.md`](references/plugin-mapping.md) — `.claude-plugin/plugin.json` → `.codex-plugin/plugin.json`, plus agent-stub generation. Read when porting a whole plugin.
+- [`references/marketplace-mapping.md`](references/marketplace-mapping.md) — `.claude-plugin/marketplace.json` → `.agents/plugins/marketplace.json`. Read when the user wants to publish a marketplace catalog. Manual conversion only.
+
+## Step 4 — Produce output by copying golden templates
+
+All output shapes live in `assets/`. The script reads them; if you're working inline, copy them and fill the placeholders by hand. Each is a single file with `$placeholder` markers (Python `string.Template` syntax — `$name`, `$version`, etc.):
+
+- [`assets/codex-plugin.template.json`](assets/codex-plugin.template.json) — fills the `.codex-plugin/plugin.json` for a plugin that bundles skills (the common case)
+- [`assets/openai.template.yaml`](assets/openai.template.yaml) — fills `<skill>/agents/openai.yaml` when a skill needs `disable-model-invocation` ported (locks `policy.allow_implicit_invocation: false`)
+- [`assets/agent-stub.template.toml`](assets/agent-stub.template.toml) — fills `<output>/.codex-agents-templates/<name>.toml` for each Claude agent definition; the user reviews and copies into their own `~/.codex/agents/`
+- [`assets/codex-marketplace.template.json`](assets/codex-marketplace.template.json) — starting point for `.agents/plugins/marketplace.json` (manual, not used by the script)
+
+Editing the templates updates the output without touching the script. If the user wants the Codex output to look different (different `interface.category`, an extra field, a logo path), the template is the right place to make the change.
+
+## Step 5 — Print a transfer report
+
+For automated runs the script prints the report. For inline runs you write it. Use this skeleton (繁中):
+
+```
+## Codex Transfer Report — <name>
+
+- 來源: `<source-path>`
+- 輸出: `<output-path>`
+
+### 完整保留 (lossless)
+- ...
+
+### 翻譯處理 (mapped)
+- ...
+
+### 動態注入改寫 (rewrites)
+- ...
+
+### 已捨棄 (dropped)
+- ...
+
+### ⚠️ 需人工檢視 (manual review)
+- ...
+```
+
+The report is the point of friction-resolution: **每一條 dropped/manual review 都是一個未來想優化的線索**。Encourage the user to track these.
 
 ## Boundaries
 
-- **Do not** rewrite the source skill in place. Always write to a separate output directory.
-- **Do not** invent fields or behavior the user did not author. If a Claude field has no Codex target and no body rewrite preserves the intent, document it in the report rather than fabricating a workaround.
-- **Do not** translate the skill's domain-specific instructions or examples — only the structural elements (frontmatter, dynamic injection, argument substitution, Claude-specific tool references). The author's voice stays.
-- **Do** flag aggressively when in doubt. A noisy report is cheaper than a silently wrong port.
+- **Never mutate the source.** Always write to a separate directory. The script refuses overlapping paths; inline work follows the same rule.
+- **Never auto-write to user config dirs.** Agent stubs land in `<output>/.codex-agents-templates/` — the user copies them into `~/.codex/agents/` themselves. The plugin package has no business reaching into the user's home directory.
+- **Never invent fields the user didn't author.** When a Claude field has no Codex target and no rewrite preserves intent, document it in the report. Silent fabrication is worse than an obvious gap.
+- **Never translate domain-specific instructions or examples** in skill bodies — only the structural elements (frontmatter, dynamic injection, argument substitution, Claude-specific tool references). The author's voice stays.
+- **Flag aggressively when in doubt.** A noisy report is cheaper than a silently wrong port.
 
-## Reference
+## Repository layout this skill expects
 
-See [`references/mapping.md`](references/mapping.md) for the complete frontmatter mapping table and the rationale behind each rule.
+```
+codex-skill-transfer/
+├── SKILL.md                              # this file
+├── references/
+│   ├── skill-mapping.md                  # per-skill rules (most consultation lands here)
+│   ├── plugin-mapping.md                 # plugin manifest + agent stubs
+│   └── marketplace-mapping.md            # marketplace catalog (manual only)
+├── assets/
+│   ├── codex-plugin.template.json        # → output/.codex-plugin/plugin.json
+│   ├── openai.template.yaml              # → output/<skill>/agents/openai.yaml
+│   ├── agent-stub.template.toml          # → output/.codex-agents-templates/*.toml
+│   └── codex-marketplace.template.json   # starter for manual marketplace conversion
+└── scripts/
+    └── transfer.py                       # CLI entry; auto-detects mode
+```
+
+Single Python file by design — the script's three responsibilities (skill-level, plugin-level, dispatch) share enough state that splitting would add `sys.path` ceremony with little reading benefit. baransu's other tooling scripts (`grade-collector.py`, `health_check.py`) follow the same single-file convention.
