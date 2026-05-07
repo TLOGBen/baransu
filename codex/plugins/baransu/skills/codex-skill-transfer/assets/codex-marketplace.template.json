@@ -1,0 +1,14 @@
+{
+  "name": "$marketplace_name",
+  "owner": {
+    "name": "$owner_name",
+    "email": "$owner_email"
+  },
+  "plugins": [
+    {
+      "name": "$plugin_name",
+      "description": "$plugin_description",
+      "source": "./plugins/$plugin_name"
+    }
+  ]
+}

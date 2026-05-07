@@ -1,11 +1,20 @@
 ---
 name: codex-skill-transfer
-description: "Port Claude Code skills, plugins, or marketplace catalogs to OpenAI Codex format. Claude is the source of truth; Codex is a one-way derived target. Handles single SKILL.md, batches, and whole plugins (.claude-plugin/plugin.json → .codex-plugin/plugin.json + agent-stub TOMLs). Use whenever the user wants to convert, port, migrate, mirror, or generate a Codex-compatible version of Claude Code material — phrasings like 「轉成 codex 版」「給 codex 用」「port to codex」「整個 plugin 轉過去」「make this work in codex」「Codex 對應」. Also trigger when the user asks how a specific Claude field (disable-model-invocation, context fork, allowed-tools, ARGUMENTS placeholder, bash injection syntax, plugin.json, marketplace.json, etc.) maps to Codex."
+description: Port Claude Code skills, plugins, or marketplace catalogs to OpenAI Codex
+  format. Claude is the source of truth; Codex is a one-way derived target. Handles
+  single SKILL.md, batches, and whole plugins (.claude-plugin/plugin.json → .codex-plugin/plugin.json
+  + agent-stub TOMLs). Use whenever the user wants to convert, port, migrate, mirror,
+  or generate a Codex-compatible version of Claude Code material — phrasings like
+  「轉成 codex 版」「給 codex 用」「port to codex」「整個 plugin 轉過去」「make this work in codex」「Codex
+  對應」. Also trigger when the user asks how a specific Claude field (disable-model-invocation,
+  context fork, allowed-tools, ARGUMENTS placeholder, bash injection syntax, plugin.json,
+  marketplace.json, etc.) maps to Codex.
 license: Apache-2.0
-compatibility: Designed for Claude Code; output targets Codex CLI. Optional `skills-ref` CLI for validation.
 metadata:
   author: baransu
-  version: "0.6.0"
+  version: 0.5.1
+compatibility: Designed for Claude Code; output targets Codex CLI. Optional `skills-ref`
+  CLI for validation.
 ---
 
 # Codex Skill Transfer
@@ -45,7 +54,7 @@ For inline (in-conversation) execution without the script — when the user want
 
 The transformation is layered; each reference owns one layer. Read the matching one for the work in front of you, not all three:
 
-- [`references/skill-mapping.md`](references/skill-mapping.md) — SKILL.md frontmatter + body rewrites. Covers `disable-model-invocation` → `agents/openai.yaml`, `$ARGUMENTS` → natural language, bang-backtick shell injection → imperative TODO, and tool-API rewrites. **Read this for any per-skill question.**
+- [`references/skill-mapping.md`](references/skill-mapping.md) — SKILL.md frontmatter + body rewrites. Covers `disable-model-invocation` → `agents/openai.yaml`, `the arguments the user provided` → natural language, bang-backtick shell injection → imperative TODO, and tool-API rewrites. **Read this for any per-skill question.**
 - [`references/plugin-mapping.md`](references/plugin-mapping.md) — `.claude-plugin/plugin.json` → `.codex-plugin/plugin.json`. Read when porting a whole plugin.
 - [`references/agent-mapping.md`](references/agent-mapping.md) — Claude `context: fork` / `agent: ...` → Codex Subagents (`.codex/agents/*.toml`), and `agents/*.md` → `.codex-agents-templates/*.toml` stubs. Read whenever agents are involved at either layer. Co-locates per-skill rules with per-plugin stub generation so you don't bounce between files.
 - [`references/marketplace-mapping.md`](references/marketplace-mapping.md) — `.claude-plugin/marketplace.json` → `.agents/plugins/marketplace.json`. Manual conversion only.

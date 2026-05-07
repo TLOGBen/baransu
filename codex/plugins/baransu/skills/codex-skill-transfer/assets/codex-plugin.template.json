@@ -1,0 +1,13 @@
+{
+  "name": "$name",
+  "version": "$version",
+  "description": "$description",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "$display_name",
+    "shortDescription": "$short_description"
+  },
+  "homepage": "$homepage",
+  "repository": "$repository",
+  "license": "$license"
+}
