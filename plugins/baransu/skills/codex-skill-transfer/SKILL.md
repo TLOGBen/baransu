@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Designed for Claude Code; output targets Codex CLI. Optional `skills-ref` CLI for validation.
 metadata:
   author: baransu
-  version: "0.7.1"
+  version: "0.7.2"
 ---
 
 # Codex Skill Transfer
@@ -22,12 +22,11 @@ Look at the source path the user gave you. Pick the matching mode:
 
 | Source path looks like | Mode | What it produces |
 |---|---|---|
-| `<dir>/.claude-plugin/plugin.json` exists | **Plugin** | Full Codex plugin tree with manifest, skills, agent stubs |
+| `<dir>/.claude-plugin/plugin.json` exists | **Plugin** | `<output>/` as marketplace root: `<output>/.agents/plugins/marketplace.json` + `<output>/plugins/<name>/{.codex-plugin, skills, .codex-agents-templates}` |
 | `<dir>/SKILL.md` exists at the top level | **Single skill** | One `<output>/<skill-name>/` |
 | `<dir>` has children that each contain `SKILL.md` | **Skills batch** | One subdir per child |
-| `<dir>/.claude-plugin/marketplace.json` exists | **Marketplace** (manual) | See [`references/marketplace-mapping.md`](references/marketplace-mapping.md); not script-automated |
 
-`scripts/transfer.py` auto-detects Plugin / Single skill / Skills batch and dispatches. Marketplace is the only mode that always needs human work.
+`scripts/transfer.py` auto-detects Plugin / Single skill / Skills batch and dispatches. Plugin mode emits a Layout B marketplace catalog (codex/ self-contained); for monorepos that publish via git URL, the repo root needs a separate Layout A catalog — see [`references/marketplace-mapping.md`](references/marketplace-mapping.md) §8.
 
 ## Step 2 — Run the transfer
 
@@ -48,14 +47,14 @@ The transformation is layered; each reference owns one layer. Read the matching 
 - [`references/skill-mapping.md`](references/skill-mapping.md) — SKILL.md frontmatter + body rewrites. Covers `disable-model-invocation` → `agents/openai.yaml`, `$ARGUMENTS` → natural language, bang-backtick shell injection → imperative TODO, and tool-API rewrites. **Read this for any per-skill question.**
 - [`references/plugin-mapping.md`](references/plugin-mapping.md) — `.claude-plugin/plugin.json` → `.codex-plugin/plugin.json`. Read when porting a whole plugin.
 - [`references/agent-mapping.md`](references/agent-mapping.md) — Claude `context: fork` / `agent: ...` → Codex Subagents (`.codex/agents/*.toml`), and `agents/*.md` → `.codex-agents-templates/*.toml` stubs. Read whenever agents are involved at either layer. Co-locates per-skill rules with per-plugin stub generation so you don't bounce between files.
-- [`references/marketplace-mapping.md`](references/marketplace-mapping.md) — `.claude-plugin/marketplace.json` → `.agents/plugins/marketplace.json`. Manual conversion only.
+- [`references/marketplace-mapping.md`](references/marketplace-mapping.md) — `.claude-plugin/marketplace.json` → `.agents/plugins/marketplace.json`. Plugin mode auto-emits Layout B (catalog inside `<output>/`); §8 covers Layout A (monorepo repo-root catalog) which stays manual.
 
 ## Step 4 — Produce output by copying golden templates
 
 All output shapes live in `assets/`. The script reads them; if you're working inline, copy them and fill the placeholders by hand. Each is a single file with `$placeholder` markers (Python `string.Template` syntax — `$name`, `$version`, etc.):
 
 - [`assets/codex-plugin.template.json`](assets/codex-plugin.template.json) — canonical `.codex-plugin/plugin.json` shape for plugins that bundle skills. The script renders this template, prunes empty pass-through fields, and merges complex fields (`author`, `keywords`) from the translated manifest. Edit this file to change the canonical shape.
-- [`assets/codex-marketplace.template.json`](assets/codex-marketplace.template.json) — starting point for `.agents/plugins/marketplace.json` (manual, not used by the script).
+- [`assets/codex-marketplace.template.json`](assets/codex-marketplace.template.json) — schema-aligned starter for the repo-root Layout A catalog (the script writes Layout B inline; this template is for the monorepo case where you also need a root-level catalog).
 
 The skill-level `<skill>/agents/openai.yaml` and the agent-stub TOML output are NOT templated — they're built directly via `yaml.safe_dump` and `json.dumps` so escape correctness is ironclad regardless of source content. Earlier versions templated them but had to retire that approach when v0.4.0 review found honor-system escape bugs (description containing `"`, agent body containing `"""`).
 
@@ -104,10 +103,10 @@ codex-skill-transfer/
 │   ├── skill-mapping.md                  # per-skill frontmatter + body rewrites
 │   ├── plugin-mapping.md                 # plugin manifest
 │   ├── agent-mapping.md                  # context: fork → Codex Subagents (both layers)
-│   └── marketplace-mapping.md            # marketplace catalog (manual only)
+│   └── marketplace-mapping.md            # marketplace catalog (Layout A manual, Layout B emitted by script)
 ├── assets/
 │   ├── codex-plugin.template.json        # canonical .codex-plugin/plugin.json shape
-│   └── codex-marketplace.template.json   # starter for manual marketplace conversion
+│   └── codex-marketplace.template.json   # starter for repo-root Layout A catalog (Layout B is inlined in transfer.py)
 └── scripts/
     └── transfer.py                       # CLI entry; auto-detects mode
 ```
