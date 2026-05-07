@@ -26,6 +26,42 @@ baransu 是第二次。
 
 ---
 
+## 安裝
+
+### Claude Code
+
+```
+/plugin marketplace add https://git.hy-tech.com.tw/ben.tsai/baransu.git
+/plugin install baransu@baransu
+```
+
+### Codex CLI（衍生變體）
+
+Codex 變體放在 `codex/` 子樹，repo 根目錄有一份 `.agents/plugins/marketplace.json` 指向它，所以安裝直接用 git URL 即可：
+
+```bash
+# HTTPS
+codex plugin marketplace add https://git.hy-tech.com.tw/ben.tsai/baransu.git
+
+# SSH
+codex plugin marketplace add git@git.hy-tech.com.tw:ben.tsai/baransu.git
+
+# 釘特定版本（推薦，main 可能隨時動）
+codex plugin marketplace add https://git.hy-tech.com.tw/ben.tsai/baransu.git --ref v1.1.10
+
+# 本地 clone 也行
+codex plugin marketplace add /path/to/baransu
+```
+
+`marketplace add` 等同 install — Codex 沒有獨立的 `plugin install` 指令。
+
+注意：
+
+- Codex 版是 Claude 的單向衍生產物。Claude 端先動，再透過 `/codex-skill-transfer` 重生 codex/。不要直接編輯 codex/ 內檔案，會在下次轉換時被覆蓋。
+- Agent stubs 放在 `codex/plugins/baransu/.codex-agents-templates/`，install 不會自動寫進 `~/.codex/agents/`，你要用的 agent 自行複製過去。
+
+---
+
 ## Skills
 
 ### 思考型
@@ -139,42 +175,6 @@ session 結束的清理與交付。
 /write en [paste text or write a request]
 ```
 不產生工作檔案，無需 `/ship`。
-
----
-
-## 安裝
-
-### Claude Code
-
-```
-/plugin marketplace add https://git.hy-tech.com.tw/ben.tsai/baransu.git
-/plugin install baransu@baransu
-```
-
-### Codex CLI（衍生變體）
-
-Codex 變體放在 `codex/` 子樹，repo 根目錄有一份 `.agents/plugins/marketplace.json` 指向它，所以安裝直接用 git URL 即可：
-
-```bash
-# HTTPS
-codex plugin marketplace add https://git.hy-tech.com.tw/ben.tsai/baransu.git
-
-# SSH
-codex plugin marketplace add git@git.hy-tech.com.tw:ben.tsai/baransu.git
-
-# 釘特定版本（推薦，main 可能隨時動）
-codex plugin marketplace add https://git.hy-tech.com.tw/ben.tsai/baransu.git --ref v1.1.10
-
-# 本地 clone 也行
-codex plugin marketplace add /path/to/baransu
-```
-
-`marketplace add` 等同 install — Codex 沒有獨立的 `plugin install` 指令。
-
-注意：
-
-- Codex 版是 Claude 的單向衍生產物。Claude 端先動，再透過 `/codex-skill-transfer` 重生 codex/。不要直接編輯 codex/ 內檔案，會在下次轉換時被覆蓋。
-- Agent stubs 放在 `codex/plugins/baransu/.codex-agents-templates/`，install 不會自動寫進 `~/.codex/agents/`，你要用的 agent 自行複製過去。
 
 ---
 
