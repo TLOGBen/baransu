@@ -69,6 +69,13 @@ This exception is intentional. The skill's purpose is language-targeted copywrit
 
 The prefix simultaneously determines the **rule set** and the **output language**. These cannot be set independently via this skill.
 
+**Voice cue (optional, Refine mode)**: alongside the prefix, the user may pass an optional `voice="..."` cue:
+
+- preset name (e.g. `voice="he-cai-tou"`) → if `references/{name}-voice.md` exists, read it as a stylistic reference
+- named author or descriptor (e.g. `voice="和菜頭"` or `voice="像和菜頭那種口語部落格"`) → use the string directly as a stylistic reference
+
+When provided, Refine adjusts wording toward the voice while still applying the rule set. Voice cue is **optional**; when omitted, Refine behaves as before. Voice cue does not override rules 5, 7, 8 (anti-AI 味 floor: 禁對仗句 / 禁排比 / 禁名詞化) — these continue to apply at every match regardless of voice. In Generate mode, voice cue is silently ignored.
+
 **Prefix–content mismatch (Refine mode only)**: if the user's prefix language does not match the actual language of the input text (e.g., `en` prefix with a Chinese-language body, or `zh` prefix with an English-only body), the selected rule set cannot be meaningfully applied. In this case respond:
 
 > 「前綴語言與內容語言不一致，規則集無法套用。請重新呼叫並指定正確前綴，或移除前綴改用自動偵測。」
@@ -107,6 +114,10 @@ Also read `references/writing-principles.md` for the detected language and apply
 
 Additionally, read context cues (salutation style, register of existing vocabulary, audience implied by content) to infer appropriate tone (formal / conversational) and adjust word choice where the rule set does not dictate a specific change. Tone adjustment is supplementary — it does not override mechanical rule application.
 
+**Long input handling**: when the input has ≥ 5 paragraphs OR ≥ 800 characters (zh) / ≥ 500 words (en), apply rule changes only to the most-impacted instance per rule, not to every match. Example: if rule 2「『的』克制」 finds three sentences each with ≥ 3 「的」, change only the densest sentence and leave the other two alone. This preserves long-form rhythm and prevents the over-trim ("省詞略字") symptom from rule cascades.
+
+Rules 5 / 7 / 8 (anti-AI 味 floor: 禁對仗句 / 禁排比 / 禁名詞化) are exempt from suppression and apply to every match regardless of input length.
+
 **Output format**:
 
 ```
@@ -121,8 +132,8 @@ Additionally, read context cues (salutation style, register of existing vocabula
 - [規則標記]：[具體改動說明]
 ```
 
-Rule tag examples for zh: `空格規則`、`標點規則`、`數字規則`、`專有名詞`、`語氣調整`、`動詞直用`、`「的」克制`、`具象優先`、`空洞形容詞`、`密度克制`、`禁對仗句`、`感官錨點`、`禁排比`、`禁名詞化`、`敘事錨點`.
-Rule tag examples for en: `Oxford comma`、`Active voice`、`Sentence length`、`Parallel structure`、`Tone`、`No stale metaphors`、`Cut filler`、`Short words`、`One idea`、`No binary opposition`、`Anchor claims`、`No nominalization chains`.
+Rule tag examples for zh: `空格規則`、`標點規則`、`數字規則`、`專有名詞`、`語氣調整`、`動詞直用`、`「的」克制`、`具象優先`、`空洞形容詞`、`密度克制`、`禁對仗句`、`感官錨點`、`禁排比`、`禁名詞化`、`敘事錨點`、`voice 套用`.
+Rule tag examples for en: `Oxford comma`、`Active voice`、`Sentence length`、`Parallel structure`、`Tone`、`No stale metaphors`、`Cut filler`、`Short words`、`One idea`、`No binary opposition`、`Anchor claims`、`No nominalization chains`、`Voice applied`.
 
 If no rules were triggered and no tone adjustment is needed, output:
 > 「文字已符合規則，無需修改。」

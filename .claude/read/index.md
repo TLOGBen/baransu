@@ -10,3 +10,4 @@
 | https://x.com/intuitiveml/status/2048912026018484317 | the-self-healing-agent-harness | The Self-Healing Agent Harness | 2026-04-28T22:03:20+08:00 |
 | https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f | llm-wiki | LLM Wiki | 2026-05-04T02:53:54Z |
 | https://gist.github.com/rohitg00/2067ab416f7bbe447c1977edaaa681e2 | llm-wiki-v2 | LLM Wiki v2 | 2026-05-04T02:54:22Z |
+| https://x.com/noahduck283/status/2049103729803305343 | 2049103729803305343 | 为什么你的 AI 写不出好文章？ 我的Skill 自动化长文创作方法 | 2026-05-07T16:56:27+08:00 |
