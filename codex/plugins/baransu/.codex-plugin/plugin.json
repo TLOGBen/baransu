@@ -1,6 +1,6 @@
 {
   "name": "baransu",
-  "version": "1.1.14",
+  "version": "1.1.15",
   "description": "バランス — governance skills that balance thinking and execution. Ships /think, /review, /analyze, /dev, /write, /execute, /ship, /hunt, /read, /design, /learn, /codex-skill-transfer (one-way Claude→Codex porting), plus the cron-driven self-healing harness skills /grade (5-dim rubric scoring), /triage (cluster + investigator + 5-black auto-fix), and /bridge (head-to-head replay with Δ-gate).",
   "skills": "./skills/",
   "interface": {
