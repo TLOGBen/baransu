@@ -318,11 +318,24 @@ def write_skill(
     skill_md = f"---\n{fm_text}\n---\n\n{body.lstrip()}"
     (target / "SKILL.md").write_text(skill_md, encoding="utf-8")
     if openai_meta is not None:
-        (target / "agents").mkdir(exist_ok=True)
-        rendered = render_template(
-            "openai.template.yaml", openai_meta, mode="plain"
+        # Use yaml.safe_dump rather than a template — safe_dump correctly
+        # escapes quotes, newlines, and special chars in display_name /
+        # short_description regardless of what the upstream description
+        # contained. Templating this layer required honor-system escape
+        # discipline that v0.4.0 broke (see references/skill-mapping.md §2).
+        agents_dir = target / "agents"
+        agents_dir.mkdir(exist_ok=True)
+        openai_doc = {
+            "interface": {
+                "display_name": openai_meta["display_name"],
+                "short_description": openai_meta["short_description"],
+            },
+            "policy": {"allow_implicit_invocation": False},
+        }
+        (agents_dir / "openai.yaml").write_text(
+            yaml.safe_dump(openai_doc, sort_keys=False, allow_unicode=True),
+            encoding="utf-8",
         )
-        (target / "agents" / "openai.yaml").write_text(rendered, encoding="utf-8")
 
 
 SKILL_DIR_ENV = re.compile(r"\$\{CLAUDE_SKILL_DIR\}")
@@ -401,7 +414,7 @@ def transfer_one(source: Path, output_root: Path) -> TransferReport:
             "    2. Skill chain（輕量，無隔離）：拆兩個 skill，body 末加 `$next-skill` mention。\n"
             "    3. Codex MCP + Agents SDK（重型，程式化）：跑 `codex mcp-server`，"
             "外部 SDK 用 handoffs 編排。\n"
-            "    詳見 `references/mapping.md` §5。"
+            "    詳見 `references/skill-mapping.md` §5。"
         )
         return report
 
@@ -504,10 +517,16 @@ def translate_plugin_manifest(claude_pj: dict, has_skills: bool) -> tuple[dict, 
 
 
 def emit_agent_stub(agent_md: Path, dest: Path) -> None:
-    """Emit a TOML stub from a Claude agent .md, using the golden template.
+    """Emit a TOML stub from a Claude agent .md.
 
     The user must review and copy the result into their own ~/.codex/agents/.
     This script never writes to the user's config directory.
+
+    TOML strategy: use literal multi-line (`'''...'''`) for instructions and
+    JSON-quoted strings for name/description. Literal multi-line allows any
+    character except three consecutive single-quotes — agent .md bodies almost
+    never contain `'''`. If they do, we degrade to TOML basic multi-line with
+    full escape (rare path; preserved for robustness).
     """
     name = agent_md.stem
     body = agent_md.read_text(encoding="utf-8")
@@ -524,20 +543,50 @@ def emit_agent_stub(agent_md: Path, dest: Path) -> None:
             pass
 
     instructions = body[fm_end + 4 :].lstrip("\n") if fm_end > 0 else body
-    # TOML triple-quoted strings need internal """ sequences escaped.
-    instructions_safe = instructions.replace('"""', '\\"""')
+    instructions_block = _toml_multiline(instructions)
 
-    rendered = render_template(
-        "agent-stub.template.toml",
-        {
-            "source_md": agent_md.name,
-            "name": name,
-            "description": desc.replace('"', '\\"'),
-            "instructions": instructions_safe,
-        },
-        mode="plain",
+    # name/description go through json.dumps for ironclad escaping. TOML
+    # basic strings accept the JSON-escape syntax (\\, \", \n, \uXXXX) so the
+    # round-trip is safe.
+    name_quoted = json.dumps(name, ensure_ascii=False)
+    desc_quoted = json.dumps(desc, ensure_ascii=False)
+
+    stub = (
+        f"# Stub generated from {agent_md.name}.\n"
+        f"# Review before copying to ~/.codex/agents/{name}.toml.\n"
+        f"# See codex-skill-transfer references/agent-mapping.md for the mapping rules.\n"
+        f"\n"
+        f"name = {name_quoted}\n"
+        f"description = {desc_quoted}\n"
+        f"\n"
+        f"developer_instructions = {instructions_block}\n"
+        f"\n"
+        f"# Choose what to fill in below; all are optional and inherit from parent if absent.\n"
+        f"#\n"
+        f"# model = \"gpt-5.4\"\n"
+        f"# model_reasoning_effort = \"high\"      # low | medium | high | max\n"
+        f"# sandbox_mode = \"workspace-write\"     # read-only | workspace-write | danger-full-access\n"
+        f"# mcp_servers = []                     # list of MCP server ids the agent may invoke\n"
+        f"# nickname_candidates = []             # cosmetic names for spawned instances\n"
     )
-    dest.write_text(rendered, encoding="utf-8")
+    dest.write_text(stub, encoding="utf-8")
+
+
+def _toml_multiline(text: str) -> str:
+    """Quote `text` as a TOML multi-line string.
+
+    Prefers literal `'''...'''` (no escaping needed for `"`, `\\`, `$`). Falls
+    back to basic `\"\"\"...\"\"\"` with full backslash + triple-quote escape
+    when the body contains `'''`.
+    """
+    if "'''" not in text:
+        # Literal multi-line: opening newline is stripped by TOML parser, so
+        # adding one after `'''` keeps the indentation predictable.
+        return f"'''\n{text}\n'''"
+    # Fall back: escape every backslash, then every quote (each one
+    # individually) so no run of three `"` survives.
+    escaped = text.replace("\\", "\\\\").replace('"', '\\"')
+    return f'"""\n{escaped}\n"""'
 
 
 def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[TransferReport], dict]:
@@ -576,12 +625,17 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
 
     cp_dir = output_root / ".codex-plugin"
     cp_dir.mkdir()
-    # When the manifest exactly matches the golden template's shape (skills
-    # bundled, no extra fields beyond the standard pass-through set), use the
-    # template; otherwise fall back to a JSON dump. This keeps the common
-    # case auditable against assets/codex-plugin.template.json.
-    standard_keys = {"name", "version", "description", "skills", "interface"}
-    if has_skills and set(codex_pj.keys()) <= standard_keys:
+    # Render plugin.json against the golden template when the manifest's
+    # shape fits the standard set (skills + the common pass-through fields).
+    # The template uses string scalars for the simple fields; complex fields
+    # like `author` (dict) and `keywords` (list) are merged in after parsing.
+    # Empty pass-through values get pruned so absent source fields don't
+    # leak as empty entries.
+    STANDARD_PLUGIN_KEYS = {
+        "name", "version", "description", "skills", "interface",
+        "author", "homepage", "repository", "license", "keywords",
+    }
+    if has_skills and set(codex_pj.keys()) <= STANDARD_PLUGIN_KEYS:
         rendered = render_template(
             "codex-plugin.template.json",
             {
@@ -590,10 +644,27 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
                 "description": codex_pj["description"],
                 "display_name": codex_pj["interface"]["displayName"],
                 "short_description": codex_pj["interface"]["shortDescription"],
+                "homepage": codex_pj.get("homepage") or "",
+                "repository": codex_pj.get("repository") or "",
+                "license": codex_pj.get("license") or "",
             },
             mode="json",
         )
-        (cp_dir / "plugin.json").write_text(rendered, encoding="utf-8")
+        parsed = json.loads(rendered)
+        # Drop empty-string pass-through scalars (template includes them so
+        # the canonical shape stays visible; runtime omits them when absent).
+        for k in ("homepage", "repository", "license"):
+            if parsed.get(k) == "":
+                parsed.pop(k)
+        # Merge complex fields directly from the translated manifest.
+        if "author" in codex_pj:
+            parsed["author"] = codex_pj["author"]
+        if codex_pj.get("keywords"):
+            parsed["keywords"] = codex_pj["keywords"]
+        (cp_dir / "plugin.json").write_text(
+            json.dumps(parsed, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
     else:
         (cp_dir / "plugin.json").write_text(
             json.dumps(codex_pj, indent=2, ensure_ascii=False) + "\n",
@@ -645,6 +716,16 @@ def main(argv: list[str]) -> int:
         )
         return 2
     mode = detect_mode(source_root)
+    if mode == "unknown":
+        sys.stderr.write(
+            f"refused: source ({source_root}) does not match any recognized shape.\n"
+            "  Expected one of:\n"
+            "    - <dir>/.claude-plugin/plugin.json  (plugin mode)\n"
+            "    - <dir>/SKILL.md                    (single-skill mode)\n"
+            "    - <dir>/<child>/SKILL.md            (skills-batch mode)\n"
+            "  Marketplace conversion is manual; see references/marketplace-mapping.md.\n"
+        )
+        return 2
 
     if mode == "plugin":
         skill_reports, summary = transfer_plugin(source_root, output_root)

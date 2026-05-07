@@ -56,59 +56,18 @@ Auto-filled: `displayName` (from `name` with hyphens → spaces and Title Case),
 
 Pass through unchanged when present: `author`, `homepage`, `repository`, `license`, `keywords`.
 
-Dropped (no plugin-level Codex equivalent): `commands` (Codex merges these into skills); `lspServers` (Codex plugins don't host LSP); `agents` (must move to user-side `.codex/agents/*.toml`; see §6 below).
+Dropped (no plugin-level Codex equivalent): `commands` (Codex merges these into skills); `lspServers` (Codex plugins don't host LSP); `agents` (must move to user-side `.codex/agents/*.toml`; see [`agent-mapping.md`](agent-mapping.md)).
 
-## 6. Agent stub generation (`agents/*.md` → `.codex-agents-templates/*.toml`)
+## 6. Agent stub generation
 
-Claude plugins ship subagent definitions as Markdown files in `agents/`. Codex's equivalent is `~/.codex/agents/<name>.toml` — TOML, **user-side**, outside the plugin package. Two reasons not to auto-write directly to `~/.codex/agents/`:
-
-1. The plugin cannot safely reach into the user's config directory.
-2. Each agent needs choices (model, reasoning effort, sandbox, MCP servers) the transfer can't make.
-
-Therefore the transfer emits **stubs** at `<output>/.codex-agents-templates/<name>.toml`. The user reviews each stub and copies into their config dir.
-
-### 6.1 Stub shape
-
-The stub is generated from `assets/agent-stub.template.toml` with three placeholders filled: `$name`, `$description`, `$instructions` (and `$source_md` for traceability). Result:
-
-```toml
-# Stub generated from <agent-name>.md.
-# Review before copying to ~/.codex/agents/<name>.toml.
-# See codex-skill-transfer references/plugin-mapping.md for the mapping rules.
-
-name = "<name>"
-description = "<first-line of frontmatter description if found>"
-
-developer_instructions = """
-<the original .md body, with frontmatter stripped>
-"""
-
-# Choose what to fill in below; all are optional and inherit from parent if absent.
-#
-# model = "gpt-5.4"
-# model_reasoning_effort = "high"      # low | medium | high | max
-# sandbox_mode = "workspace-write"     # read-only | workspace-write | danger-full-access
-# mcp_servers = []                     # list of MCP server ids the agent may invoke
-# nickname_candidates = []             # cosmetic names for spawned instances
-```
-
-### 6.2 What the user fills in after copying
-
-- `model` — Codex model id (e.g. `"gpt-5.4"`) or omit to inherit from parent session.
-- `model_reasoning_effort` — map from Claude's `effort` if it was present (`low` / `medium` / `high` / `max`).
-- `sandbox_mode` — usually safer to omit; parent session policy applies.
-- `mcp_servers` — list of MCP servers this agent should access.
-- `nickname_candidates` — optional cosmetic names.
-
-### 6.3 What the stub deliberately doesn't translate
-
-The Markdown body lands in `developer_instructions` verbatim because the agent's *prompt* is the meaningful content. References to Claude-specific tools (`Task`, `AskUserQuestion`, etc.) survive unchanged — the user adapts these by hand using the body-rewrite table in [`skill-mapping.md`](skill-mapping.md) when they migrate the stub into their Codex config.
+When the source plugin ships `agents/*.md` files, the transfer emits TOML stubs at `<output>/.codex-agents-templates/*.toml`. The full stub shape, escaping rules, and per-field guidance live in [`agent-mapping.md`](agent-mapping.md) §4. The user reviews each stub and copies it into their own `~/.codex/agents/` — this skill never writes to user config dirs.
 
 ## 7. Template assets
 
-The transfer reads two templates from `assets/` to produce its output (Python `string.Template` with JSON-safe substitution):
+The transfer uses one template from `assets/` for the plugin manifest:
 
-- [`codex-plugin.template.json`](../assets/codex-plugin.template.json) — the `.codex-plugin/plugin.json` shape
-- [`agent-stub.template.toml`](../assets/agent-stub.template.toml) — the agent stub shape
+- [`codex-plugin.template.json`](../assets/codex-plugin.template.json) — the canonical `.codex-plugin/plugin.json` shape
 
-Editing those template files changes the output without touching the script. Treat them as the canonical examples — anything the user wants to ship via this transfer should match these shapes.
+The script renders this template with JSON-safe substitution, parses the result, prunes empty pass-through scalars, and merges complex fields (`author`, `keywords`) directly from the translated manifest. Editing the template changes the canonical shape; absent source fields are pruned automatically.
+
+The agent-stub TOML and skill-level `agents/openai.yaml` are NOT templated — they're built directly via `yaml.safe_dump` and `json.dumps`, because honor-system templating proved unsafe for content that may contain quotes, newlines, or escape sequences. See `scripts/transfer.py` `emit_agent_stub` and `write_skill` for the actual code.

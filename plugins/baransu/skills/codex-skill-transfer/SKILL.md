@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Designed for Claude Code; output targets Codex CLI. Optional `skills-ref` CLI for validation.
 metadata:
   author: baransu
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # Codex Skill Transfer
@@ -45,20 +45,19 @@ For inline (in-conversation) execution without the script — when the user want
 
 The transformation is layered; each reference owns one layer. Read the matching one for the work in front of you, not all three:
 
-- [`references/skill-mapping.md`](references/skill-mapping.md) — SKILL.md frontmatter + body rewrites. Covers the `disable-model-invocation` → `agents/openai.yaml` move, `$ARGUMENTS` → natural language, `` !`cmd` `` → imperative TODO, the `context: fork` three-paths decision, and tool-API rewrites. **This is the file to read for any per-skill question.**
-- [`references/plugin-mapping.md`](references/plugin-mapping.md) — `.claude-plugin/plugin.json` → `.codex-plugin/plugin.json`, plus agent-stub generation. Read when porting a whole plugin.
-- [`references/marketplace-mapping.md`](references/marketplace-mapping.md) — `.claude-plugin/marketplace.json` → `.agents/plugins/marketplace.json`. Read when the user wants to publish a marketplace catalog. Manual conversion only.
+- [`references/skill-mapping.md`](references/skill-mapping.md) — SKILL.md frontmatter + body rewrites. Covers `disable-model-invocation` → `agents/openai.yaml`, `$ARGUMENTS` → natural language, `` !`cmd` `` → imperative TODO, and tool-API rewrites. **Read this for any per-skill question.**
+- [`references/plugin-mapping.md`](references/plugin-mapping.md) — `.claude-plugin/plugin.json` → `.codex-plugin/plugin.json`. Read when porting a whole plugin.
+- [`references/agent-mapping.md`](references/agent-mapping.md) — Claude `context: fork` / `agent: ...` → Codex Subagents (`.codex/agents/*.toml`), and `agents/*.md` → `.codex-agents-templates/*.toml` stubs. Read whenever agents are involved at either layer. Co-locates per-skill rules with per-plugin stub generation so you don't bounce between files.
+- [`references/marketplace-mapping.md`](references/marketplace-mapping.md) — `.claude-plugin/marketplace.json` → `.agents/plugins/marketplace.json`. Manual conversion only.
 
 ## Step 4 — Produce output by copying golden templates
 
 All output shapes live in `assets/`. The script reads them; if you're working inline, copy them and fill the placeholders by hand. Each is a single file with `$placeholder` markers (Python `string.Template` syntax — `$name`, `$version`, etc.):
 
-- [`assets/codex-plugin.template.json`](assets/codex-plugin.template.json) — fills the `.codex-plugin/plugin.json` for a plugin that bundles skills (the common case)
-- [`assets/openai.template.yaml`](assets/openai.template.yaml) — fills `<skill>/agents/openai.yaml` when a skill needs `disable-model-invocation` ported (locks `policy.allow_implicit_invocation: false`)
-- [`assets/agent-stub.template.toml`](assets/agent-stub.template.toml) — fills `<output>/.codex-agents-templates/<name>.toml` for each Claude agent definition; the user reviews and copies into their own `~/.codex/agents/`
-- [`assets/codex-marketplace.template.json`](assets/codex-marketplace.template.json) — starting point for `.agents/plugins/marketplace.json` (manual, not used by the script)
+- [`assets/codex-plugin.template.json`](assets/codex-plugin.template.json) — canonical `.codex-plugin/plugin.json` shape for plugins that bundle skills. The script renders this template, prunes empty pass-through fields, and merges complex fields (`author`, `keywords`) from the translated manifest. Edit this file to change the canonical shape.
+- [`assets/codex-marketplace.template.json`](assets/codex-marketplace.template.json) — starting point for `.agents/plugins/marketplace.json` (manual, not used by the script).
 
-Editing the templates updates the output without touching the script. If the user wants the Codex output to look different (different `interface.category`, an extra field, a logo path), the template is the right place to make the change.
+The skill-level `<skill>/agents/openai.yaml` and the agent-stub TOML output are NOT templated — they're built directly via `yaml.safe_dump` and `json.dumps` so escape correctness is ironclad regardless of source content. Earlier versions templated them but had to retire that approach when v0.4.0 review found honor-system escape bugs (description containing `"`, agent body containing `"""`).
 
 ## Step 5 — Print a transfer report
 
@@ -102,16 +101,15 @@ The report is the point of friction-resolution: **每一條 dropped/manual revie
 codex-skill-transfer/
 ├── SKILL.md                              # this file
 ├── references/
-│   ├── skill-mapping.md                  # per-skill rules (most consultation lands here)
-│   ├── plugin-mapping.md                 # plugin manifest + agent stubs
+│   ├── skill-mapping.md                  # per-skill frontmatter + body rewrites
+│   ├── plugin-mapping.md                 # plugin manifest
+│   ├── agent-mapping.md                  # context: fork → Codex Subagents (both layers)
 │   └── marketplace-mapping.md            # marketplace catalog (manual only)
 ├── assets/
-│   ├── codex-plugin.template.json        # → output/.codex-plugin/plugin.json
-│   ├── openai.template.yaml              # → output/<skill>/agents/openai.yaml
-│   ├── agent-stub.template.toml          # → output/.codex-agents-templates/*.toml
+│   ├── codex-plugin.template.json        # canonical .codex-plugin/plugin.json shape
 │   └── codex-marketplace.template.json   # starter for manual marketplace conversion
 └── scripts/
     └── transfer.py                       # CLI entry; auto-detects mode
 ```
 
-Single Python file by design — the script's three responsibilities (skill-level, plugin-level, dispatch) share enough state that splitting would add `sys.path` ceremony with little reading benefit. baransu's other tooling scripts (`grade-collector.py`, `health_check.py`) follow the same single-file convention.
+Single Python file by design — baransu's other tooling scripts (`grade-collector.py`, `health_check.py`) follow the same single-file convention. Output *shapes* live in `assets/` for the plugin manifest layer; the safety-critical outputs (openai.yaml, agent-stub TOML) are built via standard library serializers (`yaml.safe_dump`, `json.dumps`) so escape correctness doesn't depend on template discipline.

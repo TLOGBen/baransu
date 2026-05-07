@@ -120,71 +120,9 @@ The intent is preserved (the model gets the same factual context); only the *who
 
 ### 5. The `context: fork` / `agent` problem
 
-`context: fork` runs the skill in a forked subagent with its own context window. Codex **does** have an equivalent — native Subagents at `.codex/agents/{name}.toml` — but the mapping crosses the skill-package boundary into the user's Codex configuration, so this skill cannot fully automate it. The user picks one of three paths:
+Codex **does** have an equivalent for forked subagents — native Subagents at `.codex/agents/{name}.toml` — but the mapping crosses the skill-package boundary into the user's Codex configuration. The transfer refuses to auto-port skills with `context: fork` and surfaces three viable Codex paths (native Subagents / skill chain / Codex-as-MCP).
 
-#### Path 1: Codex native Subagents (closest equivalent)
-
-Codex defines subagents as standalone TOML files at `~/.codex/agents/{name}.toml` (personal) or `.codex/agents/{name}.toml` (project). Required fields: `name`, `description`, `developer_instructions`. Optional: `model`, `model_reasoning_effort`, `sandbox_mode`, `mcp_servers`, `skills.config`, `nickname_candidates`. Three built-in agents ship by default: `default`, `worker`, `explorer`.
-
-Spawn semantics:
-- Explicit only — Codex never spawns a subagent without the parent telling it to.
-- Spawning is via natural-language instruction in the SKILL.md body (e.g. "Spawn a `worker` subagent to handle X"), not via frontmatter.
-- Multiple subagents run in parallel; Codex waits for all and consolidates.
-- Sandbox / approval inherits from the parent session (parent's runtime overrides take precedence over TOML defaults).
-- Global caps: `agents.max_threads = 6` and `agents.max_depth = 1` by default.
-
-Mapping table:
-
-| Claude SKILL.md frontmatter | Codex `.codex/agents/{name}.toml` |
-|--------|--------|
-| `context: fork` | (implicit — opening a TOML file *is* the fork) |
-| `agent: Explore` | `name = "explorer"` (built-in) or matching custom |
-| `agent: general-purpose` | `name = "default"` |
-| `agent: Plan` | custom TOML mirroring Plan agent's behavior |
-| `model: opus` | `model = "gpt-5.4"` (or current Codex equivalent) |
-| `effort: high` | `model_reasoning_effort = "high"` |
-| `allowed-tools: ...` | constrain via `mcp_servers = [...]` |
-
-Body rewrite for Path 1: replace whatever Claude-side prose describes the forked task with an explicit Codex spawn instruction:
-
-```markdown
-Spawn a `{agent_name}` subagent and pass it this task:
-{original SKILL.md body content describing the forked work}
-Wait for the subagent's result and use it as input for the next step.
-```
-
-Best for: heavy-IO forks (e.g. `/execute`'s impl-agent, `/triage`'s investigator-agent) where context isolation is the *reason* the original used `context: fork`.
-
-#### Path 2: Skill chain (lightweight)
-
-Split the original skill into two skills. The first skill ends with an instruction telling the model (or the user) to invoke the second skill via `$skill-name` mention or the `/skills` selector. No forking; both run in the same Codex thread, so context isn't isolated.
-
-Best for: short forked work where context pollution isn't a concern. The three perspective agents in `/baransu:review` (architecture / quality / security) might fit here — each is a few hundred tokens of guidance, and running in the same thread is acceptable.
-
-#### Path 3: Codex MCP server + OpenAI Agents SDK (heavy)
-
-Run `codex mcp-server` and orchestrate from external SDK code that uses `handoffs` between agents. Each agent can have its own git worktree for full isolation.
-
-Best for: programmatic, auditable pipelines (CI / cloud agents). Out of scope for typical baransu desktop usage.
-
-#### What the transfer does
-
-`codex-skill-transfer` **refuses to auto-port** skills with `context: fork` because:
-
-1. Path 1 needs `.codex/agents/{name}.toml` files written into the user's Codex config dir, which is outside the skill package's authority.
-2. Path 2 needs human judgment on whether context isolation matters.
-3. Path 3 is an entirely different system architecture.
-
-The transfer report explicitly names the three paths and lets the user choose. This is intentional — silent auto-conversion would either fabricate user-side config or pick the wrong isolation level.
-
-#### ⚠️ Naming-collision pitfall
-
-Codex uses `agents/` in two **different** places:
-
-- `agents/openai.yaml` *inside a skill package* — UI metadata + `policy` + MCP `dependencies`.
-- `.codex/agents/{name}.toml` *in the Codex config dir* — subagent definitions.
-
-These are unrelated. Translation rule §2 of this document writes the former when the source has `disable-model-invocation: true`; subagent porting (this section) is about the latter and deliberately does **not** auto-write to the user's config dir.
+For the full decision matrix, frontmatter mapping table, and body-rewrite pattern, see [`agent-mapping.md`](agent-mapping.md). That file owns this layer end-to-end so per-skill rules and per-plugin agent-stub generation stay co-located.
 
 ### 6. Tool / API references in the body
 
@@ -192,7 +130,7 @@ Skill bodies often mention Claude Code surface APIs:
 
 | Claude API | Codex equivalent or rewrite |
 |-----------|----------------------------|
-| `Task tool` (subagent dispatch) | "spawn a Codex subagent" — see §5 Path 1; or, if the user opted for skill chaining (Path 2), rewrite as `$skill-name` mention |
+| `Task tool` (subagent dispatch) | "spawn a Codex subagent" — see [`agent-mapping.md`](agent-mapping.md) Path 1; or, if user opted for skill chaining (Path 2), rewrite as `$skill-name` mention |
 | `AskUserQuestion` tool | "ask the user directly" |
 | `TodoWrite` tool | "track steps internally" or use Codex's own task system if mentioned |
 | `Skill tool` (calling another skill) | "invoke the related skill" — Codex supports skill-to-skill dispatch via `$skill-name` mention |
