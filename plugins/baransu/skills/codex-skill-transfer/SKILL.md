@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Designed for Claude Code; output targets Codex CLI. Optional `skills-ref` CLI for validation.
 metadata:
   author: baransu
-  version: "0.5.0"
+  version: "0.5.1"
 ---
 
 # Codex Skill Transfer
@@ -45,7 +45,7 @@ For inline (in-conversation) execution without the script — when the user want
 
 The transformation is layered; each reference owns one layer. Read the matching one for the work in front of you, not all three:
 
-- [`references/skill-mapping.md`](references/skill-mapping.md) — SKILL.md frontmatter + body rewrites. Covers `disable-model-invocation` → `agents/openai.yaml`, `$ARGUMENTS` → natural language, `` !`cmd` `` → imperative TODO, and tool-API rewrites. **Read this for any per-skill question.**
+- [`references/skill-mapping.md`](references/skill-mapping.md) — SKILL.md frontmatter + body rewrites. Covers `disable-model-invocation` → `agents/openai.yaml`, `$ARGUMENTS` → natural language, bang-backtick shell injection → imperative TODO, and tool-API rewrites. **Read this for any per-skill question.**
 - [`references/plugin-mapping.md`](references/plugin-mapping.md) — `.claude-plugin/plugin.json` → `.codex-plugin/plugin.json`. Read when porting a whole plugin.
 - [`references/agent-mapping.md`](references/agent-mapping.md) — Claude `context: fork` / `agent: ...` → Codex Subagents (`.codex/agents/*.toml`), and `agents/*.md` → `.codex-agents-templates/*.toml` stubs. Read whenever agents are involved at either layer. Co-locates per-skill rules with per-plugin stub generation so you don't bounce between files.
 - [`references/marketplace-mapping.md`](references/marketplace-mapping.md) — `.claude-plugin/marketplace.json` → `.agents/plugins/marketplace.json`. Manual conversion only.

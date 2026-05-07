@@ -83,14 +83,15 @@ When `arguments: [issue, branch]` is declared, prefer rewriting `$issue` → "th
 
 ### 4. The dynamic shell injection rewrite
 
-`` !`cmd` `` inline and ` ```! ... ``` ` blocks tell Claude Code to execute the command before the SKILL.md is sent to the model, then splice the output into the prompt. Codex has no equivalent.
+The bang-backtick inline form (an exclamation mark immediately followed by a backtick-wrapped command) and triple-backtick blocks beginning with an exclamation mark tell Claude Code to execute the command before the SKILL.md is sent to the model, then splice the output into the prompt. Codex has no equivalent.
 
 The rewrite shifts execution from "preprocessor" to "tool call inside the session." Two patterns:
 
-**Inline form:**
-```markdown
-Current branch: !`git branch --show-current`
+**Inline form** (literal source — bang directly followed by backtick-wrapped command):
 ```
+Current branch: <BANG><BACKTICK>git branch --show-current<BACKTICK>
+```
+(replace `<BANG>` with an exclamation mark and `<BACKTICK>` with a backtick character)
 →
 ```markdown
 Run `git branch --show-current` and treat the result as the current branch context.
