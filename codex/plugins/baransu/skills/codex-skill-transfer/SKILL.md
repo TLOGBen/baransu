@@ -12,7 +12,7 @@ description: Port Claude Code skills, plugins, or marketplace catalogs to OpenAI
 license: Apache-2.0
 metadata:
   author: baransu
-  version: 0.7.0
+  version: 0.7.1
 compatibility: Designed for Claude Code; output targets Codex CLI. Optional `skills-ref`
   CLI for validation.
 ---

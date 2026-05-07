@@ -146,36 +146,65 @@ test -f codex/plugins/<plugin-name>/.codex-plugin/plugin.json || echo "MISSING p
 
 ## 8. End-user install (the part you must document)
 
-A correctly converted marketplace is useless until users know how to install it. `codex plugin marketplace add` accepts:
+`codex plugin marketplace add` accepts:
 
 - `owner/repo[@ref]` (GitHub shorthand)
 - HTTP(S) Git URLs
 - SSH URLs
 - local marketplace root directories
 
-Plus options:
+Plus options: `--ref <REF>` (pin to branch/tag/commit), `--sparse <PATH>` (filter checkout — see below), `--enable / --disable` (feature flags), `-c key=value` (TOML override).
 
-- `--ref <REF>` — pin to a branch / tag / commit (recommended; main can drift)
-- `--sparse <PATH>` — treat `<PATH>` inside the cloned repo as the marketplace root
-- `--enable <FEATURE>` / `--disable <FEATURE>` — feature flag overrides
-- `-c key=value` — TOML config override
+`marketplace add` is the install — Codex has no separate `plugin install` subcommand.
 
-When the codex variant lives under `<repo>/codex/` (the baransu monorepo layout), `--sparse codex` is mandatory. Without it Codex looks for `.agents/plugins/marketplace.json` at the repo root, which doesn't exist.
+### Critical: where Codex looks for `marketplace.json`
 
-```bash
-# HTTPS, latest main
-codex plugin marketplace add https://example.com/owner/repo.git --sparse codex
+When the source is a git URL (or git shorthand), Codex clones into a staging dir and treats the **repo root** as the marketplace root. It then looks for:
 
-# Pinned to a tagged release (recommended for end users)
-codex plugin marketplace add https://example.com/owner/repo.git --sparse codex --ref v1.1.8
-
-# SSH (private hosts)
-codex plugin marketplace add git@example.com:owner/repo.git --sparse codex
-
-# GitHub shorthand
-codex plugin marketplace add owner/repo --sparse codex
-
-codex plugin install <plugin-name>
+```
+<staging-root>/.agents/plugins/marketplace.json
 ```
 
-Document this exactly in the consuming project's README. Don't expect users to discover `--sparse` from `codex plugin marketplace add --help`.
+`--sparse <PATH>` filters the checkout but does **NOT** rebase the marketplace root inside `<PATH>`. Empirically (Codex CLI as of 2026-05): even with `--sparse codex`, the staging dir still contains repo-root files, and Codex looks for the manifest at staging root, not at `staging/codex/`. So `--sparse <PATH>` alone is not enough to make a `<repo>/codex/.agents/plugins/marketplace.json` reachable via git install.
+
+### Two layouts that actually work
+
+**Layout A — marketplace at repo root (recommended for monorepo)**
+
+The published Claude+Codex monorepo keeps a Codex catalog at repo root pointing into the codex/ subtree:
+
+```
+<repo>/.agents/plugins/marketplace.json     ← Codex finds this on git clone
+└── plugins[].source.path: "./codex/plugins/<plugin-name>"
+
+<repo>/codex/plugins/<plugin-name>/.codex-plugin/plugin.json
+<repo>/codex/plugins/<plugin-name>/skills/...
+```
+
+End-user install: just `codex plugin marketplace add <git-url>` — no flags needed.
+
+**Layout B — marketplace inside the variant subtree (local-path or dedicated branch)**
+
+The codex/ subtree is also self-contained as its own marketplace root:
+
+```
+<repo>/codex/.agents/plugins/marketplace.json    ← local-path install
+<repo>/codex/plugins/<plugin-name>/.codex-plugin/plugin.json
+```
+
+End-user install: `codex plugin marketplace add /local/path/to/codex` (or push the codex/ subtree as a dedicated branch and use `--ref <branch>`).
+
+### What transfer.py emits
+
+`transfer.py` outputs Layout B inside `<output>/`. To support Layout A in a monorepo, **manually maintain a second catalog at repo root** (or write tooling that splits/promotes between the two — out of scope for this skill today).
+
+```bash
+# Layout A end-user install
+codex plugin marketplace add https://example.com/owner/repo.git
+codex plugin marketplace add https://example.com/owner/repo.git --ref v1.2.3   # pinned
+
+# Layout B end-user install (requires local clone or codex-only branch)
+codex plugin marketplace add /local/path/to/repo/codex
+```
+
+Document the chosen layout's exact incantation in the consuming project's README — `codex plugin marketplace add --help` does not describe these path conventions and `--sparse` does not do what its name suggests.
