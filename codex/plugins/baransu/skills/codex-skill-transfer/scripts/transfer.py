@@ -182,6 +182,36 @@ def translate_frontmatter(fm: dict, report: TransferReport) -> tuple[dict, dict 
         out[k] = fm[k]
         report.lossless.append(f"`{k}`")
 
+    # Codex enforces a 1024-char limit on `description`. Trim by stripping
+    # Claude-style trigger phrase sentences first (these are useless to Codex
+    # since Codex skills are command-invoked, not phrase-triggered); fall back
+    # to a hard cut at the last sentence boundary if still over budget.
+    desc = out["description"]
+    if len(desc) > 1024:
+        trimmed = re.sub(
+            r"\s*Trigger immediately when[^.]*\.",
+            "",
+            desc,
+        )
+        trimmed = re.sub(
+            r"\s*Also fires on the daily cron schedule[^.]*\.",
+            "",
+            trimmed,
+        )
+        trimmed = trimmed.strip()
+        if len(trimmed) > 1024:
+            cut = trimmed.rfind(".", 0, 1024)
+            if cut > 0:
+                trimmed = trimmed[: cut + 1]
+            else:
+                trimmed = trimmed[:1024]
+        if trimmed != desc:
+            out["description"] = trimmed
+            report.mapped.append(
+                f"`description` 從 {len(desc)} 字元縮到 {len(trimmed)} 字元 "
+                "(Codex 上限 1024；剝除 Claude 觸發片語)"
+            )
+
     for k in ("license", "metadata"):
         if k in fm:
             out[k] = fm[k]
@@ -592,16 +622,20 @@ def _toml_multiline(text: str) -> str:
 def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[TransferReport], dict]:
     """Plugin-mode entry point. Returns (skill_reports, plugin_summary).
 
-    The output_root is the *plugin* output directory (not its parent), so:
-      output_root/.codex-plugin/plugin.json
-      output_root/skills/<name>/...
-      output_root/.codex-agents-templates/*.toml
+    The output_root is the *marketplace root* (the dir containing `.agents/`),
+    not the plugin tree itself. Codex's marketplace schema requires the plugin
+    tree at `<marketplace-root>/plugins/<plugin-name>/`, so:
+      output_root/.agents/plugins/marketplace.json
+      output_root/plugins/<name>/.codex-plugin/plugin.json
+      output_root/plugins/<name>/skills/<skill>/...
+      output_root/plugins/<name>/.codex-agents-templates/*.toml
     """
     summary: dict = {
         "manifest_mapped": [],
         "manifest_dropped": [],
         "agent_stubs": 0,
         "skill_count": 0,
+        "plugin_name": "",
     }
 
     pj_path = plugin_root / ".claude-plugin" / "plugin.json"
@@ -616,14 +650,18 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
     codex_pj, mapped, dropped = translate_plugin_manifest(claude_pj, has_skills)
     summary["manifest_mapped"] = mapped
     summary["manifest_dropped"] = dropped
+    plugin_name = codex_pj["name"]
+    summary["plugin_name"] = plugin_name
 
-    # Clear and rewrite the entire plugin output (same rerun-correctness
-    # principle as transfer_one).
+    # Clear and rewrite the entire output (same rerun-correctness principle
+    # as transfer_one). output_root is the marketplace root.
     if output_root.exists():
         shutil.rmtree(output_root)
     output_root.mkdir(parents=True)
 
-    cp_dir = output_root / ".codex-plugin"
+    plugin_out = output_root / "plugins" / plugin_name
+    plugin_out.mkdir(parents=True)
+    cp_dir = plugin_out / ".codex-plugin"
     cp_dir.mkdir()
     # Render plugin.json against the golden template when the manifest's
     # shape fits the standard set (skills + the common pass-through fields).
@@ -673,7 +711,7 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
 
     skill_reports: list[TransferReport] = []
     if has_skills:
-        out_skills = output_root / "skills"
+        out_skills = plugin_out / "skills"
         out_skills.mkdir()
         for child in sorted(skills_dir.iterdir()):
             if not child.is_dir() or not (child / "SKILL.md").is_file():
@@ -683,11 +721,39 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
 
     agents_dir = plugin_root / "agents"
     if agents_dir.is_dir():
-        stub_dir = output_root / ".codex-agents-templates"
+        stub_dir = plugin_out / ".codex-agents-templates"
         stub_dir.mkdir()
         for md in sorted(agents_dir.glob("*.md")):
             emit_agent_stub(md, stub_dir / f"{md.stem}.toml")
             summary["agent_stubs"] += 1
+
+    # Marketplace catalog. See references/marketplace-mapping.md §3 for the
+    # required shape: source is an object, policy.installation +
+    # policy.authentication are required, category is required.
+    marketplace_dir = output_root / ".agents" / "plugins"
+    marketplace_dir.mkdir(parents=True)
+    marketplace = {
+        "name": plugin_name,
+        "interface": {
+            "displayName": codex_pj.get("interface", {}).get("displayName") or plugin_name,
+        },
+        "plugins": [
+            {
+                "name": plugin_name,
+                "source": {"source": "local", "path": f"./plugins/{plugin_name}"},
+                "policy": {
+                    "installation": "AVAILABLE",
+                    "authentication": "ON_INSTALL",
+                },
+                "category": "Productivity",
+            }
+        ],
+    }
+    (marketplace_dir / "marketplace.json").write_text(
+        json.dumps(marketplace, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    summary["marketplace_written"] = True
 
     return skill_reports, summary
 
@@ -746,7 +812,14 @@ def main(argv: list[str]) -> int:
                 f"- Agent stubs 已產出 {summary['agent_stubs']} 份至 "
                 f"`.codex-agents-templates/`（請人工檢視後複製至 `~/.codex/agents/`）"
             )
-        print(f"- Skills 處理：{summary['skill_count']} 個\n")
+        print(f"- Skills 處理：{summary['skill_count']} 個")
+        print(f"- 寫入 `.agents/plugins/marketplace.json` (marketplace 目錄結構：plugins/{summary['plugin_name']}/)")
+        print(
+            "- End-user install (記得寫進 README)：\n"
+            f"    `codex plugin marketplace add <git-url> --sparse {output_root.name} [--ref <tag>]`\n"
+            f"    `codex plugin install {summary['plugin_name']}`\n"
+            "    必須帶 `--sparse <output-dir>`，否則 Codex 會在 repo 根目錄找不到 `.agents/plugins/marketplace.json`。\n"
+        )
         reports = skill_reports
     else:
         output_root.mkdir(parents=True, exist_ok=True)

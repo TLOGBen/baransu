@@ -143,3 +143,39 @@ After writing, sanity-check:
 python3 -c "import json; json.load(open('codex/.agents/plugins/marketplace.json'))"
 test -f codex/plugins/<plugin-name>/.codex-plugin/plugin.json || echo "MISSING plugin tree under plugins/<name>/"
 ```
+
+## 8. End-user install (the part you must document)
+
+A correctly converted marketplace is useless until users know how to install it. `codex plugin marketplace add` accepts:
+
+- `owner/repo[@ref]` (GitHub shorthand)
+- HTTP(S) Git URLs
+- SSH URLs
+- local marketplace root directories
+
+Plus options:
+
+- `--ref <REF>` — pin to a branch / tag / commit (recommended; main can drift)
+- `--sparse <PATH>` — treat `<PATH>` inside the cloned repo as the marketplace root
+- `--enable <FEATURE>` / `--disable <FEATURE>` — feature flag overrides
+- `-c key=value` — TOML config override
+
+When the codex variant lives under `<repo>/codex/` (the baransu monorepo layout), `--sparse codex` is mandatory. Without it Codex looks for `.agents/plugins/marketplace.json` at the repo root, which doesn't exist.
+
+```bash
+# HTTPS, latest main
+codex plugin marketplace add https://example.com/owner/repo.git --sparse codex
+
+# Pinned to a tagged release (recommended for end users)
+codex plugin marketplace add https://example.com/owner/repo.git --sparse codex --ref v1.1.8
+
+# SSH (private hosts)
+codex plugin marketplace add git@example.com:owner/repo.git --sparse codex
+
+# GitHub shorthand
+codex plugin marketplace add owner/repo --sparse codex
+
+codex plugin install <plugin-name>
+```
+
+Document this exactly in the consuming project's README. Don't expect users to discover `--sparse` from `codex plugin marketplace add --help`.

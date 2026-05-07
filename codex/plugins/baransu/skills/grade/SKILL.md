@@ -1,15 +1,14 @@
 ---
 name: grade
-description: 'Score baransu skill telemetry on a deterministic 5-dimension equal-weight
-  rubric. Reads `.claude/harness/telemetry.jsonl` (only `terminal_state == completed`
+description: 'Score baransu skill telemetry along a deterministic 5-dimension equal-weight
+  rubric. Reads `.claude/harness/telemetry.jsonl` (only `terminal_state == "completed"`
   rows), invokes `plugins/baransu/scripts/grade-collector.py` to compute 5 baransu-native
   dimensions (outcome_quality, iteration_velocity, scope_blast, human_override_rate,
   failure_recurrence), writes per-row verdicts to `.claude/harness/grade.jsonl`, and
-  prints a `tune_review_due:
-  true` signal once cumulative completed rows ≥ 50. Stage 0 first runs an inline cron
-  silent-failure health check via `plugins/baransu/scripts/health_check.py` (warns
-  when `last_grade_run_at` is missing / null / older than 36h; always exits 0), then
-  invokes the harness-reaper to flip stale (>24h) `in_progress` rows to `interrupted`.
+  prints a `tune_review_due: true` signal once cumulative completed rows ≥ 50. Stage
+  0 first runs an inline cron silent-failure health check via `plugins/baransu/scripts/health_check.py`
+  (warns when `last_grade_run_at` is missing / null / older than 36h; always exits
+  0), then invokes the harness-reaper to flip stale (>24h) `in_progress` rows to `interrupted`.
   User-facing output is in Traditional Chinese (繁體中文).'
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:

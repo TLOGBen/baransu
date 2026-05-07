@@ -144,10 +144,34 @@ session 結束的清理與交付。
 
 ## 安裝
 
+### Claude Code
+
 ```
 /plugin marketplace add https://git.hy-tech.com.tw/ben.tsai/baransu.git
 /plugin install baransu@baransu
 ```
+
+### Codex CLI（衍生變體）
+
+Codex 變體放在 `codex/` 子樹，獨立於 Claude 本體。安裝時用 `--sparse codex` 把 marketplace root 鎖到 `codex/`：
+
+```bash
+# HTTPS
+codex plugin marketplace add https://git.hy-tech.com.tw/ben.tsai/baransu.git --sparse codex
+
+# SSH
+codex plugin marketplace add git@git.hy-tech.com.tw:ben.tsai/baransu.git --sparse codex
+
+# 釘特定版本（推薦，main 可能隨時動）
+codex plugin marketplace add https://git.hy-tech.com.tw/ben.tsai/baransu.git --sparse codex --ref v1.1.8
+
+codex plugin install baransu
+```
+
+注意：
+
+- Codex 版是 Claude 的單向衍生產物。Claude 端先動，再透過 `/codex-skill-transfer` 重生 codex/。不要直接編輯 codex/ 內檔案，會在下次轉換時被覆蓋。
+- Agent stubs 放在 `codex/plugins/baransu/.codex-agents-templates/`，install 不會自動寫進 `~/.codex/agents/`，你要用的 agent 自行複製過去。
 
 ---
 

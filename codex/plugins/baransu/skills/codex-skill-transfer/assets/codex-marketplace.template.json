@@ -1,14 +1,20 @@
 {
   "name": "$marketplace_name",
-  "owner": {
-    "name": "$owner_name",
-    "email": "$owner_email"
+  "interface": {
+    "displayName": "$marketplace_display_name"
   },
   "plugins": [
     {
       "name": "$plugin_name",
-      "description": "$plugin_description",
-      "source": "./plugins/$plugin_name"
+      "source": {
+        "source": "local",
+        "path": "./plugins/$plugin_name"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "$plugin_category"
     }
   ]
 }
