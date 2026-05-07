@@ -1,6 +1,6 @@
 ---
 name: design
-description: "UI/UX design spec generator. Three modes: gen (question-guided DESIGN.md generation), lint (structure and Kami invariant check), preset [name] (apply named preset wholesale). Triggers: '/baransu:design', '/design gen', '/design lint', '/design preset', '生成設計規格', '設計規格'."
+description: "Use When generating a UI/UX design spec or linting an existing DESIGN.md. Do Three modes — gen (guided DESIGN.md), lint (structure + Kami invariant check), preset <name>. Trigger On '/design', '生成設計規格', '設計規格'."
 argument-hint: "[lint | preset <name> | <description>]"
 user-invocable: true
 ---

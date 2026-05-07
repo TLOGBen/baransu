@@ -1,10 +1,7 @@
 ---
 name: learn
 description: >
-  Trigger /learn when the user wants to study, digest, or create a structured learning brief from any content.
-  Inputs: URL (web page, PDF, GitHub file), --topic "keyword" (academic paper search), slug (previously captured
-  material in .claude/read/material/{slug}/), or mixed (multiple URLs and/or slugs).
-  Produces a concise 5-column digest brief per source and optionally a full structured outline with filled notes.
+  Use When the user wants a structured learning brief from any content. Do Produce a 5-column digest brief per source plus an optional filled outline, from URLs / --topic / captured slugs / mixed. Trigger On '/learn', '研究主題', '整理筆記', '學一下'.
 argument-hint: "[URL... | --topic 'keyword' | slug... | mixed]"
 user-invocable: true
 ---

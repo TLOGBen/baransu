@@ -1,15 +1,11 @@
 ---
 name: triage
-description: Cluster `quality == "poor"` verdicts produced by `/grade`, score each
-  cluster on the same 5-dim baransu-native rubric, dispatch the read-only `investigator-agent`
-  for evidence collection, and write cluster rows into `.claude/harness/triage.jsonl`.
-  Trigger immediately when the user asks to「跑 triage」/「triage 一下昨天的 poor 」/「分流 poor
-  verdict」/「處理 poor verdict」/「對 grade.jsonl 聚類」or in English "run triage" / "cluster
-  poor verdicts" / "dispatch investigator". Also fires on the daily cron schedule
-  (00:00) inside the self-healing harness, immediately after `/grade`. `/triage` does
-  NOT score (that is `/grade`'s job) and does NOT directly edit code (the auto-fix
-  sub-flow at Stage 4 delegates code edits to `/dev`). User-facing output is in Traditional
-  Chinese (繁體中文).
+description: Use When clustering `quality == "poor"` rows from grade.jsonl and dispatching
+  the read-only investigator-agent (daily cron after /grade or on demand). Do Group
+  poor verdicts into stable clusters, score on the 5-dim rubric, attach evidence bundles,
+  write triage.jsonl — Stage 4 auto-fix delegates code edits to /dev. Trigger On 「跑
+  triage」「分流 poor verdict」「對 grade.jsonl 聚類」, "run triage", "cluster poor verdicts".
+  繁體中文輸出。
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex

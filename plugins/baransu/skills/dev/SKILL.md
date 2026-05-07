@@ -1,7 +1,7 @@
 ---
 name: dev
 description: >-
-  Small-task implementation with gate-enforced TDD. Trigger immediately when: (1) the user gives a casual go-ahead after issues or fixes have been identified — 「一起處理吧」「直接改」「去做」「幫我修」「好就這樣」「可以了」or any equivalent confirmation; (2) the user selects an option from a presented list of fixes or choices — "A - 2", "選 1", "Option 2", "第一個", or any short pick after options were shown; (3) a concrete task arrives directly or is handed off from /think with an approved plan; (4) scope is clear and fits one session. Builds a TaskCreate checklist upfront, executes Red→Green with hard gates, then passes to /baransu:review. Cosmetic-only changes (comments, dead imports, renames, formatting) skip Red/Green and go straight to review. User-facing output in Traditional Chinese (繁體中文).
+  Use When a small task with clear scope arrives directly or via /think handoff and is ready to implement in one session. Do Build a TaskCreate checklist, run hard Red→Green TDD gates, then hand off to /review. Trigger On 「一起處理吧」「直接改」「幫我修」「可以了」, option picks (「選 1」「A - 2」「第一個」), or /think approved-plan handoff. 繁體中文輸出。
 ---
 
 # dev — gate-enforced TDD for small tasks

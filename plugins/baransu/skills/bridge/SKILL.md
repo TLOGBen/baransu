@@ -1,6 +1,6 @@
 ---
 name: bridge
-description: Manually run a head-to-head shadow run between the current main HEAD of a baransu skill (v1) and the same skill on a target branch (v2). Use this skill whenever the user asks to「比較 skill 兩版本」, do a「shadow run」, run a「regression demo」, validate「bridge」replay, or in general A/B test two versions of a skill against historical prompts before promoting v2. The skill replays N completed prompts from telemetry on an isolated worktree, scores both versions with the same rubric, and gates on Δ ≥ 0.15. User-facing output is in Traditional Chinese (繁體中文).
+description: "Use When validating a baransu skill upgrade against historical telemetry before promotion. Do A/B-replay main HEAD (v1) vs target branch (v2) on the same rubric, gated on Δ ≥ 0.15. Trigger On '比較 skill 兩版本', 'shadow run', 'regression demo'. 繁體中文輸出。"
 ---
 
 # /bridge — head-to-head skill replay

@@ -1,6 +1,6 @@
 ---
 name: think
-description: Force a structured thinking & validation pass before writing ANY production code, scaffolding, or pseudo-code for a new feature, subsystem, architecture decision, library choice, refactor plan, or data-model change. Use this skill aggressively — whenever the user says things like "I want to build / add / implement / design / refactor / migrate / introduce / support X", "how should we structure Y", "which approach for Z", "add a new endpoint/service/module/skill/agent", "set up …", or any request that contains a design component — even when the user does NOT explicitly say "plan first". Also use when a bug fix turns out to hide a design decision (3+ substantively different fixes). The skill turns rough intent into a validated, approved plan in a fixed five-section schema; it never produces code itself. User-facing output is in Traditional Chinese (繁體中文).
+description: "Use When the user proposes any new feature, architecture decision, library choice, refactor plan, or data-model change — even without explicitly saying 'plan first'. Do Turn rough intent into a validated five-section approved plan; never produce code, scaffolding, or pseudo-code. Trigger On 'I want to build / add / implement / refactor / migrate X', 「怎麼設計」「哪種方法」, or any request with a design component. 繁體中文輸出。"
 ---
 
 # think — deliberate before you build

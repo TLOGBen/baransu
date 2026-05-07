@@ -132,7 +132,8 @@ Skill bodies often mention Claude Code surface APIs:
 | Claude API | Codex equivalent or rewrite |
 |-----------|----------------------------|
 | `Task tool` (subagent dispatch) | "spawn a Codex subagent" — see [`agent-mapping.md`](agent-mapping.md) Path 1; or, if user opted for skill chaining (Path 2), rewrite as `$skill-name` mention |
-| `AskUserQuestion` tool | "ask the user directly" |
+| `AskUserQuestion` tool | "ask the user directly" — Codex's `request_user_input` is **only available in Plan mode**, so do not map it as a drop-in. Default mode skills must ask in plain text. |
+| `EnterPlanMode` / `ExitPlanMode` tools | **No skill-callable equivalent in Codex.** In Claude Code these are model-callable, harness-managed; the skill can instruct the model to enter Plan Mode (subject to user approval). In Codex, `active mode` only changes when the developer/system/client message changes it — a skill cannot self-switch. Rewrite as a prompt-driven plan gate ("produce a plan and pause for confirmation before any edits"); if the skill genuinely needs Plan Mode, add a note that the runtime/client must enter Plan Mode externally before invocation. |
 | `TodoWrite` tool | "track steps internally" or use Codex's own task system if mentioned |
 | `Skill tool` (calling another skill) | "invoke the related skill" — Codex supports skill-to-skill dispatch via `$skill-name` mention |
 | `WebFetch` / `WebSearch` | Codex has its own browse tool; rephrase as "fetch the URL" / "search the web" |

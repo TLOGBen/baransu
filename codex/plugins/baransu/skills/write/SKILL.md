@@ -1,8 +1,9 @@
 ---
 name: write
-description: Bilingual writing assistant (zh/en). Accepts a language prefix or auto-detects
-  from content. Classifies input as Refine (existing text → Before/After with rule
-  annotations) or Generate (request prompt → finished piece with format/tone note).
+description: Use When the user wants bilingual zh/en writing help — refine existing
+  text or generate from a prompt. Do Auto-classify input as Refine (Before/After +
+  rule annotations) or Generate (finished piece with format/tone note); follow language
+  prefix or auto-detect. Trigger On '/write', '潤稿', '寫一篇', '改寫這段'.
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex

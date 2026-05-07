@@ -1,10 +1,8 @@
 ---
 name: analyze
-description: Goal-anchored spec builder for medium-to-large tasks. Expands a task
-  into five spec layers (goal → requirement → design → test → task) written to .claude/analyze/{date}-{slug}/.
-  Dispatches cross-layer subagents to validate alignment, auto-corrects once, then
-  hands off to execute. Use when a task spans ≥ 2 interdependent modules and context
-  rot is a real risk. User-facing output in Traditional Chinese (繁體中文).
+description: Use When task scope spans ≥2 interdependent modules and context rot is
+  real. Do Build a goal→requirement→design→test→task spec under .claude/analyze/,
+  then hand off to /execute. Trigger On '/analyze', '分析需求', '展開規格'. 繁體中文輸出。
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex

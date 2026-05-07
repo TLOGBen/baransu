@@ -1,9 +1,9 @@
 ---
 name: hunt
-description: 'Diagnose before you fix. Tracks a bug from symptom to root cause — selects
-  the right observability tool (playwright, MCP db query, LSP, bash logging, or static
-  analysis) for the relevant layer, bisects log output, and confirms or discards each
-  hypothesis before touching code.
+description: 'Use When tracking a bug from symptom to root cause before any fix. Do
+  Pick the right observability tool (playwright / MCP db / LSP / logs / static analysis),
+  bisect, confirm or discard hypotheses before touching code. Trigger On 「排查」「查 bug」「追問題」「為什麼失敗」,
+  ''debug'', "what''s wrong", ''not working''.
 
   '
 metadata:

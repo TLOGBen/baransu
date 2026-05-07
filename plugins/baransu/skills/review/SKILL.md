@@ -1,7 +1,7 @@
 ---
 name: review
 description: >-
-  Independent multi-perspective re-verification of any model output — code diff, file set, directory, /think's approved plan, a bare claim. Dispatches isolated perspective agents (architecture / quality / security) in clean Task contexts to surface hallucinations, drift, over-engineering, and unnecessary complexity. Findings flow through a four-level response — direct fix for cosmetic stuff, packaged confirm for non-semantic, ask user for judgement, FYI for the rest. Balance check is mandatory on every new-work proposal. Code targets need e2e-run evidence; without it, not finished. Trigger immediately when: the user says 「看一下」「看看」「幫我看」「check 一下」「review 一下」「那邊也看一下」or any casual "take a look at X" phrasing pointing at a file, skill, or area; a model has just declared something done after a long-running or multi-turn session; the user wants a surgical second opinion on a prior actor's work. User-facing output is in Traditional Chinese (繁體中文).
+  Use When the user wants an independent second opinion on a model's output, or after a model declares something done. Do Dispatch isolated architecture / quality / security perspective agents in clean Task contexts, surfacing hallucinations, drift, and over-engineering. Trigger On 「看一下」「看看」「幫我看」「check 一下」「review 一下」, or casual "take a look at X". 繁體中文輸出。
 ---
 
 # review — cross-perspective re-verification

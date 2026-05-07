@@ -1,6 +1,6 @@
 ---
 name: ship
-description: Session cleanup — archives .claude/tmp/, .claude/analyze/, .claude/execute/, .claude/think/, .claude/dev/ to .claude/archived/, commits all pending changes, pushes to origin, and removes the current git worktree if running inside one.
+description: Use When wrapping up a session and pushing pending changes. Do Archive .claude/{tmp,analyze,execute,think,dev}/ to .claude/archived/, commit and push, optionally remove the current worktree. Trigger On '/ship', '收工', '上傳收尾', '結束這輪'.
 ---
 
 # /baransu:ship — session cleanup

@@ -1,6 +1,6 @@
 ---
 name: execute
-description: "TDAID orchestration engine for medium-to-large tasks built from /analyze spec. Reads a spec directory, builds a dependency DAG, drives each task group through Summarize→Impl→Review TDAID loops via subagents, runs E2E and Final-Review, and writes final-report.md. Triggers: '/baransu:execute', 'execute the plan', 'run the spec', 'implement the analyze result', '開始執行', '跑 execute', '依照 analyze 執行'."
+description: "Use When implementing a medium-to-large /analyze spec end-to-end. Do TDAID orchestrator: reads the spec, drives Summarize→Impl→Review loops via subagents, runs E2E + Final-Review, writes final-report.md. Trigger On '/execute', '開始執行', '跑 execute', '依照 analyze 執行'."
 argument-hint: "<spec-dir-path>"
 user-invocable: true
 ---

@@ -1,12 +1,9 @@
 ---
 name: read
-description: 'Trigger /read when the user wants to capture, archive, or convert any
-  content to offline-readable Markdown. Inputs: URL (web page, PDF, GitHub file),
-  local file path, glob pattern (e.g. ./docs/*.pdf), --chrome (active Chrome tab),
-  --clipboard (clipboard text), --topic "keyword" (academic paper search). Saves raw
-  original to .claude/read/raw/{slug}/ and converted Markdown to .claude/read/material/{slug}/index.md.
-  Supports markitdown auto-install, WSL2/Linux/macOS/Windows, Chrome soft dependency
-  (degraded mode if unavailable).
+description: 'Use When the user wants to archive any content as offline-readable Markdown.
+  Do Capture and convert URL / path / glob / --chrome / --clipboard / --topic / --web
+  / --gh / --x to .claude/read/. Trigger On ''/read'', ''存下來'', ''抓網頁'', ''轉成 markdown'',
+  ''存檔''.
 
   '
 compatibility: Designed for Claude Code; ported to Codex.
