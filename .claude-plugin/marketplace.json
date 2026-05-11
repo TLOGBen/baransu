@@ -12,7 +12,7 @@
     {
       "name": "baransu",
       "source": "./plugins/baransu",
-      "description": "バランス — deliberate before executing, verify after. 15 governance skills covering the full dev lifecycle.",
+      "description": "バランス — deliberate before executing, verify after. 16 governance skills covering the full dev lifecycle.",
       "category": "governance",
       "tags": ["governance", "think", "review", "dev", "tdd", "design", "book", "learn", "read", "write", "execute", "ship"]
     }
