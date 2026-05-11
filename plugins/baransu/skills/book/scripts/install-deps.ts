@@ -51,22 +51,29 @@ if (markitdownOk) {
   console.log("markitdown OK");
 }
 
-// ── browser-use ─────────────────────────────────────────────────────────────
-const browserUseOk = check("browser-use", ["--version"]);
-if (browserUseOk) {
-  console.log("browser-use OK");
+// ── Playwright (headless Chromium for Stage 4 visual verification) ──────────
+// Why Playwright (not browser-use): browser-use's headless Chromium silently
+// fails on file:// URLs (DOM stays empty even when readyState=complete).
+// Playwright handles file:// correctly and is the project-standard E2E driver.
+const playwrightOk = check("python3", ["-c", "import playwright"]);
+if (playwrightOk) {
+  console.log("playwright OK");
 } else {
-  console.error("browser-use not found, installing...");
-  install("browser-use. Run manually: pip install browser-use", [
-    ["python3", ["-m", "pip", "install", "browser-use"]],
-    ["pip3", ["install", "browser-use"]],
-    ["pipx", ["install", "browser-use"]],
+  console.error("playwright not found, installing...");
+  install("playwright (python). Run manually: pip install playwright && playwright install chromium", [
+    ["python3", ["-m", "pip", "install", "playwright"]],
+    ["pip3", ["install", "playwright"]],
   ]);
-  if (!check("browser-use", ["--version"])) {
-    console.error("Error: browser-use still not available after install.");
+  if (!check("python3", ["-c", "import playwright"])) {
+    console.error("Error: playwright still not importable after install.");
     process.exit(1);
   }
-  console.log("browser-use OK");
+  // Ensure Chromium browser binary is present (idempotent: skips when already installed)
+  install("playwright chromium browser. Run manually: playwright install chromium", [
+    ["python3", ["-m", "playwright", "install", "chromium"]],
+    ["playwright", ["install", "chromium"]],
+  ]);
+  console.log("playwright OK");
 }
 
 // ── WeasyPrint (pdf | all) ───────────────────────────────────────────────────

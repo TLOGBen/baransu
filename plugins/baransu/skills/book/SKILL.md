@@ -416,37 +416,29 @@ Exit codes:
   - If the gate fails a second time: output 「品質閘第二次失敗，請手動開啟 .claude/book/{$SLUG}.html 確認問題。」 and stop.
 - `2` (usage error): script invocation was wrong — fix and re-run
 
-### 2. Visual render verification (browser-use)
+### 2. Visual render verification (Playwright)
 
-After GATE PASS, verify layout with `browser-use` (guaranteed installed by Stage 0):
+After GATE PASS, render the HTML in headless Chromium via the bundled helper (Playwright is guaranteed installed by Stage 0). One invocation produces both the preview screenshot and a JSON probe of structural elements:
 
 ```bash
-# Get absolute path
-ABS_PATH=$(realpath ".claude/book/{$SLUG}.html")
+PROBE=$(python3 "$CLAUDE_SKILL_DIR/scripts/verify-render.py" \
+  ".claude/book/{$SLUG}.html" \
+  ".claude/book/{$SLUG}-preview.png")
+echo "$PROBE"
+```
 
-# Open in headless browser
-browser-use open "file://$ABS_PATH"
-
-# Full-page screenshot → saved as preview
-browser-use screenshot ".claude/book/{$SLUG}-preview.png" --full
-
-# Check horizontal overflow (跑版)
-OVERFLOW=$(browser-use eval "document.documentElement.scrollWidth > window.innerWidth")
-
-# Verify key structural elements exist
-HAS_PAPER=$(browser-use eval "!!document.querySelector('.paper')")
-HAS_H1=$(browser-use eval "!!document.querySelector('h1')")
-HAS_H2=$(browser-use eval "!!document.querySelector('h2')")
-
-# Close session
-browser-use close
+`$PROBE` is a single-line JSON like:
+```json
+{"overflow": false, "has_paper": true, "has_h1": true, "has_h2": true, "svg_count": 3, "title": "…"}
 ```
 
 Interpret results:
-- If `OVERFLOW` is `true`: output 「⚠ 跑版偵測：有橫向溢出，請開啟 .claude/book/{$SLUG}-preview.png 手動確認。」
-- If `HAS_PAPER`, `HAS_H1`, or `HAS_H2` is `false`: output 「⚠ 結構元素缺失：{element} 未出現在頁面中。」
-- If `browser-use open` fails (e.g. daemon error): output 「⚠ 視覺驗證無法執行，請手動開啟 .claude/book/{$SLUG}.html。」 and continue to completion report.
+- If `overflow` is `true`: output 「⚠ 跑版偵測：有橫向溢出，請開啟 .claude/book/{$SLUG}-preview.png 手動確認。」
+- If `has_paper`, `has_h1`, or `has_h2` is `false`: output 「⚠ 結構元素缺失：{element} 未出現在頁面中。」
+- If the script exits non-zero (Playwright launch / navigation failure): output 「⚠ 視覺驗證無法執行，請手動開啟 .claude/book/{$SLUG}.html。」 and continue to completion report.
 - If all checks pass: output 「✅ 視覺驗證通過」
+
+> Why Playwright (not browser-use): browser-use's headless Chromium silently fails to load `file://` URLs (readyState reports complete but the DOM stays empty). Playwright handles `file://` correctly and is the project-standard E2E driver.
 
 ### 3. Completion report
 
@@ -467,7 +459,7 @@ SVG 圖解：{N} 張
 > - HTML 行**必有**（所有 format 皆輸出 HTML）
 > - PDF 行：僅 `--format pdf` 或 `--format all` 時出現
 > - PPT 行：僅 `--format ppt` 或 `--format all` 時出現；PPTX 生成失敗時改為「PPT：失敗（詳見上方錯誤）」
-> - 預覽截圖（PNG）：永遠出現（browser-use 截圖在 Stage 4 §2 執行）
+> - 預覽截圖（PNG）：永遠出現（Playwright 截圖在 Stage 4 §2 執行）
 > - 不在 Stage 4 重新推導 `$SLUG`；繼承 Stage 2A §4 推導的值
 
 ---
