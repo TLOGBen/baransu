@@ -10,7 +10,7 @@ example: null
 
 ## Layout conventions
 
-- Layer 3 derived token：`entity-key` = `--brand-tint`（v1 ground truth `#EEF2F7`），`entity-attr` = `--parchment`（v1 ground truth `#faf9f5`）；皆預計算為 solid hex，不出現 `rgba(`，參見 `references/design-token-resolver.md`。
+- Layer 3 derived token：`entity-key` = `--brand-tint`（v1 ground truth `#EEF2F7`），`entity-attr` = `--parchment`（v1 ground truth `#faf9f5`）；皆預計算為 solid hex，不得出現 alpha-channel CSS 函式形式，參見 `references/design-token-resolver.md`。
 - 每個 entity 為兩段式 box：**header** = type tag（`ENTITY`）+ entity 名（`--font-sans`），底色走 `entity-key`；**body** = field list（`--font-mono`，每行一個），底色走 `entity-attr`；PK 前綴 `#`，FK 前綴 `→`。
 - Relationship 為 entity 之間的線，**兩端各標 cardinality**（`1` / `N` / `0..1` / `1..*`），`--font-mono` 8px，距 entity 邊 10–12px；可選的關係 label（"has"、"belongs to"）置於線中央。
 - 相關 entity 群聚靠近，rearrange 直到大多數 relationship 為直線（不糾結）；`--brand` 只用在 aggregate root 或模型的中心 entity，一張圖一個。

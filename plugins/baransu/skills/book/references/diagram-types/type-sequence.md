@@ -10,7 +10,7 @@ example: null
 
 ## Layout conventions
 
-- Layer 3 derived token：`lifeline-color` 由 `--ink @ 0.30` 預計算為 solid hex（v1 ground truth `#b6b5af`），不出現 `rgba(`；計算方式參見 `references/design-token-resolver.md`。
+- Layer 3 derived token：`lifeline-color` 由 `--ink @ 0.30` 預計算為 solid hex（v1 ground truth `#b6b5af`），不得出現 alpha-channel CSS 函式形式；計算方式參見 `references/design-token-resolver.md`。
 - Actor 為頂端水平排列的 box；每個 actor 下垂一條 dashed vertical line 作 lifeline，stroke 走上述 `lifeline-color`，stroke-width=1、stroke-dasharray="3,3" 固定。
 - Message 為 lifeline 之間的 horizontal arrow，**時間 top→down**；activation bar 為 lifeline 上窄 rect（`w=8`，`--ink @ 0.06` fill，0.8 hairline stroke），跨越該 actor 持有控制權的區間，巢狀呼叫往內堆疊。
 - Self-message 用 U 型短 loop 回到同一條 lifeline，label 放 loop 右側；return message 用 dashed line，**顏色同發起該 call 的線**。

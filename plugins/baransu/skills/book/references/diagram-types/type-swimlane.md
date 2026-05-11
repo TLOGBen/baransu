@@ -10,7 +10,7 @@ example: null
 
 ## Layout conventions
 
-- Layer 3 derived token：`lane-A` = `--ink @ 0.08`、`lane-B` = `--ink @ 0.04`、`lane-C` = `--ink @ 0.02`（v1 ground truth 分別為 `#ebeae5` / `#f3f1ec` / `#f6f5f0`），預計算為 solid hex，不出現 `rgba(`；參見 `references/design-token-resolver.md`。
+- Layer 3 derived token：`lane-A` = `--ink @ 0.08`、`lane-B` = `--ink @ 0.04`、`lane-C` = `--ink @ 0.02`（v1 ground truth 分別為 `#ebeae5` / `#f3f1ec` / `#f6f5f0`），預計算為 solid hex，不得出現 alpha-channel CSS 函式形式；參見 `references/design-token-resolver.md`。
 - Horizontal lane（或 vertical column）一個 actor / team 一條；lane 底色循環 `lane-A` / `lane-B` / `lane-C` 區分；lane label 在左 margin（或頂部）以 `--font-mono` eyebrow 標示。
 - Lane divider 為 1px hairline；process step 為 rect，**只能放在執行該 step 的 actor 所屬 lane 內**；step 間以 arrow 連接表流向。
 - Handoff（跨 lane 邊界的 arrow）是 swimlane 圖最重要的邊；`--brand` 留給導致最大耦合或延遲的那一個 handoff，一張圖一個；不要強迫每個 lane 步數相等，一 lane 一個 step 也可以。

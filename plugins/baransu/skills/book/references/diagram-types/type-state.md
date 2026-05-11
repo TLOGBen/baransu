@@ -10,7 +10,7 @@ example: null
 
 ## Layout conventions
 
-- Layer 3 derived token：`state-active` = `--brand`（v1 ground truth `#1B365D`），`state-inactive` = `--ink @ 0.05`（v1 ground truth `#f1f0eb`）；皆預計算為 solid hex，不出現 `rgba(`，參見 `references/design-token-resolver.md`。
+- Layer 3 derived token：`state-active` = `--brand`（v1 ground truth `#1B365D`），`state-inactive` = `--ink @ 0.05`（v1 ground truth `#f1f0eb`）；皆預計算為 solid hex，不得出現 alpha-channel CSS 函式形式，參見 `references/design-token-resolver.md`。
 - State 為 rounded rectangle（`rx=8`），label 用 `--font-sans`；start = filled `--ink` dot（`r=6`），end = ringed dot（外 `r=8` outline、內 filled `r=5`）。
 - Transition 為 curved arrow，label 用 `--font-mono`，格式 `event [guard] / action`，不需要的欄位省略；self-loop 從 state 上方繞回。
 - 主流方向沿 left→right 或 top→down 對齊；rearrange 直到 transition 不交叉，再考慮繪製。
