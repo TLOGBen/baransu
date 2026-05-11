@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="{{LANG}}">
+<!--
+  golden-template.html — book skill reference template (v1)
+  Design system: Kami (see references/design-token-resolver.md Layer 2)
+  Purpose: Show-by-example the structure, tokens, and SVG style that
+           every book output must follow. Agent reads this before generating.
+
+  Token source: project root DESIGN.md (Layer 1) →
+                design-token-resolver.md Layer 2 (Kami preset, 16 tokens) →
+                per-type derived rules (Layer 3, for sequence/state/swimlane/er).
+  All token values rendered to SVG/CSS MUST be solid hex (`^#[0-9a-fA-F]{3,8}$`);
+  `rgba(` MUST NOT appear in any rendered output (Kami invariant #8).
+
+  TEMPLATE SLOTS (replace when generating):
+    {{LANG}}          → zh-TW or en
+    {{TITLE}}         → document title
+    {{KICKER}}        → 2–4 word category label (e.g. "Agent 協作方式")
+    {{SUBTITLE}}      → one-sentence summary
+    {{SOURCE_URL}}    → original source URL
+    {{CAPTURED_AT}}   → ISO 8601 date
+    {{TOC_ITEMS}}     → <a href="#s1">...</a> list of section links
+    {{SECTIONS}}      → rendered <section id="sN"> blocks
+    {{FOOTER_LABEL}}  → e.g. "整理自 @author · Original Title"
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{TITLE}}</title>
+<style>
+  /* ── Kami design tokens (Layer 2 — 16 tokens, all solid hex) ──
+     Source of truth: references/design-token-resolver.md §Layer 2.
+     If project root DESIGN.md exists and its §Color Palette table
+     defines the same names with valid hex values, those override
+     these defaults (per-token soft override). */
+  :root {
+    --parchment:         #f5f4ed;  /* primary background */
+    --ivory:             #faf9f5;  /* card / panel surface */
+    --warm-sand:         #e8e6dc;  /* button / interactive surface */
+    --dark-surface:      #30302e;  /* dark container */
+    --deep-dark:         #141413;  /* dark page background */
+    --brand:             #1B365D;  /* accent / focal stroke */
+    --brand-light:       #2D5A8A;  /* link on dark surface */
+    --near-black:        #141413;  /* primary text */
+    --dark-warm:         #3d3d3a;  /* secondary text */
+    --olive:             #504e49;  /* subtext / muted ink */
+    --stone:             #6b6a64;  /* tertiary text / metadata */
+    --charcoal:          #4d4c48;  /* dark muted text */
+    --border:            #e8e6dc;  /* primary border */
+    --border-soft:       #e5e3d8;  /* secondary border */
+    --brand-tint:        #EEF2F7;  /* tag background, lightest */
+    --brand-tint-strong: #E4ECF5;  /* tag background, standard */
+    /* Aliases for legacy class hooks (do NOT use in SVG attributes;
+       SVG attributes must reference solid hex via the resolver). */
+    --line:              #e5e3d8;
+    --hover:             #e8e6dc;
+    --accent-bg:         #EEF2F7;  /* solid-hex equivalent of brand@7%-on-paper */
+    --warm-bg:           #f1ece4;  /* solid-hex equivalent of warm@8%-on-paper */
+    --warn-border:       #b05c28;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--parchment);
+    font-family: 'TsangerJinKai02','Noto Serif TC','Source Han Serif TC',
+                 Charter, Georgia, 'Palatino Linotype', serif;
+    color: var(--near-black);
+    line-height: 1.75;
+    font-size: 16px;
+  }
+
+  /* ── Paper sheet ── */
+  .paper {
+    background: var(--ivory);
+    max-width: 760px;
+    margin: 40px auto 80px;
+    padding: 64px 72px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08), 0 12px 40px rgba(0,0,0,.06);
+    border-radius: 2px;
+    position: relative;
+  }
+  /* Left rule — Kami invariant */
+  .paper::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 52px;
+    width: 1px; height: 100%;
+    background: var(--border-soft);
+  }
+
+  /* ── Sticky TOC sidebar ── */
+  .toc-wrap {
+    position: fixed;
+    top: 48px;
+    left: calc(50% - 380px - 200px);
+    width: 180px;
+    display: none;
+  }
+  @media (min-width: 1160px) { .toc-wrap { display: block; } }
+  .toc-wrap h3 {
+    font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--stone); margin-bottom: 10px; font-family: sans-serif;
+  }
+  .toc-wrap a {
+    display: block; padding: 3px 0 3px 8px;
+    font-size: 12.5px; line-height: 1.55;
+    font-family: sans-serif; text-decoration: none;
+    color: var(--olive);
+    border-left: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+  }
+  .toc-wrap a:hover, .toc-wrap a.active {
+    color: var(--brand); border-left-color: var(--brand);
+  }
+
+  /* ── Header ── */
+  .kicker {
+    font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--brand); margin-bottom: 14px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+  }
+  h1 {
+    font-size: 28px; font-weight: 700; line-height: 1.25;
+    letter-spacing: -.01em; margin-bottom: 12px;
+  }
+  .subtitle {
+    font-size: 15.5px; color: var(--dark-warm);
+    margin-bottom: 32px; padding-bottom: 32px;
+    border-bottom: 1px solid var(--line);
+  }
+  .meta {
+    display: block; margin-top: 6px;
+    font-size: 12px; color: var(--stone);
+    font-family: sans-serif;
+  }
+
+  /* ── Sections ── */
+  section { margin-bottom: 52px; }
+  section:last-of-type { margin-bottom: 0; }
+
+  h2 {
+    font-size: 18px; font-weight: 700;
+    margin-bottom: 16px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .sec-num {
+    font-size: 10px; font-weight: 600; letter-spacing: .08em;
+    font-family: sans-serif;
+    color: var(--brand); background: var(--accent-bg);
+    padding: 2px 8px; border-radius: 20px; flex-shrink: 0;
+  }
+
+  p { margin-bottom: 14px; }
+  p:last-child { margin-bottom: 0; }
+  strong { font-weight: 700; }
+
+  /* ── Callout variants ── */
+  .callout {
+    background: var(--accent-bg);
+    border-left: 3px solid var(--brand);
+    padding: 14px 18px; margin: 20px 0;
+    font-size: 14.5px;
+    border-radius: 0 4px 4px 0;
+  }
+  .callout.warm {
+    background: var(--warm-bg);
+    border-left-color: var(--warn-border);
+  }
+
+  /* ── SVG figures ── */
+  figure.diagram {
+    margin: 28px 0; text-align: center;
+  }
+  figure.diagram figcaption {
+    font-size: 12px; color: var(--stone);
+    margin-top: 8px; font-style: italic;
+    font-family: sans-serif;
+  }
+  svg { display: block; margin: 0 auto; max-width: 100%; }
+
+  /* ── Comparison table ── */
+  table.cmp {
+    width: 100%; border-collapse: collapse;
+    font-size: 14px; margin: 20px 0;
+  }
+  table.cmp th {
+    padding: 8px 14px; text-align: left;
+    font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+    font-family: sans-serif;
+    background: var(--hover); color: var(--olive);
+  }
+  table.cmp td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  table.cmp tr:last-child td { border-bottom: none; }
+  .badge {
+    display: inline-block; font-size: 10px; letter-spacing: .04em;
+    padding: 1px 7px; border-radius: 3px; vertical-align: middle; margin-left: 4px;
+    font-family: sans-serif;
+  }
+  .badge.yes { background: var(--accent-bg); color: var(--brand); }
+  .badge.no  { background: var(--hover); color: var(--stone); }
+
+  /* ── Card grid ── */
+  .card-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 20px 0;
+  }
+  .card {
+    border: 1px solid var(--line); border-radius: 6px;
+    padding: 16px 18px;
+    transition: box-shadow .15s, transform .15s;
+  }
+  .card:hover {
+    box-shadow: 0 4px 12px rgba(20,20,19,0.10);
+    transform: translateY(-1px);
+  }
+  .card h3 {
+    font-size: 13px; font-weight: 700; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .card p { font-size: 13px; color: var(--dark-warm); margin: 0; }
+  .card .icon {
+    width: 22px; height: 22px; border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; flex-shrink: 0;
+    background: var(--accent-bg); color: var(--brand);
+  }
+
+  /* ── Footer ── */
+  footer {
+    margin-top: 52px; padding-top: 24px;
+    border-top: 1px solid var(--line);
+    font-size: 12px; color: var(--stone);
+    font-family: sans-serif;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    .paper { padding: 40px 28px; margin: 0; border-radius: 0; }
+    .paper::before { left: 20px; }
+    .card-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOC sidebar (auto-populated) -->
+<nav class="toc-wrap" id="toc">
+  <h3>目錄</h3>
+  {{TOC_ITEMS}}
+</nav>
+
+<article class="paper">
+
+  <header>
+    <p class="kicker">{{KICKER}}</p>
+    <h1>{{TITLE}}</h1>
+    <p class="subtitle">
+      {{SUBTITLE}}
+      <span class="meta">來源：<a href="{{SOURCE_URL}}">{{SOURCE_URL}}</a> · {{CAPTURED_AT}}</span>
+    </p>
+  </header>
+
+  {{SECTIONS}}
+
+  <!-- =====================================================================
+       PATTERN: SVG primitives reference (architecture, 3-node)
+       USE:     Copy this <figure> as the starting template for any
+                Architecture diagram. Replace nodes/edges with your content;
+                keep the <defs>, paper-mask, type-tag and legend strip
+                exactly as shown.
+       Spec:    REQ-001 (marker / two-layer paper-mask / type tag / legend)
+       ===================================================================== -->
+  <figure class="diagram">
+    <svg viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="SVG primitives reference">
+      <defs>
+
+        <!-- OPTIONAL: dot-pattern overlay. Default OFF. Uncomment the
+             <pattern> below AND the second <rect> in the paper-mask
+             section to enable. opacity=0.55 is the v1 reference value. -->
+        <!--
+        <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+          <circle cx="1" cy="1" r="0.9" fill="#e3e2dc"/>
+        </pattern>
+        -->
+
+        <!-- PATTERN: marker (arrow heads)
+             USE:     Reference via marker-end="url(#arrow…)" on any
+                      <line>/<path>. Never hand-draw chevron paths.
+             Three variants:
+               #arrow         — default / generic / internal (muted ink)
+               #arrow-accent  — focal / primary flow (brand)
+               #arrow-link    — external / HTTP / API (brand-light) -->
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="var(--olive)"/>
+        </marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="var(--brand)"/>
+        </marker>
+        <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="var(--brand-light)"/>
+        </marker>
+
+      </defs>
+
+      <!-- PATTERN: two-layer paper-mask
+           USE:     Always render Layer 1 as the FIRST visual child of the SVG
+                    (after <defs>). Layer 2 is optional; default OFF.
+           Layer 1: full-bleed rect, fill = resolved paper-token (solid hex).
+                    Hex here mirrors --parchment (#f5f4ed) — token resolver
+                    pre-flattens to solid hex so GATE-B / EC-12b stay green. -->
+      <rect width="100%" height="100%" fill="#f5f4ed"/>
+      <!-- Layer 2 (dotted overlay) — disabled by default; uncomment to enable
+           together with the <pattern id="dots"> above.
+      <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
+      -->
+
+      <!-- =================================================================
+           EDGES — draw before nodes so node rects mask edge tails cleanly.
+           ================================================================= -->
+
+      <!-- External user → CDN (HTTP/API, link-blue marker) -->
+      <line x1="200" y1="220" x2="276" y2="220"
+            stroke="#2D5A8A" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+      <text x="238" y="212" fill="#2D5A8A" font-size="8"
+            font-family="'Geist Mono', ui-monospace, monospace"
+            text-anchor="middle" letter-spacing="0.06em">HTTPS</text>
+
+      <!-- CDN → API (default internal arrow) -->
+      <line x1="404" y1="220" x2="480" y2="220"
+            stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <!-- API → DB (focal / primary flow, accent marker) -->
+      <line x1="676" y1="220" x2="760" y2="220"
+            stroke="#1B365D" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+      <text x="718" y="212" fill="#1B365D" font-size="8"
+            font-family="'Geist Mono', ui-monospace, monospace"
+            text-anchor="middle" letter-spacing="0.06em">QUERY</text>
+
+      <!-- =================================================================
+           NODES — three width tiers (80 / 144 / 200) shown across the row.
+           Each node: opaque paper rect (for arrow masking) + styled rect +
+           type tag (top-left, 7px Geist Mono uppercase, 0.8 stroke) + label.
+           ================================================================= -->
+
+      <!-- ── External / User (80 wide, tier-1) ── -->
+      <rect x="120" y="186" width="80" height="68" rx="6" fill="#f5f4ed"/>
+      <rect x="120" y="186" width="80" height="68" rx="6"
+            fill="#ebeae5" stroke="#6b6a64" stroke-width="1"/>
+      <rect x="128" y="192" width="26" height="12" rx="2"
+            fill="transparent" stroke="#6b6a64" stroke-width="0.8"/>
+      <text x="141" y="201" fill="#6b6a64" font-size="7"
+            font-family="'Geist Mono', ui-monospace, monospace"
+            text-anchor="middle" letter-spacing="0.08em">EXT</text>
+      <text x="160" y="226" fill="#141413" font-size="12" font-weight="600"
+            font-family="'Geist', system-ui, sans-serif"
+            text-anchor="middle">Users</text>
+      <text x="160" y="241" fill="#504e49" font-size="9"
+            font-family="'Geist Mono', ui-monospace, monospace"
+            text-anchor="middle">Browser</text>
+
+      <!-- ── CDN (144 wide, tier-2) ── -->
+      <rect x="276" y="186" width="128" height="68" rx="6" fill="#f5f4ed"/>
+      <rect x="276" y="186" width="128" height="68" rx="6"
+            fill="#f1f0eb" stroke="#6b6a64" stroke-width="1"/>
+      <rect x="284" y="192" width="26" height="12" rx="2"
+            fill="transparent" stroke="#6b6a64" stroke-width="0.8"/>
+      <text x="297" y="201" fill="#6b6a64" font-size="7"
+            font-family="'Geist Mono', ui-monospace, monospace"
+            text-anchor="middle" letter-spacing="0.08em">CDN</text>
+      <text x="340" y="226" fill="#141413" font-size="12" font-weight="600"
+            font-family="'Geist', system-ui, sans-serif"
+            text-anchor="middle">CloudFront</text>
+      <text x="340" y="241" fill="#504e49" font-size="9"
+            font-family="'Geist Mono', ui-monospace, monospace"
+            text-anchor="middle">edge cache</text>
+
+      <!-- ── API (144 wide, tier-2, FOCAL — data-role="focal") ── -->
+      <rect x="480" y="186" width="196" height="68" rx="6" fill="#f5f4ed"/>
+      <rect data-role="focal"
+            x="480" y="186" width="196" height="68" rx="6"
+            fill="#EEF2F7" stroke="#1B365D" stroke-width="1.4"/>
+      <rect x="488" y="192" width="26" height="12" rx="2"
+            fill="transparent" stroke="#1B365D" stroke-width="0.8"/>
+      <text x="501" y="201" fill="#1B365D" font-size="7"
+            font-family="'Geist Mono', ui-monospace, monospace"
+            text-anchor="middle" letter-spacing="0.08em">API</text>
+      <text x="578" y="226" fill="#141413" font-size="12" font-weight="600"
+            font-family="'Geist', system-ui, sans-serif"
+            text-anchor="middle">API Server</text>
+      <text x="578" y="241" fill="#504e49" font-size="9"
+            font-family="'Geist Mono', ui-monospace, monospace"
+            text-anchor="middle">FastAPI :8000</text>
+
+      <!-- ── Database (200 wide, tier-3) ── -->
+      <rect x="760" y="186" width="120" height="68" rx="6" fill="#f5f4ed"/>
+      <rect x="760" y="186" width="120" height="68" rx="6"
+            fill="#ebeae5" stroke="#504e49" stroke-width="1"/>
+      <rect x="768" y="192" width="22" height="12" rx="2"
+            fill="transparent" stroke="#504e49" stroke-width="0.8"/>
+      <text x="779" y="201" fill="#504e49" font-size="7"
+            font-family="'Geist Mono', ui-monospace, monospace"
+            text-anchor="middle" letter-spacing="0.08em">DB</text>
+      <text x="820" y="226" fill="#141413" font-size="12" font-weight="600"
+            font-family="'Geist', system-ui, sans-serif"
+            text-anchor="middle">Database</text>
+      <text x="820" y="241" fill="#504e49" font-size="9"
+            font-family="'Geist Mono', ui-monospace, monospace"
+            text-anchor="middle">PostgreSQL</text>
+
+      <!-- =================================================================
+           LEGEND STRIP — bottom ~60px. Hairline rule + LEGEND tracked
+           uppercase text + horizontal items. Required when viewBox height
+           ≥ 400 (GATE-C). Items cover every node/arrow type used above.
+           ================================================================= -->
+      <line x1="60" y1="540" x2="940" y2="540"
+            stroke="#e5e3d8" stroke-width="1"/>
+      <text x="60" y="558" fill="#141413" font-size="9" font-weight="500"
+            font-family="'Geist Mono', ui-monospace, monospace"
+            letter-spacing="0.12em">LEGEND</text>
+
+      <!-- Node-type swatches -->
+      <rect x="140" y="550" width="14" height="10" rx="2"
+            fill="#ebeae5" stroke="#6b6a64" stroke-width="1"/>
+      <text x="160" y="559" fill="#504e49" font-size="9"
+            font-family="'Geist', system-ui, sans-serif">External / User</text>
+
+      <rect x="260" y="550" width="14" height="10" rx="2"
+            fill="#f1f0eb" stroke="#6b6a64" stroke-width="1"/>
+      <text x="280" y="559" fill="#504e49" font-size="9"
+            font-family="'Geist', system-ui, sans-serif">Cloud / Service</text>
+
+      <rect x="384" y="550" width="14" height="10" rx="2"
+            fill="#EEF2F7" stroke="#1B365D" stroke-width="1.2"/>
+      <text x="404" y="559" fill="#504e49" font-size="9"
+            font-family="'Geist', system-ui, sans-serif">Focal node</text>
+
+      <rect x="490" y="550" width="14" height="10" rx="2"
+            fill="#ebeae5" stroke="#504e49" stroke-width="1"/>
+      <text x="510" y="559" fill="#504e49" font-size="9"
+            font-family="'Geist', system-ui, sans-serif">Database</text>
+
+      <!-- Arrow-type swatches -->
+      <line x1="600" y1="555" x2="618" y2="555"
+            stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <text x="624" y="559" fill="#504e49" font-size="9"
+            font-family="'Geist', system-ui, sans-serif">Internal</text>
+
+      <line x1="710" y1="555" x2="728" y2="555"
+            stroke="#1B365D" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+      <text x="734" y="559" fill="#504e49" font-size="9"
+            font-family="'Geist', system-ui, sans-serif">Focal flow</text>
+
+      <line x1="820" y1="555" x2="838" y2="555"
+            stroke="#2D5A8A" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+      <text x="844" y="559" fill="#504e49" font-size="9"
+            font-family="'Geist', system-ui, sans-serif">HTTP / API</text>
+
+      <!-- Above SVG passes validate-output.ts GATE-A through GATE-E.
+           Copy as template; replace nodes/edges with your content. -->
+    </svg>
+    <figcaption>圖：SVG primitives 範例（marker / 兩層 paper-mask / type tag / legend strip）</figcaption>
+  </figure>
+
+  <footer>
+    <span>{{FOOTER_LABEL}}</span>
+    <span>{{CAPTURED_AT}}</span>
+  </footer>
+
+</article>
+
+<script>
+  // Activate TOC link for the section nearest the top of the viewport
+  const sections = document.querySelectorAll('section[id]');
+  const links    = document.querySelectorAll('.toc-wrap a');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      links.forEach(l => l.classList.remove('active'));
+      const lnk = document.querySelector(`.toc-wrap a[href="#${e.target.id}"]`);
+      if (lnk) lnk.classList.add('active');
+    });
+  }, { threshold: 0.35 });
+  sections.forEach(s => io.observe(s));
+</script>
+</body>
+</html>
