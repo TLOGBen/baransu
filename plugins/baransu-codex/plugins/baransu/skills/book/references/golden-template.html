@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<!--
+  golden-template.html — book skill reference template
+  Design system: Kami (see design/references/paper-preset.md)
+  Purpose: Show-by-example the structure, tokens, and SVG style that
+           every book output must follow. Agent reads this before generating.
+
+  TEMPLATE SLOTS (replace when generating):
+    {{LANG}}          → zh-TW or en
+    {{TITLE}}         → document title
+    {{KICKER}}        → 2–4 word category label (e.g. "Agent 協作方式")
+    {{SUBTITLE}}      → one-sentence summary
+    {{SOURCE_URL}}    → original source URL
+    {{CAPTURED_AT}}   → ISO 8601 date
+    {{TOC_ITEMS}}     → <a href="#s1">...</a> list of section links
+    {{SECTIONS}}      → rendered <section id="sN"> blocks
+    {{FOOTER_LABEL}}  → e.g. "整理自 @author · Original Title"
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{TITLE}}</title>
+<style>
+  /* ── Kami design tokens (mirrors paper-preset.md) ── */
+  :root {
+    --parchment:   #f5f4ed;
+    --ivory:       #faf9f5;
+    --brand:       #1B365D;
+    --brand-light: #2a4f8a;
+    --near-black:  #141413;
+    --dark-warm:   #3d3d3a;
+    --olive:       #504e49;
+    --stone:       #6b6a64;
+    --line:        #d8d6cf;
+    --hover:       #e8e6de;
+    /* Derived surface tokens */
+    --accent-bg:   rgba(27,54,93,0.07);
+    --warm-bg:     rgba(180,90,40,0.08);
+    --warn-border: #b05c28;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--parchment);
+    font-family: 'TsangerJinKai02','Noto Serif TC','Source Han Serif TC',
+                 Charter, Georgia, 'Palatino Linotype', serif;
+    color: var(--near-black);
+    line-height: 1.75;
+    font-size: 16px;
+  }
+
+  /* ── Paper sheet ── */
+  .paper {
+    background: var(--ivory);
+    max-width: 760px;
+    margin: 40px auto 80px;
+    padding: 64px 72px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08), 0 12px 40px rgba(0,0,0,.06);
+    border-radius: 2px;
+    position: relative;
+  }
+  /* Left rule — Kami invariant */
+  .paper::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 52px;
+    width: 1px; height: 100%;
+    background: rgba(27,54,93,0.12);
+  }
+
+  /* ── Sticky TOC sidebar ── */
+  .toc-wrap {
+    position: fixed;
+    top: 48px;
+    left: calc(50% - 380px - 200px);
+    width: 180px;
+    display: none;
+  }
+  @media (min-width: 1160px) { .toc-wrap { display: block; } }
+  .toc-wrap h3 {
+    font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--stone); margin-bottom: 10px; font-family: sans-serif;
+  }
+  .toc-wrap a {
+    display: block; padding: 3px 0 3px 8px;
+    font-size: 12.5px; line-height: 1.55;
+    font-family: sans-serif; text-decoration: none;
+    color: var(--olive);
+    border-left: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+  }
+  .toc-wrap a:hover, .toc-wrap a.active {
+    color: var(--brand); border-left-color: var(--brand);
+  }
+
+  /* ── Header ── */
+  .kicker {
+    font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--brand); margin-bottom: 14px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+  }
+  h1 {
+    font-size: 28px; font-weight: 700; line-height: 1.25;
+    letter-spacing: -.01em; margin-bottom: 12px;
+  }
+  .subtitle {
+    font-size: 15.5px; color: var(--dark-warm);
+    margin-bottom: 32px; padding-bottom: 32px;
+    border-bottom: 1px solid var(--line);
+  }
+  .meta {
+    display: block; margin-top: 6px;
+    font-size: 12px; color: var(--stone);
+    font-family: sans-serif;
+  }
+
+  /* ── Sections ── */
+  section { margin-bottom: 52px; }
+  section:last-of-type { margin-bottom: 0; }
+
+  h2 {
+    font-size: 18px; font-weight: 700;
+    margin-bottom: 16px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .sec-num {
+    font-size: 10px; font-weight: 600; letter-spacing: .08em;
+    font-family: sans-serif;
+    color: var(--brand); background: var(--accent-bg);
+    padding: 2px 8px; border-radius: 20px; flex-shrink: 0;
+  }
+
+  p { margin-bottom: 14px; }
+  p:last-child { margin-bottom: 0; }
+  strong { font-weight: 700; }
+
+  /* ── Callout variants ── */
+  .callout {
+    background: var(--accent-bg);
+    border-left: 3px solid var(--brand);
+    padding: 14px 18px; margin: 20px 0;
+    font-size: 14.5px;
+    border-radius: 0 4px 4px 0;
+  }
+  .callout.warm {
+    background: var(--warm-bg);
+    border-left-color: var(--warn-border);
+  }
+
+  /* ── SVG figures ── */
+  figure.diagram {
+    margin: 28px 0; text-align: center;
+  }
+  figure.diagram figcaption {
+    font-size: 12px; color: var(--stone);
+    margin-top: 8px; font-style: italic;
+    font-family: sans-serif;
+  }
+  svg { display: block; margin: 0 auto; }
+
+  /* ── Comparison table ── */
+  table.cmp {
+    width: 100%; border-collapse: collapse;
+    font-size: 14px; margin: 20px 0;
+  }
+  table.cmp th {
+    padding: 8px 14px; text-align: left;
+    font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+    font-family: sans-serif;
+    background: var(--hover); color: var(--olive);
+  }
+  table.cmp td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  table.cmp tr:last-child td { border-bottom: none; }
+  .badge {
+    display: inline-block; font-size: 10px; letter-spacing: .04em;
+    padding: 1px 7px; border-radius: 3px; vertical-align: middle; margin-left: 4px;
+    font-family: sans-serif;
+  }
+  .badge.yes { background: var(--accent-bg); color: var(--brand); }
+  .badge.no  { background: var(--hover); color: var(--stone); }
+
+  /* ── Card grid ── */
+  .card-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 20px 0;
+  }
+  .card {
+    border: 1px solid var(--line); border-radius: 6px;
+    padding: 16px 18px;
+    transition: box-shadow .15s, transform .15s;
+  }
+  .card:hover {
+    box-shadow: 0 4px 12px rgba(20,20,19,0.10);
+    transform: translateY(-1px);
+  }
+  .card h3 {
+    font-size: 13px; font-weight: 700; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .card p { font-size: 13px; color: var(--dark-warm); margin: 0; }
+  .card .icon {
+    width: 22px; height: 22px; border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; flex-shrink: 0;
+    background: var(--accent-bg); color: var(--brand);
+  }
+
+  /* ── Tradeoff bar chart ── */
+  .tradeoff-row {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 10px; font-size: 13px; font-family: sans-serif;
+  }
+  .tradeoff-label { width: 130px; flex-shrink: 0; color: var(--olive); }
+  .tradeoff-bg { flex: 1; height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
+  .tradeoff-fill { height: 100%; border-radius: 4px; }
+  .tradeoff-val { width: 40px; text-align: right; color: var(--stone); }
+
+  /* ── Footer ── */
+  footer {
+    margin-top: 52px; padding-top: 24px;
+    border-top: 1px solid var(--line);
+    font-size: 12px; color: var(--stone);
+    font-family: sans-serif;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    .paper { padding: 40px 28px; margin: 0; border-radius: 0; }
+    .paper::before { left: 20px; }
+    .card-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOC sidebar (auto-populated) -->
+<nav class="toc-wrap" id="toc">
+  <h3>目錄</h3>
+  {{TOC_ITEMS}}
+</nav>
+
+<article class="paper">
+
+  <header>
+    <p class="kicker">{{KICKER}}</p>
+    <h1>{{TITLE}}</h1>
+    <p class="subtitle">
+      {{SUBTITLE}}
+      <span class="meta">來源：<a href="{{SOURCE_URL}}">{{SOURCE_URL}}</a> · {{CAPTURED_AT}}</span>
+    </p>
+  </header>
+
+  {{SECTIONS}}
+
+  <footer>
+    <span>{{FOOTER_LABEL}}</span>
+    <span>{{CAPTURED_AT}}</span>
+  </footer>
+
+</article>
+
+<!-- ── SVG marker defs (shared across all diagrams) ── -->
+<!--
+  Arrow markers to reuse in <defs>:
+
+  <defs>
+    <marker id="arr-brand" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#1B365D"/>
+    </marker>
+    <marker id="arr-muted" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#6b6a64"/>
+    </marker>
+  </defs>
+
+  SVG style conventions:
+  - stroke: use --brand (#1B365D), --olive (#504e49), or --stone (#6b6a64)
+  - stroke-width: 1.5 for main paths, 1 for secondary
+  - fill: "none" for lines; light fills at ≤20% opacity for shape backgrounds
+  - font-family: sans-serif; font-size: 10–12px; fill: #504e49 for labels
+  - Round linecap/linejoin: stroke-linecap="round" stroke-linejoin="round"
+  - Viewbox: width multiples of 40 for clean alignment
+-->
+
+<script>
+  // Activate TOC link for the section nearest the top of the viewport
+  const sections = document.querySelectorAll('section[id]');
+  const links    = document.querySelectorAll('.toc-wrap a');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      links.forEach(l => l.classList.remove('active'));
+      const lnk = document.querySelector(`.toc-wrap a[href="#${e.target.id}"]`);
+      if (lnk) lnk.classList.add('active');
+    });
+  }, { threshold: 0.35 });
+  sections.forEach(s => io.observe(s));
+</script>
+</body>
+</html>

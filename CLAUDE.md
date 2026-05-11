@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-`baransu` is a Claude Code plugin distributing fifteen governance skills (twelve user-facing + three cron-driven self-healing harness skills). Theme: バランス — deliberate before executing, verify after.
+`baransu` is a Claude Code plugin distributing sixteen governance skills (thirteen user-facing + three cron-driven self-healing harness skills). Theme: バランス — deliberate before executing, verify after.
 
 ## Working Principles
 
@@ -73,7 +73,7 @@ plugins/
     .claude-plugin/
       plugin.json              # plugin manifest (v1.0.0)
     skills/
-      think/ review/ analyze/ dev/ write/ execute/ ship/ hunt/ read/ design/ learn/ codex-skill-transfer/
+      think/ review/ analyze/ dev/ write/ execute/ ship/ hunt/ read/ learn/ book/ design/ codex-skill-transfer/
     agents/
       # Perspective: architecture-reviewer.md  quality-reviewer.md  security-reviewer.md
       # Execute:     summarize-agent.md  impl-agent.md  review-agent.md  smart-friend-agent.md
@@ -99,6 +99,7 @@ Invoke with `/baransu:<name>`. To edit a skill, read its `SKILL.md` — design c
 | `/read` | Capture any content to offline Markdown: URL, path, glob, Chrome, `--topic`, `--web`, `--gh`, `--x` |
 | `/design` | UI/UX spec: `gen` (guided), `lint` (Stitch+Kami), `preset <name>` |
 | `/learn` | Research pipeline: Collect→Digest→Outline→Fill In→Refine; `--brief` stops at Digest |
+| `/book` | Convert any content source (URL, `/read` slug, `/learn` digest, local file, `--text`) into a Kami-themed browser-ready HTML with SVG diagrams. Three stages: Acquire → Synthesize (technical/narrative/research) → Render (golden-template + validate-output.ts gate) |
 | `/codex-skill-transfer` | One-way port Claude Code skill / plugin / marketplace material to Codex format. Auto-detects single-skill / batch / plugin mode. Refuses `context: fork` skills (cross-boundary; surfaces three Codex paths). |
 | `/grade` | 對 baransu skill telemetry 評分：cron 觸發 5 維 equal-weight rubric，輸出 grade.jsonl |
 | `/triage` | 從 grade.jsonl 聚類 poor verdict、派 investigator-agent、走 5-black 閘門 auto-fix |

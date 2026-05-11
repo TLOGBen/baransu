@@ -101,6 +101,7 @@ codex plugin marketplace add /path/to/baransu
 |---|---|
 | `/read` | 萬用內容擷取工具。URL、本地路徑、glob、Chrome 分頁、剪貼簿一律轉成離線 Markdown，儲存至指定目錄。四個搜尋擴充：`--topic` 學術論文、`--web` 一般網頁、`--gh` GitHub repo/code/issue、`--x` X (Twitter)；先列結果，互動式挑選後才下載。 |
 | `/learn` | 把素材整理成讀書筆記。輸入 URL、`--topic` 學術關鍵字、或 `/read` 抓回的素材代號（`.claude/read/material/` 下的資料夾名，例如 `effective-context-engineering`）；每份素材會出一張五欄重點摘要，加 `--outline` 會再續寫成完整大綱與填好內容的筆記。產物放在 `.claude/learn/`。 |
+| `/book` | 把任何來源（URL、`/read` slug、`/learn` digest、本地檔案、`--text` 純文字）轉成 Kami 主題的瀏覽器 HTML，含 SVG 圖解、側欄目錄、紙質排版，輸出至 `.claude/book/{slug}.html`。三階段流程：Acquire（取得內容，proxy cascade 自動試三層）→ Synthesize（分辨 technical / narrative / research，拆 4–8 節結構）→ Render（依黃金模板輸出，品質閘 + browser-use 自動驗跑版）。 |
 
 ### 自我治癒型
 
@@ -168,6 +169,13 @@ session 結束的清理與交付。
 /read {來源} → /learn {slug} → /write zh [請求]
 ```
 `/read` 轉離線 Markdown，`/learn` 抓五欄重點或續寫大綱，`/write` 套規則產出成稿。產物留在 `.claude/read/material/` 與 `.claude/learn/`，不走 `/ship` 歸檔。
+
+**內容視覺化（研究素材 → HTML 閱讀頁）**
+```
+/read {來源} → /book {slug}
+/learn {來源} → /book {digest-slug}
+```
+`/book` 讀取 `/read` 或 `/learn` 已存好的素材，渲染成 Kami 主題 HTML + SVG，存至 `.claude/book/`。也可直接 `/book {URL}` 或 `/book --text "…"` 一步到位。
 
 **文字 copywriting**
 ```

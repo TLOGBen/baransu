@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -sL *)",
+      "Bash(wslpath -w *)",
+      "Bash(browser-use doctor*)",
+      "Bash(browser-use state*)",
+      "Bash(browser-use --help*)",
+      "Bash(browser-use get *)",
+      "Bash(browser-use screenshot *)"
+    ]
+  }
+}

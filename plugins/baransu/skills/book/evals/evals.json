@@ -1,0 +1,119 @@
+{
+  "skill_name": "book",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/book --text \"Kubernetes 三層架構：Control Plane（API Server、Scheduler、etcd）、Node（kubelet、kube-proxy、Container Runtime）、Pod（最小部署單位）。核心物件包括 Deployment（管理 ReplicaSet 確保 Pod 數量）、Service（提供穩定 ClusterIP endpoint）、ConfigMap / Secret（設定注入）。HPA 依 CPU / memory metrics 自動水平擴縮；Ingress 作為 L7 負載均衡入口，路由到不同 Service。\"",
+      "expected_output": "A Kami-themed HTML file at .claude/book/<slug>.html with: at least 1 SVG diagram, TOC nav, 4-8 sections, validates via validate-output.ts",
+      "files": [],
+      "assertions": [
+        {
+          "id": "html_file_exists",
+          "description": "An .html file was produced in the outputs directory",
+          "check": "glob outputs/*.html has at least 1 match"
+        },
+        {
+          "id": "has_kami_article",
+          "description": "HTML contains <article class=\"paper\"> — the Kami paper container",
+          "check": "grep -q 'class=\"paper\"' output.html"
+        },
+        {
+          "id": "has_toc",
+          "description": "HTML contains <nav class=\"toc-wrap\"> — the sticky TOC navigation",
+          "check": "grep -q 'toc-wrap' output.html"
+        },
+        {
+          "id": "svg_present_and_balanced",
+          "description": "At least 1 SVG diagram, with balanced open/close tags",
+          "check": "python3 -c \"c=open('output.html').read(); assert c.count('<svg') >= 1 and c.count('<svg') == c.count('</svg>'), 'SVG fail'\""
+        },
+        {
+          "id": "has_section_numbers",
+          "description": "Sections use the .sec-num span pattern (e.g. <span class=\"sec-num\">01</span>)",
+          "check": "grep -q 'sec-num' output.html"
+        },
+        {
+          "id": "word_count_lte_1800",
+          "description": "Visible body text is within the 1800-word cap",
+          "check": "python3 -c \"from html.parser import HTMLParser; import re; c=open('output.html').read(); text=re.sub('<[^>]+>','',c); wc=len(text.split()); assert wc <= 1800 * 3, f'word count {wc} exceeds generous cap'\""
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "/book context-engineering-langchain",
+      "expected_output": "A Kami-themed HTML file re-rendering the existing read material, with SVG diagram and proper structure",
+      "files": [],
+      "assertions": [
+        {
+          "id": "html_file_exists",
+          "description": "An .html file was produced in the outputs directory",
+          "check": "glob outputs/*.html has at least 1 match"
+        },
+        {
+          "id": "has_kami_article",
+          "description": "HTML contains <article class=\"paper\"> — the Kami paper container",
+          "check": "grep -q 'class=\"paper\"' output.html"
+        },
+        {
+          "id": "has_toc",
+          "description": "HTML contains <nav class=\"toc-wrap\"> — the sticky TOC navigation",
+          "check": "grep -q 'toc-wrap' output.html"
+        },
+        {
+          "id": "svg_present_and_balanced",
+          "description": "At least 1 SVG diagram, with balanced open/close tags",
+          "check": "python3 -c \"c=open('output.html').read(); assert c.count('<svg') >= 1 and c.count('<svg') == c.count('</svg>'), 'SVG fail'\""
+        },
+        {
+          "id": "source_content_reflected",
+          "description": "Output references concepts from the context engineering source material (langchain or context mentioned)",
+          "check": "grep -qi 'context\\|langchain\\|engineering' output.html"
+        },
+        {
+          "id": "has_section_numbers",
+          "description": "Sections use the .sec-num span pattern",
+          "check": "grep -q 'sec-num' output.html"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "/book https://blog.langchain.dev/langchain-state-of-ai-agents-report-2025",
+      "expected_output": "A Kami-themed HTML file converting a public URL, with SVG and structured sections",
+      "files": [],
+      "assertions": [
+        {
+          "id": "html_file_exists",
+          "description": "An .html file was produced in the outputs directory",
+          "check": "glob outputs/*.html has at least 1 match"
+        },
+        {
+          "id": "has_kami_article",
+          "description": "HTML contains <article class=\"paper\"> — the Kami paper container",
+          "check": "grep -q 'class=\"paper\"' output.html"
+        },
+        {
+          "id": "has_toc",
+          "description": "HTML contains <nav class=\"toc-wrap\"> — the sticky TOC navigation",
+          "check": "grep -q 'toc-wrap' output.html"
+        },
+        {
+          "id": "svg_present_and_balanced",
+          "description": "At least 1 SVG diagram, with balanced open/close tags",
+          "check": "python3 -c \"c=open('output.html').read(); assert c.count('<svg') >= 1 and c.count('<svg') == c.count('</svg>'), 'SVG fail'\""
+        },
+        {
+          "id": "has_section_numbers",
+          "description": "Sections use the .sec-num span pattern",
+          "check": "grep -q 'sec-num' output.html"
+        },
+        {
+          "id": "no_broken_local_assets",
+          "description": "No local src= references point to missing files (validate-output.ts check)",
+          "check": "python3 -c \"import re; c=open('output.html').read(); local=[s for s in re.findall(r'src=\\\"([^\\\"]+)\\\"', c) if not s.startswith(('http','data')); import os; missing=[s for s in local if not os.path.exists(s)]; assert not missing, f'missing assets: {missing}'\""
+        }
+      ]
+    }
+  ]
+}

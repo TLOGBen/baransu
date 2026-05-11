@@ -93,9 +93,33 @@ Write `{project_root}/DESIGN.md` with the full nine-section structure:
 
 Each section must be substantive — no placeholder text. Base content on the user's answers. Section 2 must include hex codes for every named color. Section 9 must be a single reproducible AI prompt summarizing the design system.
 
-### Step 3 — Offer CLAUDE.md injection (optional)
+### Step 3 — Render DESIGN.html
 
-After writing DESIGN.md, ask the user:
+After writing DESIGN.md, produce a self-contained `{project_root}/DESIGN.html` that **uses the design system's own tokens to demonstrate itself** — not Kami or any external template.
+
+The HTML should contain:
+
+1. **Sticky sidebar TOC** — nine-section links, styled in the design system's primary/background colors
+2. **Color palette section** — one colored `<div>` swatch per named color with hex label; background of each swatch is the actual color
+3. **Typography section** — live text samples in the specified font stacks (headings, body, captions); use `@font-face` or safe web-font fallbacks — no CDN links
+4. **Component stylings section** — brief visual descriptions or code snippets, keeping the language from DESIGN.md
+5. **Do / Don't section** — a two-column comparison table using green/red accent for pass/fail
+6. **AI Prompt Guide section** — a copy-ready `<code>` block with the full reproducer prompt
+7. **Remaining sections** — rendered as standard `<h2>` + prose
+
+Technical requirements:
+- Fully offline (no external scripts, no CDN fonts)
+- Single file, no external assets
+- Valid HTML5 with `<meta charset="utf-8">` and `<meta name="viewport">`
+- The page's own background/text/accent colors must match Section 2 of DESIGN.md
+
+Write the complete HTML to `{project_root}/DESIGN.html`. If the file already exists, overwrite it.
+
+Output one line: 「✅ 已產出 DESIGN.html（設計系統視覺預覽，可直接用瀏覽器開啟）」
+
+### Step 4 — Offer CLAUDE.md injection (optional)
+
+After writing DESIGN.md and DESIGN.html, ask the user:
 
 ```
 AskUserQuestion:
@@ -195,20 +219,29 @@ Extract the second token after `preset` as the preset name.
 If no name is provided → output error + list available presets (see Step 2 for listing logic):
 「錯誤：preset 模式需要名稱，例如：/design preset 紙」
 
-### Step 2 — Locate preset file
+### Step 2 — Locate preset directory
 
-Preset files are stored at: `{skill_dir}/references/{name}-preset.md`
+Presets are folders at: `{skill_dir}/references/{name}-preset/`
+
+Each preset directory contains at minimum:
+- `DESIGN.md` — the design specification (required)
+- `tokens.css` — ready-to-use CSS variables (if present, copy to project)
+
+Universal component skeletons are shared across all presets at: `{skill_dir}/references/cores/`
+They use `var(--...)` tokens so any preset's `tokens.css` drives their appearance.
 
 Where `{skill_dir}` is the directory containing this SKILL.md file.
 
-Scan `references/` for files matching `*-preset.md`. Build the available preset list by stripping the `-preset.md` suffix.
+Scan `references/` for directories matching `*-preset/` that contain a `DESIGN.md`. Build the available preset list by stripping the `-preset` suffix from each directory name.
 
-If the requested preset name does not match any file → output error + list:
+Fallback: if no `*-preset/` directories exist, also scan for legacy `*-preset.md` files (backwards-compat).
+
+If the requested preset name does not match any directory (or legacy file) → output error + list:
 ```
 錯誤：找不到 preset「{name}」。
 可用 preset：{list}
 ```
-If no preset files exist: 「目前無可用 preset。」
+If no presets exist: 「目前無可用 preset。」
 
 ### Step 3 — Apply preset
 
@@ -218,9 +251,61 @@ If `{project_root}/DESIGN.md` already exists:
 Output one line: 「已存在 DESIGN.md，將以「{name}」preset 覆寫。」
 Then proceed to write without further confirmation.
 
-Write the contents of `references/{name}-preset.md` to `{project_root}/DESIGN.md`.
+**Copy preset files to project root:**
+
+1. Write contents of `{skill_dir}/references/{name}-preset/DESIGN.md` to `{project_root}/DESIGN.md`.
+2. If `{skill_dir}/references/{name}-preset/tokens.css` exists → copy to `{project_root}/tokens.css`. Output: 「已複製 tokens.css。」
+3. Copy `{skill_dir}/references/cores/` to `{project_root}/design-cores/`. Output: 「已複製 {N} 個通用骨架至 design-cores/。」
 
 Output: 「✅ 已套用「{name}」preset，DESIGN.md 已寫入 {project_root}/DESIGN.md」
+
+### Step 4 — Render DESIGN.html
+
+After writing DESIGN.md, produce a self-contained `{project_root}/DESIGN.html` that **uses the design system's own tokens to demonstrate itself** — not Kami or any external template.
+
+The HTML should contain:
+
+1. **Sticky sidebar TOC** — nine-section links, styled in the design system's primary/background colors
+2. **Color palette section** — one colored `<div>` swatch per named color with hex label; background of each swatch is the actual color
+3. **Typography section** — live text samples in the specified font stacks (headings, body, captions); use `@font-face` or safe web-font fallbacks — no CDN links
+4. **Component stylings section** — brief visual descriptions or code snippets, keeping the language from DESIGN.md
+5. **Do / Don't section** — a two-column comparison table using green/red accent for pass/fail
+6. **AI Prompt Guide section** — a copy-ready `<code>` block with the full reproducer prompt
+7. **Remaining sections** — rendered as standard `<h2>` + prose
+
+Technical requirements:
+- Fully offline (no external scripts, no CDN fonts)
+- Single file, no external assets
+- Valid HTML5 with `<meta charset="utf-8">` and `<meta name="viewport">`
+- The page's own background/text/accent colors must match Section 2 of DESIGN.md
+
+Write the complete HTML to `{project_root}/DESIGN.html`. If the file already exists, overwrite it.
+
+Output one line: 「✅ 已產出 DESIGN.html（設計系統視覺預覽，可直接用瀏覽器開啟）」
+
+---
+
+## Kami Lint Script
+
+The skill bundles `scripts/check.py` — a standalone Python 3 script that lints any HTML/CSS file for design system invariant violations. It requires no dependencies beyond the standard library. Rules can be overridden via `--rules rules.json`.
+
+When the user runs `/design lint`, also suggest running this script directly on their project files:
+
+```bash
+python3 {skill_dir}/scripts/check.py {project_root}/
+# With custom rules:
+python3 {skill_dir}/scripts/check.py {project_root}/ --rules path/to/rules.json
+```
+
+It checks:
+- **Inv #3** cool-gray hex codes (Tailwind/Bootstrap grays, pure white/black)
+- **Inv #5** heading font-weight ≥ 700 (must be 500)
+- **Inv #6** body line-height > 1.55
+- **Inv #8** `rgba()` in non-shadow CSS rules
+- **Inv #9** `box-shadow` blur < 4px (hard shadow)
+- **Inv #10** `font-style: italic`
+
+Exit codes: 0 = clean, 1 = violations, 2 = structural error.
 
 ---
 
@@ -232,6 +317,10 @@ Output: 「✅ 已套用「{name}」preset，DESIGN.md 已寫入 {project_root}/
 | preset: no name given | Report error + list available presets |
 | preset: unknown name | Report error + list available presets |
 | preset: references/ empty | Report「目前無可用 preset」 |
+| preset: tokens.css not found in preset dir | Skip tokens.css copy silently |
+| preset: references/cores/ not found | Skip cores copy silently |
 | git rev-parse fails (non-repo) | Use current working directory as project root |
 | CLAUDE.md already contains DESIGN.md | Skip append (idempotent) |
 | gen: DESIGN.md already exists | Overwrite without prompting |
+| preset: DESIGN.html already exists | Overwrite without prompting |
+| gen: DESIGN.html already exists | Overwrite without prompting |

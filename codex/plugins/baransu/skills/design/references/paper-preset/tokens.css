@@ -1,0 +1,102 @@
+/* Kami Paper Preset — CSS Design Tokens
+   Drop this into any project or @import it in your main stylesheet.
+   All values match references/paper-preset/DESIGN.md exactly. */
+
+:root {
+  /* ── Surface ─────────────────────────────── */
+  --parchment:        #f5f4ed;  /* page background (never pure white) */
+  --ivory:            #faf9f5;  /* cards, lifted containers */
+  --warm-sand:        #e8e6dc;  /* buttons, interactive surfaces */
+  --dark-surface:     #30302e;  /* dark containers */
+  --deep-dark:        #141413;  /* dark page background */
+
+  /* ── Brand ───────────────────────────────── */
+  --brand:            #1B365D;  /* ink-blue; sole chromatic accent (≤5% surface) */
+  --brand-light:      #2D5A8A;  /* brighter variant for dark surfaces / links */
+  --brand-tint:       #EEF2F7;  /* tag bg lightest (solid; ≈ brand @ 0.08 on parchment) */
+  --brand-tint-strong:#E4ECF5;  /* tag bg standard (solid; ≈ brand @ 0.18 on parchment) */
+
+  /* ── Text hierarchy ──────────────────────── */
+  --near-black:       #141413;  /* primary text */
+  --dark-warm:        #3d3d3a;  /* secondary text, table headers, links */
+  --charcoal:         #4d4c48;  /* dark muted (between olive and stone) */
+  --olive:            #504e49;  /* subtext, descriptions */
+  --stone:            #6b6a64;  /* tertiary, metadata */
+
+  /* ── Borders ─────────────────────────────── */
+  --border:           #e8e6dc;  /* primary border / divider */
+  --border-soft:      #e5e3d8;  /* secondary border / row separator */
+
+  /* ── Typography ──────────────────────────── */
+  --serif: Charter, Georgia, Palatino, "Times New Roman", serif;
+  --sans:  var(--serif);        /* intentional: sans aliases serif */
+  --mono:  "JetBrains Mono", "SF Mono", "Fira Code", Consolas, Monaco, monospace;
+
+  /* Chinese override — paste inside :lang(zh) or .lang-zh */
+  /* --serif: "TsangerJinKai02", "Source Han Serif SC", "Noto Serif CJK SC",
+              "Songti SC", "STSong", Georgia, serif; */
+
+  /* Japanese override — paste inside :lang(ja) or .lang-ja */
+  /* --serif: "YuMincho", "Yu Mincho", "Hiragino Mincho ProN",
+              "Noto Serif CJK JP", "Source Han Serif JP",
+              "TsangerJinKai02", Georgia, serif; */
+
+  /* ── Depth (ring / whisper only — no hard shadows) ─── */
+  --shadow-ring:    0 0 0 1px var(--border);
+  --shadow-whisper: 0 4px 24px rgba(0, 0, 0, 0.05);
+
+  /* ── Spacing (screen px; DESIGN.md spec uses pt — 1pt ≈ 1.333px) ── */
+  --space-xs:  3px;
+  --space-sm:  5px;
+  --space-md: 10px;
+  --space-lg: 20px;
+  --space-xl: 32px;
+  --space-2xl:56px;
+  --space-3xl:96px; /* ≈ 72pt on screen; for pt output scale by ×0.75 */
+
+  /* ── Radius scale ────────────────────────── */
+  --radius-xs:  4px;
+  --radius-sm:  6px;
+  --radius-md:  8px;   /* default */
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl:24px;
+  --radius-hero:32px;
+}
+
+/* ── Base reset (minimal, Kami-safe) ─────────────────────── */
+body {
+  background: var(--parchment);
+  color: var(--near-black);
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Heading weight locked at 500 — Kami invariant #5 */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--serif);
+  font-weight: 500;
+  color: var(--near-black);
+}
+h1 { font-size: 2rem;    line-height: 1.20; }
+h2 { font-size: 1.5rem;  line-height: 1.25; }
+h3 { font-size: 1.25rem; line-height: 1.30; }
+
+/* No italics — Kami invariant #10 */
+em, i { font-style: normal; font-weight: 500; }
+
+/* Links */
+a { color: var(--dark-warm); text-decoration-color: var(--border); }
+a:hover { color: var(--brand); }
+
+code, pre {
+  font-family: var(--mono);
+  background: var(--ivory);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+code { padding: 0.1em 0.4em; font-size: 0.875em; }
+pre  { padding: 1rem 1.25rem; font-size: 0.875em; line-height: 1.6; overflow-x: auto; }
