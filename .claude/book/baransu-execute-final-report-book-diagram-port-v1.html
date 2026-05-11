@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>/baransu:execute Final Report — book-diagram-port-v1</title>
+<style>
+  :root {
+    --parchment:         #f5f4ed;
+    --ivory:             #faf9f5;
+    --warm-sand:         #e8e6dc;
+    --dark-surface:      #30302e;
+    --deep-dark:         #141413;
+    --brand:             #1B365D;
+    --brand-light:       #2D5A8A;
+    --near-black:        #141413;
+    --dark-warm:         #3d3d3a;
+    --olive:             #504e49;
+    --stone:             #6b6a64;
+    --charcoal:          #4d4c48;
+    --border:            #e8e6dc;
+    --border-soft:       #e5e3d8;
+    --brand-tint:        #EEF2F7;
+    --brand-tint-strong: #E4ECF5;
+    --line:              #e5e3d8;
+    --hover:             #e8e6dc;
+    --accent-bg:         #EEF2F7;
+    --warm-bg:           #f1ece4;
+    --warn-border:       #b05c28;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--parchment);
+    font-family: 'TsangerJinKai02','Noto Serif TC','Source Han Serif TC',
+                 Charter, Georgia, 'Palatino Linotype', serif;
+    color: var(--near-black);
+    line-height: 1.75;
+    font-size: 16px;
+  }
+  .paper {
+    background: var(--ivory);
+    max-width: 760px;
+    margin: 40px auto 80px;
+    padding: 64px 72px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08), 0 12px 40px rgba(0,0,0,.06);
+    border-radius: 2px;
+    position: relative;
+  }
+  .paper::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 52px;
+    width: 1px; height: 100%;
+    background: var(--border-soft);
+  }
+  .toc-wrap {
+    position: fixed;
+    top: 48px;
+    left: calc(50% - 380px - 200px);
+    width: 180px;
+    display: none;
+  }
+  @media (min-width: 1160px) { .toc-wrap { display: block; } }
+  .toc-wrap h3 {
+    font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--stone); margin-bottom: 10px; font-family: sans-serif;
+  }
+  .toc-wrap a {
+    display: block; padding: 3px 0 3px 8px;
+    font-size: 12.5px; line-height: 1.55;
+    font-family: sans-serif; text-decoration: none;
+    color: var(--olive);
+    border-left: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+  }
+  .toc-wrap a:hover, .toc-wrap a.active {
+    color: var(--brand); border-left-color: var(--brand);
+  }
+  .kicker {
+    font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--brand); margin-bottom: 14px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+  }
+  h1 {
+    font-size: 28px; font-weight: 700; line-height: 1.25;
+    letter-spacing: -.01em; margin-bottom: 12px;
+  }
+  .subtitle {
+    font-size: 15.5px; color: var(--dark-warm);
+    margin-bottom: 32px; padding-bottom: 32px;
+    border-bottom: 1px solid var(--line);
+  }
+  .meta {
+    display: block; margin-top: 6px;
+    font-size: 12px; color: var(--stone);
+    font-family: sans-serif;
+  }
+  section { margin-bottom: 52px; }
+  section:last-of-type { margin-bottom: 0; }
+  h2 {
+    font-size: 18px; font-weight: 700;
+    margin-bottom: 16px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .sec-num {
+    font-size: 10px; font-weight: 600; letter-spacing: .08em;
+    font-family: sans-serif;
+    color: var(--brand); background: var(--accent-bg);
+    padding: 2px 8px; border-radius: 20px; flex-shrink: 0;
+  }
+  p { margin-bottom: 14px; }
+  p:last-child { margin-bottom: 0; }
+  strong { font-weight: 700; }
+  .callout {
+    background: var(--accent-bg);
+    border-left: 3px solid var(--brand);
+    padding: 14px 18px; margin: 20px 0;
+    font-size: 14.5px;
+    border-radius: 0 4px 4px 0;
+  }
+  .callout.warm {
+    background: var(--warm-bg);
+    border-left-color: var(--warn-border);
+  }
+  figure.diagram {
+    margin: 28px 0; text-align: center;
+  }
+  figure.diagram figcaption {
+    font-size: 12px; color: var(--stone);
+    margin-top: 8px;
+    font-family: sans-serif;
+  }
+  svg { display: block; margin: 0 auto; max-width: 100%; }
+  table.cmp {
+    width: 100%; border-collapse: collapse;
+    font-size: 14px; margin: 20px 0;
+  }
+  table.cmp th {
+    padding: 8px 14px; text-align: left;
+    font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+    font-family: sans-serif;
+    background: var(--hover); color: var(--olive);
+  }
+  table.cmp td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  table.cmp tr:last-child td { border-bottom: none; }
+  .badge {
+    display: inline-block; font-size: 10px; letter-spacing: .04em;
+    padding: 1px 7px; border-radius: 3px; vertical-align: middle; margin-left: 4px;
+    font-family: sans-serif;
+  }
+  .badge.yes { background: var(--accent-bg); color: var(--brand); }
+  .badge.no  { background: var(--hover); color: var(--stone); }
+  ul, ol { padding-left: 20px; margin-bottom: 14px; }
+  li { margin-bottom: 6px; }
+  code {
+    font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+    font-size: 13px;
+    background: var(--hover);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--brand);
+  }
+  pre {
+    background: var(--hover);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 12px 14px;
+    font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--dark-warm);
+    overflow-x: auto;
+    margin: 14px 0;
+  }
+  footer {
+    margin-top: 52px; padding-top: 24px;
+    border-top: 1px solid var(--line);
+    font-size: 12px; color: var(--stone);
+    font-family: sans-serif;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  @media (max-width: 640px) {
+    .paper { padding: 40px 28px; margin: 0; border-radius: 0; }
+    .paper::before { left: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="toc-wrap" id="toc">
+  <h3>目錄</h3>
+  <a href="#s1">完成狀態</a>
+  <a href="#s2">v1 done 三 AND 條件</a>
+  <a href="#s3">dogfood 待執行步驟</a>
+  <a href="#s4">Known-issues</a>
+  <a href="#s5">變動檔案總覽</a>
+  <a href="#s6">v2-N 待辦</a>
+</nav>
+
+<article class="paper">
+
+  <header>
+    <p class="kicker">EXECUTE REPORT</p>
+    <h1>/baransu:execute Final Report — book-diagram-port-v1</h1>
+    <p class="subtitle">
+      11/12 task 完成，merge 全綠無 conflict；v1 done 條件 C1 / C2 已達標，C3（user dogfood 放行）尚未觸發，整體狀態為 in-progress。
+      <span class="meta">Spec：.claude/analyze/2026-05-11-book-diagram-port-v1/ · main HEAD：6e4fdf7</span>
+    </p>
+  </header>
+
+  <section id="s1">
+    <h2><span class="sec-num">01</span>完成狀態</h2>
+    <p>L 級 spec（max parallel width 3）展開為四個 DAG level，11 個已完成 task 跨 5 個 group：<code>skill-arch</code> → <code>shared</code> / <code>spec</code> / <code>validate</code> → <code>template</code> → <code>assets</code> / <code>skill-fill</code> → <code>dogfood</code>。Level 1（91fcb4d / 50e59df / d4dd0b6）、Level 2（1e00b8a）、Level 3（632de31 / 6e4fdf7）三輪 merge point 皆 ✅。</p>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 880 480" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Task DAG across 5 levels">
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#504e49"/>
+          </marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#1B365D"/>
+          </marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#f5f4ed"/>
+
+        <!-- Level labels -->
+        <text x="100" y="36" fill="#6b6a64" font-size="10" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">LEVEL 0</text>
+        <text x="264" y="36" fill="#6b6a64" font-size="10" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">LEVEL 1</text>
+        <text x="444" y="36" fill="#6b6a64" font-size="10" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">LEVEL 2</text>
+        <text x="624" y="36" fill="#6b6a64" font-size="10" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">LEVEL 3</text>
+        <text x="788" y="36" fill="#6b6a64" font-size="10" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.12em">LEVEL 4</text>
+
+        <!-- Edges: L0 -> L1 (3 edges) -->
+        <line x1="160" y1="216" x2="200" y2="96" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="160" y1="216" x2="200" y2="216" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="160" y1="216" x2="200" y2="336" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- Edges: L1 -> L2 (3 edges converging into template) -->
+        <line x1="328" y1="96" x2="380" y2="216" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="328" y1="216" x2="380" y2="216" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="328" y1="336" x2="380" y2="216" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- Edges: L2 -> L3 (2 edges) -->
+        <line x1="508" y1="216" x2="560" y2="156" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="508" y1="216" x2="560" y2="276" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- Edges: L3 -> L4 (2 edges, accent — converging into focal dogfood) -->
+        <line x1="688" y1="156" x2="720" y2="216" stroke="#1B365D" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+        <line x1="688" y1="276" x2="720" y2="216" stroke="#1B365D" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+
+        <!-- Node: skill-arch (Level 0, focal-1) -->
+        <rect x="40" y="184" width="120" height="64" rx="6" fill="#f5f4ed"/>
+        <rect data-role="focal" x="40" y="184" width="120" height="64" rx="6" fill="#EEF2F7" stroke="#1B365D" stroke-width="1.4"/>
+        <rect x="48" y="190" width="36" height="12" rx="2" fill="transparent" stroke="#1B365D" stroke-width="0.8"/>
+        <text x="66" y="199" fill="#1B365D" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">ROOT</text>
+        <text x="100" y="224" fill="#141413" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">skill-arch</text>
+        <text x="100" y="240" fill="#504e49" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">01a · 1 task</text>
+
+        <!-- Node: shared (Level 1, top) -->
+        <rect x="200" y="64" width="128" height="64" rx="6" fill="#f5f4ed"/>
+        <rect x="200" y="64" width="128" height="64" rx="6" fill="#faf9f5" stroke="#6b6a64" stroke-width="1"/>
+        <rect x="208" y="70" width="30" height="12" rx="2" fill="transparent" stroke="#6b6a64" stroke-width="0.8"/>
+        <text x="223" y="79" fill="#6b6a64" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SHRD</text>
+        <text x="264" y="104" fill="#141413" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">shared</text>
+        <text x="264" y="120" fill="#504e49" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">01 · 1 task</text>
+
+        <!-- Node: spec (Level 1, middle) -->
+        <rect x="200" y="184" width="128" height="64" rx="6" fill="#f5f4ed"/>
+        <rect x="200" y="184" width="128" height="64" rx="6" fill="#faf9f5" stroke="#6b6a64" stroke-width="1"/>
+        <rect x="208" y="190" width="30" height="12" rx="2" fill="transparent" stroke="#6b6a64" stroke-width="0.8"/>
+        <text x="223" y="199" fill="#6b6a64" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SPEC</text>
+        <text x="264" y="224" fill="#141413" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">spec</text>
+        <text x="264" y="240" fill="#504e49" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">01 + 02a-d · 5 tasks</text>
+
+        <!-- Node: validate (Level 1, bottom) -->
+        <rect x="200" y="304" width="128" height="64" rx="6" fill="#f5f4ed"/>
+        <rect x="200" y="304" width="128" height="64" rx="6" fill="#faf9f5" stroke="#6b6a64" stroke-width="1"/>
+        <rect x="208" y="310" width="30" height="12" rx="2" fill="transparent" stroke="#6b6a64" stroke-width="0.8"/>
+        <text x="223" y="319" fill="#6b6a64" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">VAL</text>
+        <text x="264" y="344" fill="#141413" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">validate</text>
+        <text x="264" y="360" fill="#504e49" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">01 · 1 task</text>
+
+        <!-- Node: template (Level 2) -->
+        <rect x="380" y="184" width="128" height="64" rx="6" fill="#f5f4ed"/>
+        <rect x="380" y="184" width="128" height="64" rx="6" fill="#faf9f5" stroke="#6b6a64" stroke-width="1"/>
+        <rect x="388" y="190" width="30" height="12" rx="2" fill="transparent" stroke="#6b6a64" stroke-width="0.8"/>
+        <text x="403" y="199" fill="#6b6a64" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TMPL</text>
+        <text x="444" y="224" fill="#141413" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">template</text>
+        <text x="444" y="240" fill="#504e49" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">01 · 1 task</text>
+
+        <!-- Node: assets (Level 3, top) -->
+        <rect x="560" y="124" width="128" height="64" rx="6" fill="#f5f4ed"/>
+        <rect x="560" y="124" width="128" height="64" rx="6" fill="#faf9f5" stroke="#6b6a64" stroke-width="1"/>
+        <rect x="568" y="130" width="30" height="12" rx="2" fill="transparent" stroke="#6b6a64" stroke-width="0.8"/>
+        <text x="583" y="139" fill="#6b6a64" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">ASST</text>
+        <text x="624" y="164" fill="#141413" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">assets</text>
+        <text x="624" y="180" fill="#504e49" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">01 · 1 task</text>
+
+        <!-- Node: skill-fill (Level 3, bottom) -->
+        <rect x="560" y="244" width="128" height="64" rx="6" fill="#f5f4ed"/>
+        <rect x="560" y="244" width="128" height="64" rx="6" fill="#faf9f5" stroke="#6b6a64" stroke-width="1"/>
+        <rect x="568" y="250" width="30" height="12" rx="2" fill="transparent" stroke="#6b6a64" stroke-width="0.8"/>
+        <text x="583" y="259" fill="#6b6a64" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">FILL</text>
+        <text x="624" y="284" fill="#141413" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">skill-fill</text>
+        <text x="624" y="300" fill="#504e49" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">01b · 1 task</text>
+
+        <!-- Node: dogfood (Level 4, focal-2, pending) -->
+        <rect x="720" y="184" width="140" height="64" rx="6" fill="#f5f4ed"/>
+        <rect data-role="focal" x="720" y="184" width="140" height="64" rx="6" fill="#EEF2F7" stroke="#1B365D" stroke-width="1.4" stroke-dasharray="3,3"/>
+        <rect x="728" y="190" width="36" height="12" rx="2" fill="transparent" stroke="#1B365D" stroke-width="0.8"/>
+        <text x="746" y="199" fill="#1B365D" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">PEND</text>
+        <text x="790" y="224" fill="#141413" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">dogfood</text>
+        <text x="790" y="240" fill="#1B365D" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">user PAUSE</text>
+
+        <!-- Legend strip -->
+        <line x1="40" y1="430" x2="840" y2="430" stroke="#e5e3d8" stroke-width="1"/>
+        <text x="40" y="448" fill="#141413" font-size="9" font-weight="500" font-family="'Geist Mono', monospace" letter-spacing="0.12em">LEGEND</text>
+
+        <rect x="120" y="440" width="14" height="10" rx="2" fill="#faf9f5" stroke="#6b6a64" stroke-width="1"/>
+        <text x="140" y="449" fill="#504e49" font-size="9" font-family="'Geist', system-ui, sans-serif">Completed task group</text>
+
+        <rect x="284" y="440" width="14" height="10" rx="2" fill="#EEF2F7" stroke="#1B365D" stroke-width="1.4"/>
+        <text x="304" y="449" fill="#504e49" font-size="9" font-family="'Geist', system-ui, sans-serif">Focal (root / pending)</text>
+
+        <line x1="448" y1="445" x2="466" y2="445" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <text x="472" y="449" fill="#504e49" font-size="9" font-family="'Geist', system-ui, sans-serif">DAG dep</text>
+
+        <line x1="560" y1="445" x2="578" y2="445" stroke="#1B365D" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+        <text x="584" y="449" fill="#504e49" font-size="9" font-family="'Geist', system-ui, sans-serif">Path to focal</text>
+      </svg>
+      <figcaption>圖 1：5 級 DAG — skill-arch 根節點與 dogfood 終端為焦點；merge points 在每兩級之間（Level 1 / 2 / 3 三輪皆綠）</figcaption>
+    </figure>
+  </section>
+
+  <section id="s2">
+    <h2><span class="sec-num">02</span>v1 done 三 AND 條件</h2>
+    <p>v1 done 條件是三條全部滿足的 AND，目前兩條已綠、一條待 user 觸發：</p>
+
+    <table class="cmp">
+      <thead>
+        <tr><th style="width:14%">條件</th><th style="width:48%">描述</th><th style="width:18%">狀態</th><th style="width:20%">備註</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>C1</strong></td>
+          <td>七動作（重新映射為 11 動作）全部 commit</td>
+          <td>✅ 完成<span class="badge yes">DONE</span></td>
+          <td>11/12 task all green</td>
+        </tr>
+        <tr>
+          <td><strong>C2</strong></td>
+          <td>example-architecture-kami.html 通過 validate gate</td>
+          <td>✅ 完成<span class="badge yes">DONE</span></td>
+          <td>8/8 GATE OK：focal=1、paper-mask、legend、markers defs=3 refs=3、deny-list + 3 條既有</td>
+        </tr>
+        <tr>
+          <td><strong>C3</strong></td>
+          <td>user 對 dogfood 放行</td>
+          <td>⏸ 待觸發<span class="badge no">PEND</span></td>
+          <td>需 user 在新 session 跑 dogfood E2E-1~E2E-5</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <strong>Review tier 統計</strong>：11 個已完成 task 全部 <code>tier: advisory</code>（findings 為觀察性，非 blocker）；<code>failure_count</code> 全程為 0。Goal-Alignment Filter：<code>total_findings</code> ≈ 25，<code>downgraded_to_advisory</code> = 0（無 off-goal 觀察）。
+    </div>
+  </section>
+
+  <section id="s3">
+    <h2><span class="sec-num">03</span>dogfood 待執行步驟</h2>
+    <p>TASK-dogfood-01 拆分為 9 個動作；步驟 1 為 plugin 重載前置（需 bump <code>plugin.json</code> version 1.1.20 → 1.1.21），步驟 2–7 為 E2E 與驗收，步驟 8 為 paper-mask 第三層判定 PAUSE，步驟 9 為 commit dogfood report。</p>
+
+    <ol>
+      <li><strong>Plugin 重載</strong>（前置）— bump version、<code>/plugin marketplace update baransu</code>、reload</li>
+      <li><strong>E2E-1 主要 dogfood</strong>：用新 pipeline 重畫 Stage 0→4 流程圖 → 預期 validate-output.ts 全 gate 綠 + playwright 截圖比對前次 preview</li>
+      <li><strong>C3 user 驗收（PAUSE #1）</strong>：目視「不再歪」（端點對齊 / focal 收斂 / z-order 正確 / 視覺密度適中）— 放行 → C3 ✓；拒絕 → 回頭調對應 task，最多 2 輪重跑</li>
+      <li><strong>E2E-4 WeasyPrint marker 支援驗證</strong>：<code>--format pdf</code> → 目視箭頭端點；完全不支援則觸發 PAUSE #2（Unknown #1b PDF 降級接受度）</li>
+      <li><strong>E2E-5 PPT silent regress 驗證</strong>：<code>--format ppt</code> → 目視 10 張 slide（特別注意 golden-template 重寫後是否影響 PPTX）</li>
+      <li><strong>E2E-2 fallback Kami 驗證</strong>：暫時 <code>mv DESIGN.md DESIGN.md.bak</code> → token 來自 design-token-resolver.md Layer 2</li>
+      <li><strong>E2E-3 非 hex token reject 驗證</strong>：DESIGN.md 暫時注入 <code>--test-token: red;}</code> → 跑 /book → 還原</li>
+      <li><strong>Unknown #3 paper-mask 第三層判定（PAUSE #3）</strong>：步驟 3 順便決定是否升級到第三層 mask</li>
+      <li><strong>Commit dogfood report</strong>：<code>docs(book): v1 dogfood report (Stage 0→4 redrawn)</code></li>
+    </ol>
+
+    <div class="callout warm">
+      Final-Review 與 E2E 全部 <strong>未執行</strong>。Coverage Report 預期會找到 REQ-005 / REQ-006 Scenarios 待 dogfood 驗證的幾條 gap，交由 final-fixer 或記入 known-issues。
+    </div>
+  </section>
+
+  <section id="s4">
+    <h2><span class="sec-num">04</span>Known-issues（自動偵測）</h2>
+    <p>v1 close 時自動偵測出六項已知問題；皆不影響 v1 完成條件，建議於 v1.1 fix。</p>
+
+    <table class="cmp">
+      <thead>
+        <tr><th style="width:5%">#</th><th style="width:30%">問題</th><th style="width:55%">說明</th><th style="width:10%">優先</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>cheerio 安裝方式</td><td>validate-output.ts 採 <code>npm install --no-save</code> 於 worktree 本地；merge 後 main 沒有 <code>node_modules/cheerio</code>，需手動或加進 install-deps.ts</td><td><span class="badge yes">v1.1</span></td></tr>
+        <tr><td>2</td><td>TypeScript diagnostics</td><td>編輯器顯示 <code>Cannot find module 'node:fs'</code>（缺 @types/node），tsx runtime 不受影響</td><td><span class="badge no">low</span></td></tr>
+        <tr><td>3</td><td>box-shadow rgba 殘留</td><td>golden-template CSS 3 處 rgba，Kami invariant #8 主旨在 SVG fill/stroke，box-shadow 不在範圍</td><td><span class="badge no">low</span></td></tr>
+        <tr><td>4</td><td>驗證 cwd 拓樸</td><td>worktree 相對路徑 <code>../../plugins/...</code> 可能解到 <code>.git/</code>，建議改絕對路徑</td><td><span class="badge yes">v1.1</span></td></tr>
+        <tr><td>5</td><td>未使用的 TS type import</td><td><code>Cheerio</code> type imported but unused（line 24）— 1 行清理</td><td><span class="badge no">low</span></td></tr>
+        <tr><td>6</td><td>paper-mask Layer 1 fill 寫法</td><td>spec 字面要求 <code>var(--parchment)</code>，實作用 <code>#f5f4ed</code>（解析等價），符合 GATE-B hex shape；spec 修訂時可統一</td><td><span class="badge no">low</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="s5">
+    <h2><span class="sec-num">05</span>變動檔案總覽</h2>
+    <p>plugin <code>book/</code> 三大子樹有新增或重寫：<code>references/diagram-types/</code> 為新 dir（13 個 type ref，其中 architecture 為 <code>complete</code>，其餘 12 個為 <code>ref-only</code>）；<code>assets/</code> 多了 example-architecture-kami.html；<code>scripts/validate-output.ts</code> 大幅擴充並補上 6 個 fixtures。</p>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 720 540" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="File tree for book skill changes">
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#504e49"/>
+          </marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#f5f4ed"/>
+
+        <!-- Root node -->
+        <rect x="40" y="40" width="240" height="32" rx="6" fill="#f5f4ed"/>
+        <rect data-role="focal" x="40" y="40" width="240" height="32" rx="6" fill="#EEF2F7" stroke="#1B365D" stroke-width="1.4"/>
+        <rect x="48" y="46" width="34" height="12" rx="2" fill="transparent" stroke="#1B365D" stroke-width="0.8"/>
+        <text x="64" y="55" fill="#1B365D" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">ROOT</text>
+        <text x="180" y="60" fill="#141413" font-size="12" font-weight="600" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">plugins/baransu/skills/book/</text>
+
+        <!-- Trunk vertical line -->
+        <line x1="60" y1="72" x2="60" y2="396" stroke="#504e49" stroke-width="1"/>
+
+        <!-- Branch: SKILL.md -->
+        <line x1="60" y1="100" x2="100" y2="100" stroke="#504e49" stroke-width="1"/>
+        <rect x="100" y="84" width="320" height="32" rx="6" fill="#f5f4ed"/>
+        <rect x="100" y="84" width="320" height="32" rx="6" fill="#faf9f5" stroke="#6b6a64" stroke-width="1"/>
+        <rect x="108" y="90" width="26" height="12" rx="2" fill="transparent" stroke="#6b6a64" stroke-width="0.8"/>
+        <text x="121" y="99" fill="#6b6a64" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">MOD</text>
+        <text x="148" y="104" fill="#141413" font-size="11" font-family="'Geist Mono', ui-monospace, monospace">SKILL.md</text>
+        <text x="220" y="104" fill="#504e49" font-size="10" font-family="'Geist Mono', ui-monospace, monospace">— modified (01a + 01b)</text>
+
+        <!-- Branch: assets/ -->
+        <line x1="60" y1="148" x2="100" y2="148" stroke="#504e49" stroke-width="1"/>
+        <rect x="100" y="132" width="320" height="32" rx="6" fill="#f5f4ed"/>
+        <rect x="100" y="132" width="320" height="32" rx="6" fill="#faf9f5" stroke="#6b6a64" stroke-width="1"/>
+        <rect x="108" y="138" width="26" height="12" rx="2" fill="transparent" stroke="#6b6a64" stroke-width="0.8"/>
+        <text x="121" y="147" fill="#6b6a64" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">DIR</text>
+        <text x="148" y="152" fill="#141413" font-size="11" font-family="'Geist Mono', ui-monospace, monospace">assets/</text>
+        <text x="220" y="152" fill="#504e49" font-size="10" font-family="'Geist Mono', ui-monospace, monospace">— example-arch-kami.html (new)</text>
+
+        <!-- Branch: references/ -->
+        <line x1="60" y1="208" x2="100" y2="208" stroke="#504e49" stroke-width="1"/>
+        <rect x="100" y="192" width="320" height="32" rx="6" fill="#f5f4ed"/>
+        <rect x="100" y="192" width="320" height="32" rx="6" fill="#faf9f5" stroke="#6b6a64" stroke-width="1"/>
+        <rect x="108" y="198" width="26" height="12" rx="2" fill="transparent" stroke="#6b6a64" stroke-width="0.8"/>
+        <text x="121" y="207" fill="#6b6a64" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">DIR</text>
+        <text x="148" y="212" fill="#141413" font-size="11" font-family="'Geist Mono', ui-monospace, monospace">references/</text>
+        <text x="220" y="212" fill="#504e49" font-size="10" font-family="'Geist Mono', ui-monospace, monospace">— tokens · template · 13 types</text>
+
+        <!-- references/ sub-branches -->
+        <line x1="120" y1="224" x2="120" y2="320" stroke="#504e49" stroke-width="0.8" stroke-dasharray="2,2"/>
+        <line x1="120" y1="248" x2="180" y2="248" stroke="#504e49" stroke-width="0.8" stroke-dasharray="2,2"/>
+        <text x="184" y="252" fill="#3d3d3a" font-size="10" font-family="'Geist Mono', ui-monospace, monospace">design-token-resolver.md (new)</text>
+
+        <line x1="120" y1="280" x2="180" y2="280" stroke="#504e49" stroke-width="0.8" stroke-dasharray="2,2"/>
+        <text x="184" y="284" fill="#3d3d3a" font-size="10" font-family="'Geist Mono', ui-monospace, monospace">golden-template.html (rewritten)</text>
+
+        <line x1="120" y1="312" x2="180" y2="312" stroke="#504e49" stroke-width="0.8" stroke-dasharray="2,2"/>
+        <text x="184" y="316" fill="#3d3d3a" font-size="10" font-family="'Geist Mono', ui-monospace, monospace">diagram-types/ (new — 13 refs)</text>
+
+        <!-- Branch: scripts/ -->
+        <line x1="60" y1="356" x2="100" y2="356" stroke="#504e49" stroke-width="1"/>
+        <rect x="100" y="340" width="320" height="32" rx="6" fill="#f5f4ed"/>
+        <rect x="100" y="340" width="320" height="32" rx="6" fill="#faf9f5" stroke="#6b6a64" stroke-width="1"/>
+        <rect x="108" y="346" width="26" height="12" rx="2" fill="transparent" stroke="#6b6a64" stroke-width="0.8"/>
+        <text x="121" y="355" fill="#6b6a64" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">DIR</text>
+        <text x="148" y="360" fill="#141413" font-size="11" font-family="'Geist Mono', ui-monospace, monospace">scripts/</text>
+        <text x="220" y="360" fill="#504e49" font-size="10" font-family="'Geist Mono', ui-monospace, monospace">— validate-output.ts + fixtures</text>
+
+        <!-- scripts/ sub-branches -->
+        <line x1="120" y1="372" x2="120" y2="412" stroke="#504e49" stroke-width="0.8" stroke-dasharray="2,2"/>
+        <line x1="120" y1="396" x2="180" y2="396" stroke="#504e49" stroke-width="0.8" stroke-dasharray="2,2"/>
+        <text x="184" y="400" fill="#3d3d3a" font-size="10" font-family="'Geist Mono', ui-monospace, monospace">validate-output.ts (expanded — 5 GATE)</text>
+
+        <line x1="120" y1="424" x2="180" y2="424" stroke="#504e49" stroke-width="0.8" stroke-dasharray="2,2"/>
+        <text x="184" y="428" fill="#3d3d3a" font-size="10" font-family="'Geist Mono', ui-monospace, monospace">validate-fixtures/ (new — 6 cases)</text>
+
+        <!-- Edge: pointer to v2-N TODO -->
+        <line x1="380" y1="424" x2="490" y2="476" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <text x="500" y="468" fill="#504e49" font-size="10" font-family="'Geist Mono', monospace">v2-N：12 ref-only</text>
+        <text x="500" y="482" fill="#504e49" font-size="10" font-family="'Geist Mono', monospace">examples 漸進補齊</text>
+
+        <!-- Legend strip -->
+        <line x1="40" y1="488" x2="680" y2="488" stroke="#e5e3d8" stroke-width="1"/>
+        <text x="40" y="506" fill="#141413" font-size="9" font-weight="500" font-family="'Geist Mono', monospace" letter-spacing="0.12em">LEGEND</text>
+
+        <rect x="120" y="498" width="14" height="10" rx="2" fill="#EEF2F7" stroke="#1B365D" stroke-width="1.4"/>
+        <text x="140" y="507" fill="#504e49" font-size="9" font-family="'Geist', system-ui, sans-serif">Root path</text>
+
+        <rect x="240" y="498" width="14" height="10" rx="2" fill="#faf9f5" stroke="#6b6a64" stroke-width="1"/>
+        <text x="260" y="507" fill="#504e49" font-size="9" font-family="'Geist', system-ui, sans-serif">Changed subtree</text>
+
+        <line x1="400" y1="503" x2="418" y2="503" stroke="#504e49" stroke-width="0.8" stroke-dasharray="2,2"/>
+        <text x="424" y="507" fill="#504e49" font-size="9" font-family="'Geist', system-ui, sans-serif">Contains</text>
+
+        <line x1="500" y1="503" x2="518" y2="503" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <text x="524" y="507" fill="#504e49" font-size="9" font-family="'Geist', system-ui, sans-serif">Future expansion</text>
+      </svg>
+      <figcaption>圖 2：plugin <code>book/</code> 變動檔案樹 — 三大子樹（assets / references / scripts）皆有新增或重寫，v2-N 將漸進補完 12 個 ref-only example</figcaption>
+    </figure>
+  </section>
+
+  <section id="s6">
+    <h2><span class="sec-num">06</span>v2-N 待辦與後續</h2>
+    <p>v1 完成後，v2-N 漸進補齊四件事（per spec）：</p>
+    <ul>
+      <li>12 個 ref-only diagram type 的 example HTML（預估 4-6 session 漸進補齊）</li>
+      <li>Dark / full editorial variant（v3+）</li>
+      <li>Known-issues 1-6（特別是 cheerio bootstrap 與 cwd 拓樸）</li>
+      <li>dogfood report commit 與 v1 close 公告</li>
+    </ul>
+
+    <div class="callout">
+      <strong>Forward note</strong>：v2-N 補 dark / full variant 或新 SVG primitive 時，必須沿用 <code>design-token-resolver.md</code> 的 hex shape contract（<code>^#[0-9a-fA-F]{3,8}$</code>），不得另開 sink。所有 SVG 屬性走 token resolver 預展開為 solid hex，避免重複出現 Known-issue #6 的 spec/實作差異。
+    </div>
+  </section>
+
+  <footer>
+    <span>整理自 .claude/archived/2026-05-11-book-diagram-port-v1/execute/final-report.md</span>
+    <span>2026-05-11</span>
+  </footer>
+
+</article>
+
+<script>
+  const sections = document.querySelectorAll('section[id]');
+  const links    = document.querySelectorAll('.toc-wrap a');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      links.forEach(l => l.classList.remove('active'));
+      const lnk = document.querySelector(`.toc-wrap a[href="#${e.target.id}"]`);
+      if (lnk) lnk.classList.add('active');
+    });
+  }, { threshold: 0.35 });
+  sections.forEach(s => io.observe(s));
+</script>
+</body>
+</html>

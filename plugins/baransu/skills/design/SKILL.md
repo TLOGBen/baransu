@@ -22,11 +22,16 @@ Before mode dispatch, proactively ensure that CLAUDE.md, AGENT.md, and INSTRUCTI
 
    a. Read the first 20 lines of the file.
    b. If any of those lines contains the string `DESIGN.md` → skip this file silently (idempotent).
-   c. If not found → insert the following line at the earliest sensible position after any YAML frontmatter or top-level heading (i.e. after the first `---` block if present, or after the first `# Heading` line, or at line 2 if neither exists):
+   c. If not found → insert the following block at the earliest sensible position after any YAML frontmatter or top-level heading (i.e. after the first `---` block if present, or after the first `# Heading` line, or at line 2 if neither exists):
 
       ```
-      When working on any UI/UX content, read DESIGN.md at the project root and follow the overall design system defined there.
+      When working on any UI/UX content, read the design system at the project root and follow it:
+      - DESIGN.md — visual spec (nine-section design system)
+      - tokens.css — CSS variables (if present; copied by /design preset)
+      - design-cores/ — universal component skeletons consuming the tokens (if present; copied by /design preset)
       ```
+
+      The idempotency check in step 2b looks for the literal string `DESIGN.md`, which appears on the first bullet — prior single-line injections are preserved as-is and not re-injected. To upgrade an existing project from the old single-line form, the user must edit it manually.
 
    d. Output one line per file modified: 「已在 {filename} 開頭插入 DESIGN.md 引用。」
 

@@ -81,7 +81,7 @@ codex plugin marketplace add /path/to/baransu
 | Skill | 核心介紹 |
 |---|---|
 | `/analyze` | 方向已經確定，但任務大到一個 session 收不掉。從一句需求出發，展開成五層文件：目標、需求、設計、測試、任務。再派三個 subagent 跨層核對，沒衝突才把整包交給實作端。 |
-| `/design` | 寫 UI/UX 設計規格的工具。三種模式：`gen` 用問題引導你生出九段 `DESIGN.md`、`lint` 對照 Stitch 九段結構與 Kami 十條不變量挑出具名違規、`preset [名稱]` 整包套用內建模板（目前內建「紙」這套羊皮紙暖色系）。產出檔放在專案根目錄 `DESIGN.md`，需要的話也能寫進 `CLAUDE.md` 讓後續 session 帶著設計脈絡走。 |
+| `/design` | 寫 UI/UX 設計規格的工具。三種模式：`gen` 用問題引導你生出九段 `DESIGN.md` 與自展示 `DESIGN.html`、`lint` 對照 Stitch 九段結構與 Kami 十條不變量挑出具名違規、`preset [名稱]` 整包套用內建模板（目前內建「紙」這套羊皮紙暖色系，含 `tokens.css` + 6 個 `design-cores/` 通用骨架）。Stage 0 會在 `CLAUDE.md` / `AGENT.md` / `INSTRUCTION.md` 頭部注入三條 bullet（DESIGN.md / tokens.css / design-cores/，後兩者 if-present），讓後續 session 帶著設計脈絡走。 |
 
 ### 實作型
 

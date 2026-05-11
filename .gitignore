@@ -16,11 +16,6 @@
 # Skill eval / optimization workspaces (transient, local only).
 eval-workspace/
 
-# /design preset output — design-cores/ is meant to land in CONSUMER projects,
-# not in baransu source repo. The canonical skeletons live in
-# plugins/baransu/skills/design/references/cores/.
-/design-cores/
-
 # Session telemetry written by the everything-cli harness.
 # knowledge/solutions/ and other curated content under knowledge/ stays tracked.
 knowledge/skill-telemetry.jsonl

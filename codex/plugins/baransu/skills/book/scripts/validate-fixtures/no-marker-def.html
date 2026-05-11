@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>no-marker-def</title></head>
+<body>
+<main>
+  <svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+    <!-- GATE-D FAIL: marker-end references #arrow but no <marker id="arrow"> defined -->
+    <rect width="100%" height="100%" fill="#f8f5ed"/>
+    <defs></defs>
+    <line x1="100" y1="100" x2="300" y2="100" stroke="#222" marker-end="url(#arrow)"/>
+    <!-- legend strip (so GATE-C passes) -->
+    <line x1="0" y1="450" x2="800" y2="450" stroke="#222" stroke-width="0.5"/>
+    <text x="20" y="475" font-family="monospace" font-size="10">LEGEND: arrow flow</text>
+  </svg>
+</main>
+</body>
+</html>
