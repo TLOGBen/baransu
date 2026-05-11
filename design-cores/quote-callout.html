@@ -1,0 +1,82 @@
+<!-- Quote & Callout skeletons -->
+<style>
+/* Quote */
+.quote {
+  border-left: 2px solid var(--brand);
+  padding: 0.3rem 0 0.3rem 1rem;
+  color: var(--olive);
+  font-family: var(--serif);
+  font-style: normal;     /* invariant #10: no italics */
+  line-height: 1.55;
+  margin: 1.5rem 0;
+}
+.quote-attribution {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--stone);
+  margin-top: 0.5rem;
+}
+
+/* Callout box — informational aside */
+.callout {
+  background: var(--ivory);
+  border-left: 3px solid var(--brand);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 0.875rem 1.125rem;
+  margin: 1.5rem 0;
+  break-inside: avoid;
+}
+.callout-label {
+  font-family: var(--mono);
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--brand);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.35rem;
+}
+.callout-body {
+  font-size: 0.9375rem;
+  color: var(--dark-warm);
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* Takeaway — key insight highlight */
+.takeaway {
+  border-top: 1px solid var(--brand);
+  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 0;
+  margin: 1.5rem 0;
+  break-inside: avoid;
+}
+.takeaway-text {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--brand);
+  line-height: 1.45;
+  margin: 0;
+}
+</style>
+
+<!-- Quote -->
+<blockquote class="quote">
+  Good content deserves good paper. The medium shapes how carefully the message is received.
+  <span class="quote-attribution">— Design Principle</span>
+</blockquote>
+
+<!-- Callout -->
+<div class="callout">
+  <div class="callout-label">Note</div>
+  <p class="callout-body">
+    This is an informational callout. Use for asides, warnings, or context
+    that supplements the main text without interrupting flow.
+  </p>
+</div>
+
+<!-- Takeaway -->
+<div class="takeaway">
+  <p class="takeaway-text">
+    Key insight: warm parchment backgrounds reduce eye strain by 23% compared to pure white in extended reading sessions.
+  </p>
+</div>
