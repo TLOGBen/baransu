@@ -143,6 +143,15 @@ Based on the perception guide signals, assign `$CONTENT_TYPE` to one of:
 
 Output one line: 「內容類型偵測：{$CONTENT_TYPE}」
 
+### 2.5 兩階層決策樹（Layer 1 內容類型 → Layer 2 diagram 結構）
+
+Stage 2A 的選擇分為兩層，**順序不可顛倒**：
+
+- **Layer 1（content type → HTML 版面密度）**：由 §2 已產出的 `$CONTENT_TYPE`（A=`technical` / B=`narrative` / C=`research`）決定整篇 HTML 的版面樣式——TOC 是否展開、cards 數量、密度、callout 風格等，皆由 `references/perception-guide.md` 對應 A/B/C 三類分別給定。
+- **Layer 2（13 型 selection → 每段 diagram 結構）**：每個含 diagram 的 section 獨立 lookup Stage 3 §4「13 型 selection 表」，依該段資料形狀挑一個 diagram type（architecture / flowchart / sequence / ...）。
+
+兩軸正交：Layer 1 控版面，Layer 2 控每段 SVG 結構；先 Layer 1、再 Layer 2，每段獨立決定不沿用上一段選擇。
+
 ### 3. Extract structure
 
 From `$RAW_CONTENT`, extract:
@@ -404,6 +413,30 @@ For each section from `$STRUCTURE`:
 | 時間軸 + 里程碑 | Timeline |
 
 > 無法匹配時 → fallback 到 **Architecture**（通用型）。
+
+#### 13 型 selection 表（v1 ref skeleton + status 揭露）
+
+每段含 diagram 的 section 依 Layer 2 從本表 lookup 對應 ref。Status 欄一律對齊各 ref frontmatter：`complete` 表示有可直接重用的 example HTML；`ref-only` 表示僅有 ref 規格、example HTML 待 v2-N 補（renderer fallback 通用 SVG primitives）。
+
+| Type | Best for | Reference | Status |
+|------|----------|-----------|--------|
+| architecture | 系統概覽 / data-flow / 整合 map / infra topology / 元件 + 連線 | `references/diagram-types/type-architecture.md` | `status: complete` |
+| flowchart | 決策邏輯 / 演算法步驟 / "Should I…?" 分支 / onboarding routing / support-triage | `references/diagram-types/type-flowchart.md` | `status: ref-only` |
+| sequence | request/response 流程 / protocol 交握 / 多 actor 互動 / API call trace / 事故重建 | `references/diagram-types/type-sequence.md` | `status: ref-only` |
+| state | 有限狀態邏輯 / order status / auth state / connection lifecycle / form wizard | `references/diagram-types/type-state.md` | `status: ref-only` |
+| er | database schema / API resource 關係 / domain model / aggregate boundary / 跨服務 ownership | `references/diagram-types/type-er.md` | `status: ref-only` |
+| timeline | release 歷史 / project milestone / 事故時間線 / roadmap / changelog | `references/diagram-types/type-timeline.md` | `status: ref-only` |
+| swimlane | 跨職能流程 / RACI flow / vendor handoff / multi-team workflow / 跨團隊責任歸屬 | `references/diagram-types/type-swimlane.md` | `status: ref-only` |
+| quadrant | 優先級排序（Impact × Effort）/ 定位圖 / portfolio map / 2×2 decision / scenario planning | `references/diagram-types/type-quadrant.md` | `status: ref-only` |
+| nested | 透過 containment 表達 hierarchy / scope boundary / CLAUDE.md cascade / trust zone / blast radius | `references/diagram-types/type-nested.md` | `status: ref-only` |
+| tree | org chart / dependency tree / taxonomy / file tree / decision breakdown / skill tree | `references/diagram-types/type-tree.md` | `status: ref-only` |
+| layers | OSI model / CSS cascade / context hierarchy / tech stack / abstraction layer / memory hierarchy | `references/diagram-types/type-layers.md` | `status: ref-only` |
+| venn | 概念交集 / 跨類別共同屬性 / ikigai-style frame / 定位 sweet spot | `references/diagram-types/type-venn.md` | `status: ref-only` |
+| pyramid | hierarchy of needs / prioritization rank / value pyramid / conversion funnel / content importance | `references/diagram-types/type-pyramid.md` | `status: ref-only` |
+
+> `ref-only` 型 fallback 通用 SVG primitives（marker / paper-mask / type tag / legend strip 規格仍生效）；final-report 標 `degraded-type: <type-name>` 告知 v2-N 補 example HTML。
+
+> **Forward note**：v2-N 補 dark/full variant 或新 SVG primitive 時，必須沿用 `design-token-resolver.md` 的 hex shape contract（`^#[0-9a-fA-F]{3,8}$`），不得另開 sink。
 
 ---
 
