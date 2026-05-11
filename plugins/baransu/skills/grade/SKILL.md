@@ -1,6 +1,6 @@
 ---
 name: grade
-description: 'Use When scoring baransu skill telemetry on a deterministic 5-dim rubric (daily cron 00:00 or on demand). Do Read .claude/harness/telemetry.jsonl, compute 5 baransu-native dimensions, write per-row verdicts to grade.jsonl. Trigger On 「打分」「評分 skill 表現」「跑 grade」, "grade telemetry", "score skills". 繁體中文輸出。'
+description: 'Score baransu skill telemetry on a deterministic 5-dim rubric — reads .claude/harness/telemetry.jsonl, writes per-row verdicts to grade.jsonl. Daily cron 00:00 or on demand. Trigger on 「打分」「跑 grade」「評分 skill」, "score skills". 繁體中文輸出。'
 ---
 
 # grade — score completed telemetry rows on a deterministic rubric
