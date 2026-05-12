@@ -1,5 +1,5 @@
 {
-  "iter_count": 9,
+  "iter_count": 10,
   "score_overall": null,
   "score_history": [],
   "last_review_findings": 0,
@@ -19,7 +19,7 @@
     "TASK-svg-03 P1 (spec): REQ-001 Scenario 4 mod-4 wording is literal but validate-output.ts has no mod-4 gate. Recommendation: tighten spec to scope structural rects/lines/circles only.",
     "TASK-svg-04 P2: chevron marker defs duplicated across 13 diagram-types; opportunity to hoist to shared kami-defs.md",
     "TASK-svg-05 infra: validate-output.ts has 10+ pre-existing TypeScript diagnostics (missing @types/node + implicit-any). Runtime works.",
-    "TASK-editorial-01 P2 nit: .kami-lead / .swiss-lead / .google-lead classes don't receive text-wrap: pretty (REQ-004 Scenario 1 wording is body+paragraph only). Editorial-02 fix opportunity."
+    "TASK-editorial-01 P2 nit: .kami-lead / .swiss-lead / .google-lead classes don't receive text-wrap: pretty (REQ-004 Scenario 1 wording is body+paragraph only)"
   ],
   "ab_diff_status": "not_yet_attempted",
   "consecutive_no_progress": 0,
@@ -28,15 +28,16 @@
   "last_iter_at": "2026-05-13",
   "completed_tasks": [
     {"id": "TASK-shared-01", "commit": "4ed609a", "review": "0 findings"},
-    {"id": "TASK-shared-02", "commit": "a4afce3", "review": "2 P2, 1 fixed in f3ed0b5"},
+    {"id": "TASK-shared-02", "commit": "a4afce3", "review": "1 fixed in f3ed0b5"},
     {"id": "TASK-shared-03", "commit": "e95cb14", "review": "0 findings"},
     {"id": "TASK-svg-01", "commit": "9aa7030", "review": "0 findings"},
     {"id": "TASK-svg-02", "commit": "f72786d", "review": "1 P1 + 1 P2 fixed"},
     {"id": "TASK-svg-03", "commit": "c816fb7", "review": "4 P1: 2 fixed in a567e65"},
-    {"id": "TASK-svg-04", "commit": "bd9727c", "review": "1 P1 fixed in 4c27ee8; ALL 13 diagram-types complete"},
-    {"id": "TASK-svg-05", "commit": "1bedca0", "review": "1 P1 fixed in fd50f98; GATE-J/K live"},
-    {"id": "TASK-editorial-01", "commit": "4086f08", "review": "0 findings (1 P2 lead-class nit deferred to editorial-02)"}
+    {"id": "TASK-svg-04", "commit": "bd9727c", "review": "1 P1 fixed; ALL 13 diagram-types complete"},
+    {"id": "TASK-svg-05", "commit": "1bedca0", "review": "1 P1 fixed; GATE-J/K live"},
+    {"id": "TASK-editorial-01", "commit": "4086f08", "review": "0 findings"},
+    {"id": "TASK-editorial-02", "commit": "5badbc8", "review": "1 P1 fixed in afd3532 — dropcap 3.1em→4.65em for actual 3-line drop"}
   ],
-  "next_task": "TASK-editorial-02",
-  "notes": "iter 9 done; svg group 5/5 + editorial 1/4 = 9 tasks complete; 24 tasks remaining. Editorial group started."
+  "next_task": "TASK-editorial-03",
+  "notes": "iter 10 done; editorial 2/4 (text-wrap pretty + dropcap 3-line); 10/33 tasks complete; 23 remaining."
 }
