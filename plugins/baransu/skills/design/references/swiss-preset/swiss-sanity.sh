@@ -29,6 +29,43 @@ echo ""
 
 exit_code=0
 
+# ── schemas existence (REQ-002 Scenario 1) ──
+# TODO: add long-doc + slides once their schema md files land.
+echo "── schemas existence ──"
+schema_dir="$SCRIPT_DIR/schemas"
+sx_fail=0
+for s in resume portfolio one-pager letter equity-report changelog; do
+  if [ ! -f "$schema_dir/$s.md" ]; then
+    echo "FAIL schemas existence: missing $schema_dir/$s.md" >&2
+    sx_fail=1
+    exit_code=1
+    break
+  fi
+done
+if [ "$sx_fail" = "0" ]; then
+  echo "OK  schemas existence (6 new doc-types present)"
+fi
+
+# ── object-position lint (REQ-002 Scenario 3 / B5) ──
+echo ""
+echo "── object-position lint ──"
+op_fail=0
+for f in design-cores/resume.html design-cores/resume-en.html \
+         design-cores/portfolio.html design-cores/portfolio-en.html; do
+  full="$SCRIPT_DIR/$f"
+  test -f "$full" || continue
+  if ! grep -q "object-position: center 35%" "$full"; then
+    echo "FAIL object-position lint: $f missing 'object-position: center 35%'" >&2
+    op_fail=1
+    exit_code=1
+    break
+  fi
+done
+if [ "$op_fail" = "0" ]; then
+  echo "OK  object-position lint (portrait schemas compliant)"
+fi
+
+echo ""
 # ── editorial-sanity (REQ-004) ──
 EDITORIAL_SH="$SCRIPT_DIR/../editorial-sanity.sh"
 if [ -f "$EDITORIAL_SH" ]; then

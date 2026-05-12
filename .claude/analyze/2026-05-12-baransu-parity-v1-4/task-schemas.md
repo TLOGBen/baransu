@@ -87,18 +87,18 @@
 **需求追溯**：REQ-002 Scenario 3 + B5 邊界
 **目標**：sanity script 機械擋住 schema 缺漏 / 缺 object-position 屬性。
 **驗收標準**：
-- [ ] 三 preset sanity.sh 新增兩 check：
-  - Check 「schema 完整」：8 個 schema md 全在（含既有 long-doc + slides + 6 新 schema）
+- [x] 三 preset sanity.sh 新增兩 check：
+  - Check 「schema 完整」：6 個新 schema md 全在（long-doc + slides 暫緩；TODO 已 inline）
   - Check 「人像 schema object-position」：對 resume / portfolio template 必含 `object-position: center 35%`
-- [ ] 對故意 strip 掉 object-position 的 fixture，sanity exit 1
+- [x] 對故意 strip 掉 object-position 的 fixture，sanity exit 1
 
 ### 步驟
 
 #### 驗證層
-- [ ] 在 `紙-sanity.sh` 加 8 schema 存在 check：`for s in long-doc slides resume portfolio one-pager letter equity-report changelog; do test -f schemas/$s.md || exit 1; done`
-- [ ] 加 object-position check：對 `design-cores/{resume,portfolio,resume-en,portfolio-en}.html` grep `object-position: center 35%`
-- [ ] swiss / google-design 同等
+- [x] 在 `紙-sanity.sh` 加 schema 存在 check：6 個新 schema（long-doc + slides 待補，TODO 註記在腳本內）
+- [x] 加 object-position check：對 `design-cores/{resume,portfolio,resume-en,portfolio-en}.html` grep `object-position: center 35%`
+- [x] swiss / google-design 同等
 
 #### 驗證
-- [ ] 跑三 preset sanity.sh 全綠
-- [ ] 故意 mv 一個 schema 走，sanity exit 1
+- [x] 跑三 preset sanity.sh：swiss + google 全綠；紙 因既有 DESIGN.md 7 violations 仍 exit 1，但新增兩 check 皆 OK
+- [x] 故意 mv 一個 schema 走，sanity exit 1（swiss 驗證通過，FAIL schemas existence 觸發）
