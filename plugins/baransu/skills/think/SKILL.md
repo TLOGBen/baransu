@@ -37,6 +37,17 @@ All output shown to the user — alignment questions, proposals, the final plan,
 
 ## Step 0 — Pick a mode: Lightweight or Full
 
+### Design.md soft-read
+
+Before mode selection, check for a DESIGN.md at the project root:
+1. Run `git rev-parse --show-toplevel 2>/dev/null`. If empty / fails, skip silently.
+2. If `{root}/DESIGN.md` exists, read it into context and output one line in 繁中: 「已載入 DESIGN.md，視覺規格已參考」
+3. If absent, skip silently. Non-blocking.
+
+理由：/think 經常討論 UI / 設計選擇；提早把 DESIGN.md 載入 context，避免在 Stage A 對焦時對「現有設計語言」一無所知。
+
+### Mode selection
+
 Before doing anything else, decide which mode applies. Get this wrong and you either bury a small fix in ceremony, or let a design decision slip through without alignment.
 
 **Lightweight mode** applies when **all three** hold:

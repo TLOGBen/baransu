@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>baransu /design + /book v1.4 Roadmap — Production Parity Plan</title>
+<style>
+  :root {
+    --parchment:         #f5f4ed;
+    --ivory:             #faf9f5;
+    --warm-sand:         #e8e6dc;
+    --dark-surface:      #30302e;
+    --deep-dark:         #141413;
+    --brand:             #1B365D;
+    --brand-light:       #2D5A8A;
+    --near-black:        #141413;
+    --dark-warm:         #3d3d3a;
+    --olive:             #504e49;
+    --stone:             #6b6a64;
+    --charcoal:          #4d4c48;
+    --border:            #e8e6dc;
+    --border-soft:       #e5e3d8;
+    --brand-tint:        #EEF2F7;
+    --brand-tint-strong: #E4ECF5;
+    --line:              #e5e3d8;
+    --accent-bg:         #EEF2F7;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--parchment);
+    font-family: 'TsangerJinKai02','Noto Serif TC','Source Han Serif TC',
+                 Charter, Georgia, 'Palatino Linotype', serif;
+    color: var(--near-black);
+    line-height: 1.75;
+    font-size: 16px;
+  }
+  .paper {
+    background: var(--ivory);
+    max-width: 760px;
+    margin: 40px auto 80px;
+    padding: 64px 72px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08), 0 12px 40px rgba(0,0,0,.06);
+    border-radius: 2px;
+    position: relative;
+  }
+  .paper::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 52px;
+    width: 1px; height: 100%;
+    background: var(--border-soft);
+  }
+  .toc-wrap {
+    position: fixed;
+    top: 80px; right: 24px;
+    max-width: 180px;
+    font-size: 12px;
+    z-index: 10;
+  }
+  .toc-wrap a {
+    display: block;
+    color: var(--olive);
+    text-decoration: none;
+    padding: 4px 0;
+    border-left: 2px solid transparent;
+    padding-left: 10px;
+  }
+  .toc-wrap a:hover, .toc-wrap a.active {
+    color: var(--brand);
+    border-left-color: var(--brand);
+  }
+  header { margin-bottom: 56px; }
+  .kicker {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--olive);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-size: 32px;
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--near-black);
+    margin-bottom: 16px;
+    letter-spacing: -0.01em;
+  }
+  .subtitle {
+    font-size: 17px;
+    color: var(--dark-warm);
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+  .meta {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--stone);
+    letter-spacing: 0.04em;
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+  }
+  section { margin: 40px 0 56px; }
+  h2 {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--near-black);
+    margin-top: 56px;
+    margin-bottom: 20px;
+    letter-spacing: -0.005em;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .sec-num {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 13px;
+    color: var(--stone);
+    font-weight: 400;
+    letter-spacing: 0.08em;
+  }
+  h3 {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--brand);
+    margin-top: 28px;
+    margin-bottom: 10px;
+    letter-spacing: 0.02em;
+  }
+  p { margin-bottom: 14px; color: var(--near-black); }
+  ul, ol { margin: 12px 0 16px 22px; }
+  li { margin-bottom: 6px; color: var(--near-black); }
+  strong { color: var(--brand); font-weight: 500; }
+  em { font-style: italic; color: var(--dark-warm); }
+  code {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 13px;
+    background: var(--brand-tint);
+    padding: 1px 6px;
+    border-radius: 2px;
+    color: var(--brand);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 13px;
+  }
+  table th {
+    text-align: left;
+    padding: 10px 12px;
+    background: var(--warm-sand);
+    border-bottom: 2px solid var(--brand);
+    color: var(--brand);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.55;
+  }
+  .gap-row td:first-child {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-weight: 500;
+    color: var(--brand);
+    white-space: nowrap;
+  }
+  .callout {
+    background: var(--brand-tint);
+    border-left: 3px solid var(--brand);
+    padding: 16px 20px;
+    margin: 20px 0;
+    font-size: 14px;
+    line-height: 1.65;
+  }
+  .callout strong { color: var(--brand); }
+  .callout.warn {
+    background: #FBF6EE;
+    border-left-color: #b05c28;
+  }
+  .callout.warn strong { color: #b05c28; }
+  figure.diagram {
+    margin: 28px 0;
+    text-align: center;
+  }
+  figure.diagram figcaption {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--olive);
+    letter-spacing: 0.04em;
+    margin-top: 10px;
+  }
+  .card-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .card-grid > div {
+    background: var(--ivory);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .card-grid > div strong {
+    display: block;
+    margin-bottom: 6px;
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+  footer {
+    margin-top: 80px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--stone);
+    line-height: 1.7;
+  }
+  @media (max-width: 1000px) { .toc-wrap { display: none; } }
+</style>
+</head>
+<body>
+
+<nav class="toc-wrap" id="toc">
+  <a href="#s1">01 起點與目標</a>
+  <a href="#s2">02 13 Gap 整合</a>
+  <a href="#s3">03 Phase 路線</a>
+  <a href="#s4">04 A session 即動</a>
+  <a href="#s5">05 達不到的能力</a>
+</nav>
+
+<article class="paper">
+
+<header>
+  <p class="kicker">ROADMAP DESIGN</p>
+  <h1>baransu /design + /book v1.4 Roadmap</h1>
+  <p class="subtitle">從 ~50% 到理論上限 ~95%——13 個整合 gap、4 milestone、對標 guizang-ppt-skill / huashu-design / tw93/Kami 三 baseline 的 production parity 計畫。</p>
+  <p class="meta">來源：.claude/tmp/baransu-design-book-v1.4-roadmap-wip.md（361 行，v3 已 fact-check） · 2026-05-12</p>
+</header>
+
+<section id="s1">
+  <h2><span class="sec-num">01</span>起點與目標</h2>
+
+  <p>baransu plugin v1.3 已 ship 到 origin/main（commit <code>7d6eb15</code>）；本 roadmap 為 v1.4 規劃。目標**不是抽象 feature parity**，而是「用 baransu /design + /book 能產出三 baseline 專案的等價 artifact 品質」。</p>
+
+  <h3>三 baseline 對應產出能力</h3>
+
+  <div class="card-grid">
+    <div><strong>guizang-ppt-skill</strong>Swiss 國際主義風 PPT slide HTML。22 layouts (S01–S22) + 圖片協議 + 七問澄清前置。</div>
+    <div><strong>huashu-design</strong>Editorial 印刷學 + 多場景（簡報 / 動畫 / 影音 / 工作流 / 評審 5 類，21 references files）。</div>
+    <div><strong>tw93/Kami</strong>印刷品設計系統。8 文件類型（One-Pager / Long Doc / Letter / Portfolio / Resume / Slides / Equity Report / Changelog）+ 14 inline SVG 圖表 + 紙質感工藝。</div>
+    <div><strong>基線雙軌平均</strong>機械骨架 ~52% + 視覺工藝 ~47% → 加權綜合 <strong>~50%</strong>。落差 40 pp 主要在工藝層（typography 微觀、color craft、印刷學詞彙、AI slop 反向）。</div>
+  </div>
+
+  <p>「不像 AI 做的」識別度是核心 KPI。機械骨架（validator / GATE-F / pipeline）已 production-grade，但缺工藝細節導致輸出仍像「合規但平庸的 AI 產出」。v1.4 目標是補上落差。</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Milestone progress bars">
+      <rect width="100%" height="100%" fill="#f5f4ed"/>
+      <text x="40" y="32" fill="#504e49" font-family="'Geist Mono', monospace" font-size="11" letter-spacing="0.08em">MILESTONES · % OF PRODUCTION PARITY</text>
+
+      <!-- Now (50%) -->
+      <text x="40" y="62" fill="#504e49" font-size="11" font-family="'Geist Mono', monospace">NOW</text>
+      <rect x="120" y="52" width="600" height="14" fill="#e8e6dc" rx="2"/>
+      <rect x="120" y="52" width="300" height="14" fill="#1B365D" rx="2"/>
+      <text x="430" y="63" fill="#1B365D" font-size="11" font-family="'Geist Mono', monospace" font-weight="500">50%</text>
+
+      <!-- M1 (66%) -->
+      <text x="40" y="92" fill="#504e49" font-size="11" font-family="'Geist Mono', monospace">M1</text>
+      <rect x="120" y="82" width="600" height="14" fill="#e8e6dc" rx="2"/>
+      <rect x="120" y="82" width="396" height="14" fill="#1B365D" rx="2"/>
+      <text x="526" y="93" fill="#1B365D" font-size="11" font-family="'Geist Mono', monospace" font-weight="500">66%</text>
+
+      <!-- M2 (75%) -->
+      <text x="40" y="122" fill="#504e49" font-size="11" font-family="'Geist Mono', monospace">M2</text>
+      <rect x="120" y="112" width="600" height="14" fill="#e8e6dc" rx="2"/>
+      <rect x="120" y="112" width="450" height="14" fill="#1B365D" rx="2"/>
+      <text x="580" y="123" fill="#1B365D" font-size="11" font-family="'Geist Mono', monospace" font-weight="500">75%</text>
+
+      <!-- M3 (82%) -->
+      <text x="40" y="152" fill="#504e49" font-size="11" font-family="'Geist Mono', monospace">M3</text>
+      <rect x="120" y="142" width="600" height="14" fill="#e8e6dc" rx="2"/>
+      <rect x="120" y="142" width="492" height="14" fill="#1B365D" rx="2"/>
+      <text x="622" y="153" fill="#1B365D" font-size="11" font-family="'Geist Mono', monospace" font-weight="500">82%</text>
+
+      <!-- M4 (92%) -->
+      <text x="40" y="182" fill="#504e49" font-size="11" font-family="'Geist Mono', monospace">M4</text>
+      <rect x="120" y="172" width="600" height="14" fill="#e8e6dc" rx="2"/>
+      <rect x="120" y="172" width="552" height="14" fill="#1B365D" rx="2"/>
+      <text x="630" y="183" fill="#1B365D" font-size="11" font-family="'Geist Mono', monospace" font-weight="500">92%</text>
+
+      <!-- Ceiling (95%) -->
+      <text x="40" y="212" fill="#504e49" font-size="11" font-family="'Geist Mono', monospace">M5</text>
+      <rect x="120" y="202" width="600" height="14" fill="#e8e6dc" rx="2"/>
+      <rect x="120" y="202" width="570" height="14" fill="#1B365D" rx="2" fill-opacity="0.6"/>
+      <text x="608" y="213" fill="#1B365D" font-size="11" font-family="'Geist Mono', monospace" font-weight="500">~95%</text>
+      <line x1="690" y1="195" x2="690" y2="225" stroke="#b05c28" stroke-width="1.5" stroke-dasharray="3 2"/>
+      <text x="694" y="213" fill="#b05c28" font-size="10" font-family="'Geist Mono', monospace">ceiling</text>
+    </svg>
+    <figcaption>FIG 1 · MILESTONE PROGRESSION（理論上限 ~95%）</figcaption>
+  </figure>
+</section>
+
+<section id="s2">
+  <h2><span class="sec-num">02</span>13 個整合 Gap（A–M）</h2>
+
+  <p>從原 25 項（12 機械 + 13 工藝）合併為 13 項加 2 internal debt。**每項都含「機械骨架 + 工藝要求」雙切面**——不是雙軌正交，而是「同 commit 兩面」。下表是核心 9 個 gap（A–I）；J/K/L/M 留 §03 內提及。</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th width="6%">ID</th>
+        <th width="20%">改什麼</th>
+        <th width="6%">Phase</th>
+        <th width="22%">為何改</th>
+        <th width="22%">對標哪能力</th>
+        <th width="8%">跳幅</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="gap-row">
+        <td>A</td>
+        <td>SVG primitives 對齊：marker polygon → chevron <code>&lt;path&gt;</code>；節點寬白名單 {128, 144, 160}；diagram-types 12 種 ref-only → complete</td>
+        <td>M1（部分）/ M4（剩餘）</td>
+        <td>baransu spec 反向強制 marker filled polygon，正面違背 Kami 視覺簽名。anchor 文件（golden-template.html）自己違規 → 系統性 AI slop。</td>
+        <td>Kami <code>diagrams.md</code> L86 chevron + L79 三檔節點寬 + L49 focal ≤2 + L78 4-multiple <em>(anti-AI-slop floor)</em></td>
+        <td>+12 pp</td>
+      </tr>
+      <tr class="gap-row">
+        <td>B</td>
+        <td>/book Stage 0.5–1 batch interview gate（4–5 題：受眾 / 時長 / 風格 / 素材 / 硬約束）</td>
+        <td>M1</td>
+        <td>當前 /book 從 Stage 1 直接 acquire，無 user-in-the-loop checkpoint。動手前壓住 50% 不確定性。</td>
+        <td>guizang「七問澄清」+ huashu「五類必問」+ Junior Designer Workflow</td>
+        <td>+10 pp</td>
+      </tr>
+      <tr class="gap-row">
+        <td>C</td>
+        <td>紙質感 spec/impl 對齊：border 1px → 0.5px hairline；.paper 第三 shadow 收編</td>
+        <td>M1</td>
+        <td>DESIGN.md §4 spec 寫 0.5pt 三處但 impl 全部 1px；.paper 跑出 spec 外第三種陰影。紙張纖維邊錯覺工藝意圖丟失。</td>
+        <td>Kami「single serif per page」+「rgba → solid hex pre-blended on parchment」+ ring/whisper 二類陰影 invariant</td>
+        <td>+4 pp</td>
+      </tr>
+      <tr class="gap-row">
+        <td>D</td>
+        <td>slide-cores 12 → 20+ layout × 3 preset（timeline / process / testimonial / agenda / stat-hero / icon-grid / table-heavy / before-after）+ modular scale 1.333 校正</td>
+        <td>M3</td>
+        <td>PPT 視覺多樣性嚴重不足；字級階層 H1:Body 2.2× / H2:H3 1.24× 弱於 perfect fourth，音階節律斷裂。</td>
+        <td>guizang 22 個 Swiss-locked layout（S01–S22）+ modular scale 1.333</td>
+        <td>+7–10 pp</td>
+      </tr>
+      <tr class="gap-row">
+        <td>E</td>
+        <td>slide-checklist.md 5 → 15–20 條 P0/P1/P2/P3 四層 + 具體 CSS 陷阱</td>
+        <td>M4（dogfood）</td>
+        <td>當前 Do/Don't 只有抽象條款，無從真實 bug 沉澱的具體陷阱（如 .canvas-card 雙層 padding trap）。</td>
+        <td>guizang <code>checklist.md</code> 523 行 P0/P1/P2/P3 四層「現象 → 根因 → 做法」三欄結構</td>
+        <td>+6 pp</td>
+      </tr>
+      <tr class="gap-row">
+        <td>F</td>
+        <td>DESIGN.md §9 AI Prompt Guide 強化：焦點 ≤2 / #1B365D hex 設計理據 / allowed contradictions（我不是什麼）</td>
+        <td>M2</td>
+        <td>當前 §9 無法 cross-AI reproduce Kami 風；下一個 AI 看 spec 會選 <code>#000080</code> navy 或 <code>#1e3a8a</code> Tailwind indigo-900。</td>
+        <td>Kami「references/ as brief」工作流 + ChatGPT Images 2.0 一次性 reproducible</td>
+        <td>+2.5 pp</td>
+      </tr>
+      <tr class="gap-row">
+        <td>G</td>
+        <td>Editorial 三件套：dropcap（3 行高）+ curly quotes（<code>&amp;ldquo;</code> / <code>&amp;rdquo;</code>）+ widow/orphan（<code>text-wrap: pretty</code>）</td>
+        <td>M3</td>
+        <td>baransu 自稱「craft」但缺最具印刷學辨識度的三細節；Letter / Resume 等 H 的前置工藝。</td>
+        <td>huashu editorial typography + Anti AI-slop 規則（text-wrap: pretty / serif display）</td>
+        <td>+4 pp</td>
+      </tr>
+      <tr class="gap-row">
+        <td>H</td>
+        <td>新文件 schema：Resume / Portfolio / One-Pager / Letter（含 G 編 editorial 必填、Portfolio/Resume 人像 object-position 35%）</td>
+        <td>M4</td>
+        <td>baransu 只 Long Doc + Slides 兩種，缺 Kami 其他 6 種橫向覆蓋。</td>
+        <td>Kami 8 文件類型（One-Pager / Letter / Portfolio / Resume 是最常用四種）</td>
+        <td>+7 pp</td>
+      </tr>
+      <tr class="gap-row">
+        <td>I</td>
+        <td>/book Stage 2A 加 Principle #0 Fact-Verification（具體產品 / 版本 → 強制 WebSearch）</td>
+        <td>M2</td>
+        <td>當前 /book 沒有反 AI memory hallucination 機制；可能輸出錯誤產品規格 / 版本號。</td>
+        <td>huashu 2026-04-20 事故沉澱：「never guess from memory」</td>
+        <td>+3 pp</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>剩餘 4 個 gap（J / K / L / M）— Phase 5 paradigm 整合</h3>
+
+  <ul>
+    <li><strong>J 圖片 Governance 整套</strong>（M5，+4 pp）— Core Asset Protocol 5 步 + object-position 35% + 配圖 prompt 負面尾巴。對標 huashu Core Asset Protocol。</li>
+    <li><strong>K Export-brief 模式</strong>（M5，+4 pp）— <code>/design export-brief</code> 子模式，打包 DESIGN.md + tokens + design-cores 為單一 prompt-ready text 餵外部 AI 圖像工具。對標 Kami「references/ as brief to drawing tools」工作流。革命性 paradigm。</li>
+    <li><strong>L EN/CN 模板分離</strong>（M5，+2 pp）— long-form-en.html variant 含 Charter typography。對標 Kami <code>*.html</code> / <code>*-en.html</code> 雙模板。</li>
+    <li><strong>M oklch 妥協明示</strong>（M5，+0.5 pp）— DESIGN.md §2 footnote 標註 solid hex 是 WeasyPrint 妥協。advisory 性質。</li>
+  </ul>
+
+  <p>另外有 2 個 <strong>Internal Debt</strong>（不算對標分數）：M1 v1.3 handoff（swiss-smoke fixture + 三 preset E2E）、M2 design-token-resolver / golden-template v1.3-aware 升級。</p>
+</section>
+
+<section id="s3">
+  <h2><span class="sec-num">03</span>Phase 路線：4 milestone</h2>
+
+  <div class="callout">
+    <strong>關鍵設計</strong>：每個 milestone 含「機械骨架 + 工藝細節」**同 commit**做。前期 review 把「機械軌 vs 工藝軌」做成雙軌正交是錯的——多數工藝項是機械項的另一面。
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Phase</th>
+        <th>累積 %</th>
+        <th>含哪些 gap</th>
+        <th>結果體感</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="gap-row">
+        <td>M1</td>
+        <td>~66%</td>
+        <td>B（pre-interview）+ A 部分（chevron + 節點寬）+ C（hairline + shadow）</td>
+        <td>「初稿即可用」+ Kami 視覺簽名復原。單 session ~65 行 edit。</td>
+      </tr>
+      <tr class="gap-row">
+        <td>M2</td>
+        <td>~75%</td>
+        <td>I（Fact-Verification）+ F（Prompt Guide §9 強化）</td>
+        <td>「視覺辨識度提升 + cross-AI reproducibility」</td>
+      </tr>
+      <tr class="gap-row">
+        <td>M3</td>
+        <td>~82%</td>
+        <td>D（slide-cores 擴張 + modular scale）+ G（editorial 三件套）</td>
+        <td>「Slide layout 多樣 + 印刷學詞彙落地」</td>
+      </tr>
+      <tr class="gap-row">
+        <td>M4</td>
+        <td>~92%</td>
+        <td>H（4 新文件 schema）+ A 剩（12 diagram complete）+ E（checklist 沉澱）</td>
+        <td>「多文件類型橫向覆蓋 + 視覺 regression 防護」</td>
+      </tr>
+      <tr class="gap-row">
+        <td>M5</td>
+        <td>~95%</td>
+        <td>J + K + L + M（paradigm 整合）</td>
+        <td>「Export-brief 革命性接軌外部 AI 圖像生態」（理論上限）</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="s4">
+  <h2><span class="sec-num">04</span>A session 即動：3 個 surgical edit</h2>
+
+  <p>下次 session（A 提示詞）的具體作業，**~65 行 edit、單 session 完成、+15-16 pp 跳幅**：</p>
+
+  <h3>/book 端（4 個檔）</h3>
+
+  <ul>
+    <li><strong>B</strong> · <code>plugins/baransu/skills/book/SKILL.md</code>（Stage 0.5–1 之間）— 新增 <code>### 0.6 Pre-interview Gate</code>，4–5 題 batch question。為何：對標 guizang 七問澄清。<strong>~30 行</strong></li>
+    <li><strong>A 部分</strong> · <code>book/references/svg-rendering-rules.md §4.3 / §4.5</code>— marker polygon spec 改 chevron path <code>&lt;path d="M2 1 L8 5 L2 9" ... /&gt;</code>；新增節點寬白名單段落。為何：Kami diagrams.md L86/L79 直接引文。<strong>~25 行</strong></li>
+    <li><strong>A 部分</strong> · <code>book/references/golden-template.html</code>— SVG <code>&lt;marker&gt;</code> defs 移除改 inline chevron；SVG 範例 <code>&lt;rect width="..."&gt;</code> 改 128/144/160 三檔。為何：anchor 文件不合規 → 系統性 cargo cult 違規。</li>
+    <li><strong>C</strong> · <code>golden-template.html</code> <code>.paper</code> class— 移除第三 box-shadow，改 whisper-only。為何：DESIGN.md invariant #4 只允許兩種陰影。<strong>~3 行</strong></li>
+  </ul>
+
+  <h3>/design 端（1–2 個檔）</h3>
+
+  <ul>
+    <li><strong>C</strong> · <code>design/references/紙-preset/design-cores/long-form.html</code>— <code>.kami-paper border: 1px</code> → <code>0.5px</code>。為何：spec/impl drift 修；紙張纖維邊錯覺工藝意圖落地。<strong>~1 行</strong></li>
+    <li>（可選）<code>紙-preset/DESIGN.md §4</code>— 與 /book .paper shadow 處理對齊。為何：避免 spec 與 impl 雙處 drift。</li>
+  </ul>
+
+  <div class="callout">
+    <strong>跨 skill 一致性點</strong>：<code>.paper</code> 第三 shadow 處理（/book 與 /design 各一處）必須同 commit；其他改動互不依賴。
+  </div>
+</section>
+
+<section id="s5">
+  <h2><span class="sec-num">05</span>達不到的能力 — 與為何不可以</h2>
+
+  <p>~95% 是 aspirational ceiling；剩下 5% 是 baransu 作為 <strong>Claude Code skill plugin 中的設計子模組</strong>本質限制。下列能力不在 v1.x scope 內，**不該強行追平**。</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th width="22%">缺什麼能力</th>
+        <th width="30%">對應 baseline 能力</th>
+        <th width="48%">為何不可以</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="gap-row">
+        <td>原生 PPT 編輯</td>
+        <td>huashu html2pptx 真 text frames + 編輯版 PPTX</td>
+        <td>baransu 用 html2pptx 已可產生編輯版 PPTX，但底層仍是 HTML → DOM → PPTX 轉換，不是原生 Office API。要做原生需綁定 Office 365 / Keynote / LibreOffice runtime，超出 plugin 邊界。</td>
+      </tr>
+      <tr class="gap-row">
+        <td>動畫 / 影音輸出</td>
+        <td>huashu MP4 (25/60fps) + GIF + BGM TTS pipeline</td>
+        <td>baransu 是靜態文件 plugin，無 frame-by-frame 渲染能力。要做需接 ffmpeg / Remotion / Lottie 等 video runtime + 音軌處理，且需要設計影片 timeline（不是 baransu 的領域）。</td>
+      </tr>
+      <tr class="gap-row">
+        <td>裝置邊框 mockup</td>
+        <td>huashu iOS / Android / macOS / Browser frame components</td>
+        <td>baransu 沒接 React component runtime；要做 pixel-accurate iPhone 15 Pro body（Dynamic Island / status bar）需獨立 component library + 設備 spec 維護，與設計系統職責正交。</td>
+      </tr>
+      <tr class="gap-row">
+        <td><s>AI 圖像生成接管</s> <strong>→ 可達</strong>（v3.1）</td>
+        <td>Kami 餵 ChatGPT Images 2.0 / huashu real image acquisition</td>
+        <td><strong>用戶環境含 Codex（OpenAI Codex CLI），理論已支援 GPT image 生成</strong>——K3 export-brief 從「準備好給用戶手動餵 ChatGPT」升級為「可作為 Codex 端 image-gen 流程的 inline prompt brief」。paradigm 從跨工具手動升級為同環境內調用。K3 priority 因此提前。</td>
+      </tr>
+      <tr class="gap-row">
+        <td><s>品牌資產自動採集</s> <strong>→ 部分可達</strong>（v3.1）</td>
+        <td>huashu Core Asset Protocol 5 步 ask → search → download → verify → freeze</td>
+        <td><strong>v3.1 修訂</strong>：Core Asset Protocol 重定義為 ask → search **OR Codex image-gen** → verify → freeze。image acquisition 從「需接外部 MCP / search」變為「可走 Codex GPT image inline 生成」。J 工程量從「大」降為「中」。剩餘限制：vision-capable verify 仍需擴展。</td>
+      </tr>
+      <tr class="gap-row">
+        <td>單一視覺體系深度</td>
+        <td>Kami 一套到底（暖紙 + ink-blue + serif 無變體）</td>
+        <td>baransu 設計上做三 preset（kami / google-design / swiss），平行視覺世界互斥。要做「單一視覺深度」必須砍掉兩個 preset——但這違反 baransu 「多 preset 可選」的設計選擇。<em>做廣三個 preset vs 做深一個 preset</em> 在 baransu 已選邊站。</td>
+      </tr>
+      <tr class="gap-row">
+        <td>Live preview / hot reload</td>
+        <td>—（不在 baseline 但常見期待）</td>
+        <td>baransu 是 Claude Code 內 skill，輸出靜態檔。real-time preview 需 dev server + watcher，超出 skill execution model（每次 invoke 是 one-shot）。</td>
+      </tr>
+      <tr class="gap-row">
+        <td>互動 dashboard</td>
+        <td>—（KD#5 dashboard.html 靜態 SVG 的反面）</td>
+        <td>v1.3 KD#5 明文：dashboard.html 為靜態 SVG mockup，不引入 chart.js / D3。理由：保持 offline-first + 無 JS 依賴 + 對應 Kami「印刷物件」哲學（紙不互動）。這是設計選擇而非能力缺陷。</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <strong>本質限制總結</strong>：baransu 是「文字 / HTML pipeline 的設計子模組」，**不是 design tool 替代品**。它能讓 Claude Code 內輸出「不像 AI 做的」紙質感印刷物與 slide HTML，但不取代 Figma / Sketch / Keynote / Premiere 的角色。
+  </div>
+
+  <div class="callout">
+    <strong>v3.1 補充</strong>：用戶環境含 Codex CLI → AI 圖像生成接管 + 品牌資產採集兩條從「不可達」升級為「可達」或「部分可達」。剩下真正不可達的：原生 PPT 編輯（需 Office runtime）/ 動畫影音輸出（需 ffmpeg pipeline）/ 裝置邊框 mockup（需 component runtime）/ 單一視覺體系深度（設計選擇上 baransu 走多 preset）/ Live preview / 互動 dashboard（design choice 排除）。
+  </div>
+</section>
+
+<footer>
+  <strong>Source</strong>: <code>.claude/tmp/baransu-design-book-v1.4-roadmap-wip.md</code>（v3.1 含 Codex 環境補強 + SKILL 步驟整數化 M3 internal debt，2026-05-12）<br>
+  <strong>對 baseline 的 fact-check 結論</strong>：8/8 Kami spec 直接 grounded（README + <code>references/diagrams.md</code>）；6/6 guizang core claims verified（含 522 行 P0/P1/P2/P3 checklist）；6/6 huashu核心能力 verified（含 21 references 檔數）。WIP v2 → v3 修正 2 處錯誤：guizang「47 layouts」→「22 layouts (S01–S22)」；「P0/P1/P2 三層」→「P0/P1/P2/P3 四層」。<br>
+  <strong>下一步</strong>：用 A 提示詞跑 surgical edit session → M1 ~66%。
+</footer>
+
+</article>
+
+<script>
+  const links = document.querySelectorAll('.toc-wrap a');
+  const sections = document.querySelectorAll('section[id]');
+  function setActive() {
+    let current = '';
+    sections.forEach(s => {
+      const top = s.getBoundingClientRect().top;
+      if (top < 200) current = s.id;
+    });
+    links.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  }
+  window.addEventListener('scroll', setActive);
+  setActive();
+</script>
+
+</body>
+</html>

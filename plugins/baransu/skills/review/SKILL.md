@@ -14,9 +14,9 @@ The body below is English (agent-facing). Wherever this file quotes literal user
 
 ---
 
-## Three perspectives (agent files)
+## Four perspectives (agent files)
 
-`plugins/baransu/agents/architecture-reviewer.md` / `quality-reviewer.md` / `security-reviewer.md`.
+`plugins/baransu/agents/architecture-reviewer.md` / `quality-reviewer.md` / `security-reviewer.md` / `style-reviewer.md`.
 
 Each agent file defines `Perspective / Mission / Principles / Lane-keeping` — no persona, no character voice. Role-play descriptions ("you are a senior X engineer") induce hallucination; we want an angle from which to read the target, not an actor playing a role.
 
@@ -71,8 +71,9 @@ Whether a perspective activates depends on what the target actually **does**, no
 - **Quality**: target contains executable code, a claim that needs verification, or a plan asserting it did/achieved something.
 - **Architecture**: target spans files, introduces a new module boundary, changes a contract; or a plan whose sections depend on each other.
 - **Security**: target's behavior touches external input, auth/authz decisions, secret handling, or cross-trust-boundary data flow — not the mere mention of those words.
+- **Style**: target is a rendered visual artifact (HTML / PPT / SVG) produced under a baransu design preset (`{project_root}/tokens.css` exists with `/* preset: <slug> */` header). Checks design-fidelity against `{project_root}/DESIGN.md` — typography rules, color palette discipline, Do / Don't items, AI Prompt Guide reproducibility intent. Activates only for visual outputs, not for plain code / plan / data.
 
-Plan- or claim-type targets default to architecture + quality; security activates only when the plan materially describes one of the behaviors above.
+Plan- or claim-type targets default to architecture + quality; security activates only when the plan materially describes one of the behaviors above; style activates only when target is rendered visual output with a project-root preset present.
 
 If Stage 2's tier cap disagrees with activation count (e.g. a 100-LOC target triggers two perspectives), follow activation; the tier column is a guideline ceiling, not a hard limit.
 
