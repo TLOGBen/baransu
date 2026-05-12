@@ -1,5 +1,5 @@
 {
-  "iter_count": 16,
+  "iter_count": 17,
   "score_overall": null,
   "score_history": [],
   "last_review_findings": 0,
@@ -10,6 +10,13 @@
       "severity": "P2 advisory",
       "issue": "WIP file .claude/tmp/baransu-design-book-v1.4-roadmap-wip.md included in commit a4afce39",
       "action": "deferred to /baransu:ship"
+    },
+    {
+      "from_iter": 17,
+      "task": "TASK-layouts-01",
+      "severity": "P2",
+      "issue": "紙 slide-cores count is 21 not 22; closing.html pre-exists with v1.3 prefix-mix bug, not overwritten per hard constraint",
+      "action": "TASK-layouts-02 spec already includes 'modify existing prefix-mix' as part of swiss; consider opening a 紙-closing-fix subtask or wait for full layouts group sanitization sweep"
     }
   ],
   "pending_spec_drift": [
@@ -17,12 +24,12 @@
     "REQ-003 Scenario 3 wording references `--font-h*` CSS variables but 三 preset tokens.css use direct h1{} selectors",
     "TASK-svg-01 P2: flowchart diamond uses 128×128 rotated rect; spec §4.7 strictly says height ∈ {32, 64}",
     "TASK-svg-03 P1 (spec): REQ-001 Scenario 4 mod-4 wording is literal but validate-output.ts has no mod-4 gate. Recommendation: tighten spec.",
-    "TASK-svg-04 P2: chevron marker defs duplicated across 13 diagram-types; opportunity to hoist to shared kami-defs.md",
-    "TASK-svg-05 infra: validate-output.ts has 10+ pre-existing TypeScript diagnostics (missing @types/node + implicit-any). Runtime works.",
-    "TASK-editorial-01 P2 nit: .kami-lead / .swiss-lead / .google-lead classes don't receive text-wrap: pretty",
-    "TASK-editorial-04 F2 (minor): editorial-sanity.sh uses relative path which may break when /design preset copies to project root",
-    "TASK-schemas-01/02 P2 (spec drift): REQ-002 / task wording uses `gd-*` for google preset class prefix but codebase convention is `google-*`",
-    "TASK-schemas-04 P2 notes: Check B uses `continue` on missing file (vacuously passes if portrait html renamed); Check A only reports first missing schema not full list; long-doc + slides schemas deferred with TODO comment in all 3 sanity.sh"
+    "TASK-svg-04 P2: chevron marker defs duplicated across 13 diagram-types",
+    "TASK-svg-05 infra: validate-output.ts has 10+ pre-existing TypeScript diagnostics. Runtime works.",
+    "TASK-editorial-01 P2 nit: lead classes don't receive text-wrap: pretty",
+    "TASK-editorial-04 F2 (minor): editorial-sanity.sh relative path may break when copied to project root",
+    "TASK-schemas-01/02 P2 (spec drift): wording uses `gd-*` for google preset but codebase uses `google-*`",
+    "TASK-schemas-04 P2 notes: Check B uses `continue` on missing file (vacuous pass); long-doc + slides schemas deferred with TODO"
   ],
   "ab_diff_status": "not_yet_attempted",
   "consecutive_no_progress": 0,
@@ -45,8 +52,9 @@
     {"id": "TASK-schemas-01", "commit": "4e548e6", "review": "1 P1 fixed"},
     {"id": "TASK-schemas-02", "commit": "4ab0b27", "review": "1 P1 fixed"},
     {"id": "TASK-schemas-03", "commit": "16615d4", "review": "0 findings"},
-    {"id": "TASK-schemas-04", "commit": "f968165", "review": "0 findings; SCHEMAS GROUP 4/4 COMPLETE"}
+    {"id": "TASK-schemas-04", "commit": "f968165", "review": "0 findings; SCHEMAS 4/4"},
+    {"id": "TASK-layouts-01", "commit": "23f138f", "review": "0 findings; 9 new layouts; count gap 21/22 (closing pre-exists)"}
   ],
-  "next_task": "TASK-layouts-01",
-  "notes": "iter 16 done; 🎉 SCHEMAS GROUP 4/4 COMPLETE (REQ-002 fully mechanized); 16/33 tasks complete; 17 remaining. Moving to layouts group (slide-cores 12→22 × 3 preset)."
+  "next_task": "TASK-layouts-02",
+  "notes": "iter 17 done; layouts 1/5 (紙: 9 new + 12 existing = 21); 17/33 tasks complete; 16 remaining."
 }
