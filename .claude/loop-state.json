@@ -1,5 +1,5 @@
 {
-  "iter_count": 4,
+  "iter_count": 5,
   "score_overall": null,
   "score_history": [],
   "last_review_findings": 0,
@@ -25,9 +25,10 @@
   "completed_tasks": [
     {"id": "TASK-shared-01", "commit": "4ed609a", "review": "0 findings"},
     {"id": "TASK-shared-02", "commit": "a4afce3", "review": "2 P2 findings, 1 fixed in f3ed0b5, 1 deferred"},
-    {"id": "TASK-shared-03", "commit": "e95cb14", "review": "0 findings (1 P2 spec drift advisory)"},
-    {"id": "TASK-svg-01", "commit": "9aa7030", "review": "0 findings (1 P2 spec extension advisory)"}
+    {"id": "TASK-shared-03", "commit": "e95cb14", "review": "0 findings (1 P2 spec drift)"},
+    {"id": "TASK-svg-01", "commit": "9aa7030", "review": "0 findings (1 P2 spec extension advisory)"},
+    {"id": "TASK-svg-02", "commit": "f72786d", "review": "1 P1 fixed in 8ad22b3 + 1 P2 fixed in 5d25d17, final 0 findings"}
   ],
-  "next_task": "TASK-svg-02",
-  "notes": "iter 4 done; svg group 1/5 (architecture/flowchart/sequence done); 29 tasks remaining"
+  "next_task": "TASK-svg-03",
+  "notes": "iter 5 done; svg group 2/5 (6 of 13 diagram-types now complete); 28 tasks remaining"
 }
