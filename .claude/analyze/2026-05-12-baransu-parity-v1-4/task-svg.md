@@ -7,25 +7,25 @@
 **需求追溯**：REQ-001
 **目標**：3 個最常用 diagram-type 含完整 example SVG，通過 chevron / 節點寬白名單 / focal 視覺 / 4 倍數座標四項規格。
 **驗收標準**：
-- [ ] `type-architecture.md` / `type-flowchart.md` / `type-sequence.md` frontmatter `status: complete`
-- [ ] 每檔含 ≥ 1 個完整 example `<svg>` block，含三 marker chevron defs + 兩層 paper-mask + ≥ 1 焦點節點
-- [ ] 跑 `validate-output.ts` 對每 example 全 GATE PASS
+- [x] `type-architecture.md` / `type-flowchart.md` / `type-sequence.md` frontmatter `status: complete`
+- [x] 每檔含 ≥ 1 個完整 example `<svg>` block，含三 marker chevron defs + 兩層 paper-mask + ≥ 1 焦點節點
+- [x] 跑 `validate-output.ts` 對每 example 全 GATE PASS
 
 ### 步驟
 
 #### 規格層
-- [ ] 讀 `book/references/diagram-types/type-architecture.md` 既有 ref-only 內容
-- [ ] frontmatter `status: ref-only` → `status: complete`
-- [ ] flowchart / sequence 同步處理
+- [x] 讀 `book/references/diagram-types/type-architecture.md` 既有 ref-only 內容
+- [x] frontmatter `status: ref-only` → `status: complete`
+- [x] flowchart / sequence 同步處理
 
 #### 模板層（example SVG）
-- [ ] 對 architecture：寫一段 5-7 節點的微服務拓撲 example，含 1-2 個 `data-role="focal"` 節點，所有節點寬 ∈ {128, 144, 160}
-- [ ] 對 flowchart：寫一段含 2-3 個 decision diamond + 5-7 個 process node 的 example
-- [ ] 對 sequence：寫一段 3-actor protocol（含 alt / opt branch）的 example，使用 horizontal swimlane 變體
+- [x] 對 architecture：寫一段 5-7 節點的微服務拓撲 example，含 1-2 個 `data-role="focal"` 節點，所有節點寬 ∈ {128, 144, 160}
+- [x] 對 flowchart：寫一段含 2-3 個 decision diamond + 5-7 個 process node 的 example
+- [x] 對 sequence：寫一段 3-actor protocol（含 alt / opt branch）的 example，使用 horizontal swimlane 變體
 
 #### 驗證
-- [ ] 將每 example SVG 抽出單檔，跑 `validate-output.ts` 對該檔
-- [ ] 確認 GATE-A focal-cap / GATE-B paper-mask / GATE-D marker-integrity / GATE-E deny-list 全 PASS
+- [x] 將每 example SVG 抽出單檔，跑 `validate-output.ts` 對該檔
+- [x] 確認 GATE-A focal-cap / GATE-B paper-mask / GATE-D marker-integrity / GATE-E deny-list 全 PASS
 
 ---
 
