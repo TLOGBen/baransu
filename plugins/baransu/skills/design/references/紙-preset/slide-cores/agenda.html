@@ -1,0 +1,39 @@
+<!--
+---
+layout_id: agenda
+applies_to:
+  bullet_count: "3-7"
+  has_image: forbidden
+  role: body
+---
+Adapts to: agenda / table-of-contents slides (S02 in guizang baseline).
+Numbered list, 1-N items. Pairs with `toc` in the broader layout registry
+but stays distinct: agenda is meeting-scoped, toc is document-scoped.
+Tokens consumed: var(--paper), var(--ink), var(--accent).
+-->
+<link rel="stylesheet" href="../tokens.css">
+<style>
+  .kami-slide--agenda { padding: 56px 72px; background: var(--paper); color: var(--ink);
+    font-family: var(--font-serif); text-wrap: pretty; }
+  .kami-agenda-heading { font-size: 28px; line-height: 1.20; margin: 0 0 28px; }
+  .kami-agenda-list { list-style: none; counter-reset: agenda; padding: 0; margin: 0; }
+  .kami-agenda-item { counter-increment: agenda; display: grid;
+    grid-template-columns: 56px 1fr; align-items: baseline; gap: 16px;
+    padding: 12px 0; border-top: 1px solid var(--ink); }
+  .kami-agenda-item:last-child { border-bottom: 1px solid var(--ink); }
+  .kami-agenda-item::before { content: counter(agenda, decimal-leading-zero);
+    font-size: 21px; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .kami-agenda-label { font-size: 21px; line-height: 1.30; margin: 0; }
+  .kami-agenda-note  { font-size: 14px; opacity: 0.7; margin: 2px 0 0; }
+  .kami-agenda-caption { margin-top: 24px; font-size: 13px; opacity: 0.6; }
+</style>
+<section data-layout="agenda" class="kami-slide kami-slide--agenda">
+  <h2 class="kami-agenda-heading">Today&#x2019;s agenda</h2>
+  <ol class="kami-agenda-list">
+    <li class="kami-agenda-item"><h3 class="kami-agenda-label">Where we are<br><span class="kami-agenda-note">Quarterly telemetry recap</span></h3></li>
+    <li class="kami-agenda-item"><h3 class="kami-agenda-label">What changed<br><span class="kami-agenda-note">Notable incidents and learnings</span></h3></li>
+    <li class="kami-agenda-item"><h3 class="kami-agenda-label">What ships next<br><span class="kami-agenda-note">Roadmap commitments for the quarter</span></h3></li>
+    <li class="kami-agenda-item"><h3 class="kami-agenda-label">Open questions<br><span class="kami-agenda-note">Topics for the working session</span></h3></li>
+  </ol>
+  <figcaption class="kami-agenda-caption">Agenda — 1-N numbered topics</figcaption>
+</section>

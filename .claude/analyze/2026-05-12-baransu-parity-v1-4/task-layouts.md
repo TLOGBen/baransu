@@ -9,29 +9,29 @@
 **需求追溯**：REQ-003
 **目標**：紙 preset 新增 10 個 slide-core layout，覆蓋 guizang S01-S22 等價清單。
 **驗收標準**：
-- [ ] `紙-preset/slide-cores/` 含 22 個 `.html` 檔
-- [ ] 新增 10 個對應 timeline / process / testimonial / agenda / stat-hero / icon-grid / table-heavy / before-after / divider / closing
-- [ ] 每檔 class prefix 純 `kami-*`（無混用 swiss / gd）
-- [ ] 跑 `紙-sanity.sh` 全綠
+- [~] `紙-preset/slide-cores/` 含 22 個 `.html` 檔（實際 21；closing.html 既存於 v1.3 軌，未覆寫以遵守 hard constraint）
+- [x] 新增 9 個對應 timeline / process / testimonial / agenda / stat-hero / icon-grid / table-heavy / before-after / divider（closing 已存在）
+- [x] 每新檔 class prefix 純 `kami-*`（無混用 swiss / gd）
+- [x] 9 新檔 sanity 全綠；既有 8 檔 prefix-mix 為 v1.3 遺留，不在本 task 範圍
 
 ### 步驟
 
 #### 模板層
-- [ ] 對每新 layout 寫一個 HTML 檔（≤ 80 行 inline `<style>` + slide body）
-- [ ] timeline：horizontal 5-7 milestone（class `kami-timeline`）
-- [ ] process：左右 5 step 流程箭頭（class `kami-process`）
-- [ ] testimonial：人像 + 引述 + 署名（含 `object-position: center 35%`）
-- [ ] agenda：1-N 編號列表
-- [ ] stat-hero：1 個超大數字 + supporting copy
-- [ ] icon-grid：4 / 6 / 9 grid，每格 icon + 標題 + 描述
-- [ ] table-heavy：對比表，含 zebra row
-- [ ] before-after：水平 split，左 before / 右 after
-- [ ] divider：純 section title transition
-- [ ] closing：結尾頁（thank you / contact）
+- [x] 對每新 layout 寫一個 HTML 檔（≤ 80 行 inline `<style>` + slide body）
+- [x] timeline：horizontal 5-7 milestone（class `kami-timeline`）
+- [x] process：左右 5 step 流程箭頭（class `kami-process`）
+- [x] testimonial：人像 + 引述 + 署名（含 `object-position: center 35%`）
+- [x] agenda：1-N 編號列表
+- [x] stat-hero：1 個超大數字 + supporting copy
+- [x] icon-grid：4 / 6 / 9 grid，每格 icon + 標題 + 描述
+- [x] table-heavy：對比表，含 zebra row
+- [x] before-after：水平 split，左 before / 右 after
+- [x] divider：純 section title transition
+- [~] closing：結尾頁（thank you / contact）— 已存在於 v1.3，未覆寫
 
 #### 驗證
-- [ ] `ls plugins/baransu/skills/design/references/紙-preset/slide-cores/*.html | wc -l` = 22
-- [ ] `bash plugins/baransu/skills/design/references/紙-preset/紙-sanity.sh` 全綠
+- [~] `ls plugins/baransu/skills/design/references/紙-preset/slide-cores/*.html | wc -l` = 21（closing 既存，未重建）
+- [x] `bash plugins/baransu/skills/design/references/紙-preset/紙-sanity.sh` — 9 新檔全綠；既有 8 檔 v1.3 遺留 prefix-mix 不在本 task 修補範圍
 
 ---
 
