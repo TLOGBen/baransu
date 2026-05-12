@@ -110,6 +110,27 @@ Kami 十不變量（來自 CHEATSHEET.md canonical invariants）：
 - 所有含 CJK 內容的字型宣告（header、footer、SVG label、code）必須包含 CJK fallback
 - 中英文混排：中文字型在前，英文 Charter/Georgia 在後
 
+### Dropcap
+
+長文段首字母採 dropcap 工藝；3-line drop 是印刷學甜蜜點（不是 2，也不是 4）。
+class 前綴對齊 preset：`.kami-dropcap`。
+
+```css
+.kami-dropcap {
+  float: left;
+  font-size: 3.1em;       /* ≈ 3 × body line-height (15px × 1.55 × 3 ≈ 69.75px) */
+  line-height: 1;         /* 避免繼承 body line-height 導致高度爆炸 */
+  font-weight: 500;       /* 對齊 Kami invariant #5，禁用 700 */
+  color: var(--accent);   /* 墨藍主色 #1B365D */
+  padding-right: 8px;     /* ≥ 4px 防字身擠壓 */
+  padding-top: 2px;       /* 視覺對齊微調 */
+}
+```
+
+**使用**：`<p class="kami-body"><span class="kami-dropcap">L</span>orem ipsum...</p>`
+
+**Kami 不變量延伸**：dropcap 字身禁用 `<small>` 或 italic style；用 `<span>` 而非 `<em>` / `<i>`。
+
 ---
 
 ## 4. Component Stylings

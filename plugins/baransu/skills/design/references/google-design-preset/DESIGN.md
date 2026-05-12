@@ -146,6 +146,27 @@ Material 3 的色彩系統是 **role-based**——你不直接指定顏色，而
 - 中英混排：CJK 字體放在 sans 堆疊尾段，英文字優先用 Roboto Flex。
 - M3 Expressive update（2024+）新增 emphasized variants — 同一 role 的更粗版本（如 Title Large Emphasized = weight 500 而非 400），用於強調但 size 不變。
 
+### Dropcap
+
+長文段首字母採 dropcap 工藝；3-line drop 是印刷學甜蜜點（不是 2，也不是 4）。
+class 前綴對齊 preset：`.google-dropcap`（採 `google-` 前綴，非 `gd-`）。
+
+```css
+.google-dropcap {
+  float: left;
+  font-size: 3.1em;       /* ≈ 3 × body line-height (15px × 1.55 × 3 ≈ 69.75px) */
+  line-height: 1;         /* 避免繼承 body line-height 導致高度爆炸 */
+  font-weight: 500;       /* 對齊 M3 Title / Label emphasis weight */
+  color: var(--accent);   /* M3 primary tonal accent */
+  padding-right: 8px;     /* ≥ 4px 防字身擠壓 */
+  padding-top: 2px;       /* 視覺對齊微調 */
+}
+```
+
+**使用**：`<p class="google-body"><span class="google-dropcap">L</span>orem ipsum...</p>`
+
+**Kami 可移植 invariant**：dropcap 字身禁用 `<small>` 或 italic style；用 `<span>` 而非 `<em>` / `<i>`。
+
 ---
 
 ## 4. Component Stylings

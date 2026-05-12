@@ -83,6 +83,27 @@ Swiss 不變量（從 Kami 可移植集合 + Swiss-specific）：
 - 中英文混排：Inter 為英文主字、Noto Sans TC 涵蓋中文；皆 sans-serif
 - 字距規則：headline 緊收（−0.01em ~ −0.02em），caption 放鬆（+0.04em）
 
+### Dropcap
+
+長文段首字母採 dropcap 工藝；3-line drop 是印刷學甜蜜點（不是 2，也不是 4）。
+class 前綴對齊 preset：`.swiss-dropcap`。
+
+```css
+.swiss-dropcap {
+  float: left;
+  font-size: 3.1em;       /* ≈ 3 × body line-height (15px × 1.55 × 3 ≈ 69.75px) */
+  line-height: 1;         /* 避免繼承 body line-height 導致高度爆炸 */
+  font-weight: 500;       /* 對齊 Swiss heading 預設 weight */
+  color: var(--accent);   /* International Klein Blue #002FA7 */
+  padding-right: 8px;     /* ≥ 4px 防字身擠壓 */
+  padding-top: 2px;       /* 視覺對齊微調 */
+}
+```
+
+**使用**：`<p class="swiss-body"><span class="swiss-dropcap">L</span>orem ipsum...</p>`
+
+**Kami 可移植 invariant**：dropcap 字身禁用 `<small>` 或 italic style；用 `<span>` 而非 `<em>` / `<i>`。
+
 ---
 
 ## 4. Component Stylings

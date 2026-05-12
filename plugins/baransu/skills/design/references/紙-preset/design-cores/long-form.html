@@ -28,6 +28,7 @@
     .kami-paper { background: var(--paper); padding: 56px; border: 0.5px solid var(--border); border-radius: var(--radius-md); }
     .kami-lead { font-size: 17px; line-height: 1.55; color: var(--text-primary); margin: 16px 0; }
     .kami-body { font-size: 15px; line-height: 1.55; color: var(--text-primary); margin: 12px 0; text-wrap: pretty; }
+    .kami-dropcap { float: left; font-size: 3.1em; line-height: 1; font-weight: 500; color: var(--accent); padding-right: 8px; padding-top: 2px; }
     .kami-caption { font-size: 12px; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; }
     .kami-quote { border-left: 2px solid var(--accent); padding: 8px 0 8px 16px; color: var(--text-secondary); margin: 24px 0; line-height: 1.55; }
     .kami-code { font-family: var(--font-mono); font-size: 13px; background: var(--surface); padding: 2px 6px; border-radius: var(--radius-sm); border: 0.5px solid var(--border-soft); }
@@ -64,6 +65,7 @@
            CSS block above. Do not invent new classes. -->
       <section id="s1">
         <h2 class="kami-h2">Section Heading Example</h2>
+        <p class="kami-body"><span class="kami-dropcap">L</span>orem ipsum dolor sit amet — opening paragraph showcasing the 3-line dropcap craft. The initial capital floats left, dropping exactly three lines of body line-height for editorial poise.</p>
         <p class="kami-body">Body paragraph at 15px / line-height 1.55. Flush-left alignment per Kami invariant.</p>
         <p class="kami-body">Inline <code class="kami-code">--accent: var(--accent)</code> reference works.</p>
 

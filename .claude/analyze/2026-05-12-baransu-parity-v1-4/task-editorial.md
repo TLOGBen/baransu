@@ -30,24 +30,24 @@
 **需求追溯**：REQ-004 Scenario 2
 **目標**：印刷學 dropcap 視覺工藝，3-line 是甜蜜點（不是 2 也不是 4）。
 **驗收標準**：
-- [ ] 三 preset `tokens.css` 或 `design-cores/long-form.html` `<style>` 含 `.dropcap` / `.kami-dropcap` class（前綴對齊各 preset）
-- [ ] computed height ≈ 3 × line-height（用 `font-size: calc(var(--leading-body) * 3)` 或對應實值）
-- [ ] `float: left` + `padding-right` ≥ 4px 防擠壓
-- [ ] long-form template HTML 含 ≥ 1 個示範段使用 dropcap
+- [x] 三 preset `tokens.css` 或 `design-cores/long-form.html` `<style>` 含 `.dropcap` / `.kami-dropcap` class（前綴對齊各 preset）
+- [x] computed height ≈ 3 × line-height（用 `font-size: calc(var(--leading-body) * 3)` 或對應實值）
+- [x] `float: left` + `padding-right` ≥ 4px 防擠壓
+- [x] long-form template HTML 含 ≥ 1 個示範段使用 dropcap
 
 ### 步驟
 
 #### 規格層
-- [ ] 在 `紙-preset/DESIGN.md §3 Typography Rules` 段加 `.dropcap` 段（含 3-line 規格說明）
-- [ ] swiss / google-design DESIGN.md 同等
+- [x] 在 `紙-preset/DESIGN.md §3 Typography Rules` 段加 `.dropcap` 段（含 3-line 規格說明）
+- [x] swiss / google-design DESIGN.md 同等
 
 #### 模板層
-- [ ] 紙 preset 的 `design-cores/long-form.html` `<style>` 加 `.kami-dropcap` rule
-- [ ] 同檔 demo section 加一段使用 `<p class="kami-body"><span class="kami-dropcap">L</span>orem...</p>`
-- [ ] swiss / google-design preset 同等
+- [x] 紙 preset 的 `design-cores/long-form.html` `<style>` 加 `.kami-dropcap` rule
+- [x] 同檔 demo section 加一段使用 `<p class="kami-body"><span class="kami-dropcap">L</span>orem...</p>`
+- [x] swiss / google-design preset 同等
 
 #### 驗證
-- [ ] grep `kami-dropcap\|swiss-dropcap\|gd-dropcap` 三 preset design-cores 命中 ≥ 6（class 定義 + demo 使用各 1）
+- [x] grep `kami-dropcap\|swiss-dropcap\|gd-dropcap` 三 preset design-cores 命中 ≥ 6（class 定義 + demo 使用各 1）
 
 ---
 
