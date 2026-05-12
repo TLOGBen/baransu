@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  changelog-en.html — Swiss preset Changelog template (v1.4, en)
+  Schema: schemas/changelog.md
+  Class prefix: swiss-*
+  Font-stack: Latin sans-serif only (Inter, Helvetica Neue) — no CJK fonts.
+  Kami invariant: no polygon element.
+-->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{PROJECT}} &mdash; Changelog</title>
+  <link rel="stylesheet" href="../tokens.css">
+  <style>
+    @page { size: A4; margin: 22mm; }
+    * { box-sizing: border-box; }
+    body {
+      background: var(--paper); color: var(--text-primary);
+      font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      margin: 0; text-wrap: pretty;
+    }
+    .swiss-page { max-width: 794px; margin: 0 auto; padding: 56px 56px; }
+    .swiss-eyebrow { font-size: 10px; color: var(--text-faint); letter-spacing: 0.10em; text-transform: uppercase; margin: 0 0 8px; }
+    .swiss-h1 { font-size: 28px; font-weight: 500; line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 8px; text-wrap: pretty; }
+    .swiss-subline { font-size: 13px; color: var(--text-secondary); margin: 0 0 32px; line-height: 1.5; }
+    .swiss-dropcap { float: left; font-size: 4.65em; line-height: 1; font-weight: 500; color: var(--accent); padding-right: 8px; padding-top: 2px; }
+    .swiss-changelog-list { list-style: none; padding: 0; margin: 0; }
+    .swiss-changelog-release { display: grid; grid-template-columns: 3fr 9fr; gap: 16px; border-top: 1px solid var(--border); padding: 20px 0; }
+    .swiss-changelog-release:first-child { border-top: 0; padding-top: 0; }
+    .swiss-changelog-meta .swiss-changelog-version { font-size: 22px; font-weight: 500; color: var(--text-primary); letter-spacing: -0.01em; margin: 0 0 4px; }
+    .swiss-changelog-meta .swiss-changelog-date { font-size: 10px; color: var(--text-muted); letter-spacing: 0.10em; text-transform: uppercase; margin: 0 0 12px; }
+    .swiss-body,
+    .swiss-changelog-summary { font-size: 12px; color: var(--text-secondary); line-height: 1.55; margin: 0; text-wrap: pretty; }
+    .swiss-changelog-body { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .swiss-changelog-group-label { font-size: 10px; color: var(--accent); letter-spacing: 0.10em; text-transform: uppercase; margin: 0 0 6px; font-weight: 500; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+    .swiss-changelog-items { margin: 0; padding-left: 16px; }
+    .swiss-changelog-items li { font-size: 12px; line-height: 1.55; color: var(--text-primary); margin: 0 0 4px; }
+    .swiss-footer { font-size: 10px; color: var(--text-faint); border-top: 1px solid var(--border); padding-top: 12px; margin-top: 24px; letter-spacing: 0.10em; text-transform: uppercase; }
+    em, i { font-style: normal; font-weight: 500; }
+    code { font-family: Geist Mono, ui-monospace, monospace; font-size: 0.9em; color: var(--text-secondary); }
+  </style>
+</head>
+<body class="swiss-paper-body">
+<article class="swiss-page">
+
+  <header>
+    <p class="swiss-eyebrow">{{PROJECT}} &middot; {{REPO}}</p>
+    <h1 class="swiss-h1">Changelog</h1>
+    <p class="swiss-subline">This file follows Semantic Versioning (MAJOR.MINOR.PATCH) and the Keep a Changelog convention.</p>
+  </header>
+
+  <ul class="swiss-changelog-list">
+
+    <li class="swiss-changelog-release">
+      <div class="swiss-changelog-meta">
+        <p class="swiss-changelog-version">1.4.0</p>
+        <p class="swiss-changelog-date">2026-05-13</p>
+        <p class="swiss-changelog-summary">Schema suite complete: eight schemas across three presets and two languages.</p>
+      </div>
+      <div class="swiss-changelog-body">
+        <section>
+          <p class="swiss-changelog-group-label">Added</p>
+          <ul class="swiss-changelog-items">
+            <li>Equity-Report schema (Thesis / Valuation / Risk plus SVG quadrant).</li>
+            <li>Changelog schema (semantic version plus four groups).</li>
+            <li>Twelve new HTML templates across three presets and two languages.</li>
+          </ul>
+        </section>
+        <section>
+          <p class="swiss-changelog-group-label">Changed</p>
+          <ul class="swiss-changelog-items">
+            <li>editorial-sanity.sh dropcap window widened to 4.0em&ndash;5.0em.</li>
+            <li>GATE-J narrows node-width whitelist to <code>{128, 144, 160}</code>.</li>
+          </ul>
+        </section>
+        <section>
+          <p class="swiss-changelog-group-label">Removed</p>
+          <ul class="swiss-changelog-items">
+            <li>Legacy <code>polygon</code>-based marker patterns are no longer supported.</li>
+          </ul>
+        </section>
+        <section>
+          <p class="swiss-changelog-group-label">Fixed</p>
+          <ul class="swiss-changelog-items">
+            <li>Letter en variant: Charter fallback order corrected.</li>
+            <li>Resume zh template: missing <code>object-position</code>.</li>
+          </ul>
+        </section>
+      </div>
+    </li>
+
+    <li class="swiss-changelog-release">
+      <div class="swiss-changelog-meta">
+        <p class="swiss-changelog-version">1.3.0</p>
+        <p class="swiss-changelog-date">2026-04-02</p>
+        <p class="swiss-changelog-summary">Introduce class-prefix whitelist and GATE-J / GATE-K.</p>
+      </div>
+      <div class="swiss-changelog-body">
+        <section>
+          <p class="swiss-changelog-group-label">Added</p>
+          <ul class="swiss-changelog-items">
+            <li>GATE-J node-width-whitelist (max two tiers).</li>
+            <li>GATE-K chevron-strict.</li>
+          </ul>
+        </section>
+        <section>
+          <p class="swiss-changelog-group-label">Changed</p>
+          <ul class="swiss-changelog-items">
+            <li>Sanity scripts delegate to a shared editorial-sanity.sh.</li>
+          </ul>
+        </section>
+        <section>
+          <p class="swiss-changelog-group-label">Removed</p>
+          <ul class="swiss-changelog-items">
+            <li>Experimental <code>gd-*</code> class prefix.</li>
+          </ul>
+        </section>
+        <section>
+          <p class="swiss-changelog-group-label">Fixed</p>
+          <ul class="swiss-changelog-items">
+            <li>One-Pager <code>@page</code> overflowed printable area on US Letter.</li>
+          </ul>
+        </section>
+      </div>
+    </li>
+
+  </ul>
+
+  <footer class="swiss-footer">{{PROJECT}} &nbsp;/&nbsp; Changelog &nbsp;/&nbsp; Keep a Changelog &nbsp;/&nbsp; SemVer</footer>
+
+</article>
+</body>
+</html>

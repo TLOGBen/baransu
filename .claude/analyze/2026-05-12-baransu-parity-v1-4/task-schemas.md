@@ -62,23 +62,23 @@
 
 **需求追溯**：REQ-002
 **驗收標準**：
-- [ ] 三 preset 各含 `schemas/equity-report.md` + `schemas/changelog.md`
-- [ ] 三 preset 各含 `equity-report.html` + `equity-report-en.html` + `changelog.html` + `changelog-en.html`
+- [x] 三 preset 各含 `schemas/equity-report.md` + `schemas/changelog.md`
+- [x] 三 preset 各含 `equity-report.html` + `equity-report-en.html` + `changelog.html` + `changelog-en.html`
 
 ### 步驟
 
 #### 規格層
-- [ ] Equity-Report：含投資論點 / 估值 / 風險三段；含至少 1 個 SVG quadrant 圖（angles：機會 × 風險）
-- [ ] Changelog：semantic version 列表，每 release 含 added / changed / removed / fixed 四分類
+- [x] Equity-Report：含投資論點 / 估值 / 風險三段；含至少 1 個 SVG quadrant 圖（angles：機會 × 風險）
+- [x] Changelog：semantic version 列表，每 release 含 added / changed / removed / fixed 四分類
 
 #### 模板層
-- [ ] 12 HTML 檔
-- [ ] Equity-Report 含 SVG figure 範例（直接引用 task-svg-03 的 quadrant example）
-- [ ] Changelog 用 `<ul>` 多層巢狀（class prefix 對應 preset）
+- [x] 12 HTML 檔
+- [x] Equity-Report 含 SVG figure 範例（直接引用 task-svg-03 的 quadrant example）
+- [x] Changelog 用 `<ul>` 多層巢狀（class prefix 對應 preset）
 
 #### 驗證
-- [ ] 三 preset sanity.sh 全綠
-- [ ] Equity-Report 內 SVG 通過 validate-output.ts GATE A-K
+- [x] 三 preset sanity.sh 全綠
+- [x] Equity-Report 內 SVG 通過 validate-output.ts GATE A-K
 
 ---
 
