@@ -25,7 +25,7 @@ Material 3 的色彩系統是 **role-based**——你不直接指定顏色，而
 
 | Token Name | Hex | Role |
 |------------|-----|------|
-| `--md-primary` | `#6750A4 → oklch(0.49 0.13 296)` | 主色，FAB / 主要按鈕 / 強調圖示 |
+| `--md-primary` | `#6750A4 → oklch(0.49 0.16 304)` | 主色，FAB / 主要按鈕 / 強調圖示 |
 | `--md-on-primary` | `#FFFFFF` | 主色之上的文字 / 圖示 |
 | `--md-primary-container` | `#EADDFF` | 次強調容器（chip 選中、淡色按鈕） |
 | `--md-on-primary-container` | `#21005D` | primary-container 之上的文字 |
@@ -51,7 +51,7 @@ Material 3 的色彩系統是 **role-based**——你不直接指定顏色，而
 | `--md-outline-variant` | `#CAC4D0` | 弱邊框（次要分隔） |
 | `--md-shadow` | `#000000` | 陰影基底色 |
 | `--md-scrim` | `#000000` | Modal 背後遮罩 |
-| `--md-surface-tint` | `#6750A4 → oklch(0.49 0.13 296)` | Elevation 表面色調疊加（= primary） |
+| `--md-surface-tint` | `#6750A4 → oklch(0.49 0.16 304)` | Elevation 表面色調疊加（= primary） |
 | `--md-inverse-surface` | `#322F35` | 反相表面（snackbar 等） |
 | `--md-inverse-on-surface` | `#F5EFF7` | 反相表面之上的文字 |
 | `--md-inverse-primary` | `#D0BCFF` | 反相表面之上的 primary（連結色） |
