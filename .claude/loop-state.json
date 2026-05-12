@@ -1,0 +1,20 @@
+{
+  "iter_count": 1,
+  "score_overall": null,
+  "score_history": [],
+  "last_review_findings": 0,
+  "pending_findings": [],
+  "pending_spec_drift": [
+    "task-shared.md vs requirement.md Scenario 2 wording: canonical 5 anti-patterns assigned to 紙 in task-md but to swiss in req-md; treated as semantic-equivalent for now"
+  ],
+  "ab_diff_status": "not_yet_attempted",
+  "consecutive_no_progress": 0,
+  "exit_condition_met": false,
+  "started_at": "2026-05-12",
+  "last_iter_at": "2026-05-12",
+  "completed_tasks": [
+    {"id": "TASK-shared-01", "commit": "4ed609a", "review": "0 findings"}
+  ],
+  "next_task": "TASK-shared-02",
+  "notes": "iter 1 done; score script not yet built (TASK-finalize-03); 32 tasks remaining"
+}
