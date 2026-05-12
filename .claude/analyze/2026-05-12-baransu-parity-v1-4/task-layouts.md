@@ -1,0 +1,109 @@
+# Tasks: layouts
+
+**前置群組**：shared
+
+> 三 preset 各從 ~12 slide-core layout 擴張到 22，共 ~30 新 layout HTML。每 task 處理一個 preset 或一個 validator。
+
+## TASK-layouts-01: 紙 preset slide-cores 12 → 22
+
+**需求追溯**：REQ-003
+**目標**：紙 preset 新增 10 個 slide-core layout，覆蓋 guizang S01-S22 等價清單。
+**驗收標準**：
+- [ ] `紙-preset/slide-cores/` 含 22 個 `.html` 檔
+- [ ] 新增 10 個對應 timeline / process / testimonial / agenda / stat-hero / icon-grid / table-heavy / before-after / divider / closing
+- [ ] 每檔 class prefix 純 `kami-*`（無混用 swiss / gd）
+- [ ] 跑 `紙-sanity.sh` 全綠
+
+### 步驟
+
+#### 模板層
+- [ ] 對每新 layout 寫一個 HTML 檔（≤ 80 行 inline `<style>` + slide body）
+- [ ] timeline：horizontal 5-7 milestone（class `kami-timeline`）
+- [ ] process：左右 5 step 流程箭頭（class `kami-process`）
+- [ ] testimonial：人像 + 引述 + 署名（含 `object-position: center 35%`）
+- [ ] agenda：1-N 編號列表
+- [ ] stat-hero：1 個超大數字 + supporting copy
+- [ ] icon-grid：4 / 6 / 9 grid，每格 icon + 標題 + 描述
+- [ ] table-heavy：對比表，含 zebra row
+- [ ] before-after：水平 split，左 before / 右 after
+- [ ] divider：純 section title transition
+- [ ] closing：結尾頁（thank you / contact）
+
+#### 驗證
+- [ ] `ls plugins/baransu/skills/design/references/紙-preset/slide-cores/*.html | wc -l` = 22
+- [ ] `bash plugins/baransu/skills/design/references/紙-preset/紙-sanity.sh` 全綠
+
+---
+
+## TASK-layouts-02: swiss preset slide-cores mirror 同 22 layout
+
+**需求追溯**：REQ-003
+**驗收標準**：
+- [ ] `swiss-preset/slide-cores/` 含 22 個 `.html` 檔
+- [ ] 對齊紙 preset 的 10 新 layout，class prefix `swiss-*`
+- [ ] swiss-sanity.sh 全綠（且修掉既有的 prefix 混用 bug，例 content-bullets / data / kpi-grid / quote / section）
+
+### 步驟
+
+#### 模板層
+- [ ] 對每既有 slide-core 修 prefix 混用 bug（v1.3 dogfood 軌遺留；本 task 一次清掉）
+- [ ] 新增 10 個 layout，視覺對齊 Swiss 哲學（純 sans-serif、IKB 唯一 accent、無 italics）
+
+#### 驗證
+- [ ] `bash swiss-preset/swiss-sanity.sh` 全綠（含 #33 slide-class-prefix）
+
+---
+
+## TASK-layouts-03: google-design preset slide-cores mirror 同 22 layout
+
+**需求追溯**：REQ-003
+**驗收標準**：
+- [ ] `google-design-preset/slide-cores/` 含 22 個 `.html` 檔
+- [ ] class prefix `gd-*`
+- [ ] gd-sanity.sh 全綠
+
+### 步驟
+
+#### 模板層
+- [ ] 對齊紙 preset 結構，採 google-design preset 的 typography + color token
+- [ ] 10 新 layout 視覺風格：Material You / Roboto / 圓角更大、陰影更重
+
+#### 驗證
+- [ ] gd-sanity.sh 全綠
+
+---
+
+## TASK-layouts-04: validate-swiss-deck.mjs 新增 + 三 sanity 整合
+
+**需求追溯**：REQ-003 Scenario 2 + B8 邊界
+**目標**：對標 guizang `validate-swiss-deck.mjs`；機械驗證 22 layout 對應 lock entry。
+**驗收標準**：
+- [ ] 新檔 `plugins/baransu/skills/book/scripts/validate-swiss-deck.mjs`
+- [ ] 讀 deck HTML，抽出 `data-layout` 或 class prefix，對應 22 lock entry
+- [ ] 不在 22 lock 內的 layout = fail
+- [ ] 三 preset sanity.sh 結尾呼叫 validate-swiss-deck.mjs 對 slide-cores 整目錄
+
+### 步驟
+
+#### 驗證層
+- [ ] 寫 mjs script，定義 22 lock list：`['title','section','content-bullets','quote','data','kpi-grid','timeline','process','testimonial','agenda','stat-hero','icon-grid','table-heavy','before-after','divider','closing','toc','two-column','image-full','comparison','quote-stack','breakout']`
+- [ ] 對 slide-cores HTML grep class prefix → 抽 layout 名 → 對照 lock list
+- [ ] 三 sanity.sh 加呼叫
+
+#### 驗證
+- [ ] 跑三 preset 全綠（22 layout = 22 lock entry，無餘無缺）
+
+---
+
+## TASK-layouts-05: canonical-tokens.md 22 layout 名稱清單 + Layout Registry
+
+**需求追溯**：REQ-003 整合，輔助 task-layouts-04
+**驗收標準**：
+- [ ] `design/references/canonical-tokens.md` 加「Slide Layout Registry」段，列 22 個 layout name + 適用情境
+- [ ] 三 preset 的 layout 命名一致對齊此 registry
+
+### 步驟
+
+#### 規格層
+- [ ] 在 canonical-tokens.md 加 markdown 表：layout-name / use-case / required-section-count / SVG-allowed-types
+- [ ] 列 22 行
