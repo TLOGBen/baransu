@@ -1,5 +1,5 @@
 {
-  "iter_count": 12,
+  "iter_count": 13,
   "score_overall": null,
   "score_history": [],
   "last_review_findings": 0,
@@ -18,9 +18,10 @@
     "TASK-svg-01 P2: flowchart diamond uses 128×128 rotated rect; spec §4.7 strictly says height ∈ {32, 64}",
     "TASK-svg-03 P1 (spec): REQ-001 Scenario 4 mod-4 wording is literal but validate-output.ts has no mod-4 gate. Recommendation: tighten spec.",
     "TASK-svg-04 P2: chevron marker defs duplicated across 13 diagram-types; opportunity to hoist to shared kami-defs.md",
-    "TASK-svg-05 infra: validate-output.ts has 10+ pre-existing TypeScript diagnostics (missing @types/node + implicit-any)",
+    "TASK-svg-05 infra: validate-output.ts has 10+ pre-existing TypeScript diagnostics (missing @types/node + implicit-any on cheerio iter callbacks). Runtime works.",
     "TASK-editorial-01 P2 nit: .kami-lead / .swiss-lead / .google-lead classes don't receive text-wrap: pretty",
-    "TASK-editorial-04 F2 (minor): editorial-sanity.sh uses relative path `$SCRIPT_DIR/../editorial-sanity.sh` — when /design preset 紙 copies sanity to project root, the relative path breaks. Distribution path is a future concern; not a blocker for REQ-004."
+    "TASK-editorial-04 F2 (minor): editorial-sanity.sh uses relative path which may break when /design preset copies to project root",
+    "TASK-schemas-01 P2 (spec drift): REQ-002 / task wording uses `gd-*` for google preset class prefix but codebase convention is `google-*`; agent followed codebase convention. Recommend amending spec wording. 紙 preset similarly uses `kami-*` not `紙-*`."
   ],
   "ab_diff_status": "not_yet_attempted",
   "consecutive_no_progress": 0,
@@ -37,10 +38,11 @@
     {"id": "TASK-svg-04", "commit": "bd9727c", "review": "1 P1 fixed; ALL 13 diagram-types complete"},
     {"id": "TASK-svg-05", "commit": "1bedca0", "review": "1 P1 fixed; GATE-J/K live"},
     {"id": "TASK-editorial-01", "commit": "4086f08", "review": "0 findings"},
-    {"id": "TASK-editorial-02", "commit": "5badbc8", "review": "1 P1 fixed in afd3532 — dropcap 3-line"},
+    {"id": "TASK-editorial-02", "commit": "5badbc8", "review": "1 P1 fixed — dropcap 3-line"},
     {"id": "TASK-editorial-03", "commit": "6a4b344", "review": "0 findings"},
-    {"id": "TASK-editorial-04", "commit": "25fe6c8", "review": "1 P1 fixed in 96bc12c — swiss + google sanity.sh created; EDITORIAL GROUP 4/4 COMPLETE"}
+    {"id": "TASK-editorial-04", "commit": "25fe6c8", "review": "1 P1 fixed in 96bc12c; EDITORIAL 4/4 COMPLETE"},
+    {"id": "TASK-schemas-01", "commit": "4e548e6", "review": "1 P1 fixed in 1158bfa — swiss portfolio dropcap span wrap"}
   ],
-  "next_task": "TASK-schemas-01",
-  "notes": "iter 12 done; 🎉 EDITORIAL GROUP 4/4 COMPLETE. Moving to schemas group (6 new doc types × 3 preset × zh/en). 12/33 tasks complete; 21 remaining."
+  "next_task": "TASK-schemas-02",
+  "notes": "iter 13 done; schemas 1/4 (Resume + Portfolio × 3 preset × zh/en = 18 files); 13/33 tasks complete; 20 remaining."
 }
