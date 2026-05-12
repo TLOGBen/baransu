@@ -378,7 +378,7 @@ Selected → `background: var(--md-secondary-container); color: var(--md-on-seco
 |-------|-------------|----------|
 | HEX | `#6750A4` | M3 baseline 規格；token role 為 `primary` / `surface-tint`，WeasyPrint 以此為準 |
 | HSL | `H 256°, S 34%, L 48%` | 紫藍色相位 256°——M3 baseline 從 HCT (Hue-Chroma-Tone) 推導為 H 270°/C 36/T 40，sRGB 投影後得此 HSL；S 34% 低於純彩色避免螢幕灼眼；L 48% 對應 M3 tone 40，即「primary on light scheme」 |
-| oklch（advisory） | `oklch(0.49 0.13 296)` | perceptual 等價；色相 296° 接近 M3 HCT 原始 270° + sRGB 投影偏移；C 0.13 反映 baseline palette 的中等彩度 |
+| oklch（advisory） | `oklch(0.49 0.16 304)` | perceptual 等價；色相 304° 接近 M3 HCT 原始 270° + sRGB 投影偏移；C 0.16 反映 baseline palette 的中等彩度 |
 
 選色理由：M3 baseline `#6750A4` 是 Google 提供的「無品牌（pre-branding）」起點色——在沒有 dynamic color 萃取（從 wallpaper / brand image 推導）時的安全預設。每個 surface tint 與 elevation overlay 都從這一個 hue 延伸，破壞 hue 一致性即破壞 Material You 的核心承諾。
 
