@@ -1,5 +1,5 @@
 {
-  "iter_count": 3,
+  "iter_count": 4,
   "score_overall": null,
   "score_history": [],
   "last_review_findings": 0,
@@ -8,13 +8,14 @@
       "from_iter": 2,
       "task": "TASK-shared-02",
       "severity": "P2 advisory",
-      "issue": "WIP file .claude/tmp/baransu-design-book-v1.4-roadmap-wip.md included in commit a4afce39; pre-existing force-add from commit f7ee5aa",
+      "issue": "WIP file .claude/tmp/baransu-design-book-v1.4-roadmap-wip.md included in commit a4afce39",
       "action": "deferred to /baransu:ship"
     }
   ],
   "pending_spec_drift": [
     "task-shared.md vs requirement.md Scenario 2 wording: canonical 5 anti-patterns assigned to 紙 in task-md but to swiss in req-md; treated as semantic-equivalent",
-    "REQ-003 Scenario 3 wording references `--font-h*` CSS variables but 三 preset tokens.css use direct h1{} selectors; spec wording is aspirational vs actual impl. If a future validator grep --font-h1 it will fail. Decide: extract variables OR amend spec wording."
+    "REQ-003 Scenario 3 wording references `--font-h*` CSS variables but 三 preset tokens.css use direct h1{} selectors",
+    "TASK-svg-01 P2 advisory: flowchart diamond uses 128×128 rotated rect; spec §4.7 strictly says node height ∈ {32, 64}; diamonds are an unspoken spec extension. Document in svg-rendering-rules.md §4.9 as future polish."
   ],
   "ab_diff_status": "not_yet_attempted",
   "consecutive_no_progress": 0,
@@ -23,9 +24,10 @@
   "last_iter_at": "2026-05-13",
   "completed_tasks": [
     {"id": "TASK-shared-01", "commit": "4ed609a", "review": "0 findings"},
-    {"id": "TASK-shared-02", "commit": "a4afce3", "review": "2 P2 findings, 1 fixed in f3ed0b5, 1 deferred to /ship"},
-    {"id": "TASK-shared-03", "commit": "e95cb14", "review": "0 findings (1 P2 spec drift advisory)"}
+    {"id": "TASK-shared-02", "commit": "a4afce3", "review": "2 P2 findings, 1 fixed in f3ed0b5, 1 deferred"},
+    {"id": "TASK-shared-03", "commit": "e95cb14", "review": "0 findings (1 P2 spec drift advisory)"},
+    {"id": "TASK-svg-01", "commit": "9aa7030", "review": "0 findings (1 P2 spec extension advisory)"}
   ],
-  "next_task": "TASK-svg-01",
-  "notes": "iter 3 done; shared group complete (3/3); moving to svg group next; 30 tasks remaining"
+  "next_task": "TASK-svg-02",
+  "notes": "iter 4 done; svg group 1/5 (architecture/flowchart/sequence done); 29 tasks remaining"
 }
