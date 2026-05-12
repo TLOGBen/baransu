@@ -1,5 +1,5 @@
 {
-  "iter_count": 17,
+  "iter_count": 18,
   "score_overall": null,
   "score_history": [],
   "last_review_findings": 0,
@@ -15,21 +15,28 @@
       "from_iter": 17,
       "task": "TASK-layouts-01",
       "severity": "P2",
-      "issue": "紙 slide-cores count is 21 not 22; closing.html pre-exists with v1.3 prefix-mix bug, not overwritten per hard constraint",
-      "action": "TASK-layouts-02 spec already includes 'modify existing prefix-mix' as part of swiss; consider opening a 紙-closing-fix subtask or wait for full layouts group sanitization sweep"
+      "issue": "紙 slide-cores count is 21 not 22; closing.html pre-exists with v1.3 prefix-mix bug",
+      "action": "consider opening a 紙-closing-fix subtask or wait for full sweep"
+    },
+    {
+      "from_iter": 18,
+      "task": "TASK-layouts-02",
+      "severity": "P2",
+      "issue": "swiss slide-cores count is 21 not 22 (same closing.html overwrite pattern). Commit message says '22 layouts' but actual is 21. task-layouts.md correctly marked [~]",
+      "action": "if a 22nd layout is required, decide which name (toc / image-full / breakout etc.) and add across all 3 presets uniformly"
     }
   ],
   "pending_spec_drift": [
     "task-shared.md vs requirement.md Scenario 2 wording: canonical 5 anti-patterns assigned to 紙 in task-md but to swiss in req-md; treated as semantic-equivalent",
     "REQ-003 Scenario 3 wording references `--font-h*` CSS variables but 三 preset tokens.css use direct h1{} selectors",
     "TASK-svg-01 P2: flowchart diamond uses 128×128 rotated rect; spec §4.7 strictly says height ∈ {32, 64}",
-    "TASK-svg-03 P1 (spec): REQ-001 Scenario 4 mod-4 wording is literal but validate-output.ts has no mod-4 gate. Recommendation: tighten spec.",
+    "TASK-svg-03 P1 (spec): REQ-001 Scenario 4 mod-4 wording is literal but validate-output.ts has no mod-4 gate",
     "TASK-svg-04 P2: chevron marker defs duplicated across 13 diagram-types",
     "TASK-svg-05 infra: validate-output.ts has 10+ pre-existing TypeScript diagnostics. Runtime works.",
     "TASK-editorial-01 P2 nit: lead classes don't receive text-wrap: pretty",
-    "TASK-editorial-04 F2 (minor): editorial-sanity.sh relative path may break when copied to project root",
+    "TASK-editorial-04 F2 (minor): editorial-sanity.sh relative path",
     "TASK-schemas-01/02 P2 (spec drift): wording uses `gd-*` for google preset but codebase uses `google-*`",
-    "TASK-schemas-04 P2 notes: Check B uses `continue` on missing file (vacuous pass); long-doc + slides schemas deferred with TODO"
+    "TASK-schemas-04 P2 notes: Check B uses `continue` on missing; long-doc + slides schemas deferred"
   ],
   "ab_diff_status": "not_yet_attempted",
   "consecutive_no_progress": 0,
@@ -38,23 +45,24 @@
   "last_iter_at": "2026-05-13",
   "completed_tasks": [
     {"id": "TASK-shared-01", "commit": "4ed609a", "review": "0 findings"},
-    {"id": "TASK-shared-02", "commit": "a4afce3", "review": "1 fixed in f3ed0b5"},
+    {"id": "TASK-shared-02", "commit": "a4afce3", "review": "1 fixed"},
     {"id": "TASK-shared-03", "commit": "e95cb14", "review": "0 findings"},
     {"id": "TASK-svg-01", "commit": "9aa7030", "review": "0 findings"},
     {"id": "TASK-svg-02", "commit": "f72786d", "review": "1 P1 + 1 P2 fixed"},
     {"id": "TASK-svg-03", "commit": "c816fb7", "review": "4 P1: 2 fixed"},
     {"id": "TASK-svg-04", "commit": "bd9727c", "review": "1 P1 fixed"},
-    {"id": "TASK-svg-05", "commit": "1bedca0", "review": "1 P1 fixed; GATE-J/K live"},
+    {"id": "TASK-svg-05", "commit": "1bedca0", "review": "1 P1 fixed"},
     {"id": "TASK-editorial-01", "commit": "4086f08", "review": "0 findings"},
     {"id": "TASK-editorial-02", "commit": "5badbc8", "review": "1 P1 fixed"},
     {"id": "TASK-editorial-03", "commit": "6a4b344", "review": "0 findings"},
-    {"id": "TASK-editorial-04", "commit": "25fe6c8", "review": "1 P1 fixed; EDITORIAL 4/4"},
+    {"id": "TASK-editorial-04", "commit": "25fe6c8", "review": "1 P1 fixed"},
     {"id": "TASK-schemas-01", "commit": "4e548e6", "review": "1 P1 fixed"},
     {"id": "TASK-schemas-02", "commit": "4ab0b27", "review": "1 P1 fixed"},
     {"id": "TASK-schemas-03", "commit": "16615d4", "review": "0 findings"},
     {"id": "TASK-schemas-04", "commit": "f968165", "review": "0 findings; SCHEMAS 4/4"},
-    {"id": "TASK-layouts-01", "commit": "23f138f", "review": "0 findings; 9 new layouts; count gap 21/22 (closing pre-exists)"}
+    {"id": "TASK-layouts-01", "commit": "23f138f", "review": "0 findings; count gap 21/22"},
+    {"id": "TASK-layouts-02", "commit": "f3d051f", "review": "P1 (wording) deferred; same 21/22 pattern; no prefix-mix bug found in swiss"}
   ],
-  "next_task": "TASK-layouts-02",
-  "notes": "iter 17 done; layouts 1/5 (紙: 9 new + 12 existing = 21); 17/33 tasks complete; 16 remaining."
+  "next_task": "TASK-layouts-03",
+  "notes": "iter 18 done; layouts 2/5 (紙 21 + swiss 21); 18/33 tasks; 15 remaining."
 }
