@@ -72,19 +72,19 @@
 
 **需求追溯**：REQ-001
 **驗收標準**：
-- [ ] 四檔 frontmatter `status: complete`
-- [ ] 各 example 通過 validator
+- [x] 四檔 frontmatter `status: complete`
+- [x] 各 example 通過 validator
 
 ### 步驟
 
 #### 模板層
-- [ ] tree：3-level hierarchy example，含 1 root → 3 child → 6 leaf
-- [ ] layers：4-layer 水平堆疊 example（每 layer 一個 rect band，含 label）
-- [ ] venn：3-circle Venn example，含 7 區（3 single + 3 double + 1 triple intersection），無填色重疊以 stroke 分區
-- [ ] pyramid：5-level pyramid example，從上窄到下寬，每 level 標 label
+- [x] tree：3-level hierarchy example，含 1 root → 3 child → 6 leaf
+- [x] layers：4-layer 水平堆疊 example（每 layer 一個 rect band，含 label）
+- [x] venn：3-circle Venn example，含 7 區（3 single + 3 double + 1 triple intersection），無填色重疊以 stroke 分區
+- [x] pyramid：5-level pyramid example，從上窄到下寬，每 level 標 label
 
 #### 驗證
-- [ ] 四 example 通過 GATE A-G
+- [x] 四 example 通過 GATE A-G
 
 ---
 
