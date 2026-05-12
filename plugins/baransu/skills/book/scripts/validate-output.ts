@@ -34,7 +34,7 @@
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
-import { load, type CheerioAPI, type Cheerio } from "cheerio";
+import { load, type CheerioAPI } from "cheerio";
 import type { Element as DomElement } from "domhandler";
 
 const htmlFile = process.argv[2];
