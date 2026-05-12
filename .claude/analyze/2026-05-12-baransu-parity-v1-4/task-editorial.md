@@ -56,15 +56,15 @@
 **需求追溯**：REQ-004 Scenario 3
 **目標**：HTML template 內所有 prose 區域的 straight `"` 替換為 curly `U+201C` / `U+201D`，相應的單引號替換為 `U+2018` / `U+2019`。
 **驗收標準**：
-- [ ] 三 preset design-cores HTML 內 prose 文本（非 HTML attribute、非 code block）不含 `"` straight
-- [ ] curly `“` `”` 出現 ≥ 1 per file（demo content 內）
+- [x] 三 preset design-cores HTML 內 prose 文本（非 HTML attribute、非 code block）不含 `"` straight
+- [x] curly `“` `”` 出現 ≥ 1 per file（demo content 內）
 
 ### 步驟
 
 #### 模板層
-- [ ] 對每 preset 的 `design-cores/long-form.html`，掃出 demo content（`<p>` / `<blockquote>` / `<figcaption>` 內文）
-- [ ] 用 sed 或手動替換 straight 為 curly（注意保留 attribute 內的 `"`）
-- [ ] golden-template.html 同等
+- [x] 對每 preset 的 `design-cores/long-form.html`，掃出 demo content（`<p>` / `<blockquote>` / `<figcaption>` 內文）
+- [x] 用 sed 或手動替換 straight 為 curly（注意保留 attribute 內的 `"`）
+- [x] golden-template.html 同等
 
 #### 驗證
 - [ ] 寫 awk 一行：解析 HTML，只取 element text content（不含 attribute / code / pre），grep `"` 命中 = 0
