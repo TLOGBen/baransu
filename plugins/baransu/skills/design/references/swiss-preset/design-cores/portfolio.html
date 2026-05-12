@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<!--
+  portfolio.html — Swiss preset Portfolio template (v1.4, zh)
+  Schema: schemas/portfolio.md
+  Class prefix: swiss-*
+  Portrait + thumbnail <img> use object-position: center 35% (rule of thirds).
+-->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{NAME}} — 作品集</title>
+  <link rel="stylesheet" href="../tokens.css">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      background: var(--paper); color: var(--text-primary);
+      font-family: 'Inter', 'Helvetica Neue', 'Noto Sans TC', sans-serif;
+      margin: 0; text-wrap: pretty;
+    }
+    .swiss-page { max-width: 1200px; margin: 0 auto; padding: 56px 24px; }
+    .swiss-cover { display: grid; grid-template-columns: 320px 1fr; gap: 56px; align-items: center; padding-bottom: 48px; border-bottom: 1px solid var(--border); }
+    .swiss-hero { width: 100%; aspect-ratio: 3 / 4; overflow: hidden; border: 1px solid var(--border); }
+    .swiss-hero img { width: 100%; height: 100%; object-fit: cover; object-position: center 35%; display: block; }
+    .swiss-h1 { font-size: 48px; font-weight: 500; line-height: 1.1; letter-spacing: -0.02em; margin: 0 0 12px; text-wrap: pretty; }
+    .swiss-tagline { font-size: 18px; color: var(--text-secondary); margin: 0 0 24px; }
+    .swiss-body { font-size: 15px; line-height: 1.55; color: var(--text-primary); margin: 12px 0; text-wrap: pretty; }
+    .swiss-dropcap { float: left; font-size: 4.65em; line-height: 1; font-weight: 500; color: var(--accent); padding-right: 8px; padding-top: 2px; }
+    .swiss-h2 { font-size: 24px; font-weight: 500; line-height: 1.25; letter-spacing: -0.01em; border-left: 3px solid var(--accent); padding-left: 12px; margin: 56px 0 24px; text-wrap: pretty; }
+    .swiss-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; }
+    .swiss-card { background: var(--surface); border: 1px solid var(--border); overflow: hidden; }
+    .swiss-thumb { width: 100%; aspect-ratio: 4 / 3; overflow: hidden; }
+    .swiss-thumb img { width: 100%; height: 100%; object-fit: cover; object-position: center 35%; display: block; }
+    .swiss-card-body { padding: 20px 24px 24px; }
+    .swiss-card-title { font-size: 18px; font-weight: 500; margin: 0 0 4px; }
+    .swiss-card-meta { font-size: 11px; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 8px; }
+    .swiss-card-desc { font-size: 14px; line-height: 1.55; color: var(--text-secondary); margin: 0; }
+    .swiss-contact { margin-top: 64px; padding-top: 32px; border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; font-size: 13px; color: var(--text-muted); }
+    .swiss-contact strong { display: block; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 4px; font-weight: 500; }
+    .swiss-footer { font-size: 11px; color: var(--text-faint); margin-top: 48px; letter-spacing: 0.04em; }
+    em, i { font-style: normal; font-weight: 500; }
+    @media (max-width: 720px) { .swiss-cover { grid-template-columns: 1fr; gap: 24px; } .swiss-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body class="swiss-paper-body">
+<div class="swiss-page">
+
+  <section class="swiss-cover">
+    <div class="swiss-hero">
+      <img src="{{PORTRAIT_URL}}" alt="{{NAME}} portrait">
+    </div>
+    <div>
+      <h1 class="swiss-h1">{{NAME}}</h1>
+      <p class="swiss-tagline">{{TAGLINE}}</p>
+      <p class="swiss-body">過去十年我以平面設計為媒介，為品牌建構訊息的清晰結構。我相信「網格不限制創意，而是讓創意可被理解」——當畫面有節奏，讀者才能感受到設計的意圖。本作品集收錄六個近年案例，涵蓋品牌、出版與互動。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="swiss-h2">作品</h2>
+    <div class="swiss-grid">
+
+      <article class="swiss-card">
+        <div class="swiss-thumb"><img src="{{WORK_1_THUMB}}" alt="作品一"></div>
+        <div class="swiss-card-body">
+          <p class="swiss-card-meta">2025 / 品牌識別</p>
+          <h3 class="swiss-card-title">蘭花茶屋 視覺系統</h3>
+          <p class="swiss-card-desc">為老字號茶屋建立 12 欄 grid 識別系統，以 Inter 與深墨藍為骨。</p>
+        </div>
+      </article>
+
+      <article class="swiss-card">
+        <div class="swiss-thumb"><img src="{{WORK_2_THUMB}}" alt="作品二"></div>
+        <div class="swiss-card-body">
+          <p class="swiss-card-meta">2024 / 書籍編排</p>
+          <h3 class="swiss-card-title">山的另一邊 書籍設計</h3>
+          <p class="swiss-card-desc">240 頁攝影散文集，採用嚴格 baseline grid 與全幅出血照片。</p>
+        </div>
+      </article>
+
+      <article class="swiss-card">
+        <div class="swiss-thumb"><img src="{{WORK_3_THUMB}}" alt="作品三"></div>
+        <div class="swiss-card-body">
+          <p class="swiss-card-meta">2024 / 互動原型</p>
+          <h3 class="swiss-card-title">河流時間軸</h3>
+          <p class="swiss-card-desc">為地方誌設計的網頁時間軸，採用橫向卷動與資訊圖表。</p>
+        </div>
+      </article>
+
+      <article class="swiss-card">
+        <div class="swiss-thumb"><img src="{{WORK_4_THUMB}}" alt="作品四"></div>
+        <div class="swiss-card-body">
+          <p class="swiss-card-meta">2023 / 展覽設計</p>
+          <h3 class="swiss-card-title">紙的記憶 展覽主視覺</h3>
+          <p class="swiss-card-desc">與美術館合作的紙文化特展視覺系統，含 Swiss 海報六款。</p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section class="swiss-contact">
+    <div><strong>Email</strong>{{EMAIL}}</div>
+    <div><strong>Phone</strong>{{PHONE}}</div>
+    <div><strong>Studio</strong>{{LOCATION}}</div>
+  </section>
+
+  <footer class="swiss-footer">{{NAME}} / Portfolio / {{UPDATED_AT}}</footer>
+</div>
+</body>
+</html>

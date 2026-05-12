@@ -9,28 +9,28 @@
 **需求追溯**：REQ-002
 **目標**：兩種人像 / 個人作品 schema，含 `object-position: center 35%` rule of thirds 強制。
 **驗收標準**：
-- [ ] 三 preset 各含 `schemas/resume.md` + `schemas/portfolio.md`（共 6 schema 檔）
-- [ ] 三 preset 各含 `design-cores/resume.html` + `resume-en.html` + `portfolio.html` + `portfolio-en.html`（共 12 HTML 檔）
-- [ ] en variant `<link rel="stylesheet">` 引 en 對應 typography stack；不含 `Noto Serif TC` / `TsangerJinKai02`
-- [ ] 兩 schema 含 `<img>` 區塊 → CSS 必含 `object-position: center 35%`
+- [x] 三 preset 各含 `schemas/resume.md` + `schemas/portfolio.md`（共 6 schema 檔）
+- [x] 三 preset 各含 `design-cores/resume.html` + `resume-en.html` + `portfolio.html` + `portfolio-en.html`（共 12 HTML 檔）
+- [x] en variant `<link rel="stylesheet">` 引 en 對應 typography stack；不含 `Noto Serif TC` / `TsangerJinKai02`
+- [x] 兩 schema 含 `<img>` 區塊 → CSS 必含 `object-position: center 35%`
 
 ### 步驟
 
 #### 規格層（schema markdown）
-- [ ] 寫 6 個 schema markdown：每檔含 `schema-id`、`class-prefix`、`langs: [zh, en]`、`body-sections`、`image-requirements: {position: "center 35%"}`、`editorial-requirements: {dropcap: false, curly: true, widow-orphan: true}`
+- [x] 寫 6 個 schema markdown：每檔含 `schema-id`、`class-prefix`、`langs: [zh, en]`、`body-sections`、`image-requirements: {position: "center 35%"}`、`editorial-requirements: {dropcap: false, curly: true, widow-orphan: true}`
   - Resume `body-sections`：頭部姓名 + 聯絡 / 摘要 / 經歷 / 學歷 / 技能 / 專案
   - Portfolio `body-sections`：封面 + about / 作品 grid（4-6 個 case）/ 聯絡
 
 #### 模板層
-- [ ] 紙 preset：`design-cores/resume.html` 採用 `kami-*` class prefix + `.kami-dropcap` 在「摘要」段示範 + 人像 `<img>` 含 `object-position: center 35%`
-- [ ] `resume-en.html`：同結構，font-stack 改 `Charter, Georgia, 'Palatino Linotype', serif`
-- [ ] portfolio.html / portfolio-en.html 同等
-- [ ] swiss preset 同等（class prefix `swiss-*`，無 dropcap）
-- [ ] google-design preset 同等（class prefix `gd-*`）
+- [x] 紙 preset：`design-cores/resume.html` 採用 `kami-*` class prefix + `.kami-dropcap` 在「摘要」段示範 + 人像 `<img>` 含 `object-position: center 35%`
+- [x] `resume-en.html`：同結構，font-stack 改 `Charter, Georgia, 'Palatino Linotype', serif`
+- [x] portfolio.html / portfolio-en.html 同等
+- [x] swiss preset 同等（class prefix `swiss-*`，無 dropcap）
+- [x] google-design preset 同等（class prefix `google-*` per codebase convention，spec 寫的 `gd-*` 與既有 long-form.html 不符；採用 codebase convention）
 
 #### 驗證
-- [ ] `grep -r "object-position: center 35%" plugins/baransu/skills/design/references/*-preset/design-cores/{resume,portfolio}*.html` 命中 ≥ 12（每檔至少一處）
-- [ ] `grep -L "Noto Serif TC\|TsangerJinKai02" .../resume-en.html` 列出全部 en variant（即都不含 zh 字體）
+- [x] `grep -r "object-position: center 35%" plugins/baransu/skills/design/references/*-preset/design-cores/{resume,portfolio}*.html` 命中 ≥ 12（每檔至少一處）
+- [x] `grep -L "Noto Serif TC\|TsangerJinKai02" .../resume-en.html` 列出全部 en variant（即都不含 zh 字體）
 
 ---
 
