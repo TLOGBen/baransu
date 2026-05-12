@@ -55,8 +55,8 @@ Inline example below — 2×2 Impact × Effort 優先級矩陣，含 4 個象限
     <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
 
     <!-- ===== AXIS CROSS（1px hairline） ===== -->
-    <!-- Y axis (vertical) — with up-tip arrow（accent，落焦點維度） -->
-    <line x1="500" y1="80" x2="500" y2="480"
+    <!-- Y axis (vertical) — with up-tip arrow（accent，落焦點維度；marker-end 落在 y=80 對齊 IMPACT 標籤） -->
+    <line x1="500" y1="480" x2="500" y2="80"
           stroke="#141413" stroke-width="1"
           marker-end="url(#arrow-accent)"/>
     <!-- X axis (horizontal) — with right-tip arrow（accent） -->

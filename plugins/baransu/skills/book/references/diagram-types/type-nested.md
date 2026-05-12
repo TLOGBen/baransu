@@ -114,19 +114,19 @@ Inline example below — 3-level containment（1 outer system context → 2 midd
           font-family="'Geist Mono', ui-monospace, monospace"
           text-anchor="middle">command handler</text>
 
-    <!-- Inner B2: Aggregate Root — FOCAL (160) — inside ORDER DOMAIN -->
-    <rect x="720" y="320" width="160" height="64" rx="6" fill="#f5f4ed"/>
+    <!-- Inner B2: Aggregate Root — FOCAL (160) — inside ORDER DOMAIN（32px right padding to middle ring） -->
+    <rect x="688" y="320" width="160" height="64" rx="6" fill="#f5f4ed"/>
     <rect data-role="focal"
-          x="720" y="320" width="160" height="64" rx="6"
+          x="688" y="320" width="160" height="64" rx="6"
           fill="#EEF2F7" stroke="#1B365D" stroke-width="1.4"/>
-    <rect x="728" y="328" width="28" height="12" rx="2"
+    <rect x="696" y="328" width="28" height="12" rx="2"
           fill="transparent" stroke="#1B365D" stroke-opacity="0.40" stroke-width="0.8"/>
-    <text x="742" y="337" fill="#1B365D" font-size="7"
+    <text x="710" y="337" fill="#1B365D" font-size="7"
           font-family="'Geist Mono', ui-monospace, monospace"
           text-anchor="middle" letter-spacing="0.08em">FOCAL</text>
-    <text x="800" y="360" fill="#141413" font-size="12" font-weight="600"
+    <text x="768" y="360" fill="#141413" font-size="12" font-weight="600"
           font-family="'Geist', system-ui, sans-serif" text-anchor="middle">Order Root</text>
-    <text x="800" y="376" fill="#504e49" font-size="9"
+    <text x="768" y="376" fill="#504e49" font-size="9"
           font-family="'Geist Mono', ui-monospace, monospace"
           text-anchor="middle">aggregate root</text>
 
@@ -134,8 +134,8 @@ Inline example below — 3-level containment（1 outer system context → 2 midd
     <!-- Frontend SPA → Order Service（cross-domain，arrow-link） -->
     <line x1="360" y1="272" x2="560" y2="224"
           stroke="#2D5A8A" stroke-width="1.2" marker-end="url(#arrow-link)"/>
-    <!-- Order Service → Order Root（同 domain，focal flow accent） -->
-    <line x1="624" y1="256" x2="720" y2="352"
+    <!-- Order Service → Order Root（同 domain，focal flow accent；landing 點 x=688 為 focal 左緣） -->
+    <line x1="624" y1="256" x2="688" y2="352"
           stroke="#1B365D" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
 
     <!-- ===== LEGEND STRIP ===== -->
