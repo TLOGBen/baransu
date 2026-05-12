@@ -414,7 +414,14 @@ svgs.forEach((svg, i) => {
 const CHEVRON_PATH_D = "M2 1 L8 5 L2 9";
 function normalizePathD(d: string | undefined): string {
   if (!d) return "";
-  return d.replace(/,/g, " ").replace(/\s+/g, " ").trim();
+  // Normalize: commas → space; collapse runs; strip space between command
+  // letter (MLHVCSQTAZ + lowercase) and its first coordinate so that
+  // `M 2 1 L 8 5 L 2 9` (editor-formatted) matches canonical `M2 1 L8 5 L2 9`.
+  return d
+    .replace(/,/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/([MLHVCSQTAZmlhvcsqtaz])\s+/g, "$1")
+    .trim();
 }
 
 svgs.forEach((svg, i) => {
