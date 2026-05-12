@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  one-pager-en.html — Google-Design (Material 3) preset One-Pager template (v1.4, en)
+  Schema: schemas/one-pager.md
+  Class prefix: google-*
+  Single-page A4 print layout via @page rule.
+  Font stack excludes CJK fonts.
+-->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{TITLE}} — One-Pager</title>
+  <link rel="stylesheet" href="../tokens.css">
+  <style>
+    @page { size: A4; margin: 24mm; }
+    * { box-sizing: border-box; }
+    body {
+      background: var(--paper); color: var(--text-primary);
+      font-family: "Roboto Flex", Roboto, "Helvetica Neue", Arial, sans-serif;
+      margin: 0; text-wrap: pretty;
+    }
+    .google-page { max-width: 794px; min-height: 1123px; margin: 0 auto; padding: 48px 56px; display: grid; grid-template-rows: auto auto 1fr auto; gap: 28px; }
+    .google-eyebrow { font-size: 11px; color: var(--text-faint); letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 8px; }
+    .google-h1 { font-size: 40px; font-weight: 500; line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 8px; text-wrap: pretty; }
+    .google-subline { font-size: 17px; color: var(--text-secondary); margin: 0; line-height: 1.55; text-wrap: pretty; }
+    .google-metric { padding: 32px; background: var(--surface); border-radius: 24px; text-align: center; }
+    .google-metric-value { font-size: 96px; font-weight: 500; line-height: 1; letter-spacing: -0.02em; color: var(--accent); margin: 0; }
+    .google-metric-unit { font-size: 24px; color: var(--text-secondary); margin-left: 8px; font-weight: 500; }
+    .google-metric-caption { font-size: 13px; color: var(--text-muted); margin: 12px 0 0; letter-spacing: 0.04em; }
+    .google-body { font-size: 14px; line-height: 1.6; color: var(--text-primary); margin: 8px 0; text-wrap: pretty; }
+    .google-dropcap { float: left; font-size: 4.65em; line-height: 1; font-weight: 500; color: var(--accent); padding-right: 8px; padding-top: 2px; }
+    .google-h2 { font-size: 16px; font-weight: 500; line-height: 1.25; letter-spacing: -0.01em; border-left: 3px solid var(--accent); padding-left: 12px; margin: 0 0 12px; }
+    .google-cta { padding: 16px 20px; background: var(--surface-strong); border-radius: 16px; }
+    .google-cta-line { font-size: 15px; font-weight: 500; margin: 0 0 6px; color: var(--text-primary); }
+    .google-cta-meta { font-size: 12px; color: var(--text-muted); letter-spacing: 0.04em; }
+    em, i { font-style: normal; font-weight: 500; }
+  </style>
+</head>
+<body class="google-paper-body">
+<div class="google-page">
+
+  <header>
+    <p class="google-eyebrow">{{ORG}} · {{DATE}}</p>
+    <h1 class="google-h1">{{TITLE}}</h1>
+    <p class="google-subline">{{SUBLINE}}</p>
+  </header>
+
+  <section class="google-metric">
+    <p class="google-metric-value">{{METRIC_VALUE}}<span class="google-metric-unit">{{METRIC_UNIT}}</span></p>
+    <p class="google-metric-caption">{{METRIC_CAPTION}}</p>
+  </section>
+
+  <section>
+    <h2 class="google-h2">Context</h2>
+    <p class="google-body">ARR rose from NT$120M to NT$180M this quarter, with enterprise adoption reaching 67 percent. Personnel cost stayed flat at NT$24M, expanding gross margin by six points.</p>
+    <p class="google-body">Next-quarter assumptions: two flagship customers in North Asia and the GA of self-serve onboarding. Key risks remain FX exposure and customer concentration.</p>
+  </section>
+
+  <footer class="google-cta">
+    <p class="google-cta-line">Talk to us about joining the next round.</p>
+    <p class="google-cta-meta">{{CONTACT_EMAIL}} / {{CONTACT_PHONE}}</p>
+  </footer>
+
+</div>
+</body>
+</html>

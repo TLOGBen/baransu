@@ -38,23 +38,23 @@
 
 **需求追溯**：REQ-002
 **驗收標準**：
-- [ ] 三 preset 各含 `schemas/one-pager.md` + `schemas/letter.md`
-- [ ] 三 preset 各含 `one-pager.html` + `one-pager-en.html` + `letter.html` + `letter-en.html`
+- [x] 三 preset 各含 `schemas/one-pager.md` + `schemas/letter.md`
+- [x] 三 preset 各含 `one-pager.html` + `one-pager-en.html` + `letter.html` + `letter-en.html`
 
 ### 步驟
 
 #### 規格層
-- [ ] One-Pager `body-sections`：標題 / 核心數字 1 / 上下文 / 行動呼籲
-- [ ] Letter `body-sections`：日期 + 抬頭 / 引言段 / 主體 2-3 段 / 結尾敬辭
+- [x] One-Pager `body-sections`：標題 / 核心數字 1 / 上下文 / 行動呼籲
+- [x] Letter `body-sections`：日期 + 抬頭 / 引言段 / 主體 2-3 段 / 結尾敬辭
 
 #### 模板層
-- [ ] 三 preset × 2 schema × zh/en = 12 HTML 檔
-- [ ] One-Pager 限制單頁（A4 / Letter 尺寸），CSS `@page` 設定
-- [ ] Letter 含 dropcap 在第一段（en variant 用 Charter 大寫字母 dropcap）
+- [x] 三 preset × 2 schema × zh/en = 12 HTML 檔
+- [x] One-Pager 限制單頁（A4 / Letter 尺寸），CSS `@page` 設定
+- [x] Letter 含 dropcap 在第一段（en variant 用 Charter 大寫字母 dropcap）
 
 #### 驗證
-- [ ] 跑三 preset sanity.sh，無新增違規
-- [ ] 跑 editorial-sanity.sh 對 Letter 系列，dropcap check pass
+- [x] 跑三 preset sanity.sh，無新增違規
+- [x] 跑 editorial-sanity.sh 對 Letter 系列，dropcap check pass
 
 ---
 

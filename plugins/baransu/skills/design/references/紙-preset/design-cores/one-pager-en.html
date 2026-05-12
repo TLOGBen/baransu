@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  one-pager-en.html — Kami preset One-Pager template (v1.4, en)
+  Schema: schemas/one-pager.md
+  Class prefix: kami-*
+  Single-page A4 print layout via @page rule.
+  Font stack excludes CJK fonts (Charter / Georgia / Palatino).
+-->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{TITLE}} — One-Pager</title>
+  <link rel="stylesheet" href="../tokens.css">
+  <style>
+    @page { size: A4; margin: 24mm; }
+    * { box-sizing: border-box; }
+    body {
+      background: var(--paper); color: var(--text-primary);
+      font-family: Charter, Georgia, "Palatino Linotype", Palatino, serif;
+      margin: 0; text-wrap: pretty;
+    }
+    .kami-page { max-width: 794px; min-height: 1123px; margin: 0 auto; padding: 48px 56px; display: grid; grid-template-rows: auto auto 1fr auto; gap: 32px; }
+    .kami-eyebrow { font-size: 12px; color: var(--text-faint); letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 8px; }
+    .kami-h1 { font-size: 40px; font-weight: 500; line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 8px; text-wrap: pretty; }
+    .kami-subline { font-size: 17px; color: var(--text-secondary); margin: 0; line-height: 1.55; text-wrap: pretty; }
+    .kami-metric { text-align: center; padding: 24px 0; border-top: 0.5px solid var(--border); border-bottom: 0.5px solid var(--border); }
+    .kami-metric-value { font-size: 96px; font-weight: 500; line-height: 1; letter-spacing: -0.02em; color: var(--accent); margin: 0; }
+    .kami-metric-unit { font-size: 24px; color: var(--text-secondary); margin-left: 8px; font-weight: 500; }
+    .kami-metric-caption { font-size: 13px; color: var(--text-muted); margin: 12px 0 0; letter-spacing: 0.04em; }
+    .kami-body { font-size: 15px; line-height: 1.55; color: var(--text-primary); margin: 12px 0; text-wrap: pretty; }
+    .kami-dropcap { float: left; font-size: 4.65em; line-height: 1; font-weight: 500; color: var(--accent); padding-right: 8px; padding-top: 2px; }
+    .kami-h2 { font-size: 18px; font-weight: 500; line-height: 1.25; letter-spacing: -0.01em; border-left: 3px solid var(--accent); padding-left: 12px; margin: 0 0 12px; }
+    .kami-cta { border-top: 0.5px solid var(--border); padding-top: 16px; text-align: center; }
+    .kami-cta-line { font-size: 16px; font-weight: 500; margin: 0 0 6px; color: var(--text-primary); }
+    .kami-cta-meta { font-size: 12px; color: var(--text-muted); letter-spacing: 0.04em; }
+    em, i { font-style: normal; font-weight: 500; }
+  </style>
+</head>
+<body class="kami-paper-body">
+<div class="kami-page">
+
+  <header>
+    <p class="kami-eyebrow">{{ORG}} · {{DATE}}</p>
+    <h1 class="kami-h1">{{TITLE}}</h1>
+    <p class="kami-subline">{{SUBLINE}}</p>
+  </header>
+
+  <section class="kami-metric">
+    <p class="kami-metric-value">{{METRIC_VALUE}}<span class="kami-metric-unit">{{METRIC_UNIT}}</span></p>
+    <p class="kami-metric-caption">{{METRIC_CAPTION}}</p>
+  </section>
+
+  <section>
+    <h2 class="kami-h2">Context</h2>
+    <p class="kami-body">ARR climbed from NT$120M to NT$180M this quarter, driven by enterprise adoption reaching 67 percent. Personnel cost held steady at NT$24M, expanding gross margin by six points.</p>
+    <p class="kami-body">Key assumptions for the next quarter: two flagship customers in North Asia and the GA of self-serve onboarding. Principal risks remain FX exposure and customer concentration.</p>
+  </section>
+
+  <footer class="kami-cta">
+    <p class="kami-cta-line">Talk to us about joining the next round.</p>
+    <p class="kami-cta-meta">{{CONTACT_EMAIL}} / {{CONTACT_PHONE}}</p>
+  </footer>
+
+</div>
+</body>
+</html>
