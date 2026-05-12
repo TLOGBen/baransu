@@ -198,9 +198,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1 { font-size: 2rem;     line-height: 1.20; font-weight: 400; margin: 0; }
-h2 { font-size: 1.5rem;   line-height: 1.25; font-weight: 400; margin: 0; }
-h3 { font-size: 1.25rem;  line-height: 1.30; font-weight: 400; margin: 0; }
+/* Modular scale: perfect fourth r=1.333 (anchor body=16px) — see canonical-tokens.md */
+h1 { font-size: 2.375rem;  line-height: 1.15; font-weight: 400; margin: 0; }  /* 38px ≈ 16 × 1.333³ */
+h2 { font-size: 1.75rem;   line-height: 1.20; font-weight: 400; margin: 0; }  /* 28px ≈ 16 × 1.333² */
+h3 { font-size: 1.3125rem; line-height: 1.30; font-weight: 400; margin: 0; }  /* 21px ≈ 16 × 1.333  */
 
 a {
   color: var(--accent);

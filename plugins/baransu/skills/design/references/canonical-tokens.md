@@ -19,6 +19,30 @@ The baransu design system uses a fixed vocabulary of CSS custom-property names t
 ## Font (3)
 `--font-sans` • `--font-serif` (sans alias in sans-only presets) • `--font-mono`
 
+## Modular Scale — Perfect Fourth (`r = 1.333`)
+
+All three presets type-scale on the perfect fourth (`r = 4/3 ≈ 1.333`), the
+typographic 印刷學 golden mean for editorial and Swiss-discipline layouts.
+v1.2 used a minor third (`r = 1.2`) which collapsed the H1 → body span to
+2.0× and left H2 / H3 visually adjacent (1.20×); v1.3 widens to 2.37× and
+restores headline hierarchy.
+
+Computation (anchor on `body = 16px`):
+
+| Role | Formula           | Computed | Rounded | rem      |
+| ---- | ----------------- | -------- | ------- | -------- |
+| body | `r^0 · 16`        | 16.00    | 16      | 1rem     |
+| H3   | `r^1 · 16`        | 21.33    | 21      | 1.3125rem|
+| H2   | `r^2 · 16`        | 28.43    | 28      | 1.75rem  |
+| H1   | `r^3 · 16`        | 37.90    | 38      | 2.375rem |
+
+Tolerance: integer rounding may drift; gate is `h1:body ≈ 2.37 ± 0.05` and
+`h2:h3 ≈ 1.333 ± 0.02`. Presets whose body deviates (e.g. 15 / 14px) must
+re-derive from their own anchor — never copy raw numbers across presets.
+
+**Banned ratios (v1.2 residue, MUST NOT appear in any preset tokens.css)**:
+`× 2.2` (old H1:body), `× 1.24` (old H2:H3), `× 1.2` minor-third chain.
+
 ## Shadow (2)
 `--shadow-ring` (`0 0 0 1px var(--border)`) • `--shadow-whisper` (elevated hover)
 

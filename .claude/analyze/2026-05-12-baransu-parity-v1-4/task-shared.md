@@ -53,19 +53,19 @@
 **需求追溯**：REQ-003
 **目標**：對齊 guizang 印刷學 perfect fourth scale；三 preset font scale 校正到 H1:Body ≈ 2.37×、H2:H3 ≈ 1.333×。
 **驗收標準**：
-- [ ] `canonical-tokens.md` 含 modular scale 段（明示 1.333 為設計目標）
-- [ ] 三 preset `tokens.css` 對應 `--font-h1` / `--font-h2` / `--font-h3` / `--font-body` 對外比例符合 1.333× chain
-- [ ] v1.2 殘留的 2.2× / 1.24× 舊比例不存在
+- [x] `canonical-tokens.md` 含 modular scale 段（明示 1.333 為設計目標）
+- [x] 三 preset `tokens.css` 對應 `--font-h1` / `--font-h2` / `--font-h3` / `--font-body` 對外比例符合 1.333× chain
+- [x] v1.2 殘留的 2.2× / 1.24× 舊比例不存在
 
 ### 步驟
 
 #### 規格層
-- [ ] 在 `design/references/canonical-tokens.md` 加「Modular Scale」段，明示 perfect fourth `r=1.333`，列計算範例
+- [x] 在 `design/references/canonical-tokens.md` 加「Modular Scale」段，明示 perfect fourth `r=1.333`，列計算範例
 
 #### 模板層
-- [ ] 計算每 preset 的 4 個字級數值；舉例（紙 preset body=16px）：H3=21.3、H2=28.4、H1=37.9（取整 21 / 28 / 38）
-- [ ] 改 `紙-preset/tokens.css` 對應 4 個 CSS variable
-- [ ] swiss-preset / google-design-preset tokens.css 同等調整
+- [x] 計算每 preset 的 4 個字級數值；舉例（紙 preset body=16px）：H3=21.3、H2=28.4、H1=37.9（取整 21 / 28 / 38）
+- [x] 改 `紙-preset/tokens.css` 對應 4 個 CSS variable
+- [x] swiss-preset / google-design-preset tokens.css 同等調整
 
 #### 驗證
-- [ ] grep 三 tokens.css 計算比例（用 python one-liner 解析 `--font-*` 值算比例），全在 ±0.05 容差內
+- [x] grep 三 tokens.css 計算比例（用 python one-liner 解析 `--font-*` 值算比例），全在 ±0.05 容差內

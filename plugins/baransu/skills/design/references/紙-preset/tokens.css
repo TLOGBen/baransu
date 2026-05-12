@@ -87,9 +87,10 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 500;
   color: var(--text-primary);
 }
-h1 { font-size: 2rem;    line-height: 1.20; }
-h2 { font-size: 1.5rem;  line-height: 1.25; }
-h3 { font-size: 1.25rem; line-height: 1.30; }
+/* Modular scale: perfect fourth r=1.333 (anchor body=16px) — see canonical-tokens.md */
+h1 { font-size: 2.375rem;  line-height: 1.15; }  /* 38px ≈ 16 × 1.333³ */
+h2 { font-size: 1.75rem;   line-height: 1.20; }  /* 28px ≈ 16 × 1.333² */
+h3 { font-size: 1.3125rem; line-height: 1.30; }  /* 21px ≈ 16 × 1.333  */
 
 /* No italics — Kami invariant #10 */
 em, i { font-style: normal; font-weight: 500; }
