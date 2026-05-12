@@ -19,6 +19,21 @@ OUT_PPTX="${SWISS_SMOKE_OUT:-/tmp/swiss-smoke.pptx}"
 # Stage 1
 ( cd "$HERE" && npx tsx validate-output.ts "$FIXTURE" ) || exit 1
 
+# Stage 1b — negative fixtures (each MUST exit 1; success here means the
+# expected-fail gate fired). TASK-svg-05 wires GATE-J + GATE-K.
+NEG_FIXTURES=(
+  "svg-node-width-fail.html"
+  "svg-polygon-fail.html"
+)
+for neg in "${NEG_FIXTURES[@]}"; do
+  neg_path="$HERE/validate-fixtures/$neg"
+  [[ -f "$neg_path" ]] || { echo "negative fixture missing: $neg_path" >&2; exit 2; }
+  if ( cd "$HERE" && npx tsx validate-output.ts "$neg_path" > /dev/null 2>&1 ); then
+    echo "swiss-smoke-test: negative fixture '$neg' unexpectedly PASSED (expected exit 1)" >&2
+    exit 1
+  fi
+done
+
 # Stage 2 — only if deps present
 node -e "require.resolve('pptxgenjs', { paths: ['$HERE'] }); require.resolve('playwright', { paths: ['$HERE'] })" 2>/dev/null || exit 0
 

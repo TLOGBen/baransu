@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<!--
+  Fixture: svg-node-width-fail
+  Purpose: TASK-svg-05 negative evidence — top-level node <rect width="192"> is
+    NOT in the {128, 144, 160} whitelist (§4.7 anti-slop). validate-output.ts
+    must FAIL GATE-J node-width-whitelist (exit 1).
+
+  Expected log lines:
+    FAIL GATE-J node-width-whitelist (... offending widths=[192]) — expected ∈ {128, 144, 160}
+-->
+<html lang="en">
+<head><meta charset="utf-8"><title>svg-node-width-fail</title></head>
+<body>
+<main>
+  <figure class="diagram">
+    <svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+          <path d="M2 1 L8 5 L2 9" fill="none" stroke="#222" stroke-width="1.5" stroke-linecap="round"/>
+        </marker>
+      </defs>
+      <rect width="100%" height="100%" fill="#f5f4ed"/>
+      <!-- GATE-J FAIL: width=192 is off-whitelist -->
+      <rect x="80" y="186" width="192" height="68" rx="6" fill="#f5f4ed" stroke="#222"/>
+      <text x="176" y="225" text-anchor="middle" font-size="18">off-whitelist node</text>
+      <line x1="272" y1="220" x2="400" y2="220" stroke="#222" marker-end="url(#arrow)"/>
+      <line x1="0" y1="450" x2="800" y2="450" stroke="#222" stroke-width="0.5"/>
+      <text x="20" y="475" font-family="monospace" font-size="10">LEGEND: node width 192</text>
+    </svg>
+  </figure>
+</main>
+</body>
+</html>

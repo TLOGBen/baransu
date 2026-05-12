@@ -22,6 +22,14 @@
  *                                 from tokens.css line 1}; single prefix per file;
  *                                 matches {project_root}/tokens.css preset header.
  *                                 `/* preset: <name> *\/` comment when present
+ *   - GATE-J node-width-whitelist: top-level node <rect> widths must ∈ {128, 144, 160};
+ *                                  max 2 distinct tiers per SVG (full viewBox ≥ 360);
+ *                                  viewBox width < 360 still capped at 2 tiers.
+ *                                  Sub-primitives (width < 40, width="100%", inside
+ *                                  <pattern> or <defs>) are excluded.
+ *   - GATE-K chevron-strict     : every <marker> defs must contain exactly one
+ *                                  <path d="M2 1 L8 5 L2 9" fill="none"
+ *                                  stroke-width="1.5">; <polygon> markers forbidden.
  */
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -320,6 +328,153 @@ svgs.forEach((svg, i) => {
     console.log(`OK  GATE-E deny-list (${svgLabel(i, svg)})`);
   } else {
     fail = 1;
+  }
+});
+
+// ── GATE-J: node-width whitelist (top-level node <rect> tier discipline) ───
+// Top-level node <rect> widths must ∈ {128, 144, 160} (Kami spec §4.7).
+// Sub-primitives are filtered out:
+//   - width = "100%"  (paper-mask layer; covered by GATE-B)
+//   - width < 40      (type-tag pip, legend pip, marker visuals)
+//   - inside <pattern>   (background pattern primitives)
+//   - inside <defs>      (template definitions, not visual nodes)
+// Single SVG: at most 2 distinct width tiers (3-tier mix = anti-slop FAIL).
+// viewBox width < 360 still caps at 2 tiers per §4.7 exception clause.
+const NODE_WIDTH_WHITELIST = new Set([128, 144, 160]);
+
+function parseViewBoxWidth(vb: string | undefined): number | null {
+  if (!vb) return null;
+  const parts = vb.trim().split(/[\s,]+/);
+  if (parts.length < 4) return null;
+  const w = Number(parts[2]);
+  return Number.isFinite(w) ? w : null;
+}
+
+function hasAncestor(el: DomElement, tagNames: Set<string>, stopAt: DomElement): boolean {
+  let p = el.parent as DomElement | null;
+  while (p && p !== stopAt) {
+    const tag = p.tagName?.toLowerCase();
+    if (tag && tagNames.has(tag)) return true;
+    p = p.parent as DomElement | null;
+  }
+  return false;
+}
+
+svgs.forEach((svg, i) => {
+  const label = svgLabel(i, svg);
+  const vbW = parseViewBoxWidth($(svg).attr("viewBox"));
+  const allRects = $(svg).find("rect").toArray() as DomElement[];
+  const skipAncestors = new Set(["pattern", "defs"]);
+
+  const nodeWidths: number[] = [];
+  const offendingWidths: number[] = [];
+  for (const r of allRects) {
+    const wAttr = $(r).attr("width");
+    if (!wAttr) continue;
+    if (wAttr === "100%") continue;
+    if (hasAncestor(r, skipAncestors, svg)) continue;
+    const wNum = Number(wAttr);
+    if (!Number.isFinite(wNum)) continue;
+    if (wNum < 40) continue;
+    nodeWidths.push(wNum);
+    if (!NODE_WIDTH_WHITELIST.has(wNum)) offendingWidths.push(wNum);
+  }
+
+  const distinctTiers = new Set(nodeWidths.filter((w) => NODE_WIDTH_WHITELIST.has(w)));
+
+  if (offendingWidths.length > 0) {
+    console.log(
+      `FAIL GATE-J node-width-whitelist (${label}, offending widths=[${offendingWidths.join(", ")}]) — expected ∈ {128, 144, 160}`
+    );
+    fail = 1;
+    return;
+  }
+
+  // Tier count rule: full viewBox (≥ 360) max 2 tiers; < 360 also max 2 tiers
+  // (§4.7 exception keeps the same 2-tier cap but allows the 2-of-3 subset).
+  if (distinctTiers.size > 2) {
+    const tierList = [...distinctTiers].sort((a, b) => a - b).join(", ");
+    const vbNote = vbW !== null && vbW < 360 ? `, viewBox width=${vbW}<360` : "";
+    console.log(
+      `FAIL GATE-J node-width-whitelist (${label}, tiers used=[${tierList}]${vbNote}) — max 2 tiers per diagram`
+    );
+    fail = 1;
+    return;
+  }
+
+  console.log(
+    `OK  GATE-J node-width-whitelist (${label}, node rects=${nodeWidths.length}, tiers=[${[...distinctTiers].sort((a, b) => a - b).join(", ") || "none"}])`
+  );
+});
+
+// ── GATE-K: chevron-strict (marker defs must be Kami stroked chevron) ──────
+// Every <marker> inside <defs> must contain exactly one <path> whose `d` is
+// the canonical chevron `M2 1 L8 5 L2 9`, with `fill="none"` and
+// `stroke-width="1.5"` (§4.3). <polygon> inside a <marker> is forbidden.
+const CHEVRON_PATH_D = "M2 1 L8 5 L2 9";
+function normalizePathD(d: string | undefined): string {
+  if (!d) return "";
+  return d.replace(/,/g, " ").replace(/\s+/g, " ").trim();
+}
+
+svgs.forEach((svg, i) => {
+  const label = svgLabel(i, svg);
+  const markers = $(svg).find("marker").toArray() as DomElement[];
+  if (markers.length === 0) {
+    console.log(`OK  GATE-K chevron-strict (${label}, markers checked=0)`);
+    return;
+  }
+
+  let violated = false;
+  for (const m of markers) {
+    const mid = $(m).attr("id") ?? "(no id)";
+    const polygons = $(m).find("polygon");
+    if (polygons.length > 0) {
+      console.log(
+        `FAIL GATE-K chevron-strict: ${label} marker '${mid}' violation: contains <polygon> (forbidden; use stroked <path> chevron)`
+      );
+      violated = true;
+      continue;
+    }
+    const paths = $(m).find("path").toArray() as DomElement[];
+    if (paths.length !== 1) {
+      console.log(
+        `FAIL GATE-K chevron-strict: ${label} marker '${mid}' violation: expected exactly 1 <path>, found ${paths.length}`
+      );
+      violated = true;
+      continue;
+    }
+    const p = paths[0];
+    const d = normalizePathD($(p).attr("d"));
+    const pFill = $(p).attr("fill");
+    const sw = $(p).attr("stroke-width");
+    if (d !== CHEVRON_PATH_D) {
+      console.log(
+        `FAIL GATE-K chevron-strict: ${label} marker '${mid}' violation: path d="${d}" — expected "${CHEVRON_PATH_D}"`
+      );
+      violated = true;
+      continue;
+    }
+    if (pFill !== "none") {
+      console.log(
+        `FAIL GATE-K chevron-strict: ${label} marker '${mid}' violation: path fill="${pFill ?? ""}" — expected "none"`
+      );
+      violated = true;
+      continue;
+    }
+    if (sw !== "1.5") {
+      console.log(
+        `FAIL GATE-K chevron-strict: ${label} marker '${mid}' violation: path stroke-width="${sw ?? ""}" — expected "1.5"`
+      );
+      violated = true;
+      continue;
+    }
+  }
+
+  if (violated) {
+    fail = 1;
+  } else {
+    console.log(`OK  GATE-K chevron-strict (${label}, markers checked=${markers.length})`);
   }
 });
 

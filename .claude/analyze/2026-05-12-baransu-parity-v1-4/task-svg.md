@@ -93,20 +93,20 @@
 **需求追溯**：REQ-001 Scenario 3/4 機械化
 **目標**：把 v1.3.1 落地的 spec 規則（節點寬白名單 + chevron 必選）寫成 validator gate，從 advisory 升級為 blocking。
 **驗收標準**：
-- [ ] `validate-output.ts` 新增 GATE-J node-width-whitelist：每 SVG node `<rect>` width ∈ {128, 144, 160}，或 viewBox<360 走 2-tier 例外
-- [ ] 新增 GATE-K chevron-strict：所有 marker defs 必含 `<path d="M2 1 L8 5 L2 9"` + `fill="none"` + `stroke-width="1.5"`；不可含 `<polygon` element
-- [ ] 跑 fixture：v1.3.1 golden-template.html PASS；故意違規 fixture FAIL（exit 1）
+- [x] `validate-output.ts` 新增 GATE-J node-width-whitelist：每 SVG node `<rect>` width ∈ {128, 144, 160}，或 viewBox<360 走 2-tier 例外
+- [x] 新增 GATE-K chevron-strict：所有 marker defs 必含 `<path d="M2 1 L8 5 L2 9"` + `fill="none"` + `stroke-width="1.5"`；不可含 `<polygon` element
+- [x] 跑 fixture：v1.3.1 golden-template.html PASS；故意違規 fixture FAIL（exit 1）
 
 ### 步驟
 
 #### 驗證層
-- [ ] 讀 `book/scripts/validate-output.ts` GATE-D 既有 marker integrity 實作模式
-- [ ] 加 GATE-J function（query 所有 SVG node rect + 解析 viewBox 寬度，依例外條件 assert 白名單合規）
-- [ ] 加 GATE-K function（query marker defs → path / polygon 判定）
-- [ ] 加新 fixture：`validate-fixtures/svg-node-width-fail.html`（含 width=192 的 rect）；確認 validator exit 1
-- [ ] 加新 fixture：`validate-fixtures/svg-polygon-fail.html`（含 marker polygon）；確認 validator exit 1
-- [ ] swiss-smoke-test.sh 串入新 fixture
+- [x] 讀 `book/scripts/validate-output.ts` GATE-D 既有 marker integrity 實作模式
+- [x] 加 GATE-J function（query 所有 SVG node rect + 解析 viewBox 寬度，依例外條件 assert 白名單合規）
+- [x] 加 GATE-K function（query marker defs → path / polygon 判定）
+- [x] 加新 fixture：`validate-fixtures/svg-node-width-fail.html`（含 width=192 的 rect）；確認 validator exit 1
+- [x] 加新 fixture：`validate-fixtures/svg-polygon-fail.html`（含 marker polygon）；確認 validator exit 1
+- [x] swiss-smoke-test.sh 串入新 fixture
 
 #### 驗證
-- [ ] `bash plugins/baransu/skills/book/scripts/swiss-smoke-test.sh` 全綠（含新 GATE-J / GATE-K 對 golden-template.html PASS）
-- [ ] 故意違規 fixture exit 1
+- [x] `bash plugins/baransu/skills/book/scripts/swiss-smoke-test.sh` 全綠（含新 GATE-J / GATE-K 對 golden-template.html PASS）
+- [x] 故意違規 fixture exit 1
