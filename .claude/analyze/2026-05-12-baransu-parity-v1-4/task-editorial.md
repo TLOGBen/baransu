@@ -78,7 +78,7 @@
 **目標**：新增 editorial 三檢查為 reusable shell script，由三 preset sanity.sh 共用呼叫。
 **驗收標準**：
 - [x] 新檔 `plugins/baransu/skills/design/references/editorial-sanity.sh`，含三 check：text-wrap pretty / dropcap font-size / curly-quote-presence
-- [x] 紙-sanity.sh 結尾 source 或呼叫 `editorial-sanity.sh`（swiss-sanity.sh / gd-sanity.sh 不存在 — blocker，待後續任務新增）
+- [x] 三 preset sanity.sh 結尾 source 或呼叫 `editorial-sanity.sh`（紙-sanity.sh + swiss-sanity.sh + google-sanity.sh，TASK-editorial-04 F1 補完）
 - [x] 對故意違規 fixture，editorial-sanity.sh exit 1
 - [x] 對 task-editorial-01/02/03 改完的 design-cores（三 preset），editorial-sanity.sh exit 0
 
@@ -89,8 +89,9 @@
   - Check 1: `text-wrap: pretty` 存在於 body 或 `.kami-body` / `.swiss-body` / `.google-body` rule
   - Check 2: `.{prefix}-dropcap` class 定義 + awk 解析 `font-size` em 值 ∈ [4.0, 5.0]（≈3-line drop）
   - Check 3: prose text content 中 straight `"` 數量 = 0（HTMLParser 解析，排除 attribute / code / pre / script / style）
-- [x] 紙 preset sanity.sh 加入呼叫：`bash ../editorial-sanity.sh design-cores/long-form.html`（swiss / google sanity.sh 缺檔，待補）
+- [x] 三 preset sanity.sh 加入呼叫：`bash ../editorial-sanity.sh design-cores/long-form.html`（紙/swiss/google 三檔皆已建立）
 
 #### 驗證
 - [x] 跑紙-sanity.sh，editorial 段 PASS（Kami 上游既有違規與本任務無關）
+- [x] 跑 swiss-sanity.sh + google-sanity.sh，editorial 段皆 PASS（F1 補完驗證）
 - [x] editorial-fail-fixture.html（strip text-wrap + dropcap + curly），editorial-sanity exit 1
