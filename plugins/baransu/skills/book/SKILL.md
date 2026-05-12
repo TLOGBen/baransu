@@ -29,7 +29,7 @@ Converts any content into a Kami-themed, browser-ready HTML book saved to `.clau
 - 支援值：`kami` | `swiss`
 - 若未提供 `--style`：預設為 `kami`（不視為「顯式傳入」）
 - 若值不合法（非 kami/swiss）：輸出「--style 值不合法。支援：kami | swiss」並停止（不進入 Stage 1）
-- 不合法組合：使用者顯式傳入 `--style <kami|swiss>` 且 `$FORMAT` 為 `html` 時 → 輸出「--style 僅 PPT 模式支援；如需 Swiss 風格 long-form，請待 v2」並中止（不進入 Stage 1）
+- v1.3: `--style <name>` 為 PPT 與 HTML 雙模式參數。`<name>` 須符合 `/baransu:design preset` 已執行過的 preset slug（kami / google-design / swiss / gen slug）。HTML 模式從 `{project_root}/design-cores/long-form.html` 動態讀模板；PPT 模式從 `{project_root}/slide-cores/` 動態讀 layout。
   - 判定規則：只要使用者「顯式」帶 `--style` 旗標（無論值為 kami 或 swiss）+ `--format html` → FAIL；未傳 `--style`（走預設 kami）+ `--format html` 不觸發
 - 設定 `$STYLE` 供後續所有 Stage 使用（特別是 Stage 3：`{project_root}/tokens.css` tie-break 與 SVG 風格分流會讀取 `$STYLE`）
 - 與 `--format` 解析平行獨立：先各自完成解析，再做組合檢查
@@ -288,28 +288,33 @@ Produces a complete HTML file at `.claude/book/{$SLUG}.html`.
 
 Before generating any HTML:
 
-1. **唯一 token 來源**：讀 `{project_root}/tokens.css`（由 `/baransu:design preset <style>` 寫入；本 skill 只讀，不改）。此規則**同時適用** `--format ppt` 與 `--format html`（long-form Kami 路徑也走同一份 project-root tokens，與 v1.1.22 行為等價）。
-   - 若 `{project_root}/tokens.css` **不存在** → 報錯「請先跑 `/baransu:design preset <style>`（kami 或 swiss）」並**中止 Stage 3**。
-   - **不嘗試**任何 fallback：不走 sibling skill 路徑、不用 `find` 搜尋、不用內建範本。
-   - tokens.css 開頭含 preset 識別註解（`/* preset: kami */` 或 `/* preset: swiss */`），供 Stage 0 解析得到的 `$STYLE` 變數於 GATE-F 做 tie-break 比對。
-2. Read `references/golden-template.html` for the component patterns and SVG conventions that consume the tokens above.
+1. **唯一 token 來源**：讀 `{project_root}/tokens.css`（由 `/baransu:design preset <style>` 寫入；本 skill 只讀，不改）。此規則**同時適用** `--format ppt` 與 `--format html`。
+   - 若 `{project_root}/tokens.css` **不存在** → 報錯「請先跑 `/baransu:design preset <style>`（kami / google-design / swiss）」並**中止 Stage 3**。
+   - tokens.css 開頭含 preset 識別註解（`/* preset: kami */` / `/* preset: google-design */` / `/* preset: swiss */` 或 user-supplied gen slug），供 Stage 0 解析得到的 `$STYLE` 變數於 GATE-F 做 tie-break 比對。
+2. **v1.3 long-form template SSOT 動態讀**：優先讀 `{project_root}/design-cores/long-form.html`，將 `<section data-slot="long-form-body">` 視為 body insertion point。
+   - 檔案**存在但讀失敗**（malformed / chmod 000 / 0 bytes）→ **hard fail**，不靜默 fallback；stderr「long-form.html 讀取失敗：{原因}」、中止 Stage 3。
+   - 檔案**不存在** → fallback 至 `references/golden-template.html`（v1.2 Kami 風內建範本）；stderr warning「current preset 為 {style} 但 fallback 到 Kami template，class prefix 可能不一致；建議先跑 /baransu:design preset {style}」；繼續產出（GATE-F 將檢出 class prefix 不一致，是預期行為）。
 
-The golden template is a show-by-example contract — every element in the output HTML should have a visual counterpart in the template. Token values come from `{project_root}/tokens.css`; the template only references them by CSS-variable name. Do not invent new CSS patterns; extend only within the active preset's constraints.
+The long-form.html slot 是 show-by-example contract — slot 內示範 6+ section type（heading / paragraph / quote / code / SVG / list）。Token 值由 `{project_root}/tokens.css` 提供；模板只引用 canonical 名（var(--paper) / var(--accent) 等）。不發明新 CSS 模式。
 
 ### 2. Generate HTML structure
 
-Produce the full HTML document using the golden-template.html structure:
+Produce the full HTML document using the SSOT template loaded in step 2:
 
 ```
-<head> with Kami CSS (copy from golden-template, fill {{TITLE}})
-<nav class="toc-wrap"> with <a href="#sN"> for each section
-<article class="paper">
-  <header> with kicker, h1, subtitle, meta
-  <section id="sN"> for each section (4–8 sections)
-  <footer>
-</article>
-<script> for TOC active-link logic (copy from golden-template)
+<head> with linked tokens.css (use {project_root}/tokens.css; fill {{TITLE}})
+<nav class="<slug>-toc"> with <a href="#sN"> for each section
+<main>
+  <header class="<slug>-cover"> with kicker, h1, subtitle, meta
+  <section data-slot="long-form-body">
+    <!-- Replace this section's innerHTML with rendered body sections -->
+    <section id="sN"> for each section (4–8 sections)
+  </section>
+  <footer class="<slug>-footer">
+</main>
 ```
+
+`<slug>` is the preset prefix read from `tokens.css` line 1 (kami / google / swiss / gen slug). All class names in output 必須使用該 prefix；GATE-F 守護一致性。
 
 ### 3. Section content rules
 
@@ -320,7 +325,7 @@ For each section from `$STRUCTURE`:
 - Immediately follow with a `<figure class="diagram">` block containing an SVG if the section was flagged for it
 - Use `.callout`, `.card-grid`, `table.cmp`, or `.tradeoff-row` components from the template where they improve readability
 
-**No improvisation**: every component class must exist in the golden-template CSS. If a component isn't in the template, use plain `<p>` — do not add new CSS.
+**No improvisation**: every component class must exist in the SSOT template (`{project_root}/design-cores/long-form.html`) or fallback `references/golden-template.html`. If a component isn't in either source, use plain `<p>` — do not add new CSS.
 
 ### 4. SVG 生成規格
 
@@ -636,8 +641,8 @@ SVG 圖解：{N} 張
 
 ## Constraints
 
-- **Token source = project root**: all visual elements consume tokens from `{project_root}/tokens.css` (written by `/baransu:design preset <style>`) plus the component patterns in `references/golden-template.html`. No inline hex colours; use named CSS variables.
-- **No new CSS patterns**: every class in the output HTML must exist in the golden-template CSS block. Extend within Kami; don't invent outside it.
+- **Token source = project root**: all visual elements consume tokens from `{project_root}/tokens.css` (written by `/baransu:design preset <style>` or `/baransu:design gen --slug <slug>`) plus the component patterns in `{project_root}/design-cores/long-form.html` (SSOT) or `references/golden-template.html` (fallback). No inline hex colours; use named CSS variables (canonical 36 names).
+- **No new CSS patterns**: every class in the output HTML must exist in the active SSOT template or fallback. Extend within the active preset; don't invent outside it.
 - **SVG required**: a document with 0 SVG diagrams fails the quality gate and must be fixed before completion.
 - **Length cap**: final HTML body ≤ 1800 words. Excess goes into a 延伸閱讀 link block.
 - **No LLM-generated commentary**: the rendered HTML contains the source content, structured and styled — not Claude's own analysis. The Synthesize stage extracts; the Render stage presents.

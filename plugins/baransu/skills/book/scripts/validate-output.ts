@@ -17,8 +17,10 @@
  *   - GATE-D marker-integrity   : marker defs ↔ marker-end refs are bijective (no dangling / no unused)
  *   - GATE-E deny-list          : no <script>, <foreignObject>, on{click,load,error,mouseover,mousedown},
  *                                 no href/xlink:href starting with "javascript:"
- *   - GATE-F class-prefix (PPT) : every class token prefixed with `kami-` or `swiss-`;
- *                                 single prefix per file; matches {project_root}/tokens.css
+ *   - GATE-F class-prefix (PPT) : every class token's prefix MUST be in the
+ *                                 v1.3 whitelist {kami, google, swiss} ∪ {dynamic gen slug
+ *                                 from tokens.css line 1}; single prefix per file;
+ *                                 matches {project_root}/tokens.css preset header.
  *                                 `/* preset: <name> *\/` comment when present
  */
 import { readFileSync, existsSync, readdirSync } from "node:fs";
@@ -603,12 +605,20 @@ if (!isPpt) {
     presetWarning = `tokens.css not found at ${tokensPath} — F-c tie-break skipped`;
   }
 
+  // v1.3 GATE-F prefix 白名單：
+  //   STATIC_PREFIXES (invariant) ∪ {dynamic preset slug from tokens.css line 1}.
+  //   Header malformed → 白名單退化為 STATIC_PREFIXES (Inv-4 of design.md).
+  const STATIC_PREFIXES = ["kami", "google", "swiss"] as const;
+  const dynamicSlug = presetName && /^[a-z][a-z0-9-]{1,15}$/.test(presetName)
+    ? presetName
+    : null;
+  const allowedPrefixes = new Set<string>([...STATIC_PREFIXES, ...(dynamicSlug ? [dynamicSlug] : [])]);
+
   // Scan every `class="..."` occurrence line-by-line for file:line precision.
-  // `lines` declared earlier (above html2pptx pre-check) and reused here.
   const classAttr = /class\s*=\s*"([^"]*)"/gi;
-  const seenPrefixes = new Set<string>(); // "kami" | "swiss"
+  const seenPrefixes = new Set<string>();
   const prefixFirstSeen: Record<string, { line: number; token: string }> = {};
-  const aFailures: string[] = []; // F-a (no-prefix) failures
+  const aFailures: string[] = []; // F-a (no-prefix-in-allowlist) failures
   let totalTokens = 0;
 
   lines.forEach((lineText, idx) => {
@@ -619,19 +629,16 @@ if (!isPpt) {
       const tokens = m[1].split(/\s+/).filter((t) => t.length > 0);
       for (const tok of tokens) {
         totalTokens += 1;
-        if (tok.startsWith("kami-")) {
-          if (!seenPrefixes.has("kami")) {
-            seenPrefixes.add("kami");
-            prefixFirstSeen["kami"] = { line: lineNo, token: tok };
-          }
-        } else if (tok.startsWith("swiss-")) {
-          if (!seenPrefixes.has("swiss")) {
-            seenPrefixes.add("swiss");
-            prefixFirstSeen["swiss"] = { line: lineNo, token: tok };
+        const dashIdx = tok.indexOf("-");
+        const tokPrefix = dashIdx > 0 ? tok.substring(0, dashIdx) : null;
+        if (tokPrefix && allowedPrefixes.has(tokPrefix)) {
+          if (!seenPrefixes.has(tokPrefix)) {
+            seenPrefixes.add(tokPrefix);
+            prefixFirstSeen[tokPrefix] = { line: lineNo, token: tok };
           }
         } else {
           aFailures.push(
-            `${htmlFile}:${lineNo} class token '${tok}' has no kami-/swiss- prefix`
+            `${htmlFile}:${lineNo} class token '${tok}' prefix not in whitelist {${[...allowedPrefixes].join(", ")}}`
           );
         }
       }
@@ -640,11 +647,11 @@ if (!isPpt) {
 
   let gateFailed = false;
 
-  // F-a: no-prefix tokens
+  // F-a: prefix not in allowlist
   if (aFailures.length > 0) {
     for (const msg of aFailures) {
       console.log(
-        `FAIL GATE-F class-prefix (F-a): ${msg} — 請重跑 \`/baransu:design preset <kami|swiss>\``
+        `FAIL GATE-F class-prefix (F-a): ${msg} — 請重跑 \`/baransu:design preset <name>\``
       );
     }
     gateFailed = true;
@@ -652,12 +659,13 @@ if (!isPpt) {
 
   // F-b: mixed prefixes in the same file
   if (seenPrefixes.size > 1) {
-    const kami = prefixFirstSeen["kami"];
-    const swiss = prefixFirstSeen["swiss"];
+    const prefixList = [...seenPrefixes];
+    const samples = prefixList
+      .map((p) => `${prefixFirstSeen[p].line}:'${prefixFirstSeen[p].token}'`)
+      .join(", ");
     console.log(
-      `FAIL GATE-F class-prefix (F-b): ${htmlFile}:${kami.line} '${kami.token}' (kami-) and ` +
-        `${htmlFile}:${swiss.line} '${swiss.token}' (swiss-) co-exist in same file — ` +
-        `請重跑 \`/baransu:design preset <kami|swiss>\` 統一前綴`
+      `FAIL GATE-F class-prefix (F-b): ${htmlFile} mixed prefixes ${prefixList.join("/")} ` +
+        `at ${samples} — 同檔需單一 prefix；請重跑 \`/baransu:design preset <name>\` 統一前綴`
     );
     gateFailed = true;
   }

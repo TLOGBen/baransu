@@ -28,8 +28,9 @@
   --border-soft:     #e6e5e0;  /* secondary border / row separator */
 
   /* ── Typography (sans-serif only — Swiss invariant) ─── */
-  --font-sans: 'Inter', 'Helvetica Neue', 'Noto Sans TC', sans-serif;
-  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', Consolas, Monaco, monospace;
+  --font-sans:  'Inter', 'Helvetica Neue', 'Noto Sans TC', sans-serif;
+  --font-serif: var(--font-sans);    /* sans alias per REQ-001 (Swiss is sans-only) */
+  --font-mono:  'JetBrains Mono', 'SF Mono', 'Fira Code', Consolas, Monaco, monospace;
 
   /* ── Depth (ring / whisper only — no hard shadows) ─── */
   --shadow-ring:    0 0 0 1px var(--border);
@@ -58,6 +59,10 @@
   --section-title-align: left;
   --grid-columns: 12;
   --grid-gutter: 24px;
+
+  /* ── Semantic (metric.html consumer) ── */
+  --delta-up:   #1f5f3d;  /* dark green, IKB-compatible */
+  --delta-down: #8b1f1f;  /* dark red */
 }
 
 /* ── Base reset (minimal, Swiss-safe) ─────────────────────── */

@@ -1,17 +1,25 @@
-/* Google (Material 3 / Material You) Preset — CSS Design Tokens
-   Drop this into any project or @import it in your main stylesheet.
-   All values match references/google-design-preset/DESIGN.md exactly.
+/* preset: google-design */
+/* Google Material 3 Preset — v1.3 baransu canonical token schema
+   ────────────────────────────────────────────────────────────────
+   Implementation strategy: keep full Material M3 --md-* namespace as internal
+   implementation detail; expose 19+ canonical names as alias layer for HTML
+   骨架 consumption. HTML in design-cores/ and slide-cores/ uses canonical names
+   only; --md-* tokens stay internal to this stylesheet.
 
-   Convention: tokens use the --md-* prefix to align with Material Design 3
-   token naming. The default :root scope sets the LIGHT scheme; the
-   .dark / [data-theme="dark"] selectors override with the DARK scheme. */
+   Folding losses (acceptable per Phase A Spike):
+   - Surface 5-tier compressed to 2-tier (--surface / --surface-strong)
+   - Text muted/faint borrow --md-outline / --md-outline-variant (semantic overload)
+   - shadow-whisper carries Material elevation rgba (M3 essence; preset exception)
+   - --font-serif aliases sans (Material is sans-only)
+
+   See .claude/execute/baransu-design-v1.3/execute/spike-material-canonical-mapping.md
+*/
 
 :root {
-  /* ────────────────────────────────────────────────
-     COLOR — Light scheme (M3 baseline)
-     Role-based: use these tokens, not hex literals.
-     Each surface has a paired on-* color for text/icons. */
+  /* ──────────────────────────────────────────────
+     Material M3 raw tokens (implementation detail) */
 
+  /* COLOR — Light scheme */
   --md-primary:                       #6750A4;
   --md-on-primary:                    #FFFFFF;
   --md-primary-container:             #EADDFF;
@@ -43,49 +51,18 @@
   --md-outline-variant:               #CAC4D0;
   --md-shadow:                        #000000;
   --md-scrim:                         #000000;
-  --md-surface-tint:                  #6750A4;  /* = primary; used for elevation overlay */
+  --md-surface-tint:                  #6750A4;
 
   --md-inverse-surface:               #322F35;
   --md-inverse-on-surface:            #F5EFF7;
   --md-inverse-primary:               #D0BCFF;
 
-  /* ────────────────────────────────────────────────
-     TYPOGRAPHY — Font families */
-
+  /* TYPOGRAPHY — Font families */
   --md-font-brand: "Google Sans", "Product Sans", "Roboto Flex", Roboto, system-ui, sans-serif;
   --md-font-plain: "Roboto Flex", Roboto, "Helvetica Neue", Arial, sans-serif;
   --md-font-mono:  "Roboto Mono", "JetBrains Mono", "SF Mono", Consolas, monospace;
 
-  /* For CJK projects, override --md-font-plain inside :lang(zh) or .lang-zh:
-     --md-font-plain: "Roboto Flex", Roboto, "Noto Sans TC", "Noto Sans CJK TC",
-                      "PingFang TC", "Microsoft JhengHei", sans-serif;       */
-
-  /* TYPOGRAPHY — Type scale (M3 baseline, 15 roles)
-     Each role: size / line-height / weight / letter-spacing */
-
-  --md-display-large-size:   57px;  --md-display-large-line:   64px;  --md-display-large-weight:   400; --md-display-large-tracking:   -0.25px;
-  --md-display-medium-size:  45px;  --md-display-medium-line:  52px;  --md-display-medium-weight:  400; --md-display-medium-tracking:  0;
-  --md-display-small-size:   36px;  --md-display-small-line:   44px;  --md-display-small-weight:   400; --md-display-small-tracking:   0;
-
-  --md-headline-large-size:  32px;  --md-headline-large-line:  40px;  --md-headline-large-weight:  400; --md-headline-large-tracking:  0;
-  --md-headline-medium-size: 28px;  --md-headline-medium-line: 36px;  --md-headline-medium-weight: 400; --md-headline-medium-tracking: 0;
-  --md-headline-small-size:  24px;  --md-headline-small-line:  32px;  --md-headline-small-weight:  400; --md-headline-small-tracking:  0;
-
-  --md-title-large-size:     22px;  --md-title-large-line:     28px;  --md-title-large-weight:     400; --md-title-large-tracking:     0;
-  --md-title-medium-size:    16px;  --md-title-medium-line:    24px;  --md-title-medium-weight:    500; --md-title-medium-tracking:    0.15px;
-  --md-title-small-size:     14px;  --md-title-small-line:     20px;  --md-title-small-weight:     500; --md-title-small-tracking:     0.1px;
-
-  --md-body-large-size:      16px;  --md-body-large-line:      24px;  --md-body-large-weight:      400; --md-body-large-tracking:      0.5px;
-  --md-body-medium-size:     14px;  --md-body-medium-line:     20px;  --md-body-medium-weight:     400; --md-body-medium-tracking:     0.25px;
-  --md-body-small-size:      12px;  --md-body-small-line:      16px;  --md-body-small-weight:      400; --md-body-small-tracking:      0.4px;
-
-  --md-label-large-size:     14px;  --md-label-large-line:     20px;  --md-label-large-weight:     500; --md-label-large-tracking:     0.1px;
-  --md-label-medium-size:    12px;  --md-label-medium-line:    16px;  --md-label-medium-weight:    500; --md-label-medium-tracking:    0.5px;
-  --md-label-small-size:     11px;  --md-label-small-line:     16px;  --md-label-small-weight:     500; --md-label-small-tracking:     0.5px;
-
-  /* ────────────────────────────────────────────────
-     SHAPE — Corner radius scale */
-
+  /* SHAPE — Corner radius scale */
   --md-shape-none:         0;
   --md-shape-extra-small:  4px;
   --md-shape-small:        8px;
@@ -94,9 +71,7 @@
   --md-shape-extra-large: 28px;
   --md-shape-full:      9999px;
 
-  /* ────────────────────────────────────────────────
-     ELEVATION — Two-layer soft shadows (paired with surface-tint overlay) */
-
+  /* ELEVATION — Two-layer soft shadows */
   --md-elevation-0: none;
   --md-elevation-1: 0 1px 2px rgba(0,0,0,0.30), 0 1px 3px 1px rgba(0,0,0,0.15);
   --md-elevation-2: 0 1px 2px rgba(0,0,0,0.30), 0 2px 6px 2px rgba(0,0,0,0.15);
@@ -104,53 +79,11 @@
   --md-elevation-4: 0 2px 3px rgba(0,0,0,0.30), 0 6px 10px 4px rgba(0,0,0,0.15);
   --md-elevation-5: 0 4px 4px rgba(0,0,0,0.30), 0 8px 12px 6px rgba(0,0,0,0.15);
 
-  /* Surface tint opacity per level — apply as overlay using surface-tint color */
-  --md-elevation-1-tint-opacity: 0.05;
-  --md-elevation-2-tint-opacity: 0.08;
-  --md-elevation-3-tint-opacity: 0.11;
-  --md-elevation-4-tint-opacity: 0.12;
-  --md-elevation-5-tint-opacity: 0.14;
-
-  /* ────────────────────────────────────────────────
-     STATE LAYER — Opacity overlays for interactive states */
-
-  --md-state-hover-opacity:   0.08;
-  --md-state-focus-opacity:   0.12;
-  --md-state-pressed-opacity: 0.12;
-  --md-state-dragged-opacity: 0.16;
-
-  /* ────────────────────────────────────────────────
-     MOTION — Easing curves */
-
-  --md-easing-emphasized:             cubic-bezier(0.2, 0.0, 0.0, 1.0);
-  --md-easing-emphasized-decelerate:  cubic-bezier(0.05, 0.7, 0.1, 1.0);
-  --md-easing-emphasized-accelerate:  cubic-bezier(0.3, 0.0, 0.8, 0.15);
+  /* MOTION — Easing & duration */
   --md-easing-standard:               cubic-bezier(0.2, 0.0, 0.0, 1.0);
-  --md-easing-standard-decelerate:    cubic-bezier(0.0, 0.0, 0.0, 1.0);
-  --md-easing-standard-accelerate:    cubic-bezier(0.3, 0.0, 1.0, 1.0);
-  --md-easing-linear:                 linear;
+  --md-easing-emphasized:             cubic-bezier(0.2, 0.0, 0.0, 1.0);
 
-  /* MOTION — Duration tokens */
-  --md-duration-short-1:       50ms;
-  --md-duration-short-2:      100ms;
-  --md-duration-short-3:      150ms;
-  --md-duration-short-4:      200ms;
-  --md-duration-medium-1:     250ms;
-  --md-duration-medium-2:     300ms;
-  --md-duration-medium-3:     350ms;
-  --md-duration-medium-4:     400ms;
-  --md-duration-long-1:       450ms;
-  --md-duration-long-2:       500ms;
-  --md-duration-long-3:       550ms;
-  --md-duration-long-4:       600ms;
-  --md-duration-extra-long-1: 700ms;
-  --md-duration-extra-long-2: 800ms;
-  --md-duration-extra-long-3: 900ms;
-  --md-duration-extra-long-4:1000ms;
-
-  /* ────────────────────────────────────────────────
-     SPACING — 4dp baseline grid */
-
+  /* SPACING — 4dp baseline grid */
   --md-space-1:   4px;
   --md-space-2:   8px;
   --md-space-3:  12px;
@@ -160,32 +93,84 @@
   --md-space-12: 48px;
   --md-space-16: 64px;
   --md-space-24: 96px;
+
+  /* ──────────────────────────────────────────────
+     baransu canonical alias layer (HTML consumes these only) */
+
+  /* Surface */
+  --paper:          var(--md-background);
+  --surface:        var(--md-surface-variant);
+  --surface-strong: var(--md-secondary-container);
+  --dark-surface:   var(--md-inverse-surface);
+  --deep-dark:      var(--md-shadow);
+
+  /* Accent */
+  --accent:    var(--md-primary);
+  --accent-on: var(--md-on-primary);
+
+  /* Text */
+  --ink:            var(--md-on-surface);
+  --text-primary:   var(--md-on-surface);
+  --text-secondary: var(--md-on-surface-variant);
+  --text-muted:     var(--md-outline);
+  --text-faint:     var(--md-outline-variant);
+
+  /* Borders */
+  --border:      var(--md-outline);
+  --border-soft: var(--md-outline-variant);
+
+  /* Typography */
+  --font-sans:  var(--md-font-plain);
+  --font-serif: var(--md-font-brand);   /* sans alias per REQ-001 (Material is sans-only) */
+  --font-mono:  var(--md-font-mono);
+
+  /* Shadows */
+  --shadow-ring:    0 0 0 1px var(--md-outline-variant);
+  --shadow-whisper: var(--md-elevation-1);
+
+  /* Spacing */
+  --space-xs:  var(--md-space-1);
+  --space-sm:  var(--md-space-2);
+  --space-md:  var(--md-space-3);
+  --space-lg:  var(--md-space-4);
+  --space-xl:  var(--md-space-6);
+  --space-2xl: var(--md-space-8);
+  --space-3xl: var(--md-space-12);
+
+  /* Radius */
+  --radius-xs:   var(--md-shape-none);
+  --radius-sm:   var(--md-shape-extra-small);
+  --radius-md:   var(--md-shape-small);
+  --radius-lg:   var(--md-shape-medium);
+  --radius-xl:   var(--md-shape-large);
+  --radius-2xl:  var(--md-shape-extra-large);
+  --radius-hero: var(--md-shape-full);
+
+  /* Layout */
+  --cover-title-align: center;
+  --grid-columns:      12;
+  --grid-gutter:       var(--md-space-6);
+
+  /* Semantic */
+  --delta-up:   #2a6c45;
+  --delta-down: var(--md-error);
 }
 
-/* ────────────────────────────────────────────────
+/* ──────────────────────────────────────────────
    DARK SCHEME — apply on <html data-theme="dark"> or .dark wrapper */
 
 .dark,
 [data-theme="dark"] {
   --md-primary:                       #D0BCFF;
   --md-on-primary:                    #381E72;
-  --md-primary-container:              #4F378B;
-  --md-on-primary-container:          #EADDFF;
+  --md-primary-container:             #4F378B;
 
   --md-secondary:                     #CCC2DC;
-  --md-on-secondary:                  #332D41;
   --md-secondary-container:           #4A4458;
-  --md-on-secondary-container:        #E8DEF8;
 
   --md-tertiary:                      #EFB8C8;
-  --md-on-tertiary:                   #492532;
-  --md-tertiary-container:            #633B48;
-  --md-on-tertiary-container:         #FFD8E4;
 
   --md-error:                         #F2B8B5;
-  --md-on-error:                      #601410;
-  --md-error-container:               #8C1D18;
-  --md-on-error-container:            #F9DEDC;
 
   --md-background:                    #141218;
   --md-on-background:                 #E6E0E9;
@@ -196,56 +181,39 @@
 
   --md-outline:                       #938F99;
   --md-outline-variant:               #49454F;
-  --md-surface-tint:                  #D0BCFF;
 
   --md-inverse-surface:               #E6E0E9;
-  --md-inverse-on-surface:            #322F35;
-  --md-inverse-primary:               #6750A4;
 }
 
-/* ────────────────────────────────────────────────
-   BASE RESET — Minimal Material-3-safe defaults */
+/* ──────────────────────────────────────────────
+   BASE RESET */
 
 body {
-  background: var(--md-background);
-  color: var(--md-on-background);
-  font-family: var(--md-font-plain);
-  font-size: var(--md-body-large-size);
-  line-height: var(--md-body-large-line);
-  letter-spacing: var(--md-body-large-tracking);
+  background: var(--paper);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Type role utility classes (optional — apply via class names) */
-.md-display-large   { font-size: var(--md-display-large-size);   line-height: var(--md-display-large-line);   font-weight: var(--md-display-large-weight);   letter-spacing: var(--md-display-large-tracking); }
-.md-headline-large  { font-size: var(--md-headline-large-size);  line-height: var(--md-headline-large-line);  font-weight: var(--md-headline-large-weight);  letter-spacing: var(--md-headline-large-tracking); }
-.md-headline-medium { font-size: var(--md-headline-medium-size); line-height: var(--md-headline-medium-line); font-weight: var(--md-headline-medium-weight); letter-spacing: var(--md-headline-medium-tracking); }
-.md-headline-small  { font-size: var(--md-headline-small-size);  line-height: var(--md-headline-small-line);  font-weight: var(--md-headline-small-weight);  letter-spacing: var(--md-headline-small-tracking); }
-.md-title-large     { font-size: var(--md-title-large-size);     line-height: var(--md-title-large-line);     font-weight: var(--md-title-large-weight);     letter-spacing: var(--md-title-large-tracking); }
-.md-title-medium    { font-size: var(--md-title-medium-size);    line-height: var(--md-title-medium-line);    font-weight: var(--md-title-medium-weight);    letter-spacing: var(--md-title-medium-tracking); }
-.md-body-large      { font-size: var(--md-body-large-size);      line-height: var(--md-body-large-line);      font-weight: var(--md-body-large-weight);      letter-spacing: var(--md-body-large-tracking); }
-.md-body-medium     { font-size: var(--md-body-medium-size);     line-height: var(--md-body-medium-line);     font-weight: var(--md-body-medium-weight);     letter-spacing: var(--md-body-medium-tracking); }
-.md-label-large     { font-size: var(--md-label-large-size);     line-height: var(--md-label-large-line);     font-weight: var(--md-label-large-weight);     letter-spacing: var(--md-label-large-tracking); }
-
-/* Headings default to M3 headline scale */
-h1 { font-size: var(--md-headline-large-size);  line-height: var(--md-headline-large-line);  font-weight: var(--md-headline-large-weight);  letter-spacing: var(--md-headline-large-tracking); margin: 0; }
-h2 { font-size: var(--md-headline-medium-size); line-height: var(--md-headline-medium-line); font-weight: var(--md-headline-medium-weight); letter-spacing: var(--md-headline-medium-tracking); margin: 0; }
-h3 { font-size: var(--md-headline-small-size);  line-height: var(--md-headline-small-line);  font-weight: var(--md-headline-small-weight);  letter-spacing: var(--md-headline-small-tracking); margin: 0; }
-h4 { font-size: var(--md-title-large-size);     line-height: var(--md-title-large-line);     font-weight: var(--md-title-large-weight);     letter-spacing: var(--md-title-large-tracking); margin: 0; }
+h1 { font-size: 2rem;     line-height: 1.20; font-weight: 400; margin: 0; }
+h2 { font-size: 1.5rem;   line-height: 1.25; font-weight: 400; margin: 0; }
+h3 { font-size: 1.25rem;  line-height: 1.30; font-weight: 400; margin: 0; }
 
 a {
-  color: var(--md-primary);
-  text-decoration-color: var(--md-outline-variant);
+  color: var(--accent);
+  text-decoration-color: var(--border-soft);
   text-underline-offset: 2px;
 }
-a:hover { text-decoration-color: var(--md-primary); }
+a:hover { text-decoration-color: var(--accent); }
 
 code, pre {
-  font-family: var(--md-font-mono);
-  background: var(--md-surface-variant);
-  color: var(--md-on-surface-variant);
-  border-radius: var(--md-shape-extra-small);
+  font-family: var(--font-mono);
+  background: var(--surface);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
 }
 code { padding: 0.1em 0.4em; font-size: 0.875em; }
 pre  { padding: 1rem 1.25rem; font-size: 0.875em; line-height: 1.5; overflow-x: auto; }

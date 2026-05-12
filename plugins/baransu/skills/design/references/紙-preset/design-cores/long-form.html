@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<!--
+  long-form.html — Kami preset long-form template (v1.3)
+  Tokens consumed: full canonical 36-name vocabulary via ../tokens.css.
+  Class prefix: kami-*
+  Slot contract: <section data-slot="long-form-body"> is the body insertion
+  point for /book HTML Stage 3. Outer head/styles/nav/footer 框架保留。
+-->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{TITLE}}</title>
+  <link rel="stylesheet" href="../tokens.css">
+  <style>
+    * { box-sizing: border-box; }
+    body { background: var(--paper); color: var(--text-primary); font-family: var(--font-serif); margin: 0; }
+    .kami-page { max-width: 1200px; margin: 0 auto; padding: 56px 24px; display: grid; grid-template-columns: 220px 1fr; gap: 56px; }
+    .kami-toc { position: sticky; top: 24px; align-self: start; border-left: 3px solid var(--accent); padding-left: 16px; }
+    .kami-toc .kami-toc-label { font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.08em; }
+    .kami-toc h1 { font-size: 18px; margin: 8px 0 24px; font-weight: 500; letter-spacing: -0.01em; }
+    .kami-toc ol { list-style: none; padding: 0; margin: 0; }
+    .kami-toc a { display: block; font-size: 13px; color: var(--text-secondary); text-decoration: none; padding: 4px 0; }
+    .kami-toc a:hover { color: var(--accent); }
+    .kami-h1 { font-size: 36px; font-weight: 500; line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 16px; }
+    .kami-h2 { font-size: 24px; font-weight: 500; line-height: 1.25; letter-spacing: -0.01em; border-left: 3px solid var(--accent); padding-left: 12px; margin: 32px 0 16px; }
+    .kami-h3 { font-size: 18px; font-weight: 500; line-height: 1.30; margin: 24px 0 12px; }
+    .kami-paper { background: var(--paper); padding: 56px; border: 1px solid var(--border); border-radius: var(--radius-md); }
+    .kami-lead { font-size: 17px; line-height: 1.55; color: var(--text-primary); margin: 16px 0; }
+    .kami-body { font-size: 15px; line-height: 1.55; color: var(--text-primary); margin: 12px 0; }
+    .kami-caption { font-size: 12px; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; }
+    .kami-quote { border-left: 2px solid var(--accent); padding: 8px 0 8px 16px; color: var(--text-secondary); margin: 24px 0; line-height: 1.55; }
+    .kami-code { font-family: var(--font-mono); font-size: 13px; background: var(--surface); padding: 2px 6px; border-radius: var(--radius-sm); border: 1px solid var(--border-soft); }
+    pre.kami-pre { background: var(--surface); padding: 20px; border: 1px solid var(--border); border-radius: var(--radius-md); overflow-x: auto; font-family: var(--font-mono); font-size: 13px; line-height: 1.55; }
+    figure.kami-figure { margin: 32px 0; }
+    figure.kami-figure svg { display: block; max-width: 100%; }
+    figcaption.kami-figcaption { font-size: 12px; color: var(--text-muted); margin-top: 8px; text-align: center; }
+    .kami-footer { font-size: 12px; color: var(--text-faint); border-top: 1px solid var(--border); padding-top: 16px; margin-top: 56px; }
+    em, i { font-style: normal; font-weight: 500; }
+    @media (max-width: 900px) { .kami-page { grid-template-columns: 1fr; gap: 24px; padding: 24px; } .kami-toc { position: static; } }
+  </style>
+</head>
+<body class="kami-paper-body">
+<div class="kami-page">
+
+  <aside class="kami-toc">
+    <div class="kami-toc-label">Contents</div>
+    <h1>{{TITLE}}</h1>
+    <ol>
+      {{TOC_ITEMS}}
+    </ol>
+  </aside>
+
+  <main class="kami-main">
+    <header class="kami-cover">
+      <p class="kami-caption">{{KICKER}}</p>
+      <h1 class="kami-h1">{{TITLE}}</h1>
+      <p class="kami-lead">{{SUBTITLE}}</p>
+    </header>
+
+    <section data-slot="long-form-body">
+      <!-- /book Stage 3 replaces this section's innerHTML with rendered body sections.
+           Below is the show-by-example structure — every class used should appear in the
+           CSS block above. Do not invent new classes. -->
+      <section id="s1">
+        <h2 class="kami-h2">Section Heading Example</h2>
+        <p class="kami-body">Body paragraph at 15px / line-height 1.55. Flush-left alignment per Kami invariant.</p>
+        <p class="kami-body">Inline <code class="kami-code">--accent: var(--accent)</code> reference works.</p>
+
+        <h3 class="kami-h3">Sub-heading</h3>
+        <p class="kami-body">Lists, quotes, code blocks, and SVG figures all follow.</p>
+
+        <blockquote class="kami-quote">Pull quote with 2px accent left bar — Kami signature.</blockquote>
+
+        <pre class="kami-pre">code block
+  with monospace font
+  and border-soft surface</pre>
+
+        <figure class="kami-figure">
+          <svg viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg">
+            <rect x="20" y="20" width="80" height="80" fill="var(--accent)" />
+            <rect x="120" y="20" width="80" height="80" fill="var(--surface-strong)" />
+            <rect x="220" y="20" width="80" height="80" fill="var(--border)" />
+          </svg>
+          <figcaption class="kami-figcaption">Example SVG figure with canonical token fills.</figcaption>
+        </figure>
+      </section>
+    </section>
+
+    <footer class="kami-footer">{{FOOTER_LABEL}}</footer>
+  </main>
+
+</div>
+</body>
+</html>
