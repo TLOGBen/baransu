@@ -34,18 +34,18 @@
 **需求追溯**：REQ-001
 **目標**：3 個結構化 diagram-type 升級。
 **驗收標準**：
-- [ ] 三檔 frontmatter `status: complete`
-- [ ] 各檔 example 通過 validator
+- [x] 三檔 frontmatter `status: complete`
+- [x] 各檔 example 通過 validator
 
 ### 步驟
 
 #### 模板層
-- [ ] state：寫一段 finite state machine example（4-5 state，含 2 transition condition label）
-- [ ] er：寫一段 3-entity ER 圖 example（含 1-to-many 關係箭頭，cardinality 用 chevron marker）
-- [ ] timeline：寫一段含 5-7 個 milestone 的 horizontal timeline，每 milestone 含日期 + label
+- [x] state：寫一段 finite state machine example（4-5 state，含 2 transition condition label）
+- [x] er：寫一段 3-entity ER 圖 example（含 1-to-many 關係箭頭，cardinality 用 chevron marker）
+- [x] timeline：寫一段含 5-7 個 milestone 的 horizontal timeline，每 milestone 含日期 + label
 
 #### 驗證
-- [ ] 三 example 通過 GATE A-G
+- [x] 三 example 通過 GATE A-G
 
 ---
 
