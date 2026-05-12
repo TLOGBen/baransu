@@ -31,20 +31,20 @@
 **需求追溯**：REQ-009
 **目標**：三 preset DESIGN.md §2 表的 accent token 旁標 `oklch(...)` 等價值，並加 footnote 說明 advisory 性質。
 **驗收標準**：
-- [ ] 三 preset DESIGN.md §2 表的 `--accent`（及任何含 accent 角色的 token）row 含「`#hex → oklch(...)`」格式
-- [ ] §2 結尾含 footnote 文字（≥ 30 字）明示「oklch 為 advisory；WeasyPrint print pipeline 仍以 hex 為準」
-- [ ] tokens.css / design-cores HTML 不出現 `oklch(` 字串
+- [x] 三 preset DESIGN.md §2 表的 `--accent`（及任何含 accent 角色的 token）row 含「`#hex → oklch(...)`」格式
+- [x] §2 結尾含 footnote 文字（≥ 30 字）明示「oklch 為 advisory；WeasyPrint print pipeline 仍以 hex 為準」
+- [x] tokens.css / design-cores HTML 不出現 `oklch(` 字串
 
 ### 步驟
 
 #### 規格層改動
-- [ ] 對每 preset DESIGN.md §2 表，在 `--accent` row 後加 oklch 等價值（用 hex-to-oklch 線上 / 本地工具計算）
-- [ ] 在 §2 表後加 markdown footnote block
+- [x] 對每 preset DESIGN.md §2 表，在 `--accent` row 後加 oklch 等價值（用 hex-to-oklch 線上 / 本地工具計算）
+- [x] 在 §2 表後加 markdown footnote block
 
 #### 驗證
-- [ ] `grep -r "oklch(" plugins/baransu/skills/design/references/*-preset/tokens.css` 命中 = 0
-- [ ] `grep -r "oklch(" plugins/baransu/skills/design/references/*-preset/design-cores/` 命中 = 0
-- [ ] `grep -c "oklch(" plugins/baransu/skills/design/references/紙-preset/DESIGN.md` ≥ 1
+- [x] `grep -r "oklch(" plugins/baransu/skills/design/references/*-preset/tokens.css` 命中 = 0
+- [x] `grep -r "oklch(" plugins/baransu/skills/design/references/*-preset/design-cores/` 命中 = 0
+- [x] `grep -c "oklch(" plugins/baransu/skills/design/references/紙-preset/DESIGN.md` ≥ 1
 
 ---
 

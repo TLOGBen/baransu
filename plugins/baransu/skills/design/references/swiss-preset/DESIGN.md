@@ -32,7 +32,7 @@ Swiss 不變量（從 Kami 可移植集合 + Swiss-specific）：
 | `--dark-surface` | `#1a1a1a` | 深色容器（Dark container） |
 | `--deep-dark` | `#0a0a0a` | 深色頁面背景（Dark page background） |
 | `--ink` | `#0a0a0a` | 主要文字 alias / 結構墨色（Structural ink） |
-| `--accent` | `#002FA7` | IKB ultramarine——唯一強調色（≤5% 表面） |
+| `--accent` | `#002FA7 → oklch(0.38 0.20 268)` | IKB ultramarine——唯一強調色（≤5% 表面） |
 | `--accent-on` | `#ffffff` | accent 之上文字 / icon 色 |
 | `--text-primary` | `#0a0a0a` | 主要文字（Body & heading） |
 | `--text-secondary` | `#3a3a3a` | 次要文字、表格標頭 |
@@ -49,6 +49,8 @@ Swiss 不變量（從 Kami 可移植集合 + Swiss-specific）：
 - 禁用純白背景；`--accent-on` 為 accent 上的反白文字，僅限該情境使用
 
 **Accent 單色原則**：IKB 為設計主軸，全頁只此一個高飽和色；其餘層次以中性灰調達成。
+
+> **Footnote — oklch advisory**：表中 `→ oklch(...)` 為 advisory 等價值，僅供色彩感知比對與未來 Chromium-print migration 參考；現行 WeasyPrint print pipeline 仍以 hex 為唯一渲染來源，tokens.css 與 design-cores HTML 不得出現 `oklch()` 函數。
 
 ---
 

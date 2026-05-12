@@ -31,8 +31,8 @@ Kami 十不變量（來自 CHEATSHEET.md canonical invariants）：
 | `--warm-sand` | `#e8e6dc` | 按鈕、互動表面（Button / interactive surface） |
 | `--dark-surface` | `#30302e` | 深色容器（Dark container） |
 | `--deep-dark` | `#141413` | 深色頁面背景（Dark page background） |
-| `--brand` | `#1B365D` | 主色 / Accent（Ink-blue，唯一彩色，≤5% 表面） |
-| `--brand-light` | `#2D5A8A` | 深色背景上的連結 / 亮版（Link on dark surface） |
+| `--brand` | `#1B365D → oklch(0.32 0.08 256)` | 主色 / Accent（Ink-blue，唯一彩色，≤5% 表面） |
+| `--brand-light` | `#2D5A8A → oklch(0.49 0.10 256)` | 深色背景上的連結 / 亮版（Link on dark surface） |
 | `--near-black` | `#141413` | 主要文字（Primary text） |
 | `--dark-warm` | `#3d3d3a` | 次要文字、表格標頭（Secondary text / table header） |
 | `--olive` | `#504e49` | 輔助文字、說明（Subtext / description） |
@@ -58,6 +58,8 @@ Kami 十不變量（來自 CHEATSHEET.md canonical invariants）：
 | 0.14 | `#E4ECF5` | — |
 | 0.22 | `#D0DCE9` | — |
 | 0.30 | `#D6E1EE` | — |
+
+> **Footnote — oklch advisory**：表中 `→ oklch(...)` 為 advisory 等價值，僅供色彩感知比對與未來 Chromium-print migration 參考；現行 WeasyPrint print pipeline 仍以 hex 為唯一渲染來源，tokens.css 與 design-cores HTML 不得出現 `oklch()` 函數。
 
 ---
 
