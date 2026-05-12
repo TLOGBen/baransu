@@ -75,12 +75,12 @@ Inline example below — 5-state connection lifecycle（`idle → connecting →
     <!-- active → closing (focal exit, accent) -->
     <line x1="632" y1="240" x2="672" y2="240"
           stroke="#1B365D" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
-    <!-- closed → end (L-shape: right from closed, then up to end-ring) -->
-    <line x1="848" y1="392" x2="908" y2="392"
+    <!-- closed → end (L-shape: right from closed to end-ring's x, then up) -->
+    <line x1="848" y1="392" x2="920" y2="392"
           stroke="#504e49" stroke-width="1.2"/>
-    <line x1="908" y1="392" x2="908" y2="252"
+    <line x1="920" y1="392" x2="920" y2="252"
           stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
-    <text x="916" y="328" fill="#504e49" font-size="9"
+    <text x="928" y="328" fill="#504e49" font-size="9"
           font-family="'Geist Mono', ui-monospace, monospace"
           text-anchor="start">→ end</text>
 
