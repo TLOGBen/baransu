@@ -118,7 +118,7 @@ class 前綴對齊 preset：`.kami-dropcap`。
 ```css
 .kami-dropcap {
   float: left;
-  font-size: 3.1em;       /* ≈ 3 × body line-height (15px × 1.55 × 3 ≈ 69.75px) */
+  font-size: 4.65em;      /* 4.65em = 3 × body line-height (1em × 1.55 × 3); renders as 3-line drop with body line-height 1.55 */
   line-height: 1;         /* 避免繼承 body line-height 導致高度爆炸 */
   font-weight: 500;       /* 對齊 Kami invariant #5，禁用 700 */
   color: var(--accent);   /* 墨藍主色 #1B365D */

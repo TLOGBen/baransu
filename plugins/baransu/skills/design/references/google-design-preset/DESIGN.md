@@ -154,7 +154,7 @@ class 前綴對齊 preset：`.google-dropcap`（採 `google-` 前綴，非 `gd-`
 ```css
 .google-dropcap {
   float: left;
-  font-size: 3.1em;       /* ≈ 3 × body line-height (15px × 1.55 × 3 ≈ 69.75px) */
+  font-size: 4.65em;      /* 4.65em = 3 × body line-height (1em × 1.55 × 3); renders as 3-line drop with body line-height 1.55 */
   line-height: 1;         /* 避免繼承 body line-height 導致高度爆炸 */
   font-weight: 500;       /* 對齊 M3 Title / Label emphasis weight */
   color: var(--accent);   /* M3 primary tonal accent */
