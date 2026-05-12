@@ -26,31 +26,36 @@
   <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
     <circle cx="1" cy="1" r="0.9" fill="#E3E2DC"/>
   </pattern>
-  <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-    <polygon points="0 0, 8 3, 0 6" fill="#504e49"/>
+  <!-- Chevron (stroked, non-filled) — WeasyPrint 不支援 marker orient="auto"，
+       一律用 path stroke 手繪 chevron 取代 filled polygon。 -->
+  <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+    <path d="M2 1 L8 5 L2 9" fill="none" stroke="#504e49"
+          stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
   </marker>
-  <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-    <polygon points="0 0, 8 3, 0 6" fill="#1B365D"/>
+  <marker id="arrow-accent" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+    <path d="M2 1 L8 5 L2 9" fill="none" stroke="#1B365D"
+          stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
   </marker>
-  <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-    <polygon points="0 0, 8 3, 0 6" fill="#1B365D"/>
+  <marker id="arrow-link" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+    <path d="M2 1 L8 5 L2 9" fill="none" stroke="#1B365D"
+          stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
   </marker>
 </defs>
 ```
 
-## §4.3 Marker defs（箭頭走 `<marker>`，三個 id 固定）
+## §4.3 Marker defs（箭頭走 chevron `<path>`，三個 id 固定）
 
-**規則**：每張含箭頭的 SVG 必須在 `<defs>` 內定義以下三個 marker，並以 `marker-end="url(#…)"` 引用；不再使用手寫的箭頭 path。
+**規則**：每張含箭頭的 SVG 必須在 `<defs>` 內定義以下三個 marker，並以 `marker-end="url(#…)"` 引用；箭頭幾何**一律用 stroked chevron path**（`d="M2 1 L8 5 L2 9"`，`fill="none"`，`stroke-linecap="round"`），不再使用 filled polygon、也不手繪箭頭 path。
 
-| Marker id | 對應用途 | fill |
-|-----------|----------|------|
+| Marker id | 對應用途 | stroke |
+|-----------|----------|--------|
 | `arrow` | default（一般 / 內部流向，muted） | `#504e49`（`--text-muted`） |
 | `arrow-accent` | focal / 主流（accent 色） | `#1B365D`（`--accent`） |
 | `arrow-link` | external / API call / 跨界 | `#1B365D` 或同色變淡 |
 
-**marker 屬性固定**：`markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"`。
+**marker 屬性固定**：`markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"`；chevron path 固定 `d="M2 1 L8 5 L2 9"`、`stroke-width="1.5"`、`stroke-linecap="round"`、`stroke-linejoin="round"`、`fill="none"`。
 
-**Why**：marker 由 SVG 引擎管理方向與端點對齊，避免手寫箭頭 path 在 viewBox 縮放下產生對位偏差；同時三個語意分層（一般 / focal / external）才能與「焦點節點 ≤ 2」「跨系統呼叫」這兩條規格在 SVG 層對齊。
+**Why**：WeasyPrint / 多數靜態 PDF renderer 對 `<marker orient="auto">` 旋轉 + `<polygon fill>` 的支援不一致，會出現箭頭翻轉或填色失蹤；改用 stroked chevron path 在所有 print pipeline 都對齊。同時 chevron（線描，非實心）也與 Kami `references/diagrams.md` L86 直接對齊，是 Kami 視覺簽名之一。三個語意分層（一般 / focal / external）才能與「焦點節點 ≤ 2」「跨系統呼叫」兩條規格在 SVG 層對齊。
 
 **SVG 引用範例**：
 
@@ -114,11 +119,12 @@
 ## §4.7 抗 slop 精度約束
 
 - 所有座標、寬度、間距必須是 **4 的倍數**
-- 節點寬白名單 **12 檔**：{80, 96, 112, 120, 128, 140, 144, 160, 180, 200, 240, 320}
+- 節點寬白名單 **3 檔**（Kami `references/diagrams.md` L79 對齊）：{`128`, `144`, `160`}；單張 SVG 同時最多用 2 檔，混用 3 檔即 anti-slop fail
+  - **例外**：viewBox 寬度 < **360px**（卡片內嵌 / 小型 diagram）可壓 **2 檔**（建議 {128, 144} 或 {128, 160}），仍須保持 2 檔節奏，**不可**個別客製出非白名單寬度
 - 節點高：**32**（pill）/ **64**（standard）
-- 焦點節點透過 `data-role="focal"` 屬性標記（**不**用 class），每張 SVG 最多 **2** 個 `data-role="focal"` 節點；焦點節點視覺走 `--accent` 描邊 + `--surface-strong` 填色 + `marker-end="url(#arrow-accent)"`
+- 焦點節點透過 `data-role="focal"` 屬性標記（**不**用 class），每張 SVG 最多 **2** 個 `data-role="focal"` 節點；焦點節點視覺走 `--accent` (`#1B365D`) 描邊 + **`#EEF2F7` fill**（Kami `diagrams.md` L49 對齊，**不**走 `--surface-strong`）+ `marker-end="url(#arrow-accent)"`
 - `<text y>` ≥ font-size × 1.2（防文字切頂）
-- 箭頭 endpoint 精確落在節點邊緣（透過 marker `refX="7"` 自動對齊）
+- 箭頭 endpoint 精確落在節點邊緣（透過 marker `refX="8"` 自動對齊 chevron 尖端）
 
 ## §4.8 嵌入字體校正（嵌入 A4 後 scale ≈ 0.47）
 

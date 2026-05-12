@@ -86,6 +86,33 @@ mkdir -p ".claude/book"
 
 ---
 
+## Stage 0.5 — Pre-interview Gate（受眾 / 硬約束前置）
+
+在 Stage 1 取得 `$RAW_CONTENT` **之前**，先壓住 50% 不確定性。模式對齊 /design Gen Mode Step 1：用 **單一 AskUserQuestion 批次**（4 題並陳，不逐題阻塞）對齊受眾、用途、風格傾向、硬約束。
+
+### 跳過條件（任一成立即整段跳過）
+
+- `--auto` 或 `--no-interview` 旗標出現
+- input 是 `/read` slug / `/learn` digest slug（受眾 + 用途已隱含於原 capture metadata）
+- input 是 `--text "…"` 且字數 < 200（極短 inline 不值得問）
+
+跳過時 stderr 印一行：「Stage 0.5 skipped: {reason}」，繼續 Stage 1。
+
+### 訪談題目（batch 一次提，4 題並陳）
+
+1. **受眾** — 「主要讀者是誰？（例如：技術同儕 / 產品 PM / 非技術主管 / 公開讀者 / 自己備忘）」
+2. **用途與時長** — 「這份 book 的使用情境？（例如：5 分鐘速讀 / 30 分鐘深讀 / 簡報前置 / 長期參考文件）」
+3. **風格傾向** — 「視覺密度偏哪邊？（例如：高密度技術文件 / 留白敘事散文 / 多圖表 research 報告 / 隨 preset 預設）」
+4. **硬約束** — 「有沒有必須 / 不要的元素？（例如：必含某段內文、不要 SVG diagram、限定字數、特定 callout 數）」
+
+未答 / 「隨預設」一律走 preset 既有 default，不另存。已答內容寫入 `$INTERVIEW_BRIEF`（純文字 4-8 行），於 Stage 2A §1 分類前 prepend 為 advisory framing，**不覆寫** `references/perception-guide.md` 既有 A/B/C 分類邏輯（衝突時以 perception-guide 為準，brief 僅作 nudge）。
+
+### 完成輸出
+
+一行：「訪談完成：受眾={...} / 用途={...} / 風格={...} / 約束={...}，進入 Stage 1。」
+
+---
+
 ## Stage 1 — Acquire
 
 Route the input argument to the correct acquisition path. The goal is to produce a
