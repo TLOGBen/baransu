@@ -1,5 +1,5 @@
 {
-  "iter_count": 14,
+  "iter_count": 15,
   "score_overall": null,
   "score_history": [],
   "last_review_findings": 0,
@@ -18,10 +18,10 @@
     "TASK-svg-01 P2: flowchart diamond uses 128×128 rotated rect; spec §4.7 strictly says height ∈ {32, 64}",
     "TASK-svg-03 P1 (spec): REQ-001 Scenario 4 mod-4 wording is literal but validate-output.ts has no mod-4 gate. Recommendation: tighten spec.",
     "TASK-svg-04 P2: chevron marker defs duplicated across 13 diagram-types; opportunity to hoist to shared kami-defs.md",
-    "TASK-svg-05 infra: validate-output.ts has 10+ pre-existing TypeScript diagnostics (missing @types/node + implicit-any on cheerio iter callbacks). Runtime works.",
+    "TASK-svg-05 infra: validate-output.ts has 10+ pre-existing TypeScript diagnostics (missing @types/node + implicit-any). Runtime works.",
     "TASK-editorial-01 P2 nit: .kami-lead / .swiss-lead / .google-lead classes don't receive text-wrap: pretty",
     "TASK-editorial-04 F2 (minor): editorial-sanity.sh uses relative path which may break when /design preset copies to project root",
-    "TASK-schemas-01/02 P2 (spec drift): REQ-002 / task wording uses `gd-*` for google preset class prefix but codebase convention is `google-*`. Same for 紙 using `kami-*`."
+    "TASK-schemas-01/02 P2 (spec drift): REQ-002 / task wording uses `gd-*` for google preset class prefix but codebase convention is `google-*`"
   ],
   "ab_diff_status": "not_yet_attempted",
   "consecutive_no_progress": 0,
@@ -40,10 +40,11 @@
     {"id": "TASK-editorial-01", "commit": "4086f08", "review": "0 findings"},
     {"id": "TASK-editorial-02", "commit": "5badbc8", "review": "1 P1 fixed — dropcap 3-line"},
     {"id": "TASK-editorial-03", "commit": "6a4b344", "review": "0 findings"},
-    {"id": "TASK-editorial-04", "commit": "25fe6c8", "review": "1 P1 fixed; EDITORIAL 4/4 COMPLETE"},
-    {"id": "TASK-schemas-01", "commit": "4e548e6", "review": "1 P1 fixed in 1158bfa — swiss portfolio dropcap"},
-    {"id": "TASK-schemas-02", "commit": "4ab0b27", "review": "1 P1 fixed in d22fbf9 — 紙 letter line-height"}
+    {"id": "TASK-editorial-04", "commit": "25fe6c8", "review": "1 P1 fixed; EDITORIAL 4/4"},
+    {"id": "TASK-schemas-01", "commit": "4e548e6", "review": "1 P1 fixed in 1158bfa"},
+    {"id": "TASK-schemas-02", "commit": "4ab0b27", "review": "1 P1 fixed in d22fbf9"},
+    {"id": "TASK-schemas-03", "commit": "16615d4", "review": "0 findings; REQ-002 8 doc-type suite mechanically complete"}
   ],
-  "next_task": "TASK-schemas-03",
-  "notes": "iter 14 done; schemas 2/4 (Resume/Portfolio + One-Pager/Letter = 36 new files total); 14/33 tasks complete; 19 remaining."
+  "next_task": "TASK-schemas-04",
+  "notes": "iter 15 done; schemas 3/4 (54 new files total: 18 schema md + 36 HTML); REQ-002 schema suite content complete, only sanity wiring left. 15/33 tasks; 18 remaining."
 }
