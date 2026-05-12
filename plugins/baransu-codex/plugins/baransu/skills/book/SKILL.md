@@ -27,6 +27,18 @@ Converts any content into a Kami-themed, browser-ready HTML book saved to `.clau
 - 若值不合法（非 html/pdf/ppt/all）：輸出「`--format` 值不合法。支援：html | pdf | ppt | all」並停止（不呼叫 install-deps.ts）
 - 設定 `$FORMAT` 供後續所有 Stage 使用
 
+### 0.5 --style 旗標解析
+
+解析使用者呼叫中的 `--style` 旗標：
+
+- 支援值：`kami` | `swiss`
+- 若未提供 `--style`：預設為 `kami`（不視為「顯式傳入」）
+- 若值不合法（非 kami/swiss）：輸出「--style 值不合法。支援：kami | swiss」並停止（不進入 Stage 1）
+- 不合法組合：使用者顯式傳入 `--style <kami|swiss>` 且 `$FORMAT` 為 `html` 時 → 輸出「--style 僅 PPT 模式支援；如需 Swiss 風格 long-form，請待 v2」並中止（不進入 Stage 1）
+  - 判定規則：只要使用者「顯式」帶 `--style` 旗標（無論值為 kami 或 swiss）+ `--format html` → FAIL；未傳 `--style`（走預設 kami）+ `--format html` 不觸發
+- 設定 `$STYLE` 供後續所有 Stage 使用（特別是 Stage 3：`{project_root}/tokens.css` tie-break 與 SVG 風格分流會讀取 `$STYLE`）
+- 與 `--format` 解析平行獨立：先各自完成解析，再做組合檢查
+
 ### 1. Python check
 
 ```bash
@@ -148,6 +160,15 @@ Based on the perception guide signals, assign `$CONTENT_TYPE` to one of:
 
 Output one line: 「內容類型偵測：{$CONTENT_TYPE}」
 
+### 2.5 兩階層決策樹（Layer 1 內容類型 → Layer 2 diagram 結構）
+
+Stage 2A 的選擇分為兩層，**順序不可顛倒**：
+
+- **Layer 1（content type → HTML 版面密度）**：由 §2 已產出的 `$CONTENT_TYPE`（A=`technical` / B=`narrative` / C=`research`）決定整篇 HTML 的版面樣式——TOC 是否展開、cards 數量、密度、callout 風格等，皆由 `references/perception-guide.md` 對應 A/B/C 三類分別給定。
+- **Layer 2（13 型 selection → 每段 diagram 結構）**：每個含 diagram 的 section 獨立 lookup Stage 3 §4「13 型 selection 表」，依該段資料形狀挑一個 diagram type（architecture / flowchart / sequence / ...）。
+
+兩軸正交：Layer 1 控版面，Layer 2 控每段 SVG 結構；先 Layer 1、再 Layer 2，每段獨立決定不沿用上一段選擇。
+
 ### 3. Extract structure
 
 From `$RAW_CONTENT`, extract:
@@ -183,7 +204,58 @@ If a collision exists: append `_v2`, `_v3`, etc.
 
 > 僅在 `$FORMAT` 為 `ppt` 或 `all` 時執行。使用與 Stage 2A 相同的 `$RAW_CONTENT` 作為輸入，`$SLUG` 繼承自 Stage 2A。
 
-從 `$RAW_CONTENT` 提取投影片結構 `$STRUCTURE_SLIDES`。
+從 `$RAW_CONTENT` 提取投影片結構 `$STRUCTURE_SLIDES`。**layout 不寫死**：Stage 2B 從 project root 動態讀取 `slide-cores/` 並建立決策表，再以 first-match + positional override 決定每一張投影片的 `layout_type`。
+
+### 讀取 project root slide-cores
+
+讀檔路徑：`{project_root}/slide-cores/*.html`（由 `/baransu:design preset <name>` 複製到 project root；Stage 2B 只讀，不改）。
+
+演算法：
+
+1. 列出 `{project_root}/slide-cores/` 下所有 `.html` 檔。
+2. 對每個 HTML 解析開頭的 YAML front-matter，欄位：
+   - `layout_id`（string，e.g. `"content-bullets"`，與檔名一致）
+   - `applies_to.bullet_count`（range，e.g. `"0"` / `"1-3"` / `"4-5"`）
+   - `applies_to.has_image`（enum：`required` | `optional` | `forbidden`）
+   - `applies_to.role`（enum：`body` | `positional_first` | `positional_last` | `section_divider`）
+   - 可選 `image_slot.{aspect_ratio, object_position, fit}`
+3. 將每筆 `(layout_id, applies_to)` 註冊進**動態決策表**；表的可用 `layout_id` 集合就是 `$STRUCTURE_SLIDES.slides[*].layout_type` 的 enum。
+4. 不寫死 layout 名單 — 9 個 layout 若被刪、被加，決策表隨之變動。
+
+### 決策邏輯（first-match + positional override）
+
+**優先序原則**：positional 規則永遠 rank 高於 content-driven 規則。即使首頁有 1-3 條 bullets 完全匹配 `content-bullets`，仍走 `cover`（位置驅動 > 內容驅動）。
+
+| Row | 條件 | layout_type | role |
+|---|---|---|---|
+| 1 | 位置 = 首頁（固定） | `cover` | positional_first（取 H1 + subtitle） |
+| 2 | 位置 = 末頁（條件式，見下方 CTA/致謝辨識） | `closing` | positional_last |
+| 3 | heading-only（無 body） | `section` | section_divider |
+| 4 | 50 字以內金句 | `quote` | body |
+| 5 | A vs B 對比段 | `compare` | body |
+| 6 | 4-6 個 stat number | `kpi-grid` | body |
+| 7 | 含 inline SVG 或大表 | `data` | body |
+| 8 | 左文右視覺一張圖 | `content-2col` | body |
+| 9 | 1-3 條 bullets | `content-bullets` | body |
+| 10 | 其他（fallback → row 9 同 layout） | `content-bullets` | body |
+
+**Fallback layout**：任何 row 3-9 都不 match 的 body slot，最終 fallback 至 `content-bullets`（row 10 為 row 9 的 alias，不算新 layout）。
+
+**Cover 為首頁固定**：第一張投影片永遠走 `cover`，取 markdown 的 H1 作主標、緊跟其後的引言或副標作 subtitle，無 bullets。
+
+**Closing 為末頁條件式**：依優先序檢查 source 末段是否有以下任一存在：
+
+- (a) markdown link 含動詞「聯絡 / 訂閱 / 下單 / contact / subscribe / cta / book a call」之一；
+- (b) 含「致謝 / Acknowledgement / Thanks」heading；
+- (c) 含 `mailto:` 或聯絡資訊 block。
+
+三者皆無 → row 2 不適用，**closing omit**（不強制插入空 closing），末頁退化至 row 9 (`content-bullets`)。
+
+### 缺檔 / 解析失敗的 graceful degradation
+
+- **`{project_root}/slide-cores/` 不存在或為空**：發出 warning「請先跑 `/baransu:design preset <name>` 取得 slide-cores」，**不中止**；退化為 hardcoded fallback 三 layout 集合 `{cover, closing, content-bullets}`，body slot 一律走 `content-bullets`，cover/closing 仍依 positional rule 套用。
+- **某 slide-core HTML 的 YAML 解析失敗**：warning 該檔名與失敗原因，**將該 layout 從決策表移除**，其他 layout 仍可用；觸發該 layout 的內容退化為 fallback `content-bullets`。
+- 上述兩種降級皆**不中止** Stage 2B，後續 Stage 3 仍正常渲染（GATE-G 在後續 validator 階段視需要 SKIP）。
 
 ### $STRUCTURE_SLIDES schema
 
@@ -193,27 +265,20 @@ interface SlideStructure {
 }
 
 interface Slide {
-  layout_type: 'cover' | 'section' | 'content' | 'data' | 'closing';
+  // 動態 enum：取自決策表已註冊的 layout_id 集合
+  // 完整 preset 下為 cover | section | content-bullets | content-2col | data | kpi-grid | compare | quote | closing
+  // fallback 模式下為 cover | content-bullets | closing
+  layout_type: string;
   heading: string;
-  body_bullets?: string[];  // 用於 content 版型，通常 3-5 條
+  body_bullets?: string[];  // 用於 content-bullets / content-2col，通常 1-3 條
   has_svg?: boolean;        // 若 true，在此 slide 生成 inline SVG
 }
 ```
 
-### 版型說明
-
-| 版型 | 用途 |
-|------|------|
-| `cover` | 封面。大標題 + 副標題 + 可選說明行，無 bullets |
-| `section` | 章節分隔頁。單一大標題居中，背景使用 `--brand-tint` |
-| `content` | 標準內容頁。heading + 3-5 條 body_bullets + 可選 SVG |
-| `data` | 全幅資料 / 圖表頁。heading + 全幅 SVG 或資料表，無 bullets |
-| `closing` | 結語。摘要句 + 可選 CTA，無 bullets |
-
 ### 數量與結構約束
 
 - 總 slide 數量：**6-12 張**
-- 第一張必為 `cover`，最後一張必為 `closing`
+- 第一張固定為 `cover`；末頁依 CTA/致謝辨識決定是否為 `closing`（無則 omit，末頁走 body layout）
 - `heading` 為必填；`body_bullets` 和 `has_svg` 為可選
 
 儲存結果為 `$STRUCTURE_SLIDES`。
@@ -228,10 +293,13 @@ Produces a complete HTML file at `.claude/book/{$SLUG}.html`.
 
 Before generating any HTML:
 
-1. Read `references/golden-template.html` for the exact CSS tokens, component patterns, and SVG conventions.
-2. Read `$CLAUDE_SKILL_DIR/../.././../design/references/paper-preset.md` (or locate `design/references/paper-preset.md` via `find`) for the full Kami design token definitions.
+1. **唯一 token 來源**：讀 `{project_root}/tokens.css`（由 `/baransu:design preset <style>` 寫入；本 skill 只讀，不改）。此規則**同時適用** `--format ppt` 與 `--format html`（long-form Kami 路徑也走同一份 project-root tokens，與 v1.1.22 行為等價）。
+   - 若 `{project_root}/tokens.css` **不存在** → 報錯「請先跑 `/baransu:design preset <style>`（kami 或 swiss）」並**中止 Stage 3**。
+   - **不嘗試**任何 fallback：不走 sibling skill 路徑、不用 `find` 搜尋、不用內建範本。
+   - tokens.css 開頭含 preset 識別註解（`/* preset: kami */` 或 `/* preset: swiss */`），供 Stage 0 解析得到的 `$STYLE` 變數於 GATE-F 做 tie-break 比對。
+2. Read `references/golden-template.html` for the component patterns and SVG conventions that consume the tokens above.
 
-The golden template is a show-by-example contract — every element in the output HTML should have a visual counterpart in the template. Do not invent new CSS patterns; extend only within Kami constraints.
+The golden template is a show-by-example contract — every element in the output HTML should have a visual counterpart in the template. Token values come from `{project_root}/tokens.css`; the template only references them by CSS-variable name. Do not invent new CSS patterns; extend only within the active preset's constraints.
 
 ### 2. Generate HTML structure
 
@@ -283,25 +351,99 @@ For each section from `$STRUCTURE`:
   <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
     <circle cx="1" cy="1" r="0.9" fill="#E3E2DC"/>
   </pattern>
+  <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+    <polygon points="0 0, 8 3, 0 6" fill="#504e49"/>
+  </marker>
+  <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+    <polygon points="0 0, 8 3, 0 6" fill="#1B365D"/>
+  </marker>
+  <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+    <polygon points="0 0, 8 3, 0 6" fill="#1B365D"/>
+  </marker>
 </defs>
+```
+
+#### Marker defs（箭頭走 `<marker>`，三個 id 固定）
+
+**規則**：每張含箭頭的 SVG 必須在 `<defs>` 內定義以下三個 marker，並以 `marker-end="url(#…)"` 引用；不再使用手寫的箭頭 path。
+
+| Marker id | 對應用途 | fill |
+|-----------|----------|------|
+| `arrow` | default（一般 / 內部流向，muted） | `#504e49`（`--olive`） |
+| `arrow-accent` | focal / 主流（brand 色） | `#1B365D`（`--brand`） |
+| `arrow-link` | external / API call / 跨界（可用 brand-light） | `#1B365D` 或 brand-light |
+
+**marker 屬性固定**：`markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"`。
+
+**Why**：marker 由 SVG 引擎管理方向與端點對齊，避免手寫箭頭 path 在 viewBox 縮放下產生對位偏差；同時三個語意分層（一般 / focal / external）才能與「焦點節點 ≤ 2」「跨系統呼叫」這兩條規格在 SVG 層對齊。
+
+**SVG 引用範例**：
+
+```svg
+<line x1="120" y1="80" x2="240" y2="80"
+      stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
+<line x1="120" y1="120" x2="240" y2="120"
+      stroke="#1B365D" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+```
+
+#### 兩層 paper-mask（節點背景與 canvas 底）
+
+**規則**：每張 SVG 在 `<defs>` 後**先後**疊兩層 mask，再開始畫節點與箭頭：
+
+```svg
+<!-- Layer 1（必選）：全幅 paper fill -->
 <rect width="100%" height="100%" fill="#f5f4ed"/>
+<!-- Layer 2（可選）：dotted pattern overlay -->
 <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
 ```
 
-#### 箭頭：chevron path（禁 `<marker orient="auto">`）
+- Layer 1（**強制**）：全幅 `<rect width="100%" height="100%" fill="{paper-token}"/>`，paper-token 走 `--parchment`（`#f5f4ed`）
+- Layer 2（**可選**）：全幅 `<rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>`，僅在長文 / 單頁 hero diagram 採用；產品頁或卡片內嵌時省略以避免紋路堆疊成噪訊
+- **不做三層**：v1 規格明文禁止第三層 mask 堆疊（如 vignette、tint wash）；Unknown #3 留待 v1 dogfood 後再決定是否升級
+
+**Why**：兩層結構讓 SVG 在「畫線之前」就已經有不透明底色，避免箭頭線穿過節點 fill 時 z-order 失控；三層以上會在嵌入 PDF 後與外部背景複合，產生灰階偏移。
+
+#### Type tag（節點左上 7px Geist Mono uppercase）
+
+**規則**：每個節點左上角配置一個 7px uppercase 的小標籤，標示節點類別（如 `API`、`DB`、`EXT`、`CACHE`、`UI`），含 0.8 stroke 細框，使用 Geist Mono 字體與 0.08em letter-spacing。
 
 ```svg
-<path d="M2 1 L8 5 L2 9" fill="none" stroke="#504e49" stroke-width="1.5" stroke-linecap="round"/>
+<!-- 矩形 tag 細框（rx=2，非 pill；0.8 stroke） -->
+<rect x="X+8" y="Y+6" width="28" height="12" rx="2"
+      fill="transparent" stroke="#141413" stroke-opacity="0.40" stroke-width="0.8"/>
+<text x="X+22" y="Y+15" fill="#141413" font-size="7"
+      font-family="'Geist Mono', monospace" text-anchor="middle"
+      letter-spacing="0.08em">API</text>
 ```
+
+**Why**：節點主文字（Geist sans）負責人類可讀名稱，type tag（Geist Mono）負責「這是哪一類元件」的視覺索引；分兩層字體在低資訊密度的 diagram 中仍能保留掃讀路徑。
+
+#### Legend strip（viewBox 底部 ~60px）
+
+**規則**：所有 SVG 在主要節點與箭頭繪製完成後，於 viewBox 底部預留約 60px 高度，放置一條 hairline `<line>` + 水平 legend 條目（每項一個 mini swatch + label），涵蓋該圖實際出現的所有節點類型與箭頭類型：
+
+```svg
+<!-- Hairline 分隔線 -->
+<line x1="30" y1="LEGEND_Y-8" x2="VIEWBOX_W-30" y2="LEGEND_Y-8"
+      stroke="#141413" stroke-opacity="0.10" stroke-width="0.8"/>
+<!-- LEGEND 標題 -->
+<text x="30" y="LEGEND_Y+8" fill="#504e49" font-size="8"
+      font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEGEND</text>
+<!-- Items — 水平排列，~160px 間距，每項一個 swatch + label -->
+```
+
+- **例外**：當 SVG `viewBox` 寬度 < 400px（卡片內嵌、小型 diagram）可省略 legend strip，由內文補充說明替代
+
+**Why**：把圖例放在 diagram 外部（而非節點之間）保留中央區域給結構資訊；hairline 分隔讓 legend 在視覺上歸屬「腳註區」而不是圖的一部分，避免讀者把 swatch 誤認為節點。
 
 #### 抗 slop 精度約束
 
 - 所有座標、寬度、間距必須是 **4 的倍數**
-- 節點寬只有三層：**128 / 144 / 160**
+- 節點寬白名單 **12 檔**：{80, 96, 112, 120, 128, 140, 144, 160, 180, 200, 240, 320}
 - 節點高：**32**（pill）/ **64**（standard）
-- 焦點節點（`--brand` 描邊 + `--brand-tint` 填色）最多 **1-2 個**
+- 焦點節點透過 `data-role="focal"` 屬性標記（**不**用 class），每張 SVG 最多 **2** 個 `data-role="focal"` 節點；焦點節點視覺走 `--brand` 描邊 + `--brand-tint` 填色 + `marker-end="url(#arrow-accent)"`
 - `<text y>` ≥ font-size × 1.2（防文字切頂）
-- 箭頭 endpoint 精確落在節點邊緣
+- 箭頭 endpoint 精確落在節點邊緣（透過 marker `refX="7"` 自動對齊）
 
 #### 嵌入字體校正（嵌入 A4 後 scale ≈ 0.47）
 
@@ -335,6 +477,30 @@ For each section from `$STRUCTURE`:
 | 時間軸 + 里程碑 | Timeline |
 
 > 無法匹配時 → fallback 到 **Architecture**（通用型）。
+
+#### 13 型 selection 表（v1 ref skeleton + status 揭露）
+
+每段含 diagram 的 section 依 Layer 2 從本表 lookup 對應 ref。Status 欄一律對齊各 ref frontmatter：`complete` 表示有可直接重用的 example HTML；`ref-only` 表示僅有 ref 規格、example HTML 待 v2-N 補（renderer fallback 通用 SVG primitives）。
+
+| Type | Best for | Reference | Status |
+|------|----------|-----------|--------|
+| architecture | 系統概覽 / data-flow / 整合 map / infra topology / 元件 + 連線 | `references/diagram-types/type-architecture.md` | `status: complete` |
+| flowchart | 決策邏輯 / 演算法步驟 / "Should I…?" 分支 / onboarding routing / support-triage | `references/diagram-types/type-flowchart.md` | `status: ref-only` |
+| sequence | request/response 流程 / protocol 交握 / 多 actor 互動 / API call trace / 事故重建 | `references/diagram-types/type-sequence.md` | `status: ref-only` |
+| state | 有限狀態邏輯 / order status / auth state / connection lifecycle / form wizard | `references/diagram-types/type-state.md` | `status: ref-only` |
+| er | database schema / API resource 關係 / domain model / aggregate boundary / 跨服務 ownership | `references/diagram-types/type-er.md` | `status: ref-only` |
+| timeline | release 歷史 / project milestone / 事故時間線 / roadmap / changelog | `references/diagram-types/type-timeline.md` | `status: ref-only` |
+| swimlane | 跨職能流程 / RACI flow / vendor handoff / multi-team workflow / 跨團隊責任歸屬 | `references/diagram-types/type-swimlane.md` | `status: ref-only` |
+| quadrant | 優先級排序（Impact × Effort）/ 定位圖 / portfolio map / 2×2 decision / scenario planning | `references/diagram-types/type-quadrant.md` | `status: ref-only` |
+| nested | 透過 containment 表達 hierarchy / scope boundary / CLAUDE.md cascade / trust zone / blast radius | `references/diagram-types/type-nested.md` | `status: ref-only` |
+| tree | org chart / dependency tree / taxonomy / file tree / decision breakdown / skill tree | `references/diagram-types/type-tree.md` | `status: ref-only` |
+| layers | OSI model / CSS cascade / context hierarchy / tech stack / abstraction layer / memory hierarchy | `references/diagram-types/type-layers.md` | `status: ref-only` |
+| venn | 概念交集 / 跨類別共同屬性 / ikigai-style frame / 定位 sweet spot | `references/diagram-types/type-venn.md` | `status: ref-only` |
+| pyramid | hierarchy of needs / prioritization rank / value pyramid / conversion funnel / content importance | `references/diagram-types/type-pyramid.md` | `status: ref-only` |
+
+> `ref-only` 型 fallback 通用 SVG primitives（marker / paper-mask / type tag / legend strip 規格仍生效）；final-report 標 `degraded-type: <type-name>` 告知 v2-N 補 example HTML。
+
+> **Forward note**：v2-N 補 dark/full variant 或新 SVG primitive 時，必須沿用 `design-token-resolver.md` 的 hex shape contract（`^#[0-9a-fA-F]{3,8}$`），不得另開 sink。
 
 ---
 
@@ -372,7 +538,11 @@ python3 -m weasyprint "{patched_html}" ".claude/book/{$SLUG}.pdf"
 
 **步驟一：生成 slide HTML**
 
-依 `$STRUCTURE_SLIDES` 的每個 slide 物件，對應 `references/slide-template.html` 的 5 種版型（cover / section / content / data / closing），生成 slide HTML 檔案：
+依 `$STRUCTURE_SLIDES` 的每個 slide 物件，從 `{project_root}/slide-cores/<layout-id>.html` 讀骨架（`<layout-id>` = Stage 2B 動態決策表結果，例如 `cover.html` / `content-bullets.html` / `closing.html`），生成 slide HTML 檔案。
+
+若 `{project_root}/slide-cores/<layout-id>.html` 缺失（與 Stage 2B graceful-degradation 行為一致）：warning「請先跑 `/baransu:design preset <style>` 取得 slide-cores」，body slot 退化為 hardcoded fallback 三 layout (`cover` / `closing` / `content-bullets`) 的內嵌骨架；不中止 Stage 3。
+
+每張 slide 的輸出規格：
 
 - `<body style="width:960px; height:540px; margin:0; padding:0;">`
 - 每個 slide 包在 `<div class="slide" data-layout="{layout_type}">` 中
@@ -471,7 +641,7 @@ SVG 圖解：{N} 張
 
 ## Constraints
 
-- **Kami only**: all visual elements follow `design/references/paper-preset.md` and `references/golden-template.html`. No inline hex colours; use named CSS variables.
+- **Token source = project root**: all visual elements consume tokens from `{project_root}/tokens.css` (written by `/baransu:design preset <style>`) plus the component patterns in `references/golden-template.html`. No inline hex colours; use named CSS variables.
 - **No new CSS patterns**: every class in the output HTML must exist in the golden-template CSS block. Extend within Kami; don't invent outside it.
 - **SVG required**: a document with 0 SVG diagrams fails the quality gate and must be fixed before completion.
 - **Length cap**: final HTML body ≤ 1800 words. Excess goes into a 延伸閱讀 link block.
@@ -483,4 +653,15 @@ SVG 圖解：{N} 張
 - **SPA / login walls**: X.com, LinkedIn, paywalled pages often fail the proxy cascade. Report the failure clearly; don't silently produce an empty or skeleton page.
 - **markitdown escaped underscores in URLs**: when markitdown converts HTML, it sometimes escapes `_` to `\_` inside image URLs. Run a cleanup pass on all `![...](\url)` patterns before processing.
 - **SVG path closure**: always close `<path>` elements with `/>`; validate-output.ts checks SVG tag balance but not path syntax. Keep SVG shapes simple (lines, rects, circles, ellipses, simple paths).
-- **Kami token lookup**: if `design/references/paper-preset.md` cannot be found via relative path, use `find . -path "*/design/references/paper-preset.md" -not -path "*/cache/*" | head -1` to locate it.
+- **Missing project-root tokens**: if `{project_root}/tokens.css` is absent, Stage 3 aborts with 「請先跑 `/baransu:design preset <style>`（kami 或 swiss）」 — **do not** fall back to `find`, sibling-skill paths, or built-in templates.
+
+## Validator 分工
+
+- `scripts/validate-output.ts`：負責輸出層（output HTML）的 set membership 與 prefix 一致性，含 GATE A-E (SVG 既有規則) / GATE-F (class prefix `kami-*` / `swiss-*` 不混 + tokens.css preset tie-break) / GATE-G (`data-layout` 必對應 `{project_root}/slide-cores/` 實存檔)。**信任** `/design` 端 `check.py` 已 lint 過 slide-core artifact 內部結構，本驗證不重做 per-file lint。
+- 對應 `/design` 端見 `plugins/baransu/skills/design/scripts/check.py` 的 artifact-internal lint 規則。
+
+## REQ-003 Scenario 2 automated evidence
+
+- Fixture: `scripts/validate-fixtures/swiss-positive.html` — a hand-written swiss-style slide HTML that mirrors the shape `/book` Stage 3 emits under `--format ppt --style swiss`（body 960pt×540pt、`data-layout="content-bullets"` / `quote`、所有 class `swiss-*`、無 hard-fail 違反）。
+- Smoke runner: `scripts/swiss-smoke-test.sh` — Stage 1 跑 `validate-output.ts` 對 fixture（預期全綠，GATE-C/GATE-G 因 viewBox 高度與 project root 無 `slide-cores/` 而 SKIP）；Stage 2 在 `pptxgenjs` + `playwright` 已安裝時跑 `html2pptx.js`，並用 `python3 zipfile` 確認 `.pptx` 是合法 zip 且含 `ppt/presentation.xml` + `[Content_Types].xml`。依賴未裝時 Stage 2 SKIP（`--strict` 改為 FAIL）。
+- 用途：作為 REQ-003 S2「文件可在 PowerPoint 打開」的最小自動化證據起點。要做完整 PowerPoint round-trip 須先 `npx tsx scripts/install-deps.ts --format ppt`。

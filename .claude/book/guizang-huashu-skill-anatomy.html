@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>guizang × huashu — PPT/設計 skill 的哲學、理念與工具對照</title>
+<style>
+  :root {
+    --parchment:         #f5f4ed;
+    --ivory:             #faf9f5;
+    --warm-sand:         #e8e6dc;
+    --dark-surface:      #30302e;
+    --deep-dark:         #141413;
+    --brand:             #1B365D;
+    --brand-light:       #2D5A8A;
+    --near-black:        #141413;
+    --dark-warm:         #3d3d3a;
+    --olive:             #504e49;
+    --stone:             #6b6a64;
+    --charcoal:          #4d4c48;
+    --border:            #e8e6dc;
+    --border-soft:       #e5e3d8;
+    --brand-tint:        #EEF2F7;
+    --brand-tint-strong: #E4ECF5;
+    --line:              #e5e3d8;
+    --hover:             #e8e6dc;
+    --accent-bg:         #EEF2F7;
+    --warm-bg:           #f1ece4;
+    --warn-border:       #b05c28;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--parchment);
+    font-family: 'TsangerJinKai02','Noto Serif TC','Source Han Serif TC',
+                 Charter, Georgia, 'Palatino Linotype', serif;
+    color: var(--near-black);
+    line-height: 1.75;
+    font-size: 16px;
+  }
+
+  .paper {
+    background: var(--ivory);
+    max-width: 760px;
+    margin: 40px auto 80px;
+    padding: 64px 72px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08), 0 12px 40px rgba(0,0,0,.06);
+    border-radius: 2px;
+    position: relative;
+  }
+  .paper::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 52px;
+    width: 1px; height: 100%;
+    background: var(--border-soft);
+  }
+
+  .toc-wrap {
+    position: fixed;
+    top: 48px;
+    left: calc(50% - 380px - 200px);
+    width: 180px;
+    display: none;
+  }
+  @media (min-width: 1160px) { .toc-wrap { display: block; } }
+  .toc-wrap h3 {
+    font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--stone); margin-bottom: 10px; font-family: sans-serif;
+  }
+  .toc-wrap a {
+    display: block; padding: 3px 0 3px 8px;
+    font-size: 12.5px; line-height: 1.55;
+    font-family: sans-serif; text-decoration: none;
+    color: var(--olive);
+    border-left: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+  }
+  .toc-wrap a:hover, .toc-wrap a.active {
+    color: var(--brand); border-left-color: var(--brand);
+  }
+
+  .kicker {
+    font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--brand); margin-bottom: 14px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+  }
+  h1 {
+    font-size: 28px; font-weight: 700; line-height: 1.25;
+    letter-spacing: -.01em; margin-bottom: 12px;
+  }
+  .subtitle {
+    font-size: 15.5px; color: var(--dark-warm);
+    margin-bottom: 32px; padding-bottom: 32px;
+    border-bottom: 1px solid var(--line);
+  }
+  .meta {
+    display: block; margin-top: 6px;
+    font-size: 12px; color: var(--stone);
+    font-family: sans-serif;
+  }
+
+  section { margin-bottom: 52px; }
+  section:last-of-type { margin-bottom: 0; }
+
+  h2 {
+    font-size: 18px; font-weight: 700;
+    margin-bottom: 16px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .sec-num {
+    font-size: 10px; font-weight: 600; letter-spacing: .08em;
+    font-family: sans-serif;
+    color: var(--brand); background: var(--accent-bg);
+    padding: 2px 8px; border-radius: 20px; flex-shrink: 0;
+  }
+
+  p { margin-bottom: 14px; }
+  p:last-child { margin-bottom: 0; }
+  strong { font-weight: 700; }
+
+  .callout {
+    background: var(--accent-bg);
+    border-left: 3px solid var(--brand);
+    padding: 14px 18px; margin: 20px 0;
+    font-size: 14.5px;
+    border-radius: 0 4px 4px 0;
+  }
+  .callout.warm {
+    background: var(--warm-bg);
+    border-left-color: var(--warn-border);
+  }
+
+  figure.diagram { margin: 28px 0; text-align: center; }
+  figure.diagram figcaption {
+    font-size: 12px; color: var(--stone);
+    margin-top: 8px; font-style: italic;
+    font-family: sans-serif;
+  }
+  svg { display: block; margin: 0 auto; max-width: 100%; }
+
+  table.cmp {
+    width: 100%; border-collapse: collapse;
+    font-size: 14px; margin: 20px 0;
+  }
+  table.cmp th {
+    padding: 8px 14px; text-align: left;
+    font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+    font-family: sans-serif;
+    background: var(--hover); color: var(--olive);
+  }
+  table.cmp td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  table.cmp tr:last-child td { border-bottom: none; }
+  .badge {
+    display: inline-block; font-size: 10px; letter-spacing: .04em;
+    padding: 1px 7px; border-radius: 3px; vertical-align: middle; margin-left: 4px;
+    font-family: sans-serif;
+  }
+  .badge.yes { background: var(--accent-bg); color: var(--brand); }
+  .badge.no  { background: var(--hover); color: var(--stone); }
+
+  .card-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 20px 0;
+  }
+  .card {
+    border: 1px solid var(--line); border-radius: 6px;
+    padding: 16px 18px;
+    transition: box-shadow .15s, transform .15s;
+  }
+  .card:hover {
+    box-shadow: 0 4px 12px rgba(20,20,19,0.10);
+    transform: translateY(-1px);
+  }
+  .card h3 {
+    font-size: 13px; font-weight: 700; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .card p { font-size: 13px; color: var(--dark-warm); margin: 0; }
+  .card .icon {
+    width: 22px; height: 22px; border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; flex-shrink: 0;
+    background: var(--accent-bg); color: var(--brand);
+  }
+
+  footer {
+    margin-top: 52px; padding-top: 24px;
+    border-top: 1px solid var(--line);
+    font-size: 12px; color: var(--stone);
+    font-family: sans-serif;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  @media (max-width: 640px) {
+    .paper { padding: 40px 28px; margin: 0; border-radius: 0; }
+    .paper::before { left: 20px; }
+    .card-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="toc-wrap" id="toc">
+  <h3>目錄</h3>
+  <a href="#s1">共同哲學底座</a>
+  <a href="#s2">guizang 的硬鎖死</a>
+  <a href="#s3">huashu 的哲學注入</a>
+  <a href="#s4">共通的處理手法</a>
+  <a href="#s5">工具與腳本盤點</a>
+  <a href="#s6">給 /book 的啟示</a>
+</nav>
+
+<article class="paper">
+
+  <header>
+    <p class="kicker">SKILL ANATOMY</p>
+    <h1>guizang × huashu — PPT/設計 skill 的哲學、理念與工具對照</h1>
+    <p class="subtitle">
+      把兩份 HTML-native 簡報/設計 skill 拆到最骨架，看清「為什麼別人的 PPT 比較好看」背後的結構決定。
+      <span class="meta">來源：op7418/guizang-ppt-skill · alchaincyf/huashu-design · 2026-05-12</span>
+    </p>
+  </header>
+
+  <section id="s1">
+    <h2><span class="sec-num">01</span>共同哲學底座</h2>
+
+    <p>兩份 skill 雖然定位不同——guizang 專做網頁 PPT，huashu 涵蓋原型／動畫／簡報／評審——但對「為什麼 AI 默認的設計醜」這件事，給出了驚人一致的答案：<strong>AI 默認產出 = 訓練語料的視覺平均 = 沒有任何品牌被認出來</strong>。要繞開這個陷阱，靠的不是更好的審美，而是「在生成之前先收窄選擇空間」。</p>
+
+    <p>從這個共識出發，兩份 skill 都同意三件事。<strong>第一</strong>，凭空做 hi-fi 是 last resort，一定要先找到「上下文」——guizang 是七問澄清裡的素材／圖片／主題色，huashu 是 Core Asset Protocol 的 logo／產品圖／UI／色值五件套。<strong>第二</strong>，沒有上下文就不要硬畫，宁可停下問用戶，或用「誠實 placeholder」（灰塊 + 文字標籤）佔位，不要用 CSS 剪影、SVG 手畫、generic 渐变來凑。<strong>第三</strong>，把所有臨場決策做成檔案——guizang 寫進 `項目記錄.md` / `大綱-v1.md`，huashu 寫進 `brand-spec.md` / `product-facts.md`——agent 自己不能信任自己的記憶。</p>
+
+    <div class="callout">
+      <strong>共同根 axiom：</strong>視覺品質的瓶頸不是「能不能畫得好看」，而是「能不能避開所有 AI 默認模式」。反 slop 不是審美洁癖，是替用戶保護品牌識別度。
+    </div>
+  </section>
+
+  <section id="s2">
+    <h2><span class="sec-num">02</span>guizang 的理念：單一場景的硬鎖死</h2>
+
+    <p>guizang 把整個 skill 收斂在一件事上——做網頁 PPT。能收這麼緊，是因為它選擇了「以原始 PPT 為 Golden Source」的策略：`swiss-layout-lock.md` 直接寫上作者本機路徑 `/Users/guohao/Documents/op7418的仓库/项目/Thin-Harness-Fat-Skills/ppt/index.html`，22 個 Swiss 版式都從這份原始檔反推，<strong>不允許在 LLM 端發明新版式</strong>。</p>
+
+    <p>這套理念把「視覺品質」轉成「結構服從」問題。每個 `<section class="slide">` 必須標 `data-layout="Sxx"`；每個版式表寫明「必須保留的骨架 / 圖片規則 / 圖片比例」；配套的 `scripts/validate-swiss-deck.mjs` 機器校驗會攔截未登記版式、SVG 內含可見文字、`object-position:top center` 用於照片等違規。`checklist.md` 524 行則沉澱了三層 P0/P1/P2 質檢項，每條都有「現象 → 根因 → 做法」三欄結構——0-A 那條畫布對齊法則甚至精確到「`.canvas-card` 已自帶 padding，主體區再寫 padding 就會內縮重複 5vw」。</p>
+
+    <p>主題色也走「整套替換」協議：`themes-swiss.md` 規定每套配色都遵循「高級灰白底 + 單一高飽和高亮色」（IKB / 檸黃 / 檸綠 / 安全橙），<strong>明文禁止混搭多個 accent</strong>；換主題只動 `:root{}` 區塊裡的十個 CSS variables（`--paper / --ink / --accent / ...`），其他 CSS 都走 `var(--...)`，零額外改動。</p>
+  </section>
+
+  <section id="s3">
+    <h2><span class="sec-num">03</span>huashu 的理念：多場景 + 哲學注入</h2>
+
+    <p>huashu 走相反方向——一個 skill 蓋住原型／動畫／簡報／變體／評審五大場景，靠的是把「哲學」寫進 SKILL.md 主體，作為決策樹的優先級。最上層是 <strong>Principle #0 Fact Verification First</strong>：凌駕所有其他流程，提到具體產品/技術必先 `WebSearch` 驗證版本與規格，禁止句式「我記得 X 還沒發布」「據我所知 X 的規格是...」明文列出。這條原則是 2026-04-20 的真實事故沉澱：作者凭記憶以為 DJI Pocket 4 沒發布，做了概念剪影動畫，結果產品 4 天前剛發布。</p>
+
+    <p>第二層是 <strong>核心資產協議</strong>（v1.1 從「品牌資產」升級）：5 步硬流程 ask → search → download → verify → freeze，每步都有 fallback。協議的核心理念是「資產 &gt; 規範」——品牌的本質是被認出來，logo / 產品圖 / UI 截圖的識別度貢獻遠大於色值與字體。協議另含「5-10-2-8」素材鐵律：5 輪搜索 / 10 個候選 / 選 2 個好的 / 每個 ≥8/10 分。作者揭露 A/B 測試結果：v2 協議讓 6 個 agent 的穩定性方差降 5 倍。</p>
+
+    <p>再往下是 <strong>Junior Designer 模式</strong>——先寫 assumption + reasoning + placeholders 進 HTML、早期 show 給用戶、確認方向後再填真內容、再 show、再迭代細節。原則一句話：「理解錯了早改比晚改便宜 100 倍」。</p>
+
+    <div class="callout warm">
+      <strong>差異化視角：</strong>guizang 用「鎖死版式」減少選擇；huashu 用「優先級哲學」收窄判斷。前者適合單一場景做深，後者適合多場景做廣。
+    </div>
+  </section>
+
+  <section id="s4">
+    <h2><span class="sec-num">04</span>共通的處理手法</h2>
+
+    <p>剝掉差異看共通：兩份 skill 在五個層面用了幾乎一樣的結構模式。</p>
+
+    <p><strong>檔案組織</strong>都是「`SKILL.md` 路由 + `references/*.md` 深度規則 + `scripts/*` 工具 + `assets/*` 模板」四層分離。SKILL.md 不放執行細節，靠 references 拆檔避免 context bloat：guizang 8 檔（layouts / themes / components / image-prompts / checklist / swiss-layout-lock）、huashu 21 檔（簡報 / 動畫 / 影音 / 工作流 / 評審五大類）。</p>
+
+    <p><strong>動手前先閘門</strong>——guizang 是 Step 1 七問澄清（風格、受眾、時長、素材、圖片、主題色、硬約束），huashu 是 workflow.md 五類必問（Design Context / Variations / Fidelity & Scope / Tweaks / 問題專屬 4+ 條）。兩者都強調「一次列完讓用戶批量答」，不要一來一回問。</p>
+
+    <p><strong>圖片不能憑生成式直覺處理</strong>——guizang 的「先選槽位再生成圖片」、huashu 的「Core Asset Protocol」、雙方共用的「禁止 CSS 剪影代替真實產品圖」鐵律，都把圖片視為比文字更敏感的議題。提示詞都有固定的負面尾巴：no title, no footer, no page chrome, no logo, no border。</p>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="兩份 skill 的共同骨架">
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#504e49"/>
+          </marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#1B365D"/>
+          </marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#2D5A8A"/>
+          </marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#f5f4ed"/>
+
+        <!-- Edges first -->
+        <!-- SKILL.md → references (default) -->
+        <line x1="280" y1="180" x2="380" y2="180"
+              stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <!-- SKILL.md → assets (link/external) -->
+        <line x1="280" y1="280" x2="380" y2="280"
+              stroke="#2D5A8A" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+        <!-- SKILL.md → scripts (focal) -->
+        <line x1="280" y1="380" x2="380" y2="380"
+              stroke="#1B365D" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+        <!-- assets → output -->
+        <line x1="540" y1="280" x2="700" y2="280"
+              stroke="#2D5A8A" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+        <!-- scripts → output (focal flow: validator gate) -->
+        <line x1="540" y1="380" x2="700" y2="320"
+              stroke="#1B365D" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+        <!-- references → output -->
+        <line x1="540" y1="180" x2="700" y2="240"
+              stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- Nodes -->
+        <!-- SKILL.md (focal) -->
+        <rect x="120" y="240" width="160" height="80" rx="6" fill="#f5f4ed"/>
+        <rect data-role="focal" x="120" y="240" width="160" height="80" rx="6"
+              fill="#EEF2F7" stroke="#1B365D" stroke-width="1.4"/>
+        <rect x="128" y="248" width="40" height="12" rx="2"
+              fill="transparent" stroke="#1B365D" stroke-width="0.8"/>
+        <text x="148" y="257" fill="#1B365D" font-size="7"
+              font-family="'Geist Mono', ui-monospace, monospace"
+              text-anchor="middle" letter-spacing="0.08em">ROUTER</text>
+        <text x="200" y="285" fill="#141413" font-size="13" font-weight="600"
+              font-family="'Geist', system-ui, sans-serif"
+              text-anchor="middle">SKILL.md</text>
+        <text x="200" y="302" fill="#504e49" font-size="9"
+              font-family="'Geist Mono', ui-monospace, monospace"
+              text-anchor="middle">decision tree</text>
+
+        <!-- references/ -->
+        <rect x="380" y="140" width="160" height="80" rx="6" fill="#f5f4ed"/>
+        <rect x="380" y="140" width="160" height="80" rx="6"
+              fill="#ebeae5" stroke="#6b6a64" stroke-width="1"/>
+        <rect x="388" y="148" width="34" height="12" rx="2"
+              fill="transparent" stroke="#6b6a64" stroke-width="0.8"/>
+        <text x="405" y="157" fill="#6b6a64" font-size="7"
+              font-family="'Geist Mono', ui-monospace, monospace"
+              text-anchor="middle" letter-spacing="0.08em">DOCS</text>
+        <text x="460" y="185" fill="#141413" font-size="13" font-weight="600"
+              font-family="'Geist', system-ui, sans-serif"
+              text-anchor="middle">references/</text>
+        <text x="460" y="202" fill="#504e49" font-size="9"
+              font-family="'Geist Mono', ui-monospace, monospace"
+              text-anchor="middle">deep rules</text>
+
+        <!-- assets/ -->
+        <rect x="380" y="240" width="160" height="80" rx="6" fill="#f5f4ed"/>
+        <rect x="380" y="240" width="160" height="80" rx="6"
+              fill="#f1f0eb" stroke="#6b6a64" stroke-width="1"/>
+        <rect x="388" y="248" width="34" height="12" rx="2"
+              fill="transparent" stroke="#6b6a64" stroke-width="0.8"/>
+        <text x="405" y="257" fill="#6b6a64" font-size="7"
+              font-family="'Geist Mono', ui-monospace, monospace"
+              text-anchor="middle" letter-spacing="0.08em">ASSET</text>
+        <text x="460" y="285" fill="#141413" font-size="13" font-weight="600"
+              font-family="'Geist', system-ui, sans-serif"
+              text-anchor="middle">assets/</text>
+        <text x="460" y="302" fill="#504e49" font-size="9"
+              font-family="'Geist Mono', ui-monospace, monospace"
+              text-anchor="middle">templates · components</text>
+
+        <!-- scripts/ (focal — validator gate) -->
+        <rect x="380" y="340" width="160" height="80" rx="6" fill="#f5f4ed"/>
+        <rect data-role="focal" x="380" y="340" width="160" height="80" rx="6"
+              fill="#EEF2F7" stroke="#1B365D" stroke-width="1.4"/>
+        <rect x="388" y="348" width="34" height="12" rx="2"
+              fill="transparent" stroke="#1B365D" stroke-width="0.8"/>
+        <text x="405" y="357" fill="#1B365D" font-size="7"
+              font-family="'Geist Mono', ui-monospace, monospace"
+              text-anchor="middle" letter-spacing="0.08em">GATE</text>
+        <text x="460" y="385" fill="#141413" font-size="13" font-weight="600"
+              font-family="'Geist', system-ui, sans-serif"
+              text-anchor="middle">scripts/</text>
+        <text x="460" y="402" fill="#504e49" font-size="9"
+              font-family="'Geist Mono', ui-monospace, monospace"
+              text-anchor="middle">validate · export</text>
+
+        <!-- output -->
+        <rect x="700" y="240" width="200" height="120" rx="6" fill="#f5f4ed"/>
+        <rect x="700" y="240" width="200" height="120" rx="6"
+              fill="#ebeae5" stroke="#504e49" stroke-width="1"/>
+        <rect x="708" y="248" width="42" height="12" rx="2"
+              fill="transparent" stroke="#504e49" stroke-width="0.8"/>
+        <text x="729" y="257" fill="#504e49" font-size="7"
+              font-family="'Geist Mono', ui-monospace, monospace"
+              text-anchor="middle" letter-spacing="0.08em">OUTPUT</text>
+        <text x="800" y="295" fill="#141413" font-size="14" font-weight="600"
+              font-family="'Geist', system-ui, sans-serif"
+              text-anchor="middle">HTML deck</text>
+        <text x="800" y="315" fill="#504e49" font-size="9"
+              font-family="'Geist Mono', ui-monospace, monospace"
+              text-anchor="middle">+ PDF · PPTX · MP4</text>
+
+        <!-- Legend strip -->
+        <line x1="60" y1="540" x2="940" y2="540"
+              stroke="#e5e3d8" stroke-width="1"/>
+        <text x="60" y="558" fill="#141413" font-size="9" font-weight="500"
+              font-family="'Geist Mono', ui-monospace, monospace"
+              letter-spacing="0.12em">LEGEND</text>
+
+        <rect x="140" y="550" width="14" height="10" rx="2"
+              fill="#ebeae5" stroke="#6b6a64" stroke-width="1"/>
+        <text x="160" y="559" fill="#504e49" font-size="9"
+              font-family="'Geist', system-ui, sans-serif">Plain module</text>
+
+        <rect x="280" y="550" width="14" height="10" rx="2"
+              fill="#EEF2F7" stroke="#1B365D" stroke-width="1.2"/>
+        <text x="300" y="559" fill="#504e49" font-size="9"
+              font-family="'Geist', system-ui, sans-serif">Focal (router · gate)</text>
+
+        <line x1="460" y1="555" x2="478" y2="555"
+              stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <text x="484" y="559" fill="#504e49" font-size="9"
+              font-family="'Geist', system-ui, sans-serif">Reads</text>
+
+        <line x1="560" y1="555" x2="578" y2="555"
+              stroke="#1B365D" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+        <text x="584" y="559" fill="#504e49" font-size="9"
+              font-family="'Geist', system-ui, sans-serif">Validates</text>
+
+        <line x1="680" y1="555" x2="698" y2="555"
+              stroke="#2D5A8A" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+        <text x="704" y="559" fill="#504e49" font-size="9"
+              font-family="'Geist', system-ui, sans-serif">Emits / Uses</text>
+      </svg>
+      <figcaption>圖：guizang 與 huashu 共用的四層 skill 骨架（SKILL.md 路由 → references 深度 → assets 模板 → scripts 閘門 → output）</figcaption>
+    </figure>
+
+    <p><strong>生成後一定要驗</strong>——guizang 的 `validate-swiss-deck.mjs` 跟 huashu 的 `verify.py`（Playwright 控制台錯誤 + 截圖 + 多視口）方向不同，但都把「自動驗證」當成必經閘門，不允許「生成完就交付」。</p>
+
+    <p><strong>把規則寫成檔案而非提示詞</strong>——兩份 skill 都把「過去踩過的坑」沉澱成 markdown，下次 agent 跑同一條路就會被檔案約束。這是兩者唯一的「自我演化機制」。</p>
+  </section>
+
+  <section id="s5">
+    <h2><span class="sec-num">05</span>工具與腳本盤點</h2>
+
+    <p>兩份 skill 的 `scripts/` 與 `assets/` 揭露了他們最在意的工程化能力。</p>
+
+    <table class="cmp">
+      <thead>
+        <tr>
+          <th>能力</th>
+          <th>guizang</th>
+          <th>huashu</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>版式驗證</td>
+          <td>scripts/validate-swiss-deck.mjs</td>
+          <td>（無對應；Playwright click test）</td>
+        </tr>
+        <tr>
+          <td>HTML → PDF</td>
+          <td>瀏覽器列印</td>
+          <td>scripts/export_deck_pdf.mjs · export_deck_stage_pdf.mjs</td>
+        </tr>
+        <tr>
+          <td>HTML → 可編輯 PPTX</td>
+          <td>—</td>
+          <td>scripts/html2pptx.js · export_deck_pptx.mjs（4 條硬約束）</td>
+        </tr>
+        <tr>
+          <td>HTML → MP4 / GIF</td>
+          <td>—</td>
+          <td>scripts/render-video.js · convert-formats.sh · add-music.sh</td>
+        </tr>
+        <tr>
+          <td>解說配音</td>
+          <td>—</td>
+          <td>scripts/tts-doubao.mjs · narrate-pipeline.mjs · mix-voiceover.sh</td>
+        </tr>
+        <tr>
+          <td>視覺驗證</td>
+          <td>—</td>
+          <td>scripts/verify.py（Playwright 截圖 + 控制台檢查）</td>
+        </tr>
+        <tr>
+          <td>模板基底</td>
+          <td>assets/template.html · template-swiss.html</td>
+          <td>assets/deck_stage.js（單檔）· deck_index.html（多檔）</td>
+        </tr>
+        <tr>
+          <td>裝置邊框</td>
+          <td>—</td>
+          <td>assets/ios_frame.jsx · android_frame.jsx · macos_window.jsx · browser_window.jsx</td>
+        </tr>
+        <tr>
+          <td>動畫引擎</td>
+          <td>Motion One（CDN）</td>
+          <td>assets/animations.jsx（Stage + Sprite + Easing + interpolate）</td>
+        </tr>
+        <tr>
+          <td>預製樣例</td>
+          <td>—</td>
+          <td>assets/showcases/（8 場景 × 3 風格 = 24 個）</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>差異不只是「huashu 比較多功能」——而是<strong>兩種策略路徑</strong>。guizang 把所有工程化壓在「版式驗證」一支腳本上，因為它的視覺品質完全靠「服從版式」實現；huashu 把工程化攤平到視覺驗證、PDF/PPT/MP4/GIF 多格式導出、配音 pipeline，因為它要的是「視覺自由 + 多場景交付」。</p>
+  </section>
+
+  <section id="s6">
+    <h2><span class="sec-num">06</span>給 /book 的啟示</h2>
+
+    <p>對照下來，`/book` 的 PPT 不好看，可以拆成四個結構性缺口，每個都有對應的補丁來源。</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <h3><span class="icon">1</span>版式登記制</h3>
+        <p>當前 §6 只 5 個版型，未鎖定。借 guizang `data-layout="Sxx"` + validator，把 `references/slide-template.html` 擴成 10+ layout catalog。</p>
+      </div>
+      <div class="card">
+        <h3><span class="icon">2</span>配圖規格化</h3>
+        <p>當前 PPT pipeline 對配圖零規範。新開 `references/slide-image-prompts.md`，定每版型的比例 / 提示詞模板 / object-position 規則。</p>
+      </div>
+      <div class="card">
+        <h3><span class="icon">3</span>P0 checklist</h3>
+        <p>當前 validator 只查元素是否存在。新開 `references/slide-checklist.md`，沉澱每次踩坑成「現象 / 根因 / 做法」三欄。</p>
+      </div>
+      <div class="card">
+        <h3><span class="icon">4</span>編輯版 PPTX</h3>
+        <p>當前 html2pptx 沒驗 4 條硬約束。借 huashu 寫法：DIV 不裝文字、不用渐变、background 與 text frame 分層、不用 background-image。</p>
+      </div>
+    </div>
+
+    <p>優先序：版式登記 → 配圖規格 → P0 checklist → 編輯版 PPTX。前兩項是結構性硬約束，做完馬上能看到輸出品質提升；後兩項是抓長尾與差異化，可分批迭代。</p>
+
+    <div class="callout">
+      <strong>最終一句：</strong>guizang 教我們「視覺品質 = 結構服從」，huashu 教我們「結構服從之前要先選對結構」。對 /book 來說，這兩個層次要一起補才能往前走。
+    </div>
+  </section>
+
+  <footer>
+    <span>整理自 guizang-ppt-skill · huashu-design · baransu/book SKILL.md</span>
+    <span>2026-05-12</span>
+  </footer>
+
+</article>
+
+<script>
+  const sections = document.querySelectorAll('section[id]');
+  const links    = document.querySelectorAll('.toc-wrap a');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      links.forEach(l => l.classList.remove('active'));
+      const lnk = document.querySelector(`.toc-wrap a[href="#${e.target.id}"]`);
+      if (lnk) lnk.classList.add('active');
+    });
+  }, { threshold: 0.35 });
+  sections.forEach(s => io.observe(s));
+</script>
+</body>
+</html>

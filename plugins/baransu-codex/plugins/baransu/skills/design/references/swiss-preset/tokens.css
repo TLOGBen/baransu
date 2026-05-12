@@ -1,0 +1,99 @@
+/* preset: swiss */
+/* Swiss (IKB) Preset — CSS Design Tokens
+   Drop this into any project or @import it in your main stylesheet.
+   All values match references/swiss-preset/DESIGN.md exactly.
+   Philosophy: Swiss International Style — neutral paper, single high-saturation accent (IKB). */
+
+:root {
+  /* ── Surface ─────────────────────────────── */
+  --paper:           #fafaf8;  /* page background — neutral off-white, never pure white */
+  --ink:             #0a0a0a;  /* primary text — near-black, never pure black */
+  --surface:         #f2f2ef;  /* cards, lifted containers */
+  --surface-strong:  #e6e5e0;  /* buttons, interactive surfaces */
+  --dark-surface:    #1a1a1a;  /* dark containers */
+  --deep-dark:       #0a0a0a;  /* dark page background */
+
+  /* ── Accent (IKB — sole chromatic, ≤5% surface) ─── */
+  --accent:          #002FA7;  /* International Klein Blue (IKB); the only accent */
+  --accent-on:       #ffffff;  /* foreground on --accent fills (text/icons) */
+
+  /* ── Text hierarchy ──────────────────────── */
+  --text-primary:    #0a0a0a;  /* body and headings */
+  --text-secondary:  #3a3a3a;  /* secondary text, table headers */
+  --text-muted:      #5c5c5c;  /* tertiary, captions */
+  --text-faint:      #8a8a8a;  /* metadata, placeholder */
+
+  /* ── Borders ─────────────────────────────── */
+  --border:          #d9d9d4;  /* primary border / divider */
+  --border-soft:     #e6e5e0;  /* secondary border / row separator */
+
+  /* ── Typography (sans-serif only — Swiss invariant) ─── */
+  --font-sans: 'Inter', 'Helvetica Neue', 'Noto Sans TC', sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', Consolas, Monaco, monospace;
+
+  /* ── Depth (ring / whisper only — no hard shadows) ─── */
+  --shadow-ring:    0 0 0 1px var(--border);
+  --shadow-whisper: 0 4px 24px var(--surface-strong);
+
+  /* ── Spacing (4pt grid — Swiss rigor) ─── */
+  --space-xs:  4px;
+  --space-sm:  8px;
+  --space-md: 12px;
+  --space-lg: 20px;
+  --space-xl: 32px;
+  --space-2xl:56px;
+  --space-3xl:96px;
+
+  /* ── Radius scale (Swiss leans flat; soft corners only at small sizes) ─── */
+  --radius-xs:  0px;
+  --radius-sm:  2px;
+  --radius-md:  4px;   /* default */
+  --radius-lg:  8px;
+  --radius-xl: 12px;
+  --radius-2xl:16px;
+  --radius-hero:24px;
+
+  /* ── Preset-level layout variables (P0-1 exceptions) ─── */
+  --cover-title-align: left;     /* Swiss covers align flush-left */
+  --section-title-align: left;
+  --grid-columns: 12;
+  --grid-gutter: 24px;
+}
+
+/* ── Base reset (minimal, Swiss-safe) ─────────────────────── */
+body {
+  background: var(--paper);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Heading weight: Swiss allows 500/600/700 but locks ≤700; default 500 */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+h1 { font-size: 2.25rem; line-height: 1.15; }
+h2 { font-size: 1.5rem;  line-height: 1.25; }
+h3 { font-size: 1.25rem; line-height: 1.30; }
+
+/* No italics — Kami-portable invariant (Swiss also avoids them) */
+em, i { font-style: normal; font-weight: 500; }
+
+/* Links */
+a { color: var(--accent); text-decoration-color: var(--border); }
+a:hover { text-decoration-color: var(--accent); }
+
+code, pre {
+  font-family: var(--font-mono);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+code { padding: 0.1em 0.4em; font-size: 0.875em; }
+pre  { padding: 1rem 1.25rem; font-size: 0.875em; line-height: 1.55; overflow-x: auto; }

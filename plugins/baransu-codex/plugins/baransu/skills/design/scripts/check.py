@@ -58,6 +58,15 @@ _SHADOW     = re.compile(
 )
 _HEX        = re.compile(r'#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b')
 
+# Boundary-aware: matches the standalone CSS keyword "serif" but NOT "sans-serif".
+# A negative lookbehind on "sans-" handles the canonical fallback. The trailing
+# boundary accepts comma, semicolon, whitespace, or end of value.
+_SERIF_KW   = re.compile(r'(?<!sans-)\bserif\b', re.I)
+
+_DATA_LAYOUT = re.compile(r'\bdata-layout\s*=\s*["\']', re.I)
+_CLASS_ATTR  = re.compile(r'\bclass\s*=\s*"([^"]*)"|\bclass\s*=\s*\'([^\']*)\'', re.I)
+_FIGCAPTION  = re.compile(r'<\s*figcaption\b', re.I)
+
 
 def _norm_hex(h: str) -> str:
     h = h.lower().lstrip('#')
@@ -73,8 +82,206 @@ def load_rules(path: Path) -> dict:
         sys.exit(2)
 
 
+def _make_finding(path: Path, inv: int, name: str, msg: str,
+                  lineno: int, snippet: str) -> dict:
+    return {
+        'file': str(path), 'line': lineno,
+        'inv': inv, 'name': name,
+        'msg': msg, 'snippet': snippet.strip()[:80],
+    }
+
+
+def _check_swiss_tokens_css(path: Path, text: str) -> list[dict]:
+    """Lint a swiss-preset/tokens.css file against three structural invariants.
+
+    Rules (single-file scope — no cross-file consistency, see GATE-G):
+      (a) First non-empty line MUST contain `/* preset: swiss */`.
+      (b) `--accent` custom property MUST be defined.
+      (c) Font-stack values MUST NOT contain the bare `serif` keyword.
+          The `sans-serif` fallback is allowed (boundary-aware regex).
+    """
+    findings: list[dict] = []
+    lines = text.splitlines()
+
+    # (a) preset comment must appear in the first non-empty line.
+    first_nonempty_idx = next((i for i, ln in enumerate(lines) if ln.strip()), None)
+    if first_nonempty_idx is None:
+        findings.append(_make_finding(
+            path, 20, 'swiss-preset-comment',
+            'swiss preset 缺 `/* preset: swiss */` 首行註解（檔案為空）',
+            1, ''))
+    else:
+        first = lines[first_nonempty_idx]
+        if '/* preset: swiss */' not in first:
+            findings.append(_make_finding(
+                path, 20, 'swiss-preset-comment',
+                'swiss preset 缺首行 `/* preset: swiss */` 識別註解',
+                first_nonempty_idx + 1, first))
+
+    # (b) --accent definition must exist.
+    accent_re = re.compile(r'--accent\s*:')
+    if not any(accent_re.search(ln) for ln in lines):
+        # Report at line 1 since the token is globally missing.
+        findings.append(_make_finding(
+            path, 21, 'swiss-accent-token',
+            'swiss preset 缺 --accent token 定義（IKB blue 必備）',
+            1, lines[0] if lines else ''))
+
+    # (c) No bare `serif` keyword in font stacks. Scan font-family / --font-*
+    # declarations and the right-hand side of any property whose value mentions
+    # a font stack. Apply boundary-aware regex (excludes sans-serif).
+    font_decl_re = re.compile(r'(font-family\s*:|--font-[a-z-]*\s*:)', re.I)
+    for i, line in enumerate(lines, 1):
+        if font_decl_re.search(line) and _SERIF_KW.search(line):
+            findings.append(_make_finding(
+                path, 22, 'swiss-no-serif',
+                'swiss preset font stack 不可含 serif 關鍵字（sans-serif 例外）',
+                i, line))
+
+    return findings
+
+
+def _parse_slide_core_front_matter(text: str) -> tuple[dict, str]:
+    """Extract YAML front-matter from an HTML comment at the top of the file.
+
+    Slide-core HTML files wrap their YAML in `<!-- --- ... --- -->`. Returns
+    (parsed_dict, error_message). parsed_dict is empty if extraction fails.
+    """
+    # Locate the YAML block. The opening `---` and closing `---` must appear
+    # inside an HTML comment near the top.
+    m = re.search(
+        r'<!--\s*\n?\s*---\s*\n(.*?)\n\s*---\s*',
+        text, re.DOTALL,
+    )
+    if not m:
+        return {}, 'YAML front-matter not found (expect `<!-- --- ... --- -->`)'
+    body = m.group(1)
+    # Minimal YAML parser — only the keys we care about (top-level k:v and
+    # block-mapping `applies_to:` with nested keys). We avoid a hard PyYAML
+    # dependency to keep the script portable.
+    parsed: dict = {}
+    current_block: str | None = None
+    for raw in body.splitlines():
+        if not raw.strip() or raw.lstrip().startswith('#'):
+            continue
+        indent = len(raw) - len(raw.lstrip(' '))
+        stripped = raw.strip()
+        if indent == 0:
+            if ':' not in stripped:
+                continue
+            key, _, val = stripped.partition(':')
+            key = key.strip()
+            val = val.strip()
+            if val == '':
+                parsed[key] = {}
+                current_block = key
+            else:
+                parsed[key] = val.strip('"\'')
+                current_block = None
+        else:
+            if current_block is None:
+                continue
+            if ':' not in stripped:
+                continue
+            sub_key, _, sub_val = stripped.partition(':')
+            block = parsed.setdefault(current_block, {})
+            if isinstance(block, dict):
+                block[sub_key.strip()] = sub_val.strip().strip('"\'')
+    return parsed, ''
+
+
+def _check_slide_core_html(path: Path, text: str) -> list[dict]:
+    """Lint a slide-cores/*.html file against four structural invariants.
+
+    Rules (single-file scope):
+      (a) `data-layout="..."` attribute MUST appear somewhere in the file.
+      (b) YAML front-matter MUST be parseable and contain `layout_id` and
+          `applies_to` keys.
+      (c) `<figcaption>` (or `<figure>` containing caption) MUST be present.
+      (d) Class attributes use a single prefix family: either every class
+          token starts with `kami-*` / `swiss-*` (or stays unprefixed for
+          generic anchors), and the file does NOT mix kami-* with swiss-*.
+    """
+    findings: list[dict] = []
+
+    # (a) data-layout attribute
+    data_layout_line = None
+    for i, line in enumerate(text.splitlines(), 1):
+        if _DATA_LAYOUT.search(line):
+            data_layout_line = i
+            break
+    if data_layout_line is None:
+        findings.append(_make_finding(
+            path, 30, 'slide-data-layout',
+            'slide-core 缺 data-layout="..." 屬性（layout 識別必備）',
+            1, ''))
+
+    # (b) YAML front-matter
+    parsed, err = _parse_slide_core_front_matter(text)
+    if err:
+        findings.append(_make_finding(
+            path, 31, 'slide-yaml-front-matter',
+            f'slide-core YAML front-matter 解析失敗：{err}',
+            1, ''))
+    else:
+        if 'layout_id' not in parsed:
+            findings.append(_make_finding(
+                path, 31, 'slide-yaml-front-matter',
+                'slide-core YAML front-matter 缺 layout_id key',
+                1, ''))
+        if 'applies_to' not in parsed:
+            findings.append(_make_finding(
+                path, 31, 'slide-yaml-front-matter',
+                'slide-core YAML front-matter 缺 applies_to key',
+                1, ''))
+
+    # (c) figcaption presence
+    if not _FIGCAPTION.search(text):
+        findings.append(_make_finding(
+            path, 32, 'slide-figcaption',
+            'slide-core 缺 <figcaption> 槽位（標題 / 圖說必備）',
+            1, ''))
+
+    # (d) class prefix discipline — kami-* OR swiss-* per file, never mixed.
+    has_kami = False
+    has_swiss = False
+    first_swiss_line = first_kami_line = None
+    for i, line in enumerate(text.splitlines(), 1):
+        for m in _CLASS_ATTR.finditer(line):
+            classes = (m.group(1) or m.group(2) or '').split()
+            for cls in classes:
+                if cls.startswith('kami-'):
+                    has_kami = True
+                    if first_kami_line is None:
+                        first_kami_line = i
+                elif cls.startswith('swiss-'):
+                    has_swiss = True
+                    if first_swiss_line is None:
+                        first_swiss_line = i
+    if has_kami and has_swiss:
+        findings.append(_make_finding(
+            path, 33, 'slide-class-prefix',
+            f'slide-core 同檔混用 kami-* (L{first_kami_line}) 與 '
+            f'swiss-* (L{first_swiss_line}) 兩前綴；單檔需一致',
+            first_swiss_line or first_kami_line or 1, ''))
+
+    return findings
+
+
 def check_file(path: Path, rules: dict) -> list[dict]:
     text = path.read_text(encoding='utf-8', errors='replace')
+
+    # Path-triggered lint families. Each artifact tree owns its own invariants:
+    # swiss-preset/ and slide-cores/ are Swiss-typed artifacts (different
+    # aesthetic from the warm-serif Kami default), so the generic cool-gray /
+    # italic / heading-weight rules do NOT apply. Existing presets (紙-preset/,
+    # google-design-preset/) keep their original lint behavior unchanged.
+    path_str = str(path).replace('\\', '/')
+    if 'swiss-preset/' in path_str and path.suffix.lower() == '.css':
+        return _check_swiss_tokens_css(path, text)
+    if 'slide-cores/' in path_str and path.suffix.lower() == '.html':
+        return _check_slide_core_html(path, text)
+
     cool_set = {_norm_hex(h) for h in rules['cool_gray_blocklist']}
     findings = []
 

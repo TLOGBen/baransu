@@ -1,9 +1,8 @@
 ---
 name: bridge
-description: Use When validating a baransu skill upgrade against historical telemetry
-  before promotion. Do A/B-replay main HEAD (v1) vs target branch (v2) on the same
-  rubric, gated on Δ ≥ 0.15. Trigger On '比較 skill 兩版本', 'shadow run', 'regression
-  demo'. 繁體中文輸出。
+description: 'Validate a baransu skill upgrade before promotion: A/B-replay main HEAD
+  vs target branch on historical telemetry, same rubric, gated on Δ ≥ 0.15. Trigger
+  on 「比較 skill 兩版本」「shadow run」「regression demo」. 繁體中文輸出。'
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex

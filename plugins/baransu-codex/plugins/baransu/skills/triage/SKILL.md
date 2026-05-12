@@ -1,11 +1,9 @@
 ---
 name: triage
-description: Use When clustering `quality == "poor"` rows from grade.jsonl and dispatching
-  the read-only investigator-agent (daily cron after /grade or on demand). Do Group
-  poor verdicts into stable clusters, score on the 5-dim rubric, attach evidence bundles,
-  write triage.jsonl — Stage 4 auto-fix delegates code edits to /dev. Trigger On 「跑
-  triage」「分流 poor verdict」「對 grade.jsonl 聚類」, "run triage", "cluster poor verdicts".
-  繁體中文輸出。
+description: Cluster `quality=="poor"` rows from grade.jsonl, dispatch the read-only
+  investigator-agent, write triage.jsonl with 5-dim scores and evidence; Stage 4 auto-fix
+  delegates code edits to /dev. Daily cron after /grade or on demand. Trigger on 「跑
+  triage」「分流 poor verdict」, "run triage". 繁體中文輸出。
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex

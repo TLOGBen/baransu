@@ -15,3 +15,5 @@
 | https://x.com/trq212/status/2052809885763747935 | using-claude-code-the-unreasonable-effectiveness-of-html | Using Claude Code: The Unreasonable Effectiveness of HTML | 2026-05-11T00:00:00+08:00 |
 | https://github.com/tw93/Kami | kami | GitHub - tw93/Kami: Good content deserves good paper. | 2026-05-11T00:00:00Z |
 | https://github.com/alchaincyf/huashu-design | huashu-design | GitHub - alchaincyf/huashu-design: HTML-native design skill for Claude Code | 2026-05-11T04:15:00Z |
+| https://github.com/op7418/guizang-ppt-skill | guizang-ppt-skill | Guizang PPT Skill · 网页 PPT / 配图 / 封面 | 2026-05-12T00:00:00+08:00 |
+| local:/home/vakarve/.claude/plugins/cache/baransu/baransu/1.1.21/skills/book/SKILL.md | book-skill | baransu /book SKILL.md | 2026-05-12T00:00:01+08:00 |

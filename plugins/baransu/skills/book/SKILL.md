@@ -22,6 +22,18 @@ Converts any content into a Kami-themed, browser-ready HTML book saved to `.clau
 - 若值不合法（非 html/pdf/ppt/all）：輸出「`--format` 值不合法。支援：html | pdf | ppt | all」並停止（不呼叫 install-deps.ts）
 - 設定 `$FORMAT` 供後續所有 Stage 使用
 
+### 0.5 --style 旗標解析
+
+解析使用者呼叫中的 `--style` 旗標：
+
+- 支援值：`kami` | `swiss`
+- 若未提供 `--style`：預設為 `kami`（不視為「顯式傳入」）
+- 若值不合法（非 kami/swiss）：輸出「--style 值不合法。支援：kami | swiss」並停止（不進入 Stage 1）
+- 不合法組合：使用者顯式傳入 `--style <kami|swiss>` 且 `$FORMAT` 為 `html` 時 → 輸出「--style 僅 PPT 模式支援；如需 Swiss 風格 long-form，請待 v2」並中止（不進入 Stage 1）
+  - 判定規則：只要使用者「顯式」帶 `--style` 旗標（無論值為 kami 或 swiss）+ `--format html` → FAIL；未傳 `--style`（走預設 kami）+ `--format html` 不觸發
+- 設定 `$STYLE` 供後續所有 Stage 使用（特別是 Stage 3：`{project_root}/tokens.css` tie-break 與 SVG 風格分流會讀取 `$STYLE`）
+- 與 `--format` 解析平行獨立：先各自完成解析，再做組合檢查
+
 ### 1. Python check
 
 ```bash
@@ -187,7 +199,58 @@ If a collision exists: append `_v2`, `_v3`, etc.
 
 > 僅在 `$FORMAT` 為 `ppt` 或 `all` 時執行。使用與 Stage 2A 相同的 `$RAW_CONTENT` 作為輸入，`$SLUG` 繼承自 Stage 2A。
 
-從 `$RAW_CONTENT` 提取投影片結構 `$STRUCTURE_SLIDES`。
+從 `$RAW_CONTENT` 提取投影片結構 `$STRUCTURE_SLIDES`。**layout 不寫死**：Stage 2B 從 project root 動態讀取 `slide-cores/` 並建立決策表，再以 first-match + positional override 決定每一張投影片的 `layout_type`。
+
+### 讀取 project root slide-cores
+
+讀檔路徑：`{project_root}/slide-cores/*.html`（由 `/baransu:design preset <name>` 複製到 project root；Stage 2B 只讀，不改）。
+
+演算法：
+
+1. 列出 `{project_root}/slide-cores/` 下所有 `.html` 檔。
+2. 對每個 HTML 解析開頭的 YAML front-matter，欄位：
+   - `layout_id`（string，e.g. `"content-bullets"`，與檔名一致）
+   - `applies_to.bullet_count`（range，e.g. `"0"` / `"1-3"` / `"4-5"`）
+   - `applies_to.has_image`（enum：`required` | `optional` | `forbidden`）
+   - `applies_to.role`（enum：`body` | `positional_first` | `positional_last` | `section_divider`）
+   - 可選 `image_slot.{aspect_ratio, object_position, fit}`
+3. 將每筆 `(layout_id, applies_to)` 註冊進**動態決策表**；表的可用 `layout_id` 集合就是 `$STRUCTURE_SLIDES.slides[*].layout_type` 的 enum。
+4. 不寫死 layout 名單 — 9 個 layout 若被刪、被加，決策表隨之變動。
+
+### 決策邏輯（first-match + positional override）
+
+**優先序原則**：positional 規則永遠 rank 高於 content-driven 規則。即使首頁有 1-3 條 bullets 完全匹配 `content-bullets`，仍走 `cover`（位置驅動 > 內容驅動）。
+
+| Row | 條件 | layout_type | role |
+|---|---|---|---|
+| 1 | 位置 = 首頁（固定） | `cover` | positional_first（取 H1 + subtitle） |
+| 2 | 位置 = 末頁（條件式，見下方 CTA/致謝辨識） | `closing` | positional_last |
+| 3 | heading-only（無 body） | `section` | section_divider |
+| 4 | 50 字以內金句 | `quote` | body |
+| 5 | A vs B 對比段 | `compare` | body |
+| 6 | 4-6 個 stat number | `kpi-grid` | body |
+| 7 | 含 inline SVG 或大表 | `data` | body |
+| 8 | 左文右視覺一張圖 | `content-2col` | body |
+| 9 | 1-3 條 bullets | `content-bullets` | body |
+| 10 | 其他（fallback → row 9 同 layout） | `content-bullets` | body |
+
+**Fallback layout**：任何 row 3-9 都不 match 的 body slot，最終 fallback 至 `content-bullets`（row 10 為 row 9 的 alias，不算新 layout）。
+
+**Cover 為首頁固定**：第一張投影片永遠走 `cover`，取 markdown 的 H1 作主標、緊跟其後的引言或副標作 subtitle，無 bullets。
+
+**Closing 為末頁條件式**：依優先序檢查 source 末段是否有以下任一存在：
+
+- (a) markdown link 含動詞「聯絡 / 訂閱 / 下單 / contact / subscribe / cta / book a call」之一；
+- (b) 含「致謝 / Acknowledgement / Thanks」heading；
+- (c) 含 `mailto:` 或聯絡資訊 block。
+
+三者皆無 → row 2 不適用，**closing omit**（不強制插入空 closing），末頁退化至 row 9 (`content-bullets`)。
+
+### 缺檔 / 解析失敗的 graceful degradation
+
+- **`{project_root}/slide-cores/` 不存在或為空**：發出 warning「請先跑 `/baransu:design preset <name>` 取得 slide-cores」，**不中止**；退化為 hardcoded fallback 三 layout 集合 `{cover, closing, content-bullets}`，body slot 一律走 `content-bullets`，cover/closing 仍依 positional rule 套用。
+- **某 slide-core HTML 的 YAML 解析失敗**：warning 該檔名與失敗原因，**將該 layout 從決策表移除**，其他 layout 仍可用；觸發該 layout 的內容退化為 fallback `content-bullets`。
+- 上述兩種降級皆**不中止** Stage 2B，後續 Stage 3 仍正常渲染（GATE-G 在後續 validator 階段視需要 SKIP）。
 
 ### $STRUCTURE_SLIDES schema
 
@@ -197,27 +260,20 @@ interface SlideStructure {
 }
 
 interface Slide {
-  layout_type: 'cover' | 'section' | 'content' | 'data' | 'closing';
+  // 動態 enum：取自決策表已註冊的 layout_id 集合
+  // 完整 preset 下為 cover | section | content-bullets | content-2col | data | kpi-grid | compare | quote | closing
+  // fallback 模式下為 cover | content-bullets | closing
+  layout_type: string;
   heading: string;
-  body_bullets?: string[];  // 用於 content 版型，通常 3-5 條
+  body_bullets?: string[];  // 用於 content-bullets / content-2col，通常 1-3 條
   has_svg?: boolean;        // 若 true，在此 slide 生成 inline SVG
 }
 ```
 
-### 版型說明
-
-| 版型 | 用途 |
-|------|------|
-| `cover` | 封面。大標題 + 副標題 + 可選說明行，無 bullets |
-| `section` | 章節分隔頁。單一大標題居中，背景使用 `--brand-tint` |
-| `content` | 標準內容頁。heading + 3-5 條 body_bullets + 可選 SVG |
-| `data` | 全幅資料 / 圖表頁。heading + 全幅 SVG 或資料表，無 bullets |
-| `closing` | 結語。摘要句 + 可選 CTA，無 bullets |
-
 ### 數量與結構約束
 
 - 總 slide 數量：**6-12 張**
-- 第一張必為 `cover`，最後一張必為 `closing`
+- 第一張固定為 `cover`；末頁依 CTA/致謝辨識決定是否為 `closing`（無則 omit，末頁走 body layout）
 - `heading` 為必填；`body_bullets` 和 `has_svg` 為可選
 
 儲存結果為 `$STRUCTURE_SLIDES`。
@@ -232,10 +288,13 @@ Produces a complete HTML file at `.claude/book/{$SLUG}.html`.
 
 Before generating any HTML:
 
-1. Read `references/golden-template.html` for the exact CSS tokens, component patterns, and SVG conventions.
-2. Read `$CLAUDE_SKILL_DIR/../.././../design/references/paper-preset.md` (or locate `design/references/paper-preset.md` via `find`) for the full Kami design token definitions.
+1. **唯一 token 來源**：讀 `{project_root}/tokens.css`（由 `/baransu:design preset <style>` 寫入；本 skill 只讀，不改）。此規則**同時適用** `--format ppt` 與 `--format html`（long-form Kami 路徑也走同一份 project-root tokens，與 v1.1.22 行為等價）。
+   - 若 `{project_root}/tokens.css` **不存在** → 報錯「請先跑 `/baransu:design preset <style>`（kami 或 swiss）」並**中止 Stage 3**。
+   - **不嘗試**任何 fallback：不走 sibling skill 路徑、不用 `find` 搜尋、不用內建範本。
+   - tokens.css 開頭含 preset 識別註解（`/* preset: kami */` 或 `/* preset: swiss */`），供 Stage 0 解析得到的 `$STYLE` 變數於 GATE-F 做 tie-break 比對。
+2. Read `references/golden-template.html` for the component patterns and SVG conventions that consume the tokens above.
 
-The golden template is a show-by-example contract — every element in the output HTML should have a visual counterpart in the template. Do not invent new CSS patterns; extend only within Kami constraints.
+The golden template is a show-by-example contract — every element in the output HTML should have a visual counterpart in the template. Token values come from `{project_root}/tokens.css`; the template only references them by CSS-variable name. Do not invent new CSS patterns; extend only within the active preset's constraints.
 
 ### 2. Generate HTML structure
 
@@ -474,7 +533,11 @@ python3 -m weasyprint "{patched_html}" ".claude/book/{$SLUG}.pdf"
 
 **步驟一：生成 slide HTML**
 
-依 `$STRUCTURE_SLIDES` 的每個 slide 物件，對應 `references/slide-template.html` 的 5 種版型（cover / section / content / data / closing），生成 slide HTML 檔案：
+依 `$STRUCTURE_SLIDES` 的每個 slide 物件，從 `{project_root}/slide-cores/<layout-id>.html` 讀骨架（`<layout-id>` = Stage 2B 動態決策表結果，例如 `cover.html` / `content-bullets.html` / `closing.html`），生成 slide HTML 檔案。
+
+若 `{project_root}/slide-cores/<layout-id>.html` 缺失（與 Stage 2B graceful-degradation 行為一致）：warning「請先跑 `/baransu:design preset <style>` 取得 slide-cores」，body slot 退化為 hardcoded fallback 三 layout (`cover` / `closing` / `content-bullets`) 的內嵌骨架；不中止 Stage 3。
+
+每張 slide 的輸出規格：
 
 - `<body style="width:960px; height:540px; margin:0; padding:0;">`
 - 每個 slide 包在 `<div class="slide" data-layout="{layout_type}">` 中
@@ -573,7 +636,7 @@ SVG 圖解：{N} 張
 
 ## Constraints
 
-- **Kami only**: all visual elements follow `design/references/paper-preset.md` and `references/golden-template.html`. No inline hex colours; use named CSS variables.
+- **Token source = project root**: all visual elements consume tokens from `{project_root}/tokens.css` (written by `/baransu:design preset <style>`) plus the component patterns in `references/golden-template.html`. No inline hex colours; use named CSS variables.
 - **No new CSS patterns**: every class in the output HTML must exist in the golden-template CSS block. Extend within Kami; don't invent outside it.
 - **SVG required**: a document with 0 SVG diagrams fails the quality gate and must be fixed before completion.
 - **Length cap**: final HTML body ≤ 1800 words. Excess goes into a 延伸閱讀 link block.
@@ -585,4 +648,15 @@ SVG 圖解：{N} 張
 - **SPA / login walls**: X.com, LinkedIn, paywalled pages often fail the proxy cascade. Report the failure clearly; don't silently produce an empty or skeleton page.
 - **markitdown escaped underscores in URLs**: when markitdown converts HTML, it sometimes escapes `_` to `\_` inside image URLs. Run a cleanup pass on all `![...](\url)` patterns before processing.
 - **SVG path closure**: always close `<path>` elements with `/>`; validate-output.ts checks SVG tag balance but not path syntax. Keep SVG shapes simple (lines, rects, circles, ellipses, simple paths).
-- **Kami token lookup**: if `design/references/paper-preset.md` cannot be found via relative path, use `find . -path "*/design/references/paper-preset.md" -not -path "*/cache/*" | head -1` to locate it.
+- **Missing project-root tokens**: if `{project_root}/tokens.css` is absent, Stage 3 aborts with 「請先跑 `/baransu:design preset <style>`（kami 或 swiss）」 — **do not** fall back to `find`, sibling-skill paths, or built-in templates.
+
+## Validator 分工
+
+- `scripts/validate-output.ts`：負責輸出層（output HTML）的 set membership 與 prefix 一致性，含 GATE A-E (SVG 既有規則) / GATE-F (class prefix `kami-*` / `swiss-*` 不混 + tokens.css preset tie-break) / GATE-G (`data-layout` 必對應 `{project_root}/slide-cores/` 實存檔)。**信任** `/design` 端 `check.py` 已 lint 過 slide-core artifact 內部結構，本驗證不重做 per-file lint。
+- 對應 `/design` 端見 `plugins/baransu/skills/design/scripts/check.py` 的 artifact-internal lint 規則。
+
+## REQ-003 Scenario 2 automated evidence
+
+- Fixture: `scripts/validate-fixtures/swiss-positive.html` — a hand-written swiss-style slide HTML that mirrors the shape `/book` Stage 3 emits under `--format ppt --style swiss`（body 960pt×540pt、`data-layout="content-bullets"` / `quote`、所有 class `swiss-*`、無 hard-fail 違反）。
+- Smoke runner: `scripts/swiss-smoke-test.sh` — Stage 1 跑 `validate-output.ts` 對 fixture（預期全綠，GATE-C/GATE-G 因 viewBox 高度與 project root 無 `slide-cores/` 而 SKIP）；Stage 2 在 `pptxgenjs` + `playwright` 已安裝時跑 `html2pptx.js`，並用 `python3 zipfile` 確認 `.pptx` 是合法 zip 且含 `ppt/presentation.xml` + `[Content_Types].xml`。依賴未裝時 Stage 2 SKIP（`--strict` 改為 FAIL）。
+- 用途：作為 REQ-003 S2「文件可在 PowerPoint 打開」的最小自動化證據起點。要做完整 PowerPoint round-trip 須先 `npx tsx scripts/install-deps.ts --format ppt`。

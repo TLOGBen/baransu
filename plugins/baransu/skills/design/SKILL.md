@@ -53,6 +53,16 @@ Parse the first token of the user's input (after `/design`):
 
 Case-sensitive. `Lint` or `LINT` do not match lint mode — they enter gen mode.
 
+Within Preset mode, the second token routes to a named preset. Currently supported names:
+
+| Second token | Preset route |
+|--------------|--------------|
+| `紙` | Kami preset (warm parchment, ink-blue, serif) |
+| `google-design` | Google Design preset |
+| `swiss` | Swiss preset (IKB accent, Helvetica/Inter sans-serif, slide-cores) |
+
+All three routes share the generic Preset mode pipeline (Step 1 – Step 4) defined below, plus the per-preset cleanup / identifier-comment / artifact rules described in **Step 3 — Apply preset**.
+
 ---
 
 ## Gen Mode
@@ -251,15 +261,44 @@ Use `git rev-parse --show-toplevel` to find the project root.
 
 If `{project_root}/DESIGN.md` already exists:
 Output one line: 「已存在 DESIGN.md，將以「{name}」preset 覆寫。」
-Then proceed to write without further confirmation.
+Then proceed to write without further confirmation. Preset is a declarative
+operation — overwrite does not require additional user confirmation.
 
-**Copy preset files to project root:**
+**Per-preset routing — which preset uses which core directory and which artifacts are emitted to project root:**
 
-1. Write contents of `{skill_dir}/references/{name}-preset/DESIGN.md` to `{project_root}/DESIGN.md`.
-2. If `{skill_dir}/references/{name}-preset/tokens.css` exists → copy to `{project_root}/tokens.css`. Output: 「已複製 tokens.css。」
-3. Copy `{skill_dir}/references/cores/` to `{project_root}/design-cores/`. Output: 「已複製 {N} 個通用骨架至 design-cores/。」
+| Preset name | Core source dir | Core target dir at project root | Identifier comment in tokens.css |
+|-------------|----------------|----------------------------------|-----------------------------------|
+| `紙` | `{skill_dir}/references/cores/` | `{project_root}/design-cores/` | `/* preset: kami */` |
+| `google-design` | `{skill_dir}/references/cores/` | `{project_root}/design-cores/` | `/* preset: google-design */` |
+| `swiss` | `{skill_dir}/references/slide-cores/` | `{project_root}/slide-cores/` | `/* preset: swiss */` |
 
-Output: 「✅ 已套用「{name}」preset，DESIGN.md 已寫入 {project_root}/DESIGN.md」
+**Copy preset files to project root** (executed in this exact order for every preset route):
+
+1. **Cleanup stale core directory** — remove any existing target core dir at the project root to prevent mixed/stale artifacts (e.g. leftover `kami-*` HTML files after switching to `swiss`):
+   - For `紙` / `google-design`: `rm -rf {project_root}/design-cores/` (if it exists).
+   - For `swiss`: `rm -rf {project_root}/slide-cores/` (if it exists).
+
+2. **Write DESIGN.md** — write contents of `{skill_dir}/references/{name}-preset/DESIGN.md` to `{project_root}/DESIGN.md` (overwriting if present).
+
+3. **Copy tokens.css with identifier comment** — if `{skill_dir}/references/{name}-preset/tokens.css` exists:
+   - Read the source file content.
+   - Prepend the per-preset identifier comment as the very first line, followed by a newline, then the original tokens.css contents. The exact comment string is dictated by the routing table above:
+     - `紙` → `/* preset: kami */`
+     - `google-design` → `/* preset: google-design */`
+     - `swiss` → `/* preset: swiss */`
+   - Write the combined content to `{project_root}/tokens.css` (overwriting if present).
+   - Output: 「已複製 tokens.css（含 preset 識別註解）。」
+   - This identifier comment is consumed by `check.py` for preset-aware linting and by GATE-F for tie-break comparison; it must be exact-match.
+
+4. **Recreate target core dir and copy core skeletons:**
+   - `mkdir -p {target_core_dir}` (path per routing table above).
+   - Copy every `*.html` file (and any supporting assets) from the source core directory to the target core directory.
+   - Output: 「已複製 {N} 個{骨架/版式}至 {target_core_dir 相對於 project root}。」（紙 / google-design 用「通用骨架」「design-cores/」；swiss 用「版式」「slide-cores/」）
+
+**Completion message:**
+
+- For `紙` / `google-design`: 「✅ 已套用「{name}」preset，DESIGN.md 已寫入 {project_root}/DESIGN.md」
+- For `swiss`: 「✅ Swiss preset 已 copy 到 project root；下一步可跑 `/book ... --format ppt --style swiss`」
 
 ### Step 4 — Render DESIGN.html
 
@@ -311,6 +350,13 @@ Exit codes: 0 = clean, 1 = violations, 2 = structural error.
 
 ---
 
+## Validator 分工
+
+- `scripts/check.py`：負責 artifact 內部結構 lint（per-file），含 nine-section / Kami invariant / swiss-preset tokens / slide-cores HTML 結構等規則。**不**做跨檔一致性檢查；信任 consumer 端（如 `/book` validator）會驗證集合層 invariants。
+- 對應 `/book` 端見 `plugins/baransu/skills/book/scripts/validate-output.ts` 的 GATE-F (class prefix 一致性) 與 GATE-G (layout registered set membership)。
+
+---
+
 ## Error Handling
 
 | Error | Behavior |
@@ -321,6 +367,9 @@ Exit codes: 0 = clean, 1 = violations, 2 = structural error.
 | preset: references/ empty | Report「目前無可用 preset」 |
 | preset: tokens.css not found in preset dir | Skip tokens.css copy silently |
 | preset: references/cores/ not found | Skip cores copy silently |
+| preset swiss: `references/swiss-preset/` missing (plugin damaged) | Report「swiss-preset 不存在，請確認 plugin 版本」and abort |
+| preset swiss: `references/slide-cores/` missing | Report「slide-cores 不存在，請確認 plugin 版本」and abort |
+| preset: copy write failure (permission / disk full / EPERM / ENOSPC) | Report「copy 失敗：{path} 寫入錯誤」and abort |
 | git rev-parse fails (non-repo) | Use current working directory as project root |
 | CLAUDE.md already contains DESIGN.md | Skip append (idempotent) |
 | gen: DESIGN.md already exists | Overwrite without prompting |
