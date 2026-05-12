@@ -1,7 +1,7 @@
 ---
 name: quadrant
-status: ref-only
-example: null
+status: complete
+example: inline
 ---
 
 # Quadrant
@@ -26,4 +26,143 @@ example: null
 
 ## Examples
 
-**Status: ref-only**. example HTML 待 v2-N 補。/book 遇此型時 fallback 通用 SVG primitives，final-report 標 `degraded-type: quadrant`。
+Inline example below — 2×2 Impact × Effort 優先級矩陣，含 4 個象限 label、6 個 data dot、focal = top-left 「Quick Wins」象限。完整 `<defs>` 三 chevron marker、兩層 paper-mask、單一焦點 callout rect 寬白名單 `{128}`（單一檔，符合 ≤ 2 檔規則）、legend strip 與所有 `x/y/width/height/cx/cy` 為 4 的倍數。
+
+```html
+<figure class="diagram">
+  <svg viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Impact by Effort prioritization quadrant">
+    <defs>
+      <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse">
+        <circle cx="1" cy="1" r="0.9" fill="#E3E2DC"/>
+      </pattern>
+      <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+        <path d="M2 1 L8 5 L2 9" fill="none" stroke="#504e49"
+              stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+      <marker id="arrow-accent" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+        <path d="M2 1 L8 5 L2 9" fill="none" stroke="#1B365D"
+              stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+      <marker id="arrow-link" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+        <path d="M2 1 L8 5 L2 9" fill="none" stroke="#2D5A8A"
+              stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+
+    <!-- Paper-mask layer 1（強制） -->
+    <rect width="100%" height="100%" fill="#f5f4ed"/>
+    <!-- Paper-mask layer 2（可選 dotted overlay） -->
+    <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
+
+    <!-- ===== AXIS CROSS（1px hairline） ===== -->
+    <!-- Y axis (vertical) — with up-tip arrow（accent，落焦點維度） -->
+    <line x1="500" y1="80" x2="500" y2="480"
+          stroke="#141413" stroke-width="1"
+          marker-end="url(#arrow-accent)"/>
+    <!-- X axis (horizontal) — with right-tip arrow（accent） -->
+    <line x1="80" y1="280" x2="920" y2="280"
+          stroke="#141413" stroke-width="1"
+          marker-end="url(#arrow-accent)"/>
+
+    <!-- ===== AXIS LABELS（Jobs-minimal：單字、無 glyph、無括號） ===== -->
+    <!-- Y top tip：IMPACT（flanking arrow tip，不坐軸線上） -->
+    <text x="476" y="72" fill="#141413" font-size="9"
+          font-family="'Geist Mono', ui-monospace, monospace"
+          text-anchor="end" letter-spacing="0.18em">IMPACT</text>
+    <!-- X right tip：EFFORT -->
+    <text x="928" y="276" fill="#141413" font-size="9"
+          font-family="'Geist Mono', ui-monospace, monospace"
+          letter-spacing="0.18em">EFFORT</text>
+
+    <!-- ===== QUADRANT LABELS ===== -->
+    <!-- Top-right: BIG BETS（高 impact、高 effort） -->
+    <text x="720" y="120" fill="#504e49" font-size="9"
+          font-family="'Geist Mono', ui-monospace, monospace"
+          letter-spacing="0.14em">BIG BETS</text>
+    <!-- Bottom-left: FILL-INS（低 impact、低 effort） -->
+    <text x="180" y="448" fill="#504e49" font-size="9"
+          font-family="'Geist Mono', ui-monospace, monospace"
+          letter-spacing="0.14em">FILL-INS</text>
+    <!-- Bottom-right: MONEY PIT（低 impact、高 effort） -->
+    <text x="708" y="448" fill="#504e49" font-size="9"
+          font-family="'Geist Mono', ui-monospace, monospace"
+          letter-spacing="0.14em">MONEY PIT</text>
+
+    <!-- Top-left: QUICK WINS — FOCAL callout box (128 wide) -->
+    <rect x="120" y="104" width="128" height="32" rx="4" fill="#f5f4ed"/>
+    <rect data-role="focal"
+          x="120" y="104" width="128" height="32" rx="4"
+          fill="#EEF2F7" stroke="#1B365D" stroke-width="1.4"/>
+    <text x="184" y="124" fill="#1B365D" font-size="10"
+          font-family="'Geist Mono', ui-monospace, monospace"
+          text-anchor="middle" letter-spacing="0.14em">QUICK WINS</text>
+
+    <!-- ===== DATA POINTS（6 dots，r=4） ===== -->
+    <!-- A: Caching — Quick Wins quadrant -->
+    <circle cx="232" cy="200" r="4" fill="#1B365D"/>
+    <text x="244" y="204" fill="#141413" font-size="10"
+          font-family="'Geist', system-ui, sans-serif">Caching</text>
+
+    <!-- B: Auth fix — Quick Wins quadrant -->
+    <circle cx="320" cy="240" r="4" fill="#1B365D"/>
+    <text x="332" y="244" fill="#141413" font-size="10"
+          font-family="'Geist', system-ui, sans-serif">Auth fix</text>
+
+    <!-- C: Redesign — Big Bets quadrant -->
+    <circle cx="720" cy="160" r="4" fill="#141413"/>
+    <text x="732" y="164" fill="#141413" font-size="10"
+          font-family="'Geist', system-ui, sans-serif">Redesign</text>
+
+    <!-- D: ML pipeline — Big Bets quadrant -->
+    <circle cx="800" cy="200" r="4" fill="#141413"/>
+    <text x="812" y="204" fill="#141413" font-size="10"
+          font-family="'Geist', system-ui, sans-serif">ML pipeline</text>
+
+    <!-- E: Linting — Fill-ins quadrant -->
+    <circle cx="240" cy="400" r="4" fill="#141413"/>
+    <text x="252" y="404" fill="#141413" font-size="10"
+          font-family="'Geist', system-ui, sans-serif">Linting</text>
+
+    <!-- F: Legacy migration — Money Pit quadrant -->
+    <circle cx="760" cy="400" r="4" fill="#141413"/>
+    <text x="772" y="404" fill="#141413" font-size="10"
+          font-family="'Geist', system-ui, sans-serif">Legacy migration</text>
+
+    <!-- ===== LEGEND STRIP ===== -->
+    <line x1="60" y1="540" x2="940" y2="540"
+          stroke="#141413" stroke-opacity="0.10" stroke-width="0.8"/>
+    <text x="60" y="560" fill="#504e49" font-size="8"
+          font-family="'Geist Mono', ui-monospace, monospace"
+          letter-spacing="0.14em">LEGEND</text>
+
+    <circle cx="148" cy="556" r="4" fill="#141413"/>
+    <text x="160" y="561" fill="#504e49" font-size="9"
+          font-family="'Geist', system-ui, sans-serif">Item</text>
+
+    <circle cx="220" cy="556" r="4" fill="#1B365D"/>
+    <text x="232" y="561" fill="#504e49" font-size="9"
+          font-family="'Geist', system-ui, sans-serif">Focal item</text>
+
+    <rect x="320" y="548" width="16" height="12" rx="2"
+          fill="#EEF2F7" stroke="#1B365D" stroke-width="1.2"/>
+    <text x="340" y="561" fill="#504e49" font-size="9"
+          font-family="'Geist', system-ui, sans-serif">Focal quadrant</text>
+
+    <line x1="460" y1="556" x2="480" y2="556"
+          stroke="#141413" stroke-width="1" marker-end="url(#arrow-accent)"/>
+    <text x="488" y="561" fill="#504e49" font-size="9"
+          font-family="'Geist', system-ui, sans-serif">Axis direction</text>
+
+    <line x1="612" y1="556" x2="632" y2="556"
+          stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text x="640" y="561" fill="#504e49" font-size="9"
+          font-family="'Geist', system-ui, sans-serif">Internal flow</text>
+
+    <line x1="752" y1="556" x2="772" y2="556"
+          stroke="#2D5A8A" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+    <text x="780" y="561" fill="#504e49" font-size="9"
+          font-family="'Geist', system-ui, sans-serif">External link</text>
+  </svg>
+  <figcaption>圖：2×2 Impact × Effort 矩陣，6 個 data point；Quick Wins 為 focal 象限。</figcaption>
+</figure>
+```

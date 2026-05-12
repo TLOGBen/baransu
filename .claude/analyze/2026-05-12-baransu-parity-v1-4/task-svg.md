@@ -53,18 +53,18 @@
 
 **需求追溯**：REQ-001
 **驗收標準**：
-- [ ] 三檔 frontmatter `status: complete`
-- [ ] 各 example 通過 validator
+- [x] 三檔 frontmatter `status: complete`
+- [x] 各 example 通過 validator
 
 ### 步驟
 
 #### 模板層
-- [ ] swimlane：3 horizontal lane example，每 lane 含 2-3 node，跨 lane 箭頭走 `arrow-link`
-- [ ] quadrant：標準 2×2 example，4 個象限各標示 + 5-7 個 data point dots
-- [ ] nested：3 層 containment example（外層 1 個、中層 2 個、內層 3 個），用 rect 巢狀
+- [x] swimlane：3 horizontal lane example，每 lane 含 2-3 node，跨 lane 箭頭走 `arrow-link`
+- [x] quadrant：標準 2×2 example，4 個象限各標示 + 5-7 個 data point dots
+- [x] nested：3 層 containment example（外層 1 個、中層 2 個、內層 3 個），用 rect 巢狀
 
 #### 驗證
-- [ ] 三 example 通過 GATE A-G
+- [x] 三 example 通過 GATE A-G
 
 ---
 
