@@ -37,7 +37,7 @@ editorial-requirements:
 
 適用場景：給投資人／客戶／團隊的正式書信、年度致辭、開放信。
 
-版面骨架：A4 單欄，左右 padding ~32mm，行高 1.7，襯線體擔當主役。
+版面骨架：A4 單欄，左右 padding ~32mm，行高 1.55（對齊 Kami invariant 上限；其他 preset 可走 1.7），襯線體擔當主役。
 首段 dropcap（zh 用中文字、en 用大寫字母），錨定閱讀起點。
 
 必填區塊：見 body-sections（header / lead / body / closing）。
