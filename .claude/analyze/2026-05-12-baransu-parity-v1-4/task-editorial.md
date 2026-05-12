@@ -7,21 +7,21 @@
 **需求追溯**：REQ-004 Scenario 1
 **目標**：所有 body / paragraph CSS rule 加 `text-wrap: pretty`，覆蓋三 preset。
 **驗收標準**：
-- [ ] 三 preset 的 `design-cores/long-form.html` body / `.kami-body` / `.swiss-body` / `.gd-body` 對應 CSS rule 含 `text-wrap: pretty`
-- [ ] golden-template.html body / p / .paper p 同含
-- [ ] grep 三 preset design-cores 內所有 `<p>` / body 相關 selector，含 `text-wrap: pretty` 命中 ≥ 3
+- [x] 三 preset 的 `design-cores/long-form.html` body / `.kami-body` / `.swiss-body` / `.gd-body` 對應 CSS rule 含 `text-wrap: pretty`
+- [x] golden-template.html body / p / .paper p 同含
+- [x] grep 三 preset design-cores 內所有 `<p>` / body 相關 selector，含 `text-wrap: pretty` 命中 ≥ 3
 
 ### 步驟
 
 #### 模板層
-- [ ] 紙 preset：對 `long-form.html` 的 body / `.kami-body` 加 `text-wrap: pretty`
-- [ ] swiss preset 同等
-- [ ] google-design preset 同等
-- [ ] golden-template.html body + p block 加
+- [x] 紙 preset：對 `long-form.html` 的 body / `.kami-body` 加 `text-wrap: pretty`
+- [x] swiss preset 同等
+- [x] google-design preset 同等
+- [x] golden-template.html body + p block 加
 
 #### 驗證
-- [ ] `grep -r "text-wrap: pretty" plugins/baransu/skills/design/references/*-preset/design-cores/long-form.html` 命中 = 3
-- [ ] `grep -c "text-wrap: pretty" plugins/baransu/skills/book/references/golden-template.html` ≥ 1
+- [x] `grep -r "text-wrap: pretty" plugins/baransu/skills/design/references/*-preset/design-cores/long-form.html` 命中 = 3
+- [x] `grep -c "text-wrap: pretty" plugins/baransu/skills/book/references/golden-template.html` ≥ 1
 
 ---
 
