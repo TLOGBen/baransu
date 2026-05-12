@@ -1,5 +1,5 @@
 {
-  "iter_count": 5,
+  "iter_count": 6,
   "score_overall": null,
   "score_history": [],
   "last_review_findings": 0,
@@ -15,7 +15,9 @@
   "pending_spec_drift": [
     "task-shared.md vs requirement.md Scenario 2 wording: canonical 5 anti-patterns assigned to 紙 in task-md but to swiss in req-md; treated as semantic-equivalent",
     "REQ-003 Scenario 3 wording references `--font-h*` CSS variables but 三 preset tokens.css use direct h1{} selectors",
-    "TASK-svg-01 P2 advisory: flowchart diamond uses 128×128 rotated rect; spec §4.7 strictly says node height ∈ {32, 64}; diamonds are an unspoken spec extension. Document in svg-rendering-rules.md §4.9 as future polish."
+    "TASK-svg-01 P2: flowchart diamond uses 128×128 rotated rect; spec §4.7 strictly says height ∈ {32, 64}; diamonds are an unspoken spec extension. Document in svg-rendering-rules.md §4.9 as future polish.",
+    "TASK-svg-03 P1 (spec-level, deferred): REQ-001 Scenario 4 mod-4 wording is literal but validate-output.ts has no mod-4 gate; text/legend/pattern-internal coords are technically non-mod-4 across many diagrams. Decide: tighten Scenario 4 to scope structural rects/lines/circles only, OR add a mod-4 gate to validate-output.ts. Recommendation: tighten spec wording (text baselines on mod-4 grid conflict with y ≥ font-size × 1.2 for 9/10px labels).",
+    "TASK-svg-03 P1 (commit message polish): commit message overstates 'validate-output.ts GATEs A-G PASS per file' as evidence of REQ-001 compliance — GATEs A-G do not cover Scenarios 2/3/4. TASK-svg-05 (validator GATE-J/K) will close this gap; update future commit messages to be precise."
   ],
   "ab_diff_status": "not_yet_attempted",
   "consecutive_no_progress": 0,
@@ -24,11 +26,12 @@
   "last_iter_at": "2026-05-13",
   "completed_tasks": [
     {"id": "TASK-shared-01", "commit": "4ed609a", "review": "0 findings"},
-    {"id": "TASK-shared-02", "commit": "a4afce3", "review": "2 P2 findings, 1 fixed in f3ed0b5, 1 deferred"},
+    {"id": "TASK-shared-02", "commit": "a4afce3", "review": "2 P2, 1 fixed in f3ed0b5, 1 deferred"},
     {"id": "TASK-shared-03", "commit": "e95cb14", "review": "0 findings (1 P2 spec drift)"},
-    {"id": "TASK-svg-01", "commit": "9aa7030", "review": "0 findings (1 P2 spec extension advisory)"},
-    {"id": "TASK-svg-02", "commit": "f72786d", "review": "1 P1 fixed in 8ad22b3 + 1 P2 fixed in 5d25d17, final 0 findings"}
+    {"id": "TASK-svg-01", "commit": "9aa7030", "review": "0 findings (1 P2 spec extension)"},
+    {"id": "TASK-svg-02", "commit": "f72786d", "review": "1 P1 fixed in 8ad22b3 + 1 P2 fixed in 5d25d17, final 0"},
+    {"id": "TASK-svg-03", "commit": "c816fb7", "review": "4 P1: 2 fixed in a567e65 (quadrant Y-axis + nested padding), 2 deferred to pending_spec_drift (mod-4 scope + commit message polish)"}
   ],
-  "next_task": "TASK-svg-03",
-  "notes": "iter 5 done; svg group 2/5 (6 of 13 diagram-types now complete); 28 tasks remaining"
+  "next_task": "TASK-svg-04",
+  "notes": "iter 6 done; svg group 3/5 (9 of 13 diagram-types now complete); 27 tasks remaining"
 }
