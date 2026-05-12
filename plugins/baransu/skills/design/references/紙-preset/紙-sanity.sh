@@ -55,11 +55,24 @@ if [ -f "$TARGET/tokens.css" ] && [ -f "$TARGET/DESIGN.md" ]; then
       python3 "$CHECK_PY" "$f" || exit_code=1
     fi
   done
-  if [ "$exit_code" = "0" ]; then
-    echo ""
-    echo "✅ Kami 十不變量 sanity pass"
-  fi
-  exit "$exit_code"
 else
-  python3 "$CHECK_PY" "$TARGET"
+  python3 "$CHECK_PY" "$TARGET" || exit_code=1
+  exit_code="${exit_code:-0}"
 fi
+
+# ── editorial-sanity (REQ-004) ──
+EDITORIAL_SH="$SCRIPT_DIR/../editorial-sanity.sh"
+if [ -f "$EDITORIAL_SH" ]; then
+  LONG_FORM="$SCRIPT_DIR/design-cores/long-form.html"
+  if [ -f "$LONG_FORM" ]; then
+    echo ""
+    echo "── editorial-sanity ──"
+    bash "$EDITORIAL_SH" "$LONG_FORM" || exit_code=1
+  fi
+fi
+
+if [ "${exit_code:-0}" = "0" ]; then
+  echo ""
+  echo "✅ Kami 十不變量 + editorial-sanity pass"
+fi
+exit "${exit_code:-0}"
