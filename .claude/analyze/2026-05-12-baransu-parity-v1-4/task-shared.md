@@ -7,22 +7,22 @@
 **需求追溯**：REQ-008
 **目標**：紙 / swiss / google-design 三 preset 的 `DESIGN.md §9` 完整含 (a) 焦點上限 1-2 / (b) accent hex 設計理據 / (c) 我不是什麼（≥ 5 條）。
 **驗收標準**：
-- [ ] 三 preset 各自 DESIGN.md §9 含三 sub-heading（焦點 / hex 理據 / 我不是什麼）
-- [ ] 「我不是什麼」每 preset ≥ 5 條 `no X` 條目，內容對齊各 preset 反例
-- [ ] hex 理據含 HSL 或 oklch 拆解（每 accent token 一條）
+- [x] 三 preset 各自 DESIGN.md §9 含三 sub-heading（焦點 / hex 理據 / 我不是什麼）
+- [x] 「我不是什麼」每 preset ≥ 5 條 `no X` 條目，內容對齊各 preset 反例
+- [x] hex 理據含 HSL 或 oklch 拆解（每 accent token 一條）
 
 ### 步驟
 
 #### 規格層改動
-- [ ] 讀 `plugins/baransu/skills/design/references/紙-preset/DESIGN.md` §9 既有內容
-- [ ] 在 §9 內補三 sub-heading 段；hex 拆解：`#1B365D = H 211°, S 55%, L 24%` + `oklch(0.32 0.08 256)` advisory
-- [ ] 「我不是什麼」紙 preset 條目：no cool accent / no oklch in attribute / no italics / no gradient bg / no second accent
-- [ ] swiss preset DESIGN.md §9 同等補完；hex 用 `#002FA7`（IKB），「我不是什麼」對齊 Swiss invariant（DESIGN.md root 已有 10 invariant）
-- [ ] google-design preset DESIGN.md §9 同等補完；accent 對齊該 preset 的 token 命名
+- [x] 讀 `plugins/baransu/skills/design/references/紙-preset/DESIGN.md` §9 既有內容
+- [x] 在 §9 內補三 sub-heading 段；hex 拆解：`#1B365D = H 211°, S 55%, L 24%` + `oklch(0.32 0.08 256)` advisory
+- [x] 「我不是什麼」紙 preset 條目：no cool accent / no oklch in attribute / no italics / no gradient bg / no second accent
+- [x] swiss preset DESIGN.md §9 同等補完；hex 用 `#002FA7`（IKB），「我不是什麼」對齊 Swiss invariant（DESIGN.md root 已有 10 invariant）
+- [x] google-design preset DESIGN.md §9 同等補完；accent 對齊該 preset 的 token 命名
 
 #### 驗證
-- [ ] grep `^### \(a\)` / `^### \(b\)` / `^### \(c\)` 三 sub-heading 在三檔皆存在
-- [ ] 「我不是什麼」段條目用 `wc -l` 確認 ≥ 5
+- [x] grep `^### \(a\)` / `^### \(b\)` / `^### \(c\)` 三 sub-heading 在三檔皆存在
+- [x] 「我不是什麼」段條目用 `wc -l` 確認 ≥ 5
 
 ---
 

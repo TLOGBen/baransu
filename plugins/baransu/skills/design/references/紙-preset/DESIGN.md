@@ -259,3 +259,31 @@ line-height: 1.55;
 以下提示詞可在全新 AI 對話中重現本設計系統的視覺語言：
 
 > Design a UI using the Kami paper design system. Background: warm parchment `#f5f4ed`; card surfaces: `#faf9f5`; interactive surfaces: `#e8e6dc`. Primary accent: ink-blue `#1B365D` (≤5% surface area). Text hierarchy: near-black `#141413` → warm dark `#3d3d3a` → olive `#504e49` → stone `#6b6a64`. Borders: `--border: #e8e6dc` (primary), `--border-soft: #e5e3d8` (secondary). Typography: Charter/Georgia for English, TsangerJinKai02/Noto Serif SC for Chinese — all weights locked at 500 for headings (no bold), 400 for body. `--sans` aliases `--serif`. Line-height: headlines 1.1–1.3, body 1.5–1.55. Shadows: ring only (`0 0 0 1px var(--border)`) for static; whisper (`0 4px 24px rgba(0,0,0,0.05)`) for hover. No hard drop shadows. Tags use solid hex `#EEF2F7` (never rgba). Section titles use a 2.5pt brand left bar. No italics anywhere. The aesthetic is warm printed paper — ink on parchment, craft over chrome.
+
+### (a) 焦點節點上限
+
+每一頁、每一張投影片，焦點節點上限為 **1–2 個**：
+- 主焦點（1 個必有）：以 `--accent: #1B365D` 染色——通常為 H1 標題、品牌左 bar、或唯一 CTA。
+- 次焦點（0–1 個，可選）：以「結構強度」而非「顏色」承擔——例如加粗的 metric 數字、或一條明顯的 left-bar 分節線。次焦點 **不得** 再用 accent；違反即視為色彩過載。
+
+### (b) accent hex 設計理據
+
+主 accent `#1B365D`（ink-blue）拆解：
+
+| Space | Coordinates | 設計意圖 |
+|-------|-------------|----------|
+| HEX | `#1B365D` | 主規格；WeasyPrint print pipeline 以此為準 |
+| HSL | `H 211°, S 55%, L 24%` | 冷色相位 211° 接近 royal blue 但偏深；S 55% 避免過飽和顯霓虹；L 24% 屬「深色印刷藍」——在 warm parchment 上形成高對比但不刺眼 |
+| oklch（advisory） | `oklch(0.32 0.08 256)` | screen / 設計工具參考用；色相 256° 為 perceptual 等價；C 0.08 對應印刷藍的低彩度 |
+
+選色理由：對齊鋼筆墨水（fountain pen ink）在 cream paper 上的視覺記憶；避開飽和 royal blue（過於數位）與 navy（過於企業）兩端。
+
+### (c) 我不是什麼（anti-patterns / allowed contradictions）
+
+- no second accent — 全頁只有一個彩色；任何「次強調色」皆以中性灰階重量替代
+- no italics — 模板與 demo 均禁用，襯線斜體在 print pipeline 容易掉字
+- no cool accent shift — accent 不得偏向 cyan / teal 等冷色；warm parchment 需要 warm-shifted blue
+- no oklch in attribute — `tokens.css` / `design-cores/` HTML 內聯 style 不可出現 `oklch(`；oklch 僅為文件 advisory
+- no gradient bg — 背景永遠是平塗紙色；禁 linear-gradient / radial-gradient 背景
+- no hard drop shadow — 深度只用 ring + whisper；禁 `0 8px 16px rgba(0,0,0,0.3)` 類硬邊陰影
+- no all-caps headings — 中英混排不使用 letter-spacing + uppercase 的設計派頭

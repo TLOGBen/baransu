@@ -361,3 +361,33 @@ Selected → `background: var(--md-secondary-container); color: var(--md-on-seco
 以下提示詞可在全新 AI 對話中重現本設計系統：
 
 > Design a UI using Material 3 (Material You). Use role-based color tokens, not hex values: primary `#6750A4`, on-primary `#FFFFFF`, primary-container `#EADDFF`, secondary `#625B71`, tertiary `#7D5260`, surface `#FEF7FF`, on-surface `#1D1B20`, surface-variant `#E7E0EC`, outline `#79747E`. Typography uses Roboto Flex with the M3 baseline type scale (Display 57/45/36px, Headline 32/28/24px, Title 22/16/14px, Body 16/14/12px, Label 14/12/11px) — Title and Label use weight 500, others 400, with per-role letter-spacing (Body Medium +0.25px, Label Medium +0.5px). Elevation is conveyed with both a soft two-layer shadow AND a primary-tinted overlay on the surface (5% at level 1, scaling up to 14% at level 5). Shape scale: extra-small 4dp, small 8dp, medium 12dp (cards), large 16dp (FAB), extra-large 28dp, full 9999dp (buttons). Button styles: Filled (primary bg + on-primary text + full radius), Tonal (secondary-container bg), Outlined (1px outline border), Text (transparent), Elevated (surface + elevation 1). State layers add opacity overlays — hover 8%, focus 12%, pressed 12%, dragged 16%. Use Material Symbols for icons, picking one style (outlined / rounded / sharp) globally, 24dp default. Layout adapts via Window Size Classes (Compact <600dp → Navigation Bar, Medium 600-839 → Rail, Expanded 840-1199 → Rail+Detail, Large 1200+ → Drawer). Motion uses emphasized easing `cubic-bezier(0.2, 0, 0, 1)` with M3 duration tokens (short 50-200ms, medium 250-400ms, long 450-700ms). Light and dark schemes are symmetric — every token swaps. The aesthetic is expressive, accessible, dynamic — Material You principles applied throughout.
+
+### (a) 焦點節點上限
+
+每一頁、每一張投影片，焦點節點上限為 **1–2 個**：
+- 主焦點（1 個必有）：以 `--md-primary: #6750A4` 染色——通常為 Display / Headline 標題、Filled button、或 FAB。
+- 次焦點（0–1 個，可選）：以 `--md-primary-container: #EADDFF` 或 `--md-secondary: #625B71` 的 Tonal 角色承擔，不再加第三層強調。Material You 的色彩擴張性需要被克制以維持「focal hierarchy」。
+
+### (b) accent hex 設計理據
+
+主 accent `--md-primary: #6750A4`（M3 baseline purple，亦同 `--md-surface-tint`）拆解：
+
+| Space | Coordinates | 設計意圖 |
+|-------|-------------|----------|
+| HEX | `#6750A4` | M3 baseline 規格；token role 為 `primary` / `surface-tint`，WeasyPrint 以此為準 |
+| HSL | `H 256°, S 34%, L 48%` | 紫藍色相位 256°——M3 baseline 從 HCT (Hue-Chroma-Tone) 推導為 H 270°/C 36/T 40，sRGB 投影後得此 HSL；S 34% 低於純彩色避免螢幕灼眼；L 48% 對應 M3 tone 40，即「primary on light scheme」 |
+| oklch（advisory） | `oklch(0.49 0.13 296)` | perceptual 等價；色相 296° 接近 M3 HCT 原始 270° + sRGB 投影偏移；C 0.13 反映 baseline palette 的中等彩度 |
+
+選色理由：M3 baseline `#6750A4` 是 Google 提供的「無品牌（pre-branding）」起點色——在沒有 dynamic color 萃取（從 wallpaper / brand image 推導）時的安全預設。每個 surface tint 與 elevation overlay 都從這一個 hue 延伸，破壞 hue 一致性即破壞 Material You 的核心承諾。
+
+### (c) 我不是什麼（anti-patterns / allowed contradictions）
+
+對齊 Material You constraint（避免與品牌規格衝突）：
+
+- no raw hex in components — 元件 layer 一律走 `var(--md-*)` token role，不可硬編碼 `#6750A4`；換 brand 時整個系統需可重綁
+- no clashing brand accent — 若品牌色與 baseline `#6750A4` 衝突，必須執行 dynamic color extraction 重新生成整個 tonal palette，不可只覆蓋 `--md-primary`
+- no third accent — `primary` + `secondary` + `tertiary` 三 role 已是上限；不得再加第四個彩色 token
+- no asymmetric light/dark — 任何 light scheme 的 token 必須在 dark scheme 有對應 swap；單側設色即破壞 Material You 對稱性
+- no elevation without tint overlay — Elevation 不可只用 shadow，必須同時疊 `--md-surface-tint` overlay（M3 specification 要求兩者並存）
+- no italics for emphasis — M3 type scale 使用 weight 與 letter-spacing 區分階層，斜體不在規範內
+- no rgba state layer — State layer 透明度透過 token opacity（hover 8% / focus 12% / pressed 12%）表達，不可硬編碼 rgba
