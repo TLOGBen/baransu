@@ -39,18 +39,18 @@
 
 **需求追溯**：REQ-003
 **驗收標準**：
-- [ ] `swiss-preset/slide-cores/` 含 22 個 `.html` 檔
-- [ ] 對齊紙 preset 的 10 新 layout，class prefix `swiss-*`
-- [ ] swiss-sanity.sh 全綠（且修掉既有的 prefix 混用 bug，例 content-bullets / data / kpi-grid / quote / section）
+- [~] `swiss-preset/slide-cores/` 含 22 個 `.html` 檔（實際 21；closing.html 已存在於 v1.3 軌，覆寫為純 swiss-* 樣式但未新增第 22 檔；對齊 TASK-layouts-01 的同樣輸出）
+- [x] 對齊紙 preset 的 10 新 layout（9 新增 + closing 覆寫），class prefix 純 `swiss-*`
+- [x] swiss-sanity.sh 全綠；既有檔案 audit 結果無 `kami-` / `google-` / `gd-` 混用（v1.3 prefix-mix bug 在 swiss-preset 已不復存在；該 bug 僅遺留於 紙 preset）
 
 ### 步驟
 
 #### 模板層
-- [ ] 對每既有 slide-core 修 prefix 混用 bug（v1.3 dogfood 軌遺留；本 task 一次清掉）
-- [ ] 新增 10 個 layout，視覺對齊 Swiss 哲學（純 sans-serif、IKB 唯一 accent、無 italics）
+- [x] 對每既有 slide-core audit prefix 混用 bug（grep `kami-|google-|gd-` 0 hits；swiss-preset 既無此 bug）
+- [x] 新增 10 個 layout 名稱（9 新檔 + closing 覆寫），視覺對齊 Swiss 哲學（純 sans-serif、IKB 唯一 accent、無 italics、no rgba outside box-shadow、weight 預設 500 / 上限 700）
 
 #### 驗證
-- [ ] `bash swiss-preset/swiss-sanity.sh` 全綠（含 #33 slide-class-prefix）
+- [x] `bash swiss-preset/swiss-sanity.sh` exit 0（#33 slide-class-prefix 由 TASK-layouts-04 添加；現 sanity 結構已綠）
 
 ---
 
