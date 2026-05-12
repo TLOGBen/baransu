@@ -1,9 +1,17 @@
 {
-  "iter_count": 1,
+  "iter_count": 2,
   "score_overall": null,
   "score_history": [],
   "last_review_findings": 0,
-  "pending_findings": [],
+  "pending_findings": [
+    {
+      "from_iter": 2,
+      "task": "TASK-shared-02",
+      "severity": "P2 advisory",
+      "issue": "WIP file .claude/tmp/baransu-design-book-v1.4-roadmap-wip.md included in commit a4afce39; pre-existing force-add from commit f7ee5aa; defer to /ship archive workflow",
+      "action": "deferred to /baransu:ship"
+    }
+  ],
   "pending_spec_drift": [
     "task-shared.md vs requirement.md Scenario 2 wording: canonical 5 anti-patterns assigned to 紙 in task-md but to swiss in req-md; treated as semantic-equivalent for now"
   ],
@@ -13,8 +21,9 @@
   "started_at": "2026-05-12",
   "last_iter_at": "2026-05-12",
   "completed_tasks": [
-    {"id": "TASK-shared-01", "commit": "4ed609a", "review": "0 findings"}
+    {"id": "TASK-shared-01", "commit": "4ed609a", "review": "0 findings"},
+    {"id": "TASK-shared-02", "commit": "a4afce3", "review": "2 P2 findings, 1 fixed in f3ed0b5, 1 deferred to /ship"}
   ],
-  "next_task": "TASK-shared-02",
-  "notes": "iter 1 done; score script not yet built (TASK-finalize-03); 32 tasks remaining"
+  "next_task": "TASK-shared-03",
+  "notes": "iter 2 done; google-design oklch §2/§9 now consistent; 31 tasks remaining"
 }
