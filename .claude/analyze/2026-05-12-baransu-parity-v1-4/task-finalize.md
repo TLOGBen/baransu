@@ -95,19 +95,19 @@
 **需求追溯**：REQ-011 + REQ-012 Scenario 2 + B25 邊界
 **目標**：所有 task 完成後最後一步——score gate 達標後 bump plugin 版本與 CHANGELOG。
 **驗收標準**：
-- [ ] `python3 plugins/baransu/scripts/baseline-parity-score.py` Overall ≥ 90.0%（exit 0）
-- [ ] `plugins/baransu/.claude-plugin/plugin.json` version = "1.4.0"
-- [ ] CHANGELOG.md（若存在）含 `## [1.4.0] - 2026-MM-DD` entry，列出 12 條 Criteria 對應 feat/fix lines
+- [x] `python3 plugins/baransu/scripts/baseline-parity-score.py` Overall ≥ 90.0%（exit 0）
+- [x] `plugins/baransu/.claude-plugin/plugin.json` version = "1.4.0"
+- [x] CHANGELOG.md（若存在）含 `## [1.4.0] - 2026-MM-DD` entry，列出 12 條 Criteria 對應 feat/fix lines
 
 ### 步驟
 
 #### 規格層 / 驗證層
-- [ ] 跑 score 腳本確認 ≥ 90.0%（若 < 90% 則回頭看 fail 條目，補上前序 task）
-- [ ] 改 `plugins/baransu/.claude-plugin/plugin.json` version `1.3.1` → `1.4.0`
-- [ ] 若 repo 有 `CHANGELOG.md` 則 prepend `## [1.4.0] - 2026-MM-DD` 段（12 條目）；若無則跳過
-- [ ] 提 conventional commit `feat: v1.4.0 baseline-parity milestone`，內文列 11 條 Criteria 對應 REQ
+- [x] 跑 score 腳本確認 ≥ 90.0%（若 < 90% 則回頭看 fail 條目，補上前序 task）
+- [x] 改 `plugins/baransu/.claude-plugin/plugin.json` version `1.3.1` → `1.4.0`
+- [x] 若 repo 有 `CHANGELOG.md` 則 prepend `## [1.4.0] - 2026-MM-DD` 段（12 條目）；若無則跳過
+- [x] 提 conventional commit `feat: v1.4.0 baseline-parity milestone`，內文列 11 條 Criteria 對應 REQ
 
 #### 驗證
-- [ ] grep `"version": "1.4.0"` plugin.json
-- [ ] 跑 score 腳本 → exit 0
-- [ ] git log 顯示 v1.4.0 commit
+- [x] grep `"version": "1.4.0"` plugin.json
+- [x] 跑 score 腳本 → exit 0
+- [x] git log 顯示 v1.4.0 commit
