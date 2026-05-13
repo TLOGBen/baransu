@@ -1,5 +1,5 @@
 {
-  "iter_count": 22,
+  "iter_count": 23,
   "score_overall": null,
   "score_history": [],
   "last_review_findings": 0,
@@ -8,35 +8,35 @@
       "from_iter": 2,
       "task": "TASK-shared-02",
       "severity": "P2 advisory",
-      "issue": "WIP file .claude/tmp/baransu-design-book-v1.4-roadmap-wip.md included in commit a4afce39",
+      "issue": "WIP file committed alongside TASK-shared-02",
       "action": "deferred to /baransu:ship"
     },
     {
       "from_iter": 17,
       "task": "TASK-layouts-01/02/03 cluster",
       "severity": "P2",
-      "issue": "三 preset slide-cores all at 21/22; validator soft-warns 4 missing canonical layouts (toc/image-full/quote-stack/breakout)",
-      "action": "dogfood pass to add missing 4 uniformly"
+      "issue": "三 preset slide-cores all at 21/22; 4 canonical missing",
+      "action": "dogfood pass"
     },
     {
       "from_iter": 22,
       "task": "TASK-cg-01",
       "severity": "P3 follow-up",
-      "issue": "Step 31 checklist-sanity shell deferred (not REQ-005 gate; auxiliary tooling for test.md integration #8)",
-      "action": "Add tiny checklist-sanity.sh check (P0-P3 counts + 三 heading + source non-empty) in a future cleanup pass"
+      "issue": "checklist-sanity shell deferred",
+      "action": "future cleanup pass"
     }
   ],
   "pending_spec_drift": [
-    "task-shared.md vs requirement.md Scenario 2 wording: anti-patterns assignment",
-    "REQ-003 Scenario 3 wording: `--font-h*` vs direct h1{} selectors",
-    "TASK-svg-01 P2: flowchart diamond 128×128 rotated rect",
-    "TASK-svg-03 P1: REQ-001 Scenario 4 mod-4 wording vs validator coverage",
-    "TASK-svg-04 P2: chevron marker defs duplicated across 13 diagram-types",
+    "task-shared.md vs requirement.md Scenario 2 wording",
+    "REQ-003 Scenario 3: `--font-h*` vs direct h1{} selectors",
+    "TASK-svg-01 P2: diamond 128×128 rotated rect",
+    "TASK-svg-03 P1: mod-4 wording vs validator",
+    "TASK-svg-04 P2: chevron defs duplication",
     "TASK-svg-05 infra: validate-output.ts TypeScript diagnostics",
-    "TASK-editorial-01 P2: lead classes don't receive text-wrap: pretty",
+    "TASK-editorial-01 P2: lead classes no text-wrap",
     "TASK-editorial-04 F2: editorial-sanity.sh relative path",
     "TASK-schemas/layouts P2: `gd-*` vs `google-*`",
-    "TASK-schemas-04 P2: Check B continue on missing; long-doc + slides schemas deferred"
+    "TASK-schemas-04 P2: Check B continue on missing"
   ],
   "ab_diff_status": "not_yet_attempted",
   "consecutive_no_progress": 0,
@@ -64,9 +64,10 @@
     {"id": "TASK-layouts-02", "commit": "f3d051f", "review": "21/22"},
     {"id": "TASK-layouts-03", "commit": "9b6b66a", "review": "21/22"},
     {"id": "TASK-layouts-04", "commit": "5eae299", "review": "1 P1 fixed"},
-    {"id": "TASK-layouts-05", "commit": "0f4993f", "review": "1 F1 fixed; LAYOUTS 5/5"},
-    {"id": "TASK-cg-01", "commit": "028d076", "review": "0 (sanity shell deferred to P3 follow-up)"}
+    {"id": "TASK-layouts-05", "commit": "0f4993f", "review": "1 F1 fixed"},
+    {"id": "TASK-cg-01", "commit": "028d076", "review": "0"},
+    {"id": "TASK-cg-02", "commit": "93ddc5e", "review": "0; Fact-Verification Principle landed"}
   ],
-  "next_task": "TASK-cg-02",
-  "notes": "iter 22 done; cg 1/4; 22/33 tasks; 11 remaining."
+  "next_task": "TASK-cg-03",
+  "notes": "iter 23 done; cg 2/4 (Fact-Verification done); 23/33 tasks = 70%; 10 remaining."
 }
