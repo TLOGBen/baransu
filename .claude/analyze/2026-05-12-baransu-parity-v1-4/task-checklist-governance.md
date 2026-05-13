@@ -7,17 +7,17 @@
 **需求追溯**：REQ-005
 **目標**：對齊 guizang 523 行 checklist 結構（不是字數對齊，是結構 + 分層 + 三欄沉澱）。
 **驗收標準**：
-- [ ] `design/references/slide-checklist.md` 總條目 ∈ [15, 20]
-- [ ] 含 ≥ 4 個 P0（其中 ≥ 1 使用 `0-S` / `0-A` / `0-B` 子前綴）+ ≥ 4 個 P1 + ≥ 4 個 P2 + ≥ 2 個 P3
-- [ ] 每條含「現象 / 根因 / 做法」三 sub-section
-- [ ] 每條含 `source: ...` metadata（dogfood / huashu-incident / kami-spec 三來源）
+- [x] `design/references/slide-checklist.md` 總條目 ∈ [15, 20]
+- [x] 含 ≥ 4 個 P0（其中 ≥ 1 使用 `0-S` / `0-A` / `0-B` 子前綴）+ ≥ 4 個 P1 + ≥ 4 個 P2 + ≥ 2 個 P3
+- [x] 每條含「現象 / 根因 / 做法」三 sub-section
+- [x] 每條含 `source: ...` metadata（dogfood / huashu-incident / kami-spec 三來源）
 
 ### 步驟
 
 #### 規格層
-- [ ] 讀既有 slide-checklist.md 5 條
-- [ ] 把 5 條既有的逐條補三欄 + source（多數應為 `source: kami-spec-Lxx` 或 `source: dogfood-v1.3-handoff`）
-- [ ] 新增 10-15 條 from dogfood / kami spec / huashu Junior Designer 原則
+- [x] 讀既有 slide-checklist.md 5 條
+- [x] 把 5 條既有的逐條補三欄 + source（多數應為 `source: kami-spec-Lxx` 或 `source: dogfood-v1.3-handoff`）
+- [x] 新增 10-15 條 from dogfood / kami spec / huashu Junior Designer 原則
 - [ ] 分層分配：
   - P0-S（Swiss 模式專屬）：no italics / no oklch in attribute / no second accent
   - P0-A（all preset）：focal cap 2 / chevron 強制 / 4 倍數座標
