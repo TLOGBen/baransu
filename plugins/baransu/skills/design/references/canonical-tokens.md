@@ -73,7 +73,7 @@ re-derive from their own anchor — never copy raw numbers across presets.
 
 對標 guizang S01-S22；由 `book/scripts/validate-swiss-deck.mjs` LOCK_LIST 機械驗證。三 preset（紙 / swiss / google-design）的 `slide-cores/` 必須對齊以下 22 layout 命名與用途；任何不在 lock list 內的 layout 名為 hard fail。
 
-`required-section-count` 指 layout 內必填語意區塊（heading / body / caption / cell …）下限；`SVG-allowed-types` 為該 layout 內可嵌入的 SVG 圖表類型（對應 `book/references/diagram-types/`），`none` 表示禁止嵌入 SVG（image-heavy 或純排版）。
+`required-section-count` 指 layout 內必填語意區塊（heading / body / caption / cell …）下限；`SVG-allowed-types` 為該 layout 內可嵌入的 SVG 圖表類型 slug（對應 `book/references/diagram-types/type-{slug}.md` 13 個 status=complete diagram-type 之一：`architecture / flowchart / sequence / state / er / timeline / swimlane / quadrant / nested / tree / layers / venn / pyramid`）。`none` = 禁止嵌入 SVG（image-heavy 或純排版）；`optional` = 可嵌入但無語意必選 type。
 
 | layout-name | use-case | required-section-count | SVG-allowed-types |
 | --- | --- | --- | --- |
@@ -81,21 +81,21 @@ re-derive from their own anchor — never copy raw numbers across presets.
 | `section` | 章節間隔頁：粗體標題 + 可選編號 | ≥ 1 | none |
 | `content-bullets` | H2 + 3-7 條 bullet 列表 | ≥ 4（heading + 3 bullets） | architecture / flowchart |
 | `quote` | 抽引句 + 署名 | 2 | none |
-| `data` | 單一主導數字 + context | 2-3 | quadrant / KPI |
+| `data` | 單一主導數字 + context | 2-3 | quadrant |
 | `kpi-grid` | 4-6 格 KPI 數字矩陣 | 4-6 | none |
 | `timeline` | 水平里程碑軸 | 5-7 | timeline |
-| `process` | 連續 N 步流程 | 5 | flowchart / process |
+| `process` | 連續 N 步流程 | 5 | flowchart |
 | `testimonial` | 人像 + 引述 + 署名 | 3 | none（image-heavy） |
 | `agenda` | 1-N 編號議程 | 4-8 | none |
 | `stat-hero` | 超大數字 + supporting copy | 2 | none |
-| `icon-grid` | 4 / 6 / 9 格 icon + 標題 | 4-9 | icon（mono primitives） |
+| `icon-grid` | 4 / 6 / 9 格 icon + 標題 | 4-9 | none（icons 為 mono primitives，非 diagram-type） |
 | `table-heavy` | 對照表 + zebra row | 1（table） | none |
-| `before-after` | 水平左右對比 | 2 | comparison（optional） |
+| `before-after` | 水平左右對比 | 2 | optional |
 | `divider` | 章節分隔 title only | 1 | none |
 | `closing` | Thank-you / 聯絡 / next-step | 2-3 | none |
 | `toc` | 全 deck 目錄 | ≥ 4 | none |
 | `two-column` | 左右等寬雙欄 | 2 | optional |
 | `image-full` | 滿版圖 + caption overlay | 2 | none |
-| `comparison` | 2×2 quadrant 或 side-by-side | 3-4 | quadrant |
+| `comparison` | 2×2 quadrant 或 side-by-side | 3-4 | quadrant / venn |
 | `quote-stack` | 3 條堆疊引述 callout | 3-6 | none |
 | `breakout` | 重點 insight 強調 callout box | 1-2 | optional |
