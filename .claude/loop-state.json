@@ -1,38 +1,20 @@
 {
-  "iter_count": 26,
+  "iter_count": 27,
   "score_overall": null,
   "score_history": [],
   "last_review_findings": 0,
   "pending_findings": [
-    {
-      "from_iter": 2,
-      "task": "TASK-shared-02",
-      "severity": "P2 advisory",
-      "issue": "WIP file committed alongside TASK-shared-02",
-      "action": "deferred to /baransu:ship"
-    },
-    {
-      "from_iter": 17,
-      "task": "TASK-layouts-01/02/03 cluster",
-      "severity": "P2",
-      "issue": "三 preset slide-cores all at 21/22",
-      "action": "dogfood pass"
-    },
-    {
-      "from_iter": 22,
-      "task": "TASK-cg-01",
-      "severity": "P3 follow-up",
-      "issue": "checklist-sanity shell deferred",
-      "action": "future cleanup pass"
-    }
+    {"from_iter": 2, "task": "TASK-shared-02", "severity": "P2", "issue": "WIP file committed", "action": "deferred to /ship"},
+    {"from_iter": 17, "task": "layouts-01/02/03", "severity": "P2", "issue": "21/22 count", "action": "dogfood pass"},
+    {"from_iter": 22, "task": "TASK-cg-01", "severity": "P3", "issue": "checklist-sanity shell deferred", "action": "future cleanup"}
   ],
   "pending_spec_drift": [
     "task-shared.md vs requirement.md Scenario 2 wording",
     "REQ-003 Scenario 3: --font-h* vs direct h1{}",
-    "TASK-svg-01 P2: diamond 128×128 rotated rect",
+    "TASK-svg-01 P2: diamond 128x128",
     "TASK-svg-03 P1: mod-4 wording vs validator",
     "TASK-svg-04 P2: chevron defs duplication",
-    "TASK-svg-05 infra: validate-output.ts TypeScript diagnostics",
+    "TASK-svg-05 infra: TS diagnostics",
     "TASK-editorial-01 P2: lead classes no text-wrap",
     "TASK-editorial-04 F2: editorial-sanity.sh relative path",
     "TASK-schemas/layouts P2: gd-* vs google-*",
@@ -48,29 +30,30 @@
     {"id": "TASK-shared-02", "commit": "a4afce3", "review": "1 fixed"},
     {"id": "TASK-shared-03", "commit": "e95cb14", "review": "0"},
     {"id": "TASK-svg-01", "commit": "9aa7030", "review": "0"},
-    {"id": "TASK-svg-02", "commit": "f72786d", "review": "1 P1 + 1 P2 fixed"},
+    {"id": "TASK-svg-02", "commit": "f72786d", "review": "1 P1+1 P2"},
     {"id": "TASK-svg-03", "commit": "c816fb7", "review": "4 P1: 2 fixed"},
-    {"id": "TASK-svg-04", "commit": "bd9727c", "review": "1 P1 fixed"},
-    {"id": "TASK-svg-05", "commit": "1bedca0", "review": "1 P1 fixed"},
+    {"id": "TASK-svg-04", "commit": "bd9727c", "review": "1 P1"},
+    {"id": "TASK-svg-05", "commit": "1bedca0", "review": "1 P1"},
     {"id": "TASK-editorial-01", "commit": "4086f08", "review": "0"},
-    {"id": "TASK-editorial-02", "commit": "5badbc8", "review": "1 P1 fixed"},
+    {"id": "TASK-editorial-02", "commit": "5badbc8", "review": "1 P1"},
     {"id": "TASK-editorial-03", "commit": "6a4b344", "review": "0"},
-    {"id": "TASK-editorial-04", "commit": "25fe6c8", "review": "1 P1 fixed"},
-    {"id": "TASK-schemas-01", "commit": "4e548e6", "review": "1 P1 fixed"},
-    {"id": "TASK-schemas-02", "commit": "4ab0b27", "review": "1 P1 fixed"},
+    {"id": "TASK-editorial-04", "commit": "25fe6c8", "review": "1 P1"},
+    {"id": "TASK-schemas-01", "commit": "4e548e6", "review": "1 P1"},
+    {"id": "TASK-schemas-02", "commit": "4ab0b27", "review": "1 P1"},
     {"id": "TASK-schemas-03", "commit": "16615d4", "review": "0"},
     {"id": "TASK-schemas-04", "commit": "f968165", "review": "0"},
     {"id": "TASK-layouts-01", "commit": "23f138f", "review": "21/22"},
     {"id": "TASK-layouts-02", "commit": "f3d051f", "review": "21/22"},
     {"id": "TASK-layouts-03", "commit": "9b6b66a", "review": "21/22"},
-    {"id": "TASK-layouts-04", "commit": "5eae299", "review": "1 P1 fixed"},
-    {"id": "TASK-layouts-05", "commit": "0f4993f", "review": "1 F1 fixed"},
+    {"id": "TASK-layouts-04", "commit": "5eae299", "review": "1 P1"},
+    {"id": "TASK-layouts-05", "commit": "0f4993f", "review": "1 F1"},
     {"id": "TASK-cg-01", "commit": "028d076", "review": "0"},
     {"id": "TASK-cg-02", "commit": "93ddc5e", "review": "0"},
     {"id": "TASK-cg-03", "commit": "27af130", "review": "0"},
-    {"id": "TASK-cg-04", "commit": "02803bd", "review": "0; CG GROUP 4/4"},
-    {"id": "TASK-ct-01", "commit": "66ff67b", "review": "0; Export-brief Mode heading + 4th dispatch landed"}
+    {"id": "TASK-cg-04", "commit": "02803bd", "review": "0"},
+    {"id": "TASK-ct-01", "commit": "66ff67b", "review": "0"},
+    {"id": "TASK-ct-02", "commit": "b9845ea", "review": "0; Export-brief 4-step assembly landed"}
   ],
-  "next_task": "TASK-ct-02",
-  "notes": "iter 26 done; ct 1/4; 26/33 tasks = 79%; 7 remaining."
+  "next_task": "TASK-ct-03",
+  "notes": "iter 27 done; ct 2/4; 27/33 tasks = 82%; 6 remaining."
 }
