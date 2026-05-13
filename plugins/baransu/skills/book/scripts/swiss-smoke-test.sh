@@ -16,6 +16,22 @@ OUT_PPTX="${SWISS_SMOKE_OUT:-/tmp/swiss-smoke.pptx}"
 
 [[ -f "$FIXTURE" ]] || { echo "fixture missing: $FIXTURE" >&2; exit 2; }
 
+# Stage 0 — three-preset golden-template presence check (M1 / TASK-finalize-01).
+# REQ-010 Scenario 1: kami / swiss / gd golden-template variants must all exist
+# and be non-empty before the swiss-positive fixture chain runs. This is a
+# minimum-viable E2E spot-check — full per-variant fixture regen lives under
+# v1.4 follow-up. Until then we assert the source-of-truth assets are present
+# so any preset-mass-rename regression trips the smoke gate.
+GOLDEN_DIR="$(cd "$HERE/../references" && pwd)"
+for variant in golden-template.html golden-template-swiss.html golden-template-gd.html; do
+  gpath="$GOLDEN_DIR/$variant"
+  if [[ ! -s "$gpath" ]]; then
+    echo "swiss-smoke-test: golden-template variant missing or empty: $gpath" >&2
+    exit 1
+  fi
+done
+echo "OK  three-preset golden-template presence (kami/swiss/gd)"
+
 # Stage 1
 ( cd "$HERE" && npx tsx validate-output.ts "$FIXTURE" ) || exit 1
 
