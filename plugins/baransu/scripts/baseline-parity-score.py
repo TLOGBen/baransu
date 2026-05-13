@@ -21,7 +21,7 @@ import subprocess
 import sys
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
-from typing import Callable, List, Tuple
+from typing import List
 
 
 # Determine repo root (parent of plugins/baransu/scripts/)
