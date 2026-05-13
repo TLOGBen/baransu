@@ -1,5 +1,5 @@
 {
-  "iter_count": 25,
+  "iter_count": 26,
   "score_overall": null,
   "score_history": [],
   "last_review_findings": 0,
@@ -68,8 +68,9 @@
     {"id": "TASK-cg-01", "commit": "028d076", "review": "0"},
     {"id": "TASK-cg-02", "commit": "93ddc5e", "review": "0"},
     {"id": "TASK-cg-03", "commit": "27af130", "review": "0"},
-    {"id": "TASK-cg-04", "commit": "02803bd", "review": "0; CG GROUP 4/4 COMPLETE"}
+    {"id": "TASK-cg-04", "commit": "02803bd", "review": "0; CG GROUP 4/4"},
+    {"id": "TASK-ct-01", "commit": "66ff67b", "review": "0; Export-brief Mode heading + 4th dispatch landed"}
   ],
-  "next_task": "TASK-ct-01",
-  "notes": "iter 25 done; 🎉 CHECKLIST-GOVERNANCE GROUP 4/4 COMPLETE (REQ-005 + REQ-006 fully landed); 25/33 tasks = 76%; 8 remaining. Moving to cross-tool group."
+  "next_task": "TASK-ct-02",
+  "notes": "iter 26 done; ct 1/4; 26/33 tasks = 79%; 7 remaining."
 }
