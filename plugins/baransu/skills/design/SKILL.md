@@ -308,6 +308,7 @@ Cross-tool brief packaging — 打包當下 preset 的 DESIGN.md + tokens.css + 
 #### Step 1 — 解析 preset
 - 讀 `{project_root}/tokens.css` 首行。
 - 解析 `/* preset: <slug> */` 註解，取得 `$PRESET`（`kami` / `swiss` / `google-design`，或 user 透過 `gen --slug` 自製的 slug）。
+- **Canonical regex (path-traversal hardening)**：首行必須完全符合 `^/\* preset: [a-z][a-z0-9-]{1,15} \*/$`（同 Gen Mode line 130 規格）。`<slug>` 字元類別僅 `[a-z0-9-]`，禁止 `/` `.` `..` 等 path 元素 — 因 `$PRESET` 後續直接拼進 output 檔名 `brief-{preset}-{date}.md`。
 - 若 `tokens.css` 不存在或首行 regex 不符 → stderr 印「未找到 tokens.css 或無 preset 註解；請先跑 `/baransu:design preset <name>`」並 exit 1。
 
 #### Step 2 — 讀 source files

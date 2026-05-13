@@ -194,9 +194,10 @@ Receives `$RAW_CONTENT`. Produces `$STRUCTURE` (a JSON-like outline) and `$CONTE
 
 **Flow on hit**（每命中一筆 `{hit}`）：
 
-1. 跑 `WebSearch`，query template：`"{hit}" release notes` 或 `"{hit}" announcement`（人名命中改用 `"{hit}" announcement` / `"{hit}" interview`）。
-2. 若 WebSearch 回傳 **0 結果** → 透過 `AskUserQuestion` 顯示：「Fact-verify pending: '{hit}' 在 WebSearch 0 結果。選擇：強制繼續 / 改用 `--text` 餵已驗證版本 / 中止本次 /book」。等使用者選擇後再決定是否進入 §1。
-3. 若 WebSearch 回傳 **≥ 1 結果** → 視為事實可驗，繼續，但仍把該 hit 列入 `$STRUCTURE` 末尾的「Sources」清單（在 Stage 2A §4 extract 階段一併處理）。
+1. **Sanitize `{hit}` before query**：將 `{hit}` 內所有 `"` (`U+0022`) 字元先剝除（regex 抓的是合法 identifier/version 字串，正常情況不含 quote；含則為 noise 或 adversarial input）。Sanitized `{hit_clean}` 再丟下一步。
+2. 跑 `WebSearch`，query template：`"{hit_clean}" release notes` 或 `"{hit_clean}" announcement`（人名命中改用 `"{hit_clean}" announcement` / `"{hit_clean}" interview`）。
+3. 若 WebSearch 回傳 **0 結果** → 透過 `AskUserQuestion` 顯示：「Fact-verify pending: '{hit_clean}' 在 WebSearch 0 結果。選擇：強制繼續 / 改用 `--text` 餵已驗證版本 / 中止本次 /book」。等使用者選擇後再決定是否進入 §1。
+4. 若 WebSearch 回傳 **≥ 1 結果** → 視為事實可驗，繼續，但仍把該 hit 列入 `$STRUCTURE` 末尾的「Sources」清單（在 Stage 2A §4 extract 階段一併處理）。
 
 **Flow on no hit**：直接進入 §1 分類。
 

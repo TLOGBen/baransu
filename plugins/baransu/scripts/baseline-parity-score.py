@@ -82,9 +82,10 @@ def check_c1_svg() -> CriterionResult:
             continue
         content = f.read_text(encoding="utf-8")
         is_complete = bool(re.search(r"^status:\s*complete", content, re.MULTILINE))
-        has_svg = "<svg" in content
-        passed = is_complete and has_svg
-        subs.append(SubCheck(t, passed, f"complete={is_complete}, has_svg={has_svg}"))
+        # F1 audit hardening: count SVG primitive elements; reject degenerate stubs.
+        prim_count = len(re.findall(r"<(circle|rect|path|line|polygon)\b", content))
+        passed = is_complete and prim_count >= 5
+        subs.append(SubCheck(t, passed, f"complete={is_complete}, prims={prim_count}"))
     all_passed = all(s.passed for s in subs)
     return CriterionResult("C1", WEIGHTS["C1"], all_passed,
                           f"{sum(s.passed for s in subs)}/13 types complete", subs)
@@ -98,7 +99,14 @@ def check_c2_schemas() -> CriterionResult:
     for p in presets:
         for s in new_schemas:
             f = REPO_ROOT / "plugins/baransu/skills/design/references" / p / "schemas" / f"{s}.md"
-            subs.append(SubCheck(f"{p}/{s}.md", f.exists()))
+            # F2 audit hardening: require non-empty schema-id frontmatter, not just file presence.
+            if not f.exists():
+                subs.append(SubCheck(f"{p}/{s}.md", False, "missing"))
+                continue
+            content = f.read_text(encoding="utf-8")
+            has_schema_id = bool(re.search(r"^schema-id:\s*\S+", content, re.MULTILINE))
+            subs.append(SubCheck(f"{p}/{s}.md", has_schema_id,
+                                 "" if has_schema_id else "schema-id frontmatter empty/missing"))
     all_passed = all(s.passed for s in subs)
     return CriterionResult("C2", WEIGHTS["C2"], all_passed,
                           f"{sum(s.passed for s in subs)}/18 new-schema md", subs)
@@ -115,8 +123,25 @@ def check_c3_layouts() -> CriterionResult:
             continue
         files = list(d.glob("*.html"))
         # accept >= 21 (closing pre-exists overwrite pattern, documented in 21/22 cluster)
-        passed = len(files) >= 21
-        subs.append(SubCheck(p, passed, f"{len(files)} layouts"))
+        count_ok = len(files) >= 21
+        # F3 audit hardening: ≥ 80% of layouts must contain semantic class markers
+        # (class= with preset-prefix-* hooks) so degenerate empty-shell stubs are
+        # filtered out at score time. preset slug: kami / swiss / google.
+        slug = {"紙-preset": "kami", "swiss-preset": "swiss",
+                "google-design-preset": "google"}.get(p, "")
+        semantic_count = 0
+        for layout in files:
+            try:
+                txt = layout.read_text(encoding="utf-8")
+                if re.search(rf'class="(?:[^"]*\s)?{slug}-\S+', txt):
+                    semantic_count += 1
+            except Exception:
+                pass
+        semantic_ratio_ok = (len(files) > 0 and
+                             semantic_count / len(files) >= 0.8)
+        passed = count_ok and semantic_ratio_ok
+        subs.append(SubCheck(p, passed,
+                             f"{len(files)} layouts, {semantic_count} semantic"))
     all_passed = all(s.passed for s in subs)
     return CriterionResult("C3", WEIGHTS["C3"], all_passed,
                           f"{sum(s.passed for s in subs)}/3 presets ≥21 layouts", subs)
@@ -157,13 +182,22 @@ def check_c5_checklist() -> CriterionResult:
     p2 = len(re.findall(r"^##\s+P2-", content, re.MULTILINE))
     p3 = len(re.findall(r"^##\s+P3-", content, re.MULTILINE))
     total = p0 + p1 + p2 + p3
-    sub_passed = p0 >= 4 and p1 >= 4 and p2 >= 4 and p3 >= 2 and 15 <= total <= 20
+    # F4 audit hardening: each entry must have 三欄 (現象 / 根因 / 做法) sub-headings.
+    # Require count of each sub-heading >= total entry count to catch one-liner stubs.
+    pheno = len(re.findall(r"^###\s+現象", content, re.MULTILINE))
+    cause = len(re.findall(r"^###\s+根因", content, re.MULTILINE))
+    fix = len(re.findall(r"^###\s+做法", content, re.MULTILINE))
+    three_col_ok = pheno >= total and cause >= total and fix >= total
+    sub_passed = (p0 >= 4 and p1 >= 4 and p2 >= 4 and p3 >= 2
+                  and 15 <= total <= 20 and three_col_ok)
     subs = [
         SubCheck("P0 ≥4", p0 >= 4, f"P0={p0}"),
         SubCheck("P1 ≥4", p1 >= 4, f"P1={p1}"),
         SubCheck("P2 ≥4", p2 >= 4, f"P2={p2}"),
         SubCheck("P3 ≥2", p3 >= 2, f"P3={p3}"),
         SubCheck("total ∈ [15, 20]", 15 <= total <= 20, f"total={total}"),
+        SubCheck("三欄 (現象/根因/做法)", three_col_ok,
+                 f"phen={pheno}, cause={cause}, fix={fix} vs total={total}"),
     ]
     return CriterionResult("C5", WEIGHTS["C5"], sub_passed,
                           f"P0/P1/P2/P3 = {p0}/{p1}/{p2}/{p3} (total {total})", subs)
@@ -201,13 +235,17 @@ def check_c7_export_brief() -> CriterionResult:
     has_heading = "## Export-brief Mode" in content
     has_invocation = "export-brief" in content
     has_steps = all(f"Step {i}" in content for i in [1, 2, 3, 4])
+    # F5 audit hardening: ensure Step 3 assembles 6 named sections, not just heading text.
+    # Probe for the assembly anchors (Section A-F or 對應名稱).
+    has_assembly = all(s in content for s in ["preset", "tokens.css", ".claude/design/", "Codex"])
     subs = [
         SubCheck("## Export-brief Mode heading", has_heading),
         SubCheck("export-brief invocation", has_invocation),
         SubCheck("4 steps", has_steps),
+        SubCheck("assembly anchors (preset/tokens.css/path/Codex)", has_assembly),
     ]
     return CriterionResult("C7", WEIGHTS["C7"], all(s.passed for s in subs),
-                          f"{sum(s.passed for s in subs)}/3 export-brief checks", subs)
+                          f"{sum(s.passed for s in subs)}/4 export-brief checks", subs)
 
 
 def check_c8_prompt_guide() -> CriterionResult:
@@ -262,7 +300,7 @@ def check_c9_oklch() -> CriterionResult:
 def check_c10_v13_debt() -> CriterionResult:
     """C10: M1 swiss-smoke + M2 design-token-resolver/golden-template v1.3+ (M3 advisory excluded)."""
     subs = []
-    # M1: swiss-smoke-test.sh exits 0
+    # M1: swiss-smoke-test.sh exits 0 AND stdout contains three-preset presence OK
     smoke = REPO_ROOT / "plugins/baransu/skills/book/scripts/swiss-smoke-test.sh"
     if not smoke.exists():
         subs.append(SubCheck("M1 swiss-smoke", False, "script missing"))
@@ -270,8 +308,12 @@ def check_c10_v13_debt() -> CriterionResult:
         try:
             r = subprocess.run(["bash", str(smoke)], capture_output=True,
                              text=True, timeout=120, cwd=str(REPO_ROOT))
-            subs.append(SubCheck("M1 swiss-smoke", r.returncode == 0,
-                               f"exit={r.returncode}"))
+            # F6 audit hardening: don't trust smoke-test's bare exit code;
+            # require the Stage 0 三 preset golden-template presence line.
+            has_3_preset = "three-preset golden-template presence" in r.stdout
+            ok = r.returncode == 0 and has_3_preset
+            subs.append(SubCheck("M1 swiss-smoke", ok,
+                               f"exit={r.returncode}, 3preset_gate={has_3_preset}"))
         except Exception as e:
             subs.append(SubCheck("M1 swiss-smoke", False, str(e)))
 
