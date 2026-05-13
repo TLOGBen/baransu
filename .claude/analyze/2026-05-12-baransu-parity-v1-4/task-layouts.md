@@ -99,11 +99,11 @@
 
 **需求追溯**：REQ-003 整合，輔助 task-layouts-04
 **驗收標準**：
-- [ ] `design/references/canonical-tokens.md` 加「Slide Layout Registry」段，列 22 個 layout name + 適用情境
-- [ ] 三 preset 的 layout 命名一致對齊此 registry
+- [x] `design/references/canonical-tokens.md` 加「Slide Layout Registry」段，列 22 個 layout name + 適用情境
+- [x] 三 preset 的 layout 命名一致對齊此 registry
 
 ### 步驟
 
 #### 規格層
-- [ ] 在 canonical-tokens.md 加 markdown 表：layout-name / use-case / required-section-count / SVG-allowed-types
-- [ ] 列 22 行
+- [x] 在 canonical-tokens.md 加 markdown 表：layout-name / use-case / required-section-count / SVG-allowed-types
+- [x] 列 22 行
