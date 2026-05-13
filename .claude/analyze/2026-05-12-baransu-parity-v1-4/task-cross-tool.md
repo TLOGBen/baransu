@@ -7,22 +7,22 @@
 **需求追溯**：REQ-007 Scenario 1
 **目標**：在 /design 既有的 gen / preset / lint 三模式之外新增 export-brief 第 4 模式。
 **驗收標準**：
-- [ ] `design/SKILL.md` 含「## Export-brief Mode」獨立 heading
-- [ ] 段內描述 invocation pattern（`/baransu:design export-brief [--stdout]`）+ 預期輸出
-- [ ] SKILL.md 開頭的 mode dispatch 邏輯加 export-brief 分支
+- [x] `design/SKILL.md` 含「## Export-brief Mode」獨立 heading
+- [x] 段內描述 invocation pattern（`/baransu:design export-brief [--stdout]`）+ 預期輸出
+- [x] SKILL.md 開頭的 mode dispatch 邏輯加 export-brief 分支
 
 ### 步驟
 
 #### 規格層
-- [ ] 在 SKILL.md mode dispatch 開頭區段加 4th branch
-- [ ] 加新段「## Export-brief Mode (v1.4)」，含：
+- [x] 在 SKILL.md mode dispatch 開頭區段加 4th branch
+- [x] 加新段「## Export-brief Mode (v1.4)」，含：
   - 用途說明（cross-tool brief 給 Codex CLI / ChatGPT Images 2.0）
   - 輸入：當下 preset（從 tokens.css 首行註解解析）
   - 輸出：純 markdown 區塊到 stdout（`--stdout` 旗標）或寫到 `.claude/design/brief-{preset}-{date}.md`（預設）
 
 #### 驗證
-- [ ] grep `^## Export-brief Mode` design/SKILL.md 命中 = 1
-- [ ] grep `export-brief` design/SKILL.md 命中 ≥ 3（dispatch、heading、wording）
+- [x] grep `^## Export-brief Mode` design/SKILL.md 命中 = 1
+- [x] grep `export-brief` design/SKILL.md 命中 ≥ 3（dispatch、heading、wording）
 
 ---
 
