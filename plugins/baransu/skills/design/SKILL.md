@@ -305,7 +305,39 @@ Cross-tool brief packaging — 打包當下 preset 的 DESIGN.md + tokens.css + 
 
 ### Step-by-step assembly
 
-TASK-ct-02 將補上完整 step-by-step（Step 1 解析 preset / Step 2 讀 source files / Step 3 組裝 brief / Step 4 輸出）。當前 task（ct-01）僅 land heading + dispatch + skeleton；本段在 ct-02 完成後會擴張為含五大段（preset header / §9 hex 理據 / §J 負面尾巴 / §G editorial 規格 / design-cores 結構摘要 / Codex bridge wording）的可執行 instruction。
+#### Step 1 — 解析 preset
+- 讀 `{project_root}/tokens.css` 首行。
+- 解析 `/* preset: <slug> */` 註解，取得 `$PRESET`（`kami` / `swiss` / `google-design`，或 user 透過 `gen --slug` 自製的 slug）。
+- 若 `tokens.css` 不存在或首行 regex 不符 → stderr 印「未找到 tokens.css 或無 preset 註解；請先跑 `/baransu:design preset <name>`」並 exit 1。
+
+#### Step 2 — 讀 source files
+- `{project_root}/DESIGN.md`（全文，供 §9 hex 理據 + §G editorial + §J 引述截取）。
+- `{project_root}/tokens.css`（全文；額外解析 `--accent` / `--paper` / `--surface` 的 hex 值，**動態取值**，不寫死）。
+- `{project_root}/design-cores/*.html`（檔名清單 + 每檔開頭 30 行 inline `<style>`，作為結構摘要原料）。
+- `{plugin_root}/references/{$PRESET}-preset/image-prompts.md`（全文，供 §J 負面尾巴與 fallback 引述）。
+- `{plugin_root}/references/{$PRESET}-preset/schemas/*.md`（檔名清單，僅取名稱不展開全文）。
+
+#### Step 3 — 組裝 brief（markdown 區塊）
+- **Section A — Preset header**：preset 名稱 + 一句哲學 caption（從 DESIGN.md §1 截取）。
+- **Section B — §9 hex 理據**：截 `DESIGN.md §9 (a) 焦點 / (b) hex 設計理據 / (c) 我不是什麼` 三小節。所有 hex 值由 Step 2 從**當前 `tokens.css` 動態解析**，**不得**寫死 Kami `#1B365D`；若 `$PRESET=swiss` 則 `--accent: #002FA7`、`$PRESET=google-design` 則 `--accent: #6750A4`（皆由 tokens.css 解析而來，切 preset 重跑時自動跟著切）。
+- **Section C — §J 負面尾巴**：從 `image-prompts.md` 取「no title, no footer, no page chrome, no logo, no border」字串 + 三段 fallback 引述。
+- **Section D — §G editorial 規格**：dropcap 3-line / `text-wrap: pretty` / curly quotes（Kami spec quotation；**禁** straight quotes）。
+- **Section E — design-cores 結構摘要**：每個 schema 一行 + 每個 slide-core 一行（從 Step 2 蒐集的 file list 鋪成）。
+- **Section F — Codex CLI bridge wording**：純文字指引（不實作 MCP），含 invocation 範例：
+
+  ```
+  ## Codex CLI bridge usage
+  Pipe this brief to Codex's image-gen prompt input:
+  $ codex prompt --stdin < brief-{preset}-{date}.md
+  Then append your image-specific prompt suffix.
+  ```
+
+#### Step 4 — 輸出
+- **預設**：寫到 `{project_root}/.claude/design/brief-{preset}-{date}.md`，`{date}` 為 ISO `YYYY-MM-DD`；目錄不存在則自動 `mkdir -p`。
+- **`--stdout`**：印到 stdout，不寫檔。
+- **成功訊息**（寫檔模式）：「Brief 已寫入 {path}（{word_count} 詞）。可餵 Codex CLI 端做 image-gen prompt。」
+
+> **B20 邊界**：brief 內所有 hex 值 MUST 從 Step 2 解析自當前 preset 的 `tokens.css`；切 preset 後重跑 export-brief，hex pointers 必須自動跟著切換（驗收見 REQ-007 Scenario 3）。
 
 ---
 

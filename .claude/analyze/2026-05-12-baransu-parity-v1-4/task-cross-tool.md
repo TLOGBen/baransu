@@ -31,14 +31,14 @@
 **需求追溯**：REQ-007 Scenario 2 / 3
 **目標**：mode 邏輯實作（SKILL.md 內列出 step-by-step instruction，不另外開 script）；brief 包含 §9 hex + §J 負面尾巴 + §G editorial + design-cores 結構摘要 + Codex bridge wording。
 **驗收標準**：
-- [ ] SKILL.md Export-brief Mode 段內含「Step 1 — 解析 preset」「Step 2 — 讀 source files」「Step 3 — 組裝 brief」「Step 4 — 輸出」四 sub-step
-- [ ] 對三 preset 任一執行該 mode（人工 dry-run），brief 含五大段：preset header / §9 hex 理據 / §J 負面尾巴 / §G editorial 規格 / design-cores 結構摘要 / Codex bridge wording
-- [ ] hex 從 tokens.css 動態解析，不寫死（B20 邊界）
+- [x] SKILL.md Export-brief Mode 段內含「Step 1 — 解析 preset」「Step 2 — 讀 source files」「Step 3 — 組裝 brief」「Step 4 — 輸出」四 sub-step
+- [x] 對三 preset 任一執行該 mode（人工 dry-run），brief 含五大段：preset header / §9 hex 理據 / §J 負面尾巴 / §G editorial 規格 / design-cores 結構摘要 / Codex bridge wording
+- [x] hex 從 tokens.css 動態解析，不寫死（B20 邊界）
 
 ### 步驟
 
 #### 規格層
-- [ ] 在 SKILL.md Export-brief Mode 段內寫 step-by-step instruction：
+- [x] 在 SKILL.md Export-brief Mode 段內寫 step-by-step instruction：
 
   ```
   Step 1 — 解析 preset：讀 {root}/tokens.css 首行，取 /* preset: xxx */ 註解
@@ -59,11 +59,11 @@
     - --stdout：印到 stdout
   ```
 
-- [ ] 在 Step 4 後加成功訊息：「Brief 已寫入 {path}（{word_count} 詞）。可餵 Codex CLI 端做 image-gen prompt。」
+- [x] 在 Step 4 後加成功訊息：「Brief 已寫入 {path}（{word_count} 詞）。可餵 Codex CLI 端做 image-gen prompt。」
 
 #### 驗證
 - [ ] 人工跑：在三 preset apply 後分別 invoke `/baransu:design export-brief`，檢查產出 brief 含五段
-- [ ] 切 preset 後重跑，hex 對應切換（不寫死）
+- [x] 切 preset 後重跑，hex 對應切換（不寫死）
 
 ---
 
