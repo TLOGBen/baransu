@@ -76,6 +76,15 @@ if [ -f "$EDITORIAL_SH" ]; then
   fi
 fi
 
+# ── validate-swiss-deck (REQ-003 Scenario 2 / B8) ──
+VALIDATE_DECK="$SCRIPT_DIR/../../../book/scripts/validate-swiss-deck.mjs"
+SLIDE_CORES="$SCRIPT_DIR/slide-cores"
+if [ -f "$VALIDATE_DECK" ] && [ -d "$SLIDE_CORES" ]; then
+  echo ""
+  echo "── validate-swiss-deck ──"
+  node "$VALIDATE_DECK" "$SLIDE_CORES" || exit_code=1
+fi
+
 if [ "${exit_code:-0}" = "0" ]; then
   echo ""
   echo "✅ Swiss preset + editorial-sanity pass"

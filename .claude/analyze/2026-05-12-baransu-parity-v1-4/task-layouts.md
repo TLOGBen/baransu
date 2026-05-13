@@ -78,20 +78,20 @@
 **需求追溯**：REQ-003 Scenario 2 + B8 邊界
 **目標**：對標 guizang `validate-swiss-deck.mjs`；機械驗證 22 layout 對應 lock entry。
 **驗收標準**：
-- [ ] 新檔 `plugins/baransu/skills/book/scripts/validate-swiss-deck.mjs`
-- [ ] 讀 deck HTML，抽出 `data-layout` 或 class prefix，對應 22 lock entry
-- [ ] 不在 22 lock 內的 layout = fail
-- [ ] 三 preset sanity.sh 結尾呼叫 validate-swiss-deck.mjs 對 slide-cores 整目錄
+- [x] 新檔 `plugins/baransu/skills/book/scripts/validate-swiss-deck.mjs`
+- [x] 讀 deck HTML，抽出 `data-layout` 或 class prefix，對應 22 lock entry（採基於檔名 basename 抽取 layout 名，等價於 class-prefix 命名約定）
+- [x] 不在 22 lock 內的 layout = fail（hard fail / exit 1；missing 為 soft warn 不擋）
+- [x] 三 preset sanity.sh 結尾呼叫 validate-swiss-deck.mjs 對 slide-cores 整目錄
 
 ### 步驟
 
 #### 驗證層
-- [ ] 寫 mjs script，定義 22 lock list：`['title','section','content-bullets','quote','data','kpi-grid','timeline','process','testimonial','agenda','stat-hero','icon-grid','table-heavy','before-after','divider','closing','toc','two-column','image-full','comparison','quote-stack','breakout']`
-- [ ] 對 slide-cores HTML grep class prefix → 抽 layout 名 → 對照 lock list
-- [ ] 三 sanity.sh 加呼叫
+- [x] 寫 mjs script，定義 22 lock list：`['title','section','content-bullets','quote','data','kpi-grid','timeline','process','testimonial','agenda','stat-hero','icon-grid','table-heavy','before-after','divider','closing','toc','two-column','image-full','comparison','quote-stack','breakout']`
+- [x] 對 slide-cores HTML grep class prefix → 抽 layout 名 → 對照 lock list
+- [x] 三 sanity.sh 加呼叫
 
 #### 驗證
-- [ ] 跑三 preset 全綠（22 layout = 22 lock entry，無餘無缺）
+- [~] 跑三 preset 全綠（22 layout = 22 lock entry，無餘無缺）— 驗證器與整合就位，但三 preset 現存檔名（cover/cover-data/cover-quote/cover-section/compare/content-2col）不在 lock list 內，hard fail；屬 TASK-layouts-01/02/03 既有檔名與 lock list 對齊缺口，需後續 follow-up 統一命名或擴充 lock list。
 
 ---
 
