@@ -29,24 +29,24 @@
 **需求追溯**：REQ-010 Scenario 3 + B24 邊界
 **目標**：清掉 v1.3 過程中產生的 `### 0.5` / `### 2.5` 之類 fractional 章節 heading；cross-ref 同步更新。
 **驗收標準**：
-- [ ] grep `^### \d+\.\d+` `book/SKILL.md` `design/SKILL.md` 命中 = 0
-- [ ] 既有的「Stage 0.5」「Stage 2.5」（含本 spec v1.3.1 加入的）整合進前後整數 Stage 或重編號
-- [ ] 內文 cross-ref（「見 Stage 2.5」之類）對應更新；無斷裂 anchor
+- [x] grep `^### \d+\.\d+` `book/SKILL.md` `design/SKILL.md` 命中 = 0
+- [x] 既有的「Stage 0.5」「Stage 2.5」（含本 spec v1.3.1 加入的）整合進前後整數 Stage 或重編號  <!-- Stage 0.5 → Stage 0b (alphabetical sub-stage, matching 2A/2B convention); ### 2.5 / 4.5 → integer renumber -->
+- [x] 內文 cross-ref（「見 Stage 2.5」之類）對應更新；無斷裂 anchor  <!-- Stage 2A §3 → §4; Stage 0.5 skipped log → Stage 0b skipped -->
 
 ### 步驟
 
 #### 規格層
-- [ ] 列出所有 fractional heading（grep `^### 0\.5\|^### 2\.5\|^## Stage 0\.5\|## Stage 2\.5\|## Stage 0\.6`）
-- [ ] 對每處決定：
+- [x] 列出所有 fractional heading（grep `^### 0\.5\|^### 2\.5\|^## Stage 0\.5\|## Stage 2\.5\|## Stage 0\.6`）
+- [x] 對每處決定：
   - 若 fractional 是 v1.3 過程 cosmetic → renumber 整數
   - 若 fractional 是已正式落地的子階段（如本 v1.3.1 land 的 Stage 0.5 pre-interview）→ 改為整數 Stage（如 Stage 0 後拆出 Stage 1 而把 Acquire 順延為 Stage 2，或合併到既有 Stage 0 末段）
-- [ ] 對應修改 cross-ref：搜尋 「Stage 0.5」 / 「Stage 2.5」 等字串並替換
-- [ ] 注意：本 spec v1.3.1 commit message 已提及「Stage 0.5」；若 M3 把它 renumber，commit message 不可改但 SKILL.md 必須一致
+- [x] 對應修改 cross-ref：搜尋 「Stage 0.5」 / 「Stage 2.5」 等字串並替換
+- [x] 注意：本 spec v1.3.1 commit message 已提及「Stage 0.5」；若 M3 把它 renumber，commit message 不可改但 SKILL.md 必須一致
 
 #### 驗證
-- [ ] `grep -E "^### [0-9]+\.[0-9]+" plugins/baransu/skills/{book,design}/SKILL.md` 命中 = 0
-- [ ] `grep -E "Stage [0-9]+\.[0-9]+" plugins/baransu/skills/{book,design}/SKILL.md` 命中 = 0（含內文 cross-ref）
-- [ ] 跑 swiss-smoke-test 全綠（確認沒因 renumber 改錯邏輯）
+- [x] `grep -E "^### [0-9]+\.[0-9]+" plugins/baransu/skills/{book,design}/SKILL.md` 命中 = 0
+- [x] `grep -E "Stage [0-9]+\.[0-9]+" plugins/baransu/skills/{book,design}/SKILL.md` 命中 = 0（含內文 cross-ref）
+- [x] 跑 swiss-smoke-test 全綠（確認沒因 renumber 改錯邏輯）
 
 ---
 

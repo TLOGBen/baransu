@@ -15,7 +15,7 @@ Converts any content into a Kami-themed, browser-ready HTML book saved to `.clau
 
 > 本 SKILL.md 採 Fact-Verification Principle #0（見下文 Stage 2A §0「Fact-Verification Principle #0」段）：在合成長文前，凡偵測到具體產品 / 版本 / 人名 + 職位 pattern，強制 WebSearch 驗證；0 結果即 AskUserQuestion 阻擋。
 
-### 0.0 Design context soft-read
+### 1. Design context soft-read
 
 執行於所有其他 Stage 0 步驟之前。沿用 /design / /analyze 的同款 soft-read 模式，把當下 preset 的設計哲學帶進 context 作 advisory framing。
 
@@ -28,7 +28,7 @@ Converts any content into a Kami-themed, browser-ready HTML book saved to `.clau
 
 此步驟讀入的 DESIGN.md 內容在 Stage 4 視 user 是否觸發 `/baransu:review --include=style` 而被傳遞給 style-reviewer 作為 spec anchor；正常 /book 流程中只作為 generation-time advisory，不影響任何 gate。
 
-### 0. --format 旗標解析
+### 2. --format 旗標解析
 
 解析使用者呼叫中的 `--format` 旗標：
 
@@ -37,7 +37,7 @@ Converts any content into a Kami-themed, browser-ready HTML book saved to `.clau
 - 若值不合法（非 html/pdf/ppt/all）：輸出「`--format` 值不合法。支援：html | pdf | ppt | all」並停止（不呼叫 install-deps.ts）
 - 設定 `$FORMAT` 供後續所有 Stage 使用
 
-### 0.5 --style 旗標解析
+### 3. --style 旗標解析
 
 解析使用者呼叫中的 `--style` 旗標（v1.3 PPT + HTML 雙模式）：
 
@@ -47,7 +47,7 @@ Converts any content into a Kami-themed, browser-ready HTML book saved to `.clau
 - HTML 模式從 `{project_root}/design-cores/long-form.html` 動態讀模板；PPT 模式從 `{project_root}/slide-cores/` 動態讀 layout
 - 設定 `$STYLE` 供後續 Stage 使用（Stage 3 tokens.css tie-break / GATE-F prefix 比對讀 `$STYLE`）
 
-### 1. Python check
+### 4. Python check
 
 ```bash
 python3 --version 2>/dev/null
@@ -55,13 +55,13 @@ python3 --version 2>/dev/null
 
 If this fails: output 「Python 3.8+ 未安裝，無法繼續。請先安裝 Python: https://python.org」 and stop.
 
-### 2. Platform detection
+### 5. Platform detection
 
 - **WSL2**: `grep -qi microsoft /proc/version 2>/dev/null && echo wsl2` → set `$PLATFORM=WSL2`
 - **macOS**: `uname -s 2>/dev/null | grep -qi darwin && echo macos` → set `$PLATFORM=macOS`
 - **Otherwise**: set `$PLATFORM=Linux`
 
-### 3. markitdown check
+### 6. markitdown check
 
 ```bash
 python3 -m markitdown --version 2>/dev/null
@@ -78,7 +78,7 @@ npx tsx "$CLAUDE_SKILL_DIR/scripts/install-deps.ts" --format $FORMAT
 - 若 `$FORMAT` 含 `pdf`：確認 WeasyPrint 可用
 - 若 `$FORMAT` 含 `ppt`：確認 playwright + pptxgenjs 可用
 
-### 4. Output directory
+### 7. Output directory
 
 Ensure `.claude/book/` exists relative to the project root:
 
@@ -88,7 +88,7 @@ mkdir -p ".claude/book"
 
 ---
 
-## Stage 0.5 — Pre-interview Gate（受眾 / 硬約束前置）
+## Stage 0b — Pre-interview Gate（受眾 / 硬約束前置）
 
 在 Stage 1 取得 `$RAW_CONTENT` **之前**，先壓住 50% 不確定性。模式對齊 /design Gen Mode Step 1：用 **單一 AskUserQuestion 批次**（4 題並陳，不逐題阻塞）對齊受眾、用途、風格傾向、硬約束。
 
@@ -98,7 +98,7 @@ mkdir -p ".claude/book"
 - input 是 `/read` slug / `/learn` digest slug（受眾 + 用途已隱含於原 capture metadata）
 - input 是 `--text "…"` 且字數 < 200（極短 inline 不值得問）
 
-跳過時 stderr 印一行：「Stage 0.5 skipped: {reason}」，繼續 Stage 1。
+跳過時 stderr 印一行：「Stage 0b skipped: {reason}」，繼續 Stage 1。
 
 ### 訪談題目（batch 一次提，4 題並陳）
 
@@ -196,7 +196,7 @@ Receives `$RAW_CONTENT`. Produces `$STRUCTURE` (a JSON-like outline) and `$CONTE
 
 1. 跑 `WebSearch`，query template：`"{hit}" release notes` 或 `"{hit}" announcement`（人名命中改用 `"{hit}" announcement` / `"{hit}" interview`）。
 2. 若 WebSearch 回傳 **0 結果** → 透過 `AskUserQuestion` 顯示：「Fact-verify pending: '{hit}' 在 WebSearch 0 結果。選擇：強制繼續 / 改用 `--text` 餵已驗證版本 / 中止本次 /book」。等使用者選擇後再決定是否進入 §1。
-3. 若 WebSearch 回傳 **≥ 1 結果** → 視為事實可驗，繼續，但仍把該 hit 列入 `$STRUCTURE` 末尾的「Sources」清單（在 Stage 2A §3 extract 階段一併處理）。
+3. 若 WebSearch 回傳 **≥ 1 結果** → 視為事實可驗，繼續，但仍把該 hit 列入 `$STRUCTURE` 末尾的「Sources」清單（在 Stage 2A §4 extract 階段一併處理）。
 
 **Flow on no hit**：直接進入 §1 分類。
 
@@ -217,7 +217,7 @@ Based on the perception guide signals, assign `$CONTENT_TYPE` to one of:
 
 Output one line: 「內容類型偵測：{$CONTENT_TYPE}」
 
-### 2.5 兩階層決策樹（Layer 1 內容類型 → Layer 2 diagram 結構）
+### 3. 兩階層決策樹（Layer 1 內容類型 → Layer 2 diagram 結構）
 
 Stage 2A 的選擇分為兩層，**順序不可顛倒**：
 
@@ -226,7 +226,7 @@ Stage 2A 的選擇分為兩層，**順序不可顛倒**：
 
 兩軸正交：Layer 1 控版面，Layer 2 控每段 SVG 結構；先 Layer 1、再 Layer 2，每段獨立決定不沿用上一段選擇。
 
-### 3. Extract structure
+### 4. Extract structure
 
 From `$RAW_CONTENT`, extract:
 - **Title** (first `# ` heading, or infer from opening sentence)
@@ -241,7 +241,7 @@ Store as `$STRUCTURE`.
 
 Apply synthesis length limits from the perception guide. Remaining content → reference as 延伸閱讀 at the bottom.
 
-### 4. Determine slug
+### 5. Determine slug
 
 Derive `$SLUG` from the title:
 - Lowercase all characters
@@ -315,7 +315,7 @@ For each section from `$STRUCTURE`:
 
 **完整規則 → 讀 `references/svg-rendering-rules.md`。**SVG fill / stroke **禁用 `rgba()`**；節點寬限 12 檔；焦點節點透過 `data-role="focal"` 標記，每張 SVG 上限 2 個。
 
-### 4.5 Core Asset Protocol（圖片取得）
+### 5. Core Asset Protocol（圖片取得）
 
 任一階段需 fetch 點陣 / 攝影 / logo / UI mockup 圖時，**嚴格依序**走以下 4 步。**Steps must run in order; skipping = fail and abort.**（跳步即視為 fail 並中止；例：未 verify 就 freeze。）
 
@@ -330,7 +330,7 @@ For each section from `$STRUCTURE`:
 3. **Verify** — renderer 將圖嵌入 long-form HTML preview，user 肉眼確認構圖、版面對齊、無 AI slop、無 watermark；未通過則退回步驟 2 重跑。
 4. **Freeze** — commit 圖檔到 `.claude/book/{slug}/assets/`，並寫 `meta.json` 含 `source`（generate / search）、`prompt`（Generate 路徑必填）、`license`（Search 路徑必填）、`verified_at` 時戳。Freeze 後該圖視為不可變；要換 → 從步驟 1 重來。
 
-### 5. 多 format pipeline (PDF / PPTX)
+### 6. 多 format pipeline (PDF / PPTX)
 
 只在 `$FORMAT` ∈ {`pdf`, `ppt`, `all`} 時生效。
 
@@ -338,7 +338,7 @@ For each section from `$STRUCTURE`:
 - **PPTX**：依 `$STRUCTURE_SLIDES` 從 `{project_root}/slide-cores/<layout-id>.html` 取骨架；輸出 `<body width=960>` + 每 slide `<div class="slide" data-layout=...>`；呼叫前驗三項 (`width=960` / `.slide` 存在 / 無 `background-image`)；通過後呼叫 `node html2pptx.js`。
 
 **詳細步驟（HTML 預處理 / 驗證項 / 失敗處理）→ 讀 `references/render-pipelines.md`。**
-### 6. Write the output file
+### 7. Write the output file
 
 Write the complete HTML to `.claude/book/{$SLUG}.html`.
 
