@@ -107,7 +107,7 @@ ARGS_FULL = re.compile(r"\$ARGUMENTS\b")
 ARGS_INDEXED = re.compile(r"\$ARGUMENTS\[(\d+)\]|\$(\d+)\b")
 NAMED_ARG = re.compile(r"\$([a-z][a-z0-9_-]*)\b")
 SESSION_ID = re.compile(r"\$\{CLAUDE_SESSION_ID\}")
-SKILL_DIR = re.compile(r"\$\{CLAUDE_SKILL_DIR\}")
+SKILL_DIR = re.compile(r"\$\{CLAUDE_SKILL_DIR\}|\$CLAUDE_SKILL_DIR\b")
 EFFORT = re.compile(r"\$\{CLAUDE_EFFORT\}")
 
 
@@ -368,7 +368,7 @@ def write_skill(
         )
 
 
-SKILL_DIR_ENV = re.compile(r"\$\{CLAUDE_SKILL_DIR\}")
+SKILL_DIR_ENV = re.compile(r"\$\{CLAUDE_SKILL_DIR\}|\$CLAUDE_SKILL_DIR\b")
 
 
 def copy_aux(source: Path, target: Path, report: TransferReport) -> None:
@@ -389,7 +389,7 @@ def copy_aux(source: Path, target: Path, report: TransferReport) -> None:
             text = path.read_text(encoding="utf-8")
         except (UnicodeDecodeError, OSError):
             continue
-        if "${CLAUDE_SKILL_DIR}" not in text:
+        if "CLAUDE_SKILL_DIR" not in text:
             continue
         new_text, n = SKILL_DIR_ENV.subn(".", text)
         if n:

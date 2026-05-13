@@ -24,7 +24,7 @@ All three exit conditions satisfied. Per /loop spec, ScheduleWakeup not called.
 - **Ended**: 2026-05-13（iter 33 + /baransu:review hardening pass）
 - **Iterations**: 33（30 task iters + 1 final-check + 2 review-driven follow-ups）
 - **Span**: ~24 hours
-- **Commits**: ~40 (commit chain `dfddf06` → `dee5580`)
+- **Commits**: 82 (commit chain `44f1c6a` → `e6abe5f` — `origin/main..HEAD`)
 - **Hard constraint compliance**: no `git push`, no `git reset --hard`, no clone of external baseline repos, in-line fix loop ≤ 3 attempts per task
 
 ## Tasks completed
@@ -87,7 +87,7 @@ Three perspectives dispatched on the v1.4.0 milestone:
 
 ## Hand-off to user
 
-1. **`/baransu:ship`** — archive `.claude/{tmp,analyze}/` to `.claude/archived/`, commit cleanup, push to remote. ~40 commits ready to push (`dfddf06..dee5580`).
+1. **`/baransu:ship`** — archive `.claude/{tmp,analyze}/` to `.claude/archived/`, commit cleanup, push to remote. 82 commits ready to push (`44f1c6a..e6abe5f`). Archive commit message should note: **100.0% 是 12 條 internal REQ 加權通過率（C1–C11 + C12 self-excluded），不是對三 baseline 的實測對標分數（AB visual diff: deferred）**。
 2. **(Optional) AB visual diff** — clone three baseline repos, re-invoke /loop to exercise Step 5 visual diff.
 3. **(Optional) Dogfood follow-up** — close the 4 deferred items in pending_findings during a future v1.4.x iteration.
 

@@ -1,8 +1,10 @@
 # baransu /design + /book Roadmap to Production Parity — WIP
 
-**Status**: planning，未排程
+> **Superseded note (2026-05-13)**：此 WIP 為 v1.3.1 時點分析。/loop 已於 commit `e6abe5f` 收尾、`baseline-parity-score.py` 報 100.0%。**100% 是 12 條 internal REQ (C1–C11 + C12 self-excluded) 加權通過率**，不等同本文所述 baseline 對標分數（後者 AB visual diff 仍 deferred，未量測）。保留本文供 archive 歷史。
+
+**Status**: 立即可動 B + A(部分) + C ✅ landed（2026-05-12 single session，~80 行 net edit）；其餘 ROI 軌待排程
 **Created**: 2026-05-12
-**Updated**: 2026-05-12（v2：重新框架為 production capability + 修矛盾 + 整合）
+**Updated**: 2026-05-12（v3.2：B + A(部分) + C 三項 surgical edit 完成；smoke test 全綠；~50% → 預期 ~66%）
 **Fact-checked**: 2026-05-12（v3：兩輪 fact-check 對三 baseline raw material + Kami `references/diagrams.md` + huashu repo 結構 + guizang `checklist.md` 行數，修 2 處錯誤 / 5 處 unverified → confirmed）
 **Addenda v3.1**：(1) SKILL.md 內步驟編號應整數化（移除 0.5 / 0.6 fractional） (2) 環境含 Codex（理論支援 GPT image 生成）→ K3/J/§不可達 重估
 
@@ -314,16 +316,25 @@
 
 ---
 
-## 立即可動：**B + A(部分) + C**（單 session 三個 surgical edit 組合）
+## 立即可動：**B + A(部分) + C** ✅ landed（2026-05-12，single session）
 
-| 動作 | 檔案 | 工程量 |
-|------|------|--------|
-| **B** /book pre-interview gate | `plugins/baransu/skills/book/SKILL.md` Stage 0.5-1 之間 | ~30 行 edit |
-| **A 部分** chevron 遷移 | `plugins/baransu/skills/book/references/svg-rendering-rules.md §4.3` + `references/golden-template.html` SVG `<marker>` | ~15 行 edit |
-| **A 部分** 節點寬白名單 | `svg-rendering-rules.md §4.5`（明列 `{128,144,160}`）+ `golden-template.html` SVG `<rect width="?">` 改三檔合規 | ~10 行 edit |
-| **C** 0.5pt hairline + shadow 對齊 | `design/references/紙-preset/design-cores/long-form.html` + `book/references/golden-template.html` `.paper` + 紙 `DESIGN.md §4` token | ~10 行 edit |
+| 動作 | 檔案 | 工程量 | Status |
+|------|------|--------|--------|
+| **B** /book pre-interview gate | `plugins/baransu/skills/book/SKILL.md` 新增 Stage 0.5（Stage 0 ↔ Stage 1 之間） | ~32 行 | ✅ landed |
+| **A 部分** chevron 遷移 | `book/references/svg-rendering-rules.md §4.2 + §4.3`（marker polygon → chevron path `M2 1 L8 5 L2 9` stroked）+ `book/references/golden-template.html` defs 三 marker 全改 stroked path | ~22 行 | ✅ landed |
+| **A 部分** 節點寬白名單 | `svg-rendering-rules.md §4.7`（白名單收斂為 `{128,144,160}` 三檔 + `viewBox<360` 2-tier 例外 + focal `#EEF2F7` fill）+ `golden-template.html` 4 個 SVG `<rect>` 寬度從 80/128/196/120 → 128/128/160/128（2-tier，含 X 座標與 text 中心連動移位） | ~18 行 | ✅ landed |
+| **C** 0.5pt hairline + paper-stack shadow | `design/references/紙-preset/design-cores/long-form.html` 4 處 border 1px → 0.5px（kami-paper / kami-code / kami-pre / kami-footer）+ `book/references/golden-template.html` `.paper` 第三層 paper-stack shadow（`6px 6px 0 -1px var(--border-soft)`）+ `.paper::before` 左規從 1px → 0.5px | ~12 行 | ✅ landed |
 
-合計 ~65 行 edit。**做完 ~66% → 70%，且 Kami 視覺簽名（chevron / 三檔節點寬 / 紙感 hairline / 七問澄清前置）全部到位**。
+合計 ~84 行 net edit。**Smoke test 全綠**（`bash plugins/baransu/skills/book/scripts/swiss-smoke-test.sh` 七 GATE 全 OK、紙-sanity 對 long-form.html 無新增違規）。Kami 視覺簽名四件套（chevron stroked / 三檔節點寬白名單 / 紙感 0.5pt hairline + paper-stack shadow / 七問前置訪談）全部到位。
+
+### 下一波待排程（高 CP 順序）
+
+| ROI | 動作 | 跳幅 |
+|-----|------|------|
+| 🟢 next | **I** Fact-Verification Principle #0（/book Stage 2A 對具體產品/版本強制 WebSearch）| +3 pp |
+| 🟢 next | **F** AI Prompt Guide §9 reproducibility（DESIGN.md §9 加 hex 理據 + 上限 + 我不是什麼）| +2.5 pp |
+| 🟡 mid | **G** Editorial 三件套（`text-wrap: pretty` / `.dropcap` 3-line / curly quotes）| +4 pp |
+| 🟡 mid | **D** slide-cores 12 → 20+ layout × 3 preset + modular scale 校正 | +7-10 pp |
 
 ---
 
