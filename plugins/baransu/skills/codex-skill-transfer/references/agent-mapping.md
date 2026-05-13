@@ -53,7 +53,7 @@ When the user picks Path 1, the per-skill frontmatter translates as follows:
 | `agent: Plan` | custom TOML mirroring Plan agent's behavior |
 | `model: opus` | `model = "gpt-5.4"` (or current Codex equivalent) |
 | `effort: high` | `model_reasoning_effort = "high"` |
-| `allowed-tools: ...` | constrain via `mcp_servers = [...]` |
+| `allowed-tools: ...` / `tools: ...` | emitted as a **commented** `# mcp_servers = [...]` line in the stub. Codex `mcp_servers` takes MCP server ids (not Claude tool names) so the user must rename each entry to the matching Codex MCP server before uncommenting. |
 
 ## 3. Body rewrite for Path 1
 
@@ -108,7 +108,7 @@ If the body contains literal `'''`, the script falls back to TOML basic multi-li
 - `model` — Codex model id (e.g. `"gpt-5.4"`) or omit to inherit from parent session.
 - `model_reasoning_effort` — map from Claude's `effort` if it was present (`low` / `medium` / `high` / `max`).
 - `sandbox_mode` — usually safer to omit; parent session policy applies.
-- `mcp_servers` — list of MCP servers this agent should access.
+- `mcp_servers` — list of MCP server ids this agent should access. If the Claude source had `tools: ...`, the stub already includes a commented suggestion with the original Claude tool names; rename each entry to the corresponding Codex MCP server id, then uncomment.
 - `nickname_candidates` — optional cosmetic names.
 
 ### 4.3 What the stub deliberately doesn't translate

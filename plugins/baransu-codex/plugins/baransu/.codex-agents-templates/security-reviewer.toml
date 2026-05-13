@@ -3,7 +3,7 @@
 # See codex-skill-transfer references/agent-mapping.md for the mapping rules.
 
 name = "security-reviewer"
-description = "Reviews attack surface, input validation, authentication/authorization placement, secret handling, injection vectors, trust boundaries, and cryptographic usage. Dispatched by /baransu:review as an iso"
+description = "Reviews attack surface, input validation, authentication/authorization placement, secret handling, injection vectors, trust boundaries, and cryptographic usage. Dispatched by /baransu:review as an…"
 
 developer_instructions = '''
 # security-reviewer
@@ -140,5 +140,5 @@ cargo audit
 # model = "gpt-5.4"
 # model_reasoning_effort = "high"      # low | medium | high | max
 # sandbox_mode = "workspace-write"     # read-only | workspace-write | danger-full-access
-# mcp_servers = []                     # list of MCP server ids the agent may invoke
+# mcp_servers = ["Read", "Grep", "Glob", "Bash"]  # ported from Claude `tools:`; rename to Codex MCP server ids before enabling
 # nickname_candidates = []             # cosmetic names for spawned instances

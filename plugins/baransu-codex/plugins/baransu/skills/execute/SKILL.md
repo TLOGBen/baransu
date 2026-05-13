@@ -21,10 +21,10 @@ Read an `/analyze` spec directory. Execute every task through a Summarize → Im
 
 These apply across all steps. The review-agent rule and the spec-read-only rule are the two most commonly violated — they are the first things to re-read at Steps 4, 5, and 6 entry after any auto-compact.
 
-- **review-agent is never optional.** Every task — documentation, scripts, config, code — goes through review-agent after each impl-agent attempt. `TaskUpdate status=completed` is only reachable as the result of a review-agent outcome for the current impl attempt. Marking a task ✅ without dispatching review-agent first is a constraint violation.
+- **review-agent is never optional.** Every task — documentation, scripts, config, code — goes through review-agent after each impl-agent attempt. `update task state internally status=completed` is only reachable as the result of a review-agent outcome for the current impl attempt. Marking a task ✅ without dispatching review-agent first is a constraint violation.
 - **Analyze spec directory is read-only.** Never Edit or Write any file under `.claude/analyze/`. Any execution path that attempts this must stop immediately and escalate as a structural blocker.
 - **Subagent depth = 1.** Agents in `agents/*.md` are stateless leaf nodes. They do not dispatch further subagents.
-- **All Task Tools created before execution begins.** Register every group × task via TaskCreate in Step 2. No mid-execution task creation.
+- **All Task Tools created before execution begins.** Register every group × task via track the task internally in Step 2. No mid-execution task creation.
 - **Working files live under `.claude/execute/`.** Edit and Write are only permitted in the execute working directory.
 - **Goal-Alignment Filter is hard governance.** `failure_count` accounting is affected by the filter (off-goal findings are downgraded to advisory and do not increment the counter), but findings tied to 驗收標準直接失敗 are protected by the hard invariant — they keep their original tier and still increment `failure_count`.
 
@@ -86,11 +86,11 @@ Register every group × task before any implementation begins:
 ```
 For each group (topological order):
   For each TASK-{group}-NN in task-{group}.md:
-    TaskCreate: title="{group} / TASK-{group}-NN: {task title}", status=pending
+    track the task internally: title="{group} / TASK-{group}-NN: {task title}", status=pending
     Record: Task Tool ID → (group, task-id) mapping
 ```
 
-**Done when:** Every task registered. Do not begin Step 3 until all TaskCreate calls complete.
+**Done when:** Every task registered. Do not begin Step 3 until all track the task internally calls complete.
 
 ---
 
@@ -145,7 +145,7 @@ failure_count = 0
 compile_error_count = 0  # only counted after smart-friend has been dispatched
 
 LOOP:
-  Dispatch impl-agent with:
+  spawn a `impl-agent` subagent with:
     - ctx_path:            context/{group}-{task-id}-ctx.md
     - worktree_path:       group worktree path (or null for M)
     - refactor_mode:       false  (set true only when review signals it)
@@ -157,7 +157,7 @@ LOOP:
   CASE impl-agent status == ⚠️  (Red gate not passed — test already passing):
     Report: "Red gate not passed: test was already passing before impl"
     Mark task BLOCKED (reason: Red gate failed — wrong test)
-    TaskUpdate: status=blocked
+    update task state internally: status=blocked
     escalate to user
     break LOOP
 
@@ -167,7 +167,7 @@ LOOP:
       compile_error_count += 1
       if compile_error_count >= 3:
         Mark task BLOCKED (reason: 持續 compile error after smart-friend)
-        TaskUpdate: status=blocked
+        update task state internally: status=blocked
         escalate to user: 「TASK-{group}-NN blocked：smart-friend 後持續 compile error」
         break LOOP
     continue LOOP  # retry without incrementing failure_count
@@ -241,24 +241,24 @@ SWITCH review_tier:
   CASE "direct fix":
     # review-agent applied a cosmetic fix inline
     mark task ✅
-    TaskUpdate: status=completed
+    update task state internally: status=completed
     break LOOP
 
   CASE "advisory":
     # findings are informational; no action required
     mark task ✅
-    TaskUpdate: status=completed
+    update task state internally: status=completed
     break LOOP
 
   CASE "packaged confirm (quality)"  # code quality / standards / arch / security
     if task_classification is L or XL  AND  review.refactor_signal == true:
       # Refactor phase: at most once per task for L/XL
-      Dispatch impl-agent with refactor_mode=true  ← does NOT count as failure_count
-      Dispatch review-agent again (same inputs)
+      spawn a `impl-agent` subagent with refactor_mode=true  ← does NOT count as failure_count
+      spawn a `review-agent` subagent again (same inputs)
       SWITCH second_review_tier:
         CASE "direct fix" | "advisory" | "packaged confirm (quality)":
           mark task ✅
-          TaskUpdate: status=completed
+          update task state internally: status=completed
           break LOOP
         CASE "packaged confirm (correctness)" | "needs judgment":
           failure_count += 1
@@ -266,7 +266,7 @@ SWITCH review_tier:
     else:
       # M task, or no refactor signal: treat as advisory
       mark task ✅
-      TaskUpdate: status=completed
+      update task state internally: status=completed
       break LOOP
 
   CASE "packaged confirm (correctness)"  OR  "needs judgment":
@@ -340,7 +340,7 @@ IF every F in review.findings was downgraded to advisory  (remaining is empty):
   review_tier = "advisory"
   failure_count is NOT incremented   # filter absorbed the failure
   mark task ✅
-  TaskUpdate: status=completed
+  update task state internally: status=completed
   break LOOP
 
 ELSE:
@@ -360,7 +360,7 @@ and are emitted at report time.
 ```
   if review.spec_contradiction != false:
     Mark task BLOCKED (reason: spec contradiction — {details})
-    TaskUpdate: status=blocked
+    update task state internally: status=blocked
     escalate to user: 「TASK-{group}-NN blocked：{spec_contradiction 說明}」
     break LOOP
 
@@ -369,12 +369,12 @@ and are emitted at report time.
     if smart_friend_output defined AND smart_friend_output.spec_issue != false:
       reason += "；smart-friend 診斷：" + smart_friend_output.spec_issue
     Mark task BLOCKED (reason)
-    TaskUpdate: status=blocked
+    update task state internally: status=blocked
     escalate to user with reason
     break LOOP
 
   if failure_count == 2:
-    Dispatch smart-friend-agent with:
+    spawn a `smart-friend-agent` subagent with:
       - ctx_path:          context/{group}-{task-id}-ctx.md
       - worktree_path:     group worktree path (or null for M)
       - failure_summary_1: review findings from attempt 1
@@ -419,7 +419,7 @@ Rules:
 After each task is marked BLOCKED, evaluate group-level status:
 - A group is **group-blocked** if ANY of its tasks is BLOCKED.
 
-For each downstream group G where `前置群組` contains at least one group-blocked group: mark G **cascade-blocked**. TaskUpdate all G's tasks to cascade-blocked.
+For each downstream group G where `前置群組` contains at least one group-blocked group: mark G **cascade-blocked**. update task state internally all G's tasks to cascade-blocked.
 
 Record direct-blocked vs cascade-blocked separately in final-report.
 
@@ -432,7 +432,7 @@ merge_retry_count = 0
 last_failed_tests = null
 
 LOOP:
-  Dispatch merge-agent with:
+  spawn a `merge-agent` subagent with:
     - worktree_paths:  list of worktree paths for this level
     - target_branch:   main
     - test_command:    from test.md
@@ -535,7 +535,7 @@ final-report.md: .claude/execute/{date}-{slug}/execute/final-report.md
 
 ## Gotchas
 
-- **[review-agent bypass trap]**: Documentation, script, and config tasks feel like they "have nothing to test". The orchestrator rationalizes skipping review-agent because impl-agent reported success. This is the failure mode: review-agent verifies impl-checklist-{group}.md acceptance criteria, not just unit tests. `TaskUpdate status=completed` is only reachable after a review-agent outcome.
+- **[review-agent bypass trap]**: Documentation, script, and config tasks feel like they "have nothing to test". The orchestrator rationalizes skipping review-agent because impl-agent reported success. This is the failure mode: review-agent verifies impl-checklist-{group}.md acceptance criteria, not just unit tests. `update task state internally status=completed` is only reachable after a review-agent outcome.
   Solution: Re-read §核心限制 before marking any task ✅.
 
 - **[compile error vs failure_count]**: After impl-agent returns ❌ with a compile error, `failure_count` must NOT increment. Counting compile errors as failures triggers smart-friend early and wastes the retry budget on syntax issues.

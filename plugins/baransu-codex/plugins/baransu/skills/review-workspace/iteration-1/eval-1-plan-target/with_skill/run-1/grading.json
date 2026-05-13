@@ -1,0 +1,45 @@
+{
+  "expectations": [
+    {
+      "text": "最終報告以繁體中文輸出",
+      "passed": true,
+      "evidence": "review-report.md L1-L135 全文為繁體中文；e.g. L3 '**Verdict：CONCERN**'、L13 '## 目標宣稱 (Claim Checklist)'、L135 結論段落皆為繁中。"
+    },
+    {
+      "text": "Verdict 不為 INCOMPLETE（plan target，e2e gate 應標為 n/a）",
+      "passed": true,
+      "evidence": "L3 'Verdict：CONCERN'（非 INCOMPLETE）；L12 'E2E gate: **n/a**（plan target，非 executable code）'；L131 'E2E Gate — n/a — plan target，不適用 e2e gate。'"
+    },
+    {
+      "text": "正確識別為 plan / 文件 target（非 code target）",
+      "passed": true,
+      "evidence": "L8 'Shape: plan / design document（`/baransu:think` 的 5-section 產出）'；L10 Tier 描述為 'T3 deep'；L12 標記 e2e n/a 因 'plan target，非 executable code'。"
+    },
+    {
+      "text": "派遣架構 + 品質 reviewer（安全 reviewer 應略過，除非明確觸發，並在報告中說明理由）",
+      "passed": true,
+      "evidence": "L49-L51 '架構審核：啟用 … 品質審核：啟用 … 安全審核：略過 — plan 未觸及 auth / secret / crypto / network / injection / persistence / serialization / user-supplied template 任一項；僅本機檔案寫入（format/import/typo/dead-import），不構成 security surface'。"
+    },
+    {
+      "text": "找到至少一個 Unknown 的具體性缺口（例：v0.2.0 vs v0.1.1 不是真正的 unknown；或 rubric bullets 未寫並非實作不確定而是決策）",
+      "passed": true,
+      "evidence": "T3-02（L76-L80）：'U3 實為「未決」而非「未知」… plan 已說明此次新增 skill + 3 agents + CLAUDE.md 段落，屬新功能、非破壞性變更；SemVer 機械上對應 minor bump（v0.2.0）。此為可決定的項目偽裝成 Unknown。' 同時 T3-01 指出 Unknowns 三項皆缺「延後理由與誰何時決定」。"
+    },
+    {
+      "text": "沒有建議重跑 /baransu:think 或 /baransu:review（/review 只回報，不路由）",
+      "passed": true,
+      "evidence": "grep 檢查：報告中未出現「重跑」「重新跑」「re-run」等字樣；'think' 字樣只出現在 target 描述（L8 '/baransu:think 的 5-section 產出'），'/review' 引用僅為 FYI-03 提到 '/review 可當自動 linter' 的語境（非建議重跑）。結論段（L135）僅提「使用者下一輪選擇採納與否」，未路由回 think/review。"
+    },
+    {
+      "text": "不嘗試為 plan 重新跑 Stage A 對焦 — 這是 /think 的 scope，不是 /review 的",
+      "passed": true,
+      "evidence": "grep 'Stage A|對焦' 無命中。報告全程停留在 review skill 的 Stage 0 (分類) → claim checklist → dispatch → findings → verdict 流程，未重啟 /think 的 alignment (Stage A) 階段；L10-L135 均為審核輸出，無重新產生 5-section 或 alignment 問題的嘗試。"
+    }
+  ],
+  "summary": {
+    "passed": 7,
+    "failed": 0,
+    "total": 7,
+    "pass_rate": 1.0
+  }
+}

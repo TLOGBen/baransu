@@ -20,9 +20,9 @@ The body below is English (agent-facing). Wherever this file quotes literal user
 
 ---
 
-## Three perspectives (agent files)
+## Four perspectives (agent files)
 
-`plugins/baransu/agents/architecture-reviewer.md` / `quality-reviewer.md` / `security-reviewer.md`.
+`plugins/baransu/agents/architecture-reviewer.md` / `quality-reviewer.md` / `security-reviewer.md` / `style-reviewer.md`.
 
 Each agent file defines `Perspective / Mission / Principles / Lane-keeping` — no persona, no character voice. Role-play descriptions ("you are a senior X engineer") induce hallucination; we want an angle from which to read the target, not an actor playing a role.
 
@@ -77,8 +77,9 @@ Whether a perspective activates depends on what the target actually **does**, no
 - **Quality**: target contains executable code, a claim that needs verification, or a plan asserting it did/achieved something.
 - **Architecture**: target spans files, introduces a new module boundary, changes a contract; or a plan whose sections depend on each other.
 - **Security**: target's behavior touches external input, auth/authz decisions, secret handling, or cross-trust-boundary data flow — not the mere mention of those words.
+- **Style**: target is a rendered visual artifact (HTML / PPT / SVG) produced under a baransu design preset (`{project_root}/tokens.css` exists with `/* preset: <slug> */` header). Checks design-fidelity against `{project_root}/DESIGN.md` — typography rules, color palette discipline, Do / Don't items, AI Prompt Guide reproducibility intent. Activates only for visual outputs, not for plain code / plan / data.
 
-Plan- or claim-type targets default to architecture + quality; security activates only when the plan materially describes one of the behaviors above.
+Plan- or claim-type targets default to architecture + quality; security activates only when the plan materially describes one of the behaviors above; style activates only when target is rendered visual output with a project-root preset present.
 
 If Stage 2's tier cap disagrees with activation count (e.g. a 100-LOC target triggers two perspectives), follow activation; the tier column is a guideline ceiling, not a hard limit.
 
@@ -140,7 +141,7 @@ The fourth question itself is load-bearing — silently assuming it instead of a
 |---|---|
 | **Direct fix** | formatter, import order, unused import, obvious typo, dead import. Nothing that touches behavior. Apply via Edit. |
 | **Packaged confirm** | non-semantic but beyond direct fix (rename, delete dead code, semantic typo). Present the batch diff once. |
-| **Needs judgment** | logic / boundary / API / behavior / security findings with concrete fixes. Batch-ask via AskUserQuestion — group by theme, not by target question count. |
+| **Needs judgment** | logic / boundary / API / behavior / security findings with concrete fixes. Batch-ask via ask the user directly — group by theme, not by target question count. |
 | **Advisory** | balance-downgraded, off-goal, or no concrete fix. In the report, not in the user's face. |
 
 Do not change behavior without user consent. Do not ask one question per finding.
@@ -169,7 +170,7 @@ Traditional Chinese, natural prose, this shape:
 
 No verdict enum. No YAML schema. No skeleton template — write the kind of review a real engineer would read as a review.
 
-For **needs-judgment** items, batch-ask via AskUserQuestion. Let the question count follow the natural theme grouping; don't split to hit a number, don't merge to shrink one.
+For **needs-judgment** items, batch-ask via ask the user directly. Let the question count follow the natural theme grouping; don't split to hit a number, don't merge to shrink one.
 
 ---
 

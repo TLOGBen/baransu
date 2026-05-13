@@ -1,0 +1,43 @@
+<!--
+---
+layout_id: testimonial
+applies_to:
+  bullet_count: "0"
+  has_image: required
+  role: body
+---
+Adapts to: customer or expert testimony slides (S10 in guizang baseline).
+Portrait + pull-quote + attribution. Portrait <img> carries
+`object-position: center 35%` to favour the upper-face crop.
+Tokens consumed: var(--paper), var(--ink), var(--accent), var(--border-soft),
+  var(--radius-xl), var(--shadow-whisper).
+-->
+<link rel="stylesheet" href="../tokens.css">
+<style>
+  .google-slide--testimonial { padding: 64px 72px; background: var(--paper); color: var(--ink);
+    font-family: var(--font-sans); text-wrap: pretty;
+    display: grid; grid-template-columns: 220px 1fr; gap: 48px; align-items: center; }
+  .google-testimonial-portrait { width: 220px; height: 280px; object-fit: cover;
+    object-position: center 35%; border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-whisper); }
+  .google-testimonial-quote { font-size: 28px; line-height: 1.35; font-weight: 400;
+    margin: 0 0 18px; text-wrap: pretty;
+    quotes: "\201C" "\201D" "\2018" "\2019"; color: var(--text-primary); }
+  .google-testimonial-quote::before { content: open-quote; color: var(--accent); margin-right: 4px; }
+  .google-testimonial-quote::after  { content: close-quote; color: var(--accent); margin-left: 4px; }
+  .google-testimonial-attrib { font-size: 15px; line-height: 1.55; color: var(--text-secondary);
+    margin: 0; font-style: normal; }
+  .google-testimonial-attrib strong { color: var(--accent); font-weight: 500; }
+  .google-testimonial-caption { grid-column: 1 / -1; margin-top: 24px; font-size: 13px;
+    color: var(--text-faint); }
+</style>
+<section data-layout="testimonial" class="google-slide google-slide--testimonial">
+  <img class="google-testimonial-portrait"
+       src="../assets/portrait-placeholder.jpg"
+       alt="Portrait of the speaker">
+  <div class="google-testimonial-body">
+    <p class="google-testimonial-quote">The handoff envelope cut our review cycle in half&#x2014;and made the disagreements obvious.</p>
+    <p class="google-testimonial-attrib"><strong>Mei Tanaka</strong><br>Staff engineer, Platform Foundations</p>
+  </div>
+  <figcaption class="google-testimonial-caption">Testimonial &#x2014; portrait, pull-quote, attribution</figcaption>
+</section>

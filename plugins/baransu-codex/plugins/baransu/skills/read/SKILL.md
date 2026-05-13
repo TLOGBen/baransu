@@ -46,8 +46,8 @@ python3 -m markitdown --version 2>/dev/null
 
 If this fails (markitdown not installed):
 
-- On Windows: run `"$CLAUDE_SKILL_DIR/scripts/install-deps.bat"`
-- On Linux/macOS/WSL2: run `bash "$CLAUDE_SKILL_DIR/scripts/install-deps.sh"`
+- On Windows: run `"the skill's root directory/scripts/install-deps.bat"`
+- On Linux/macOS/WSL2: run `bash "the skill's root directory/scripts/install-deps.sh"`
 
 If installation succeeds: continue.
 
@@ -78,19 +78,19 @@ Display paper list and wait for user selection. After selection, continue with t
 
 Read `references/acquisition/web-search.md`.
 
-Use the WebSearch tool to fetch candidate URLs, present them via AskUserQuestion (per `§AskUserQuestion 互動規格`), then route the selected URL through `/read`'s existing URL routing (§9).
+Use the search the web tool to fetch candidate URLs, present them via ask the user directly (per `§ask the user directly 互動規格`), then route the selected URL through `/read`'s existing URL routing (§9).
 
 ### 3. `--gh "keyword"`
 
 Read `references/acquisition/gh-search.md`.
 
-Run `gh search repos` to fetch candidate repos, present them via AskUserQuestion, then route the selected GitHub URL through web-static.md GitHub section.
+Run `gh search repos` to fetch candidate repos, present them via ask the user directly, then route the selected GitHub URL through web-static.md GitHub section.
 
 ### 4. `--x "keyword"`
 
 If `$CHROME_AVAILABLE=false`: output 「Chrome 未連線，--x 模式無法使用」 and stop.
 
-Otherwise: Read `references/acquisition/x-search.md`. The lane delegates to `web-dynamic.md` WSL2 path for Chrome MCP navigation, runs schema-level health check, extracts tweet URLs via regex, presents them via AskUserQuestion, then routes the selected tweet URL through existing URL routing.
+Otherwise: Read `references/acquisition/x-search.md`. The lane delegates to `web-dynamic.md` WSL2 path for Chrome MCP navigation, runs schema-level health check, extracts tweet URLs via regex, presents them via ask the user directly, then routes the selected tweet URL through existing URL routing.
 
 ### 5. `--chrome`
 
@@ -243,13 +243,13 @@ Append row: `| {source_url} | {final-slug} | {title} | {captured_at} |`
 
 For glob batches of 10+ items, compress to: `成功 N 筆，失敗 M 筆` without listing each path.
 
-## AskUserQuestion 互動規格
+## ask the user directly 互動規格
 
-This section is the single source of truth for keyword-search lanes that present candidates via AskUserQuestion. The four lanes — `--web`, `--gh`, `--x`, and the upgraded `--topic` — share this spec; their reference files (`web-search.md`, `gh-search.md`, `x-search.md`, `academic-search.md`) reference this section instead of redefining its rules.
+This section is the single source of truth for keyword-search lanes that present candidates via ask the user directly. The four lanes — `--web`, `--gh`, `--x`, and the upgraded `--topic` — share this spec; their reference files (`web-search.md`, `gh-search.md`, `x-search.md`, `academic-search.md`) reference this section instead of redefining its rules.
 
 ### Capacity
 
-- AskUserQuestion's hard ceiling is **4 options per round**.
+- ask the user directly's hard ceiling is **4 options per round**.
 - Every round reserves **1 slot for an escape option** (label: `「以上都不選」`). The remaining 3 slots are usable for results.
 - Maximum result slots across the worst case = 3 rounds × 3 result slots = **9**.
 

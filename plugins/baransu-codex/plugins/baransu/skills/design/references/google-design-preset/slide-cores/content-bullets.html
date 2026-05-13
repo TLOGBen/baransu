@@ -1,0 +1,22 @@
+<!--
+---
+layout_id: content-bullets
+applies_to:
+  bullet_count: "1-5"
+  has_image: forbidden
+  role: body
+---
+Adapts to: rows 9 and 10 (fallback) of /book Stage 2B layout decision table.
+Body slide with H2 and 1-5 bullets. Bullets MUST be direct <li> children of <ul>/<ol>
+(slide-checklist P0-4). Also the universal fallback when no other layout matches.
+Tokens consumed: var(--paper), var(--ink), var(--accent).
+-->
+<section data-layout="content-bullets" class="google-slide google-slide--bullets">
+  <h2 class="swiss-content-heading">Body Heading</h2>
+  <ul class="swiss-content-bullets">
+    <li class="swiss-content-bullet">First bullet point.</li>
+    <li class="swiss-content-bullet">Second bullet point.</li>
+    <li class="swiss-content-bullet">Third bullet point.</li>
+  </ul>
+  <figcaption class="swiss-content-caption">Body slide — 1-5 bullets</figcaption>
+</section>

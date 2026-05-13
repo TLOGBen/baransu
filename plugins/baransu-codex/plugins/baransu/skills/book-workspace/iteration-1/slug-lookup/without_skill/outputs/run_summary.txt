@@ -1,0 +1,44 @@
+run_summary.txt
+===============
+Baseline eval — no skill invoked.
+
+Source file:
+  /home/vakarve/projects/baransu/.claude/read/material/context-engineering-langchain/index.md
+  (LangChain blog post: "Context Engineering for Agents", July 2 2025)
+
+Output produced:
+  output.html — self-contained, single-file HTML document (~430 lines)
+
+What was done:
+  1. Read the source Markdown (captured from blog.langchain.com).
+  2. Stripped navigation chrome, footer links, and image references that
+     add no value in a standalone document.
+  3. Structured the content into clearly-labelled <section> elements:
+       - Hero (title, byline, read-time)
+       - TL;DR card
+       - What Is Context Engineering?
+       - Context Engineering for Agents (failure modes + strategy overview)
+       - Write Context
+       - Select Context
+       - Compress Context
+       - Isolate Context
+       - Applying These with LangGraph & LangSmith
+       - Conclusion
+  4. Added visual components:
+       - Strategy cards (Write / Select / Compress / Isolate) with icons
+       - Context-failure cards (Poisoning / Distraction / Confusion / Clash)
+       - LangGraph support table (strategy → tooling mapping)
+       - SVG architecture diagram showing the four strategies around a
+         central "LLM Agent / Context Window" node, with labelled arrows
+         to a "Tool Calls" box — all inline, no external dependencies
+  5. Applied a clean, readable CSS design system (custom properties,
+     responsive grid, blockquote styling, brand colour palette).
+  6. File is fully self-contained: zero external images, zero CDN links,
+     zero JavaScript — renders identically offline.
+
+Quality notes:
+  - All blockquotes preserve original attribution (Karpathy, Anthropic, Cognition,
+    Windsurf, Simon Willison).
+  - SVG diagram is purely decorative-informational; has aria-label for
+    accessibility.
+  - No hallucinated content — every claim traces to the source article.

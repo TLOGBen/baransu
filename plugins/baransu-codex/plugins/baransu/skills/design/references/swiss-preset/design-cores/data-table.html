@@ -1,0 +1,31 @@
+<!--
+  data-table.html — Swiss preset data table element (v1.3)
+  Tokens: var(--text-primary), var(--text-secondary), var(--border-soft), var(--surface), var(--font-mono).
+-->
+<table class="swiss-table">
+  <caption class="swiss-table-caption">資料表標題 — 用 caption 而非外層 div</caption>
+  <thead>
+    <tr>
+      <th scope="col">Column A</th>
+      <th scope="col">Column B</th>
+      <th scope="col" class="swiss-table-num">Numeric</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Row 1</td><td>Lorem ipsum</td><td class="swiss-table-num">1,234</td></tr>
+    <tr><td>Row 2</td><td>Dolor sit amet</td><td class="swiss-table-num">5,678</td></tr>
+    <tr><td>Row 3</td><td>Consectetur</td><td class="swiss-table-num">90.1</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="2">Total</td><td class="swiss-table-num">7,002</td></tr>
+  </tfoot>
+</table>
+
+<style>
+  .swiss-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .swiss-table-caption { font-size: 11px; color: var(--text-faint); letter-spacing: 0.04em; text-transform: uppercase; text-align: left; padding-bottom: 8px; }
+  .swiss-table th, .swiss-table td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border-soft); color: var(--text-primary); }
+  .swiss-table th { color: var(--text-secondary); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; background: var(--surface); }
+  .swiss-table-num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .swiss-table tfoot td { font-weight: 500; border-top: 2px solid var(--border); border-bottom: none; }
+</style>

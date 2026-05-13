@@ -22,7 +22,7 @@ If you find yourself thinking "I could just write this quickly" — that's exact
 
 ## The iron rule
 
-Until the user has explicitly approved the final proposal through `AskUserQuestion` (Stage G), do **not** produce:
+Until the user has explicitly approved the final proposal through `ask the user directly` (Stage G), do **not** produce:
 
 - Production code, even one-liners
 - Scaffolding, directory trees, file layouts written out
@@ -38,11 +38,22 @@ Why so strict: the whole point is that a premature code artefact anchors the use
 
 ## User-facing language
 
-All output shown to the user — alignment questions, proposals, the final plan, `AskUserQuestion` labels — must be in **Traditional Chinese (繁體中文)**. The body of this SKILL.md is in English because it is agent-facing.
+All output shown to the user — alignment questions, proposals, the final plan, `ask the user directly` labels — must be in **Traditional Chinese (繁體中文)**. The body of this SKILL.md is in English because it is agent-facing.
 
 ---
 
 ## Step 0 — Pick a mode: Lightweight or Full
+
+### Design.md soft-read
+
+Before mode selection, check for a DESIGN.md at the project root:
+1. Run `git rev-parse --show-toplevel 2>/dev/null`. If empty / fails, skip silently.
+2. If `{root}/DESIGN.md` exists, read it into context and output one line in 繁中: 「已載入 DESIGN.md，視覺規格已參考」
+3. If absent, skip silently. Non-blocking.
+
+理由：/think 經常討論 UI / 設計選擇；提早把 DESIGN.md 載入 context，避免在 Stage A 對焦時對「現有設計語言」一無所知。
+
+### Mode selection
 
 Before doing anything else, decide which mode applies. Get this wrong and you either bury a small fix in ceremony, or let a design decision slip through without alignment.
 
@@ -106,7 +117,7 @@ C. Official-first check  — framework-native / stdlib / well-maintained lib
 D. Premise validation    — pwd, existing ADRs, prior art
 E. Attack + complexity   — self-refute; file-count & component-count grading; deps list
 F. Final plan            — the five-section schema
-G. Approval              — AskUserQuestion with four options; downstream is /dev (small) or /analyze (medium-large)
+G. Approval              — ask the user directly with four options; downstream is /dev (small) or /analyze (medium-large)
 ```
 
 Do **not** read any files, run any shell commands, or fetch any URLs before Stage A completes. The whole point of Stage A is to close the gap between Claude's understanding and the user's intent. Touching the codebase first anchors you to what's already there instead of what the user actually wants.
@@ -125,7 +136,7 @@ Round 3: **成功 (success)** — how we'll know it's done; what observable beha
 
 Open the round by listing **3 specific things that feel ambiguous** in the user's current statement of this dimension. Don't list generic things ("what's the scale?") — list things grounded in what they actually said ("you said 'make it faster' but you haven't said whether latency or throughput matters more — those lead to different designs").
 
-Then call `AskUserQuestion` with 2-3 options that are **fundamentally different in kind**, not "same direction, different intensity". Wrong: [A: cache for 5min, B: cache for 1hr, C: cache for 1day]. Right: [A: read-through cache, B: materialised view refreshed nightly, C: no cache, fix the slow query directly].
+Then call `ask the user directly` with 2-3 options that are **fundamentally different in kind**, not "same direction, different intensity". Wrong: [A: cache for 5min, B: cache for 1hr, C: cache for 1day]. Right: [A: read-through cache, B: materialised view refreshed nightly, C: no cache, fix the slow query directly].
 
 Exactly one option must be labelled **【推薦】** and should come first. Explain in the option's description *why* you think it's right given what the user has said. If none of the options fits, the user can pick "Other" and type a free answer — that's fine and often the most useful outcome.
 
@@ -275,7 +286,7 @@ Produce **exactly** this structure, in 繁體中文, with these exact section ti
 
 ## Stage G — Approval (the four-option gate)
 
-After the plan is presented, call `AskUserQuestion` with these four options. Keep the labels short and stable — same wording every invocation, so they're predictable to the user and cache-friendly.
+After the plan is presented, call `ask the user directly` with these four options. Keep the labels short and stable — same wording every invocation, so they're predictable to the user and cache-friendly.
 
 ```
 question: "要怎麼處理這份計畫？"
@@ -303,7 +314,7 @@ options:
    - If neither skill is available, say so — 「沒有完美接手的 skill，建議直接進入手寫實作」.
 2. Produce a one-paragraph **handoff summary** in 繁體中文: what was approved, the key constraints, the first concrete step of implementation. Immediately invoke the identified skill with this summary as its input. Execute autonomously; do not ask the user for further confirmation during implementation unless a destructive or irreversible action arises.
 
-**Option 3 — 還有地方要對焦.** Call `AskUserQuestion` to find out what needs re-alignment. Then determine whether the new concern is an **extension** of the current direction or a **different concern**:
+**Option 3 — 還有地方要對焦.** Call `ask the user directly` to find out what needs re-alignment. Then determine whether the new concern is an **extension** of the current direction or a **different concern**:
 
 - **Extension** (same goal, same problem, deeper constraint or refinement): restart only the affected stage with the user's new constraint folded in. Open the re-proposal with one sentence: 「本次修改了 X 假設/約束，因此 Y 和 Z 有調整」 so the diff is visible. If the extension path is taken three consecutive times without convergence, treat as a different concern and restart from Stage A.
 - **Different concern** (goal changes, problem reframed, direction diverges): restart from Stage A. State clearly: 「這是一個不同的問題方向，重新從 Stage A 對焦。」
@@ -336,7 +347,7 @@ Do not loop more than 3 re-proposals on the same plan. If the third is also reje
 
 - **Ghost unknowns.** An `Unknowns` section full of bureaucratic placeholders ("scaling strategy: TBD", "monitoring: TODO") is worse than an empty one. If an unknown doesn't have (a) a specific question, (b) a reason it can be deferred, (c) a person/time to resolve it — it doesn't belong in Unknowns, it belongs back in Key decisions and unresolved.
 
-- **Approval drift.** The user says "looks good, go ahead" in free text instead of picking an option via `AskUserQuestion`. Accept it, but say: 「收到，把這當成批准實作（完全授權）」 so there's a clear recorded moment. The four-option gate is the audit trail.
+- **Approval drift.** The user says "looks good, go ahead" in free text instead of picking an option via `ask the user directly`. Accept it, but say: 「收到，把這當成批准實作（完全授權）」 so there's a clear recorded moment. The four-option gate is the audit trail.
 
 - **"Can we just add X?" during Stage F.** Users often want to tack on one more thing after seeing the plan. If it's small and fits, fine — fold it into Building and note it in Key decisions. If it's a real extension (new file, new decision), treat it as Option 2 (還有地方要對焦) and re-propose.
 

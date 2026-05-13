@@ -1,0 +1,15 @@
+{
+  "eval_id": 0,
+  "eval_name": "eval-0-code-mixed-issues",
+  "prompt": "我剛寫完 fixtures/user_service.py。請對它做嚴格的獨立審查 — 我擔心裡面可能混了多種不同層次的問題（格式、安全、邏輯、過度工程），希望有人用乾淨視角重新看一遍，告訴我哪些是必須修的、哪些是過度設計應該放掉、哪些只是 cosmetic。這個模組還沒有 e2e 測試。用你手上最嚴格的 review 機制處理。",
+  "assertions": [
+    {"text": "最終報告以繁體中文輸出（含 Verdict、Tier、Claim 等段落）", "type": "language"},
+    {"text": "Verdict 為 INCOMPLETE — 因無 e2e 測試證據", "type": "verdict"},
+    {"text": "Tier 1 列出至少一個非語意問題（unused import: datetime 或 logging 或 os；或 quote-style 不一致）", "type": "tier1"},
+    {"text": "Tier 3 包含硬編碼 API_KEY 的 finding（含檔名:行號）", "type": "security"},
+    {"text": "Tier 3 包含 authenticate() 的 null-check bug（user 可能為 None 時直接存取 user['password_hash']）", "type": "quality"},
+    {"text": "UserBuilder 的架構 finding 經 balance check 評估（降級為 advisory / FYI，或明確討論不做的代價 vs 做的代價）", "type": "balance"},
+    {"text": "沒有建議使用者重跑 /baransu:think 或 /baransu:review", "type": "no-recursion"},
+    {"text": "派遣紀錄顯示三個 perspective reviewer 都被啟用（代碼含 auth + 邏輯 + 結構三種面向）", "type": "dispatch"}
+  ]
+}

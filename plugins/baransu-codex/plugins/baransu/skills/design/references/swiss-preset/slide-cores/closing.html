@@ -1,0 +1,37 @@
+<!--
+---
+layout_id: closing
+applies_to:
+  bullet_count: "0"
+  has_image: optional
+  role: positional_last
+---
+Adapts to: row 2 of /book Stage 2B layout decision table.
+Positional: last slide. Conditional — generated only when source has a
+CTA/acknowledgement section. Carries closing message + optional CTA link.
+Tokens consumed: var(--paper), var(--ink), var(--accent), var(--accent-on).
+-->
+<link rel="stylesheet" href="../tokens.css">
+<style>
+  .swiss-slide--closing { padding: 96px 96px; background: var(--paper); color: var(--ink);
+    font-family: var(--font-sans); font-weight: 500; text-wrap: pretty;
+    display: grid; grid-template-rows: 1fr auto auto 1fr; row-gap: 18px;
+    min-height: 600px; }
+  .swiss-closing-header { display: contents; }
+  .swiss-closing-rule { width: 64px; height: 3px; background: var(--accent); border: 0;
+    margin: 0; align-self: end; }
+  .swiss-closing-title { font-size: 38px; line-height: 1.15; letter-spacing: -0.01em;
+    font-weight: 500; margin: 0; max-width: 22ch; }
+  .swiss-closing-cta { font-size: 21px; line-height: 1.50; font-weight: 500;
+    margin: 0; color: var(--text-muted); max-width: 36ch; }
+  .swiss-closing-caption { font-size: 13px; color: var(--text-faint); margin: 0;
+    align-self: end; }
+</style>
+<section data-layout="closing" class="swiss-slide swiss-slide--closing">
+  <header class="swiss-closing-header">
+    <hr class="swiss-closing-rule">
+    <h2 class="swiss-closing-title">Thank you</h2>
+    <p class="swiss-closing-cta">Optional call-to-action or acknowledgement line.</p>
+  </header>
+  <figcaption class="swiss-closing-caption">Closing slide &#x2014; positional_last</figcaption>
+</section>

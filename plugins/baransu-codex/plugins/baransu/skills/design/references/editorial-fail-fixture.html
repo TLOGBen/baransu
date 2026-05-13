@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>editorial-fail-fixture</title>
+<style>
+  /* Intentionally violates REQ-004 — used as negative test for editorial-sanity.sh */
+  body { background: #f5f4ed; color: #1B365D; font-family: serif; margin: 0; }
+  .kami-body { font-size: 15px; line-height: 1.55; margin: 12px 0; }
+  /* Intentionally missing dropcap class, text-wrap rule, and curly quotes. */
+</style>
+</head>
+<body class="kami-paper-body">
+  <article>
+    <p class="kami-body">Lorem ipsum dolor sit amet. The opening paragraph here contains "straight quotes" and lacks both text-wrap and a dropcap class — it should fail all three editorial-sanity checks.</p>
+    <p class="kami-body">As the saying goes, "Form follows function," and this fixture exists to prove the gate trips.</p>
+  </article>
+</body>
+</html>

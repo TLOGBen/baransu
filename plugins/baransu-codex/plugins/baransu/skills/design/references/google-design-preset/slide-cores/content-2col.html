@@ -1,0 +1,33 @@
+<!--
+---
+layout_id: content-2col
+applies_to:
+  bullet_count: "1-5"
+  has_image: required
+  role: body
+image_slot:
+  aspect_ratio: "16:9"
+  object_position: "center 35%"
+  fit: cover
+---
+Adapts to: row 8 of /book Stage 2B layout decision table.
+Body slide with left text column and right image column. Image slot uses
+center 35% to avoid top-center crop on people-scene images (slide-checklist P0-2).
+Tokens consumed: var(--paper), var(--ink), var(--accent).
+-->
+<section data-layout="content-2col" class="google-slide google-slide--2col">
+  <div class="swiss-2col-grid">
+    <div class="swiss-2col-text">
+      <h2 class="swiss-2col-heading">Body Heading</h2>
+      <ul class="swiss-2col-bullets">
+        <li class="swiss-2col-bullet">First supporting point.</li>
+        <li class="swiss-2col-bullet">Second supporting point.</li>
+        <li class="swiss-2col-bullet">Third supporting point.</li>
+      </ul>
+    </div>
+    <figure class="swiss-2col-figure">
+      <img class="swiss-2col-image" src="" alt="Visual supporting the text column" />
+      <figcaption class="swiss-2col-caption">Image caption — visual context for the body.</figcaption>
+    </figure>
+  </div>
+</section>

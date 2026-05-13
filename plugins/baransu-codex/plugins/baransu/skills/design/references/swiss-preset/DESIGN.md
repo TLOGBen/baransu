@@ -32,7 +32,7 @@ Swiss 不變量（從 Kami 可移植集合 + Swiss-specific）：
 | `--dark-surface` | `#1a1a1a` | 深色容器（Dark container） |
 | `--deep-dark` | `#0a0a0a` | 深色頁面背景（Dark page background） |
 | `--ink` | `#0a0a0a` | 主要文字 alias / 結構墨色（Structural ink） |
-| `--accent` | `#002FA7` | IKB ultramarine——唯一強調色（≤5% 表面） |
+| `--accent` | `#002FA7 → oklch(0.38 0.20 268)` | IKB ultramarine——唯一強調色（≤5% 表面） |
 | `--accent-on` | `#ffffff` | accent 之上文字 / icon 色 |
 | `--text-primary` | `#0a0a0a` | 主要文字（Body & heading） |
 | `--text-secondary` | `#3a3a3a` | 次要文字、表格標頭 |
@@ -49,6 +49,8 @@ Swiss 不變量（從 Kami 可移植集合 + Swiss-specific）：
 - 禁用純白背景；`--accent-on` 為 accent 上的反白文字，僅限該情境使用
 
 **Accent 單色原則**：IKB 為設計主軸，全頁只此一個高飽和色；其餘層次以中性灰調達成。
+
+> **Footnote — oklch advisory**：表中 `→ oklch(...)` 為 advisory 等價值，僅供色彩感知比對與未來 Chromium-print migration 參考；現行 WeasyPrint print pipeline 仍以 hex 為唯一渲染來源，tokens.css 與 design-cores HTML 不得出現 `oklch()` 函數。
 
 ---
 
@@ -80,6 +82,27 @@ Swiss 不變量（從 Kami 可移植集合 + Swiss-specific）：
 - `--font-sans` 為唯一字族 stack；字串中嚴禁出現 `serif` 以外的 generic 標記（sans-serif fallback 為允許的關鍵字 token，但 serif 不得出現於前綴名單）
 - 中英文混排：Inter 為英文主字、Noto Sans TC 涵蓋中文；皆 sans-serif
 - 字距規則：headline 緊收（−0.01em ~ −0.02em），caption 放鬆（+0.04em）
+
+### Dropcap
+
+長文段首字母採 dropcap 工藝；3-line drop 是印刷學甜蜜點（不是 2，也不是 4）。
+class 前綴對齊 preset：`.swiss-dropcap`。
+
+```css
+.swiss-dropcap {
+  float: left;
+  font-size: 4.65em;      /* 4.65em = 3 × body line-height (1em × 1.55 × 3); renders as 3-line drop with body line-height 1.55 */
+  line-height: 1;         /* 避免繼承 body line-height 導致高度爆炸 */
+  font-weight: 500;       /* 對齊 Swiss heading 預設 weight */
+  color: var(--accent);   /* International Klein Blue #002FA7 */
+  padding-right: 8px;     /* ≥ 4px 防字身擠壓 */
+  padding-top: 2px;       /* 視覺對齊微調 */
+}
+```
+
+**使用**：`<p class="swiss-body"><span class="swiss-dropcap">L</span>orem ipsum...</p>`
+
+**Kami 可移植 invariant**：dropcap 字身禁用 `<small>` 或 italic style；用 `<span>` 而非 `<em>` / `<i>`。
 
 ---
 
@@ -237,3 +260,32 @@ line-height: 1.55;
 以下提示詞可在全新 AI 對話中重現本設計系統的視覺語言：
 
 > Design a UI using the Swiss IKB design system. Background: neutral off-white `var(--paper)` (token; hex `#fafaf8`); card surfaces: `var(--surface)`; interactive surfaces: `var(--surface-strong)`. Primary accent: International Klein Blue `var(--accent)` (token; hex `#002FA7`) — the only chromatic color, ≤5% surface area, paired with `var(--accent-on)` for foreground on filled regions. Text hierarchy: `var(--text-primary)` → `var(--text-secondary)` → `var(--text-muted)` → `var(--text-faint)`. Typography: `'Inter', 'Helvetica Neue', 'Noto Sans TC', sans-serif` — sans-serif only, no serif anywhere. Heading weight 500, body weight 400, headings tracked −0.01em, captions +0.04em. Line-height: headlines 1.10–1.30, body 1.50–1.55. Shadows: ring (`0 0 0 1px var(--border)`) for static; whisper (`0 4px 24px var(--surface-strong)`) for hover — solid tokens only, no rgba. Tags use solid hex via `var(--surface-strong)`. Section titles use a 3px accent left bar. All alignment flush-left to a 12-column baseline grid. No italics, no decoration, no second accent. The aesthetic is Swiss International Style — Müller-Brockmann grids, IKB ultramarine, function over ornament.
+
+### (a) 焦點節點上限
+
+每一頁、每一張投影片，焦點節點上限為 **1–2 個**：
+- 主焦點（1 個必有）：以 `--accent: #002FA7`（IKB）染色——通常是 H1、3px accent left bar、或唯一 CTA。
+- 次焦點（0–1 個，可選）：以「網格佔位」或「字級對比」承擔，不可再用 accent。Swiss 構成的張力來自 grid 與 negative space，不是色彩堆疊。
+
+### (b) accent hex 設計理據
+
+主 accent `#002FA7`（International Klein Blue / IKB）拆解：
+
+| Space | Coordinates | 設計意圖 |
+|-------|-------------|----------|
+| HEX | `#002FA7` | 主規格；WeasyPrint print pipeline 以此為準 |
+| HSL | `H 223°, S 100%, L 33%` | 高飽和深藍——對齊 Yves Klein 1960 年代專利配方 IKB-79 的螢幕近似；S 100% 是 Swiss IKB 的簽名，低於 S 90% 就失去純粹感；L 33% 確保白底對比 > 7:1 |
+| oklch（advisory） | `oklch(0.38 0.20 268)` | perceptual 等價；C 0.20 在 sRGB gamut 邊緣，是 IKB 飽和度的視覺極限 |
+
+選色理由：IKB 是 Swiss International Style 的色票記憶錨點（Müller-Brockmann 海報、Bauhaus 教具）；任何「navy」「royal blue」「indigo」皆為退讓，會稀釋網格構成的視覺權威。
+
+### (c) 我不是什麼（anti-patterns / allowed contradictions）
+
+對齊本專案 root `DESIGN.md` 列出的 10 條 Swiss 不變量，從中挑出 5 條最常被違反的 anti-pattern：
+
+- no second accent — 全頁只有 IKB 一個彩色；任何「狀態色」（success / warning / error）若需出現，亦受 ≤5% 預算限制
+- no italics — 模板與 demo 均禁用，Swiss 排版無斜體傳統
+- no serif — `font-family` 不可出現 serif 字串；CJK 用 Noto Sans TC，不混 Noto Serif
+- no rgba background — Tag / surface 背景只用 solid hex token，WeasyPrint 渲染 rgba 有 bug
+- no centered default — 預設對齊一律 flush-left；置中只用於極少數標題情境，非全頁排版策略
+- no high-saturation neutral — 中性灰必須真中性（無冷無暖偏調），禁帶藍 / 帶綠灰

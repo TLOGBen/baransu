@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Context Engineering for Agents</title>
+<style>
+  /* ── Kami design tokens (mirrors paper-preset.md) ── */
+  :root {
+    --parchment:   #f5f4ed;
+    --ivory:       #faf9f5;
+    --brand:       #1B365D;
+    --brand-light: #2a4f8a;
+    --near-black:  #141413;
+    --dark-warm:   #3d3d3a;
+    --olive:       #504e49;
+    --stone:       #6b6a64;
+    --line:        #d8d6cf;
+    --hover:       #e8e6de;
+    /* Derived surface tokens */
+    --accent-bg:   rgba(27,54,93,0.07);
+    --warm-bg:     rgba(180,90,40,0.08);
+    --warn-border: #b05c28;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--parchment);
+    font-family: 'TsangerJinKai02','Noto Serif TC','Source Han Serif TC',
+                 Charter, Georgia, 'Palatino Linotype', serif;
+    color: var(--near-black);
+    line-height: 1.75;
+    font-size: 16px;
+  }
+
+  /* ── Paper sheet ── */
+  .paper {
+    background: var(--ivory);
+    max-width: 760px;
+    margin: 40px auto 80px;
+    padding: 64px 72px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08), 0 12px 40px rgba(0,0,0,.06);
+    border-radius: 2px;
+    position: relative;
+  }
+  /* Left rule — Kami invariant */
+  .paper::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 52px;
+    width: 1px; height: 100%;
+    background: rgba(27,54,93,0.12);
+  }
+
+  /* ── Sticky TOC sidebar ── */
+  .toc-wrap {
+    position: fixed;
+    top: 48px;
+    left: calc(50% - 380px - 200px);
+    width: 180px;
+    display: none;
+  }
+  @media (min-width: 1160px) { .toc-wrap { display: block; } }
+  .toc-wrap h3 {
+    font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--stone); margin-bottom: 10px; font-family: sans-serif;
+  }
+  .toc-wrap a {
+    display: block; padding: 3px 0 3px 8px;
+    font-size: 12.5px; line-height: 1.55;
+    font-family: sans-serif; text-decoration: none;
+    color: var(--olive);
+    border-left: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+  }
+  .toc-wrap a:hover, .toc-wrap a.active {
+    color: var(--brand); border-left-color: var(--brand);
+  }
+
+  /* ── Header ── */
+  .kicker {
+    font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--brand); margin-bottom: 14px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+  }
+  h1 {
+    font-size: 28px; font-weight: 700; line-height: 1.25;
+    letter-spacing: -.01em; margin-bottom: 12px;
+  }
+  .subtitle {
+    font-size: 15.5px; color: var(--dark-warm);
+    margin-bottom: 32px; padding-bottom: 32px;
+    border-bottom: 1px solid var(--line);
+  }
+  .meta {
+    display: block; margin-top: 6px;
+    font-size: 12px; color: var(--stone);
+    font-family: sans-serif;
+  }
+
+  /* ── Sections ── */
+  section { margin-bottom: 52px; }
+  section:last-of-type { margin-bottom: 0; }
+
+  h2 {
+    font-size: 18px; font-weight: 700;
+    margin-bottom: 16px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .sec-num {
+    font-size: 10px; font-weight: 600; letter-spacing: .08em;
+    font-family: sans-serif;
+    color: var(--brand); background: var(--accent-bg);
+    padding: 2px 8px; border-radius: 20px; flex-shrink: 0;
+  }
+
+  p { margin-bottom: 14px; }
+  p:last-child { margin-bottom: 0; }
+  strong { font-weight: 700; }
+
+  /* ── Callout variants ── */
+  .callout {
+    background: var(--accent-bg);
+    border-left: 3px solid var(--brand);
+    padding: 14px 18px; margin: 20px 0;
+    font-size: 14.5px;
+    border-radius: 0 4px 4px 0;
+  }
+  .callout.warm {
+    background: var(--warm-bg);
+    border-left-color: var(--warn-border);
+  }
+
+  /* ── SVG figures ── */
+  figure.diagram {
+    margin: 28px 0; text-align: center;
+  }
+  figure.diagram figcaption {
+    font-size: 12px; color: var(--stone);
+    margin-top: 8px; font-style: italic;
+    font-family: sans-serif;
+  }
+  svg { display: block; margin: 0 auto; }
+
+  /* ── Comparison table ── */
+  table.cmp {
+    width: 100%; border-collapse: collapse;
+    font-size: 14px; margin: 20px 0;
+  }
+  table.cmp th {
+    padding: 8px 14px; text-align: left;
+    font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+    font-family: sans-serif;
+    background: var(--hover); color: var(--olive);
+  }
+  table.cmp td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  table.cmp tr:last-child td { border-bottom: none; }
+  .badge {
+    display: inline-block; font-size: 10px; letter-spacing: .04em;
+    padding: 1px 7px; border-radius: 3px; vertical-align: middle; margin-left: 4px;
+    font-family: sans-serif;
+  }
+  .badge.yes { background: var(--accent-bg); color: var(--brand); }
+  .badge.no  { background: var(--hover); color: var(--stone); }
+
+  /* ── Card grid ── */
+  .card-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 20px 0;
+  }
+  .card {
+    border: 1px solid var(--line); border-radius: 6px;
+    padding: 16px 18px;
+    transition: box-shadow .15s, transform .15s;
+  }
+  .card:hover {
+    box-shadow: 0 4px 12px rgba(20,20,19,0.10);
+    transform: translateY(-1px);
+  }
+  .card h3 {
+    font-size: 13px; font-weight: 700; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .card p { font-size: 13px; color: var(--dark-warm); margin: 0; }
+  .card .icon {
+    width: 22px; height: 22px; border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; flex-shrink: 0;
+    background: var(--accent-bg); color: var(--brand);
+  }
+
+  /* ── Tradeoff bar chart ── */
+  .tradeoff-row {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 10px; font-size: 13px; font-family: sans-serif;
+  }
+  .tradeoff-label { width: 130px; flex-shrink: 0; color: var(--olive); }
+  .tradeoff-bg { flex: 1; height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
+  .tradeoff-fill { height: 100%; border-radius: 4px; }
+  .tradeoff-val { width: 40px; text-align: right; color: var(--stone); }
+
+  /* ── Footer ── */
+  footer {
+    margin-top: 52px; padding-top: 24px;
+    border-top: 1px solid var(--line);
+    font-size: 12px; color: var(--stone);
+    font-family: sans-serif;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    .paper { padding: 40px 28px; margin: 0; border-radius: 0; }
+    .paper::before { left: 20px; }
+    .card-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOC sidebar -->
+<nav class="toc-wrap" id="toc">
+  <h3>Contents</h3>
+  <a href="#s1">What Is Context Engineering</a>
+  <a href="#s2">The Four Strategies</a>
+  <a href="#s3">Write: Scratchpads &amp; Memory</a>
+  <a href="#s4">Select: Retrieval &amp; RAG</a>
+  <a href="#s5">Compress &amp; Isolate</a>
+  <a href="#s6">LangGraph Implementation</a>
+</nav>
+
+<article class="paper">
+
+  <header>
+    <p class="kicker">Agent Engineering · Technical</p>
+    <h1>Context Engineering for Agents</h1>
+    <p class="subtitle">
+      A practical breakdown of the four strategies — write, select, compress, and isolate — for filling an agent's context window with exactly the right information at each step.
+      <span class="meta">Source: <a href="https://blog.langchain.com/context-engineering-for-agents/">blog.langchain.com</a> · The LangChain Team · July 2, 2025</span>
+    </p>
+  </header>
+
+  <!-- Section 1 -->
+  <section id="s1">
+    <h2><span class="sec-num">01</span>What Is Context Engineering</h2>
+
+    <p>As Andrej Karpathy frames it, LLMs are a new kind of operating system: the model is the CPU and its context window is RAM — limited working memory that must be carefully managed. <strong>Context engineering</strong> is the discipline of curating what goes into that window at every step of an agent's trajectory.</p>
+
+    <div class="callout">
+      "Context engineering is the delicate art and science of filling the context window with just the right information for the next step." — Andrej Karpathy
+    </div>
+
+    <p>Three categories of context must be managed: <strong>Instructions</strong> (prompts, memories, few-shot examples, tool descriptions), <strong>Knowledge</strong> (facts, retrieved documents), and <strong>Tools</strong> (feedback from tool calls). Cognition has called context engineering "effectively the #1 job of engineers building AI agents."</p>
+
+    <figure class="diagram">
+      <svg width="560" height="160" viewBox="0 0 560 160" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr-brand" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#1B365D"/>
+          </marker>
+        </defs>
+        <!-- LLM CPU box -->
+        <rect x="220" y="60" width="120" height="48" rx="6" fill="rgba(27,54,93,0.07)" stroke="#1B365D" stroke-width="1.5"/>
+        <text x="280" y="88" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="600" fill="#1B365D">LLM (CPU)</text>
+        <!-- Context Window RAM box -->
+        <rect x="220" y="4" width="120" height="40" rx="6" fill="rgba(27,54,93,0.04)" stroke="#504e49" stroke-width="1" stroke-dasharray="4,3"/>
+        <text x="280" y="22" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#504e49">Context Window</text>
+        <text x="280" y="36" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#6b6a64">(RAM)</text>
+        <!-- Arrow from context to LLM -->
+        <line x1="280" y1="44" x2="280" y2="60" stroke="#1B365D" stroke-width="1.5" marker-end="url(#arr-brand)"/>
+        <!-- Three input sources -->
+        <!-- Instructions -->
+        <rect x="20" y="60" width="110" height="40" rx="5" fill="rgba(27,54,93,0.04)" stroke="#6b6a64" stroke-width="1"/>
+        <text x="75" y="78" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#504e49">Instructions</text>
+        <text x="75" y="92" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#6b6a64">prompts · examples</text>
+        <line x1="130" y1="80" x2="220" y2="84" stroke="#6b6a64" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-brand)"/>
+        <!-- Knowledge -->
+        <rect x="20" y="118" width="110" height="40" rx="5" fill="rgba(27,54,93,0.04)" stroke="#6b6a64" stroke-width="1"/>
+        <text x="75" y="136" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#504e49">Knowledge</text>
+        <text x="75" y="150" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#6b6a64">facts · retrieved docs</text>
+        <line x1="130" y1="138" x2="220" y2="100" stroke="#6b6a64" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-brand)"/>
+        <!-- Tools -->
+        <rect x="430" y="60" width="110" height="40" rx="5" fill="rgba(27,54,93,0.04)" stroke="#6b6a64" stroke-width="1"/>
+        <text x="485" y="78" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#504e49">Tool Feedback</text>
+        <text x="485" y="92" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#6b6a64">search · API results</text>
+        <line x1="430" y1="80" x2="340" y2="84" stroke="#6b6a64" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-brand)"/>
+      </svg>
+      <figcaption>Context types flowing into the LLM context window at each agent step</figcaption>
+    </figure>
+  </section>
+
+  <!-- Section 2 -->
+  <section id="s2">
+    <h2><span class="sec-num">02</span>The Four Strategies</h2>
+
+    <p>Long-running agents accumulate token-heavy tool call histories, risking context overflow, inflated costs, and degraded performance. Drew Breunig identified four specific failure modes: <strong>Context Poisoning</strong> (hallucination enters the context), <strong>Context Distraction</strong> (context overrides training), <strong>Context Confusion</strong> (superfluous context skews response), and <strong>Context Clash</strong> (contradictory context segments).</p>
+
+    <p>These failure modes map to four mitigating strategies:</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <h3><span class="icon">W</span>Write</h3>
+        <p>Save context outside the window — scratchpads and long-term memories — so it is available without occupying tokens.</p>
+      </div>
+      <div class="card">
+        <h3><span class="icon">S</span>Select</h3>
+        <p>Pull only the relevant context into the window — via RAG, embedding search, or explicit state field exposure.</p>
+      </div>
+      <div class="card">
+        <h3><span class="icon">C</span>Compress</h3>
+        <p>Retain only what is needed — summarise long trajectories, prune old messages, post-process verbose tool outputs.</p>
+      </div>
+      <div class="card">
+        <h3><span class="icon">I</span>Isolate</h3>
+        <p>Split context across sub-agents, sandboxed environments, or state fields so each unit sees only its relevant slice.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3 -->
+  <section id="s3">
+    <h2><span class="sec-num">03</span>Write: Scratchpads &amp; Memory</h2>
+
+    <p><strong>Scratchpads</strong> persist information while an agent is performing a task. Anthropic's multi-agent researcher uses a Memory tool so the LeadResearcher saves its plan before the context window can be truncated at 200,000 tokens. Scratchpads can be implemented as a file-system tool call, or as a field in the agent's runtime state object — giving fine-grained control over what is exposed to the LLM at later turns.</p>
+
+    <p><strong>Long-term memories</strong> persist across many sessions. Reflexion introduced self-generated reflection memories; Generative Agents synthesised memories periodically from past feedback. These patterns now appear in ChatGPT, Cursor, and Windsurf, all of which auto-generate long-term memories from user-agent interactions.</p>
+
+    <figure class="diagram">
+      <svg width="520" height="180" viewBox="0 0 520 180" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr-b2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#1B365D"/>
+          </marker>
+          <marker id="arr-m2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#6b6a64"/>
+          </marker>
+        </defs>
+        <!-- Session box -->
+        <rect x="10" y="20" width="130" height="50" rx="6" fill="rgba(27,54,93,0.07)" stroke="#1B365D" stroke-width="1.5"/>
+        <text x="75" y="44" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="600" fill="#1B365D">Agent Session</text>
+        <text x="75" y="60" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#504e49">Thread / Context Window</text>
+
+        <!-- Scratchpad -->
+        <rect x="200" y="10" width="120" height="44" rx="5" fill="rgba(27,54,93,0.04)" stroke="#504e49" stroke-width="1"/>
+        <text x="260" y="30" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="600" fill="#504e49">Scratchpad</text>
+        <text x="260" y="46" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#6b6a64">within-session notes</text>
+
+        <!-- Long-term Memory -->
+        <rect x="200" y="70" width="120" height="44" rx="5" fill="rgba(27,54,93,0.04)" stroke="#504e49" stroke-width="1"/>
+        <text x="260" y="90" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="600" fill="#504e49">Long-term Memory</text>
+        <text x="260" y="106" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#6b6a64">cross-session facts</text>
+
+        <!-- Write arrows -->
+        <path d="M140,35 C170,35 170,32 200,32" stroke="#1B365D" stroke-width="1.5" fill="none" marker-end="url(#arr-b2)"/>
+        <path d="M140,55 C170,55 170,92 200,92" stroke="#1B365D" stroke-width="1.5" fill="none" marker-end="url(#arr-b2)"/>
+        <text x="152" y="30" font-family="sans-serif" font-size="9" fill="#504e49">write</text>
+        <text x="152" y="72" font-family="sans-serif" font-size="9" fill="#504e49">write</text>
+
+        <!-- Read back arrows -->
+        <path d="M320,32 C360,32 380,45 380,90 C380,130 350,150 320,150" stroke="#6b6a64" stroke-width="1" fill="none" stroke-dasharray="4,3"/>
+        <path d="M320,92 C355,92 370,130 350,150 C340,160 300,165 260,160 C210,154 170,145 140,130 C120,118 75,95 75,70" stroke="#6b6a64" stroke-width="1" fill="none" stroke-dasharray="4,3" marker-end="url(#arr-m2)"/>
+        <text x="370" y="88" font-family="sans-serif" font-size="9" fill="#6b6a64">select</text>
+
+        <!-- Future session box -->
+        <rect x="390" y="110" width="120" height="50" rx="6" fill="rgba(27,54,93,0.04)" stroke="#6b6a64" stroke-width="1" stroke-dasharray="5,3"/>
+        <text x="450" y="134" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#6b6a64">Future Session</text>
+        <text x="450" y="150" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#6b6a64">retrieves memory</text>
+      </svg>
+      <figcaption>Write strategy: scratchpads serve within-session tasks; long-term memories persist across sessions</figcaption>
+    </figure>
+  </section>
+
+  <!-- Section 4 -->
+  <section id="s4">
+    <h2><span class="sec-num">04</span>Select: Retrieval &amp; RAG</h2>
+
+    <p>Selecting context means pulling the right information into the window. For procedural memories, many code agents use always-loaded files — Claude Code uses <code>CLAUDE.md</code>, Cursor uses rules files. For larger memory collections, agents rely on embedding search or knowledge graphs.</p>
+
+    <p>Selection can go wrong. Simon Willison described a case where ChatGPT unexpectedly fetched location from memories and injected it into an image request, making the user feel the context window "no longer belongs to them."</p>
+
+    <p><strong>Tool selection</strong> is a related challenge: providing too many tools causes model confusion due to overlapping descriptions. Applying RAG over tool descriptions has been shown to improve tool selection accuracy by 3x. For knowledge retrieval at scale, code agents like Windsurf combine AST parsing, embedding search, grep, knowledge graph retrieval, and a re-ranking step, since embedding search alone becomes unreliable as codebases grow.</p>
+
+    <table class="cmp">
+      <thead>
+        <tr>
+          <th>Context Type</th>
+          <th>Selection Mechanism</th>
+          <th>Production Example</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Procedural instructions</td>
+          <td>Always-loaded rules file</td>
+          <td>CLAUDE.md, Cursor rules</td>
+        </tr>
+        <tr>
+          <td>Episodic memories</td>
+          <td>Embedding similarity search</td>
+          <td>ChatGPT memory, LangGraph store</td>
+        </tr>
+        <tr>
+          <td>Tool descriptions</td>
+          <td>RAG over tool docs</td>
+          <td>LangGraph Bigtool</td>
+        </tr>
+        <tr>
+          <td>Codebase knowledge</td>
+          <td>AST + embedding + graph + rerank</td>
+          <td>Windsurf, Cursor</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Section 5 -->
+  <section id="s5">
+    <h2><span class="sec-num">05</span>Compress &amp; Isolate</h2>
+
+    <p><strong>Compressing context</strong> retains only the tokens required. Claude Code's auto-compact summarises the full agent trajectory once the context reaches 95% capacity. Summarisation can also be applied at specific design points — post-processing verbose tool calls, or at agent-agent handoff boundaries to reduce tokens during knowledge transfer. Trimming uses heuristics to prune older messages without LLM involvement.</p>
+
+    <p><strong>Isolating context</strong> splits it across distinct boundaries. In multi-agent architectures (inspired by OpenAI Swarm), each sub-agent has its own context window, focused on a narrow sub-task. Anthropic's multi-agent researcher found that many agents with isolated contexts outperformed a single agent — at the cost of up to 15× more tokens.</p>
+
+    <p>Two additional isolation techniques: <strong>code sandboxes</strong> (HuggingFace's CodeAgent runs tool calls in an E2B sandbox; only selected return values re-enter the LLM context) and <strong>state schema isolation</strong> (LangGraph stores tool outputs in state fields not exposed to the LLM until explicitly needed).</p>
+
+    <figure class="diagram">
+      <svg width="560" height="200" viewBox="0 0 560 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr-b3" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#1B365D"/>
+          </marker>
+          <marker id="arr-m3" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#6b6a64"/>
+          </marker>
+        </defs>
+        <!-- Supervisor / Orchestrator -->
+        <rect x="200" y="10" width="160" height="44" rx="6" fill="rgba(27,54,93,0.09)" stroke="#1B365D" stroke-width="1.5"/>
+        <text x="280" y="30" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="600" fill="#1B365D">Supervisor Agent</text>
+        <text x="280" y="46" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#504e49">Coordinates sub-agents</text>
+
+        <!-- Sub-agent A -->
+        <rect x="60" y="110" width="130" height="50" rx="5" fill="rgba(27,54,93,0.04)" stroke="#504e49" stroke-width="1"/>
+        <text x="125" y="132" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="600" fill="#504e49">Sub-agent A</text>
+        <text x="125" y="148" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#6b6a64">isolated context</text>
+
+        <!-- Sub-agent B -->
+        <rect x="215" y="110" width="130" height="50" rx="5" fill="rgba(27,54,93,0.04)" stroke="#504e49" stroke-width="1"/>
+        <text x="280" y="132" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="600" fill="#504e49">Sub-agent B</text>
+        <text x="280" y="148" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#6b6a64">isolated context</text>
+
+        <!-- Sub-agent C -->
+        <rect x="370" y="110" width="130" height="50" rx="5" fill="rgba(27,54,93,0.04)" stroke="#504e49" stroke-width="1"/>
+        <text x="435" y="132" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="600" fill="#504e49">Sub-agent C</text>
+        <text x="435" y="148" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#6b6a64">isolated context</text>
+
+        <!-- Arrows from supervisor -->
+        <line x1="230" y1="54" x2="125" y2="110" stroke="#1B365D" stroke-width="1.5" marker-end="url(#arr-b3)"/>
+        <line x1="280" y1="54" x2="280" y2="110" stroke="#1B365D" stroke-width="1.5" marker-end="url(#arr-b3)"/>
+        <line x1="330" y1="54" x2="435" y2="110" stroke="#1B365D" stroke-width="1.5" marker-end="url(#arr-b3)"/>
+
+        <!-- Compress label -->
+        <rect x="10" y="170" width="160" height="24" rx="4" fill="rgba(27,54,93,0.04)" stroke="#d8d6cf" stroke-width="1"/>
+        <text x="90" y="186" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#504e49">Compress at handoff boundaries</text>
+        <line x1="125" y1="160" x2="90" y2="170" stroke="#6b6a64" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-m3)"/>
+      </svg>
+      <figcaption>Isolation via multi-agent: each sub-agent gets a focused context window; compression at handoff reduces token transfer</figcaption>
+    </figure>
+  </section>
+
+  <!-- Section 6 -->
+  <section id="s6">
+    <h2><span class="sec-num">06</span>LangGraph Implementation</h2>
+
+    <p>LangGraph is designed around a typed <strong>state object</strong> with a schema. Each node (step) reads from and writes to state, giving precise control over what context is exposed to the LLM at each agent turn. This single primitive enables all four strategies.</p>
+
+    <p>For <strong>writing</strong>, LangGraph's checkpointing persists agent state across all steps (short-term scratchpad) and LangMem provides long-term memory abstractions for cross-session persistence. For <strong>selecting</strong>, nodes access state directly, and LangGraph's memory store supports embedding-based retrieval for large collections. LangGraph Bigtool applies semantic search over tool descriptions for large tool sets.</p>
+
+    <p>For <strong>compressing</strong>, built-in utilities support message summarisation and trimming; additional logic can post-process specific tool calls or add summarisation nodes at key agent phases. For <strong>isolating</strong>, LangGraph supports multi-agent architectures via the supervisor and swarm libraries, state schema isolation (fields not exposed to the LLM), and E2B/Pyodide sandboxes for code-executing agents.</p>
+
+    <div class="callout">
+      Before applying any context strategy, two foundations are critical: use LangSmith to trace token usage and identify where context engineering will have the most impact; then establish agent evaluation baselines so you can measure whether a change helps or hurts performance.
+    </div>
+  </section>
+
+  <footer>
+    <span>整理自 The LangChain Team · Context Engineering for Agents</span>
+    <span>July 2, 2025</span>
+  </footer>
+
+</article>
+
+<script>
+  // Activate TOC link for the section nearest the top of the viewport
+  const sections = document.querySelectorAll('section[id]');
+  const links    = document.querySelectorAll('.toc-wrap a');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      links.forEach(l => l.classList.remove('active'));
+      const lnk = document.querySelector(`.toc-wrap a[href="#${e.target.id}"]`);
+      if (lnk) lnk.classList.add('active');
+    });
+  }, { threshold: 0.35 });
+  sections.forEach(s => io.observe(s));
+</script>
+</body>
+</html>

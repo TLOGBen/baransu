@@ -1,0 +1,38 @@
+<!--
+---
+layout_id: closing
+applies_to:
+  bullet_count: "0"
+  has_image: optional
+  role: positional_last
+---
+Adapts to: row 2 of /book Stage 2B layout decision table.
+Positional: last slide. Conditional — generated only when source has a
+CTA/acknowledgement section. Carries closing message + optional CTA link.
+Tokens consumed: var(--paper), var(--ink), var(--accent), var(--accent-on),
+  var(--radius-md).
+-->
+<link rel="stylesheet" href="../tokens.css">
+<style>
+  .google-slide--closing { padding: 96px 96px; background: var(--paper); color: var(--ink);
+    font-family: var(--font-sans); text-wrap: pretty;
+    display: grid; grid-template-rows: 1fr auto auto 1fr; row-gap: 20px;
+    min-height: 600px; }
+  .google-closing-header { display: contents; }
+  .google-closing-rule { width: 64px; height: 4px; background: var(--accent); border: 0;
+    margin: 0; align-self: end; border-radius: var(--radius-md); }
+  .google-closing-title { font-size: 38px; line-height: 1.15; letter-spacing: -0.01em;
+    font-weight: 400; margin: 0; max-width: 22ch; color: var(--text-primary); }
+  .google-closing-cta { font-size: 21px; line-height: 1.50; font-weight: 400;
+    margin: 0; color: var(--text-secondary); max-width: 36ch; }
+  .google-closing-caption { font-size: 13px; color: var(--text-faint); margin: 0;
+    align-self: end; }
+</style>
+<section data-layout="closing" class="google-slide google-slide--closing">
+  <header class="google-closing-header">
+    <hr class="google-closing-rule">
+    <h2 class="google-closing-title">Thank you</h2>
+    <p class="google-closing-cta">Optional call-to-action or acknowledgement line.</p>
+  </header>
+  <figcaption class="google-closing-caption">Closing slide &#x2014; positional_last</figcaption>
+</section>

@@ -1,0 +1,66 @@
+<!--
+---
+layout_id: icon-grid
+applies_to:
+  bullet_count: "4|6|9"
+  has_image: optional
+  role: body
+---
+Adapts to: feature- or principle-grid slides (S12 in guizang baseline).
+4 / 6 / 9 grid of icon + title + description cards. Default = 6.
+Icons rendered as inline SVG (no <polygon>; chevron / rule / disc only).
+Tokens consumed: var(--paper), var(--ink), var(--accent), var(--surface),
+  var(--radius-lg), var(--shadow-whisper).
+-->
+<link rel="stylesheet" href="../tokens.css">
+<style>
+  .google-slide--icon-grid { padding: 56px 64px; background: var(--paper); color: var(--ink);
+    font-family: var(--font-sans); text-wrap: pretty; }
+  .google-icon-heading { font-size: 28px; line-height: 1.20; font-weight: 400;
+    margin: 0 0 28px; }
+  .google-icon-grid { display: grid; grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr); gap: 20px 24px; }
+  .google-icon-cell { padding: 20px 22px; background: var(--surface);
+    border-radius: var(--radius-lg); box-shadow: var(--shadow-whisper); }
+  .google-icon-mark { width: 28px; height: 28px; color: var(--accent); margin-bottom: 12px; }
+  .google-icon-label { font-size: 21px; line-height: 1.30; font-weight: 500; margin: 0 0 6px; }
+  .google-icon-note  { font-size: 15px; line-height: 1.55; color: var(--text-secondary);
+    text-wrap: pretty; margin: 0; }
+  .google-icon-caption { margin-top: 24px; font-size: 13px; color: var(--text-faint); }
+</style>
+<section data-layout="icon-grid" class="google-slide google-slide--icon-grid">
+  <h2 class="google-icon-heading">Operating principles</h2>
+  <div class="google-icon-grid">
+    <article class="google-icon-cell">
+      <svg class="google-icon-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12 L10 5 L10 19 Z" fill="currentColor"/></svg>
+      <h3 class="google-icon-label">Deliberate first</h3>
+      <p class="google-icon-note">Pause before any one-way door.</p>
+    </article>
+    <article class="google-icon-cell">
+      <svg class="google-icon-mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6" fill="currentColor"/></svg>
+      <h3 class="google-icon-label">Verify after</h3>
+      <p class="google-icon-note">Audit every claim independently.</p>
+    </article>
+    <article class="google-icon-cell">
+      <svg class="google-icon-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="2" fill="currentColor"/></svg>
+      <h3 class="google-icon-label">Surgical scope</h3>
+      <p class="google-icon-note">Touch only what the task demands.</p>
+    </article>
+    <article class="google-icon-cell">
+      <svg class="google-icon-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12 L11 5 L11 19 Z" fill="currentColor"/></svg>
+      <h3 class="google-icon-label">Surface tradeoffs</h3>
+      <p class="google-icon-note">Name the option you discarded.</p>
+    </article>
+    <article class="google-icon-cell">
+      <svg class="google-icon-mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6" fill="currentColor"/></svg>
+      <h3 class="google-icon-label">Hold the line</h3>
+      <p class="google-icon-note">Quality gates over delivery dates.</p>
+    </article>
+    <article class="google-icon-cell">
+      <svg class="google-icon-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="2" fill="currentColor"/></svg>
+      <h3 class="google-icon-label">Document why</h3>
+      <p class="google-icon-note">Capture the reason, not the recipe.</p>
+    </article>
+  </div>
+  <figcaption class="google-icon-caption">Icon grid &#x2014; 4, 6, or 9 cells</figcaption>
+</section>

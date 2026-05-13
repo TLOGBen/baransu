@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Context Engineering for Agents — LangChain Blog</title>
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand:       #1a56db;
+      --brand-light: #e8f0fe;
+      --brand-dark:  #1240a6;
+      --accent:      #f59e0b;
+      --text:        #1f2937;
+      --muted:       #6b7280;
+      --border:      #e5e7eb;
+      --bg:          #ffffff;
+      --bg-alt:      #f9fafb;
+      --radius:      8px;
+      --shadow:      0 1px 4px rgba(0,0,0,.08);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    /* ── Layout ───────────────────────────────────────────────── */
+    .page-wrapper { max-width: 860px; margin: 0 auto; padding: 0 24px 80px; }
+
+    /* ── Header ───────────────────────────────────────────────── */
+    .site-header {
+      background: var(--brand);
+      color: #fff;
+      padding: 14px 0;
+    }
+    .site-header .inner {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .site-header .logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .site-header .tag {
+      font-size: 0.75rem;
+      background: rgba(255,255,255,.2);
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    /* ── Hero ─────────────────────────────────────────────────── */
+    .hero {
+      padding: 56px 0 32px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 48px;
+    }
+    .hero .meta {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .hero .meta .pill {
+      background: var(--brand-light);
+      color: var(--brand-dark);
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .hero h1 {
+      font-size: 2.6rem;
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: -1px;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+    .hero .byline {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .hero .byline strong { color: var(--text); }
+
+    /* ── TL;DR Card ───────────────────────────────────────────── */
+    .tldr {
+      background: var(--brand-light);
+      border-left: 4px solid var(--brand);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 48px;
+    }
+    .tldr h2 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--brand-dark);
+      margin-bottom: 8px;
+    }
+    .tldr p { font-size: 0.97rem; color: var(--text); }
+    .tldr strong { color: var(--brand-dark); }
+
+    /* ── Sections ─────────────────────────────────────────────── */
+    section { margin-bottom: 52px; }
+    section h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--border);
+    }
+    section h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 28px 0 10px;
+      color: var(--brand-dark);
+    }
+    section p { margin-bottom: 14px; }
+    section ul, section ol {
+      padding-left: 22px;
+      margin-bottom: 14px;
+    }
+    section li { margin-bottom: 6px; }
+
+    /* ── Blockquote ───────────────────────────────────────────── */
+    blockquote {
+      border-left: 3px solid var(--accent);
+      background: #fffbeb;
+      padding: 14px 20px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 20px 0;
+      font-style: italic;
+      color: #6b4f00;
+      font-size: 0.95rem;
+    }
+    blockquote cite {
+      display: block;
+      margin-top: 6px;
+      font-size: 0.8rem;
+      font-style: normal;
+      color: var(--muted);
+    }
+
+    /* ── Strategy Cards ───────────────────────────────────────── */
+    .strategy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin: 28px 0;
+    }
+    .strategy-card {
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+    .strategy-card .icon { font-size: 2rem; margin-bottom: 8px; }
+    .strategy-card h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--brand-dark);
+    }
+    .strategy-card p { font-size: 0.82rem; color: var(--muted); margin: 0; }
+
+    /* ── Context Failure Cards ─────────────────────────────────── */
+    .failure-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin: 20px 0;
+    }
+    .failure-card {
+      border: 1px solid #fca5a5;
+      background: #fff5f5;
+      border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+    .failure-card h4 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #b91c1c;
+      margin-bottom: 4px;
+    }
+    .failure-card p { font-size: 0.82rem; color: #7f1d1d; margin: 0; }
+
+    /* ── SVG Diagram ──────────────────────────────────────────── */
+    .diagram-wrapper {
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 20px 20px;
+      margin: 32px 0;
+      text-align: center;
+    }
+    .diagram-wrapper figcaption {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 12px;
+    }
+
+    /* ── LangGraph Table ──────────────────────────────────────── */
+    .support-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin: 24px 0;
+    }
+    .support-table th {
+      background: var(--brand);
+      color: #fff;
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+    }
+    .support-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .support-table tr:nth-child(even) td { background: var(--bg-alt); }
+    .support-table .strategy-label {
+      font-weight: 700;
+      color: var(--brand-dark);
+      white-space: nowrap;
+    }
+
+    /* ── Conclusion ───────────────────────────────────────────── */
+    .conclusion-list li {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .conclusion-list li:last-child { border-bottom: none; }
+    .conclusion-list li em { color: var(--muted); }
+
+    /* ── Footer ───────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 0 0;
+      font-size: 0.8rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* ── Responsive ───────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 1.9rem; }
+      .strategy-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Site Header ──────────────────────────────────────────── -->
+<header class="site-header">
+  <div class="inner">
+    <span class="logo">LangChain Blog</span>
+    <span class="tag">LangGraph</span>
+    <span class="tag">Agents</span>
+  </div>
+</header>
+
+<div class="page-wrapper">
+
+  <!-- ── Hero ──────────────────────────────────────────────── -->
+  <div class="hero">
+    <div class="meta">
+      <span class="pill">Research</span>
+      <span>The LangChain Team</span>
+      <span>July 2, 2025</span>
+      <span>11 min read</span>
+    </div>
+    <h1>Context Engineering</h1>
+    <p class="byline">
+      The art and science of filling the agent context window with
+      just the right information at each step.
+    </p>
+  </div>
+
+  <!-- ── TL;DR ─────────────────────────────────────────────── -->
+  <div class="tldr">
+    <h2>TL;DR</h2>
+    <p>
+      Agents need context to perform tasks. <strong>Context engineering</strong>
+      is the art and science of filling the context window with just the right
+      information at each step of an agent's trajectory. This post breaks down
+      four common strategies —
+      <strong>Write, Select, Compress, and Isolate</strong> — drawing on
+      popular agents and research papers, then shows how LangGraph is designed
+      to support each one.
+    </p>
+  </div>
+
+  <!-- ── What Is Context Engineering ─────────────────────── -->
+  <section id="what-is">
+    <h2>What Is Context Engineering?</h2>
+    <p>
+      As Andrej Karpathy puts it, LLMs are like a new kind of operating system.
+      The LLM is the CPU, and its <em>context window</em> is the RAM — the
+      model's working memory. Just like RAM, the context window has limited
+      capacity, and just as an OS curates what fits into RAM, context
+      engineering curates what fits into the context window.
+    </p>
+    <blockquote>
+      "…the delicate art and science of filling the context window with just
+      the right information for the next step."
+      <cite>— Andrej Karpathy</cite>
+    </blockquote>
+
+    <h3>Three Types of Context</h3>
+    <ul>
+      <li><strong>Instructions</strong> — prompts, memories, few-shot examples, tool descriptions</li>
+      <li><strong>Knowledge</strong> — facts, memories, retrieved documents</li>
+      <li><strong>Tools</strong> — feedback returned from tool calls</li>
+    </ul>
+  </section>
+
+  <!-- ── Context Engineering for Agents ──────────────────── -->
+  <section id="agents">
+    <h2>Context Engineering for Agents</h2>
+    <p>
+      Agents interleave LLM calls and tool calls, often for long-running
+      tasks. Accumulating tool feedback means agents can consume a large
+      number of tokens, leading to several problems:
+    </p>
+    <ul>
+      <li>Exceeding the context window capacity</li>
+      <li>Inflated cost and latency</li>
+      <li>Degraded agent performance</li>
+    </ul>
+
+    <h3>Four Ways Context Goes Wrong</h3>
+    <div class="failure-grid">
+      <div class="failure-card">
+        <h4>Context Poisoning</h4>
+        <p>A hallucination enters the context and propagates forward.</p>
+      </div>
+      <div class="failure-card">
+        <h4>Context Distraction</h4>
+        <p>Excess context overwhelms the model's training signal.</p>
+      </div>
+      <div class="failure-card">
+        <h4>Context Confusion</h4>
+        <p>Superfluous context steers the model off-course.</p>
+      </div>
+      <div class="failure-card">
+        <h4>Context Clash</h4>
+        <p>Contradictory parts of context pull in opposite directions.</p>
+      </div>
+    </div>
+
+    <blockquote>
+      "Context engineering is effectively the #1 job of engineers building AI agents."
+      <cite>— Cognition</cite>
+    </blockquote>
+    <blockquote>
+      "Agents often engage in conversations spanning hundreds of turns,
+      requiring careful context management strategies."
+      <cite>— Anthropic</cite>
+    </blockquote>
+
+    <h3>Four Core Strategies</h3>
+    <div class="strategy-grid">
+      <div class="strategy-card">
+        <div class="icon">&#9997;&#65039;</div>
+        <h4>Write</h4>
+        <p>Save context outside the window for later use.</p>
+      </div>
+      <div class="strategy-card">
+        <div class="icon">&#128269;</div>
+        <h4>Select</h4>
+        <p>Pull only the relevant context into the window.</p>
+      </div>
+      <div class="strategy-card">
+        <div class="icon">&#128230;</div>
+        <h4>Compress</h4>
+        <p>Retain only the tokens required for the task.</p>
+      </div>
+      <div class="strategy-card">
+        <div class="icon">&#127760;</div>
+        <h4>Isolate</h4>
+        <p>Split context across agents or environments.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SVG Architecture Diagram ─────────────────────────── -->
+  <div class="diagram-wrapper">
+    <figure>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 760 340"
+        width="100%"
+        aria-label="Context Engineering Strategy Diagram"
+        role="img"
+      >
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#1a56db"/>
+          </marker>
+          <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#9ca3af"/>
+          </marker>
+        </defs>
+
+        <!-- Background -->
+        <rect width="760" height="340" fill="#f9fafb" rx="10"/>
+
+        <!-- Title -->
+        <text x="380" y="30" text-anchor="middle"
+          font-family="-apple-system,sans-serif" font-size="14"
+          font-weight="700" fill="#1f2937">
+          Agent Context Engineering — Strategy Overview
+        </text>
+
+        <!-- ── Central LLM Box ── -->
+        <rect x="290" y="120" width="180" height="70" rx="8"
+          fill="#1a56db" filter="url(#shadow)"/>
+        <text x="380" y="150" text-anchor="middle"
+          font-family="-apple-system,sans-serif" font-size="13"
+          font-weight="700" fill="#fff">LLM Agent</text>
+        <text x="380" y="168" text-anchor="middle"
+          font-family="-apple-system,sans-serif" font-size="11"
+          fill="#bfdbfe">Context Window</text>
+
+        <!-- ── WRITE box ── -->
+        <rect x="30" y="60" width="160" height="56" rx="8"
+          fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+        <text x="110" y="84" text-anchor="middle"
+          font-family="-apple-system,sans-serif" font-size="12"
+          font-weight="700" fill="#15803d">WRITE</text>
+        <text x="110" y="101" text-anchor="middle"
+          font-family="-apple-system,sans-serif" font-size="10"
+          fill="#166534">Scratchpads · Memories</text>
+
+        <!-- ── SELECT box ── -->
+        <rect x="30" y="200" width="160" height="56" rx="8"
+          fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+        <text x="110" y="224" text-anchor="middle"
+          font-family="-apple-system,sans-serif" font-size="12"
+          font-weight="700" fill="#1e40af">SELECT</text>
+        <text x="110" y="241" text-anchor="middle"
+          font-family="-apple-system,sans-serif" font-size="10"
+          fill="#1e3a8a">Memories · Tools · RAG</text>
+
+        <!-- ── COMPRESS box ── -->
+        <rect x="570" y="60" width="160" height="56" rx="8"
+          fill="#fef9c3" stroke="#ca8a04" stroke-width="1.5"/>
+        <text x="650" y="84" text-anchor="middle"
+          font-family="-apple-system,sans-serif" font-size="12"
+          font-weight="700" fill="#92400e">COMPRESS</text>
+        <text x="650" y="101" text-anchor="middle"
+          font-family="-apple-system,sans-serif" font-size="10"
+          fill="#713f12">Summarize · Trim</text>
+
+        <!-- ── ISOLATE box ── -->
+        <rect x="570" y="200" width="160" height="56" rx="8"
+          fill="#fce7f3" stroke="#db2777" stroke-width="1.5"/>
+        <text x="650" y="224" text-anchor="middle"
+          font-family="-apple-system,sans-serif" font-size="12"
+          font-weight="700" fill="#9d174d">ISOLATE</text>
+        <text x="650" y="241" text-anchor="middle"
+          font-family="-apple-system,sans-serif" font-size="10"
+          fill="#831843">Multi-agent · Sandbox · State</text>
+
+        <!-- ── Tool Calls box ── -->
+        <rect x="290" y="265" width="180" height="50" rx="8"
+          fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5"/>
+        <text x="380" y="287" text-anchor="middle"
+          font-family="-apple-system,sans-serif" font-size="12"
+          font-weight="700" fill="#6b21a8">Tool Calls</text>
+        <text x="380" y="304" text-anchor="middle"
+          font-family="-apple-system,sans-serif" font-size="10"
+          fill="#7c3aed">APIs · Search · Code Env</text>
+
+        <!-- ── Arrows ── -->
+        <!-- WRITE -> LLM -->
+        <line x1="190" y1="88" x2="288" y2="145"
+          stroke="#16a34a" stroke-width="1.8"
+          marker-end="url(#arrow)" opacity=".8"/>
+        <!-- SELECT -> LLM -->
+        <line x1="190" y1="228" x2="288" y2="165"
+          stroke="#2563eb" stroke-width="1.8"
+          marker-end="url(#arrow)" opacity=".8"/>
+        <!-- LLM -> COMPRESS -->
+        <line x1="472" y1="145" x2="568" y2="88"
+          stroke="#ca8a04" stroke-width="1.8"
+          marker-end="url(#arrow)" opacity=".8"/>
+        <!-- LLM -> ISOLATE -->
+        <line x1="472" y1="165" x2="568" y2="228"
+          stroke="#db2777" stroke-width="1.8"
+          marker-end="url(#arrow)" opacity=".8"/>
+        <!-- LLM <-> Tool Calls -->
+        <line x1="380" y1="190" x2="380" y2="263"
+          stroke="#9333ea" stroke-width="1.8"
+          marker-end="url(#arrow)" opacity=".8"/>
+        <line x1="370" y1="263" x2="370" y2="192"
+          stroke="#9333ea" stroke-width="1.8" stroke-dasharray="4,3"
+          marker-end="url(#arrow)" opacity=".5"/>
+
+        <!-- ── Step labels ── -->
+        <text x="224" y="106" text-anchor="middle"
+          font-family="-apple-system,sans-serif" font-size="9"
+          fill="#15803d">saves to</text>
+        <text x="224" y="213" text-anchor="middle"
+          font-family="-apple-system,sans-serif" font-size="9"
+          fill="#1e40af">pulls from</text>
+        <text x="524" y="106" text-anchor="middle"
+          font-family="-apple-system,sans-serif" font-size="9"
+          fill="#92400e">reduces via</text>
+        <text x="524" y="213" text-anchor="middle"
+          font-family="-apple-system,sans-serif" font-size="9"
+          fill="#9d174d">splits via</text>
+      </svg>
+      <figcaption>
+        The four context engineering strategies and how they interact with
+        an agent's context window and tool calls.
+      </figcaption>
+    </figure>
+  </div>
+
+  <!-- ── Write Context ─────────────────────────────────────── -->
+  <section id="write">
+    <h2>1. Write Context</h2>
+    <p>
+      <em>Writing context means saving it outside the context window so the
+      agent can access it later — within the same session or across many
+      sessions.</em>
+    </p>
+
+    <h3>Scratchpads</h3>
+    <p>
+      Like a human taking notes, agents can use a "scratchpad" to persist
+      information outside the context window. This can be implemented as a
+      tool call that writes to a file, or as a field in a runtime state object.
+    </p>
+    <blockquote>
+      "The LeadResearcher begins by thinking through the approach and saving
+      its plan to Memory to persist the context, since if the context window
+      exceeds 200,000 tokens it will be truncated."
+      <cite>— Anthropic, Multi-Agent Researcher</cite>
+    </blockquote>
+
+    <h3>Long-Term Memories</h3>
+    <p>
+      Scratchpads help within a session; <em>memories</em> help across sessions.
+      Reflexion introduced self-generated memories after each agent turn.
+      Generative Agents synthesized memories from collections of past feedback.
+      Products like ChatGPT, Cursor, and Windsurf all ship auto-generated
+      long-term memories.
+    </p>
+  </section>
+
+  <!-- ── Select Context ───────────────────────────────────── -->
+  <section id="select">
+    <h2>2. Select Context</h2>
+    <p>
+      <em>Selecting context means pulling it into the context window when and
+      only when the agent needs it.</em>
+    </p>
+
+    <h3>Memory Types</h3>
+    <ul>
+      <li><strong>Episodic</strong> — few-shot examples of desired behavior</li>
+      <li><strong>Procedural</strong> — instructions that steer behavior</li>
+      <li><strong>Semantic</strong> — facts for task-relevant context</li>
+    </ul>
+    <p>
+      Simple agents use a fixed set of files always in context
+      (e.g., <code>CLAUDE.md</code>, Cursor's rules files).
+      Larger memory stores require embeddings or knowledge graphs for
+      retrieval, which introduces selection errors — as Simon Willison observed
+      when ChatGPT unexpectedly injected his location from memory into an
+      image request.
+    </p>
+
+    <h3>Tool Selection via RAG</h3>
+    <p>
+      When an agent has too many tools, overlapping descriptions cause
+      confusion. Applying RAG to tool descriptions fetches only the most
+      relevant tools per task — recent papers report up to a 3× improvement
+      in tool selection accuracy.
+    </p>
+
+    <h3>Knowledge Retrieval (RAG)</h3>
+    <p>
+      Code agents illustrate large-scale RAG challenges well. Windsurf's Varun
+      notes:
+    </p>
+    <blockquote>
+      "Indexing code ≠ context retrieval … embedding search becomes unreliable
+      as the codebase grows … we must rely on a combination of techniques like
+      grep/file search, knowledge graph based retrieval, and a re-ranking step."
+      <cite>— Varun, Windsurf</cite>
+    </blockquote>
+  </section>
+
+  <!-- ── Compress Context ──────────────────────────────────── -->
+  <section id="compress">
+    <h2>3. Compress Context</h2>
+    <p>
+      <em>Compressing context involves retaining only the tokens required to
+      perform a task.</em>
+    </p>
+
+    <h3>Summarization</h3>
+    <p>
+      Summarization is the most common compression technique. Claude Code's
+      "auto-compact" fires at 95% context utilization and summarizes the full
+      trajectory. Strategies include:
+    </p>
+    <ul>
+      <li><strong>Recursive summarization</strong> — progressively condenses older turns</li>
+      <li><strong>Hierarchical summarization</strong> — structures summaries by scope</li>
+      <li><strong>Boundary summarization</strong> — applied at agent-agent handoff points</li>
+      <li><strong>Tool-call summarization</strong> — post-processes token-heavy tool outputs</li>
+    </ul>
+
+    <h3>Context Trimming</h3>
+    <p>
+      Whereas summarization uses an LLM to distill meaning, trimming uses
+      hard-coded heuristics — for example, removing older messages from a
+      sliding window. Research tools like Provence use a trained context pruner
+      for question-answering tasks.
+    </p>
+  </section>
+
+  <!-- ── Isolate Context ───────────────────────────────────── -->
+  <section id="isolate">
+    <h2>4. Isolate Context</h2>
+    <p>
+      <em>Isolating context involves splitting it up so that each agent or
+      environment handles only the portion it needs.</em>
+    </p>
+
+    <h3>Multi-Agent Architectures</h3>
+    <p>
+      Splitting work across sub-agents gives each agent a focused context
+      window. Anthropic's multi-agent researcher found that many specialized
+      agents with isolated contexts outperformed a single agent — though at the
+      cost of up to 15× more tokens.
+    </p>
+    <blockquote>
+      "[Subagents operate] in parallel with their own context windows,
+      exploring different aspects of the question simultaneously."
+      <cite>— Anthropic</cite>
+    </blockquote>
+
+    <h3>Sandboxed Environments</h3>
+    <p>
+      HuggingFace's deep researcher uses a CodeAgent pattern: the model emits
+      code that runs in a sandbox (e.g., E2B). Only selected return values flow
+      back to the LLM, keeping large objects — images, audio, binary data —
+      isolated in the environment.
+    </p>
+
+    <h3>State Schema Isolation</h3>
+    <p>
+      An agent's runtime state object can contain multiple fields. The developer
+      decides which fields are exposed to the LLM at each step, isolating
+      tool-call outputs until they are actually needed.
+    </p>
+  </section>
+
+  <!-- ── LangGraph Support ─────────────────────────────────── -->
+  <section id="langgraph">
+    <h2>Applying These with LangGraph &amp; LangSmith</h2>
+    <p>
+      Before applying any technique, establish two foundations:
+    </p>
+    <ol>
+      <li><strong>Observability:</strong> Use LangSmith to trace agent runs and track token usage per step.</li>
+      <li><strong>Evaluation:</strong> Use LangSmith's agent evaluation to measure whether a technique helps or hurts.</li>
+    </ol>
+
+    <table class="support-table">
+      <thead>
+        <tr>
+          <th>Strategy</th>
+          <th>LangGraph / LangSmith Support</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="strategy-label">Write</td>
+          <td>
+            Short-term memory via <strong>checkpointing</strong> (agent state across steps).
+            Long-term memory via <strong>LangGraph store</strong> + LangMem library.
+            Supports both profile-style files and large memory collections.
+          </td>
+        </tr>
+        <tr>
+          <td class="strategy-label">Select</td>
+          <td>
+            Fine-grained state access at each graph node.
+            Embedding-based retrieval on memory collections.
+            <strong>LangGraph Bigtool</strong> for semantic tool selection.
+            RAG tutorials and integrations for knowledge retrieval.
+          </td>
+        </tr>
+        <tr>
+          <td class="strategy-label">Compress</td>
+          <td>
+            Built-in <code>summarize</code> and <code>trim_messages</code> utilities.
+            Custom summarization nodes at any point in the graph.
+            Post-processing logic inside tool-calling nodes.
+          </td>
+        </tr>
+        <tr>
+          <td class="strategy-label">Isolate</td>
+          <td>
+            State schema with selective field exposure per node.
+            E2B sandbox integration for code agents.
+            <strong>langgraph-supervisor</strong> and <strong>langgraph-swarm</strong>
+            libraries for multi-agent coordination.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── Conclusion ────────────────────────────────────────── -->
+  <section id="conclusion">
+    <h2>Conclusion</h2>
+    <p>
+      Context engineering is becoming a core craft for agent builders.
+      The four strategies form a complete toolkit:
+    </p>
+    <ul class="conclusion-list">
+      <li>
+        <strong>Write</strong> —
+        <em>save context outside the window to help an agent perform a task.</em>
+      </li>
+      <li>
+        <strong>Select</strong> —
+        <em>pull context into the window to help an agent perform a task.</em>
+      </li>
+      <li>
+        <strong>Compress</strong> —
+        <em>retain only the tokens required to perform a task.</em>
+      </li>
+      <li>
+        <strong>Isolate</strong> —
+        <em>split context up to help an agent perform a task.</em>
+      </li>
+    </ul>
+    <p style="margin-top:20px">
+      LangGraph makes it straightforward to implement each strategy. LangSmith
+      provides the evaluation loop to measure impact, identify the best
+      opportunity for context engineering, and iterate quickly.
+    </p>
+  </section>
+
+  <!-- ── Footer ────────────────────────────────────────────── -->
+  <footer>
+    <span>
+      Source: <a href="https://blog.langchain.com/context-engineering-for-agents/" style="color:var(--brand)">
+        blog.langchain.com/context-engineering-for-agents
+      </a>
+    </span>
+    <span>LangChain Team &middot; July 2, 2025</span>
+  </footer>
+
+</div><!-- /.page-wrapper -->
+</body>
+</html>

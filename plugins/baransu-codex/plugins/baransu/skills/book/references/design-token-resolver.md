@@ -10,9 +10,18 @@ purpose: |
 
 # Design Token Resolver
 
-This document is the v1 ground truth for token resolution in `/book`.
+This document is the v1.3+ ground truth for token resolution in `/book`.
 All template / example / validate code paths and the 13 per-type
 reference files reference this file rather than re-deriving rules.
+
+> **v1.4 ack note**: this file was upgraded in v1.4 cross-tool group
+> TASK-ct-03 to be three-preset aware. v1.2-era specifics have been
+> retired — marker geometry uses chevron `<path d='M2 1 L8 5 L2 9'>`
+> (Kami v1.3+ invariant; v1.2 polygon marker is gone), and node-width
+> uses the `{128, 144, 160}` 3-tier whitelist (Kami v1.3+ / TASK-svg-05
+> GATE-J; the v1.2 "節點寬 12 檔" model is gone). Layer 2 now covers
+> three presets — Kami (紙) / Swiss / Google-design — instead of
+> Kami-only.
 
 ## Resolution flow (overview)
 
@@ -23,8 +32,8 @@ START [Need token X for SVG/CSS]
               yes → USE Layer 1 value
               no  → reject + warn → Layer 2
       no  → Layer 2
-  → Layer 2 {Kami preset has X?}
-      yes → USE Kami preset
+  → Layer 2 {active preset (Kami | Swiss | Google-design) has X?}
+      yes → USE preset value
       no  → Layer 3 {type ∈ sequence / state / swimlane / er ?}
               yes → apply per-type derived rule → USE derived hex
               no  → FAIL: no token for X
@@ -99,12 +108,40 @@ and fallback to Layer 2 for that single token. **Do not abort
 
 ---
 
-## Layer 2: Kami preset (baransu built-in)
+## Layer 2: Built-in presets (Kami / Swiss / Google-design)
 
 If a token is not present (or was rejected) in Layer 1, use the
-Kami preset bundled with baransu. This preset mirrors the Color
-Palette table in baransu root DESIGN.md (v1 ground truth — 16
-tokens, all solid hex):
+**active preset** bundled with baransu. v1.3 shipped Kami only;
+v1.4 broadens Layer 2 to the three-preset set declared in root
+DESIGN.md §2 (TASK-shared-02). Resolution picks the preset
+referenced by `DESIGN.md` (or defaults to Kami when absent).
+
+### Three-preset `--paper` / `--accent` hex table
+
+The minimum surface contract — every preset must expose `--paper`
+(primary background) and `--accent` (single chromatic role). These
+are the canonical hex values consumed by Layer 1 fallback, Layer 3
+blends, and `validate-output.ts` GATE checks (cross-ref TASK-ct-04
+golden-template variants):
+
+| Preset          | `--paper` | `--accent` | Notes                              |
+|-----------------|-----------|------------|------------------------------------|
+| Kami (紙)       | `#faf9f5` | `#1B365D`  | ink-blue, ≤5% surface              |
+| Swiss           | `#f5f5f1` | `#002FA7`  | International Klein Blue (IKB)     |
+| Google-design   | `#FEF7FF` | `#6750A4`  | Material 3 baseline primary        |
+
+> The full per-preset 16-token tables live next to each preset's
+> golden-template variant (see TASK-ct-04: `golden-template.html`
+> = Kami, `golden-template-swiss.html` = Swiss,
+> `golden-template-gd.html` = Google-design). Layer 3 blends
+> recompute against whichever preset's `--paper` / `--ink` is
+> active — the formulas are unchanged.
+
+### Kami preset reference table (v1.3+ ground truth)
+
+For backward compatibility and as the default fallback, the Kami
+preset mirrors the Color Palette table in baransu root DESIGN.md
+(16 tokens, all solid hex):
 
 | Token                 | Value     | Role                                                  |
 |-----------------------|-----------|-------------------------------------------------------|
@@ -230,8 +267,10 @@ When you need a token:
 1. **Layer 1** — try `{git-root}/DESIGN.md`; accept only values
    matching `^#[0-9a-fA-F]{3,8}$`. Reject + warn + continue on
    anything else.
-2. **Layer 2** — fall back to the Kami preset above (16 tokens,
-   all solid hex; covers paper / ink / accent / borders / tints).
+2. **Layer 2** — fall back to the active preset (Kami / Swiss /
+   Google-design; 16 tokens each, all solid hex; covers paper /
+   ink / accent / borders / tints). Kami is the default when no
+   preset is selected.
 3. **Layer 3** — if the type is `sequence` / `state` / `swimlane`
    / `er` and needs `lifeline-color` / `state-{active,inactive}`
    / `lane-{A,B,C}` / `entity-{key,attr}`, use the pre-computed

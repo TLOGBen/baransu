@@ -1,0 +1,27 @@
+<!--
+  card.html — Google Material 3 preset card element (v1.3)
+  Standalone reusable component. Composed in gallery.html / dashboard.html.
+  Tokens: var(--paper), var(--border), var(--radius-md), var(--shadow-whisper), var(--text-primary), var(--text-secondary).
+-->
+<article class="google-card">
+  <header class="google-card-header">
+    <h3 class="google-card-title">Card Title</h3>
+    <p class="google-card-meta">Optional metadata</p>
+  </header>
+  <div class="google-card-body">
+    <p>Card body paragraph at 14px line-height 1.55, in primary text color.</p>
+  </div>
+  <footer class="google-card-footer">
+    <a class="google-card-link" href="#">Read more →</a>
+  </footer>
+</article>
+
+<style>
+  .google-card { background: var(--paper); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px 24px; box-shadow: var(--shadow-ring); }
+  .google-card:hover { box-shadow: var(--shadow-whisper); }
+  .google-card-title { font-size: 16px; font-weight: 500; margin: 0 0 4px; color: var(--text-primary); }
+  .google-card-meta { font-size: 11px; color: var(--text-faint); letter-spacing: 0.04em; text-transform: uppercase; margin: 0 0 12px; }
+  .google-card-body p { font-size: 14px; line-height: 1.55; color: var(--text-primary); margin: 0 0 12px; }
+  .google-card-link { color: var(--accent); font-size: 13px; text-decoration: none; }
+  .google-card-link:hover { text-decoration: underline; text-decoration-color: var(--accent); }
+</style>

@@ -1,0 +1,55 @@
+<!--
+---
+layout_id: process
+applies_to:
+  bullet_count: "5"
+  has_image: forbidden
+  role: body
+---
+Adapts to: stepwise procedural slides (S09 in guizang baseline).
+Five-step horizontal flow with M3 numbered cards. No <polygon>.
+Tokens consumed: var(--paper), var(--ink), var(--accent), var(--surface),
+  var(--radius-lg), var(--shadow-whisper).
+-->
+<link rel="stylesheet" href="../tokens.css">
+<style>
+  .google-slide--process { padding: 56px 64px; background: var(--paper); color: var(--ink);
+    font-family: var(--font-sans); text-wrap: pretty; }
+  .google-process-heading { font-size: 28px; line-height: 1.20; font-weight: 400;
+    margin: 0 0 36px; }
+  .google-process-track { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+    gap: 18px; align-items: stretch; padding: 0; margin: 0; list-style: none; }
+  .google-process-step { position: relative; padding: 22px 22px 22px 22px;
+    background: var(--surface); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-whisper); }
+  .google-process-num { display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 9999px; background: var(--accent);
+    color: var(--accent-on); font-size: 14px; font-weight: 500;
+    font-variant-numeric: tabular-nums; margin-bottom: 12px; }
+  .google-process-label { font-size: 21px; line-height: 1.30; font-weight: 500;
+    margin: 0 0 6px; }
+  .google-process-note { font-size: 15px; line-height: 1.55; color: var(--text-secondary);
+    text-wrap: pretty; margin: 0; }
+  .google-process-caption { margin-top: 28px; font-size: 13px; color: var(--text-faint); }
+</style>
+<section data-layout="process" class="google-slide google-slide--process">
+  <h2 class="google-process-heading">How the loop runs</h2>
+  <ol class="google-process-track">
+    <li class="google-process-step"><span class="google-process-num">01</span>
+      <h3 class="google-process-label">Frame</h3>
+      <p class="google-process-note">State the user problem in one sentence.</p></li>
+    <li class="google-process-step"><span class="google-process-num">02</span>
+      <h3 class="google-process-label">Probe</h3>
+      <p class="google-process-note">Pull telemetry, interview three users.</p></li>
+    <li class="google-process-step"><span class="google-process-num">03</span>
+      <h3 class="google-process-label">Draft</h3>
+      <p class="google-process-note">Sketch the smallest viable response.</p></li>
+    <li class="google-process-step"><span class="google-process-num">04</span>
+      <h3 class="google-process-label">Ship</h3>
+      <p class="google-process-note">Release behind a flag, watch for drift.</p></li>
+    <li class="google-process-step"><span class="google-process-num">05</span>
+      <h3 class="google-process-label">Reflect</h3>
+      <p class="google-process-note">Retire the flag or repeat the loop.</p></li>
+  </ol>
+  <figcaption class="google-process-caption">Process &#x2014; five-step horizontal flow</figcaption>
+</section>

@@ -1,0 +1,6 @@
+{
+  "eval_id": 3,
+  "eval_name": "url-fetch",
+  "prompt": "/book https://blog.langchain.dev/langchain-state-of-ai-agents-report-2025",
+  "assertions": []
+}

@@ -3,7 +3,7 @@
 # See codex-skill-transfer references/agent-mapping.md for the mapping rules.
 
 name = "smart-friend-agent"
-description = "Diagnoses root cause of two consecutive Impl failures using extended thinking, then outputs a concrete correction strategy or escalates spec contradiction. Invoked by /baransu:execute after failure_co"
+description = "Diagnoses root cause of two consecutive Impl failures using extended thinking, then outputs a concrete correction strategy or escalates spec contradiction. Invoked by /baransu:execute after…"
 
 developer_instructions = '''
 # smart-friend-agent
@@ -80,5 +80,5 @@ guidance：在連續失敗後注入一個只讀、能自行抽取上下文、能
 # model = "gpt-5.4"
 # model_reasoning_effort = "high"      # low | medium | high | max
 # sandbox_mode = "workspace-write"     # read-only | workspace-write | danger-full-access
-# mcp_servers = []                     # list of MCP server ids the agent may invoke
+# mcp_servers = ["Read", "Grep"]  # ported from Claude `tools:`; rename to Codex MCP server ids before enabling
 # nickname_candidates = []             # cosmetic names for spawned instances

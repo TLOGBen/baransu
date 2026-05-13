@@ -47,13 +47,13 @@ Do not ask the user — classify based on the task description alone.
 
 Create all tasks before executing any. This makes the completion criteria visible from the start.
 
-**TDD path** — call TaskCreate for each:
+**TDD path** — call track the task internally for each:
 - TASK-01: 撰寫紅燈測試
 - TASK-02: 確認紅燈（預期失敗）
 - TASK-03: 撰寫綠燈實作
 - TASK-04: 確認綠燈通過
 
-**Cosmetic path** — call TaskCreate for each:
+**Cosmetic path** — call track the task internally for each:
 - TASK-01: 實作變更
 - TASK-02: 送 /review
 

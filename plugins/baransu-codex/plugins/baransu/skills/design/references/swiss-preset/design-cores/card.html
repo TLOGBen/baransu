@@ -1,0 +1,27 @@
+<!--
+  card.html — Swiss preset card element (v1.3)
+  Standalone reusable component. Composed in gallery.html / dashboard.html.
+  Tokens: var(--paper), var(--border), var(--radius-md), var(--shadow-whisper), var(--text-primary), var(--text-secondary).
+-->
+<article class="swiss-card">
+  <header class="swiss-card-header">
+    <h3 class="swiss-card-title">Card Title</h3>
+    <p class="swiss-card-meta">Optional metadata</p>
+  </header>
+  <div class="swiss-card-body">
+    <p>Card body paragraph at 14px line-height 1.55, in primary text color.</p>
+  </div>
+  <footer class="swiss-card-footer">
+    <a class="swiss-card-link" href="#">Read more →</a>
+  </footer>
+</article>
+
+<style>
+  .swiss-card { background: var(--paper); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px 24px; box-shadow: var(--shadow-ring); }
+  .swiss-card:hover { box-shadow: var(--shadow-whisper); }
+  .swiss-card-title { font-size: 16px; font-weight: 500; margin: 0 0 4px; color: var(--text-primary); }
+  .swiss-card-meta { font-size: 11px; color: var(--text-faint); letter-spacing: 0.04em; text-transform: uppercase; margin: 0 0 12px; }
+  .swiss-card-body p { font-size: 14px; line-height: 1.55; color: var(--text-primary); margin: 0 0 12px; }
+  .swiss-card-link { color: var(--accent); font-size: 13px; text-decoration: none; }
+  .swiss-card-link:hover { text-decoration: underline; text-decoration-color: var(--accent); }
+</style>

@@ -69,24 +69,33 @@
     color: var(--near-black);
     line-height: 1.75;
     font-size: 16px;
+    text-wrap: pretty;
   }
 
-  /* ── Paper sheet ── */
+  /* ── Paper sheet ──
+     Shadow stack (three layers, spec-locked per /design § paper-craft):
+       1. drop          — directly under sheet, simulates lift off table
+       2. depth halo    — soft, wide blur, ambient
+       3. paper-stack   — offset + negative spread, fakes a 2nd sheet
+                          underneath (Kami "印刷品堆疊" tactile cue) */
   .paper {
     background: var(--ivory);
     max-width: 760px;
     margin: 40px auto 80px;
     padding: 64px 72px;
-    box-shadow: 0 2px 8px rgba(0,0,0,.08), 0 12px 40px rgba(0,0,0,.06);
+    box-shadow:
+      0 2px 8px rgba(0,0,0,.08),         /* 1. drop */
+      0 12px 40px rgba(0,0,0,.06),       /* 2. depth halo */
+      6px 6px 0 -1px var(--border-soft); /* 3. paper-stack */
     border-radius: 2px;
     position: relative;
   }
-  /* Left rule — Kami invariant */
+  /* Left rule — Kami invariant (0.5pt hairline) */
   .paper::before {
     content: '';
     position: absolute;
     top: 0; left: 52px;
-    width: 1px; height: 100%;
+    width: 0.5px; height: 100%;
     background: var(--border-soft);
   }
 
@@ -124,6 +133,7 @@
   h1 {
     font-size: 28px; font-weight: 700; line-height: 1.25;
     letter-spacing: -.01em; margin-bottom: 12px;
+    text-wrap: pretty;
   }
   .subtitle {
     font-size: 15.5px; color: var(--dark-warm);
@@ -145,6 +155,7 @@
     margin-bottom: 16px; padding-bottom: 8px;
     border-bottom: 1px solid var(--line);
     display: flex; align-items: center; gap: 10px;
+    text-wrap: pretty;
   }
   .sec-num {
     font-size: 10px; font-weight: 600; letter-spacing: .08em;
@@ -153,7 +164,7 @@
     padding: 2px 8px; border-radius: 20px; flex-shrink: 0;
   }
 
-  p { margin-bottom: 14px; }
+  p { margin-bottom: 14px; text-wrap: pretty; }
   p:last-child { margin-bottom: 0; }
   strong { font-weight: 700; }
 
@@ -290,21 +301,27 @@
         </pattern>
         -->
 
-        <!-- PATTERN: marker (arrow heads)
+        <!-- PATTERN: marker (chevron arrow heads, stroked path, not polygon fill)
              USE:     Reference via marker-end="url(#arrow…)" on any
-                      <line>/<path>. Never hand-draw chevron paths.
+                      <line>/<path>. Never hand-draw chevron paths inline.
+             Why path > polygon: WeasyPrint orient="auto" + polygon fill
+             render inconsistently; stroked chevron is render-pipeline-safe
+             and matches the Kami visual signature (diagrams.md §L86).
              Three variants:
                #arrow         — default / generic / internal (muted ink)
                #arrow-accent  — focal / primary flow (brand)
                #arrow-link    — external / HTTP / API (brand-light) -->
-        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-          <polygon points="0 0, 8 3, 0 6" fill="var(--olive)"/>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+          <path d="M2 1 L8 5 L2 9" fill="none" stroke="var(--olive)"
+                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </marker>
-        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-          <polygon points="0 0, 8 3, 0 6" fill="var(--brand)"/>
+        <marker id="arrow-accent" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+          <path d="M2 1 L8 5 L2 9" fill="none" stroke="var(--brand)"
+                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </marker>
-        <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-          <polygon points="0 0, 8 3, 0 6" fill="var(--brand-light)"/>
+        <marker id="arrow-link" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+          <path d="M2 1 L8 5 L2 9" fill="none" stroke="var(--brand-light)"
+                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </marker>
 
       </defs>
@@ -326,91 +343,92 @@
            ================================================================= -->
 
       <!-- External user → CDN (HTTP/API, link-blue marker) -->
-      <line x1="200" y1="220" x2="276" y2="220"
+      <line x1="208" y1="220" x2="288" y2="220"
             stroke="#2D5A8A" stroke-width="1.2" marker-end="url(#arrow-link)"/>
-      <text x="238" y="212" fill="#2D5A8A" font-size="8"
+      <text x="248" y="212" fill="#2D5A8A" font-size="8"
             font-family="'Geist Mono', ui-monospace, monospace"
             text-anchor="middle" letter-spacing="0.06em">HTTPS</text>
 
       <!-- CDN → API (default internal arrow) -->
-      <line x1="404" y1="220" x2="480" y2="220"
+      <line x1="416" y1="220" x2="496" y2="220"
             stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
 
       <!-- API → DB (focal / primary flow, accent marker) -->
-      <line x1="676" y1="220" x2="760" y2="220"
+      <line x1="656" y1="220" x2="736" y2="220"
             stroke="#1B365D" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
-      <text x="718" y="212" fill="#1B365D" font-size="8"
+      <text x="696" y="212" fill="#1B365D" font-size="8"
             font-family="'Geist Mono', ui-monospace, monospace"
             text-anchor="middle" letter-spacing="0.06em">QUERY</text>
 
       <!-- =================================================================
-           NODES — three width tiers (80 / 144 / 200) shown across the row.
+           NODES — Kami node-width whitelist {128, 160} (2 tiers used; the
+           full whitelist is {128, 144, 160} per svg-rendering-rules §4.7).
            Each node: opaque paper rect (for arrow masking) + styled rect +
            type tag (top-left, 7px Geist Mono uppercase, 0.8 stroke) + label.
            ================================================================= -->
 
-      <!-- ── External / User (80 wide, tier-1) ── -->
-      <rect x="120" y="186" width="80" height="68" rx="6" fill="#f5f4ed"/>
-      <rect x="120" y="186" width="80" height="68" rx="6"
+      <!-- ── External / User (128 wide, tier-1) ── -->
+      <rect x="80" y="186" width="128" height="68" rx="6" fill="#f5f4ed"/>
+      <rect x="80" y="186" width="128" height="68" rx="6"
             fill="#ebeae5" stroke="#6b6a64" stroke-width="1"/>
-      <rect x="128" y="192" width="26" height="12" rx="2"
+      <rect x="88" y="192" width="26" height="12" rx="2"
             fill="transparent" stroke="#6b6a64" stroke-width="0.8"/>
-      <text x="141" y="201" fill="#6b6a64" font-size="7"
+      <text x="101" y="201" fill="#6b6a64" font-size="7"
             font-family="'Geist Mono', ui-monospace, monospace"
             text-anchor="middle" letter-spacing="0.08em">EXT</text>
-      <text x="160" y="226" fill="#141413" font-size="12" font-weight="600"
+      <text x="144" y="226" fill="#141413" font-size="12" font-weight="600"
             font-family="'Geist', system-ui, sans-serif"
             text-anchor="middle">Users</text>
-      <text x="160" y="241" fill="#504e49" font-size="9"
+      <text x="144" y="241" fill="#504e49" font-size="9"
             font-family="'Geist Mono', ui-monospace, monospace"
             text-anchor="middle">Browser</text>
 
-      <!-- ── CDN (144 wide, tier-2) ── -->
-      <rect x="276" y="186" width="128" height="68" rx="6" fill="#f5f4ed"/>
-      <rect x="276" y="186" width="128" height="68" rx="6"
+      <!-- ── CDN (128 wide, tier-1) ── -->
+      <rect x="288" y="186" width="128" height="68" rx="6" fill="#f5f4ed"/>
+      <rect x="288" y="186" width="128" height="68" rx="6"
             fill="#f1f0eb" stroke="#6b6a64" stroke-width="1"/>
-      <rect x="284" y="192" width="26" height="12" rx="2"
+      <rect x="296" y="192" width="26" height="12" rx="2"
             fill="transparent" stroke="#6b6a64" stroke-width="0.8"/>
-      <text x="297" y="201" fill="#6b6a64" font-size="7"
+      <text x="309" y="201" fill="#6b6a64" font-size="7"
             font-family="'Geist Mono', ui-monospace, monospace"
             text-anchor="middle" letter-spacing="0.08em">CDN</text>
-      <text x="340" y="226" fill="#141413" font-size="12" font-weight="600"
+      <text x="352" y="226" fill="#141413" font-size="12" font-weight="600"
             font-family="'Geist', system-ui, sans-serif"
             text-anchor="middle">CloudFront</text>
-      <text x="340" y="241" fill="#504e49" font-size="9"
+      <text x="352" y="241" fill="#504e49" font-size="9"
             font-family="'Geist Mono', ui-monospace, monospace"
             text-anchor="middle">edge cache</text>
 
-      <!-- ── API (144 wide, tier-2, FOCAL — data-role="focal") ── -->
-      <rect x="480" y="186" width="196" height="68" rx="6" fill="#f5f4ed"/>
+      <!-- ── API (160 wide, tier-2, FOCAL — data-role="focal", #EEF2F7 fill per Kami diagrams.md L49) ── -->
+      <rect x="496" y="186" width="160" height="68" rx="6" fill="#f5f4ed"/>
       <rect data-role="focal"
-            x="480" y="186" width="196" height="68" rx="6"
+            x="496" y="186" width="160" height="68" rx="6"
             fill="#EEF2F7" stroke="#1B365D" stroke-width="1.4"/>
-      <rect x="488" y="192" width="26" height="12" rx="2"
+      <rect x="504" y="192" width="26" height="12" rx="2"
             fill="transparent" stroke="#1B365D" stroke-width="0.8"/>
-      <text x="501" y="201" fill="#1B365D" font-size="7"
+      <text x="517" y="201" fill="#1B365D" font-size="7"
             font-family="'Geist Mono', ui-monospace, monospace"
             text-anchor="middle" letter-spacing="0.08em">API</text>
-      <text x="578" y="226" fill="#141413" font-size="12" font-weight="600"
+      <text x="576" y="226" fill="#141413" font-size="12" font-weight="600"
             font-family="'Geist', system-ui, sans-serif"
             text-anchor="middle">API Server</text>
-      <text x="578" y="241" fill="#504e49" font-size="9"
+      <text x="576" y="241" fill="#504e49" font-size="9"
             font-family="'Geist Mono', ui-monospace, monospace"
             text-anchor="middle">FastAPI :8000</text>
 
-      <!-- ── Database (200 wide, tier-3) ── -->
-      <rect x="760" y="186" width="120" height="68" rx="6" fill="#f5f4ed"/>
-      <rect x="760" y="186" width="120" height="68" rx="6"
+      <!-- ── Database (128 wide, tier-1) ── -->
+      <rect x="736" y="186" width="128" height="68" rx="6" fill="#f5f4ed"/>
+      <rect x="736" y="186" width="128" height="68" rx="6"
             fill="#ebeae5" stroke="#504e49" stroke-width="1"/>
-      <rect x="768" y="192" width="22" height="12" rx="2"
+      <rect x="744" y="192" width="26" height="12" rx="2"
             fill="transparent" stroke="#504e49" stroke-width="0.8"/>
-      <text x="779" y="201" fill="#504e49" font-size="7"
+      <text x="757" y="201" fill="#504e49" font-size="7"
             font-family="'Geist Mono', ui-monospace, monospace"
             text-anchor="middle" letter-spacing="0.08em">DB</text>
-      <text x="820" y="226" fill="#141413" font-size="12" font-weight="600"
+      <text x="800" y="226" fill="#141413" font-size="12" font-weight="600"
             font-family="'Geist', system-ui, sans-serif"
             text-anchor="middle">Database</text>
-      <text x="820" y="241" fill="#504e49" font-size="9"
+      <text x="800" y="241" fill="#504e49" font-size="9"
             font-family="'Geist Mono', ui-monospace, monospace"
             text-anchor="middle">PostgreSQL</text>
 
@@ -465,7 +483,7 @@
       <!-- Above SVG passes validate-output.ts GATE-A through GATE-E.
            Copy as template; replace nodes/edges with your content. -->
     </svg>
-    <figcaption>圖：SVG primitives 範例（marker / 兩層 paper-mask / type tag / legend strip）</figcaption>
+    <figcaption>圖：SVG primitives 範例（marker / 兩層 paper-mask / type tag / legend strip）。如 Kami 所言：“紙的留白，是版式的呼吸。”</figcaption>
   </figure>
 
   <footer>

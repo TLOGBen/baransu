@@ -17,14 +17,34 @@
  *   - GATE-D marker-integrity   : marker defs ↔ marker-end refs are bijective (no dangling / no unused)
  *   - GATE-E deny-list          : no <script>, <foreignObject>, on{click,load,error,mouseover,mousedown},
  *                                 no href/xlink:href starting with "javascript:"
- *   - GATE-F class-prefix (PPT) : every class token prefixed with `kami-` or `swiss-`;
- *                                 single prefix per file; matches {project_root}/tokens.css
+ *   - GATE-F class-prefix (PPT) : every class token's prefix MUST be in the
+ *                                 v1.3 whitelist {kami, google, swiss} ∪ {dynamic gen slug
+ *                                 from tokens.css line 1}; single prefix per file;
+ *                                 matches {project_root}/tokens.css preset header.
  *                                 `/* preset: <name> *\/` comment when present
+ *   - GATE-J node-width-whitelist: top-level node <rect> widths must ∈ {128, 144, 160};
+ *                                  max 2 distinct tiers per SVG (full viewBox ≥ 360);
+ *                                  viewBox width < 360 still capped at 2 tiers.
+ *                                  Sub-primitives (width < 40, width="100%", inside
+ *                                  <pattern> or <defs>) are excluded.
+ *   - GATE-K chevron-strict     : every <marker> defs must contain exactly one
+ *                                  <path d="M2 1 L8 5 L2 9" fill="none"
+ *                                  stroke-width="1.5">; <polygon> markers forbidden.
+ *   - GATE-L viewBox-containment: every renderable geometric element fits inside
+ *                                  the SVG viewBox bounds (0.5px tolerance for
+ *                                  sub-pixel noise). Catches arithmetic errors
+ *                                  where x+width / y+height / max(x1,x2) etc.
+ *                                  spills past the viewBox edge. Skips elements
+ *                                  inside <defs>/<marker>/<pattern>/<clipPath>/
+ *                                  <mask>/<symbol> and any descendant of a
+ *                                  transformed group (transformed bounds OOS).
+ *                                  Checks <rect>, <line>, <circle>, <ellipse>,
+ *                                  <text>; <path> too complex, skipped.
  */
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
-import { load, type CheerioAPI, type Cheerio } from "cheerio";
+import { load, type CheerioAPI } from "cheerio";
 import type { Element as DomElement } from "domhandler";
 
 const htmlFile = process.argv[2];
@@ -321,6 +341,272 @@ svgs.forEach((svg, i) => {
   }
 });
 
+// ── GATE-J: node-width whitelist (top-level node <rect> tier discipline) ───
+// Top-level node <rect> widths must ∈ {128, 144, 160} (Kami spec §4.7).
+// Sub-primitives are filtered out:
+//   - width = "100%"  (paper-mask layer; covered by GATE-B)
+//   - width < 40      (type-tag pip, legend pip, marker visuals)
+//   - inside <pattern>   (background pattern primitives)
+//   - inside <defs>      (template definitions, not visual nodes)
+// Single SVG: at most 2 distinct width tiers (3-tier mix = anti-slop FAIL).
+// viewBox width < 360 still caps at 2 tiers per §4.7 exception clause.
+const NODE_WIDTH_WHITELIST = new Set([128, 144, 160]);
+
+function parseViewBoxWidth(vb: string | undefined): number | null {
+  if (!vb) return null;
+  const parts = vb.trim().split(/[\s,]+/);
+  if (parts.length < 4) return null;
+  const w = Number(parts[2]);
+  return Number.isFinite(w) ? w : null;
+}
+
+function hasAncestor(el: DomElement, tagNames: Set<string>, stopAt: DomElement): boolean {
+  let p = el.parent as DomElement | null;
+  while (p && p !== stopAt) {
+    const tag = p.tagName?.toLowerCase();
+    if (tag && tagNames.has(tag)) return true;
+    p = p.parent as DomElement | null;
+  }
+  return false;
+}
+
+svgs.forEach((svg, i) => {
+  const label = svgLabel(i, svg);
+  const vbW = parseViewBoxWidth($(svg).attr("viewBox"));
+  const allRects = $(svg).find("rect").toArray() as DomElement[];
+  const skipAncestors = new Set(["pattern", "defs"]);
+
+  const nodeWidths: number[] = [];
+  const offendingWidths: number[] = [];
+  for (const r of allRects) {
+    const wAttr = $(r).attr("width");
+    if (!wAttr) continue;
+    if (wAttr === "100%") continue;
+    if (hasAncestor(r, skipAncestors, svg)) continue;
+    const wNum = Number(wAttr);
+    if (!Number.isFinite(wNum)) continue;
+    if (wNum < 40) continue;
+    nodeWidths.push(wNum);
+    if (!NODE_WIDTH_WHITELIST.has(wNum)) offendingWidths.push(wNum);
+  }
+
+  const distinctTiers = new Set(nodeWidths.filter((w) => NODE_WIDTH_WHITELIST.has(w)));
+
+  if (offendingWidths.length > 0) {
+    console.log(
+      `FAIL GATE-J node-width-whitelist (${label}, offending widths=[${offendingWidths.join(", ")}]) — expected ∈ {128, 144, 160}`
+    );
+    fail = 1;
+    return;
+  }
+
+  // Tier count rule: full viewBox (≥ 360) max 2 tiers; < 360 also max 2 tiers
+  // (§4.7 exception keeps the same 2-tier cap but allows the 2-of-3 subset).
+  if (distinctTiers.size > 2) {
+    const tierList = [...distinctTiers].sort((a, b) => a - b).join(", ");
+    const vbNote = vbW !== null && vbW < 360 ? `, viewBox width=${vbW}<360` : "";
+    console.log(
+      `FAIL GATE-J node-width-whitelist (${label}, tiers used=[${tierList}]${vbNote}) — max 2 tiers per diagram`
+    );
+    fail = 1;
+    return;
+  }
+
+  console.log(
+    `OK  GATE-J node-width-whitelist (${label}, node rects=${nodeWidths.length}, tiers=[${[...distinctTiers].sort((a, b) => a - b).join(", ") || "none"}])`
+  );
+});
+
+// ── GATE-K: chevron-strict (marker defs must be Kami stroked chevron) ──────
+// Every <marker> inside <defs> must contain exactly one <path> whose `d` is
+// the canonical chevron `M2 1 L8 5 L2 9`, with `fill="none"` and
+// `stroke-width="1.5"` (§4.3). <polygon> inside a <marker> is forbidden.
+const CHEVRON_PATH_D = "M2 1 L8 5 L2 9";
+function normalizePathD(d: string | undefined): string {
+  if (!d) return "";
+  // Normalize: commas → space; collapse runs; strip space between command
+  // letter (MLHVCSQTAZ + lowercase) and its first coordinate so that
+  // `M 2 1 L 8 5 L 2 9` (editor-formatted) matches canonical `M2 1 L8 5 L2 9`.
+  return d
+    .replace(/,/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/([MLHVCSQTAZmlhvcsqtaz])\s+/g, "$1")
+    .trim();
+}
+
+svgs.forEach((svg, i) => {
+  const label = svgLabel(i, svg);
+  const markers = $(svg).find("marker").toArray() as DomElement[];
+  if (markers.length === 0) {
+    console.log(`OK  GATE-K chevron-strict (${label}, markers checked=0)`);
+    return;
+  }
+
+  let violated = false;
+  for (const m of markers) {
+    const mid = $(m).attr("id") ?? "(no id)";
+    const polygons = $(m).find("polygon");
+    if (polygons.length > 0) {
+      console.log(
+        `FAIL GATE-K chevron-strict: ${label} marker '${mid}' violation: contains <polygon> (forbidden; use stroked <path> chevron)`
+      );
+      violated = true;
+      continue;
+    }
+    const paths = $(m).find("path").toArray() as DomElement[];
+    if (paths.length !== 1) {
+      console.log(
+        `FAIL GATE-K chevron-strict: ${label} marker '${mid}' violation: expected exactly 1 <path>, found ${paths.length}`
+      );
+      violated = true;
+      continue;
+    }
+    const p = paths[0];
+    const d = normalizePathD($(p).attr("d"));
+    const pFill = $(p).attr("fill");
+    const sw = $(p).attr("stroke-width");
+    if (d !== CHEVRON_PATH_D) {
+      console.log(
+        `FAIL GATE-K chevron-strict: ${label} marker '${mid}' violation: path d="${d}" — expected "${CHEVRON_PATH_D}"`
+      );
+      violated = true;
+      continue;
+    }
+    if (pFill !== "none") {
+      console.log(
+        `FAIL GATE-K chevron-strict: ${label} marker '${mid}' violation: path fill="${pFill ?? ""}" — expected "none"`
+      );
+      violated = true;
+      continue;
+    }
+    if (sw !== "1.5") {
+      console.log(
+        `FAIL GATE-K chevron-strict: ${label} marker '${mid}' violation: path stroke-width="${sw ?? ""}" — expected "1.5"`
+      );
+      violated = true;
+      continue;
+    }
+  }
+
+  if (violated) {
+    fail = 1;
+  } else {
+    console.log(`OK  GATE-K chevron-strict (${label}, markers checked=${markers.length})`);
+  }
+});
+
+// ── GATE-L: viewBox containment ─────────────────────────────────────────────
+// Every renderable geometric element MUST fit within the SVG viewBox.
+// Catches arithmetic errors where geometry spills past the viewBox edge
+// (browsers default to overflow:visible so this renders in-page but gets
+// cropped in print / screenshot / PDF pipelines).
+const CONTAINMENT_TOL = 0.5;
+const VB_SKIP_ANCESTORS = new Set(["defs", "marker", "pattern", "clippath", "mask", "symbol"]);
+
+function parseViewBoxBounds(
+  vb: string | undefined
+): { x: number; y: number; w: number; h: number } | null {
+  if (!vb) return null;
+  const parts = vb.trim().split(/[\s,]+/).map(Number);
+  if (parts.length !== 4 || parts.some((n) => !Number.isFinite(n))) return null;
+  const [x, y, w, h] = parts;
+  return { x, y, w, h };
+}
+
+function hasTransformedAncestor(el: DomElement, stopAt: DomElement): boolean {
+  let p = el.parent as DomElement | null;
+  while (p && p !== stopAt) {
+    if (p.tagName && $(p).attr("transform")) return true;
+    p = p.parent as DomElement | null;
+  }
+  return false;
+}
+
+function attrNum(el: DomElement, name: string, fallback = NaN): number {
+  const a = $(el).attr(name);
+  if (a === undefined) return fallback;
+  const n = parseFloat(a);
+  return Number.isNaN(n) ? fallback : n;
+}
+
+svgs.forEach((svg, i) => {
+  const label = svgLabel(i, svg);
+  const vb = parseViewBoxBounds($(svg).attr("viewBox"));
+  if (!vb) {
+    console.log(`SKIP GATE-L viewBox-containment (${label}, no viewBox)`);
+    return;
+  }
+  const vbR = vb.x + vb.w;
+  const vbB = vb.y + vb.h;
+  const violations: string[] = [];
+
+  function shouldSkip(el: DomElement): boolean {
+    if (hasAncestor(el, VB_SKIP_ANCESTORS, svg)) return true;
+    if (hasTransformedAncestor(el, svg)) return true;
+    return false;
+  }
+
+  // <rect> — skip paper-mask (width="100%" height="100%")
+  ($(svg).find("rect").toArray() as DomElement[]).forEach((el) => {
+    if (shouldSkip(el)) return;
+    if ($(el).attr("width") === "100%" && $(el).attr("height") === "100%") return;
+    const x = attrNum(el, "x", 0), y = attrNum(el, "y", 0);
+    const w = attrNum(el, "width"), h = attrNum(el, "height");
+    if (!Number.isFinite(w) || !Number.isFinite(h)) return;
+    const right = x + w, bot = y + h;
+    if (right > vbR + CONTAINMENT_TOL) violations.push(`<rect x=${x} width=${w}> right=${right} > viewBox.right=${vbR}`);
+    if (bot > vbB + CONTAINMENT_TOL) violations.push(`<rect y=${y} height=${h}> bottom=${bot} > viewBox.bottom=${vbB}`);
+    if (x < vb.x - CONTAINMENT_TOL) violations.push(`<rect x=${x}> < viewBox.left=${vb.x}`);
+    if (y < vb.y - CONTAINMENT_TOL) violations.push(`<rect y=${y}> < viewBox.top=${vb.y}`);
+  });
+
+  // <line>
+  ($(svg).find("line").toArray() as DomElement[]).forEach((el) => {
+    if (shouldSkip(el)) return;
+    const x1 = attrNum(el, "x1", 0), y1 = attrNum(el, "y1", 0);
+    const x2 = attrNum(el, "x2", 0), y2 = attrNum(el, "y2", 0);
+    const maxX = Math.max(x1, x2), maxY = Math.max(y1, y2);
+    const minX = Math.min(x1, x2), minY = Math.min(y1, y2);
+    if (maxX > vbR + CONTAINMENT_TOL) violations.push(`<line maxX=${maxX}> > viewBox.right=${vbR}`);
+    if (maxY > vbB + CONTAINMENT_TOL) violations.push(`<line maxY=${maxY}> > viewBox.bottom=${vbB}`);
+    if (minX < vb.x - CONTAINMENT_TOL) violations.push(`<line minX=${minX}> < viewBox.left=${vb.x}`);
+    if (minY < vb.y - CONTAINMENT_TOL) violations.push(`<line minY=${minY}> < viewBox.top=${vb.y}`);
+  });
+
+  // <circle> / <ellipse>
+  ($(svg).find("circle, ellipse").toArray() as DomElement[]).forEach((el) => {
+    if (shouldSkip(el)) return;
+    const tag = el.tagName?.toLowerCase();
+    const cx = attrNum(el, "cx", 0), cy = attrNum(el, "cy", 0);
+    const rx = tag === "circle" ? attrNum(el, "r", 0) : attrNum(el, "rx", 0);
+    const ry = tag === "circle" ? attrNum(el, "r", 0) : attrNum(el, "ry", 0);
+    if (!Number.isFinite(rx) || !Number.isFinite(ry)) return;
+    if (cx + rx > vbR + CONTAINMENT_TOL) violations.push(`<${tag} cx=${cx} r=${rx}> right=${cx + rx} > viewBox.right=${vbR}`);
+    if (cy + ry > vbB + CONTAINMENT_TOL) violations.push(`<${tag} cy=${cy} r=${ry}> bottom=${cy + ry} > viewBox.bottom=${vbB}`);
+    if (cx - rx < vb.x - CONTAINMENT_TOL) violations.push(`<${tag} cx=${cx} r=${rx}> left=${cx - rx} < viewBox.left=${vb.x}`);
+    if (cy - ry < vb.y - CONTAINMENT_TOL) violations.push(`<${tag} cy=${cy} r=${ry}> top=${cy - ry} < viewBox.top=${vb.y}`);
+  });
+
+  // <text> — x/y anchor only (text width can't be measured without rendering)
+  ($(svg).find("text").toArray() as DomElement[]).forEach((el) => {
+    if (shouldSkip(el)) return;
+    const x = attrNum(el, "x"), y = attrNum(el, "y");
+    if (Number.isFinite(x) && x > vbR + CONTAINMENT_TOL) violations.push(`<text x=${x}> > viewBox.right=${vbR}`);
+    if (Number.isFinite(y) && y > vbB + CONTAINMENT_TOL) violations.push(`<text y=${y}> > viewBox.bottom=${vbB}`);
+  });
+
+  if (violations.length > 0) {
+    for (const v of violations) {
+      console.log(`FAIL GATE-L viewBox-containment: ${label} ${v}`);
+    }
+    fail = 1;
+  } else {
+    console.log(
+      `OK  GATE-L viewBox-containment (${label}, viewBox=${vb.x} ${vb.y} ${vb.w} ${vb.h})`
+    );
+  }
+});
+
 // ── Mode detection (shared by 4 html2pptx pre-checks + GATE-F + GATE-G) ─────
 //   PPT       → contains `<section data-layout="...">`
 //   long-form → contains `<article class="paper">`
@@ -603,12 +889,20 @@ if (!isPpt) {
     presetWarning = `tokens.css not found at ${tokensPath} — F-c tie-break skipped`;
   }
 
+  // v1.3 GATE-F prefix 白名單：
+  //   STATIC_PREFIXES (invariant) ∪ {dynamic preset slug from tokens.css line 1}.
+  //   Header malformed → 白名單退化為 STATIC_PREFIXES (Inv-4 of design.md).
+  const STATIC_PREFIXES = ["kami", "google", "swiss"] as const;
+  const dynamicSlug = presetName && /^[a-z][a-z0-9-]{1,15}$/.test(presetName)
+    ? presetName
+    : null;
+  const allowedPrefixes = new Set<string>([...STATIC_PREFIXES, ...(dynamicSlug ? [dynamicSlug] : [])]);
+
   // Scan every `class="..."` occurrence line-by-line for file:line precision.
-  // `lines` declared earlier (above html2pptx pre-check) and reused here.
   const classAttr = /class\s*=\s*"([^"]*)"/gi;
-  const seenPrefixes = new Set<string>(); // "kami" | "swiss"
+  const seenPrefixes = new Set<string>();
   const prefixFirstSeen: Record<string, { line: number; token: string }> = {};
-  const aFailures: string[] = []; // F-a (no-prefix) failures
+  const aFailures: string[] = []; // F-a (no-prefix-in-allowlist) failures
   let totalTokens = 0;
 
   lines.forEach((lineText, idx) => {
@@ -619,19 +913,16 @@ if (!isPpt) {
       const tokens = m[1].split(/\s+/).filter((t) => t.length > 0);
       for (const tok of tokens) {
         totalTokens += 1;
-        if (tok.startsWith("kami-")) {
-          if (!seenPrefixes.has("kami")) {
-            seenPrefixes.add("kami");
-            prefixFirstSeen["kami"] = { line: lineNo, token: tok };
-          }
-        } else if (tok.startsWith("swiss-")) {
-          if (!seenPrefixes.has("swiss")) {
-            seenPrefixes.add("swiss");
-            prefixFirstSeen["swiss"] = { line: lineNo, token: tok };
+        const dashIdx = tok.indexOf("-");
+        const tokPrefix = dashIdx > 0 ? tok.substring(0, dashIdx) : null;
+        if (tokPrefix && allowedPrefixes.has(tokPrefix)) {
+          if (!seenPrefixes.has(tokPrefix)) {
+            seenPrefixes.add(tokPrefix);
+            prefixFirstSeen[tokPrefix] = { line: lineNo, token: tok };
           }
         } else {
           aFailures.push(
-            `${htmlFile}:${lineNo} class token '${tok}' has no kami-/swiss- prefix`
+            `${htmlFile}:${lineNo} class token '${tok}' prefix not in whitelist {${[...allowedPrefixes].join(", ")}}`
           );
         }
       }
@@ -640,11 +931,11 @@ if (!isPpt) {
 
   let gateFailed = false;
 
-  // F-a: no-prefix tokens
+  // F-a: prefix not in allowlist
   if (aFailures.length > 0) {
     for (const msg of aFailures) {
       console.log(
-        `FAIL GATE-F class-prefix (F-a): ${msg} — 請重跑 \`/baransu:design preset <kami|swiss>\``
+        `FAIL GATE-F class-prefix (F-a): ${msg} — 請重跑 \`/baransu:design preset <name>\``
       );
     }
     gateFailed = true;
@@ -652,12 +943,13 @@ if (!isPpt) {
 
   // F-b: mixed prefixes in the same file
   if (seenPrefixes.size > 1) {
-    const kami = prefixFirstSeen["kami"];
-    const swiss = prefixFirstSeen["swiss"];
+    const prefixList = [...seenPrefixes];
+    const samples = prefixList
+      .map((p) => `${prefixFirstSeen[p].line}:'${prefixFirstSeen[p].token}'`)
+      .join(", ");
     console.log(
-      `FAIL GATE-F class-prefix (F-b): ${htmlFile}:${kami.line} '${kami.token}' (kami-) and ` +
-        `${htmlFile}:${swiss.line} '${swiss.token}' (swiss-) co-exist in same file — ` +
-        `請重跑 \`/baransu:design preset <kami|swiss>\` 統一前綴`
+      `FAIL GATE-F class-prefix (F-b): ${htmlFile} mixed prefixes ${prefixList.join("/")} ` +
+        `at ${samples} — 同檔需單一 prefix；請重跑 \`/baransu:design preset <name>\` 統一前綴`
     );
     gateFailed = true;
   }

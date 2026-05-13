@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<!--
+  portfolio.html — Google-Design (Material 3) preset Portfolio template (v1.4, zh)
+  Schema: schemas/portfolio.md
+  Class prefix: google-*
+  Portrait + thumbnail <img> use object-position: center 35% (rule of thirds).
+-->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{NAME}} — 作品集</title>
+  <link rel="stylesheet" href="../tokens.css">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      background: var(--paper); color: var(--text-primary);
+      font-family: "Roboto Flex", Roboto, "Noto Sans TC", "Helvetica Neue", Arial, sans-serif;
+      margin: 0; text-wrap: pretty;
+    }
+    .google-page { max-width: 1200px; margin: 0 auto; padding: 56px 24px; }
+    .google-cover { display: grid; grid-template-columns: 320px 1fr; gap: 56px; align-items: center; padding: 32px; background: var(--surface); border-radius: 24px; margin-bottom: 48px; }
+    .google-hero { width: 100%; aspect-ratio: 3 / 4; overflow: hidden; border-radius: 16px; }
+    .google-hero img { width: 100%; height: 100%; object-fit: cover; object-position: center 35%; display: block; }
+    .google-h1 { font-size: 48px; font-weight: 500; line-height: 1.1; letter-spacing: -0.02em; margin: 0 0 12px; text-wrap: pretty; }
+    .google-tagline { font-size: 18px; color: var(--text-secondary); margin: 0 0 24px; }
+    .google-body { font-size: 15px; line-height: 1.55; color: var(--text-primary); margin: 12px 0; text-wrap: pretty; }
+    .google-dropcap { float: left; font-size: 4.65em; line-height: 1; font-weight: 500; color: var(--accent); padding-right: 8px; padding-top: 2px; }
+    .google-h2 { font-size: 24px; font-weight: 500; line-height: 1.25; letter-spacing: -0.01em; border-left: 3px solid var(--accent); padding-left: 12px; margin: 56px 0 24px; text-wrap: pretty; }
+    .google-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    .google-card { background: var(--surface); border-radius: 16px; overflow: hidden; }
+    .google-thumb { width: 100%; aspect-ratio: 4 / 3; overflow: hidden; }
+    .google-thumb img { width: 100%; height: 100%; object-fit: cover; object-position: center 35%; display: block; }
+    .google-card-body { padding: 20px 24px 24px; }
+    .google-card-title { font-size: 18px; font-weight: 500; margin: 0 0 4px; }
+    .google-card-meta { font-size: 11px; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 8px; }
+    .google-card-desc { font-size: 14px; line-height: 1.55; color: var(--text-secondary); margin: 0; }
+    .google-contact { margin-top: 64px; padding: 24px; background: var(--surface); border-radius: 16px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; font-size: 13px; color: var(--text-muted); }
+    .google-contact strong { display: block; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 4px; font-weight: 500; }
+    .google-footer { font-size: 11px; color: var(--text-faint); margin-top: 48px; }
+    em, i { font-style: normal; font-weight: 500; }
+    @media (max-width: 720px) { .google-cover { grid-template-columns: 1fr; gap: 24px; } .google-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body class="google-paper-body">
+<div class="google-page">
+
+  <section class="google-cover">
+    <div class="google-hero">
+      <img src="{{PORTRAIT_URL}}" alt="{{NAME}} portrait">
+    </div>
+    <div>
+      <h1 class="google-h1">{{NAME}}</h1>
+      <p class="google-tagline">{{TAGLINE}}</p>
+      <p class="google-body"><span class="google-dropcap">十</span>年來我以產品設計為媒介，為團隊打造可被使用者立即理解的介面。我相信 Material 的核心精神：「介面是動作的延伸」——當每一個 motion 都對應一個明確的意圖，產品便會自然顯得可信。本作品集收錄六個近年案例。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="google-h2">作品</h2>
+    <div class="google-grid">
+
+      <article class="google-card">
+        <div class="google-thumb"><img src="{{WORK_1_THUMB}}" alt="作品一"></div>
+        <div class="google-card-body">
+          <p class="google-card-meta">2025　／　Mobile App</p>
+          <h3 class="google-card-title">記帳 App 重構</h3>
+          <p class="google-card-desc">將傳統記帳介面重構為 Material 3，導入 expressive motion 與 dynamic color。</p>
+        </div>
+      </article>
+
+      <article class="google-card">
+        <div class="google-thumb"><img src="{{WORK_2_THUMB}}" alt="作品二"></div>
+        <div class="google-card-body">
+          <p class="google-card-meta">2024　／　Web Console</p>
+          <h3 class="google-card-title">客服後台改版</h3>
+          <p class="google-card-desc">為 B2B 客服後台導入 Material 3 navigation rail，工單處理速度提升 24%。</p>
+        </div>
+      </article>
+
+      <article class="google-card">
+        <div class="google-thumb"><img src="{{WORK_3_THUMB}}" alt="作品三"></div>
+        <div class="google-card-body">
+          <p class="google-card-meta">2024　／　Design System</p>
+          <h3 class="google-card-title">公司內部 design tokens</h3>
+          <p class="google-card-desc">建立含 16 個 color roles 與 13 個 typography scale 的內部設計系統。</p>
+        </div>
+      </article>
+
+      <article class="google-card">
+        <div class="google-thumb"><img src="{{WORK_4_THUMB}}" alt="作品四"></div>
+        <div class="google-card-body">
+          <p class="google-card-meta">2023　／　Wearable</p>
+          <h3 class="google-card-title">健康手錶 watchface</h3>
+          <p class="google-card-desc">為 Wear OS 設計六款 watchface，導入 large-display 與 always-on 模式。</p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section class="google-contact">
+    <div><strong>Email</strong>{{EMAIL}}</div>
+    <div><strong>Phone</strong>{{PHONE}}</div>
+    <div><strong>Studio</strong>{{LOCATION}}</div>
+  </section>
+
+  <footer class="google-footer">{{NAME}}　／　Portfolio　／　{{UPDATED_AT}}</footer>
+</div>
+</body>
+</html>

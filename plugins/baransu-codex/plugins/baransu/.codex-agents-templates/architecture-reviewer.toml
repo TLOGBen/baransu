@@ -106,5 +106,5 @@ Findings produced must fall into one of these categories only:
 # model = "gpt-5.4"
 # model_reasoning_effort = "high"      # low | medium | high | max
 # sandbox_mode = "workspace-write"     # read-only | workspace-write | danger-full-access
-# mcp_servers = []                     # list of MCP server ids the agent may invoke
+# mcp_servers = ["Read", "Grep", "Glob", "Bash"]  # ported from Claude `tools:`; rename to Codex MCP server ids before enabling
 # nickname_candidates = []             # cosmetic names for spawned instances

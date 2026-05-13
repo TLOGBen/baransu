@@ -1,0 +1,14 @@
+{
+  "eval_id": 1,
+  "eval_name": "text-input",
+  "configuration": "with_skill",
+  "expectations": [
+    {"text": "html_file_exists", "passed": true, "evidence": "kubernetes.html present in outputs/"},
+    {"text": "has_kami_article", "passed": true, "evidence": "class=\"paper\" found in HTML"},
+    {"text": "has_toc", "passed": true, "evidence": "toc-wrap found in HTML"},
+    {"text": "svg_present_and_balanced", "passed": true, "evidence": "4 SVGs, open/close balanced"},
+    {"text": "has_section_numbers", "passed": true, "evidence": "sec-num class found in HTML"},
+    {"text": "word_count_lte_1800", "passed": true, "evidence": "word count 1196, within cap"}
+  ],
+  "pass_rate": 1.0
+}

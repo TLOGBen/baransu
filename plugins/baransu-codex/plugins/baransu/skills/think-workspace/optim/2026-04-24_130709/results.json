@@ -1,0 +1,1390 @@
+{
+  "exit_reason": "max_iterations (5)",
+  "original_description": "Force a structured thinking & validation pass before writing ANY production code, scaffolding, or pseudo-code for a new feature, subsystem, architecture decision, library choice, refactor plan, or data-model change. Use this skill aggressively \u2014 whenever the user says things like \"I want to build / add / implement / design / refactor / migrate / introduce / support X\", \"how should we structure Y\", \"which approach for Z\", \"add a new endpoint/service/module/skill/agent\", \"set up \u2026\", or any request that contains a design component \u2014 even when the user does NOT explicitly say \"plan first\". Also use when a bug fix turns out to hide a design decision (3+ substantively different fixes). The skill turns rough intent into a validated, approved plan in a fixed five-section schema; it never produces code itself. User-facing output is in Traditional Chinese (\u7e41\u9ad4\u4e2d\u6587).",
+  "best_description": "Force a structured thinking & validation pass before writing ANY production code, scaffolding, or pseudo-code for a new feature, subsystem, architecture decision, library choice, refactor plan, or data-model change. Use this skill aggressively \u2014 whenever the user says things like \"I want to build / add / implement / design / refactor / migrate / introduce / support X\", \"how should we structure Y\", \"which approach for Z\", \"add a new endpoint/service/module/skill/agent\", \"set up \u2026\", or any request that contains a design component \u2014 even when the user does NOT explicitly say \"plan first\". Also use when a bug fix turns out to hide a design decision (3+ substantively different fixes). The skill turns rough intent into a validated, approved plan in a fixed five-section schema; it never produces code itself. User-facing output is in Traditional Chinese (\u7e41\u9ad4\u4e2d\u6587).",
+  "best_score": "4/8",
+  "best_train_score": "6/12",
+  "best_test_score": "4/8",
+  "final_description": "Use this skill when the user wants a written plan, design doc, proposal, or recommendation BEFORE any code \u2014 scope, non-goals, risks, trade-offs, or key decisions captured as an artifact to review, approve, or share with a team. Trigger on intents like: \"plan for X\", \"design doc\", \"walk me through how you'd approach\", \"help me think through\", \"before we start building\", \"don't write code yet\", \"align the team\", \"green-light\", \"approve first\", build-vs-buy or library choices, monolith-to-microservice splits, auth/database/framework migrations, new-service designs, introducing patterns (event sourcing, CQRS, sagas), multi-file refactors, data-model changes. Also \u7e41\u9ad4\u4e2d\u6587 (\u8a2d\u8a08\u3001\u898f\u5283\u3001\u7bc4\u570d\u3001\u98a8\u96aa\u3001\u95dc\u9375\u6c7a\u7b56\u3001\u6279\u51c6\u3001\u4e0d\u8981\u76f4\u63a5\u5beb). The deliverable is deliberation \u2014 thinking, judgment, a document \u2014 never code. Do NOT trigger when what-to-do is decided and only execution remains: bug fixes, typos, renames, adding a specific test, running commands, env repair.",
+  "iterations_run": 5,
+  "holdout": 0.4,
+  "train_size": 12,
+  "test_size": 8,
+  "history": [
+    {
+      "iteration": 1,
+      "description": "Force a structured thinking & validation pass before writing ANY production code, scaffolding, or pseudo-code for a new feature, subsystem, architecture decision, library choice, refactor plan, or data-model change. Use this skill aggressively \u2014 whenever the user says things like \"I want to build / add / implement / design / refactor / migrate / introduce / support X\", \"how should we structure Y\", \"which approach for Z\", \"add a new endpoint/service/module/skill/agent\", \"set up \u2026\", or any request that contains a design component \u2014 even when the user does NOT explicitly say \"plan first\". Also use when a bug fix turns out to hide a design decision (3+ substantively different fixes). The skill turns rough intent into a validated, approved plan in a fixed five-section schema; it never produces code itself. User-facing output is in Traditional Chinese (\u7e41\u9ad4\u4e2d\u6587).",
+      "train_passed": 6,
+      "train_failed": 6,
+      "train_total": 12,
+      "train_results": [
+        {
+          "query": "\u60f3\u628a billing module \u5f9e monolith \u62c6\u51fa\u4f86\u505a microservice, \u4e0d\u8981\u76f4\u63a5\u958b\u59cb\u5beb. \u5148\u7d66\u6211\u5b8c\u6574\u7684\u8a2d\u8a08\u601d\u8def, \u7bc4\u570d, \u98a8\u96aa, \u8ddf\u95dc\u9375\u6c7a\u7b56. \u6211\u8981\u6279\u51c6\u5f8c\u624d\u958b\u59cb\u5be6\u4f5c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "plan for introducing event sourcing to our order management module. i need scope, non-goals, risks, and the key architectural decisions written down before any coding. im not ready to implement, just to decide",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "help me think through whether to adopt temporal.io or build our own saga pattern on top of postgres. give me a concrete recommendation with reasoning and what evidence would change your mind \u2014 not a both-sides writeup",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "before i green-light the refactor of our permissions system (currently spread across 6 django apps), i need a written plan with what's in scope, what's explicitly out, and the 3-5 key decisions i'm signing off on",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "this test in tests/test_auth.py line 127 is failing because the mock returns None but the assertion expects {}, just add a null check and move on",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "add a unit test for the parseDate function in utils/date.ts, should cover the ISO string case on line 23 and the empty string case. the function itself is fine, just needs coverage",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "I need a proper design doc before we start building the new payments service. rails 7, stripe connect, b2b marketplace model. draft the plan \u2014 scope, out-of-scope, key decisions, unknowns. don't write code yet, i need to align the team first",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "set up my local dev env per the README, something broke when i pulled latest main and now pytest wont even collect. just need it working again",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "walk me through how you'd approach migrating our user auth from devise sessions to stateless jwt. 800k active users, live app. I want a written plan I can show my team before any code gets touched",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "theres a typo in README.md line 34, says 'baranus' instead of 'baransu'. fix it",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "run the test suite and tell me whats red, then fix any obvious assertion-mismatch bugs. no big changes",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "refactor user_service.py variable naming \u2014 all the names are camelCase but the rest of the repo is snake_case. purely cosmetic, no logic changes",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ],
+      "test_passed": 4,
+      "test_failed": 4,
+      "test_total": 8,
+      "test_results": [
+        {
+          "query": "our oncall has been paged 3x/week for the same stripe webhook double-processing issue. im done patching. lets step back and redesign this properly \u2014 i want a written proposal with scope, key decisions, and risks",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "we're evaluating snowflake vs bigquery vs databricks for our new analytics warehouse. 5TB/month ingest growing 2x/year, need a clear recommendation with falsifiable criteria. no both-sides waffle, pick one and tell me why",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "thinking about adding graphql alongside our existing rest api for the mobile clients. before I commit I need the trade-offs and a recommended approach laid out as a plan \u2014 no code, just the thinking",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "migrate utils/date_helpers.js to typescript. just converting, no behavior change, just adding type annotations. no design decisions needed",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "i want to add multi-tenancy to our b2b saas. currently single-tenant postgres, 5 engineers, 3-month budget. give me the approach, scope, key decisions \u2014 then i'll decide whether to greenlight. no code yet",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "can you explain how our auth middleware was designed? i inherited this codebase from the previous team and want to understand why they chose jwt over sessions. not planning any changes, just learning",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "can you review the PR i just opened, #482, its 3 files around the retry logic. just checking for bugs, dont rewrite it",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "rename the variable userEmail to userEmailAddress across the whole codebase, its inconsistent between files right now. mechanical change, no logic shifts",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ],
+      "passed": 6,
+      "failed": 6,
+      "total": 12,
+      "results": [
+        {
+          "query": "\u60f3\u628a billing module \u5f9e monolith \u62c6\u51fa\u4f86\u505a microservice, \u4e0d\u8981\u76f4\u63a5\u958b\u59cb\u5beb. \u5148\u7d66\u6211\u5b8c\u6574\u7684\u8a2d\u8a08\u601d\u8def, \u7bc4\u570d, \u98a8\u96aa, \u8ddf\u95dc\u9375\u6c7a\u7b56. \u6211\u8981\u6279\u51c6\u5f8c\u624d\u958b\u59cb\u5be6\u4f5c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "plan for introducing event sourcing to our order management module. i need scope, non-goals, risks, and the key architectural decisions written down before any coding. im not ready to implement, just to decide",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "help me think through whether to adopt temporal.io or build our own saga pattern on top of postgres. give me a concrete recommendation with reasoning and what evidence would change your mind \u2014 not a both-sides writeup",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "before i green-light the refactor of our permissions system (currently spread across 6 django apps), i need a written plan with what's in scope, what's explicitly out, and the 3-5 key decisions i'm signing off on",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "this test in tests/test_auth.py line 127 is failing because the mock returns None but the assertion expects {}, just add a null check and move on",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "add a unit test for the parseDate function in utils/date.ts, should cover the ISO string case on line 23 and the empty string case. the function itself is fine, just needs coverage",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "I need a proper design doc before we start building the new payments service. rails 7, stripe connect, b2b marketplace model. draft the plan \u2014 scope, out-of-scope, key decisions, unknowns. don't write code yet, i need to align the team first",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "set up my local dev env per the README, something broke when i pulled latest main and now pytest wont even collect. just need it working again",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "walk me through how you'd approach migrating our user auth from devise sessions to stateless jwt. 800k active users, live app. I want a written plan I can show my team before any code gets touched",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "theres a typo in README.md line 34, says 'baranus' instead of 'baransu'. fix it",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "run the test suite and tell me whats red, then fix any obvious assertion-mismatch bugs. no big changes",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "refactor user_service.py variable naming \u2014 all the names are camelCase but the rest of the repo is snake_case. purely cosmetic, no logic changes",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "description": "Use this skill when the user wants a written plan or design doc BEFORE any code \u2014 especially when they say \"don't write code yet\", \"I need to align the team\", \"give me a plan to approve\", \"walk me through your approach\", \"help me think through X\", or want \"scope, risks, and key decisions\" written down. Trigger for: new features or services; architecture and library/vendor choices (build vs. buy); refactors spanning multiple files; migrations (auth, database, monolith-to-microservice, framework upgrades); data-model changes; any request signalling deliberation and approval, not implementation. Also trigger when a bug fix reveals 3+ fundamentally different fixes with real trade-offs. Produces an approved plan; never writes code. Do NOT trigger for straightforward bug fixes, typos, test additions, running commands, or renames where the \"what\" is decided and only execution remains.",
+      "train_passed": 6,
+      "train_failed": 6,
+      "train_total": 12,
+      "train_results": [
+        {
+          "query": "\u60f3\u628a billing module \u5f9e monolith \u62c6\u51fa\u4f86\u505a microservice, \u4e0d\u8981\u76f4\u63a5\u958b\u59cb\u5beb. \u5148\u7d66\u6211\u5b8c\u6574\u7684\u8a2d\u8a08\u601d\u8def, \u7bc4\u570d, \u98a8\u96aa, \u8ddf\u95dc\u9375\u6c7a\u7b56. \u6211\u8981\u6279\u51c6\u5f8c\u624d\u958b\u59cb\u5be6\u4f5c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "plan for introducing event sourcing to our order management module. i need scope, non-goals, risks, and the key architectural decisions written down before any coding. im not ready to implement, just to decide",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "before i green-light the refactor of our permissions system (currently spread across 6 django apps), i need a written plan with what's in scope, what's explicitly out, and the 3-5 key decisions i'm signing off on",
+          "should_trigger": true,
+          "trigger_rate": 0.3333333333333333,
+          "triggers": 1,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "I need a proper design doc before we start building the new payments service. rails 7, stripe connect, b2b marketplace model. draft the plan \u2014 scope, out-of-scope, key decisions, unknowns. don't write code yet, i need to align the team first",
+          "should_trigger": true,
+          "trigger_rate": 0.3333333333333333,
+          "triggers": 1,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "help me think through whether to adopt temporal.io or build our own saga pattern on top of postgres. give me a concrete recommendation with reasoning and what evidence would change your mind \u2014 not a both-sides writeup",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "this test in tests/test_auth.py line 127 is failing because the mock returns None but the assertion expects {}, just add a null check and move on",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "walk me through how you'd approach migrating our user auth from devise sessions to stateless jwt. 800k active users, live app. I want a written plan I can show my team before any code gets touched",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "add a unit test for the parseDate function in utils/date.ts, should cover the ISO string case on line 23 and the empty string case. the function itself is fine, just needs coverage",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "set up my local dev env per the README, something broke when i pulled latest main and now pytest wont even collect. just need it working again",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "theres a typo in README.md line 34, says 'baranus' instead of 'baransu'. fix it",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "refactor user_service.py variable naming \u2014 all the names are camelCase but the rest of the repo is snake_case. purely cosmetic, no logic changes",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "run the test suite and tell me whats red, then fix any obvious assertion-mismatch bugs. no big changes",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ],
+      "test_passed": 4,
+      "test_failed": 4,
+      "test_total": 8,
+      "test_results": [
+        {
+          "query": "thinking about adding graphql alongside our existing rest api for the mobile clients. before I commit I need the trade-offs and a recommended approach laid out as a plan \u2014 no code, just the thinking",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "our oncall has been paged 3x/week for the same stripe webhook double-processing issue. im done patching. lets step back and redesign this properly \u2014 i want a written proposal with scope, key decisions, and risks",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "i want to add multi-tenancy to our b2b saas. currently single-tenant postgres, 5 engineers, 3-month budget. give me the approach, scope, key decisions \u2014 then i'll decide whether to greenlight. no code yet",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "we're evaluating snowflake vs bigquery vs databricks for our new analytics warehouse. 5TB/month ingest growing 2x/year, need a clear recommendation with falsifiable criteria. no both-sides waffle, pick one and tell me why",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "can you explain how our auth middleware was designed? i inherited this codebase from the previous team and want to understand why they chose jwt over sessions. not planning any changes, just learning",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "migrate utils/date_helpers.js to typescript. just converting, no behavior change, just adding type annotations. no design decisions needed",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "can you review the PR i just opened, #482, its 3 files around the retry logic. just checking for bugs, dont rewrite it",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "rename the variable userEmail to userEmailAddress across the whole codebase, its inconsistent between files right now. mechanical change, no logic shifts",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ],
+      "passed": 6,
+      "failed": 6,
+      "total": 12,
+      "results": [
+        {
+          "query": "\u60f3\u628a billing module \u5f9e monolith \u62c6\u51fa\u4f86\u505a microservice, \u4e0d\u8981\u76f4\u63a5\u958b\u59cb\u5beb. \u5148\u7d66\u6211\u5b8c\u6574\u7684\u8a2d\u8a08\u601d\u8def, \u7bc4\u570d, \u98a8\u96aa, \u8ddf\u95dc\u9375\u6c7a\u7b56. \u6211\u8981\u6279\u51c6\u5f8c\u624d\u958b\u59cb\u5be6\u4f5c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "plan for introducing event sourcing to our order management module. i need scope, non-goals, risks, and the key architectural decisions written down before any coding. im not ready to implement, just to decide",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "before i green-light the refactor of our permissions system (currently spread across 6 django apps), i need a written plan with what's in scope, what's explicitly out, and the 3-5 key decisions i'm signing off on",
+          "should_trigger": true,
+          "trigger_rate": 0.3333333333333333,
+          "triggers": 1,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "I need a proper design doc before we start building the new payments service. rails 7, stripe connect, b2b marketplace model. draft the plan \u2014 scope, out-of-scope, key decisions, unknowns. don't write code yet, i need to align the team first",
+          "should_trigger": true,
+          "trigger_rate": 0.3333333333333333,
+          "triggers": 1,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "help me think through whether to adopt temporal.io or build our own saga pattern on top of postgres. give me a concrete recommendation with reasoning and what evidence would change your mind \u2014 not a both-sides writeup",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "this test in tests/test_auth.py line 127 is failing because the mock returns None but the assertion expects {}, just add a null check and move on",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "walk me through how you'd approach migrating our user auth from devise sessions to stateless jwt. 800k active users, live app. I want a written plan I can show my team before any code gets touched",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "add a unit test for the parseDate function in utils/date.ts, should cover the ISO string case on line 23 and the empty string case. the function itself is fine, just needs coverage",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "set up my local dev env per the README, something broke when i pulled latest main and now pytest wont even collect. just need it working again",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "theres a typo in README.md line 34, says 'baranus' instead of 'baransu'. fix it",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "refactor user_service.py variable naming \u2014 all the names are camelCase but the rest of the repo is snake_case. purely cosmetic, no logic changes",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "run the test suite and tell me whats red, then fix any obvious assertion-mismatch bugs. no big changes",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "iteration": 3,
+      "description": "Use this skill when the user wants to think, plan, design, or decide BEFORE any code is written. Trigger on requests for: a written plan, design doc, scope/non-goals/risks writeup, architectural recommendation, build-vs-buy decision, migration strategy, refactor plan, or approach walkthrough. Trigger on deliberation signals: \"don't write code yet\", \"before we start building\", \"align the team\", \"approve first\", \"green-light\", \"written plan\", \"design doc\", \"scope and risks\", \"key decisions\", \"walk me through how you'd approach\", \"help me think through\", \"plan for introducing X\", \"adopt X or build our own\". Trigger for new features/services, architecture or library choices, multi-file refactors, auth/database/framework migrations, monolith-to-microservice splits, data-model changes, and event-sourcing introductions. Also handles \u7e41\u9ad4\u4e2d\u6587 equivalents (\u8a2d\u8a08\u3001\u898f\u5283\u3001\u7bc4\u570d\u3001\u98a8\u96aa\u3001\u95dc\u9375\u6c7a\u7b56\u3001\u4e0d\u8981\u76f4\u63a5\u5beb). Do NOT trigger for bug fixes, typos, renames, test additions, or commands where only execution remains.",
+      "train_passed": 6,
+      "train_failed": 6,
+      "train_total": 12,
+      "train_results": [
+        {
+          "query": "plan for introducing event sourcing to our order management module. i need scope, non-goals, risks, and the key architectural decisions written down before any coding. im not ready to implement, just to decide",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u60f3\u628a billing module \u5f9e monolith \u62c6\u51fa\u4f86\u505a microservice, \u4e0d\u8981\u76f4\u63a5\u958b\u59cb\u5beb. \u5148\u7d66\u6211\u5b8c\u6574\u7684\u8a2d\u8a08\u601d\u8def, \u7bc4\u570d, \u98a8\u96aa, \u8ddf\u95dc\u9375\u6c7a\u7b56. \u6211\u8981\u6279\u51c6\u5f8c\u624d\u958b\u59cb\u5be6\u4f5c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "before i green-light the refactor of our permissions system (currently spread across 6 django apps), i need a written plan with what's in scope, what's explicitly out, and the 3-5 key decisions i'm signing off on",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "help me think through whether to adopt temporal.io or build our own saga pattern on top of postgres. give me a concrete recommendation with reasoning and what evidence would change your mind \u2014 not a both-sides writeup",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "I need a proper design doc before we start building the new payments service. rails 7, stripe connect, b2b marketplace model. draft the plan \u2014 scope, out-of-scope, key decisions, unknowns. don't write code yet, i need to align the team first",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "this test in tests/test_auth.py line 127 is failing because the mock returns None but the assertion expects {}, just add a null check and move on",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "walk me through how you'd approach migrating our user auth from devise sessions to stateless jwt. 800k active users, live app. I want a written plan I can show my team before any code gets touched",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "add a unit test for the parseDate function in utils/date.ts, should cover the ISO string case on line 23 and the empty string case. the function itself is fine, just needs coverage",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "set up my local dev env per the README, something broke when i pulled latest main and now pytest wont even collect. just need it working again",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "theres a typo in README.md line 34, says 'baranus' instead of 'baransu'. fix it",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "refactor user_service.py variable naming \u2014 all the names are camelCase but the rest of the repo is snake_case. purely cosmetic, no logic changes",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "run the test suite and tell me whats red, then fix any obvious assertion-mismatch bugs. no big changes",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ],
+      "test_passed": 4,
+      "test_failed": 4,
+      "test_total": 8,
+      "test_results": [
+        {
+          "query": "our oncall has been paged 3x/week for the same stripe webhook double-processing issue. im done patching. lets step back and redesign this properly \u2014 i want a written proposal with scope, key decisions, and risks",
+          "should_trigger": true,
+          "trigger_rate": 0.3333333333333333,
+          "triggers": 1,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "thinking about adding graphql alongside our existing rest api for the mobile clients. before I commit I need the trade-offs and a recommended approach laid out as a plan \u2014 no code, just the thinking",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "i want to add multi-tenancy to our b2b saas. currently single-tenant postgres, 5 engineers, 3-month budget. give me the approach, scope, key decisions \u2014 then i'll decide whether to greenlight. no code yet",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "we're evaluating snowflake vs bigquery vs databricks for our new analytics warehouse. 5TB/month ingest growing 2x/year, need a clear recommendation with falsifiable criteria. no both-sides waffle, pick one and tell me why",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "migrate utils/date_helpers.js to typescript. just converting, no behavior change, just adding type annotations. no design decisions needed",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "can you explain how our auth middleware was designed? i inherited this codebase from the previous team and want to understand why they chose jwt over sessions. not planning any changes, just learning",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "can you review the PR i just opened, #482, its 3 files around the retry logic. just checking for bugs, dont rewrite it",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "rename the variable userEmail to userEmailAddress across the whole codebase, its inconsistent between files right now. mechanical change, no logic shifts",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ],
+      "passed": 6,
+      "failed": 6,
+      "total": 12,
+      "results": [
+        {
+          "query": "plan for introducing event sourcing to our order management module. i need scope, non-goals, risks, and the key architectural decisions written down before any coding. im not ready to implement, just to decide",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u60f3\u628a billing module \u5f9e monolith \u62c6\u51fa\u4f86\u505a microservice, \u4e0d\u8981\u76f4\u63a5\u958b\u59cb\u5beb. \u5148\u7d66\u6211\u5b8c\u6574\u7684\u8a2d\u8a08\u601d\u8def, \u7bc4\u570d, \u98a8\u96aa, \u8ddf\u95dc\u9375\u6c7a\u7b56. \u6211\u8981\u6279\u51c6\u5f8c\u624d\u958b\u59cb\u5be6\u4f5c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "before i green-light the refactor of our permissions system (currently spread across 6 django apps), i need a written plan with what's in scope, what's explicitly out, and the 3-5 key decisions i'm signing off on",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "help me think through whether to adopt temporal.io or build our own saga pattern on top of postgres. give me a concrete recommendation with reasoning and what evidence would change your mind \u2014 not a both-sides writeup",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "I need a proper design doc before we start building the new payments service. rails 7, stripe connect, b2b marketplace model. draft the plan \u2014 scope, out-of-scope, key decisions, unknowns. don't write code yet, i need to align the team first",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "this test in tests/test_auth.py line 127 is failing because the mock returns None but the assertion expects {}, just add a null check and move on",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "walk me through how you'd approach migrating our user auth from devise sessions to stateless jwt. 800k active users, live app. I want a written plan I can show my team before any code gets touched",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "add a unit test for the parseDate function in utils/date.ts, should cover the ISO string case on line 23 and the empty string case. the function itself is fine, just needs coverage",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "set up my local dev env per the README, something broke when i pulled latest main and now pytest wont even collect. just need it working again",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "theres a typo in README.md line 34, says 'baranus' instead of 'baransu'. fix it",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "refactor user_service.py variable naming \u2014 all the names are camelCase but the rest of the repo is snake_case. purely cosmetic, no logic changes",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "run the test suite and tell me whats red, then fix any obvious assertion-mismatch bugs. no big changes",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "iteration": 4,
+      "description": "Use this skill whenever the user wants a plan, design doc, or written proposal BEFORE implementation \u2014 not the code itself. This is the go-to skill for any request where the deliverable is thinking, not typing: architecture proposals, migration strategies, refactor plans, build-vs-buy decisions, new-service designs, data-model changes, introducing patterns like event sourcing or CQRS, or \"walk me through how you'd approach X\". Strong signals include: \"plan\", \"design doc\", \"scope\", \"non-goals\", \"risks\", \"key decisions\", \"approve\", \"green-light\", \"align the team\", \"before we start\", \"don't write code yet\", \"think through\", \"recommendation with reasoning\", plus \u7e41\u9ad4\u4e2d\u6587 equivalents (\u8a2d\u8a08\u3001\u898f\u5283\u3001\u7bc4\u570d\u3001\u98a8\u96aa\u3001\u95dc\u9375\u6c7a\u7b56\u3001\u6279\u51c6\u3001\u4e0d\u8981\u76f4\u63a5\u5beb). If the user is asking for judgment, trade-offs, or a written artifact they can show teammates \u2014 trigger. Do NOT trigger when the what-to-do is already decided and only execution remains: bug fixes, typos, renames, adding a specific test, running commands, or local env repair.",
+      "train_passed": 6,
+      "train_failed": 6,
+      "train_total": 12,
+      "train_results": [
+        {
+          "query": "before i green-light the refactor of our permissions system (currently spread across 6 django apps), i need a written plan with what's in scope, what's explicitly out, and the 3-5 key decisions i'm signing off on",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u60f3\u628a billing module \u5f9e monolith \u62c6\u51fa\u4f86\u505a microservice, \u4e0d\u8981\u76f4\u63a5\u958b\u59cb\u5beb. \u5148\u7d66\u6211\u5b8c\u6574\u7684\u8a2d\u8a08\u601d\u8def, \u7bc4\u570d, \u98a8\u96aa, \u8ddf\u95dc\u9375\u6c7a\u7b56. \u6211\u8981\u6279\u51c6\u5f8c\u624d\u958b\u59cb\u5be6\u4f5c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "plan for introducing event sourcing to our order management module. i need scope, non-goals, risks, and the key architectural decisions written down before any coding. im not ready to implement, just to decide",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "I need a proper design doc before we start building the new payments service. rails 7, stripe connect, b2b marketplace model. draft the plan \u2014 scope, out-of-scope, key decisions, unknowns. don't write code yet, i need to align the team first",
+          "should_trigger": true,
+          "trigger_rate": 0.3333333333333333,
+          "triggers": 1,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "help me think through whether to adopt temporal.io or build our own saga pattern on top of postgres. give me a concrete recommendation with reasoning and what evidence would change your mind \u2014 not a both-sides writeup",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "walk me through how you'd approach migrating our user auth from devise sessions to stateless jwt. 800k active users, live app. I want a written plan I can show my team before any code gets touched",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "add a unit test for the parseDate function in utils/date.ts, should cover the ISO string case on line 23 and the empty string case. the function itself is fine, just needs coverage",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "this test in tests/test_auth.py line 127 is failing because the mock returns None but the assertion expects {}, just add a null check and move on",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "set up my local dev env per the README, something broke when i pulled latest main and now pytest wont even collect. just need it working again",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "refactor user_service.py variable naming \u2014 all the names are camelCase but the rest of the repo is snake_case. purely cosmetic, no logic changes",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "run the test suite and tell me whats red, then fix any obvious assertion-mismatch bugs. no big changes",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "theres a typo in README.md line 34, says 'baranus' instead of 'baransu'. fix it",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ],
+      "test_passed": 4,
+      "test_failed": 4,
+      "test_total": 8,
+      "test_results": [
+        {
+          "query": "our oncall has been paged 3x/week for the same stripe webhook double-processing issue. im done patching. lets step back and redesign this properly \u2014 i want a written proposal with scope, key decisions, and risks",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "i want to add multi-tenancy to our b2b saas. currently single-tenant postgres, 5 engineers, 3-month budget. give me the approach, scope, key decisions \u2014 then i'll decide whether to greenlight. no code yet",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "thinking about adding graphql alongside our existing rest api for the mobile clients. before I commit I need the trade-offs and a recommended approach laid out as a plan \u2014 no code, just the thinking",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "can you explain how our auth middleware was designed? i inherited this codebase from the previous team and want to understand why they chose jwt over sessions. not planning any changes, just learning",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "we're evaluating snowflake vs bigquery vs databricks for our new analytics warehouse. 5TB/month ingest growing 2x/year, need a clear recommendation with falsifiable criteria. no both-sides waffle, pick one and tell me why",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "migrate utils/date_helpers.js to typescript. just converting, no behavior change, just adding type annotations. no design decisions needed",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "can you review the PR i just opened, #482, its 3 files around the retry logic. just checking for bugs, dont rewrite it",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "rename the variable userEmail to userEmailAddress across the whole codebase, its inconsistent between files right now. mechanical change, no logic shifts",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ],
+      "passed": 6,
+      "failed": 6,
+      "total": 12,
+      "results": [
+        {
+          "query": "before i green-light the refactor of our permissions system (currently spread across 6 django apps), i need a written plan with what's in scope, what's explicitly out, and the 3-5 key decisions i'm signing off on",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u60f3\u628a billing module \u5f9e monolith \u62c6\u51fa\u4f86\u505a microservice, \u4e0d\u8981\u76f4\u63a5\u958b\u59cb\u5beb. \u5148\u7d66\u6211\u5b8c\u6574\u7684\u8a2d\u8a08\u601d\u8def, \u7bc4\u570d, \u98a8\u96aa, \u8ddf\u95dc\u9375\u6c7a\u7b56. \u6211\u8981\u6279\u51c6\u5f8c\u624d\u958b\u59cb\u5be6\u4f5c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "plan for introducing event sourcing to our order management module. i need scope, non-goals, risks, and the key architectural decisions written down before any coding. im not ready to implement, just to decide",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "I need a proper design doc before we start building the new payments service. rails 7, stripe connect, b2b marketplace model. draft the plan \u2014 scope, out-of-scope, key decisions, unknowns. don't write code yet, i need to align the team first",
+          "should_trigger": true,
+          "trigger_rate": 0.3333333333333333,
+          "triggers": 1,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "help me think through whether to adopt temporal.io or build our own saga pattern on top of postgres. give me a concrete recommendation with reasoning and what evidence would change your mind \u2014 not a both-sides writeup",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "walk me through how you'd approach migrating our user auth from devise sessions to stateless jwt. 800k active users, live app. I want a written plan I can show my team before any code gets touched",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "add a unit test for the parseDate function in utils/date.ts, should cover the ISO string case on line 23 and the empty string case. the function itself is fine, just needs coverage",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "this test in tests/test_auth.py line 127 is failing because the mock returns None but the assertion expects {}, just add a null check and move on",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "set up my local dev env per the README, something broke when i pulled latest main and now pytest wont even collect. just need it working again",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "refactor user_service.py variable naming \u2014 all the names are camelCase but the rest of the repo is snake_case. purely cosmetic, no logic changes",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "run the test suite and tell me whats red, then fix any obvious assertion-mismatch bugs. no big changes",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "theres a typo in README.md line 34, says 'baranus' instead of 'baransu'. fix it",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "iteration": 5,
+      "description": "Use this skill when the user wants a written plan, design doc, proposal, or recommendation BEFORE any code \u2014 scope, non-goals, risks, trade-offs, or key decisions captured as an artifact to review, approve, or share with a team. Trigger on intents like: \"plan for X\", \"design doc\", \"walk me through how you'd approach\", \"help me think through\", \"before we start building\", \"don't write code yet\", \"align the team\", \"green-light\", \"approve first\", build-vs-buy or library choices, monolith-to-microservice splits, auth/database/framework migrations, new-service designs, introducing patterns (event sourcing, CQRS, sagas), multi-file refactors, data-model changes. Also \u7e41\u9ad4\u4e2d\u6587 (\u8a2d\u8a08\u3001\u898f\u5283\u3001\u7bc4\u570d\u3001\u98a8\u96aa\u3001\u95dc\u9375\u6c7a\u7b56\u3001\u6279\u51c6\u3001\u4e0d\u8981\u76f4\u63a5\u5beb). The deliverable is deliberation \u2014 thinking, judgment, a document \u2014 never code. Do NOT trigger when what-to-do is decided and only execution remains: bug fixes, typos, renames, adding a specific test, running commands, env repair.",
+      "train_passed": 6,
+      "train_failed": 6,
+      "train_total": 12,
+      "train_results": [
+        {
+          "query": "plan for introducing event sourcing to our order management module. i need scope, non-goals, risks, and the key architectural decisions written down before any coding. im not ready to implement, just to decide",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "before i green-light the refactor of our permissions system (currently spread across 6 django apps), i need a written plan with what's in scope, what's explicitly out, and the 3-5 key decisions i'm signing off on",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u60f3\u628a billing module \u5f9e monolith \u62c6\u51fa\u4f86\u505a microservice, \u4e0d\u8981\u76f4\u63a5\u958b\u59cb\u5beb. \u5148\u7d66\u6211\u5b8c\u6574\u7684\u8a2d\u8a08\u601d\u8def, \u7bc4\u570d, \u98a8\u96aa, \u8ddf\u95dc\u9375\u6c7a\u7b56. \u6211\u8981\u6279\u51c6\u5f8c\u624d\u958b\u59cb\u5be6\u4f5c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "I need a proper design doc before we start building the new payments service. rails 7, stripe connect, b2b marketplace model. draft the plan \u2014 scope, out-of-scope, key decisions, unknowns. don't write code yet, i need to align the team first",
+          "should_trigger": true,
+          "trigger_rate": 0.3333333333333333,
+          "triggers": 1,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "help me think through whether to adopt temporal.io or build our own saga pattern on top of postgres. give me a concrete recommendation with reasoning and what evidence would change your mind \u2014 not a both-sides writeup",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "this test in tests/test_auth.py line 127 is failing because the mock returns None but the assertion expects {}, just add a null check and move on",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "add a unit test for the parseDate function in utils/date.ts, should cover the ISO string case on line 23 and the empty string case. the function itself is fine, just needs coverage",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "walk me through how you'd approach migrating our user auth from devise sessions to stateless jwt. 800k active users, live app. I want a written plan I can show my team before any code gets touched",
+          "should_trigger": true,
+          "trigger_rate": 0.3333333333333333,
+          "triggers": 1,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "set up my local dev env per the README, something broke when i pulled latest main and now pytest wont even collect. just need it working again",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "theres a typo in README.md line 34, says 'baranus' instead of 'baransu'. fix it",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "refactor user_service.py variable naming \u2014 all the names are camelCase but the rest of the repo is snake_case. purely cosmetic, no logic changes",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "run the test suite and tell me whats red, then fix any obvious assertion-mismatch bugs. no big changes",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ],
+      "test_passed": 4,
+      "test_failed": 4,
+      "test_total": 8,
+      "test_results": [
+        {
+          "query": "our oncall has been paged 3x/week for the same stripe webhook double-processing issue. im done patching. lets step back and redesign this properly \u2014 i want a written proposal with scope, key decisions, and risks",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "thinking about adding graphql alongside our existing rest api for the mobile clients. before I commit I need the trade-offs and a recommended approach laid out as a plan \u2014 no code, just the thinking",
+          "should_trigger": true,
+          "trigger_rate": 0.3333333333333333,
+          "triggers": 1,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "can you explain how our auth middleware was designed? i inherited this codebase from the previous team and want to understand why they chose jwt over sessions. not planning any changes, just learning",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "we're evaluating snowflake vs bigquery vs databricks for our new analytics warehouse. 5TB/month ingest growing 2x/year, need a clear recommendation with falsifiable criteria. no both-sides waffle, pick one and tell me why",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "i want to add multi-tenancy to our b2b saas. currently single-tenant postgres, 5 engineers, 3-month budget. give me the approach, scope, key decisions \u2014 then i'll decide whether to greenlight. no code yet",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "migrate utils/date_helpers.js to typescript. just converting, no behavior change, just adding type annotations. no design decisions needed",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "can you review the PR i just opened, #482, its 3 files around the retry logic. just checking for bugs, dont rewrite it",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "rename the variable userEmail to userEmailAddress across the whole codebase, its inconsistent between files right now. mechanical change, no logic shifts",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ],
+      "passed": 6,
+      "failed": 6,
+      "total": 12,
+      "results": [
+        {
+          "query": "plan for introducing event sourcing to our order management module. i need scope, non-goals, risks, and the key architectural decisions written down before any coding. im not ready to implement, just to decide",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "before i green-light the refactor of our permissions system (currently spread across 6 django apps), i need a written plan with what's in scope, what's explicitly out, and the 3-5 key decisions i'm signing off on",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "\u60f3\u628a billing module \u5f9e monolith \u62c6\u51fa\u4f86\u505a microservice, \u4e0d\u8981\u76f4\u63a5\u958b\u59cb\u5beb. \u5148\u7d66\u6211\u5b8c\u6574\u7684\u8a2d\u8a08\u601d\u8def, \u7bc4\u570d, \u98a8\u96aa, \u8ddf\u95dc\u9375\u6c7a\u7b56. \u6211\u8981\u6279\u51c6\u5f8c\u624d\u958b\u59cb\u5be6\u4f5c",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "I need a proper design doc before we start building the new payments service. rails 7, stripe connect, b2b marketplace model. draft the plan \u2014 scope, out-of-scope, key decisions, unknowns. don't write code yet, i need to align the team first",
+          "should_trigger": true,
+          "trigger_rate": 0.3333333333333333,
+          "triggers": 1,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "help me think through whether to adopt temporal.io or build our own saga pattern on top of postgres. give me a concrete recommendation with reasoning and what evidence would change your mind \u2014 not a both-sides writeup",
+          "should_trigger": true,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "this test in tests/test_auth.py line 127 is failing because the mock returns None but the assertion expects {}, just add a null check and move on",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "add a unit test for the parseDate function in utils/date.ts, should cover the ISO string case on line 23 and the empty string case. the function itself is fine, just needs coverage",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "walk me through how you'd approach migrating our user auth from devise sessions to stateless jwt. 800k active users, live app. I want a written plan I can show my team before any code gets touched",
+          "should_trigger": true,
+          "trigger_rate": 0.3333333333333333,
+          "triggers": 1,
+          "runs": 3,
+          "pass": false
+        },
+        {
+          "query": "set up my local dev env per the README, something broke when i pulled latest main and now pytest wont even collect. just need it working again",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "theres a typo in README.md line 34, says 'baranus' instead of 'baransu'. fix it",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "refactor user_service.py variable naming \u2014 all the names are camelCase but the rest of the repo is snake_case. purely cosmetic, no logic changes",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        },
+        {
+          "query": "run the test suite and tell me whats red, then fix any obvious assertion-mismatch bugs. no big changes",
+          "should_trigger": false,
+          "trigger_rate": 0.0,
+          "triggers": 0,
+          "runs": 3,
+          "pass": true
+        }
+      ]
+    }
+  ]
+}

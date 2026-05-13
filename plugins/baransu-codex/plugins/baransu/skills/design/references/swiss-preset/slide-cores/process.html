@@ -1,0 +1,53 @@
+<!--
+---
+layout_id: process
+applies_to:
+  bullet_count: "5"
+  has_image: forbidden
+  role: body
+---
+Adapts to: stepwise procedural slides (S09 in guizang baseline).
+Five-step horizontal flow with chevron-style step markers. No <polygon>.
+Tokens consumed: var(--paper), var(--ink), var(--accent), var(--border).
+-->
+<link rel="stylesheet" href="../tokens.css">
+<style>
+  .swiss-slide--process { padding: 56px 64px; background: var(--paper); color: var(--ink);
+    font-family: var(--font-sans); font-weight: 500; text-wrap: pretty; }
+  .swiss-process-heading { font-size: 28px; line-height: 1.20; letter-spacing: -0.01em;
+    font-weight: 500; margin: 0 0 36px; }
+  .swiss-process-track { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+    gap: 18px; align-items: stretch; padding: 0; margin: 0; list-style: none; }
+  .swiss-process-step { position: relative; padding: 18px 22px 18px 38px;
+    border: 1px solid var(--border); border-left: 4px solid var(--accent);
+    background: var(--paper); }
+  .swiss-process-num { position: absolute; top: 18px; left: 12px; font-size: 13px;
+    letter-spacing: 0.06em; color: var(--accent); font-weight: 500;
+    font-variant-numeric: tabular-nums; }
+  .swiss-process-label { font-size: 21px; line-height: 1.30; font-weight: 500;
+    margin: 0 0 6px; }
+  .swiss-process-note { font-size: 15px; line-height: 1.55; color: var(--text-muted);
+    text-wrap: pretty; margin: 0; }
+  .swiss-process-caption { margin-top: 28px; font-size: 13px; color: var(--text-faint); }
+</style>
+<section data-layout="process" class="swiss-slide swiss-slide--process">
+  <h2 class="swiss-process-heading">How the loop runs</h2>
+  <ol class="swiss-process-track">
+    <li class="swiss-process-step"><span class="swiss-process-num">01</span>
+      <h3 class="swiss-process-label">Frame</h3>
+      <p class="swiss-process-note">State the user problem in one sentence.</p></li>
+    <li class="swiss-process-step"><span class="swiss-process-num">02</span>
+      <h3 class="swiss-process-label">Probe</h3>
+      <p class="swiss-process-note">Pull telemetry, interview three users.</p></li>
+    <li class="swiss-process-step"><span class="swiss-process-num">03</span>
+      <h3 class="swiss-process-label">Draft</h3>
+      <p class="swiss-process-note">Sketch the smallest viable response.</p></li>
+    <li class="swiss-process-step"><span class="swiss-process-num">04</span>
+      <h3 class="swiss-process-label">Ship</h3>
+      <p class="swiss-process-note">Release behind a flag, watch for drift.</p></li>
+    <li class="swiss-process-step"><span class="swiss-process-num">05</span>
+      <h3 class="swiss-process-label">Reflect</h3>
+      <p class="swiss-process-note">Retire the flag or repeat the loop.</p></li>
+  </ol>
+  <figcaption class="swiss-process-caption">Process &#x2014; five-step horizontal flow</figcaption>
+</section>

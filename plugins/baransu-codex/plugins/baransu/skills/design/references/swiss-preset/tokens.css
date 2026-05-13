@@ -28,8 +28,9 @@
   --border-soft:     #e6e5e0;  /* secondary border / row separator */
 
   /* ── Typography (sans-serif only — Swiss invariant) ─── */
-  --font-sans: 'Inter', 'Helvetica Neue', 'Noto Sans TC', sans-serif;
-  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', Consolas, Monaco, monospace;
+  --font-sans:  'Inter', 'Helvetica Neue', 'Noto Sans TC', sans-serif;
+  --font-serif: var(--font-sans);    /* sans alias per REQ-001 (Swiss is sans-only) */
+  --font-mono:  'JetBrains Mono', 'SF Mono', 'Fira Code', Consolas, Monaco, monospace;
 
   /* ── Depth (ring / whisper only — no hard shadows) ─── */
   --shadow-ring:    0 0 0 1px var(--border);
@@ -58,6 +59,10 @@
   --section-title-align: left;
   --grid-columns: 12;
   --grid-gutter: 24px;
+
+  /* ── Semantic (metric.html consumer) ── */
+  --delta-up:   #1f5f3d;  /* dark green, IKB-compatible */
+  --delta-down: #8b1f1f;  /* dark red */
 }
 
 /* ── Base reset (minimal, Swiss-safe) ─────────────────────── */
@@ -78,9 +83,10 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-primary);
   letter-spacing: -0.01em;
 }
-h1 { font-size: 2.25rem; line-height: 1.15; }
-h2 { font-size: 1.5rem;  line-height: 1.25; }
-h3 { font-size: 1.25rem; line-height: 1.30; }
+/* Modular scale: perfect fourth r=1.333 (anchor body=16px) — see canonical-tokens.md */
+h1 { font-size: 2.375rem;  line-height: 1.10; }  /* 38px ≈ 16 × 1.333³ */
+h2 { font-size: 1.75rem;   line-height: 1.20; }  /* 28px ≈ 16 × 1.333² */
+h3 { font-size: 1.3125rem; line-height: 1.30; }  /* 21px ≈ 16 × 1.333  */
 
 /* No italics — Kami-portable invariant (Swiss also avoids them) */
 em, i { font-style: normal; font-weight: 500; }

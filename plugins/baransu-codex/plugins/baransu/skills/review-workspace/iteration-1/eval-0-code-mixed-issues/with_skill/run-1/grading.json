@@ -1,0 +1,50 @@
+{
+  "expectations": [
+    {
+      "text": "最終報告以繁體中文輸出（含 Verdict、Tier、Claim 等段落）",
+      "passed": true,
+      "evidence": "review-report.md uses Traditional Chinese throughout — headings include '目標宣稱 (Claim Checklist)', '派遣的審核者', '發現（四級 triage）', 'Tier 1 — 已自動修復', 'Tier 3 — 需判斷', '結論'. Verdict line at L3: '**Verdict：FAIL**'."
+    },
+    {
+      "text": "Verdict 為 INCOMPLETE — 因無 e2e 測試證據",
+      "passed": false,
+      "evidence": "review-report.md L3: '**Verdict：FAIL**' — verdict is FAIL, not INCOMPLETE. L158-160 explicitly states '審核結果不因缺 e2e 而 INCOMPLETE' and treats e2e gate as n/a because fixtures/ has no test infra."
+    },
+    {
+      "text": "Tier 1 列出至少一個非語意問題（unused import: datetime 或 logging 或 os；或 quote-style 不一致）",
+      "passed": true,
+      "evidence": "review-report.md L59-60: 'T1-a | fixtures/user_service.py | 6 | 刪除 import datetime  # unused' and 'T1-b | fixtures/user_service.py | 7 | 刪除 import logging  # unused'."
+    },
+    {
+      "text": "Tier 3 包含硬編碼 API_KEY 的 finding（含檔名:行號）",
+      "passed": true,
+      "evidence": "review-report.md L85 (Q1 security table, sec-01): 'user_service.py:9' severity critical — 'API_KEY = \"sk-live-9f8a7b…\"'."
+    },
+    {
+      "text": "Tier 3 包含 authenticate() 的 null-check bug（user 可能為 None 時直接存取 user['password_hash']）",
+      "passed": true,
+      "evidence": "review-report.md L102 (Q2 qual-01): 'user_service.py:40-43 | critical | users.get(username) 在查無此人時回 None，下一行 user[\"password_hash\"] 直接對 None 做 subscript → TypeError'."
+    },
+    {
+      "text": "UserBuilder 的架構 finding 經 balance check 評估（降級為 advisory / FYI，或明確討論不做的代價 vs 做的代價）",
+      "passed": true,
+      "evidence": "review-report.md L119-122 explicitly weighs costs: '不做：留 17 行無 consumer 的抽象 → 誤導 reader、增加維護面 / 做：刪 ~20 行、閱讀更直接 → 失去... 幻想預留 / 中間方案：保留 build_user helper，只刪 UserBuilder —— 成本最小'. Plus dispatch-log.md L41: 'Balance-check applied to every new-work finding.'"
+    },
+    {
+      "text": "沒有建議使用者重跑 /baransu:think 或 /baransu:review",
+      "passed": true,
+      "evidence": "grep of review-report.md finds '/baransu:review' only in header (L1) and simulation footer (L181) — no recommendation to re-run. No mention of '/baransu:think' anywhere. No '再跑' / '重跑' language present."
+    },
+    {
+      "text": "派遣紀錄顯示三個 perspective reviewer 都被啟用（代碼含 auth + 邏輯 + 結構三種面向）",
+      "passed": true,
+      "evidence": "dispatch-log.md L13-16 Stage 3 activation table: 'quality-reviewer | YES', 'security-reviewer | YES', 'architecture-reviewer | YES', 'adversarial | NO'. Mirrored in review-report.md L43-45 '派遣的審核者' section."
+    }
+  ],
+  "summary": {
+    "passed": 7,
+    "failed": 1,
+    "total": 8,
+    "pass_rate": 0.875
+  }
+}

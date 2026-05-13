@@ -107,7 +107,7 @@ ARGS_FULL = re.compile(r"\$ARGUMENTS\b")
 ARGS_INDEXED = re.compile(r"\$ARGUMENTS\[(\d+)\]|\$(\d+)\b")
 NAMED_ARG = re.compile(r"\$([a-z][a-z0-9_-]*)\b")
 SESSION_ID = re.compile(r"\$\{CLAUDE_SESSION_ID\}")
-SKILL_DIR = re.compile(r"\$\{CLAUDE_SKILL_DIR\}")
+SKILL_DIR = re.compile(r"\$\{CLAUDE_SKILL_DIR\}|\$CLAUDE_SKILL_DIR\b")
 EFFORT = re.compile(r"\$\{CLAUDE_EFFORT\}")
 
 
@@ -327,6 +327,47 @@ def rewrite_body(
             f"{named_count} 處宣告命名參數（{', '.join(named_args or [])}）改寫為自然語言"
         )
 
+    # Claude tool-name / agent-dispatch rewrites (skill-mapping.md §6).
+    # Multi-token patterns first so they don't get partially consumed.
+    tool_count = 0
+
+    # `Dispatch <X>-agent` / `Dispatches <X>-agent` → `spawn a `<X>-agent` subagent`.
+    def dispatch_sub(m: re.Match[str]) -> str:
+        nonlocal tool_count
+        tool_count += 1
+        return f"spawn a `{m.group(1)}` subagent"
+
+    body = re.sub(r"\bDispatch[s]?\s+`?([a-zA-Z][\w-]*?-agent)`?", dispatch_sub, body)
+
+    # Single-token Claude API references.
+    TOKEN_MAP: list[tuple[str, str]] = [
+        # Subagent / task plumbing
+        (r"\bTask\s+tool\b", "Codex subagent"),
+        (r"\bTaskCreate\b", "track the task internally"),
+        (r"\bTaskUpdate\b", "update task state internally"),
+        (r"\bTaskGet\b", "look up the task internally"),
+        (r"\bTaskList\b", "list tracked tasks internally"),
+        (r"\bTaskOutput\b", "read tracked task output internally"),
+        (r"\bTaskStop\b", "stop the tracked task internally"),
+        (r"\bTodoWrite\b", "track steps internally"),
+        # User interaction
+        (r"\bAskUserQuestion\b", "ask the user directly"),
+        # Plan mode (no skill-callable equivalent in Codex)
+        (r"\bEnterPlanMode\b", "produce a plan and pause for confirmation"),
+        (r"\bExitPlanMode\b", "exit the plan and proceed with edits"),
+        # Web access
+        (r"\bWebFetch\b", "fetch the URL"),
+        (r"\bWebSearch\b", "search the web"),
+    ]
+    for pat, repl in TOKEN_MAP:
+        body, n = re.subn(pat, repl, body)
+        tool_count += n
+
+    if tool_count:
+        report.rewrites.append(
+            f"{tool_count} 處 Claude tool / agent 派遣關鍵字改寫為 Codex 對等敘述（AskUserQuestion / Dispatch X-agent / TaskCreate 等）"
+        )
+
     return body
 
 
@@ -368,36 +409,57 @@ def write_skill(
         )
 
 
-SKILL_DIR_ENV = re.compile(r"\$\{CLAUDE_SKILL_DIR\}")
+SKILL_DIR_ENV = re.compile(r"\$\{CLAUDE_SKILL_DIR\}|\$CLAUDE_SKILL_DIR\b")
 
 
 def copy_aux(source: Path, target: Path, report: TransferReport) -> None:
+    # Standard auxiliary dirs.
     for sub in ("scripts", "references", "assets"):
         src = source / sub
         if src.is_dir():
             shutil.copytree(src, target / sub, dirs_exist_ok=True)
 
-    scripts_dir = target / "scripts"
-    if not scripts_dir.is_dir():
-        return
+    # Skill-root orphan files (e.g. grade/CRON.md). These get silently dropped
+    # otherwise; surface them so SKILL.md cross-references don't dangle.
+    orphan_files: list[str] = []
+    for path in source.iterdir():
+        if path.is_file() and path.name != "SKILL.md":
+            shutil.copy2(path, target / path.name)
+            orphan_files.append(path.name)
+    if orphan_files:
+        report.mapped.append(
+            f"複製 skill-root 零散檔案：{', '.join(orphan_files)}"
+        )
 
+    # `$CLAUDE_SKILL_DIR` rewrite — same logic for scripts/ and references/.
+    # Skip transfer.py itself: its source contains the literal regex pattern
+    # `\$\{CLAUDE_SKILL_DIR\}|\$CLAUDE_SKILL_DIR\b`, which the rewriter would
+    # turn into `\$\{CLAUDE_SKILL_DIR\}|\.\b` (broken) on every self-port.
     rewritten = 0
-    for path in scripts_dir.rglob("*"):
-        if not path.is_file():
+    rewrite_roots = [target / "scripts", target / "references"]
+    for root in rewrite_roots:
+        if not root.is_dir():
             continue
-        try:
-            text = path.read_text(encoding="utf-8")
-        except (UnicodeDecodeError, OSError):
-            continue
-        if "." not in text:
-            continue
-        new_text, n = SKILL_DIR_ENV.subn(".", text)
-        if n:
-            path.write_text(new_text, encoding="utf-8")
-            rewritten += n
+        for path in root.rglob("*"):
+            if not path.is_file():
+                continue
+            # Self-corruption guard. transfer.py is the rewriter's own source;
+            # rewriting its regex literal would silently break the next dogfood.
+            if path.name == "transfer.py":
+                continue
+            try:
+                text = path.read_text(encoding="utf-8")
+            except (UnicodeDecodeError, OSError):
+                continue
+            if "CLAUDE_SKILL_DIR" not in text:
+                continue
+            new_text, n = SKILL_DIR_ENV.subn(".", text)
+            if n:
+                path.write_text(new_text, encoding="utf-8")
+                rewritten += n
     if rewritten:
         report.rewrites.append(
-            f"{rewritten} 處 scripts/ 內的 `${{CLAUDE_SKILL_DIR}}` 改寫為 `.`（skill root，需從 skill 根目錄執行）"
+            f"{rewritten} 處 scripts/ + references/ 內的 `${{CLAUDE_SKILL_DIR}}` 改寫為 `.`（skill root）"
         )
 
 
@@ -561,14 +623,29 @@ def emit_agent_stub(agent_md: Path, dest: Path) -> None:
     name = agent_md.stem
     body = agent_md.read_text(encoding="utf-8")
 
-    # Best-effort: pull `description:` from frontmatter if present.
+    # Best-effort: pull `description:` and `tools:` from frontmatter if present.
     desc = ""
+    tools: list[str] = []
     fm_end = body.find("\n---", 4) if body.startswith("---\n") else -1
     if fm_end > 0:
         try:
             fm = yaml.safe_load(body[4:fm_end]) or {}
             if isinstance(fm, dict):
-                desc = str(fm.get("description") or "").splitlines()[0][:200]
+                full = str(fm.get("description") or "").splitlines()[0]
+                # Word-boundary truncation: 200-char hard cap was producing
+                # mid-word cuts like ".../baransu:exe" — split on whitespace
+                # before the boundary and add an ellipsis so cross-skill
+                # metadata stays intelligible.
+                if len(full) <= 200:
+                    desc = full
+                else:
+                    desc = full[:197].rsplit(" ", 1)[0].rstrip(",;:.") + "…"
+                # Tools list — emit as a commented-out mcp_servers suggestion.
+                raw_tools = fm.get("tools") or fm.get("allowed-tools")
+                if isinstance(raw_tools, str):
+                    tools = [t.strip() for t in raw_tools.split(",") if t.strip()]
+                elif isinstance(raw_tools, list):
+                    tools = [str(t).strip() for t in raw_tools if str(t).strip()]
         except yaml.YAMLError:
             pass
 
@@ -580,6 +657,19 @@ def emit_agent_stub(agent_md: Path, dest: Path) -> None:
     # round-trip is safe.
     name_quoted = json.dumps(name, ensure_ascii=False)
     desc_quoted = json.dumps(desc, ensure_ascii=False)
+
+    # Render `tools` (Claude) as a commented mcp_servers suggestion. Codex
+    # treats mcp_servers as MCP server ids, NOT as Claude tool names, so this
+    # is provided as documentation only — user enables and renames after
+    # mapping each Claude tool to the appropriate Codex MCP server.
+    if tools:
+        tools_json = json.dumps(tools, ensure_ascii=False)
+        mcp_line = (
+            f"# mcp_servers = {tools_json}"
+            "  # ported from Claude `tools:`; rename to Codex MCP server ids before enabling"
+        )
+    else:
+        mcp_line = "# mcp_servers = []                     # list of MCP server ids the agent may invoke"
 
     stub = (
         f"# Stub generated from {agent_md.name}.\n"
@@ -596,7 +686,7 @@ def emit_agent_stub(agent_md: Path, dest: Path) -> None:
         f"# model = \"gpt-5.4\"\n"
         f"# model_reasoning_effort = \"high\"      # low | medium | high | max\n"
         f"# sandbox_mode = \"workspace-write\"     # read-only | workspace-write | danger-full-access\n"
-        f"# mcp_servers = []                     # list of MCP server ids the agent may invoke\n"
+        f"{mcp_line}\n"
         f"# nickname_candidates = []             # cosmetic names for spawned instances\n"
     )
     dest.write_text(stub, encoding="utf-8")
@@ -710,14 +800,23 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
         )
 
     skill_reports: list[TransferReport] = []
+    aux_dirs_copied: list[str] = []
     if has_skills:
         out_skills = plugin_out / "skills"
         out_skills.mkdir()
         for child in sorted(skills_dir.iterdir()):
-            if not child.is_dir() or not (child / "SKILL.md").is_file():
+            if not child.is_dir():
                 continue
-            skill_reports.append(transfer_one(child, out_skills))
+            if (child / "SKILL.md").is_file():
+                skill_reports.append(transfer_one(child, out_skills))
+            else:
+                # Non-skill sibling dirs under skills/ (e.g. _shared/,
+                # *-workspace/) carry schema files and harness state referenced
+                # by SKILL.md bodies. Copy verbatim so cross-references resolve.
+                shutil.copytree(child, out_skills / child.name)
+                aux_dirs_copied.append(child.name)
         summary["skill_count"] = len(skill_reports)
+        summary["aux_dirs_copied"] = aux_dirs_copied
 
     agents_dir = plugin_root / "agents"
     if agents_dir.is_dir():
@@ -813,6 +912,10 @@ def main(argv: list[str]) -> int:
                 f"`.codex-agents-templates/`（請人工檢視後複製至 `~/.codex/agents/`）"
             )
         print(f"- Skills 處理：{summary['skill_count']} 個")
+        if summary.get("aux_dirs_copied"):
+            print(
+                f"- Skills 共用目錄整批拷貝：{', '.join(summary['aux_dirs_copied'])}"
+            )
         print(f"- 寫入 `.agents/plugins/marketplace.json` (marketplace 目錄結構：plugins/{summary['plugin_name']}/)")
         print(
             "- End-user install (記得寫進 README)：\n"

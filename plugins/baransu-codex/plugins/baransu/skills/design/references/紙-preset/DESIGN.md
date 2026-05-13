@@ -31,8 +31,8 @@ Kami 十不變量（來自 CHEATSHEET.md canonical invariants）：
 | `--warm-sand` | `#e8e6dc` | 按鈕、互動表面（Button / interactive surface） |
 | `--dark-surface` | `#30302e` | 深色容器（Dark container） |
 | `--deep-dark` | `#141413` | 深色頁面背景（Dark page background） |
-| `--brand` | `#1B365D` | 主色 / Accent（Ink-blue，唯一彩色，≤5% 表面） |
-| `--brand-light` | `#2D5A8A` | 深色背景上的連結 / 亮版（Link on dark surface） |
+| `--brand` | `#1B365D → oklch(0.32 0.08 256)` | 主色 / Accent（Ink-blue，唯一彩色，≤5% 表面） |
+| `--brand-light` | `#2D5A8A → oklch(0.49 0.10 256)` | 深色背景上的連結 / 亮版（Link on dark surface） |
 | `--near-black` | `#141413` | 主要文字（Primary text） |
 | `--dark-warm` | `#3d3d3a` | 次要文字、表格標頭（Secondary text / table header） |
 | `--olive` | `#504e49` | 輔助文字、說明（Subtext / description） |
@@ -58,6 +58,8 @@ Kami 十不變量（來自 CHEATSHEET.md canonical invariants）：
 | 0.14 | `#E4ECF5` | — |
 | 0.22 | `#D0DCE9` | — |
 | 0.30 | `#D6E1EE` | — |
+
+> **Footnote — oklch advisory**：表中 `→ oklch(...)` 為 advisory 等價值，僅供色彩感知比對與未來 Chromium-print migration 參考；現行 WeasyPrint print pipeline 仍以 hex 為唯一渲染來源，tokens.css 與 design-cores HTML 不得出現 `oklch()` 函數。
 
 ---
 
@@ -107,6 +109,27 @@ Kami 十不變量（來自 CHEATSHEET.md canonical invariants）：
 - `--sans` 永遠 alias `--serif`，不引入獨立 sans-serif 字族（invariant #4）
 - 所有含 CJK 內容的字型宣告（header、footer、SVG label、code）必須包含 CJK fallback
 - 中英文混排：中文字型在前，英文 Charter/Georgia 在後
+
+### Dropcap
+
+長文段首字母採 dropcap 工藝；3-line drop 是印刷學甜蜜點（不是 2，也不是 4）。
+class 前綴對齊 preset：`.kami-dropcap`。
+
+```css
+.kami-dropcap {
+  float: left;
+  font-size: 4.65em;      /* 4.65em = 3 × body line-height (1em × 1.55 × 3); renders as 3-line drop with body line-height 1.55 */
+  line-height: 1;         /* 避免繼承 body line-height 導致高度爆炸 */
+  font-weight: 500;       /* 對齊 Kami invariant #5，禁用 700 */
+  color: var(--accent);   /* 墨藍主色 #1B365D */
+  padding-right: 8px;     /* ≥ 4px 防字身擠壓 */
+  padding-top: 2px;       /* 視覺對齊微調 */
+}
+```
+
+**使用**：`<p class="kami-body"><span class="kami-dropcap">L</span>orem ipsum...</p>`
+
+**Kami 不變量延伸**：dropcap 字身禁用 `<small>` 或 italic style；用 `<span>` 而非 `<em>` / `<i>`。
 
 ---
 
@@ -259,3 +282,31 @@ line-height: 1.55;
 以下提示詞可在全新 AI 對話中重現本設計系統的視覺語言：
 
 > Design a UI using the Kami paper design system. Background: warm parchment `#f5f4ed`; card surfaces: `#faf9f5`; interactive surfaces: `#e8e6dc`. Primary accent: ink-blue `#1B365D` (≤5% surface area). Text hierarchy: near-black `#141413` → warm dark `#3d3d3a` → olive `#504e49` → stone `#6b6a64`. Borders: `--border: #e8e6dc` (primary), `--border-soft: #e5e3d8` (secondary). Typography: Charter/Georgia for English, TsangerJinKai02/Noto Serif SC for Chinese — all weights locked at 500 for headings (no bold), 400 for body. `--sans` aliases `--serif`. Line-height: headlines 1.1–1.3, body 1.5–1.55. Shadows: ring only (`0 0 0 1px var(--border)`) for static; whisper (`0 4px 24px rgba(0,0,0,0.05)`) for hover. No hard drop shadows. Tags use solid hex `#EEF2F7` (never rgba). Section titles use a 2.5pt brand left bar. No italics anywhere. The aesthetic is warm printed paper — ink on parchment, craft over chrome.
+
+### (a) 焦點節點上限
+
+每一頁、每一張投影片，焦點節點上限為 **1–2 個**：
+- 主焦點（1 個必有）：以 `--accent: #1B365D` 染色——通常為 H1 標題、品牌左 bar、或唯一 CTA。
+- 次焦點（0–1 個，可選）：以「結構強度」而非「顏色」承擔——例如加粗的 metric 數字、或一條明顯的 left-bar 分節線。次焦點 **不得** 再用 accent；違反即視為色彩過載。
+
+### (b) accent hex 設計理據
+
+主 accent `#1B365D`（ink-blue）拆解：
+
+| Space | Coordinates | 設計意圖 |
+|-------|-------------|----------|
+| HEX | `#1B365D` | 主規格；WeasyPrint print pipeline 以此為準 |
+| HSL | `H 211°, S 55%, L 24%` | 冷色相位 211° 接近 royal blue 但偏深；S 55% 避免過飽和顯霓虹；L 24% 屬「深色印刷藍」——在 warm parchment 上形成高對比但不刺眼 |
+| oklch（advisory） | `oklch(0.32 0.08 256)` | screen / 設計工具參考用；色相 256° 為 perceptual 等價；C 0.08 對應印刷藍的低彩度 |
+
+選色理由：對齊鋼筆墨水（fountain pen ink）在 cream paper 上的視覺記憶；避開飽和 royal blue（過於數位）與 navy（過於企業）兩端。
+
+### (c) 我不是什麼（anti-patterns / allowed contradictions）
+
+- no second accent — 全頁只有一個彩色；任何「次強調色」皆以中性灰階重量替代
+- no italics — 模板與 demo 均禁用，襯線斜體在 print pipeline 容易掉字
+- no cool accent shift — accent 不得偏向 cyan / teal 等冷色；warm parchment 需要 warm-shifted blue
+- no oklch in attribute — `tokens.css` / `design-cores/` HTML 內聯 style 不可出現 `oklch(`；oklch 僅為文件 advisory
+- no gradient bg — 背景永遠是平塗紙色；禁 linear-gradient / radial-gradient 背景
+- no hard drop shadow — 深度只用 ring + whisper；禁 `0 8px 16px rgba(0,0,0,0.3)` 類硬邊陰影
+- no all-caps headings — 中英混排不使用 letter-spacing + uppercase 的設計派頭

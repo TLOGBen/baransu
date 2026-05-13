@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  letter-en.html — Kami preset Letter template (v1.4, en)
+  Schema: schemas/letter.md
+  Class prefix: kami-*
+  Dropcap on first body paragraph (.kami-dropcap wraps a capital letter).
+  Font stack excludes CJK fonts (Charter / Georgia / Palatino).
+-->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{SENDER}} — Letter to {{RECIPIENT}}</title>
+  <link rel="stylesheet" href="../tokens.css">
+  <style>
+    @page { size: A4; margin: 28mm; }
+    * { box-sizing: border-box; }
+    body {
+      background: var(--paper); color: var(--text-primary);
+      font-family: Charter, Georgia, "Palatino Linotype", Palatino, serif;
+      margin: 0; text-wrap: pretty;
+    }
+    .kami-page { max-width: 720px; margin: 0 auto; padding: 64px 48px; }
+    .kami-letter-header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 0.5px solid var(--border); padding-bottom: 16px; margin-bottom: 32px; }
+    .kami-sender { font-size: 14px; color: var(--text-secondary); margin: 0; }
+    .kami-date { font-size: 13px; color: var(--text-muted); letter-spacing: 0.04em; margin: 0; }
+    .kami-salutation { font-size: 17px; color: var(--text-primary); margin: 0 0 24px; font-weight: 500; }
+    .kami-body { font-size: 16px; line-height: 1.55; color: var(--text-primary); margin: 0 0 20px; text-wrap: pretty; }
+    .kami-dropcap { float: left; font-size: 4.65em; line-height: 1; font-weight: 500; color: var(--accent); padding-right: 8px; padding-top: 2px; }
+    .kami-closing { margin-top: 40px; font-size: 16px; line-height: 1.55; color: var(--text-primary); }
+    .kami-closing-line { margin: 0 0 8px; }
+    .kami-signature { font-size: 17px; font-weight: 500; margin: 16px 0 4px; }
+    .kami-signature-meta { font-size: 12px; color: var(--text-muted); letter-spacing: 0.04em; }
+    .kami-footer { font-size: 11px; color: var(--text-faint); border-top: 0.5px solid var(--border); padding-top: 16px; margin-top: 56px; }
+    em, i { font-style: normal; font-weight: 500; }
+  </style>
+</head>
+<body class="kami-paper-body">
+<div class="kami-page">
+
+  <header class="kami-letter-header">
+    <p class="kami-sender">{{SENDER}}</p>
+    <p class="kami-date">{{DATE}}</p>
+  </header>
+
+  <p class="kami-salutation">Dear {{RECIPIENT}},</p>
+
+  <p class="kami-body"><span class="kami-dropcap">O</span>ver the past year, thanks to your trust and support, our company has successfully closed its second round of financing and sustained steady growth. Of the three milestones set at the start of the year — self-serve onboarding, flagship overseas customers, and team build-out — two have been delivered.</p>
+
+  <p class="kami-body">As for the remaining one, we have chosen to defer delivery by a quarter in exchange for a more rigorous customer-onboarding flow. The decision was not easy, yet we believe that restraint is design: it is better to take one fewer step than to stumble on the path we have already laid.</p>
+
+  <p class="kami-body">Looking to the year ahead, we will focus on three directions: expansion into North Asia, deeper product automation, and continued improvements in financial transparency. The detailed plan will be presented at the next shareholders meeting.</p>
+
+  <p class="kami-body">Finally, thank you all for your patience and foresight. We understand that every measure of trust is also a measure of responsibility; only by honoring today’s commitments do we earn the right to speak of tomorrow’s vision.</p>
+
+  <section class="kami-closing">
+    <p class="kami-closing-line">Sincerely yours,</p>
+    <p class="kami-signature">{{SENDER}}</p>
+    <p class="kami-signature-meta">{{TITLE}} / {{ORG}}</p>
+  </section>
+
+  <footer class="kami-footer">{{ORG}} / Letter to {{RECIPIENT}} / {{DATE}}</footer>
+
+</div>
+</body>
+</html>

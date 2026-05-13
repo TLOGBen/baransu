@@ -165,7 +165,7 @@ The script produces, per cluster:
 
 ---
 
-## Stage 2 — Dispatch investigator-agent
+## Stage 2 — spawn a `investigator-agent` subagent
 
 For each cluster whose `severity_aggregate ≥ 0.5` (the over-threshold
 gate), dispatch the read-only `investigator-agent` perspective
