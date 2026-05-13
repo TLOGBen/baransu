@@ -1,5 +1,5 @@
 {
-  "iter_count": 20,
+  "iter_count": 21,
   "score_overall": null,
   "score_history": [],
   "last_review_findings": 0,
@@ -13,23 +13,23 @@
     },
     {
       "from_iter": 17,
-      "task": "TASK-layouts-01/02/03",
-      "severity": "P2 (cluster)",
-      "issue": "三 preset slide-cores all land at 21/22 (closing.html is overwrite not new)",
-      "action": "TASK-layouts-04 validator soft-warns 4 missing canonical layouts: toc / image-full / quote-stack / breakout. Could be added uniformly in a follow-up dogfood pass."
+      "task": "TASK-layouts-01/02/03 cluster",
+      "severity": "P2",
+      "issue": "三 preset slide-cores all at 21/22 (closing overwrite). validator soft-warns 4 canonical missing: toc / image-full / quote-stack / breakout",
+      "action": "dogfood pass to add missing 4 across all 3 presets uniformly"
     }
   ],
   "pending_spec_drift": [
     "task-shared.md vs requirement.md Scenario 2 wording: canonical 5 anti-patterns assigned to 紙 in task-md but to swiss in req-md",
-    "REQ-003 Scenario 3 wording references `--font-h*` CSS variables but 三 preset tokens.css use direct h1{} selectors",
+    "REQ-003 Scenario 3 wording references `--font-h*` CSS variables but tokens.css uses direct h1{} selectors",
     "TASK-svg-01 P2: flowchart diamond uses 128×128 rotated rect",
     "TASK-svg-03 P1: REQ-001 Scenario 4 mod-4 wording vs validator coverage",
     "TASK-svg-04 P2: chevron marker defs duplicated across 13 diagram-types",
-    "TASK-svg-05 infra: validate-output.ts has 10+ pre-existing TypeScript diagnostics",
-    "TASK-editorial-01 P2 nit: lead classes don't receive text-wrap: pretty",
+    "TASK-svg-05 infra: validate-output.ts pre-existing TypeScript diagnostics",
+    "TASK-editorial-01 P2: lead classes don't receive text-wrap: pretty",
     "TASK-editorial-04 F2: editorial-sanity.sh relative path",
-    "TASK-schemas-01/02/layouts-03 P2: wording uses `gd-*` but codebase uses `google-*`",
-    "TASK-schemas-04 P2: Check B uses `continue` on missing; long-doc + slides schemas deferred"
+    "TASK-schemas-01/02/layouts-03 P2: `gd-*` vs `google-*`",
+    "TASK-schemas-04 P2: Check B continue on missing; long-doc + slides schemas deferred"
   ],
   "ab_diff_status": "not_yet_attempted",
   "consecutive_no_progress": 0,
@@ -56,8 +56,9 @@
     {"id": "TASK-layouts-01", "commit": "23f138f", "review": "21/22"},
     {"id": "TASK-layouts-02", "commit": "f3d051f", "review": "21/22"},
     {"id": "TASK-layouts-03", "commit": "9b6b66a", "review": "21/22"},
-    {"id": "TASK-layouts-04", "commit": "5eae299", "review": "1 P1 fixed in 6661221 — alias map for v1.3 filenames"}
+    {"id": "TASK-layouts-04", "commit": "5eae299", "review": "1 P1 fixed in 6661221 — alias map"},
+    {"id": "TASK-layouts-05", "commit": "0f4993f", "review": "1 F1 fixed in b1a3ec9 — registry slugs canonical; LAYOUTS 5/5"}
   ],
-  "next_task": "TASK-layouts-05",
-  "notes": "iter 20 done; layouts 4/5; validate-swiss-deck.mjs live + 三 sanity 整合; 20/33 tasks; 13 remaining."
+  "next_task": "TASK-cg-01",
+  "notes": "iter 21 done; 🎉 LAYOUTS GROUP 5/5 COMPLETE; 21/33 tasks; 12 remaining. Moving to checklist-governance group."
 }
