@@ -314,6 +314,22 @@ For each section from `$STRUCTURE`:
 只在 long-form HTML 含 `<figure class="diagram">` 時生效。spec 含：色彩 token（canonical names + Kami hex 預設）、必備 `<defs>` / marker / 兩層 paper-mask、type tag、legend strip、4 px 對齊與 12 檔節點寬白名單、嵌入字體校正、14 型圖表 first-match 決策樹、13 型 selection 表（含 `status: complete | ref-only`）。
 
 **完整規則 → 讀 `references/svg-rendering-rules.md`。**SVG fill / stroke **禁用 `rgba()`**；節點寬限 12 檔；焦點節點透過 `data-role="focal"` 標記，每張 SVG 上限 2 個。
+
+### 4.5 Core Asset Protocol（圖片取得）
+
+任一階段需 fetch 點陣 / 攝影 / logo / UI mockup 圖時，**嚴格依序**走以下 4 步。**Steps must run in order; skipping = fail and abort.**（跳步即視為 fail 並中止；例：未 verify 就 freeze。）
+
+1. **Ask** — 與 user 確認圖片用途、構圖、必含元素、禁用元素（避免 AI slop：六指、扭曲文字、浮水印、page chrome）。未拿到確認前不得進入步驟 2。
+2. **Generate OR Search** — 二擇一：
+   - **Generate**：跑 **Codex CLI image-gen**，brief 由 `/baransu:design export-brief` 產出後 stdin 餵入。範例：
+     ```bash
+     codex prompt --stdin < .claude/design/brief-{preset}-{date}.md \
+       --suffix "請生成符合上述 design brief 的封面圖，no title, no footer, no page chrome, no logo, no border"
+     ```
+   - **Search**：呼叫 `WebSearch` 找現成資源；**只接受 CC license**（CC0 / CC-BY / CC-BY-SA），其餘一律退回 Generate 分支。
+3. **Verify** — renderer 將圖嵌入 long-form HTML preview，user 肉眼確認構圖、版面對齊、無 AI slop、無 watermark；未通過則退回步驟 2 重跑。
+4. **Freeze** — commit 圖檔到 `.claude/book/{slug}/assets/`，並寫 `meta.json` 含 `source`（generate / search）、`prompt`（Generate 路徑必填）、`license`（Search 路徑必填）、`verified_at` 時戳。Freeze 後該圖視為不可變；要換 → 從步驟 1 重來。
+
 ### 5. 多 format pipeline (PDF / PPTX)
 
 只在 `$FORMAT` ∈ {`pdf`, `ppt`, `all`} 時生效。

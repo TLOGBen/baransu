@@ -61,25 +61,25 @@
 **需求追溯**：REQ-006 Scenario 2
 **目標**：圖片取得走 ask → generate-OR-search → verify → freeze 4 步，跳步即 fail。
 **驗收標準**：
-- [ ] `book/SKILL.md` Stage 3 內含「Core Asset Protocol」獨立段
-- [ ] 段內含 4 步明細，第 2 步明示「Codex CLI image-gen 端 OR Web search 二擇一」
-- [ ] 含「跳步 = fail」明文
+- [x] `book/SKILL.md` Stage 3 內含「Core Asset Protocol」獨立段
+- [x] 段內含 4 步明細，第 2 步明示「Codex CLI image-gen 端 OR Web search 二擇一」
+- [x] 含「跳步 = fail」明文
 
 ### 步驟
 
 #### 規格層
-- [ ] 在 SKILL.md Stage 3 §image 對應段加 Core Asset Protocol 段
-- [ ] 4 步：
+- [x] 在 SKILL.md Stage 3 §image 對應段加 Core Asset Protocol 段
+- [x] 4 步：
   1. **Ask**：與 user 確認圖片用途、構圖、必含元素
   2. **Generate OR Search**：跑 Codex CLI image-gen（傳入 brief from /design export-brief） OR WebSearch 找現成資源（CC license）
   3. **Verify**：renderer 將圖嵌入 long-form HTML preview，user 肉眼確認
   4. **Freeze**：commit 到 `.claude/book/{slug}/assets/` 並寫 `meta.json` 含 source / prompt / license
 
-- [ ] 加「跳步 = fail」明文：「Steps must run in order; skipping = fail and abort.」
+- [x] 加「跳步 = fail」明文：「Steps must run in order; skipping = fail and abort.」
 
 #### 驗證
-- [ ] grep `Core Asset Protocol` book/SKILL.md 命中 ≥ 1
-- [ ] grep `Codex CLI image-gen` book/SKILL.md 命中 ≥ 1
+- [x] grep `Core Asset Protocol` book/SKILL.md 命中 ≥ 1
+- [x] grep `Codex CLI image-gen` book/SKILL.md 命中 ≥ 1
 
 ---
 
