@@ -1,5 +1,9 @@
 #!/usr/bin/env -S npx tsx
 import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { dirname } from "node:path";
+
+const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 
 // ── --format argument parsing ────────────────────────────────────────────────
 const VALID_FORMATS = ["html", "pdf", "ppt", "all"] as const;
@@ -74,6 +78,37 @@ if (playwrightOk) {
     ["playwright", ["install", "chromium"]],
   ]);
   console.log("playwright OK");
+}
+
+// ── cheerio (always required by validate-output.ts) ─────────────────────────
+// Installed locally next to the script so `npx tsx validate-output.ts` resolves
+// it regardless of the caller's cwd. Match: user reports first GATE run fails
+// without this dep.
+const cheerioOk =
+  spawnSync("node", ["-e", "require('cheerio')"], {
+    cwd: SCRIPT_DIR,
+    encoding: "utf8",
+  }).status === 0;
+if (cheerioOk) {
+  console.log("cheerio OK");
+} else {
+  console.error("cheerio not found, installing...");
+  const r = spawnSync("npm", ["install", "cheerio"], {
+    cwd: SCRIPT_DIR,
+    stdio: "inherit",
+  });
+  const stillMissing =
+    spawnSync("node", ["-e", "require('cheerio')"], {
+      cwd: SCRIPT_DIR,
+      encoding: "utf8",
+    }).status !== 0;
+  if (r.status !== 0 || stillMissing) {
+    console.error(
+      `❌ cheerio 安裝失敗。請手動執行：cd ${SCRIPT_DIR} && npm install cheerio`
+    );
+    process.exit(1);
+  }
+  console.log("cheerio OK");
 }
 
 // ── WeasyPrint (pdf | all) ───────────────────────────────────────────────────

@@ -1,104 +1,28 @@
-<!-- Metric Card skeletons — for KPIs, data cards, glance grids -->
+<!--
+  metric.html — Kami preset KPI metric element (v1.3)
+  Tokens: var(--accent), var(--text-faint), var(--text-secondary), var(--delta-up), var(--delta-down), var(--font-mono), var(--paper), var(--border).
+-->
+<article class="kami-metric">
+  <header>
+    <p class="kami-metric-label">Active Users</p>
+  </header>
+  <div class="kami-metric-body">
+    <span class="kami-metric-value">8,243</span>
+    <span class="kami-metric-unit">users</span>
+  </div>
+  <footer class="kami-metric-delta kami-metric-delta--up">
+    ▲ 12.4% vs last week
+  </footer>
+</article>
+
 <style>
-:root {
-  --delta-up:   #2a6c45; /* positive delta — warm dark green */
-  --delta-down: #7a2e2e; /* negative delta — warm dark red  */
-}
-/* Single metric */
-.metric {
-  display: flex;
-  align-items: baseline;
-  gap: 0.4rem;
-}
-.metric-value {
-  font-family: var(--serif);
-  font-size: 1.75rem; /* ≈24pt */
-  font-weight: 500;
-  color: var(--brand);
-  font-variant-numeric: tabular-nums;
-  line-height: 1.1;
-}
-.metric-unit {
-  font-size: 1rem;
-  color: var(--olive);
-}
-.metric-label {
-  font-family: var(--sans);
-  font-size: 0.6875rem; /* ≈9pt */
-  color: var(--olive);
-  margin-top: 0.2rem;
-}
-.metric-delta {
-  font-size: 0.8125rem;
-  font-variant-numeric: tabular-nums;
-}
-.metric-delta.up   { color: var(--delta-up); }
-.metric-delta.down { color: var(--delta-down); }
-
-/* Glance grid — 2-column layout for multiple KPIs */
-.glance-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-.glance-cell {
-  padding: 0.75rem 0.9rem 0.65rem 1rem;
-  border-top: 0.5px solid var(--border);
-}
-.glance-label {
-  font-family: var(--mono);
-  font-size: 0.6rem; /* ≈8.5pt */
-  font-weight: 600;
-  color: var(--brand);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 0.25rem;
-}
-.glance-value {
-  font-family: var(--serif);
-  font-size: 1.5rem;
-  font-weight: 500;
-  color: var(--brand);
-  font-variant-numeric: tabular-nums;
-  line-height: 1.1;
-}
-.glance-note {
-  font-size: 0.6875rem;
-  color: var(--olive);
-  margin-top: 0.2rem;
-}
+  .kami-metric { background: var(--paper); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px 20px; }
+  .kami-metric-label { font-size: 11px; color: var(--text-faint); letter-spacing: 0.04em; text-transform: uppercase; margin: 0; }
+  .kami-metric-body { display: flex; align-items: baseline; gap: 6px; margin: 6px 0; }
+  .kami-metric-value { font-size: 32px; font-weight: 500; color: var(--accent); font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  .kami-metric-unit { font-size: 12px; color: var(--text-faint); }
+  .kami-metric-delta { font-size: 12px; }
+  .kami-metric-delta--up { color: var(--delta-up); }
+  .kami-metric-delta--down { color: var(--delta-down); }
+  em, i { font-style: normal; font-weight: 500; }
 </style>
-
-<!-- Single metric -->
-<div style="margin-bottom: 2rem">
-  <div class="metric">
-    <span class="metric-value">42.7</span>
-    <span class="metric-unit">M</span>
-    <span class="metric-delta up">↑ 8.3%</span>
-  </div>
-  <div class="metric-label">Annual Recurring Revenue</div>
-</div>
-
-<!-- Glance grid (4 KPIs) -->
-<div class="glance-grid">
-  <div class="glance-cell">
-    <div class="glance-label">Revenue</div>
-    <div class="glance-value">$42.7M</div>
-    <div class="glance-note">↑ 8.3% YoY</div>
-  </div>
-  <div class="glance-cell">
-    <div class="glance-label">Customers</div>
-    <div class="glance-value">1,284</div>
-    <div class="glance-note">↑ 142 this quarter</div>
-  </div>
-  <div class="glance-cell">
-    <div class="glance-label">Churn</div>
-    <div class="glance-value">2.1%</div>
-    <div class="glance-note">↓ 0.4pp vs last Q</div>
-  </div>
-  <div class="glance-cell">
-    <div class="glance-label">NPS</div>
-    <div class="glance-value">68</div>
-    <div class="glance-note">Industry avg: 41</div>
-  </div>
-</div>

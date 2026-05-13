@@ -397,7 +397,7 @@ SVG 圖解：{N} 張
 
 ## Validator 分工
 
-- `scripts/validate-output.ts`：負責輸出層（output HTML）的 set membership 與 prefix 一致性，含 GATE A-E (SVG 既有規則) / GATE-F (class prefix `kami-*` / `swiss-*` 不混 + tokens.css preset tie-break) / GATE-G (`data-layout` 必對應 `{project_root}/slide-cores/` 實存檔)。**信任** `/design` 端 `check.py` 已 lint 過 slide-core artifact 內部結構，本驗證不重做 per-file lint。
+- `scripts/validate-output.ts`：負責輸出層（output HTML）的 set membership 與 prefix 一致性，含 GATE A-E (SVG 既有規則) / GATE-F (class prefix `kami-*` / `swiss-*` 不混 + tokens.css preset tie-break) / GATE-G (`data-layout` 必對應 `{project_root}/slide-cores/` 實存檔) / GATE-J node-width whitelist / GATE-K chevron-strict / GATE-L viewBox containment (rect/line/circle/ellipse/text 全落在 viewBox 內，0.5px 容差；skips defs/marker/pattern/clipPath/mask/symbol 與 transformed group)。**信任** `/design` 端 `check.py` 已 lint 過 slide-core artifact 內部結構，本驗證不重做 per-file lint。
 - 對應 `/design` 端見 `plugins/baransu/skills/design/scripts/check.py` 的 artifact-internal lint 規則。
 
 ## REQ-003 Scenario 2 automated evidence

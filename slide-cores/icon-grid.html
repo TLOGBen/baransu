@@ -1,0 +1,62 @@
+<!--
+---
+layout_id: icon-grid
+applies_to:
+  bullet_count: "4|6|9"
+  has_image: optional
+  role: body
+---
+Adapts to: feature- or principle-grid slides (S12 in guizang baseline).
+4 / 6 / 9 grid of icon + title + description cards. Default = 6.
+Icons rendered as inline SVG (no <polygon>; chevron / rule / disc only).
+Tokens consumed: var(--paper), var(--ink), var(--accent).
+-->
+<link rel="stylesheet" href="../tokens.css">
+<style>
+  .kami-slide--icon-grid { padding: 56px 64px; background: var(--paper); color: var(--ink);
+    font-family: var(--font-serif); text-wrap: pretty; }
+  .kami-icon-heading { font-size: 28px; line-height: 1.20; margin: 0 0 28px; }
+  .kami-icon-grid { display: grid; grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr); gap: 24px 32px; }
+  .kami-icon-cell { padding: 18px 20px; border-top: 1px solid var(--ink); }
+  .kami-icon-mark { width: 28px; height: 28px; color: var(--accent); margin-bottom: 10px; }
+  .kami-icon-label { font-size: 21px; line-height: 1.30; margin: 0 0 6px; }
+  .kami-icon-note  { font-size: 15px; line-height: 1.55; opacity: 0.78; text-wrap: pretty; margin: 0; }
+  .kami-icon-caption { margin-top: 24px; font-size: 13px; opacity: 0.6; }
+</style>
+<section data-layout="icon-grid" class="kami-slide kami-slide--icon-grid">
+  <h2 class="kami-icon-heading">Operating principles</h2>
+  <div class="kami-icon-grid">
+    <article class="kami-icon-cell">
+      <svg class="kami-icon-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12 L10 5 L10 19 Z" fill="currentColor"/></svg>
+      <h3 class="kami-icon-label">Deliberate first</h3>
+      <p class="kami-icon-note">Pause before any one-way door.</p>
+    </article>
+    <article class="kami-icon-cell">
+      <svg class="kami-icon-mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6" fill="currentColor"/></svg>
+      <h3 class="kami-icon-label">Verify after</h3>
+      <p class="kami-icon-note">Audit every claim independently.</p>
+    </article>
+    <article class="kami-icon-cell">
+      <svg class="kami-icon-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="2" fill="currentColor"/></svg>
+      <h3 class="kami-icon-label">Surgical scope</h3>
+      <p class="kami-icon-note">Touch only what the task demands.</p>
+    </article>
+    <article class="kami-icon-cell">
+      <svg class="kami-icon-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12 L11 5 L11 19 Z" fill="currentColor"/></svg>
+      <h3 class="kami-icon-label">Surface tradeoffs</h3>
+      <p class="kami-icon-note">Name the option you discarded.</p>
+    </article>
+    <article class="kami-icon-cell">
+      <svg class="kami-icon-mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6" fill="currentColor"/></svg>
+      <h3 class="kami-icon-label">Hold the line</h3>
+      <p class="kami-icon-note">Quality gates over delivery dates.</p>
+    </article>
+    <article class="kami-icon-cell">
+      <svg class="kami-icon-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="2" fill="currentColor"/></svg>
+      <h3 class="kami-icon-label">Document why</h3>
+      <p class="kami-icon-note">Capture the reason, not the recipe.</p>
+    </article>
+  </div>
+  <figcaption class="kami-icon-caption">Icon grid — 4, 6, or 9 cells</figcaption>
+</section>

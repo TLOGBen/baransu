@@ -1,93 +1,103 @@
-/* preset: swiss */
-/* Swiss (IKB) Preset — CSS Design Tokens
-   Drop this into any project or @import it in your main stylesheet.
-   All values match references/swiss-preset/DESIGN.md exactly.
-   Philosophy: Swiss International Style — neutral paper, single high-saturation accent (IKB). */
+/* preset: kami */
+/* 紙 (Kami) Preset — v1.3 baransu canonical token schema
+   ────────────────────────────────────────────────────────
+   Visual language: warm parchment background, deep ink-blue accent, serif typography.
+   All HTML骨架 (design-cores/, slide-cores/) consume tokens by their canonical names.
+   See plugins/baransu/skills/design/SKILL.md §Canonical Token Schema for the v1.3 spec.
+*/
 
 :root {
   /* ── Surface ─────────────────────────────── */
-  --paper:           #fafaf8;  /* page background — neutral off-white, never pure white */
-  --ink:             #0a0a0a;  /* primary text — near-black, never pure black */
-  --surface:         #f2f2ef;  /* cards, lifted containers */
-  --surface-strong:  #e6e5e0;  /* buttons, interactive surfaces */
-  --dark-surface:    #1a1a1a;  /* dark containers */
-  --deep-dark:       #0a0a0a;  /* dark page background */
+  --paper:          #f5f4ed;  /* page background — warm parchment, never pure white */
+  --surface:        #faf9f5;  /* cards, lifted containers — ivory */
+  --surface-strong: #e8e6dc;  /* buttons, interactive surfaces — warm sand */
+  --dark-surface:   #30302e;  /* dark containers */
+  --deep-dark:      #141413;  /* dark page background */
 
-  /* ── Accent (IKB — sole chromatic, ≤5% surface) ─── */
-  --accent:          #002FA7;  /* International Klein Blue (IKB); the only accent */
-  --accent-on:       #ffffff;  /* foreground on --accent fills (text/icons) */
+  /* ── Accent (sole chromatic, ≤5% surface — Kami invariant #6) ── */
+  --accent:    #1B365D;  /* deep ink-blue */
+  --accent-on: #faf9f5;  /* foreground on --accent fills — ivory, not pure white */
 
   /* ── Text hierarchy ──────────────────────── */
-  --text-primary:    #0a0a0a;  /* body and headings */
-  --text-secondary:  #3a3a3a;  /* secondary text, table headers */
-  --text-muted:      #5c5c5c;  /* tertiary, captions */
-  --text-faint:      #8a8a8a;  /* metadata, placeholder */
+  --ink:            #141413;  /* structural ink alias for primary text */
+  --text-primary:   #141413;  /* body and headings */
+  --text-secondary: #3d3d3a;  /* secondary text, table headers, link rest */
+  --text-muted:     #504e49;  /* tertiary, captions */
+  --text-faint:     #6b6a64;  /* metadata, placeholder */
 
   /* ── Borders ─────────────────────────────── */
-  --border:          #d9d9d4;  /* primary border / divider */
-  --border-soft:     #e6e5e0;  /* secondary border / row separator */
+  --border:      #e8e6dc;  /* primary border / divider */
+  --border-soft: #e5e3d8;  /* secondary border / row separator */
 
-  /* ── Typography (sans-serif only — Swiss invariant) ─── */
-  --font-sans: 'Inter', 'Helvetica Neue', 'Noto Sans TC', sans-serif;
-  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', Consolas, Monaco, monospace;
+  /* ── Typography ──────────────────────────── */
+  --font-serif: Charter, Georgia, Palatino, "Times New Roman", serif;
+  --font-sans:  var(--font-serif);   /* intentional: sans aliases serif (Kami) */
+  --font-mono:  "JetBrains Mono", "SF Mono", "Fira Code", Consolas, Monaco, monospace;
 
-  /* ── Depth (ring / whisper only — no hard shadows) ─── */
+  /* Chinese override — paste inside :lang(zh) or .lang-zh:
+     --font-serif: "TsangerJinKai02", "Source Han Serif SC", "Noto Serif CJK SC",
+                   "Songti SC", "STSong", Georgia, serif;                          */
+
+  /* ── Depth (ring / whisper only — no hard shadows; Kami inv #4) ── */
   --shadow-ring:    0 0 0 1px var(--border);
-  --shadow-whisper: 0 4px 24px var(--surface-strong);
+  --shadow-whisper: 0 4px 24px rgba(0, 0, 0, 0.05);
 
-  /* ── Spacing (4pt grid — Swiss rigor) ─── */
-  --space-xs:  4px;
-  --space-sm:  8px;
-  --space-md: 12px;
+  /* ── Spacing (4pt baseline + Kami spec) ── */
+  --space-xs:  3px;
+  --space-sm:  5px;
+  --space-md: 10px;
   --space-lg: 20px;
   --space-xl: 32px;
   --space-2xl:56px;
   --space-3xl:96px;
 
-  /* ── Radius scale (Swiss leans flat; soft corners only at small sizes) ─── */
-  --radius-xs:  0px;
-  --radius-sm:  2px;
-  --radius-md:  4px;   /* default */
-  --radius-lg:  8px;
-  --radius-xl: 12px;
-  --radius-2xl:16px;
-  --radius-hero:24px;
+  /* ── Radius scale ────────────────────────── */
+  --radius-xs:  4px;
+  --radius-sm:  6px;
+  --radius-md:  8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl:24px;
+  --radius-hero:32px;
 
-  /* ── Preset-level layout variables (P0-1 exceptions) ─── */
-  --cover-title-align: left;     /* Swiss covers align flush-left */
-  --section-title-align: left;
+  /* ── Layout (preset-specific overrides) ── */
+  --cover-title-align: center;   /* Kami covers center; Swiss flushes left */
   --grid-columns: 12;
-  --grid-gutter: 24px;
+  --grid-gutter:  24px;
+
+  /* ── Semantic (metric.html consumer) ── */
+  --delta-up:   #2a6c45;  /* warm dark green */
+  --delta-down: #7a2e2e;  /* warm dark red */
 }
 
-/* ── Base reset (minimal, Swiss-safe) ─────────────────────── */
+/* ── Base reset (minimal, Kami-safe) ─────────────────────── */
 body {
   background: var(--paper);
   color: var(--text-primary);
-  font-family: var(--font-sans);
+  font-family: var(--font-serif);
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Heading weight: Swiss allows 500/600/700 but locks ≤700; default 500 */
+/* Heading weight locked at 500 — Kami invariant #5 */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-sans);
+  font-family: var(--font-serif);
   font-weight: 500;
   color: var(--text-primary);
-  letter-spacing: -0.01em;
 }
-h1 { font-size: 2.25rem; line-height: 1.15; }
-h2 { font-size: 1.5rem;  line-height: 1.25; }
-h3 { font-size: 1.25rem; line-height: 1.30; }
+/* Modular scale: perfect fourth r=1.333 (anchor body=16px) — see canonical-tokens.md */
+h1 { font-size: 2.375rem;  line-height: 1.15; }  /* 38px ≈ 16 × 1.333³ */
+h2 { font-size: 1.75rem;   line-height: 1.20; }  /* 28px ≈ 16 × 1.333² */
+h3 { font-size: 1.3125rem; line-height: 1.30; }  /* 21px ≈ 16 × 1.333  */
 
-/* No italics — Kami-portable invariant (Swiss also avoids them) */
+/* No italics — Kami invariant #10 */
 em, i { font-style: normal; font-weight: 500; }
 
 /* Links */
-a { color: var(--accent); text-decoration-color: var(--border); }
-a:hover { text-decoration-color: var(--accent); }
+a { color: var(--text-secondary); text-decoration-color: var(--border); }
+a:hover { color: var(--accent); }
 
 code, pre {
   font-family: var(--font-mono);

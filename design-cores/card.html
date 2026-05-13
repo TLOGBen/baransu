@@ -1,50 +1,27 @@
-<!-- Card skeleton — replace content, keep classes -->
+<!--
+  card.html — Kami preset card element (v1.3)
+  Standalone reusable component. Composed in gallery.html / dashboard.html.
+  Tokens: var(--paper), var(--border), var(--radius-md), var(--shadow-whisper), var(--text-primary), var(--text-secondary).
+-->
+<article class="kami-card">
+  <header class="kami-card-header">
+    <h3 class="kami-card-title">Card Title</h3>
+    <p class="kami-card-meta">Optional metadata</p>
+  </header>
+  <div class="kami-card-body">
+    <p>Card body paragraph at 14px line-height 1.55, in primary text color.</p>
+  </div>
+  <footer class="kami-card-footer">
+    <a class="kami-card-link" href="#">Read more →</a>
+  </footer>
+</article>
+
 <style>
-.card {
-  background: var(--ivory);
-  border: 0.5px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: var(--space-xl) var(--space-xl);
-  transition: box-shadow 0.2s ease-out;
-}
-.card:hover {
-  box-shadow: var(--shadow-whisper);
-}
-.card-title {
-  font-size: 1.125rem;
-  font-weight: 500;
-  color: var(--near-black);
-  margin: 0 0 var(--space-md) 0;
-}
-.card-body {
-  font-size: 0.9375rem;
-  color: var(--dark-warm);
-  line-height: 1.55;
-  margin: 0;
-}
-/* Variant: featured card with brand border */
-.card--featured {
-  border-color: var(--brand);
-  border-width: 1px;
-}
-/* Variant: dark card */
-.card--dark {
-  background: var(--dark-surface);
-  color: var(--ivory);
-  border-color: transparent;
-}
+  .kami-card { background: var(--paper); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px 24px; box-shadow: var(--shadow-ring); }
+  .kami-card:hover { box-shadow: var(--shadow-whisper); }
+  .kami-card-title { font-size: 16px; font-weight: 500; margin: 0 0 4px; color: var(--text-primary); }
+  .kami-card-meta { font-size: 11px; color: var(--text-faint); letter-spacing: 0.04em; text-transform: uppercase; margin: 0 0 12px; }
+  .kami-card-body p { font-size: 14px; line-height: 1.55; color: var(--text-primary); margin: 0 0 12px; }
+  .kami-card-link { color: var(--accent); font-size: 13px; text-decoration: none; }
+  .kami-card-link:hover { text-decoration: underline; text-decoration-color: var(--accent); }
 </style>
-
-<div class="card">
-  <h3 class="card-title">Card Title</h3>
-  <p class="card-body">
-    Body text goes here. Keep line-height 1.55 for reading comfort.
-    Cards use ivory background, 8px radius, 0.5px warm border.
-  </p>
-</div>
-
-<!-- Featured variant -->
-<div class="card card--featured">
-  <h3 class="card-title">Featured Card</h3>
-  <p class="card-body">Brand-color border signals this card is highlighted.</p>
-</div>

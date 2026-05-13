@@ -51,7 +51,7 @@ def main() -> int:
             probe = page.evaluate(
                 """() => ({
                     overflow: document.documentElement.scrollWidth > window.innerWidth,
-                    has_paper: !!document.querySelector('.paper'),
+                    has_paper: !!document.querySelector('[class*="paper"]'),
                     has_h1: !!document.querySelector('h1'),
                     has_h2: !!document.querySelector('h2'),
                     svg_count: document.querySelectorAll('svg').length,

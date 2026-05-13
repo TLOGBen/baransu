@@ -2,8 +2,9 @@
 
 When working on any UI/UX content, read the design system at the project root and follow it:
 - DESIGN.md — visual spec (nine-section design system)
-- tokens.css — CSS variables (if present; copied by /design preset)
-- design-cores/ — universal component skeletons consuming the tokens (if present; copied by /design preset)
+- tokens.css — CSS variables (canonical 36-name vocabulary; first line `/* preset: <slug> */`)
+- design-cores/ — component skeletons consuming the tokens (long-form / gallery / dashboard / 6 elements)
+- slide-cores/ — slide layouts (4 cover variants + 8 non-cover layouts)
 
 `baransu` is a Claude Code plugin distributing sixteen governance skills (thirteen user-facing + three cron-driven self-healing harness skills). Theme: バランス — deliberate before executing, verify after.
 

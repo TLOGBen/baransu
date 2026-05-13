@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  portfolio-en.html — Kami preset Portfolio template (v1.4, en)
+  Schema: schemas/portfolio.md
+  Class prefix: kami-*
+  Portrait + thumbnail <img> use object-position: center 35%.
+  Font stack excludes CJK fonts.
+-->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{NAME}} — Portfolio</title>
+  <link rel="stylesheet" href="../tokens.css">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      background: var(--paper); color: var(--text-primary);
+      font-family: Charter, Georgia, "Palatino Linotype", Palatino, serif;
+      margin: 0; text-wrap: pretty;
+    }
+    .kami-page { max-width: 1200px; margin: 0 auto; padding: 56px 24px; }
+    .kami-cover { display: grid; grid-template-columns: 320px 1fr; gap: 56px; align-items: center; padding-bottom: 48px; border-bottom: 0.5px solid var(--border); }
+    .kami-hero { width: 100%; aspect-ratio: 3 / 4; overflow: hidden; border: 0.5px solid var(--border); border-radius: var(--radius-md); }
+    .kami-hero img { width: 100%; height: 100%; object-fit: cover; object-position: center 35%; display: block; }
+    .kami-h1 { font-size: 48px; font-weight: 500; line-height: 1.1; letter-spacing: -0.01em; margin: 0 0 12px; text-wrap: pretty; }
+    .kami-tagline { font-size: 18px; color: var(--text-secondary); margin: 0 0 24px; }
+    .kami-body { font-size: 15px; line-height: 1.55; color: var(--text-primary); margin: 12px 0; text-wrap: pretty; }
+    .kami-dropcap { float: left; font-size: 4.65em; line-height: 1; font-weight: 500; color: var(--accent); padding-right: 8px; padding-top: 2px; }
+    .kami-h2 { font-size: 24px; font-weight: 500; line-height: 1.25; letter-spacing: -0.01em; border-left: 3px solid var(--accent); padding-left: 12px; margin: 56px 0 24px; }
+    .kami-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; }
+    .kami-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+    .kami-thumb { width: 100%; aspect-ratio: 4 / 3; overflow: hidden; }
+    .kami-thumb img { width: 100%; height: 100%; object-fit: cover; object-position: center 35%; display: block; }
+    .kami-card-body { padding: 20px 24px 24px; }
+    .kami-card-title { font-size: 18px; font-weight: 500; margin: 0 0 4px; }
+    .kami-card-meta { font-size: 12px; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; margin: 0 0 8px; }
+    .kami-card-desc { font-size: 14px; line-height: 1.55; color: var(--text-secondary); margin: 0; }
+    .kami-contact { margin-top: 64px; padding-top: 32px; border-top: 0.5px solid var(--border); display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; font-size: 13px; color: var(--text-muted); }
+    .kami-contact strong { display: block; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 4px; font-weight: 500; }
+    .kami-footer { font-size: 11px; color: var(--text-faint); margin-top: 48px; }
+    em, i { font-style: normal; font-weight: 500; }
+    @media (max-width: 720px) { .kami-cover { grid-template-columns: 1fr; gap: 24px; } .kami-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body class="kami-paper-body">
+<div class="kami-page">
+
+  <section class="kami-cover">
+    <div class="kami-hero">
+      <img src="{{PORTRAIT_URL}}" alt="{{NAME}} portrait">
+    </div>
+    <div>
+      <h1 class="kami-h1">{{NAME}}</h1>
+      <p class="kami-tagline">{{TAGLINE}}</p>
+      <p class="kami-body"><span class="kami-dropcap">F</span>or the past decade I have worked at the seam between print and screen, helping brands rediscover the rhythm of their own stories. I believe that white space is content — when design removes what is unnecessary, what remains is seen twice as clearly. This portfolio gathers six recent projects across identity, book design and interactive prototypes.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="kami-h2">Selected Works</h2>
+    <div class="kami-grid">
+
+      <article class="kami-card">
+        <div class="kami-thumb"><img src="{{WORK_1_THUMB}}" alt="Work 1"></div>
+        <div class="kami-card-body">
+          <p class="kami-card-meta">2025 / Brand Identity</p>
+          <h3 class="kami-card-title">Orchid Teahouse Visual System</h3>
+          <p class="kami-card-desc">A refreshed identity for a century-old teahouse — a calligraphic skeleton inked in deep blue, designed to breathe with seasons.</p>
+        </div>
+      </article>
+
+      <article class="kami-card">
+        <div class="kami-thumb"><img src="{{WORK_2_THUMB}}" alt="Work 2"></div>
+        <div class="kami-card-body">
+          <p class="kami-card-meta">2024 / Book Design</p>
+          <h3 class="kami-card-title">The Other Side of the Mountain</h3>
+          <p class="kami-card-desc">A 240-page photo essay set with 1.5× leading and full-bleed plates, paced like a slow ascent.</p>
+        </div>
+      </article>
+
+      <article class="kami-card">
+        <div class="kami-thumb"><img src="{{WORK_3_THUMB}}" alt="Work 3"></div>
+        <div class="kami-card-body">
+          <p class="kami-card-meta">2024 / Interactive Prototype</p>
+          <h3 class="kami-card-title">River Timeline</h3>
+          <p class="kami-card-desc">A horizontally-scrolling chronicle of a hundred years of riverbank change, layered like ink wash.</p>
+        </div>
+      </article>
+
+      <article class="kami-card">
+        <div class="kami-thumb"><img src="{{WORK_4_THUMB}}" alt="Work 4"></div>
+        <div class="kami-card-body">
+          <p class="kami-card-meta">2023 / Exhibition Design</p>
+          <h3 class="kami-card-title">Memory of Paper — Exhibition</h3>
+          <p class="kami-card-desc">An exhibition at the museum of fine arts using six handmade Taiwanese papers as wall media.</p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section class="kami-contact">
+    <div><strong>Email</strong>{{EMAIL}}</div>
+    <div><strong>Phone</strong>{{PHONE}}</div>
+    <div><strong>Studio</strong>{{LOCATION}}</div>
+  </section>
+
+  <footer class="kami-footer">{{NAME}} / Portfolio / {{UPDATED_AT}}</footer>
+</div>
+</body>
+</html>

@@ -3,588 +3,522 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Design System: Swiss (IKB) — DESIGN.html</title>
+<title>Design System: 紙 (Kami) — baransu</title>
+<link rel="stylesheet" href="./tokens.css">
 <style>
-  :root {
-    --paper:           #fafaf8;
-    --surface:         #f2f2ef;
-    --surface-strong:  #e6e5e0;
-    --dark-surface:    #1a1a1a;
-    --deep-dark:       #0a0a0a;
-    --ink:             #0a0a0a;
-    --accent:          #002FA7;
-    --accent-on:       #ffffff;
-    --text-primary:    #0a0a0a;
-    --text-secondary:  #3a3a3a;
-    --text-muted:      #5c5c5c;
-    --text-faint:      #8a8a8a;
-    --border:          #d9d9d4;
-    --border-soft:     #e6e5e0;
-    --good:            #2f6f3e;
-    --bad:             #8b1f1f;
-    --font-sans: 'Inter', 'Helvetica Neue', 'Noto Sans TC', sans-serif;
-    --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', Consolas, Monaco, monospace;
-    --shadow-ring:    0 0 0 1px var(--border);
-    --shadow-whisper: 0 4px 24px var(--surface-strong);
-  }
-
-  * { box-sizing: border-box; }
-
-  html, body { margin: 0; padding: 0; }
-  body {
-    background: var(--paper);
-    color: var(--text-primary);
-    font-family: var(--font-sans);
-    font-size: 15px;
-    line-height: 1.55;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  em, i { font-style: normal; font-weight: 500; }
-
-  a { color: var(--accent); text-decoration-color: var(--border); }
-  a:hover { text-decoration-color: var(--accent); }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; }
 
   .page {
     display: grid;
     grid-template-columns: 240px 1fr;
-    gap: 56px;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 56px;
+    gap: var(--space-2xl);
+    padding: var(--space-lg);
   }
 
-  aside.toc {
+  /* ── Sticky sidebar TOC ─────────────────────────── */
+  nav.toc {
     position: sticky;
-    top: 56px;
+    top: var(--space-lg);
     align-self: start;
-    height: calc(100vh - 112px);
-    overflow-y: auto;
-    padding: 20px 0 20px 16px;
-    border-left: 3px solid var(--accent);
+    padding: var(--space-lg) 0;
+    border-right: 0.5pt solid var(--border);
   }
-  .toc .brand {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-faint);
+  nav.toc h2 {
+    font-size: 0.875rem;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 8px;
-  }
-  .toc h1 {
-    font-size: 18px;
+    letter-spacing: 0.06em;
+    color: var(--text-faint);
+    margin: 0 0 var(--space-md) 0;
     font-weight: 500;
-    color: var(--text-primary);
-    margin: 0 0 24px 0;
-    letter-spacing: -0.01em;
   }
-  .toc ol { list-style: none; padding: 0; margin: 0; }
-  .toc li { margin: 6px 0; }
-  .toc a {
-    display: block;
-    font-size: 13px;
-    color: var(--text-secondary);
+  nav.toc ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    counter-reset: toc;
+  }
+  nav.toc li {
+    counter-increment: toc;
+    margin: var(--space-sm) 0;
+    font-size: 0.875rem;
+  }
+  nav.toc li::before {
+    content: counter(toc) ". ";
+    color: var(--accent);
+  }
+  nav.toc a {
     text-decoration: none;
-    padding: 4px 0;
-    letter-spacing: 0;
-  }
-  .toc a:hover { color: var(--accent); }
-  .toc .num {
-    display: inline-block;
-    width: 24px;
-    color: var(--text-faint);
-    font-variant-numeric: tabular-nums;
-  }
-
-  main { min-width: 0; }
-  main > section { margin-bottom: 56px; }
-  main > section:last-child { margin-bottom: 0; }
-
-  h2.section-title {
-    font-size: 18px;
-    font-weight: 500;
-    color: var(--text-primary);
-    border-left: 3px solid var(--accent);
-    padding-left: 12px;
-    margin: 0 0 16px 0;
-    letter-spacing: -0.01em;
-  }
-  h2.section-title .num {
-    color: var(--text-faint);
-    margin-right: 8px;
-    font-variant-numeric: tabular-nums;
-  }
-
-  h3 {
-    font-size: 14px;
-    font-weight: 500;
     color: var(--text-secondary);
-    margin: 24px 0 8px 0;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+  }
+  nav.toc a:hover { color: var(--accent); }
+
+  main { padding: var(--space-md) 0 var(--space-3xl) 0; min-width: 0; }
+  main > section { margin-bottom: var(--space-3xl); }
+  main h1 {
+    margin: 0 0 var(--space-md) 0;
+    font-size: 2.625rem;
+    line-height: 1.1;
+  }
+  main h2 {
+    margin: var(--space-2xl) 0 var(--space-md) 0;
+    border-left: 2.5pt solid var(--accent);
+    padding-left: 8pt;
+    line-height: 1.2;
+  }
+  main p, main li { line-height: 1.55; }
+  main .lede {
+    font-size: 1.0625rem;
+    color: var(--text-secondary);
+    max-width: 60ch;
   }
 
-  p { margin: 8px 0; color: var(--text-primary); }
-  ul { padding-left: 20px; }
-  li { margin: 4px 0; }
-
-  .swatch-grid {
+  /* ── Color palette ─────────────────────────────── */
+  .swatches {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 12px;
-    margin-top: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-md);
+    margin-top: var(--space-md);
   }
   .swatch {
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    overflow: hidden;
     background: var(--surface);
+    border: 0.5pt solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
   }
   .swatch .chip {
     height: 80px;
-    width: 100%;
+    border-bottom: 0.5pt solid var(--border);
   }
   .swatch .meta {
-    padding: 10px 12px;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--text-secondary);
-    line-height: 1.4;
+    padding: var(--space-md);
+    font-size: 0.8125rem;
   }
-  .swatch .meta .token {
+  .swatch .name {
     color: var(--text-primary);
     font-weight: 500;
-    display: block;
+    margin: 0;
   }
-  .swatch .meta .hex {
+  .swatch .hex {
     color: var(--text-muted);
-    margin-top: 2px;
-    display: block;
+    font-family: var(--font-mono);
+    margin: 4px 0 0 0;
   }
-  .swatch .meta .role {
+  .swatch .role {
     color: var(--text-faint);
-    margin-top: 2px;
-    font-family: var(--font-sans);
-    font-size: 11px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+    margin: var(--space-sm) 0 0 0;
   }
 
+  /* ── Typography samples ────────────────────────── */
   .type-sample {
-    border-top: 1px solid var(--border);
-    padding: 16px 0 16px 0;
-    display: grid;
-    grid-template-columns: 140px 1fr;
-    gap: 24px;
-    align-items: baseline;
+    background: var(--surface);
+    border: 0.5pt solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin: var(--space-md) 0;
   }
   .type-sample .label {
-    font-size: 11px;
-    color: var(--text-faint);
-    letter-spacing: 0.04em;
+    display: block;
+    font-size: 0.75rem;
     text-transform: uppercase;
-    font-family: var(--font-mono);
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+    margin-bottom: var(--space-sm);
   }
-  .type-sample .demo { color: var(--text-primary); }
-  .t-display { font-size: 56px; font-weight: 500; line-height: 1.10; letter-spacing: -0.02em; }
-  .t-h1 { font-size: 36px; font-weight: 500; line-height: 1.15; letter-spacing: -0.01em; }
-  .t-h2 { font-size: 24px; font-weight: 500; line-height: 1.25; letter-spacing: -0.01em; }
-  .t-h3 { font-size: 20px; font-weight: 500; line-height: 1.30; }
-  .t-lead { font-size: 17px; font-weight: 400; line-height: 1.55; }
-  .t-body { font-size: 15px; font-weight: 400; line-height: 1.55; }
-  .t-dense { font-size: 13px; font-weight: 400; line-height: 1.42; }
-  .t-cap { font-size: 12px; font-weight: 500; line-height: 1.45; letter-spacing: 0.04em; text-transform: uppercase; }
-  .t-code { font-family: var(--font-mono); font-size: 13px; line-height: 1.55; background: var(--surface); padding: 2px 6px; border-radius: 2px; border: 1px solid var(--border); }
+  .type-sample.display { font-size: 3rem; line-height: 1.10; }
+  .type-sample.h1 { font-size: 1.8125rem; line-height: 1.20; }
+  .type-sample.h2 { font-size: 1.3125rem; line-height: 1.25; }
+  .type-sample.h3 { font-size: 1.0625rem; line-height: 1.30; }
+  .type-sample.body-lead { font-size: 0.9375rem; line-height: 1.55; }
+  .type-sample.body { font-size: 0.8125rem; line-height: 1.55; }
+  .type-sample.caption { font-size: 0.75rem; line-height: 1.45; color: var(--text-muted); }
+  .type-sample.code-sample code {
+    display: block;
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: 0.75rem;
+    line-height: 1.60;
+  }
 
-  .comp-grid {
+  /* ── Dropcap demo ──────────────────────────────── */
+  .kami-dropcap {
+    float: left;
+    font-size: 4.65em;
+    line-height: 1;
+    font-weight: 500;
+    color: var(--accent);
+    padding-right: 8px;
+    padding-top: 2px;
+  }
+
+  /* ── Component preview cards ───────────────────── */
+  .component-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
-    margin-top: 16px;
+    gap: var(--space-lg);
+    margin-top: var(--space-md);
   }
-  .comp-card {
+  .component-card {
     background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 20px 24px;
+    border: 0.5pt solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
   }
-  .comp-card .name {
-    font-size: 11px;
-    color: var(--text-faint);
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    font-family: var(--font-mono);
-    margin-bottom: 12px;
-  }
-  .btn {
-    display: inline-block;
-    font-family: var(--font-sans);
-    font-size: 13px;
-    font-weight: 500;
-    padding: 8px 16px;
-    border-radius: 4px;
-    border: none;
-    cursor: pointer;
-    margin-right: 8px;
-    text-decoration: none;
-  }
-  .btn-primary { background: var(--accent); color: var(--accent-on); }
-  .btn-secondary { background: var(--surface-strong); color: var(--text-primary); }
-  .input {
-    width: 100%;
-    background: var(--paper);
-    border: none;
-    box-shadow: 0 0 0 1px var(--border);
-    border-radius: 2px;
-    padding: 8px 12px;
-    font-family: var(--font-sans);
-    font-size: 14px;
-    color: var(--text-primary);
-  }
-  .input:focus { outline: none; box-shadow: 0 0 0 2px var(--accent); }
-  .tag {
-    display: inline-block;
-    background: var(--surface-strong);
-    color: var(--accent);
-    font-size: 11px;
-    font-weight: 500;
-    padding: 2px 8px;
-    border-radius: 2px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    margin-right: 4px;
-  }
-  blockquote.demo-quote {
-    margin: 0;
-    border-left: 2px solid var(--accent);
-    padding: 8px 0 8px 16px;
+  .component-card h3 {
+    margin: 0 0 var(--space-md) 0;
+    font-size: 1rem;
     color: var(--text-secondary);
-    line-height: 1.55;
+  }
+  .component-card .demo {
+    padding: var(--space-md) 0;
+    border-top: 0.5pt solid var(--border-soft);
   }
 
-  .do-grid {
+  .btn-primary {
+    background: var(--accent);
+    color: var(--accent-on);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 8px 14px;
+    font: inherit;
+    font-size: 0.75rem;
+    cursor: pointer;
+  }
+  .btn-secondary {
+    background: var(--surface-strong);
+    color: var(--text-secondary);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 8px 14px;
+    font: inherit;
+    font-size: 0.75rem;
+    margin-left: var(--space-sm);
+    cursor: pointer;
+  }
+  .input-demo {
+    width: 100%;
+    background: var(--surface);
+    box-shadow: 0 0 0 1px var(--border);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font: inherit;
+    font-size: 0.8125rem;
+    color: var(--text-primary);
+  }
+  .input-demo::placeholder { color: var(--text-faint); }
+  .tag-demo {
+    display: inline-block;
+    background: #EEF2F7;
+    color: var(--accent);
+    font-size: 9pt;
+    font-weight: 600;
+    padding: 1pt 5pt;
+    border-radius: 2pt;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .section-title-demo {
+    font-size: 14pt;
+    font-weight: 500;
+    color: var(--text-primary);
+    border-left: 2.5pt solid var(--accent);
+    border-radius: 1.5pt;
+    padding-left: 8pt;
+  }
+  .quote-demo {
+    border-left: 2pt solid var(--accent);
+    padding: 4pt 0 4pt 14pt;
+    color: var(--text-muted);
+    line-height: 1.55;
+    font-size: 0.875rem;
+    margin: 0;
+  }
+
+  /* ── Do / Don't 2-col table ────────────────────── */
+  .dodont {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-top: 16px;
+    gap: var(--space-lg);
+    margin-top: var(--space-md);
   }
-  .do-col, .dont-col {
-    border-radius: 4px;
-    padding: 20px 24px;
-    border: 1px solid var(--border);
-  }
-  .do-col { border-left: 3px solid var(--good); background: var(--surface); }
-  .dont-col { border-left: 3px solid var(--bad); background: var(--surface); }
-  .do-col h3, .dont-col h3 {
-    margin-top: 0;
-    text-transform: uppercase;
-    font-size: 11px;
-    letter-spacing: 0.06em;
-  }
-  .do-col h3 { color: var(--good); }
-  .dont-col h3 { color: var(--bad); }
-  .do-col ul, .dont-col ul { padding-left: 18px; margin: 0; }
-  .do-col li, .dont-col li { font-size: 13px; line-height: 1.5; color: var(--text-primary); }
-
-  pre.prompt {
+  .dodont .col {
     background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 20px 24px;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    line-height: 1.6;
-    color: var(--text-primary);
-    overflow-x: auto;
+    border: 0.5pt solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+  }
+  .dodont h3 {
+    margin: 0 0 var(--space-md) 0;
+    font-size: 0.9375rem;
+    padding-bottom: var(--space-sm);
+    border-bottom: 0.5pt solid var(--border-soft);
+  }
+  .dodont .do h3 { color: var(--delta-up); }
+  .dodont .dont h3 { color: var(--delta-down); }
+  .dodont ul { list-style: none; padding: 0; margin: 0; }
+  .dodont li {
+    padding: var(--space-sm) 0;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+  }
+  .dodont .do li::before {
+    content: "✓  ";
+    color: var(--delta-up);
+    font-weight: 500;
+  }
+  .dodont .dont li::before {
+    content: "✗  ";
+    color: var(--delta-down);
+    font-weight: 500;
+  }
+
+  /* ── AI prompt code block ──────────────────────── */
+  .prompt-block {
+    background: var(--surface);
+    border: 0.5pt solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-top: var(--space-md);
+  }
+  .prompt-block pre {
+    margin: 0;
+    background: transparent;
+    border: none;
+    padding: 0;
     white-space: pre-wrap;
     word-break: break-word;
-    margin-top: 16px;
+    font-size: 0.75rem;
+    line-height: 1.65;
+    color: var(--text-primary);
   }
 
-  table.spec {
+  /* ── Misc ──────────────────────────────────────── */
+  table.tokens {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 12px;
-    font-size: 13px;
+    font-size: 0.8125rem;
+    margin-top: var(--space-md);
   }
-  table.spec th, table.spec td {
+  table.tokens th, table.tokens td {
     text-align: left;
-    padding: 8px 12px;
-    border-bottom: 1px solid var(--border-soft);
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 0.5pt solid var(--border-soft);
   }
-  table.spec th {
+  table.tokens th {
     color: var(--text-secondary);
     font-weight: 500;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    border-bottom: 1px solid var(--border);
-  }
-  table.spec td { color: var(--text-primary); }
-  table.spec code {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    background: var(--paper);
-    padding: 1px 5px;
-    border-radius: 2px;
-    border: 1px solid var(--border-soft);
-  }
-
-  code.inline {
-    font-family: var(--font-mono);
-    font-size: 13px;
     background: var(--surface);
-    padding: 1px 5px;
-    border-radius: 2px;
-    border: 1px solid var(--border-soft);
   }
+  table.tokens td.mono { font-family: var(--font-mono); color: var(--text-muted); }
 
-  @media (max-width: 900px) {
-    .page { grid-template-columns: 1fr; padding: 24px; gap: 24px; }
-    aside.toc { position: static; height: auto; border-left: none; border-top: 3px solid var(--accent); padding: 16px 0 0 0; }
+  @media (max-width: 880px) {
+    .page { grid-template-columns: 1fr; }
+    nav.toc { position: static; border-right: none; border-bottom: 0.5pt solid var(--border); padding-bottom: var(--space-md); }
+    .dodont { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
 <div class="page">
 
-<aside class="toc">
-  <div class="brand">Preset</div>
-  <h1>Swiss (IKB)</h1>
-  <ol>
-    <li><a href="#s1"><span class="num">01</span>Theme & Atmosphere</a></li>
-    <li><a href="#s2"><span class="num">02</span>Color Palette</a></li>
-    <li><a href="#s3"><span class="num">03</span>Typography</a></li>
-    <li><a href="#s4"><span class="num">04</span>Components</a></li>
-    <li><a href="#s5"><span class="num">05</span>Layout & Spacing</a></li>
-    <li><a href="#s6"><span class="num">06</span>Iconography</a></li>
-    <li><a href="#s7"><span class="num">07</span>Motion</a></li>
-    <li><a href="#s8"><span class="num">08</span>Do / Don't</a></li>
-    <li><a href="#s9"><span class="num">09</span>AI Prompt</a></li>
-  </ol>
-</aside>
+  <nav class="toc">
+    <h2>Sections</h2>
+    <ol>
+      <li><a href="#s1">Visual Theme</a></li>
+      <li><a href="#s2">Color Palette</a></li>
+      <li><a href="#s3">Typography</a></li>
+      <li><a href="#s4">Components</a></li>
+      <li><a href="#s5">Layout &amp; Spacing</a></li>
+      <li><a href="#s6">Iconography</a></li>
+      <li><a href="#s7">Motion</a></li>
+      <li><a href="#s8">Do / Don&rsquo;t</a></li>
+      <li><a href="#s9">AI Prompt Guide</a></li>
+    </ol>
+  </nav>
 
-<main>
+  <main>
 
-  <section id="s1">
-    <h2 class="section-title"><span class="num">01</span>Visual Theme & Atmosphere</h2>
-    <p><strong>哲學</strong>：Swiss International Style——高級灰白底紙上，單一高飽和強調色（IKB ink）。介面像 Müller-Brockmann 的網格圖：克制、精準、留白即構圖。</p>
-    <p><strong>密度</strong>：克制。留白是結構元素，網格與對齊是主導語法。</p>
-    <p><strong>氛圍</strong>：包浩斯、Helvetica、IKB ultramarine——機能美學，無裝飾。</p>
+    <header>
+      <h1>Design System: 紙 (Kami)</h1>
+      <p class="lede">溫潤羊皮紙感。介面如一張好紙——有重量、有肌理、讓文字安靜地躺在上面。書房、工藝、手感印刷品；不是高科技冷峻，是紙墨溫度。</p>
+    </header>
 
-    <h3>Swiss 不變量</h3>
-    <ul>
-      <li>背景不用純白，用中性 off-white 紙感 <code class="inline">--paper: #fafaf8</code></li>
-      <li>Accent 唯一 IKB 墨藍 <code class="inline">--accent: #002FA7</code>，全頁只此一個彩色</li>
-      <li>中性灰限定真中性（無冷無暖偏調）；禁高飽和 neutral</li>
-      <li>純 sans-serif 字族：Inter / Helvetica Neue / Noto Sans TC（無 serif）</li>
-      <li>Heading weight 上限 700，預設 500——禁用 800/900</li>
-      <li>行高：headline 1.10–1.30 / 密排 1.40–1.45 / 閱讀 1.50–1.55</li>
-      <li>字距：title −0.01em（緊收）；body 0；label/cap +0.04em</li>
-      <li>Tag 背景只用 solid hex（禁 rgba）</li>
-      <li>深度只用 ring/whisper 陰影，禁硬邊陰影</li>
-      <li>禁 italics（模板與 demo 均適用）</li>
-    </ul>
-  </section>
+    <section id="s1">
+      <h2>1. Visual Theme &amp; Atmosphere</h2>
+      <p>哲學是 <strong>warm printed paper — ink on parchment, craft over chrome</strong>。Kami 是一套印刷學優先的設計語言，背景永遠是暖調羊皮紙、accent 永遠是墨藍、字型永遠是 serif。十條不變量約束視覺一致：</p>
+      <ol>
+        <li>背景不用純白，用暖調羊皮紙 <code>#f5f4ed</code></li>
+        <li>Accent 唯一墨藍 <code>#1B365D</code>，全頁只此一個彩色</li>
+        <li>中性灰限定暖調（黃棕底色），禁冷灰</li>
+        <li>每頁只用一套 serif；<code>--font-sans</code> 永遠 alias <code>--font-serif</code></li>
+        <li>Serif weight 鎖定 500——禁用 700/bold 做 heading</li>
+        <li>行高：headline 1.1–1.3 / 密排 1.4–1.45 / 閱讀 1.5–1.55</li>
+        <li>字距：中文 0.1–0.3pt；英文 body 0；label/cap +0.2–1pt</li>
+        <li>Tag 背景只用 solid hex（禁 rgba，WeasyPrint 渲染 bug）</li>
+        <li>深度只用 ring / whisper 陰影，禁硬邊陰影</li>
+        <li>禁 italics（模板與 demo 均適用）</li>
+      </ol>
+    </section>
 
-  <section id="s2">
-    <h2 class="section-title"><span class="num">02</span>Color Palette & Roles</h2>
-    <div class="swatch-grid">
-      <div class="swatch"><div class="chip" style="background:#fafaf8;border-bottom:1px solid var(--border)"></div><div class="meta"><span class="token">--paper</span><span class="hex">#fafaf8</span><span class="role">主背景</span></div></div>
-      <div class="swatch"><div class="chip" style="background:#f2f2ef"></div><div class="meta"><span class="token">--surface</span><span class="hex">#f2f2ef</span><span class="role">卡片 / 面板</span></div></div>
-      <div class="swatch"><div class="chip" style="background:#e6e5e0"></div><div class="meta"><span class="token">--surface-strong</span><span class="hex">#e6e5e0</span><span class="role">互動表面</span></div></div>
-      <div class="swatch"><div class="chip" style="background:#1a1a1a"></div><div class="meta"><span class="token">--dark-surface</span><span class="hex">#1a1a1a</span><span class="role">深色容器</span></div></div>
-      <div class="swatch"><div class="chip" style="background:#0a0a0a"></div><div class="meta"><span class="token">--deep-dark / --ink</span><span class="hex">#0a0a0a</span><span class="role">深底 / 結構墨</span></div></div>
-      <div class="swatch"><div class="chip" style="background:#002FA7"></div><div class="meta"><span class="token">--accent</span><span class="hex">#002FA7</span><span class="role">IKB · 唯一強調</span></div></div>
-      <div class="swatch"><div class="chip" style="background:#ffffff;border-bottom:1px solid var(--border)"></div><div class="meta"><span class="token">--accent-on</span><span class="hex">#ffffff</span><span class="role">accent 上反白</span></div></div>
-      <div class="swatch"><div class="chip" style="background:#0a0a0a"></div><div class="meta"><span class="token">--text-primary</span><span class="hex">#0a0a0a</span><span class="role">主文字</span></div></div>
-      <div class="swatch"><div class="chip" style="background:#3a3a3a"></div><div class="meta"><span class="token">--text-secondary</span><span class="hex">#3a3a3a</span><span class="role">次文字</span></div></div>
-      <div class="swatch"><div class="chip" style="background:#5c5c5c"></div><div class="meta"><span class="token">--text-muted</span><span class="hex">#5c5c5c</span><span class="role">三層 / caption</span></div></div>
-      <div class="swatch"><div class="chip" style="background:#8a8a8a"></div><div class="meta"><span class="token">--text-faint</span><span class="hex">#8a8a8a</span><span class="role">metadata</span></div></div>
-      <div class="swatch"><div class="chip" style="background:#d9d9d4"></div><div class="meta"><span class="token">--border</span><span class="hex">#d9d9d4</span><span class="role">主邊框</span></div></div>
-    </div>
+    <section id="s2">
+      <h2>2. Color Palette &amp; Roles</h2>
+      <p class="lede">背景層次 <code>--paper</code> → <code>--surface</code>（卡片浮在底色上）；文字層次 <code>--text-primary</code> → <code>--text-secondary</code> → <code>--text-muted</code> → <code>--text-faint</code>；主色 <code>--accent</code> 用於 accent、CTA、section left bar，佔比控制在 ≤5% 表面。</p>
 
-    <h3>用色原則</h3>
-    <ul>
-      <li>背景層次：<code class="inline">--paper</code> → <code class="inline">--surface</code>（卡片浮在底色上）</li>
-      <li>文字層次：primary → secondary → muted → faint</li>
-      <li>Accent <code class="inline">#002FA7</code> 僅用於 CTA、section bar、focus ring，佔比 ≤5%</li>
-    </ul>
-  </section>
-
-  <section id="s3">
-    <h2 class="section-title"><span class="num">03</span>Typography Rules</h2>
-    <p>字族單一：<code class="inline">'Inter', 'Helvetica Neue', 'Noto Sans TC', sans-serif</code>。等寬：<code class="inline">JetBrains Mono / SF Mono / Fira Code / Consolas</code>。</p>
-
-    <h3>字級層次（live samples）</h3>
-    <div class="type-sample"><div class="label">Display · 56/1.10</div><div class="demo t-display">Form follows function.</div></div>
-    <div class="type-sample"><div class="label">H1 · 36/1.15</div><div class="demo t-h1">設計如同網格——克制即構圖</div></div>
-    <div class="type-sample"><div class="label">H2 · 24/1.25</div><div class="demo t-h2">A single accent. No ornament.</div></div>
-    <div class="type-sample"><div class="label">H3 · 20/1.30</div><div class="demo t-h3">Section Heading</div></div>
-    <div class="type-sample"><div class="label">Lead · 17/1.55</div><div class="demo t-lead">Swiss International Style 強調網格、層次、與單一強調色——International Klein Blue。</div></div>
-    <div class="type-sample"><div class="label">Body · 15/1.55</div><div class="demo t-body">本系統以 Inter 為英文主字、Noto Sans TC 涵蓋中文，全 stack 皆為 sans-serif，禁止 serif 介入。</div></div>
-    <div class="type-sample"><div class="label">Dense · 13/1.42</div><div class="demo t-dense">用於資訊密度高的後台、表格欄目、metadata。</div></div>
-    <div class="type-sample"><div class="label">Caption · 12/1.45 +0.04em</div><div class="demo t-cap">CAPTION · UPPERCASE</div></div>
-    <div class="type-sample"><div class="label">Code · 13 mono</div><div class="demo"><span class="t-code">--accent: #002FA7;</span></div></div>
-
-    <h3>規則</h3>
-    <ul>
-      <li>Heading weight 預設 500，上限 700——禁用 800/900</li>
-      <li>標題不用 all-caps；不用 italics</li>
-      <li>字串中嚴禁 <code class="inline">serif</code> 標記出現</li>
-      <li>字距：headline −0.01em ~ −0.02em；caption +0.04em</li>
-    </ul>
-  </section>
-
-  <section id="s4">
-    <h2 class="section-title"><span class="num">04</span>Component Stylings</h2>
-
-    <h3>陰影系統</h3>
-    <table class="spec">
-      <thead><tr><th>名稱</th><th>規格</th><th>用途</th></tr></thead>
-      <tbody>
-        <tr><td>Ring</td><td><code>0 0 0 1px var(--border)</code></td><td>靜態邊框感</td></tr>
-        <tr><td>Whisper</td><td><code>0 4px 24px var(--surface-strong)</code></td><td>hover 浮起；solid token，避免 rgba</td></tr>
-      </tbody>
-    </table>
-
-    <h3>元件展示</h3>
-    <div class="comp-grid">
-
-      <div class="comp-card">
-        <div class="name">Button</div>
-        <button class="btn btn-primary">Primary</button>
-        <button class="btn btn-secondary">Secondary</button>
+      <div class="swatches">
+        <div class="swatch"><div class="chip" style="background:#f5f4ed"></div><div class="meta"><p class="name">--paper</p><p class="hex">#f5f4ed</p><p class="role">頁面主背景（暖調羊皮紙）</p></div></div>
+        <div class="swatch"><div class="chip" style="background:#faf9f5"></div><div class="meta"><p class="name">--surface</p><p class="hex">#faf9f5</p><p class="role">卡片 / 容器（ivory）</p></div></div>
+        <div class="swatch"><div class="chip" style="background:#e8e6dc"></div><div class="meta"><p class="name">--surface-strong</p><p class="hex">#e8e6dc</p><p class="role">互動表面（warm sand）</p></div></div>
+        <div class="swatch"><div class="chip" style="background:#30302e"></div><div class="meta"><p class="name">--dark-surface</p><p class="hex">#30302e</p><p class="role">深色容器</p></div></div>
+        <div class="swatch"><div class="chip" style="background:#141413"></div><div class="meta"><p class="name">--deep-dark</p><p class="hex">#141413</p><p class="role">深色頁面背景</p></div></div>
+        <div class="swatch"><div class="chip" style="background:#1B365D"></div><div class="meta"><p class="name">--accent</p><p class="hex">#1B365D</p><p class="role">主色 ink-blue（唯一彩色 ≤5%）</p></div></div>
+        <div class="swatch"><div class="chip" style="background:#141413"></div><div class="meta"><p class="name">--text-primary</p><p class="hex">#141413</p><p class="role">本文與標題</p></div></div>
+        <div class="swatch"><div class="chip" style="background:#3d3d3a"></div><div class="meta"><p class="name">--text-secondary</p><p class="hex">#3d3d3a</p><p class="role">次要文字、表頭</p></div></div>
+        <div class="swatch"><div class="chip" style="background:#504e49"></div><div class="meta"><p class="name">--text-muted</p><p class="hex">#504e49</p><p class="role">輔助說明（olive）</p></div></div>
+        <div class="swatch"><div class="chip" style="background:#6b6a64"></div><div class="meta"><p class="name">--text-faint</p><p class="hex">#6b6a64</p><p class="role">metadata、placeholder</p></div></div>
+        <div class="swatch"><div class="chip" style="background:#e8e6dc"></div><div class="meta"><p class="name">--border</p><p class="hex">#e8e6dc</p><p class="role">主要邊框 / 分隔線</p></div></div>
+        <div class="swatch"><div class="chip" style="background:#e5e3d8"></div><div class="meta"><p class="name">--border-soft</p><p class="hex">#e5e3d8</p><p class="role">次要邊框 / 表格行線</p></div></div>
       </div>
 
-      <div class="comp-card">
-        <div class="name">Input</div>
-        <input class="input" type="text" placeholder="搜尋條目…" value="">
+      <p style="margin-top: var(--space-lg); color: var(--text-muted); font-size: 0.8125rem;"><em style="font-style: normal; font-weight: 500;">Footnote — oklch advisory</em>：<code>oklch()</code> 為色彩感知比對與未來 Chromium-print migration 參考；現行 WeasyPrint 仍以 hex 為唯一渲染來源，<code>tokens.css</code> 與 <code>design-cores/</code> HTML 不得出現 <code>oklch()</code> 函數。</p>
+    </section>
+
+    <section id="s3">
+      <h2>3. Typography</h2>
+      <p>英文 stack <code>Charter, Georgia, Palatino, "Times New Roman", serif</code>；中文 stack <code>TsangerJinKai02, "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", "STSong", Georgia, serif</code>。<code>--font-sans</code> intentionally aliases <code>--font-serif</code>；不引入獨立 sans 字族。</p>
+
+      <div class="type-sample display"><span class="label">Display · 48px / 1.10 / weight 500</span>溫潤的羊皮紙</div>
+      <div class="type-sample h1"><span class="label">H1 · 29px / 1.20</span>Design System: 紙 (Kami)</div>
+      <div class="type-sample h2"><span class="label">H2 · 21px / 1.25</span>Color Palette &amp; Roles</div>
+      <div class="type-sample h3"><span class="label">H3 · 17px / 1.30</span>背景層次與文字層次</div>
+      <div class="type-sample body-lead"><span class="label">Body Lead · 15px / 1.55</span>介面如一張好紙——有重量、有肌理、讓文字安靜地躺在上面。書房、工藝、手感印刷品。</div>
+      <div class="type-sample body"><span class="label">Body · 13px / 1.55</span><span class="kami-dropcap">紙</span>是設計的底層。它不是負空間、不是裝飾、不是被填滿的對象。它是一個有溫度的場——讓文字落下、讓視線停留、讓資訊呼吸。Kami 的所有元件、所有顏色、所有間距，都是為了讓這個場保持安靜。</div>
+      <div class="type-sample caption"><span class="label">Caption · 12px / 1.45 · text-muted</span>圖 3.1 — 中英文混排示意（中文 Songti / 英文 Charter）</div>
+      <div class="type-sample code-sample"><span class="label">Code · JetBrains Mono · 12px / 1.60</span><code>:root { --paper: #f5f4ed; --accent: #1B365D; }</code></div>
+    </section>
+
+    <section id="s4">
+      <h2>4. Components</h2>
+      <p>陰影僅兩種：<strong>ring</strong>（<code>0 0 0 1px var(--border)</code>）作靜態邊框感；<strong>whisper</strong>（<code>0 4px 24px rgba(0,0,0,0.05)</code>）作 hover 浮起感。禁硬邊 drop shadow。</p>
+
+      <div class="component-grid">
+        <div class="component-card">
+          <h3>Button</h3>
+          <div class="demo"><button class="btn-primary">Primary CTA</button><button class="btn-secondary">Secondary</button></div>
+        </div>
+        <div class="component-card">
+          <h3>Input</h3>
+          <div class="demo"><input class="input-demo" placeholder="search..."></div>
+        </div>
+        <div class="component-card">
+          <h3>Tag / Badge</h3>
+          <div class="demo"><span class="tag-demo">RELEASED</span> <span class="tag-demo">v1.4</span></div>
+        </div>
+        <div class="component-card">
+          <h3>Section Title (Kami signature)</h3>
+          <div class="demo"><div class="section-title-demo">設計系統章節</div></div>
+        </div>
+        <div class="component-card">
+          <h3>Quote</h3>
+          <div class="demo"><p class="quote-demo">設計是節制的藝術。每一個元素都要證明自己存在的必要，否則就刪掉。</p></div>
+        </div>
+        <div class="component-card">
+          <h3>Card</h3>
+          <div class="demo"><div style="background: var(--surface); border: 0.5pt solid var(--border); border-radius: 8px; padding: 12px 16px; font-size: 0.8125rem; color: var(--text-secondary);">Card 背景用 <code>--surface</code>；hover 加 whisper 陰影。</div></div>
+        </div>
       </div>
+    </section>
 
-      <div class="comp-card">
-        <div class="name">Tag / Badge</div>
-        <span class="tag">Active</span>
-        <span class="tag">Beta</span>
-        <span class="tag">v1.2.0</span>
+    <section id="s5">
+      <h2>5. Layout &amp; Spacing</h2>
+      <p>間距基底 4pt（<code>--space-xs … --space-3xl</code>）；radius scale <code>4pt → 6pt → 8pt → 12pt → 16pt → 24pt → 32pt (hero)</code>。12 欄網格、column gutter 24px、page margin 48px（桌機）/ 16px（手機）。閱讀欄位最大 680px；全版面容器最大 1200px。</p>
+      <ul>
+        <li>內容區塊間距至少 32px</li>
+        <li>標題下方 16px、上方 48px</li>
+        <li>卡片內 padding 20–24px</li>
+      </ul>
+    </section>
+
+    <section id="s6">
+      <h2>6. Iconography &amp; Imagery</h2>
+      <p>圖示線條型 outline，stroke-width 1.5–2px，圓角端點；尺寸 16 / 20 / 24px 三檔；顏色繼承 <code>currentColor</code>，特殊強調才用 <code>--accent</code>。圖像優先低飽和暖調與紙質感，避免高彩度商業 stock。Data chart 色序：<code>#1B365D → #504e49 → #6b6a64 → #b8b7b0 → #d4d3cd → #EEF2F7</code>。</p>
+    </section>
+
+    <section id="s7">
+      <h2>7. Motion</h2>
+      <p>過渡時間：micro 150ms / 狀態切換 250ms / 頁面 350ms。Easing 標準 <code>ease-out</code>；彈性 <code>cubic-bezier(0.34, 1.56, 0.64, 1)</code>。不使用裝飾性循環動畫，尊重 <code>prefers-reduced-motion</code>；優先 opacity + scale，避大範圍平移。</p>
+    </section>
+
+    <section id="s8">
+      <h2>8. Do / Don&rsquo;t</h2>
+      <div class="dodont">
+        <div class="col do">
+          <h3>Do</h3>
+          <ul>
+            <li>暖調羊皮紙 <code>#f5f4ed</code> 作主背景</li>
+            <li>墨藍 <code>#1B365D</code> 為唯一強調色（≤5% 表面）</li>
+            <li>Charter / TsangerJinKai02 serif 堆疊</li>
+            <li>Heading weight 鎖 500，不用 700/bold</li>
+            <li>陰影僅 ring / whisper 兩種</li>
+            <li>Body 行高 1.5–1.55，headline 1.1–1.3</li>
+            <li>Tag 背景 solid hex <code>#EEF2F7</code></li>
+            <li><code>--font-sans</code> 永遠 alias <code>--font-serif</code></li>
+            <li>Section title 用 2.5pt brand left bar</li>
+          </ul>
+        </div>
+        <div class="col dont">
+          <h3>Don&rsquo;t</h3>
+          <ul>
+            <li>禁用純白背景 <code>#ffffff</code></li>
+            <li>禁用冷灰 / 藍調 neutral</li>
+            <li>禁硬邊陰影（blur &lt; 4px）</li>
+            <li>禁 tag/badge rgba 背景</li>
+            <li>禁用 bold (700) heading</li>
+            <li>禁 italics（模板與 demo 均適用）</li>
+            <li>禁全頁無襯線字族</li>
+            <li>禁高飽和度撞色</li>
+            <li>禁裝飾性循環動畫</li>
+          </ul>
+        </div>
       </div>
+    </section>
 
-      <div class="comp-card" style="box-shadow: var(--shadow-whisper)">
-        <div class="name">Card · with whisper</div>
-        <p style="margin:0; font-size:14px; color:var(--text-secondary);">卡片浮在底色上，hover 加 whisper shadow。padding 20–24px。</p>
-      </div>
+    <section id="s9">
+      <h2>9. AI Prompt Guide</h2>
+      <p>以下 reproducer prompt 可在全新 AI 對話中重現本設計系統視覺語言：</p>
+      <div class="prompt-block"><pre>Design a UI using the Kami paper design system. Background: warm parchment #f5f4ed; card surfaces: #faf9f5; interactive surfaces: #e8e6dc. Primary accent: ink-blue #1B365D (≤5% surface area). Text hierarchy: near-black #141413 → warm dark #3d3d3a → olive #504e49 → stone #6b6a64. Borders: --border: #e8e6dc (primary), --border-soft: #e5e3d8 (secondary). Typography: Charter/Georgia for English, TsangerJinKai02/Noto Serif SC for Chinese — all weights locked at 500 for headings (no bold), 400 for body. --sans aliases --serif. Line-height: headlines 1.1–1.3, body 1.5–1.55. Shadows: ring only (0 0 0 1px var(--border)) for static; whisper (0 4px 24px rgba(0,0,0,0.05)) for hover. No hard drop shadows. Tags use solid hex #EEF2F7 (never rgba). Section titles use a 2.5pt brand left bar. No italics anywhere. The aesthetic is warm printed paper — ink on parchment, craft over chrome.</pre></div>
 
-      <div class="comp-card">
-        <div class="name">Section Title</div>
-        <h2 class="section-title" style="margin-top:0">Accent left bar</h2>
-        <p style="font-size:13px; color:var(--text-muted); margin:0;">3px IKB 左側 bar 為 Swiss 簽名元件。</p>
-      </div>
+      <h3 style="border-left: 2pt solid var(--accent); padding-left: 8pt; margin-top: var(--space-2xl); font-size: 1.0625rem;">(a) 焦點節點上限</h3>
+      <p>每一頁、每一張投影片，焦點節點上限為 <strong>1–2 個</strong>。主焦點以 <code>--accent: #1B365D</code> 染色（H1、品牌左 bar、唯一 CTA）；次焦點以「結構強度」承擔（加粗 metric 數字、明顯 left-bar 分節線），<strong>不得</strong>再用 accent。違反即視為色彩過載。</p>
 
-      <div class="comp-card">
-        <div class="name">Quote</div>
-        <blockquote class="demo-quote">克制即構圖。網格與對齊是 Swiss 的主導語法。</blockquote>
-      </div>
+      <h3 style="border-left: 2pt solid var(--accent); padding-left: 8pt; font-size: 1.0625rem;">(b) accent hex 設計理據</h3>
+      <table class="tokens">
+        <thead><tr><th>Space</th><th>Coordinates</th><th>設計意圖</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">HEX</td><td class="mono">#1B365D</td><td>主規格；WeasyPrint print pipeline 以此為準</td></tr>
+          <tr><td class="mono">HSL</td><td class="mono">H 211°, S 55%, L 24%</td><td>冷色相位 211°；S 55% 避過飽和；L 24% 為深色印刷藍——羊皮紙上高對比但不刺眼</td></tr>
+          <tr><td class="mono">oklch</td><td class="mono">oklch(0.32 0.08 256)</td><td>screen / 設計工具 advisory；色相 256° perceptual 等價；C 0.08 對應印刷藍低彩度</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top: var(--space-md);">選色理由：對齊鋼筆墨水在 cream paper 上的視覺記憶；避開飽和 royal blue（過於數位）與 navy（過於企業）兩端。</p>
 
-    </div>
-  </section>
+      <h3 style="border-left: 2pt solid var(--accent); padding-left: 8pt; font-size: 1.0625rem;">(c) 我不是什麼（allowed contradictions）</h3>
+      <ul>
+        <li><strong>no second accent</strong> — 全頁只一個彩色；任何「次強調色」皆以中性灰階重量替代</li>
+        <li><strong>no italics</strong> — 模板與 demo 均禁用，襯線斜體在 print pipeline 容易掉字</li>
+        <li><strong>no cool accent shift</strong> — accent 不得偏向 cyan / teal；warm parchment 需要 warm-shifted blue</li>
+        <li><strong>no oklch in attribute</strong> — <code>tokens.css</code> / inline style 不得出現 <code>oklch(</code>；oklch 僅為 advisory</li>
+        <li><strong>no gradient bg</strong> — 背景永遠平塗紙色；禁 linear-/radial-gradient 背景</li>
+        <li><strong>no hard drop shadow</strong> — 深度只用 ring + whisper；禁 <code>0 8px 16px rgba(0,0,0,0.3)</code> 類硬邊陰影</li>
+        <li><strong>no all-caps headings</strong> — 中英混排不使用 letter-spacing + uppercase 的設計派頭</li>
+      </ul>
+    </section>
 
-  <section id="s5">
-    <h2 class="section-title"><span class="num">05</span>Layout & Spacing</h2>
-    <h3>間距 token（4px 基底）</h3>
-    <table class="spec">
-      <thead><tr><th>Token</th><th>Value</th></tr></thead>
-      <tbody>
-        <tr><td><code>--space-xs</code></td><td>4px</td></tr>
-        <tr><td><code>--space-sm</code></td><td>8px</td></tr>
-        <tr><td><code>--space-md</code></td><td>12px</td></tr>
-        <tr><td><code>--space-lg</code></td><td>20px</td></tr>
-        <tr><td><code>--space-xl</code></td><td>32px</td></tr>
-        <tr><td><code>--space-2xl</code></td><td>56px</td></tr>
-        <tr><td><code>--space-3xl</code></td><td>96px</td></tr>
-      </tbody>
-    </table>
-
-    <h3>網格</h3>
-    <ul>
-      <li>12 欄，column gutter 24px，page margin 56px（桌機）/ 16px（手機）</li>
-      <li>標題、副標題、body 對齊到同一網格線，flush-left</li>
-      <li>內容區塊間距 ≥32px；標題下方 16px、上方 56px</li>
-      <li>閱讀欄位最大 720px；全版面容器最大 1200px</li>
-    </ul>
-  </section>
-
-  <section id="s6">
-    <h2 class="section-title"><span class="num">06</span>Iconography & Imagery</h2>
-    <ul>
-      <li>線條型 outline，stroke-width 1.5–2px，linecap/linejoin 全站一致（預設 round）</li>
-      <li>尺寸：16 / 20 / 24px</li>
-      <li>顏色繼承 <code class="inline">currentColor</code>；強調才用 <code class="inline">--accent</code></li>
-      <li>圖片偏好幾何抽象、網格構成、單色高對比攝影</li>
-      <li>Hero 圖可疊 accent 半透明遮罩，但以 solid hex 完成（避免 rgba）</li>
-      <li>Data chart 色序：<code class="inline">#002FA7 → #3a3a3a → #5c5c5c → #8a8a8a → #d9d9d4 → #f2f2ef</code></li>
-    </ul>
-  </section>
-
-  <section id="s7">
-    <h2 class="section-title"><span class="num">07</span>Motion & Animation</h2>
-    <table class="spec">
-      <thead><tr><th>類型</th><th>時間</th></tr></thead>
-      <tbody>
-        <tr><td>Micro-interaction（hover/focus）</td><td>120ms</td></tr>
-        <tr><td>狀態切換</td><td>200ms</td></tr>
-        <tr><td>頁面層級</td><td>320ms</td></tr>
-      </tbody>
-    </table>
-    <ul>
-      <li>Easing：標準 <code class="inline">ease-out</code>；嚴格 <code class="inline">cubic-bezier(0.4, 0, 0.2, 1)</code>——無 overshoot</li>
-      <li>不使用裝飾性循環動畫</li>
-      <li>尊重 <code class="inline">prefers-reduced-motion</code>，降至 0ms</li>
-      <li>位移限 1–2px；優先使用 opacity</li>
-    </ul>
-  </section>
-
-  <section id="s8">
-    <h2 class="section-title"><span class="num">08</span>Do / Don't</h2>
-    <div class="do-grid">
-      <div class="do-col">
-        <h3>✓ Do</h3>
-        <ul>
-          <li>中性 off-white <code class="inline">--paper: #fafaf8</code> 作主背景</li>
-          <li>IKB <code class="inline">#002FA7</code> 唯一強調，≤5% 表面</li>
-          <li>Inter / Helvetica Neue / Noto Sans TC sans-serif stack</li>
-          <li>Heading weight 預設 500，上限 700</li>
-          <li>Ring / whisper 陰影（whisper 走 solid token）</li>
-          <li>Body 行高 1.5–1.55，headline 1.10–1.30</li>
-          <li>Tag 背景用 solid hex（<code class="inline">var(--surface-strong)</code>）</li>
-          <li>Section title 用 3px accent left bar</li>
-          <li>一切 flush-left 對齊 baseline grid</li>
-        </ul>
-      </div>
-      <div class="dont-col">
-        <h3>✗ Don't</h3>
-        <ul>
-          <li>禁用純白背景</li>
-          <li>禁用第二個高飽和色——accent 唯一原則</li>
-          <li>禁用硬邊陰影（blur &lt; 4px）</li>
-          <li>禁 tag/badge 背景使用 rgba</li>
-          <li>不使用 weight ≥ 800 做 heading</li>
-          <li>不使用 italics（模板與 demo 均禁用）</li>
-          <li>不引入 serif 字族</li>
-          <li>不使用裝飾性循環動畫</li>
-          <li>不使用置中對齊作為預設排版策略</li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <section id="s9">
-    <h2 class="section-title"><span class="num">09</span>AI Prompt Guide</h2>
-    <p>以下提示詞可在全新 AI 對話中重現本設計系統的視覺語言：</p>
-    <pre class="prompt">Design a UI using the Swiss IKB design system. Background: neutral off-white var(--paper) (token; hex #fafaf8); card surfaces: var(--surface); interactive surfaces: var(--surface-strong). Primary accent: International Klein Blue var(--accent) (token; hex #002FA7) — the only chromatic color, ≤5% surface area, paired with var(--accent-on) for foreground on filled regions. Text hierarchy: var(--text-primary) → var(--text-secondary) → var(--text-muted) → var(--text-faint). Typography: 'Inter', 'Helvetica Neue', 'Noto Sans TC', sans-serif — sans-serif only, no serif anywhere. Heading weight 500, body weight 400, headings tracked −0.01em, captions +0.04em. Line-height: headlines 1.10–1.30, body 1.50–1.55. Shadows: ring (0 0 0 1px var(--border)) for static; whisper (0 4px 24px var(--surface-strong)) for hover — solid tokens only, no rgba. Tags use solid hex via var(--surface-strong). Section titles use a 3px accent left bar. All alignment flush-left to a 12-column baseline grid. No italics, no decoration, no second accent. The aesthetic is Swiss International Style — Müller-Brockmann grids, IKB ultramarine, function over ornament.</pre>
-  </section>
-
-</main>
+  </main>
 </div>
 </body>
 </html>

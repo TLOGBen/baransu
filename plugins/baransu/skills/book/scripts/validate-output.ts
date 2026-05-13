@@ -30,6 +30,16 @@
  *   - GATE-K chevron-strict     : every <marker> defs must contain exactly one
  *                                  <path d="M2 1 L8 5 L2 9" fill="none"
  *                                  stroke-width="1.5">; <polygon> markers forbidden.
+ *   - GATE-L viewBox-containment: every renderable geometric element fits inside
+ *                                  the SVG viewBox bounds (0.5px tolerance for
+ *                                  sub-pixel noise). Catches arithmetic errors
+ *                                  where x+width / y+height / max(x1,x2) etc.
+ *                                  spills past the viewBox edge. Skips elements
+ *                                  inside <defs>/<marker>/<pattern>/<clipPath>/
+ *                                  <mask>/<symbol> and any descendant of a
+ *                                  transformed group (transformed bounds OOS).
+ *                                  Checks <rect>, <line>, <circle>, <ellipse>,
+ *                                  <text>; <path> too complex, skipped.
  */
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -482,6 +492,118 @@ svgs.forEach((svg, i) => {
     fail = 1;
   } else {
     console.log(`OK  GATE-K chevron-strict (${label}, markers checked=${markers.length})`);
+  }
+});
+
+// ── GATE-L: viewBox containment ─────────────────────────────────────────────
+// Every renderable geometric element MUST fit within the SVG viewBox.
+// Catches arithmetic errors where geometry spills past the viewBox edge
+// (browsers default to overflow:visible so this renders in-page but gets
+// cropped in print / screenshot / PDF pipelines).
+const CONTAINMENT_TOL = 0.5;
+const VB_SKIP_ANCESTORS = new Set(["defs", "marker", "pattern", "clippath", "mask", "symbol"]);
+
+function parseViewBoxBounds(
+  vb: string | undefined
+): { x: number; y: number; w: number; h: number } | null {
+  if (!vb) return null;
+  const parts = vb.trim().split(/[\s,]+/).map(Number);
+  if (parts.length !== 4 || parts.some((n) => !Number.isFinite(n))) return null;
+  const [x, y, w, h] = parts;
+  return { x, y, w, h };
+}
+
+function hasTransformedAncestor(el: DomElement, stopAt: DomElement): boolean {
+  let p = el.parent as DomElement | null;
+  while (p && p !== stopAt) {
+    if (p.tagName && $(p).attr("transform")) return true;
+    p = p.parent as DomElement | null;
+  }
+  return false;
+}
+
+function attrNum(el: DomElement, name: string, fallback = NaN): number {
+  const a = $(el).attr(name);
+  if (a === undefined) return fallback;
+  const n = parseFloat(a);
+  return Number.isNaN(n) ? fallback : n;
+}
+
+svgs.forEach((svg, i) => {
+  const label = svgLabel(i, svg);
+  const vb = parseViewBoxBounds($(svg).attr("viewBox"));
+  if (!vb) {
+    console.log(`SKIP GATE-L viewBox-containment (${label}, no viewBox)`);
+    return;
+  }
+  const vbR = vb.x + vb.w;
+  const vbB = vb.y + vb.h;
+  const violations: string[] = [];
+
+  function shouldSkip(el: DomElement): boolean {
+    if (hasAncestor(el, VB_SKIP_ANCESTORS, svg)) return true;
+    if (hasTransformedAncestor(el, svg)) return true;
+    return false;
+  }
+
+  // <rect> — skip paper-mask (width="100%" height="100%")
+  ($(svg).find("rect").toArray() as DomElement[]).forEach((el) => {
+    if (shouldSkip(el)) return;
+    if ($(el).attr("width") === "100%" && $(el).attr("height") === "100%") return;
+    const x = attrNum(el, "x", 0), y = attrNum(el, "y", 0);
+    const w = attrNum(el, "width"), h = attrNum(el, "height");
+    if (!Number.isFinite(w) || !Number.isFinite(h)) return;
+    const right = x + w, bot = y + h;
+    if (right > vbR + CONTAINMENT_TOL) violations.push(`<rect x=${x} width=${w}> right=${right} > viewBox.right=${vbR}`);
+    if (bot > vbB + CONTAINMENT_TOL) violations.push(`<rect y=${y} height=${h}> bottom=${bot} > viewBox.bottom=${vbB}`);
+    if (x < vb.x - CONTAINMENT_TOL) violations.push(`<rect x=${x}> < viewBox.left=${vb.x}`);
+    if (y < vb.y - CONTAINMENT_TOL) violations.push(`<rect y=${y}> < viewBox.top=${vb.y}`);
+  });
+
+  // <line>
+  ($(svg).find("line").toArray() as DomElement[]).forEach((el) => {
+    if (shouldSkip(el)) return;
+    const x1 = attrNum(el, "x1", 0), y1 = attrNum(el, "y1", 0);
+    const x2 = attrNum(el, "x2", 0), y2 = attrNum(el, "y2", 0);
+    const maxX = Math.max(x1, x2), maxY = Math.max(y1, y2);
+    const minX = Math.min(x1, x2), minY = Math.min(y1, y2);
+    if (maxX > vbR + CONTAINMENT_TOL) violations.push(`<line maxX=${maxX}> > viewBox.right=${vbR}`);
+    if (maxY > vbB + CONTAINMENT_TOL) violations.push(`<line maxY=${maxY}> > viewBox.bottom=${vbB}`);
+    if (minX < vb.x - CONTAINMENT_TOL) violations.push(`<line minX=${minX}> < viewBox.left=${vb.x}`);
+    if (minY < vb.y - CONTAINMENT_TOL) violations.push(`<line minY=${minY}> < viewBox.top=${vb.y}`);
+  });
+
+  // <circle> / <ellipse>
+  ($(svg).find("circle, ellipse").toArray() as DomElement[]).forEach((el) => {
+    if (shouldSkip(el)) return;
+    const tag = el.tagName?.toLowerCase();
+    const cx = attrNum(el, "cx", 0), cy = attrNum(el, "cy", 0);
+    const rx = tag === "circle" ? attrNum(el, "r", 0) : attrNum(el, "rx", 0);
+    const ry = tag === "circle" ? attrNum(el, "r", 0) : attrNum(el, "ry", 0);
+    if (!Number.isFinite(rx) || !Number.isFinite(ry)) return;
+    if (cx + rx > vbR + CONTAINMENT_TOL) violations.push(`<${tag} cx=${cx} r=${rx}> right=${cx + rx} > viewBox.right=${vbR}`);
+    if (cy + ry > vbB + CONTAINMENT_TOL) violations.push(`<${tag} cy=${cy} r=${ry}> bottom=${cy + ry} > viewBox.bottom=${vbB}`);
+    if (cx - rx < vb.x - CONTAINMENT_TOL) violations.push(`<${tag} cx=${cx} r=${rx}> left=${cx - rx} < viewBox.left=${vb.x}`);
+    if (cy - ry < vb.y - CONTAINMENT_TOL) violations.push(`<${tag} cy=${cy} r=${ry}> top=${cy - ry} < viewBox.top=${vb.y}`);
+  });
+
+  // <text> — x/y anchor only (text width can't be measured without rendering)
+  ($(svg).find("text").toArray() as DomElement[]).forEach((el) => {
+    if (shouldSkip(el)) return;
+    const x = attrNum(el, "x"), y = attrNum(el, "y");
+    if (Number.isFinite(x) && x > vbR + CONTAINMENT_TOL) violations.push(`<text x=${x}> > viewBox.right=${vbR}`);
+    if (Number.isFinite(y) && y > vbB + CONTAINMENT_TOL) violations.push(`<text y=${y}> > viewBox.bottom=${vbB}`);
+  });
+
+  if (violations.length > 0) {
+    for (const v of violations) {
+      console.log(`FAIL GATE-L viewBox-containment: ${label} ${v}`);
+    }
+    fail = 1;
+  } else {
+    console.log(
+      `OK  GATE-L viewBox-containment (${label}, viewBox=${vb.x} ${vb.y} ${vb.w} ${vb.h})`
+    );
   }
 });
 
