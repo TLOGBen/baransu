@@ -1,12 +1,13 @@
 {
-  "iter_count": 29,
+  "iter_count": 30,
   "score_overall": null,
   "score_history": [],
   "last_review_findings": 0,
   "pending_findings": [
     {"from_iter": 2, "task": "TASK-shared-02", "severity": "P2", "issue": "WIP file committed", "action": "deferred to /ship"},
     {"from_iter": 17, "task": "layouts-01/02/03", "severity": "P2", "issue": "21/22 count", "action": "dogfood pass"},
-    {"from_iter": 22, "task": "TASK-cg-01", "severity": "P3", "issue": "checklist-sanity shell deferred", "action": "future cleanup"}
+    {"from_iter": 22, "task": "TASK-cg-01", "severity": "P3", "issue": "checklist-sanity shell deferred", "action": "future cleanup"},
+    {"from_iter": 30, "task": "TASK-finalize-01", "severity": "P3", "issue": "M1 pragmatic-scope: full 66 layout + 36 schema fixture regen deferred to v1.4 follow-up", "action": "future fixture dogfood pass"}
   ],
   "pending_spec_drift": [
     "task-shared.md vs requirement.md Scenario 2 wording",
@@ -54,8 +55,9 @@
     {"id": "TASK-ct-01", "commit": "66ff67b", "review": "0"},
     {"id": "TASK-ct-02", "commit": "b9845ea", "review": "0"},
     {"id": "TASK-ct-03", "commit": "87639cf", "review": "0"},
-    {"id": "TASK-ct-04", "commit": "64d60b8", "review": "0; CT GROUP 4/4 COMPLETE"}
+    {"id": "TASK-ct-04", "commit": "64d60b8", "review": "0; CT GROUP 4/4"},
+    {"id": "TASK-finalize-01", "commit": "3ae4db2", "review": "0 (pragmatic-scope)"}
   ],
-  "next_task": "TASK-finalize-01",
-  "notes": "iter 29 done; 🎉 CROSS-TOOL GROUP 4/4 COMPLETE (REQ-007 + REQ-010 M2 fully landed); 29/33 tasks = 88%; 4 remaining (finalize group)."
+  "next_task": "TASK-finalize-02",
+  "notes": "iter 30 done; finalize 1/4 (M1 done pragmatic); 30/33 tasks = 91%; 3 remaining."
 }
