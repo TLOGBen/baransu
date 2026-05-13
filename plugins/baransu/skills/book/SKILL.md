@@ -13,6 +13,8 @@ Converts any content into a Kami-themed, browser-ready HTML book saved to `.clau
 
 ## Stage 0 — Environment Self-Check
 
+> 本 SKILL.md 採 Fact-Verification Principle #0（見下文 Stage 2A §0「Fact-Verification Principle #0」段）：在合成長文前，凡偵測到具體產品 / 版本 / 人名 + 職位 pattern，強制 WebSearch 驗證；0 結果即 AskUserQuestion 阻擋。
+
 ### 0.0 Design context soft-read
 
 執行於所有其他 Stage 0 步驟之前。沿用 /design / /analyze 的同款 soft-read 模式，把當下 preset 的設計哲學帶進 context 作 advisory framing。
@@ -175,6 +177,30 @@ Output one progress line:
 ## Stage 2A — Synthesize（長文，所有 format）
 
 Receives `$RAW_CONTENT`. Produces `$STRUCTURE` (a JSON-like outline) and `$CONTENT_TYPE`.
+
+### 0. Fact-Verification Principle #0
+
+**Purpose**：在合成長文進入 §1 分類前先做事實閘，防止把幻想的具體規格（虛構版本號、虛構人物職位）寫進最終 HTML。對應 REQ-006 Scenario 1 / Criteria C6。歷史案例：「Linear MCP v3.4.7 released 2025-09-15」屬虛構，但若不驗證，會被當作既有事實渲染到 book 內。
+
+**Trigger regex**（對 `$RAW_CONTENT` 全文 soft-match，不強制全部命中視為錯誤，只作為觸發 WebSearch 的訊號）：
+
+```
+/([A-Z][a-zA-Z]+\s+(MCP|SDK|CLI|API)?\s*v?\d+(\.\d+)*)|([A-Z][a-z]+\s+[A-Z][a-z]+(\s|,)+(CEO|CTO|founder|engineer))/
+```
+
+說明：
+- 前半 alternation：產品名（capitalized word）+ 選擇性 MCP/SDK/CLI/API + 選擇性 `v` + 一段以上點分數字 → 命中如「Linear MCP v3.4.7」「Anthropic SDK 0.39」。
+- 後半 alternation：人名（兩個 capitalized words）+ 空白或逗號 + 職位（CEO/CTO/founder/engineer）→ 命中如「Jane Doe, CTO」。
+
+**Flow on hit**（每命中一筆 `{hit}`）：
+
+1. 跑 `WebSearch`，query template：`"{hit}" release notes` 或 `"{hit}" announcement`（人名命中改用 `"{hit}" announcement` / `"{hit}" interview`）。
+2. 若 WebSearch 回傳 **0 結果** → 透過 `AskUserQuestion` 顯示：「Fact-verify pending: '{hit}' 在 WebSearch 0 結果。選擇：強制繼續 / 改用 `--text` 餵已驗證版本 / 中止本次 /book」。等使用者選擇後再決定是否進入 §1。
+3. 若 WebSearch 回傳 **≥ 1 結果** → 視為事實可驗，繼續，但仍把該 hit 列入 `$STRUCTURE` 末尾的「Sources」清單（在 Stage 2A §3 extract 階段一併處理）。
+
+**Flow on no hit**：直接進入 §1 分類。
+
+**Boundary**：regex 為 soft trigger，不是 hard match——不命中不代表內容必為真，未來會視 telemetry 結果擴充 pattern。**測試 fixture**：字串 `Linear MCP v3.4.7 released 2025-09-15` 為虛構，預期觸發 regex、WebSearch 回傳 0 結果、走 ask 流程（不可靜默繼續）。
 
 ### 1. Classify content type
 

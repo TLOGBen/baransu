@@ -37,22 +37,22 @@
 **需求追溯**：REQ-006 Scenario 1
 **目標**：對含具體產品 / 版本 / 人名 + 職位 pattern 的長文，Stage 2A 前強制 WebSearch verify。
 **驗收標準**：
-- [ ] `book/SKILL.md` Stage 0 段（或 Stage 2A 開頭）含「Fact-Verification Principle #0」標題段
-- [ ] 段內含正則模式 + WebSearch 觸發 flow + AskUserQuestion 阻擋 flow
-- [ ] 對 fixture「`Linear MCP v3.4.7 released 2025-09-15`」測試（虛構字串），SKILL.md 邏輯走 ask
+- [x] `book/SKILL.md` Stage 0 段（或 Stage 2A 開頭）含「Fact-Verification Principle #0」標題段
+- [x] 段內含正則模式 + WebSearch 觸發 flow + AskUserQuestion 阻擋 flow
+- [x] 對 fixture「`Linear MCP v3.4.7 released 2025-09-15`」測試（虛構字串），SKILL.md 邏輯走 ask
 
 ### 步驟
 
 #### 規格層
-- [ ] 在 SKILL.md Stage 0 後（或 Stage 2A §0）加新段「Fact-Verification Principle #0」
-- [ ] 內含：
+- [x] 在 SKILL.md Stage 0 後（或 Stage 2A §0）加新段「Fact-Verification Principle #0」
+- [x] 內含：
   - 偵測 regex：`/([A-Z][a-zA-Z]+\s+(MCP|SDK|CLI|API)?\s*v?\d+(\.\d+)*)|([A-Z][a-z]+\s+[A-Z][a-z]+(\s|,)+(CEO|CTO|founder|engineer))/`
   - 命中 → WebSearch verify each hit（提供 query template）
   - 0 結果 → AskUserQuestion「Fact-verify pending: {hit}; 強制繼續 / 改用 --text / 中止」
-- [ ] 在 SKILL.md Stage 0 開頭加引述：「本 SKILL.md 採 Fact-Verification Principle #0（見下 §...）」
+- [x] 在 SKILL.md Stage 0 開頭加引述：「本 SKILL.md 採 Fact-Verification Principle #0（見下 §...）」
 
 #### 驗證
-- [ ] grep `Fact-Verification Principle` book/SKILL.md 命中 ≥ 2（引述 + 段標題）
+- [x] grep `Fact-Verification Principle` book/SKILL.md 命中 ≥ 2（引述 + 段標題）
 
 ---
 
