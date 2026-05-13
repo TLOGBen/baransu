@@ -96,17 +96,17 @@
 **需求追溯**：REQ-010 Scenario 2b
 **目標**：v1.3 golden-template 只展示 Kami 風格；v1.4 加 swiss + google-design preset 對應 reference 區塊或 alt-template 檔。
 **驗收標準**：
-- [ ] 新增 `book/references/golden-template-swiss.html` 與 `book/references/golden-template-gd.html`
-- [ ] 三檔分別對應 preset 的 typography / color / SVG token
-- [ ] 三檔 SVG primitives section（chevron / paper-mask / type tag / legend）全綠通過 validate-output.ts
+- [x] 新增 `book/references/golden-template-swiss.html` 與 `book/references/golden-template-gd.html`
+- [x] 三檔分別對應 preset 的 typography / color / SVG token
+- [x] 三檔 SVG primitives section（chevron / paper-mask / type tag / legend）全綠通過 validate-output.ts
 
 ### 步驟
 
 #### 模板層
-- [ ] copy `golden-template.html` 為 `golden-template-swiss.html`
-- [ ] 改：body font-family 改 Swiss invariant `'Inter', 'Helvetica Neue', sans-serif`；accent hex 改 `#002FA7`；移除 dropcap demo（Swiss invariant 禁 italics + 禁 dropcap，由 task-editorial-02 決定是否允許 Swiss preset 有 dropcap，否則改示範段省略）
-- [ ] 改：SVG primitives section 沿用 chevron + 2-tier 節點寬 + focal #002FA7 stroke + #DDE2EF fill（Swiss 對應 brand-tint）
-- [ ] 同等做 google-design variant
+- [x] copy `golden-template.html` 為 `golden-template-swiss.html`
+- [x] 改：body font-family 改 Swiss invariant `'Inter', 'Helvetica Neue', sans-serif`；accent hex 改 `#002FA7`；移除 dropcap demo（Swiss invariant 禁 italics + 禁 dropcap，由 task-editorial-02 決定是否允許 Swiss preset 有 dropcap，否則改示範段省略）
+- [x] 改：SVG primitives section 沿用 chevron + 2-tier 節點寬 + focal #002FA7 stroke + #DDE2EF fill（Swiss 對應 brand-tint）
+- [x] 同等做 google-design variant
 
 #### 驗證
 - [ ] 三檔（`golden-template.html` / `golden-template-swiss.html` / `golden-template-gd.html`）**皆**跑 `book/scripts/validate-output.ts` 對應 fixture，GATE A-K 全 PASS（對應 test.md E2.5「三 golden-template 變體 cross-preset 跑通」）
