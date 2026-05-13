@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sequence Diagram 示範</title>
+  <link rel="stylesheet" href="../../tokens.css">
+  <style>
+    * { box-sizing: border-box; }
+    body { background: var(--paper); color: var(--text-primary); font-family: var(--font-serif); margin: 0; text-wrap: pretty; }
+    .kami-page { max-width: 1200px; margin: 0 auto; padding: 56px 24px; display: grid; grid-template-columns: 220px 1fr; gap: 56px; }
+    .kami-toc { position: sticky; top: 24px; align-self: start; border-left: 3px solid var(--accent); padding-left: 16px; }
+    .kami-toc .kami-toc-label { font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.08em; }
+    .kami-toc h1 { font-size: 18px; margin: 8px 0 24px; font-weight: 500; letter-spacing: -0.01em; }
+    .kami-toc ol { list-style: none; padding: 0; margin: 0; }
+    .kami-toc a { display: block; font-size: 13px; color: var(--text-secondary); text-decoration: none; padding: 4px 0; }
+    .kami-toc a:hover { color: var(--accent); }
+    .kami-h1 { font-size: 36px; font-weight: 500; line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 16px; }
+    .kami-h2 { font-size: 24px; font-weight: 500; line-height: 1.25; letter-spacing: -0.01em; border-left: 3px solid var(--accent); padding-left: 12px; margin: 32px 0 16px; }
+    .kami-h3 { font-size: 18px; font-weight: 500; line-height: 1.30; margin: 24px 0 12px; }
+    .kami-lead { font-size: 17px; line-height: 1.55; color: var(--text-primary); margin: 16px 0; }
+    .kami-body { font-size: 15px; line-height: 1.55; color: var(--text-primary); margin: 12px 0; }
+    .kami-dropcap { float: left; font-size: 4.65em; line-height: 1; font-weight: 500; color: var(--accent); padding-right: 8px; padding-top: 2px; }
+    .kami-caption { font-size: 12px; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; }
+    .kami-quote { border-left: 2px solid var(--accent); padding: 8px 0 8px 16px; color: var(--text-secondary); margin: 24px 0; line-height: 1.55; }
+    .kami-code { font-family: var(--font-mono); font-size: 13px; background: var(--surface); padding: 2px 6px; border-radius: var(--radius-sm); border: 0.5px solid var(--border-soft); }
+    figure.kami-figure { margin: 32px 0; }
+    figure.kami-figure svg { display: block; max-width: 100%; }
+    figcaption.kami-figcaption { font-size: 12px; color: var(--text-muted); margin-top: 8px; text-align: center; }
+    .kami-footer { font-size: 12px; color: var(--text-faint); border-top: 0.5px solid var(--border); padding-top: 16px; margin-top: 56px; }
+    table.kami-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+    table.kami-table th, table.kami-table td { padding: 8px 12px; text-align: left; border-bottom: 0.5px solid var(--border-soft); vertical-align: top; }
+    table.kami-table th { color: var(--text-secondary); font-weight: 500; background: var(--surface); }
+    em, i { font-style: normal; font-weight: 500; }
+    @media (max-width: 900px) { .kami-page { grid-template-columns: 1fr; gap: 24px; padding: 24px; } .kami-toc { position: static; } }
+  </style>
+</head>
+<body class="kami-paper-body">
+<div class="kami-page">
+
+  <aside class="kami-toc">
+    <div class="kami-toc-label">Contents</div>
+    <h1>Sequence Diagram 示範</h1>
+    <ol>
+      <li><a href="#s1">01 什麼是 sequence</a></li>
+      <li><a href="#s2">02 範例：/book 流程</a></li>
+      <li><a href="#s3">03 vs flowchart</a></li>
+      <li><a href="#s4">04 Kami 風格規格</a></li>
+    </ol>
+  </aside>
+
+  <main class="kami-main">
+    <header class="kami-cover">
+      <p class="kami-caption">Diagram Type Demo · Sequence</p>
+      <h1 class="kami-h1">Sequence Diagram 示範</h1>
+      <p class="kami-lead">用 <code class="kami-code">/baransu:book</code> 自己的執行序列當例子，跑一張 Kami 風 sequence diagram — 4 actors、8 messages、含 self-loop / return / focal-path 三種變體。GATE A-L 全綠驗證 sequence diagram 在 v1.4.1 pipeline 內可正常產出。</p>
+    </header>
+
+    <section data-slot="long-form-body">
+
+      <section id="s1">
+        <h2 class="kami-h2">01 什麼是 sequence diagram</h2>
+        <p class="kami-body"><span class="kami-dropcap">S</span>equence diagram 不是流程圖。它強調的是<strong>時間順序 + 跨 actor 互動</strong>：時間軸從上往下，每條垂直 lifeline 代表一個 actor 或 participant，水平 arrow 是訊息。同步呼叫用實線實心箭頭；回傳用虛線。Actor 在處理工作時，lifeline 上會疊一條細長的 activation bar 標記「現在在 busy」。Actor 對自己呼叫的內部處理用 self-loop（一段右出 → 下 → 左回的折線）。</p>
+        <p class="kami-body">用得對的場景：3 個以上 actor、有 round-trip、互動順序本身就是要傳達的重點。例如 OAuth flow、API 編排、microservices 對話、CI/CD pipeline 內外部呼叫。<i>不</i>適合：純粹的決策樹（用 flowchart）、靜態系統結構（用 architecture）。</p>
+      </section>
+
+      <section id="s2">
+        <h2 class="kami-h2">02 範例：/baransu:book 流程</h2>
+        <p class="kami-body">下圖是這一次 <code class="kami-code">/baransu:book "可以模擬 sequence diagram 給我看一下嗎"</code> 從 invoke 到產出 HTML 的實際序列。4 個 actor、8 條訊息，焦點落在兩端（User 觸發端 + validate-output 把關端）。</p>
+
+        <figure class="kami-figure">
+          <svg viewBox="0 0 720 384" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="/baransu:book sequence diagram with 4 actors and 8 messages">
+            <defs>
+              <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+                <circle cx="1" cy="1" r="0.9" fill="#E3E2DC"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="#f5f4ed"/>
+            <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
+
+            <!-- Caption strip -->
+            <text x="32" y="24" font-family="Charter, Georgia, serif" font-size="11" fill="#6b6a64" letter-spacing="0.04em">SEQUENCE · /BARANSU:BOOK PIPELINE</text>
+            <line x1="32" y1="32" x2="296" y2="32" stroke="#1B365D" stroke-width="1"/>
+
+            <!-- Actor 1: User (focal) -->
+            <rect data-role="focal" x="48" y="48" width="128" height="44" rx="8" fill="#EEF2F7" stroke="#1B365D" stroke-width="1.5"/>
+            <text x="112" y="76" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="13" fill="#141413">User</text>
+
+            <!-- Actor 2: /book -->
+            <rect x="216" y="48" width="128" height="44" rx="8" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="280" y="76" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="13" fill="#141413">/baransu:book</text>
+
+            <!-- Actor 3: markitdown -->
+            <rect x="384" y="48" width="128" height="44" rx="8" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="448" y="76" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="13" fill="#141413">markitdown</text>
+
+            <!-- Actor 4: validate-output (focal) -->
+            <rect data-role="focal" x="552" y="48" width="128" height="44" rx="8" fill="#EEF2F7" stroke="#1B365D" stroke-width="1.5"/>
+            <text x="616" y="76" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="13" fill="#141413">validate-output</text>
+
+            <!-- Lifelines (dashed) -->
+            <line x1="112" y1="92" x2="112" y2="340" stroke="#6b6a64" stroke-width="0.8" stroke-dasharray="3 4"/>
+            <line x1="280" y1="92" x2="280" y2="340" stroke="#6b6a64" stroke-width="0.8" stroke-dasharray="3 4"/>
+            <line x1="448" y1="92" x2="448" y2="340" stroke="#6b6a64" stroke-width="0.8" stroke-dasharray="3 4"/>
+            <line x1="616" y1="92" x2="616" y2="340" stroke="#6b6a64" stroke-width="0.8" stroke-dasharray="3 4"/>
+
+            <!-- Activation bars (width 8, < 40 so GATE-J skip) -->
+            <rect x="276" y="124" width="8" height="208" fill="#EEF2F7" stroke="#1B365D" stroke-width="0.5"/>
+            <rect x="444" y="156" width="8" height="32" fill="#faf9f5" stroke="#141413" stroke-width="0.5"/>
+            <rect x="612" y="268" width="8" height="32" fill="#faf9f5" stroke="#141413" stroke-width="0.5"/>
+
+            <!-- Message 1: User → /book invoke -->
+            <text x="196" y="118" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="11" fill="#504e49">/book "demo"</text>
+            <line x1="120" y1="124" x2="272" y2="124" stroke="#504e49" stroke-width="1.5"/>
+            <path d="M268 120 L276 124 L268 128" fill="none" stroke="#504e49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <!-- Message 2: /book → markitdown convert -->
+            <text x="362" y="150" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="11" fill="#504e49">convert MD</text>
+            <line x1="284" y1="156" x2="440" y2="156" stroke="#504e49" stroke-width="1.5"/>
+            <path d="M436 152 L444 156 L436 160" fill="none" stroke="#504e49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <!-- Message 3: markitdown → /book return $RAW_CONTENT (dashed return) -->
+            <text x="366" y="182" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="11" fill="#504e49">$RAW_CONTENT</text>
+            <line x1="444" y1="188" x2="288" y2="188" stroke="#504e49" stroke-width="1.5" stroke-dasharray="4 3"/>
+            <path d="M292 184 L284 188 L292 192" fill="none" stroke="#504e49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <!-- Message 4: self-loop on /book — classify -->
+            <line x1="284" y1="216" x2="320" y2="216" stroke="#504e49" stroke-width="1.5"/>
+            <line x1="320" y1="216" x2="320" y2="224" stroke="#504e49" stroke-width="1.5"/>
+            <line x1="320" y1="224" x2="288" y2="224" stroke="#504e49" stroke-width="1.5"/>
+            <path d="M292 220 L284 224 L292 228" fill="none" stroke="#504e49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="332" y="222" font-family="Charter, Georgia, serif" font-size="11" fill="#504e49">classify type</text>
+
+            <!-- Message 5: self-loop on /book — render -->
+            <line x1="284" y1="244" x2="320" y2="244" stroke="#504e49" stroke-width="1.5"/>
+            <line x1="320" y1="244" x2="320" y2="252" stroke="#504e49" stroke-width="1.5"/>
+            <line x1="320" y1="252" x2="288" y2="252" stroke="#504e49" stroke-width="1.5"/>
+            <path d="M292 248 L284 252 L292 256" fill="none" stroke="#504e49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="332" y="250" font-family="Charter, Georgia, serif" font-size="11" fill="#504e49">render HTML + SVG</text>
+
+            <!-- Message 6: /book → validate-output (focal-path, accent) -->
+            <text x="446" y="266" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="11" fill="#1B365D">run GATE A-L</text>
+            <line x1="284" y1="272" x2="608" y2="272" stroke="#1B365D" stroke-width="1.5"/>
+            <path d="M604 268 L612 272 L604 276" fill="none" stroke="#1B365D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <!-- Message 7: validate-output → /book PASS (dashed return, accent) -->
+            <text x="450" y="294" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="11" fill="#1B365D">GATE PASS</text>
+            <line x1="612" y1="300" x2="288" y2="300" stroke="#1B365D" stroke-width="1.5" stroke-dasharray="4 3"/>
+            <path d="M292 296 L284 300 L292 304" fill="none" stroke="#1B365D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <!-- Message 8: /book → User done -->
+            <text x="198" y="322" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="11" fill="#504e49">.html 已寫入</text>
+            <line x1="276" y1="328" x2="120" y2="328" stroke="#504e49" stroke-width="1.5"/>
+            <path d="M124 324 L116 328 L124 332" fill="none" stroke="#504e49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <!-- Legend strip at bottom -->
+            <text x="32" y="368" font-family="Charter, Georgia, serif" font-size="10" fill="#6b6a64">─── synchronous   - - - return   ▮ activation   ◆ focal path (accent)</text>
+          </svg>
+          <figcaption class="kami-figcaption">圖 2.1 — /baransu:book 自身的執行序列。User 和 validate-output 為 focal actor（accent stroke）；run-gate 與 GATE PASS 兩條訊息走 focal path（accent line）；其餘訊息為 muted secondary（#504e49）。activation bar 顯示 /book 全程 active，markitdown 與 validate-output 只在被呼叫的窗口 active。</figcaption>
+        </figure>
+      </section>
+
+      <section id="s3">
+        <h2 class="kami-h2">03 跟 flowchart 的分工</h2>
+        <p class="kami-body">很容易混淆。一個簡單的判讀方法：<strong>多 actor + 時序往下走 = sequence</strong>，<strong>單一系統 + 決策分支 = flowchart</strong>。</p>
+
+        <table class="kami-table">
+          <thead><tr><th>軸</th><th>Sequence</th><th>Flowchart</th></tr></thead>
+          <tbody>
+            <tr><td>主軸</td><td>時間順序</td><td>邏輯分支</td></tr>
+            <tr><td>節點</td><td>actor / participant</td><td>step / decision</td></tr>
+            <tr><td>連線</td><td>messages（請求 / 回傳）</td><td>flow（yes / no）</td></tr>
+            <tr><td>適合</td><td>OAuth、API 編排、微服務、CI/CD</td><td>token resolver、driver dispatch、parser state machine</td></tr>
+            <tr><td>不適合</td><td>單一系統內的 if-else 樹</td><td>3+ actor 互動 round-trip</td></tr>
+          </tbody>
+        </table>
+
+        <blockquote class="kami-quote">前一份 book（book diagram port v1）用 flowchart 畫 token 三層 fallback — 因為那是<i>單一系統</i>內的決策樹。這份 book 改用 sequence 畫 /book pipeline — 因為那是<i>多 actor</i> round-trip。兩種圖各司其職，混用會視覺記憶錯位。</blockquote>
+      </section>
+
+      <section id="s4">
+        <h2 class="kami-h2">04 Kami 風格規格</h2>
+        <p class="kami-body">這張 SVG 沿用本 plugin v1.4 的 SVG 規格：每張開頭兩層 paper-mask、節點寬限 {128, 144, 160} 三檔、chevron 用 <code class="kami-code">&lt;path&gt;</code> 不用 <code class="kami-code">&lt;marker&gt;</code>（WeasyPrint 相容）、焦點節點上限 2 個用 <code class="kami-code">data-role="focal"</code> 標記。Sequence diagram 自己再多三條：</p>
+
+        <table class="kami-table">
+          <thead><tr><th>元素</th><th>規格</th></tr></thead>
+          <tbody>
+            <tr><td>Lifeline</td><td>dashed <code class="kami-code">stroke="#6b6a64" stroke-dasharray="3 4" stroke-width="0.8"</code></td></tr>
+            <tr><td>Synchronous message</td><td>solid <code class="kami-code">stroke="#504e49" stroke-width="1.5"</code> + chevron path</td></tr>
+            <tr><td>Return message</td><td>dashed <code class="kami-code">stroke-dasharray="4 3"</code> + chevron path 反向</td></tr>
+            <tr><td>Focal-path message</td><td>改 <code class="kami-code">stroke="#1B365D"</code> (accent)，標 critical path（本例：gate / PASS 兩條）</td></tr>
+            <tr><td>Activation bar (focal actor)</td><td>width=8 narrow rect，fill=<code class="kami-code">#EEF2F7</code> stroke=<code class="kami-code">#1B365D</code> 0.5px</td></tr>
+            <tr><td>Activation bar (standard actor)</td><td>width=8，fill=<code class="kami-code">#faf9f5</code> stroke=<code class="kami-code">#141413</code> 0.5px</td></tr>
+            <tr><td>Self-loop</td><td>三段折線：右出 32px → 下 8px → 左回 → chevron 反向</td></tr>
+            <tr><td>Message label</td><td>11px serif，置於 line 上方 6px，<code class="kami-code">text-anchor="middle"</code></td></tr>
+          </tbody>
+        </table>
+
+        <h3 class="kami-h3">活在 GATE 裡</h3>
+        <p class="kami-body">本圖通過 GATE A（focals=2 ≤ 2）/ B（paper-mask <code class="kami-code">#f5f4ed</code>）/ D（無 marker，refs=0）/ E（無 script / foreignObject）/ J（node rects 全部 width=128，1 tier）/ K（無 marker 自動 OK）/ <strong>L（viewBox 720×384 容下所有幾何，0.5px 容差 within）</strong>。C SKIP（高度 384&lt;400 不要求 legend strip，但本例還是放了底部圖例條）；F/G SKIP（non-ppt）。</p>
+      </section>
+
+    </section>
+
+    <footer class="kami-footer">Generated by /baransu:book · preset kami · 2026-05-13 · sequence diagram demo (v1.4.1 dogfood)</footer>
+  </main>
+
+</div>
+</body>
+</html>

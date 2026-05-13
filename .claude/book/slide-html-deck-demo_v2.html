@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slide HTML Deck Demo — Kami</title>
+  <link rel="stylesheet" href="../../tokens.css">
+  <style>
+    /* ───── Browser-frame styling (deck context, not part of PPTX export) ───── */
+    html { background: var(--surface); }
+    body { width: 960pt; margin: 24pt auto; font-family: var(--font-serif); color: var(--text-primary); }
+    main { display: flex; flex-direction: column; gap: 24pt; }
+
+    /* ───── Slide canvas — 960pt × 540pt LAYOUT_WIDE ───── */
+    .kami-slide { width: 960pt; height: 540pt; box-sizing: border-box; padding: 64pt 80pt; background: var(--paper); position: relative; border: 0.5pt solid var(--border); border-radius: 12pt; box-shadow: 0 4pt 24pt rgba(0,0,0,0.05); }
+
+    /* Page-number watermark, mono bottom-right */
+    .kami-page-num { position: absolute; bottom: 32pt; right: 40pt; font-family: var(--font-mono); font-size: 10pt; color: var(--text-faint); letter-spacing: 0.04em; }
+
+    /* Kami section-title left bar — runs along left edge of content area */
+    .kami-slide::before { content: ""; position: absolute; top: 64pt; left: 56pt; width: 3pt; height: 56pt; background: var(--accent); border-radius: 1.5pt; }
+
+    /* ───── Cover ───── */
+    .kami-cover-kicker { font-size: 12pt; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin: 32pt 0 16pt 0; font-family: var(--font-mono); }
+    .kami-cover-title { font-size: 72pt; font-weight: 500; line-height: 1.10; letter-spacing: -0.01em; margin: 0 0 24pt 0; max-width: 780pt; color: var(--text-primary); }
+    .kami-cover-subtitle { font-size: 22pt; line-height: 1.45; font-weight: 400; color: var(--text-secondary); margin: 0; max-width: 720pt; }
+    .kami-cover-subtitle .kami-dropcap-inline { color: var(--accent); font-weight: 500; }
+
+    /* ───── Body slide — heading + bullets ───── */
+    .kami-content-eyebrow { font-size: 12pt; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin: 32pt 0 12pt 0; font-family: var(--font-mono); }
+    .kami-content-heading { font-size: 42pt; font-weight: 500; line-height: 1.15; letter-spacing: -0.005em; margin: 0 0 36pt 0; max-width: 760pt; }
+    .kami-content-bullets { list-style: none; padding: 0; margin: 0; max-width: 800pt; }
+    .kami-content-bullet { font-size: 21pt; line-height: 1.50; padding: 14pt 0 14pt 32pt; position: relative; border-bottom: 0.5pt solid var(--border-soft); }
+    .kami-content-bullet:last-child { border-bottom: none; }
+    .kami-content-bullet::before { content: ""; position: absolute; left: 0; top: 28pt; width: 18pt; height: 1.5pt; background: var(--accent); }
+
+    /* ───── Compare slide — A vs B 2-col ───── */
+    .kami-compare-heading { font-size: 42pt; font-weight: 500; line-height: 1.15; letter-spacing: -0.005em; margin: 32pt 0 28pt 0; }
+    .kami-compare-figure { margin: 0; padding: 0; }
+    .kami-compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24pt; }
+    .kami-compare-col { background: var(--surface); padding: 28pt 32pt; border-radius: 8pt; border: 0.5pt solid var(--border); }
+    .kami-compare-subhead { font-size: 18pt; font-weight: 500; margin: 0 0 16pt 0; color: var(--accent); padding-bottom: 8pt; border-bottom: 1pt solid var(--border-soft); }
+    .kami-compare-bullets { list-style: none; padding: 0; margin: 0; }
+    .kami-compare-bullet { font-size: 15pt; line-height: 1.50; padding: 6pt 0; color: var(--text-primary); }
+    .kami-compare-caption { font-size: 11pt; color: var(--text-muted); margin-top: 16pt; font-style: normal; }
+
+    /* ───── KPI grid ───── */
+    .kami-kpi-heading { font-size: 36pt; font-weight: 500; line-height: 1.15; letter-spacing: -0.005em; margin: 32pt 0 28pt 0; }
+    .kami-kpi-figure { margin: 0; }
+    .kami-kpi-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16pt; }
+    .kami-kpi-cell { background: var(--surface); padding: 28pt 24pt; border-radius: 8pt; border: 0.5pt solid var(--border); display: flex; flex-direction: column; gap: 6pt; }
+    .kami-kpi-value { font-size: 64pt; font-weight: 500; line-height: 1.0; letter-spacing: -0.01em; color: var(--accent); }
+    .kami-kpi-unit { font-size: 16pt; color: var(--text-muted); margin-top: -4pt; }
+    .kami-kpi-label { font-size: 11pt; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); margin-top: 8pt; font-family: var(--font-mono); }
+    .kami-kpi-caption { font-size: 11pt; color: var(--text-muted); margin: 16pt 0 0 0; font-family: var(--font-mono); letter-spacing: 0.04em; }
+
+    /* ───── Quote slide ───── */
+    .kami-slide--quote { display: flex; flex-direction: column; justify-content: center; padding-left: 96pt; }
+    .kami-slide--quote::before { top: 50%; transform: translateY(-50%); height: 96pt; left: 56pt; width: 3pt; }
+    .kami-quote-body { margin: 0; padding: 0; max-width: 780pt; }
+    .kami-quote-text { font-size: 48pt; font-weight: 500; letter-spacing: -0.005em; line-height: 1.25; margin: 0; color: var(--text-primary); }
+    .kami-quote-attribution { display: block; font-size: 14pt; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-top: 28pt; font-style: normal; }
+    .kami-quote-caption { font-size: 11pt; color: var(--text-muted); margin-top: 20pt; font-family: var(--font-mono); }
+
+    /* ───── Closing slide ───── */
+    .kami-slide--closing { display: flex; flex-direction: column; justify-content: center; }
+    .kami-closing-rule { border: none; border-top: 3pt solid var(--accent); width: 96pt; margin: 0 0 32pt 0; }
+    .kami-closing-title { font-size: 88pt; font-weight: 500; letter-spacing: -0.01em; line-height: 1.05; margin: 0 0 24pt 0; }
+    .kami-closing-cta { font-size: 22pt; line-height: 1.50; color: var(--text-secondary); margin: 0; max-width: 720pt; }
+    .kami-closing-meta { font-size: 11pt; color: var(--text-muted); margin: 48pt 0 0 0; font-family: var(--font-mono); letter-spacing: 0.04em; }
+
+    /* ───── Deck preview helper ───── */
+    .kami-deck-label { position: absolute; top: 32pt; right: 40pt; font-family: var(--font-mono); font-size: 10pt; color: var(--text-faint); letter-spacing: 0.04em; }
+    .kami-cover-mark { margin-top: 56pt; max-width: 480pt; }
+    .kami-cover-mark svg { display: block; width: 100%; height: auto; }
+  </style>
+</head>
+<body class="kami-paper-body">
+<main>
+
+  <!-- ─── Slide 1: cover ─── -->
+  <section class="kami-slide kami-slide--cover" data-layout="cover">
+    <p class="kami-cover-kicker">Baransu · v1.4.1 · Dogfood Recap</p>
+    <h1 class="kami-cover-title">三 preset<br>切換對照</h1>
+    <p class="kami-cover-subtitle"><span class="kami-dropcap-inline">紙</span> · Kami → Material 3 → Swiss IKB → 回 Kami。同一份 sequence diagram 第四輪 preset apply，幾何完全不動。v1.3 canonical token schema 四輪 dogfood 反向驗證。</p>
+    <figure class="kami-cover-mark">
+      <svg viewBox="0 0 512 96" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Four-preset progression: Kami → Material 3 → Swiss → Kami return">
+        <rect width="100%" height="100%" fill="#f5f4ed"/>
+        <rect data-role="focal" x="0" y="16" width="128" height="48" fill="#1B365D"/>
+        <rect x="128" y="16" width="128" height="48" fill="#6750A4"/>
+        <rect x="256" y="16" width="128" height="48" fill="#002FA7"/>
+        <rect data-role="focal" x="384" y="16" width="128" height="48" fill="#1B365D" stroke="#EEF2F7" stroke-width="2"/>
+        <text x="64" y="84" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="11" fill="#504e49" letter-spacing="0.04em">KAMI · 1B365D</text>
+        <text x="192" y="84" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="11" fill="#504e49" letter-spacing="0.04em">M3 · 6750A4</text>
+        <text x="320" y="84" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="11" fill="#504e49" letter-spacing="0.04em">SWISS · 002FA7</text>
+        <text x="448" y="84" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="11" fill="#1B365D" font-weight="500" letter-spacing="0.04em">RETURN · KAMI</text>
+      </svg>
+    </figure>
+    <p class="kami-deck-label">Slide 01 / 07</p>
+    <p class="kami-page-num">01</p>
+  </section>
+
+  <!-- ─── Slide 2: content-bullets — agenda ─── -->
+  <section class="kami-slide kami-slide--bullets" data-layout="content-bullets">
+    <p class="kami-content-eyebrow">Agenda · 這份 Deck 涵蓋什麼</p>
+    <h2 class="kami-content-heading">四輪 preset 切換 dogfood</h2>
+    <ul class="kami-content-bullets">
+      <li class="kami-content-bullet">每輪換 preset：tokens.css / DESIGN.md / DESIGN.html / design-cores / slide-cores 全套 atomic 寫入</li>
+      <li class="kami-content-bullet">同一份 sequence diagram（4 actor / 8 message）重產四輪，幾何完全不動</li>
+      <li class="kami-content-bullet">驗證：preset 是視覺面板、文件結構 preset-agnostic</li>
+      <li class="kami-content-bullet">GATE A–L 四輪全綠，含 v1.4.1 新加的 GATE-L viewBox containment</li>
+    </ul>
+    <p class="kami-deck-label">Slide 02 / 07</p>
+    <p class="kami-page-num">02</p>
+  </section>
+
+  <!-- ─── Slide 3: compare — Kami vs M3 ─── -->
+  <section class="kami-slide kami-slide--compare" data-layout="compare">
+    <h2 class="kami-compare-heading">紙 Kami vs Google M3</h2>
+    <figure class="kami-compare-figure">
+      <div class="kami-compare-grid">
+        <div class="kami-compare-col">
+          <h3 class="kami-compare-subhead">紙 Kami</h3>
+          <ul class="kami-compare-bullets">
+            <li class="kami-compare-bullet">Paper #f5f4ed warm parchment</li>
+            <li class="kami-compare-bullet">Accent #1B365D ink-blue</li>
+            <li class="kami-compare-bullet">Charter serif / weight 500 locked</li>
+            <li class="kami-compare-bullet">Radius 2–12px</li>
+            <li class="kami-compare-bullet">Ring + whisper shadows only</li>
+            <li class="kami-compare-bullet">Section: 2.5pt accent left bar</li>
+          </ul>
+        </div>
+        <div class="kami-compare-col">
+          <h3 class="kami-compare-subhead">Google M3</h3>
+          <ul class="kami-compare-bullets">
+            <li class="kami-compare-bullet">Paper #FEF7FF warm white</li>
+            <li class="kami-compare-bullet">Accent #6750A4 primary purple</li>
+            <li class="kami-compare-bullet">Roboto sans / 400 base + 500</li>
+            <li class="kami-compare-bullet">Radius 4–28px + 9999 buttons</li>
+            <li class="kami-compare-bullet">Surface tint + soft elevation</li>
+            <li class="kami-compare-bullet">Section: 28px hero surface card</li>
+          </ul>
+        </div>
+      </div>
+      <p class="kami-compare-caption">Constant: canonical 36 tokens · Variable: hex + radius + typography</p>
+    </figure>
+    <p class="kami-deck-label">Slide 03 / 07</p>
+    <p class="kami-page-num">03</p>
+  </section>
+
+  <!-- ─── Slide 4: content-bullets — Kami return ─── -->
+  <section class="kami-slide kami-slide--bullets" data-layout="content-bullets">
+    <p class="kami-content-eyebrow">Round 4 · 回 Kami</p>
+    <h2 class="kami-content-heading">第四輪：切回 Kami（這份 deck）</h2>
+    <ul class="kami-content-bullets">
+      <li class="kami-content-bullet">本 deck 用 Kami preset 重產，跟前一份 Swiss deck 結構等同、視覺迥異</li>
+      <li class="kami-content-bullet">Slide 邊框：Kami 帶 0.5pt ring + 12pt radius + whisper shadow（Swiss 完全平 0 radius）</li>
+      <li class="kami-content-bullet">字型：Charter serif（Swiss 是 Inter sans-only）</li>
+      <li class="kami-content-bullet">Heading weight 鎖 500（Swiss 上限 700 — Kami 不變量 #5）</li>
+      <li class="kami-content-bullet">Section 簽名：3pt accent left bar（Swiss 用 2pt heavy horizontal black rule）</li>
+    </ul>
+    <p class="kami-deck-label">Slide 04 / 07</p>
+    <p class="kami-page-num">04</p>
+  </section>
+
+  <!-- ─── Slide 5: kpi-grid ─── -->
+  <section class="kami-slide kami-slide--kpi" data-layout="kpi-grid">
+    <h2 class="kami-kpi-heading">Dogfood 結算數字</h2>
+    <figure class="kami-kpi-figure">
+      <ul class="kami-kpi-grid">
+        <li class="kami-kpi-cell">
+          <span class="kami-kpi-value">4</span>
+          <span class="kami-kpi-label">Preset apply (Kami / M3 / Swiss / Kami)</span>
+        </li>
+        <li class="kami-kpi-cell">
+          <span class="kami-kpi-value">1</span>
+          <span class="kami-kpi-label">SVG 骨架重用</span>
+        </li>
+        <li class="kami-kpi-cell">
+          <span class="kami-kpi-value">8</span>
+          <span class="kami-kpi-unit">×4</span>
+          <span class="kami-kpi-label">Messages × 四輪 GATE-L 過</span>
+        </li>
+        <li class="kami-kpi-cell">
+          <span class="kami-kpi-value">0</span>
+          <span class="kami-kpi-label">幾何座標重算</span>
+        </li>
+      </ul>
+      <p class="kami-kpi-caption">v1.3 token schema · v1.4.1 GATE-L · 2026-05-13</p>
+    </figure>
+    <p class="kami-deck-label">Slide 05 / 07</p>
+    <p class="kami-page-num">05</p>
+  </section>
+
+  <!-- ─── Slide 6: quote ─── -->
+  <section class="kami-slide kami-slide--quote" data-layout="quote">
+    <blockquote class="kami-quote-body">
+      <p class="kami-quote-text">換 preset 不動結構，才證明結構真的乾淨。</p>
+      <cite class="kami-quote-attribution">— v1.3 canonical token schema 設計哲學</cite>
+    </blockquote>
+    <p class="kami-quote-caption">Four rounds · four actors · eight messages · zero geometry change.</p>
+    <p class="kami-deck-label">Slide 06 / 07</p>
+    <p class="kami-page-num">06</p>
+  </section>
+
+  <!-- ─── Slide 7: closing ─── -->
+  <section class="kami-slide kami-slide--closing" data-layout="closing">
+    <hr class="kami-closing-rule">
+    <h2 class="kami-closing-title">收工</h2>
+    <p class="kami-closing-cta">四 preset 切換完整循環。Slide HTML deck demo 是 PPTX pipeline 中間產物 — pptxgenjs 讀此 HTML、依 data-layout 對應 slide-cores 骨架，輸出真正的 .pptx text frames。瀏覽器看到的版面就是 PPTX 內每張 slide 的等價樣子，preset 換成 Kami 後同樣有效。</p>
+    <p class="kami-closing-meta">/baransu:book --format ppt --style kami · 7 slides · 960pt × 540pt LAYOUT_WIDE</p>
+    <p class="kami-deck-label">Slide 07 / 07</p>
+    <p class="kami-page-num">07</p>
+  </section>
+
+</main>
+</body>
+</html>

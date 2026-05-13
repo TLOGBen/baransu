@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sequence Diagram 示範 (Material 3)</title>
+  <link rel="stylesheet" href="../../tokens.css">
+  <style>
+    * { box-sizing: border-box; }
+    body { background: var(--paper); color: var(--text-primary); font-family: var(--font-sans); margin: 0; text-wrap: pretty; }
+    .google-page { max-width: 1200px; margin: 0 auto; padding: 56px 24px; display: grid; grid-template-columns: 220px 1fr; gap: 56px; }
+    .google-toc { position: sticky; top: 24px; align-self: start; background: var(--surface); border-radius: 28px; padding: 24px; }
+    .google-toc .google-toc-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em; }
+    .google-toc h1 { font-size: 18px; margin: 8px 0 24px; font-weight: 500; letter-spacing: -0.01em; }
+    .google-toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+    .google-toc li { counter-increment: toc; margin: 4px 0; }
+    .google-toc a { display: block; font-size: 13px; color: var(--text-secondary); text-decoration: none; padding: 8px 12px; border-radius: 9999px; transition: background 150ms ease-out; }
+    .google-toc a:hover { background: var(--surface-strong); color: var(--accent); }
+    .google-h1 { font-size: 48px; font-weight: 400; line-height: 1.08; letter-spacing: -0.01em; margin: 0 0 16px; }
+    .google-h2 { font-size: 28px; font-weight: 500; line-height: 1.20; margin: 32px 0 16px; color: var(--text-primary); }
+    .google-h3 { font-size: 18px; font-weight: 500; line-height: 1.30; margin: 24px 0 12px; }
+    .google-lead { font-size: 17px; line-height: 1.55; color: var(--text-secondary); margin: 16px 0; max-width: 60ch; }
+    .google-body { font-size: 15px; line-height: 1.55; color: var(--text-primary); margin: 12px 0; }
+    .google-dropcap { float: left; font-size: 4.65em; line-height: 1; font-weight: 500; color: var(--accent); padding-right: 8px; padding-top: 2px; }
+    .google-caption { font-size: 12px; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; }
+    .google-quote { background: var(--surface); border-radius: 16px; padding: 16px 20px; color: var(--text-secondary); margin: 24px 0; line-height: 1.55; }
+    .google-quote::before { content: "“"; color: var(--accent); font-size: 1.5em; font-weight: 500; margin-right: 4px; }
+    .google-code { font-family: var(--font-mono); font-size: 13px; background: var(--surface-strong); color: var(--text-primary); padding: 2px 8px; border-radius: 8px; }
+    figure.google-figure { margin: 32px 0; background: var(--surface); border-radius: 28px; padding: 24px; }
+    figure.google-figure svg { display: block; max-width: 100%; }
+    figcaption.google-figcaption { font-size: 12px; color: var(--text-secondary); margin-top: 12px; text-align: center; }
+    .google-footer { font-size: 12px; color: var(--text-faint); border-top: 1px solid var(--border-soft); padding-top: 16px; margin-top: 56px; }
+    table.google-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+    table.google-table th, table.google-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border-soft); vertical-align: top; }
+    table.google-table th { color: var(--text-secondary); font-weight: 500; background: var(--surface); }
+    table.google-table tr:first-child th:first-child { border-top-left-radius: 16px; }
+    table.google-table tr:first-child th:last-child { border-top-right-radius: 16px; }
+    em, i { font-style: normal; font-weight: 500; }
+    @media (max-width: 900px) { .google-page { grid-template-columns: 1fr; gap: 24px; padding: 24px; } .google-toc { position: static; } }
+  </style>
+</head>
+<body class="google-paper-body">
+<div class="google-page">
+
+  <aside class="google-toc">
+    <div class="google-toc-label">Contents</div>
+    <h1>Sequence Diagram 示範</h1>
+    <ol>
+      <li><a href="#s1">01 什麼是 sequence</a></li>
+      <li><a href="#s2">02 範例：/book 流程</a></li>
+      <li><a href="#s3">03 vs flowchart</a></li>
+      <li><a href="#s4">04 Material 3 風格規格</a></li>
+    </ol>
+  </aside>
+
+  <main class="google-main">
+    <header class="google-cover">
+      <p class="google-caption">Diagram Type Demo · Sequence · Material 3 preset</p>
+      <h1 class="google-h1">Sequence Diagram 示範</h1>
+      <p class="google-lead">同一份 sequence diagram 內容 / 同一張 SVG 骨架，從 Kami（暖羊皮紙 + ink-blue）切到 Google Material 3（暖白 + #6750A4 purple）。Preset switch 拉動的是 tokens.css 與 class prefix，文件本身的 4 actor + 8 message 結構不變 — 證明 v1.3 的 preset 隔離邊界正確。</p>
+    </header>
+
+    <section data-slot="long-form-body">
+
+      <section id="s1">
+        <h2 class="google-h2">01 什麼是 sequence diagram</h2>
+        <p class="google-body"><span class="google-dropcap">S</span>equence diagram 不是流程圖。它強調的是<strong>時間順序 + 跨 actor 互動</strong>：時間軸從上往下，每條垂直 lifeline 代表一個 actor 或 participant，水平 arrow 是訊息。同步呼叫用實線實心箭頭；回傳用虛線。Actor 在處理工作時，lifeline 上會疊一條細長的 activation bar 標記「現在在 busy」。Actor 對自己呼叫的內部處理用 self-loop（一段右出 → 下 → 左回的折線）。</p>
+        <p class="google-body">用得對的場景：3 個以上 actor、有 round-trip、互動順序本身就是要傳達的重點。例如 OAuth flow、API 編排、microservices 對話、CI/CD pipeline 內外部呼叫。<i>不</i>適合：純粹的決策樹（用 flowchart）、靜態系統結構（用 architecture）。</p>
+      </section>
+
+      <section id="s2">
+        <h2 class="google-h2">02 範例：/baransu:book 流程</h2>
+        <p class="google-body">下圖是這一次 <code class="google-code">/baransu:book "幫我重產剛剛的"</code> 從 invoke 到產出 HTML 的實際序列。4 個 actor、8 條訊息，焦點落在兩端（User 觸發端 + validate-output 把關端）。本圖採 Material 3 配色 — paper #FEF7FF / accent #6750A4 / surface-variant #E7E0EC，跟前一版 Kami（warm parchment + ink-blue）對照可清楚看到 preset 切換的視覺差。</p>
+
+        <figure class="google-figure">
+          <svg viewBox="0 0 720 384" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="/baransu:book sequence diagram in Material 3 preset">
+            <defs>
+              <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+                <circle cx="1" cy="1" r="0.9" fill="#CAC4D0"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="#FEF7FF"/>
+            <rect width="100%" height="100%" fill="url(#dots)" opacity="0.35"/>
+
+            <!-- Caption strip -->
+            <text x="32" y="24" font-family="Roboto, system-ui, sans-serif" font-size="11" fill="#79747E" letter-spacing="0.04em">SEQUENCE · /BARANSU:BOOK PIPELINE</text>
+            <line x1="32" y1="32" x2="296" y2="32" stroke="#6750A4" stroke-width="1"/>
+
+            <!-- Actor 1: User (focal) -->
+            <rect data-role="focal" x="48" y="48" width="128" height="44" rx="16" fill="#E8DEF8" stroke="#6750A4" stroke-width="1.5"/>
+            <text x="112" y="76" text-anchor="middle" font-family="Roboto, system-ui, sans-serif" font-size="13" font-weight="500" fill="#1D1B20">User</text>
+
+            <!-- Actor 2: /book -->
+            <rect x="216" y="48" width="128" height="44" rx="16" fill="#E7E0EC" stroke="#1D1B20" stroke-width="1"/>
+            <text x="280" y="76" text-anchor="middle" font-family="Roboto, system-ui, sans-serif" font-size="13" font-weight="500" fill="#1D1B20">/baransu:book</text>
+
+            <!-- Actor 3: markitdown -->
+            <rect x="384" y="48" width="128" height="44" rx="16" fill="#E7E0EC" stroke="#1D1B20" stroke-width="1"/>
+            <text x="448" y="76" text-anchor="middle" font-family="Roboto, system-ui, sans-serif" font-size="13" font-weight="500" fill="#1D1B20">markitdown</text>
+
+            <!-- Actor 4: validate-output (focal) -->
+            <rect data-role="focal" x="552" y="48" width="128" height="44" rx="16" fill="#E8DEF8" stroke="#6750A4" stroke-width="1.5"/>
+            <text x="616" y="76" text-anchor="middle" font-family="Roboto, system-ui, sans-serif" font-size="13" font-weight="500" fill="#1D1B20">validate-output</text>
+
+            <!-- Lifelines (dashed) -->
+            <line x1="112" y1="92" x2="112" y2="340" stroke="#CAC4D0" stroke-width="1" stroke-dasharray="3 4"/>
+            <line x1="280" y1="92" x2="280" y2="340" stroke="#CAC4D0" stroke-width="1" stroke-dasharray="3 4"/>
+            <line x1="448" y1="92" x2="448" y2="340" stroke="#CAC4D0" stroke-width="1" stroke-dasharray="3 4"/>
+            <line x1="616" y1="92" x2="616" y2="340" stroke="#CAC4D0" stroke-width="1" stroke-dasharray="3 4"/>
+
+            <!-- Activation bars (width 8, < 40 so GATE-J skip) -->
+            <rect x="276" y="124" width="8" height="208" fill="#E8DEF8" stroke="#6750A4" stroke-width="0.5"/>
+            <rect x="444" y="156" width="8" height="32" fill="#E7E0EC" stroke="#1D1B20" stroke-width="0.5"/>
+            <rect x="612" y="268" width="8" height="32" fill="#E7E0EC" stroke="#1D1B20" stroke-width="0.5"/>
+
+            <!-- Message 1: User → /book invoke -->
+            <text x="196" y="118" text-anchor="middle" font-family="Roboto, system-ui, sans-serif" font-size="11" fill="#49454F">/book "demo"</text>
+            <line x1="120" y1="124" x2="272" y2="124" stroke="#49454F" stroke-width="1.5"/>
+            <path d="M268 120 L276 124 L268 128" fill="none" stroke="#49454F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <!-- Message 2: /book → markitdown convert -->
+            <text x="362" y="150" text-anchor="middle" font-family="Roboto, system-ui, sans-serif" font-size="11" fill="#49454F">convert MD</text>
+            <line x1="284" y1="156" x2="440" y2="156" stroke="#49454F" stroke-width="1.5"/>
+            <path d="M436 152 L444 156 L436 160" fill="none" stroke="#49454F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <!-- Message 3: markitdown → /book return $RAW_CONTENT (dashed return) -->
+            <text x="366" y="182" text-anchor="middle" font-family="Roboto, system-ui, sans-serif" font-size="11" fill="#49454F">$RAW_CONTENT</text>
+            <line x1="444" y1="188" x2="288" y2="188" stroke="#49454F" stroke-width="1.5" stroke-dasharray="4 3"/>
+            <path d="M292 184 L284 188 L292 192" fill="none" stroke="#49454F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <!-- Message 4: self-loop on /book — classify -->
+            <line x1="284" y1="216" x2="320" y2="216" stroke="#49454F" stroke-width="1.5"/>
+            <line x1="320" y1="216" x2="320" y2="224" stroke="#49454F" stroke-width="1.5"/>
+            <line x1="320" y1="224" x2="288" y2="224" stroke="#49454F" stroke-width="1.5"/>
+            <path d="M292 220 L284 224 L292 228" fill="none" stroke="#49454F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="332" y="222" font-family="Roboto, system-ui, sans-serif" font-size="11" fill="#49454F">classify type</text>
+
+            <!-- Message 5: self-loop on /book — render -->
+            <line x1="284" y1="244" x2="320" y2="244" stroke="#49454F" stroke-width="1.5"/>
+            <line x1="320" y1="244" x2="320" y2="252" stroke="#49454F" stroke-width="1.5"/>
+            <line x1="320" y1="252" x2="288" y2="252" stroke="#49454F" stroke-width="1.5"/>
+            <path d="M292 248 L284 252 L292 256" fill="none" stroke="#49454F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="332" y="250" font-family="Roboto, system-ui, sans-serif" font-size="11" fill="#49454F">render HTML + SVG</text>
+
+            <!-- Message 6: /book → validate-output (focal-path, accent purple) -->
+            <text x="446" y="266" text-anchor="middle" font-family="Roboto, system-ui, sans-serif" font-size="11" font-weight="500" fill="#6750A4">run GATE A-L</text>
+            <line x1="284" y1="272" x2="608" y2="272" stroke="#6750A4" stroke-width="1.5"/>
+            <path d="M604 268 L612 272 L604 276" fill="none" stroke="#6750A4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <!-- Message 7: validate-output → /book PASS (dashed return, accent purple) -->
+            <text x="450" y="294" text-anchor="middle" font-family="Roboto, system-ui, sans-serif" font-size="11" font-weight="500" fill="#6750A4">GATE PASS</text>
+            <line x1="612" y1="300" x2="288" y2="300" stroke="#6750A4" stroke-width="1.5" stroke-dasharray="4 3"/>
+            <path d="M292 296 L284 300 L292 304" fill="none" stroke="#6750A4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <!-- Message 8: /book → User done -->
+            <text x="198" y="322" text-anchor="middle" font-family="Roboto, system-ui, sans-serif" font-size="11" fill="#49454F">.html 已寫入</text>
+            <line x1="276" y1="328" x2="120" y2="328" stroke="#49454F" stroke-width="1.5"/>
+            <path d="M124 324 L116 328 L124 332" fill="none" stroke="#49454F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <!-- Legend strip at bottom -->
+            <text x="32" y="368" font-family="Roboto, system-ui, sans-serif" font-size="10" fill="#79747E">─── synchronous   - - - return   ▮ activation   ● focal path (accent)</text>
+          </svg>
+          <figcaption class="google-figcaption">圖 2.1 — /baransu:book 自身的執行序列（Material 3 preset）。User 和 validate-output 為 focal actor（#6750A4 stroke + #E8DEF8 primary-container fill）；run-gate 與 GATE PASS 兩條訊息走 focal path（accent purple line）；其餘訊息為 muted secondary（#49454F）。actor 形狀套 M3 16px radius；圖外框 surface 容器套 28px hero radius。</figcaption>
+        </figure>
+      </section>
+
+      <section id="s3">
+        <h2 class="google-h2">03 跟 flowchart 的分工</h2>
+        <p class="google-body">很容易混淆。一個簡單的判讀方法：<strong>多 actor + 時序往下走 = sequence</strong>，<strong>單一系統 + 決策分支 = flowchart</strong>。</p>
+
+        <table class="google-table">
+          <thead><tr><th>軸</th><th>Sequence</th><th>Flowchart</th></tr></thead>
+          <tbody>
+            <tr><td>主軸</td><td>時間順序</td><td>邏輯分支</td></tr>
+            <tr><td>節點</td><td>actor / participant</td><td>step / decision</td></tr>
+            <tr><td>連線</td><td>messages（請求 / 回傳）</td><td>flow（yes / no）</td></tr>
+            <tr><td>適合</td><td>OAuth、API 編排、微服務、CI/CD</td><td>token resolver、driver dispatch、parser state machine</td></tr>
+            <tr><td>不適合</td><td>單一系統內的 if-else 樹</td><td>3+ actor 互動 round-trip</td></tr>
+          </tbody>
+        </table>
+
+        <blockquote class="google-quote">前一份 book（book diagram port v1）用 flowchart 畫 token 三層 fallback — 因為那是<i>單一系統</i>內的決策樹。這份 book 改用 sequence 畫 /book pipeline — 因為那是<i>多 actor</i> round-trip。兩種圖各司其職，混用會視覺記憶錯位。</blockquote>
+      </section>
+
+      <section id="s4">
+        <h2 class="google-h2">04 Material 3 風格規格</h2>
+        <p class="google-body">這張 SVG 對 v1.4 的 SVG 規格做了 Material 3 在地化：每張開頭兩層 paper-mask（warm white #FEF7FF + 淡 outline-variant dot pattern）、節點寬限 {128, 144, 160} 三檔、chevron 用 <code class="google-code">&lt;path&gt;</code> 不用 <code class="google-code">&lt;marker&gt;</code>、焦點節點上限 2 個用 <code class="google-code">data-role="focal"</code> 標記。Sequence 元素換 Material 3 配色：</p>
+
+        <table class="google-table">
+          <thead><tr><th>元素</th><th>規格（M3 在地化）</th></tr></thead>
+          <tbody>
+            <tr><td>Lifeline</td><td>dashed <code class="google-code">stroke="#CAC4D0" stroke-dasharray="3 4"</code>（outline-variant）</td></tr>
+            <tr><td>Synchronous message</td><td>solid <code class="google-code">stroke="#49454F"</code>（on-surface-variant）+ chevron path</td></tr>
+            <tr><td>Return message</td><td>dashed <code class="google-code">stroke-dasharray="4 3"</code>，同色</td></tr>
+            <tr><td>Focal-path message</td><td>改 <code class="google-code">stroke="#6750A4"</code>（primary purple），font-weight 500</td></tr>
+            <tr><td>Activation bar (focal actor)</td><td>fill <code class="google-code">#E8DEF8</code>（secondary-container）/ stroke <code class="google-code">#6750A4</code></td></tr>
+            <tr><td>Activation bar (standard actor)</td><td>fill <code class="google-code">#E7E0EC</code>（surface-variant）/ stroke <code class="google-code">#1D1B20</code></td></tr>
+            <tr><td>Actor head radius</td><td>rx=16（M3 medium shape token，不再用 Kami 的 8px）</td></tr>
+            <tr><td>Figure 容器</td><td>外層 surface card 28px hero radius，內含 SVG + figcaption</td></tr>
+            <tr><td>Typography</td><td>Roboto / system-ui sans，weight 500 for emphasis（M3 sans-only 約束）</td></tr>
+          </tbody>
+        </table>
+
+        <h3 class="google-h3">與 Kami 版的對照</h3>
+        <p class="google-body">同一份 sequence diagram 結構（4 actor、8 message、2 focal、3 activation bar、1 self-loop pattern）在兩個 preset 之間切換，<strong>幾何完全不動</strong>（viewBox 720×384、節點寬、座標、message y），只換色彩 token、字型、圓角級距、外層容器樣式。這是 v1.3 canonical token schema 的核心優勢：preset 是視覺面板，文件結構與 SVG 幾何是 preset-agnostic。</p>
+
+        <blockquote class="google-quote">能換 preset 而不動結構，才證明結構真的乾淨。如果同一份內容換 preset 後幾何位置要重算，那是 preset coupling 漏出來了 — v1.3 把它堵掉。</blockquote>
+
+        <h3 class="google-h3">活在 GATE 裡</h3>
+        <p class="google-body">本圖通過 GATE A（focals=2 ≤ 2）/ B（paper-mask <code class="google-code">#FEF7FF</code>）/ D（無 marker）/ E（無 script）/ J（node rects 全 128，1 tier）/ K（無 marker）/ <strong>L（viewBox 720×384 容下所有幾何）</strong>。C SKIP（高度 384&lt;400）；F SKIP（non-ppt）。class prefix 全部 <code class="google-code">google-*</code>，對齊 <code class="google-code">/* preset: google-design */</code> tokens.css 第一行 slug。</p>
+      </section>
+
+    </section>
+
+    <footer class="google-footer">Generated by /baransu:book · preset google-design · 2026-05-13 · sequence diagram demo v2 (preset switch dogfood)</footer>
+  </main>
+
+</div>
+</body>
+</html>

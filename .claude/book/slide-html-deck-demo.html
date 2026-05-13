@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slide HTML Deck Demo — Swiss</title>
+  <link rel="stylesheet" href="../../tokens.css">
+  <style>
+    /* ───── Browser-frame styling (deck context, not part of PPTX export) ───── */
+    html { background: var(--surface); }
+    body { width: 960pt; margin: 24pt auto; font-family: var(--font-sans); color: var(--text-primary); font-feature-settings: "ss01", "cv11"; }
+    main { display: flex; flex-direction: column; gap: 24pt; }
+
+    /* ───── Slide canvas — 960pt × 540pt LAYOUT_WIDE (the PPTX-bound dimensions) ───── */
+    .swiss-slide { width: 960pt; height: 540pt; box-sizing: border-box; padding: 56pt 64pt; background: var(--paper); position: relative; }
+
+    /* Page-number watermark, mono bottom-right */
+    .swiss-page-num { position: absolute; bottom: 28pt; right: 32pt; font-family: var(--font-mono); font-size: 10pt; color: var(--text-muted); letter-spacing: 0.08em; }
+
+    /* Heavy top rule — Swiss section boundary signature */
+    .swiss-slide::before { content: ""; position: absolute; top: 32pt; left: 64pt; width: 96pt; height: 3pt; background: var(--text-primary); }
+
+    /* ───── Cover ───── */
+    .swiss-slide--cover { background: var(--paper); }
+    .swiss-cover-kicker { font-family: var(--font-mono); font-size: 11pt; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin: 56pt 0 0 0; }
+    .swiss-cover-title { font-size: 80pt; font-weight: 700; letter-spacing: -0.02em; line-height: 1.05; margin: 32pt 0 24pt 0; max-width: 780pt; }
+    .swiss-cover-subtitle { font-size: 22pt; line-height: 1.45; color: var(--text-secondary); margin: 0; max-width: 720pt; }
+    .swiss-cover-accent { display: inline-block; width: 12pt; height: 12pt; background: var(--accent); margin-right: 8pt; vertical-align: middle; }
+
+    /* ───── Body slide — heading + bullets ───── */
+    .swiss-slide--bullets { }
+    .swiss-content-eyebrow { font-family: var(--font-mono); font-size: 11pt; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin: 48pt 0 16pt 0; }
+    .swiss-content-heading { font-size: 44pt; font-weight: 700; letter-spacing: -0.01em; line-height: 1.10; margin: 0 0 40pt 0; max-width: 760pt; }
+    .swiss-content-bullets { list-style: none; padding: 0; margin: 0; max-width: 780pt; }
+    .swiss-content-bullet { font-size: 22pt; line-height: 1.45; padding: 12pt 0 12pt 36pt; position: relative; border-bottom: 1pt solid var(--border); }
+    .swiss-content-bullet::before { content: counter(b, decimal-leading-zero); counter-increment: b; position: absolute; left: 0; top: 16pt; font-family: var(--font-mono); font-size: 13pt; color: var(--accent); letter-spacing: 0.04em; }
+    .swiss-content-bullets { counter-reset: b; }
+
+    /* ───── Compare slide — A vs B 2-col ───── */
+    .swiss-slide--compare { }
+    .swiss-compare-heading { font-size: 44pt; font-weight: 700; letter-spacing: -0.01em; line-height: 1.10; margin: 48pt 0 32pt 0; }
+    .swiss-compare-figure { margin: 0; padding: 0; }
+    .swiss-compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1pt; background: var(--text-primary); padding: 1pt; }
+    .swiss-compare-col { background: var(--paper); padding: 24pt 28pt; }
+    .swiss-compare-col--a { }
+    .swiss-compare-col--b { }
+    .swiss-compare-subhead { font-size: 18pt; font-weight: 700; margin: 0 0 16pt 0; text-transform: uppercase; letter-spacing: 0.04em; color: var(--accent); }
+    .swiss-compare-bullets { list-style: none; padding: 0; margin: 0; }
+    .swiss-compare-bullet { font-size: 16pt; line-height: 1.45; padding: 6pt 0; color: var(--text-primary); }
+    .swiss-compare-caption { font-family: var(--font-mono); font-size: 10pt; color: var(--text-muted); margin-top: 16pt; text-transform: uppercase; letter-spacing: 0.08em; }
+
+    /* ───── KPI grid ───── */
+    .swiss-slide--kpi { }
+    .swiss-kpi-heading { font-size: 36pt; font-weight: 700; letter-spacing: -0.01em; line-height: 1.10; margin: 48pt 0 32pt 0; }
+    .swiss-kpi-figure { margin: 0; }
+    .swiss-kpi-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1pt; background: var(--text-primary); padding: 1pt; }
+    .swiss-kpi-cell { background: var(--paper); padding: 32pt 24pt; display: flex; flex-direction: column; gap: 8pt; }
+    .swiss-kpi-value { font-size: 72pt; font-weight: 700; line-height: 1.0; letter-spacing: -0.02em; color: var(--accent); }
+    .swiss-kpi-unit { font-size: 18pt; color: var(--text-muted); margin-top: -8pt; }
+    .swiss-kpi-label { font-family: var(--font-mono); font-size: 11pt; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); margin-top: 8pt; }
+    .swiss-kpi-caption { font-family: var(--font-mono); font-size: 10pt; color: var(--text-muted); margin: 16pt 0 0 0; text-transform: uppercase; letter-spacing: 0.08em; }
+
+    /* ───── Quote slide ───── */
+    .swiss-slide--quote { display: flex; flex-direction: column; justify-content: center; }
+    .swiss-quote-body { margin: 0; padding: 0; max-width: 780pt; }
+    .swiss-quote-text { font-size: 56pt; font-weight: 500; letter-spacing: -0.01em; line-height: 1.20; margin: 0; color: var(--text-primary); }
+    .swiss-quote-text::before { content: "「"; color: var(--accent); }
+    .swiss-quote-text::after { content: "」"; color: var(--accent); }
+    .swiss-quote-attribution { display: block; font-family: var(--font-mono); font-size: 13pt; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-top: 32pt; }
+    .swiss-quote-caption { font-family: var(--font-mono); font-size: 10pt; color: var(--text-muted); margin-top: 24pt; }
+
+    /* ───── Closing slide ───── */
+    .swiss-slide--closing { display: flex; flex-direction: column; justify-content: center; }
+    .swiss-closing-rule { border: none; border-top: 4pt solid var(--accent); width: 96pt; margin: 0 0 32pt 0; }
+    .swiss-closing-title { font-size: 96pt; font-weight: 700; letter-spacing: -0.02em; line-height: 1.0; margin: 0 0 24pt 0; }
+    .swiss-closing-cta { font-size: 22pt; line-height: 1.45; color: var(--text-secondary); margin: 0; max-width: 720pt; }
+    .swiss-closing-meta { font-family: var(--font-mono); font-size: 11pt; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin: 48pt 0 0 0; }
+
+    /* ───── Deck-only browser preview helper ───── */
+    .swiss-deck-label { position: absolute; top: 32pt; right: 32pt; font-family: var(--font-mono); font-size: 10pt; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+    .swiss-cover-mark { margin-top: 48pt; max-width: 480pt; }
+    .swiss-cover-mark svg { display: block; width: 100%; height: auto; }
+  </style>
+</head>
+<body>
+<main>
+
+  <!-- ─── Slide 1: cover ─── -->
+  <section class="swiss-slide swiss-slide--cover" data-layout="cover">
+    <p class="swiss-cover-kicker">Baransu · v1.4.1 · Dogfood Recap</p>
+    <h1 class="swiss-cover-title">三 preset<br>切換對照</h1>
+    <p class="swiss-cover-subtitle"><span class="swiss-cover-accent"></span>Kami → Material 3 → Swiss IKB。同一份 sequence diagram，三次 preset apply，幾何完全不動 — v1.3 canonical token schema 三輪 dogfood 反向驗證。</p>
+    <figure class="swiss-cover-mark">
+      <svg viewBox="0 0 480 96" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three preset progression: Kami → Material 3 → Swiss IKB">
+        <rect width="100%" height="100%" fill="#fafaf8"/>
+        <rect x="0" y="16" width="160" height="48" fill="#1B365D"/>
+        <rect x="160" y="16" width="160" height="48" fill="#6750A4"/>
+        <rect data-role="focal" x="320" y="16" width="160" height="48" fill="#002FA7"/>
+        <text x="80" y="84" text-anchor="middle" font-family="Inter, Helvetica Neue, sans-serif" font-size="11" font-weight="500" fill="#5c5c5c" letter-spacing="0.08em">KAMI · #1B365D</text>
+        <text x="240" y="84" text-anchor="middle" font-family="Inter, Helvetica Neue, sans-serif" font-size="11" font-weight="500" fill="#5c5c5c" letter-spacing="0.08em">M3 · #6750A4</text>
+        <text x="400" y="84" text-anchor="middle" font-family="Inter, Helvetica Neue, sans-serif" font-size="11" font-weight="700" fill="#002FA7" letter-spacing="0.08em">SWISS · #002FA7</text>
+      </svg>
+    </figure>
+    <p class="swiss-deck-label">Slide 01 / 07</p>
+    <p class="swiss-page-num">01</p>
+  </section>
+
+  <!-- ─── Slide 2: content-bullets — agenda ─── -->
+  <section class="swiss-slide swiss-slide--bullets" data-layout="content-bullets">
+    <p class="swiss-content-eyebrow">Agenda · What This Deck Covers</p>
+    <h2 class="swiss-content-heading">三輪 preset 切換 dogfood</h2>
+    <ul class="swiss-content-bullets">
+      <li class="swiss-content-bullet">每輪換 preset：tokens.css / DESIGN.md / DESIGN.html / design-cores / slide-cores 全套 atomic 寫入</li>
+      <li class="swiss-content-bullet">同一份 sequence diagram（4 actor / 8 message）重產三輪，幾何完全不動</li>
+      <li class="swiss-content-bullet">驗證：preset 是視覺面板、文件結構 preset-agnostic</li>
+      <li class="swiss-content-bullet">GATE A–L 三輪全綠，含 v1.4.1 新加的 GATE-L viewBox containment</li>
+    </ul>
+    <p class="swiss-deck-label">Slide 02 / 07</p>
+    <p class="swiss-page-num">02</p>
+  </section>
+
+  <!-- ─── Slide 3: compare — Kami vs M3 ─── -->
+  <section class="swiss-slide swiss-slide--compare" data-layout="compare">
+    <h2 class="swiss-compare-heading">紙 Kami vs Google M3</h2>
+    <figure class="swiss-compare-figure">
+      <div class="swiss-compare-grid">
+        <div class="swiss-compare-col swiss-compare-col--a">
+          <h3 class="swiss-compare-subhead">紙 Kami</h3>
+          <ul class="swiss-compare-bullets">
+            <li class="swiss-compare-bullet">Paper #f5f4ed warm parchment</li>
+            <li class="swiss-compare-bullet">Accent #1B365D ink-blue</li>
+            <li class="swiss-compare-bullet">Charter serif / weight 500 locked</li>
+            <li class="swiss-compare-bullet">Radius 2–12px</li>
+            <li class="swiss-compare-bullet">Ring + whisper shadows only</li>
+            <li class="swiss-compare-bullet">Section: left-bar accent</li>
+          </ul>
+        </div>
+        <div class="swiss-compare-col swiss-compare-col--b">
+          <h3 class="swiss-compare-subhead">Google M3</h3>
+          <ul class="swiss-compare-bullets">
+            <li class="swiss-compare-bullet">Paper #FEF7FF warm white</li>
+            <li class="swiss-compare-bullet">Accent #6750A4 primary purple</li>
+            <li class="swiss-compare-bullet">Roboto sans / 400 base + 500</li>
+            <li class="swiss-compare-bullet">Radius 4–28px + 9999 buttons</li>
+            <li class="swiss-compare-bullet">Surface tint + soft elevation</li>
+            <li class="swiss-compare-bullet">Section: 28px hero surface card</li>
+          </ul>
+        </div>
+      </div>
+      <p class="swiss-compare-caption">Constant: same canonical 36 tokens · variable: hex + radius + typography</p>
+    </figure>
+    <p class="swiss-deck-label">Slide 03 / 07</p>
+    <p class="swiss-page-num">03</p>
+  </section>
+
+  <!-- ─── Slide 4: content-bullets — Swiss IKB ─── -->
+  <section class="swiss-slide swiss-slide--bullets" data-layout="content-bullets">
+    <p class="swiss-content-eyebrow">Round 3 · Swiss IKB</p>
+    <h2 class="swiss-content-heading">第三輪：Swiss + IKB ultramarine</h2>
+    <ul class="swiss-content-bullets">
+      <li class="swiss-content-bullet">Paper #fafaf8 neutral off-white；Accent #002FA7 International Klein Blue</li>
+      <li class="swiss-content-bullet">Inter / Helvetica Neue sans-only；weight 500–700（Swiss heavy）</li>
+      <li class="swiss-content-bullet">Radius 0–4px（Swiss is sharp，禁 fully-rounded）</li>
+      <li class="swiss-content-bullet">Section divider 用 2px heavy horizontal rule（不用 surface card / left bar）</li>
+      <li class="swiss-content-bullet">Mono numeral kicker（01 / 02 / 03 ...）— Müller-Brockmann signature</li>
+    </ul>
+    <p class="swiss-deck-label">Slide 04 / 07</p>
+    <p class="swiss-page-num">04</p>
+  </section>
+
+  <!-- ─── Slide 5: kpi-grid ─── -->
+  <section class="swiss-slide swiss-slide--kpi" data-layout="kpi-grid">
+    <h2 class="swiss-kpi-heading">Dogfood 結算數字</h2>
+    <figure class="swiss-kpi-figure">
+      <ul class="swiss-kpi-grid">
+        <li class="swiss-kpi-cell">
+          <span class="swiss-kpi-value">3</span>
+          <span class="swiss-kpi-label">Preset apply (Kami / M3 / Swiss)</span>
+        </li>
+        <li class="swiss-kpi-cell">
+          <span class="swiss-kpi-value">1</span>
+          <span class="swiss-kpi-label">SVG 骨架重用</span>
+        </li>
+        <li class="swiss-kpi-cell">
+          <span class="swiss-kpi-value">8</span>
+          <span class="swiss-kpi-unit">×3</span>
+          <span class="swiss-kpi-label">Messages × 三輪 GATE-L 過</span>
+        </li>
+        <li class="swiss-kpi-cell">
+          <span class="swiss-kpi-value">0</span>
+          <span class="swiss-kpi-label">幾何座標重算</span>
+        </li>
+      </ul>
+      <p class="swiss-kpi-caption">v1.3 token schema · v1.4.1 GATE-L · 2026-05-13 session</p>
+    </figure>
+    <p class="swiss-deck-label">Slide 05 / 07</p>
+    <p class="swiss-page-num">05</p>
+  </section>
+
+  <!-- ─── Slide 6: quote ─── -->
+  <section class="swiss-slide swiss-slide--quote" data-layout="quote">
+    <blockquote class="swiss-quote-body">
+      <p class="swiss-quote-text">換 preset 不動結構，才證明結構真的乾淨。</p>
+      <cite class="swiss-quote-attribution">— v1.3 Canonical Token Schema 設計哲學</cite>
+    </blockquote>
+    <p class="swiss-quote-caption">Three rounds × four actors × eight messages = zero geometry change.</p>
+    <p class="swiss-deck-label">Slide 06 / 07</p>
+    <p class="swiss-page-num">06</p>
+  </section>
+
+  <!-- ─── Slide 7: closing ─── -->
+  <section class="swiss-slide swiss-slide--closing" data-layout="closing">
+    <hr class="swiss-closing-rule">
+    <h2 class="swiss-closing-title">收工</h2>
+    <p class="swiss-closing-cta">三 preset 切換完整循環。Slide HTML deck demo 是 PPTX pipeline 中間產物 — pptxgenjs 讀此 HTML、依 data-layout 對應 slide-cores 骨架，輸出真正的 .pptx text frames。瀏覽器看到的版面就是 PPTX 內每張 slide 的等價樣子。</p>
+    <p class="swiss-closing-meta">/baransu:book --format ppt --style swiss · 7 slides · 960pt × 540pt LAYOUT_WIDE</p>
+    <p class="swiss-deck-label">Slide 07 / 07</p>
+    <p class="swiss-page-num">07</p>
+  </section>
+
+</main>
+</body>
+</html>

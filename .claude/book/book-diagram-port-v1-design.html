@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>book diagram port v1 — Design</title>
+  <link rel="stylesheet" href="../../tokens.css">
+  <style>
+    * { box-sizing: border-box; }
+    body { background: var(--paper); color: var(--text-primary); font-family: var(--font-serif); margin: 0; text-wrap: pretty; }
+    .kami-page { max-width: 1200px; margin: 0 auto; padding: 56px 24px; display: grid; grid-template-columns: 220px 1fr; gap: 56px; }
+    .kami-toc { position: sticky; top: 24px; align-self: start; border-left: 3px solid var(--accent); padding-left: 16px; }
+    .kami-toc .kami-toc-label { font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.08em; }
+    .kami-toc h1 { font-size: 18px; margin: 8px 0 24px; font-weight: 500; letter-spacing: -0.01em; }
+    .kami-toc ol { list-style: none; padding: 0; margin: 0; }
+    .kami-toc a { display: block; font-size: 13px; color: var(--text-secondary); text-decoration: none; padding: 4px 0; }
+    .kami-toc a:hover { color: var(--accent); }
+    .kami-h1 { font-size: 36px; font-weight: 500; line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 16px; text-wrap: pretty; }
+    .kami-h2 { font-size: 24px; font-weight: 500; line-height: 1.25; letter-spacing: -0.01em; border-left: 3px solid var(--accent); padding-left: 12px; margin: 32px 0 16px; text-wrap: pretty; }
+    .kami-h3 { font-size: 18px; font-weight: 500; line-height: 1.30; margin: 24px 0 12px; text-wrap: pretty; }
+    .kami-lead { font-size: 17px; line-height: 1.55; color: var(--text-primary); margin: 16px 0; }
+    .kami-body { font-size: 15px; line-height: 1.55; color: var(--text-primary); margin: 12px 0; text-wrap: pretty; }
+    .kami-dropcap { float: left; font-size: 4.65em; line-height: 1; font-weight: 500; color: var(--accent); padding-right: 8px; padding-top: 2px; }
+    .kami-caption { font-size: 12px; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; }
+    .kami-quote { border-left: 2px solid var(--accent); padding: 8px 0 8px 16px; color: var(--text-secondary); margin: 24px 0; line-height: 1.55; }
+    .kami-code { font-family: var(--font-mono); font-size: 13px; background: var(--surface); padding: 2px 6px; border-radius: var(--radius-sm); border: 0.5px solid var(--border-soft); }
+    pre.kami-pre { background: var(--surface); padding: 20px; border: 0.5px solid var(--border); border-radius: var(--radius-md); overflow-x: auto; font-family: var(--font-mono); font-size: 13px; line-height: 1.55; color: var(--text-primary); }
+    pre.kami-pre .tok-tag { color: #22863a; }
+    pre.kami-pre .tok-attr { color: #6f42c1; }
+    pre.kami-pre .tok-str { color: #032f62; }
+    pre.kami-pre .tok-punct { color: #6a737d; }
+    pre.kami-pre .tok-key { color: #d73a49; }
+    figure.kami-figure { margin: 32px 0; }
+    figure.kami-figure svg { display: block; max-width: 100%; }
+    figcaption.kami-figcaption { font-size: 12px; color: var(--text-muted); margin-top: 8px; text-align: center; }
+    .kami-footer { font-size: 12px; color: var(--text-faint); border-top: 0.5px solid var(--border); padding-top: 16px; margin-top: 56px; }
+    table.kami-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+    table.kami-table th, table.kami-table td { padding: 8px 12px; text-align: left; border-bottom: 0.5px solid var(--border-soft); vertical-align: top; }
+    table.kami-table th { color: var(--text-secondary); font-weight: 500; background: var(--surface); }
+    em, i { font-style: normal; font-weight: 500; }
+    @media (max-width: 900px) { .kami-page { grid-template-columns: 1fr; gap: 24px; padding: 24px; } .kami-toc { position: static; } }
+  </style>
+</head>
+<body class="kami-paper-body">
+<div class="kami-page">
+
+  <aside class="kami-toc">
+    <div class="kami-toc-label">Contents</div>
+    <h1>book diagram port v1</h1>
+    <ol>
+      <li><a href="#s1">01 四層架構</a></li>
+      <li><a href="#s2">02 整體流程</a></li>
+      <li><a href="#s3">03 Token 三層 fallback</a></li>
+      <li><a href="#s4">04 SVG primitives</a></li>
+      <li><a href="#s5">05 兩階層決策樹</a></li>
+      <li><a href="#s6">06 錯誤處理與邊界</a></li>
+    </ol>
+  </aside>
+
+  <main class="kami-main">
+    <header class="kami-cover">
+      <p class="kami-caption">Architecture · Spec · 2026-05-11</p>
+      <h1 class="kami-h1">book diagram port v1 — Design</h1>
+      <p class="kami-lead">book skill 把 Kami 圖表規格移植進來時的內部設計：四層架構承載 instruction / spec / template / validation / asset；token 採三層 fallback；Stage 2 用 content-type × 13-type 兩階層正交決策樹；驗證 gate 守住結構與引用一致性，圖檔遵守 paper-mask + chevron-only 的 WeasyPrint-safe 規格。</p>
+    </header>
+
+    <section data-slot="long-form-body">
+
+      <section id="s1">
+        <h2 class="kami-h2">01 四層架構</h2>
+        <p class="kami-body"><span class="kami-dropcap">b</span>ook skill 移植後分成五個內部層，每一層各自有清楚的職責邊界。指令層只規範行為流程，不寫死視覺；規格層放設計約束與 type ref；模板層是 show-by-example 的 HTML + SVG defs 範本；驗證層守 gate；資產層放真實 example HTML。</p>
+
+        <table class="kami-table">
+          <thead><tr><th>層</th><th>元件</th><th>職責</th><th>v1 變動</th></tr></thead>
+          <tbody>
+            <tr><td><strong>指令層</strong></td><td><code class="kami-code">SKILL.md</code></td><td>Stage 0→4 行為規格</td><td>重寫 Stage 3§4 SVG 規格；加 Stage 2 兩階層決策樹</td></tr>
+            <tr><td><strong>規格層</strong></td><td><code class="kami-code">references/*.md</code></td><td>設計約束、token、type 規則</td><td>新增 design-token-resolver.md + 13 個 type-*.md ref</td></tr>
+            <tr><td><strong>模板層</strong></td><td><code class="kami-code">references/golden-template.html</code></td><td>show-by-example HTML + SVG defs 範本</td><td>內嵌 marker defs + 兩層 paper-mask + type tag + legend strip 範例</td></tr>
+            <tr><td><strong>驗證層</strong></td><td><code class="kami-code">scripts/validate-output.ts</code></td><td>渲染後 HTML / SVG 驗證 gate</td><td>擴 cheerio + attribute selector + reference-integrity + deny-list</td></tr>
+            <tr><td><strong>資產層</strong></td><td><code class="kami-code">assets/example-*.html</code></td><td>真實 example HTML</td><td>v1 新增 example-architecture-kami.html；其餘 12 型 v2-N</td></tr>
+          </tbody>
+        </table>
+
+        <p class="kami-body">外部依賴只擴一條：cheerio（npm，html2pptx.js 已隱性使用）。Kami fonts CDN 維持既有。<i>不</i>新增 SVG AST parser — 驗證直接用 cheerio 的 attribute selector 走完，避免引第二顆解析器。</p>
+      </section>
+
+      <section id="s2">
+        <h2 class="kami-h2">02 整體流程</h2>
+        <p class="kami-body">流程沿用 book skill 既有 Stage 0→4 骨架，v1 在中間插兩個新節點：<strong>Stage 0.5 token resolver</strong>（讀 root DESIGN.md / 回退 Kami preset）和 <strong>Stage 2A 的兩階層分類</strong>（內容類型 → 13 型 diagram selection → per-diagram lookup）。其餘 stage 不動。</p>
+
+        <p class="kami-body">資料流上，<code class="kami-code">$RAW_CONTENT</code> 經 content-type 分類器產出 A/B/C 標籤，同時 13 型 selection 為每段內含 diagram 的 section 派一個 diagram type。root DESIGN.md（可選）和 Kami preset 共同進 token resolver，per-type derived rule 補上 sequence / state / swimlane / er 四型的特殊需求。最後 render 出 SVG，驗證層守關，輸出 <code class="kami-code">.claude/book/{slug}.html</code>。</p>
+
+        <blockquote class="kami-quote">兩個新節點都是 v1 才加，未來若 perception-guide 需要回流，Stage 2A.1 的分類器是第一個被改的點。</blockquote>
+      </section>
+
+      <section id="s3">
+        <h2 class="kami-h2">03 Token 三層 fallback</h2>
+        <p class="kami-body">Token 取得走嚴格的 fallback waterfall：Layer 1 看 root DESIGN.md 有沒有 token，且值要通過 hex regex；Layer 2 退到 Kami preset；Layer 3 對特定 type（sequence / state / swimlane / er）跑 derived rule。Layer 1 失敗（非 hex 或 injection-shape）就 silent fallback 並記 warning — 不暴露在最終輸出。</p>
+
+        <figure class="kami-figure">
+          <svg viewBox="0 0 480 304" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Token resolver three-tier fallback flowchart">
+            <defs>
+              <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+                <circle cx="1" cy="1" r="0.9" fill="#E3E2DC"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="#f5f4ed"/>
+            <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
+
+            <!-- Caption strip -->
+            <text x="32" y="24" font-family="Charter, Georgia, serif" font-size="11" fill="#6b6a64" letter-spacing="0.04em">TOKEN FALLBACK · 3 TIERS</text>
+            <line x1="32" y1="32" x2="200" y2="32" stroke="#1B365D" stroke-width="1"/>
+
+            <!-- Tier 1 decision (col 1, focal — primary path) -->
+            <rect data-role="focal" x="32" y="48" width="160" height="56" rx="8" fill="#EEF2F7" stroke="#1B365D" stroke-width="1.5"/>
+            <text x="112" y="74" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="13" fill="#141413">Layer 1</text>
+            <text x="112" y="92" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="11" fill="#504e49">DESIGN.md has X?</text>
+
+            <!-- Tier 1 → result A (yes, right arrow) -->
+            <line x1="192" y1="76" x2="284" y2="76" stroke="#1B365D" stroke-width="1.5"/>
+            <path d="M280 72 L288 76 L280 80" fill="none" stroke="#1B365D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="232" y="68" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="10" fill="#504e49">yes</text>
+
+            <!-- Result A -->
+            <rect x="288" y="48" width="160" height="56" rx="8" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="368" y="74" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="13" fill="#141413">DESIGN.md value</text>
+            <text x="368" y="92" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="10" fill="#504e49">hex regex pass</text>
+
+            <!-- Tier 1 → Tier 2 (no, down arrow) -->
+            <line x1="112" y1="104" x2="112" y2="124" stroke="#504e49" stroke-width="1.5"/>
+            <path d="M108 120 L112 128 L116 120" fill="none" stroke="#504e49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="124" y="118" font-family="Charter, Georgia, serif" font-size="10" fill="#504e49">no / non-hex</text>
+
+            <!-- Tier 2 decision -->
+            <rect x="32" y="128" width="160" height="56" rx="8" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="112" y="154" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="13" fill="#141413">Layer 2</text>
+            <text x="112" y="172" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="11" fill="#504e49">Kami preset has X?</text>
+
+            <!-- Tier 2 → result B -->
+            <line x1="192" y1="156" x2="284" y2="156" stroke="#504e49" stroke-width="1.5"/>
+            <path d="M280 152 L288 156 L280 160" fill="none" stroke="#504e49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="232" y="148" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="10" fill="#504e49">yes</text>
+
+            <!-- Result B -->
+            <rect x="288" y="128" width="160" height="56" rx="8" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="368" y="154" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="13" fill="#141413">Kami preset value</text>
+            <text x="368" y="172" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="10" fill="#504e49">canonical 36 tokens</text>
+
+            <!-- Tier 2 → Tier 3 (no, down) -->
+            <line x1="112" y1="184" x2="112" y2="204" stroke="#504e49" stroke-width="1.5"/>
+            <path d="M108 200 L112 208 L116 200" fill="none" stroke="#504e49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="124" y="198" font-family="Charter, Georgia, serif" font-size="10" fill="#504e49">no</text>
+
+            <!-- Tier 3 decision -->
+            <rect x="32" y="208" width="160" height="56" rx="8" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="112" y="234" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="13" fill="#141413">Layer 3</text>
+            <text x="112" y="252" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="11" fill="#504e49">per-type derived?</text>
+
+            <!-- Tier 3 → result C (focal — last resort) -->
+            <line x1="192" y1="236" x2="284" y2="236" stroke="#1B365D" stroke-width="1.5"/>
+            <path d="M280 232 L288 236 L280 240" fill="none" stroke="#1B365D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="232" y="228" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="10" fill="#504e49">yes</text>
+
+            <!-- Result C (focal) -->
+            <rect data-role="focal" x="288" y="208" width="160" height="56" rx="8" fill="#EEF2F7" stroke="#1B365D" stroke-width="1.5"/>
+            <text x="368" y="234" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="13" fill="#141413">Derived value</text>
+            <text x="368" y="252" text-anchor="middle" font-family="Charter, Georgia, serif" font-size="10" fill="#504e49">solid-blend, not rgba</text>
+
+            <!-- Footer note -->
+            <text x="32" y="288" font-family="Charter, Georgia, serif" font-size="11" fill="#504e49">no on Tier 3 → Error: no token for X</text>
+          </svg>
+          <figcaption class="kami-figcaption">圖 3.1 — Token 三層 fallback：DESIGN.md → Kami preset → per-type derived。兩端 focal（DESIGN.md 主路徑、derived 末路徑），中段標準節點。chevron 手繪取代 marker（WeasyPrint-safe）。</figcaption>
+        </figure>
+
+        <h3 class="kami-h3">Layer 3 — per-type derived rules</h3>
+        <table class="kami-table">
+          <thead><tr><th>Type</th><th>需要 token</th><th>Derivation rule</th></tr></thead>
+          <tbody>
+            <tr><td>sequence</td><td>lifeline-color</td><td><code class="kami-code">ink @ 0.30</code></td></tr>
+            <tr><td>state</td><td>state-active / state-inactive</td><td>active = <code class="kami-code">accent</code>；inactive = <code class="kami-code">ink @ 0.05</code></td></tr>
+            <tr><td>swimlane</td><td>lane-A / lane-B / lane-C</td><td><code class="kami-code">ink @ 0.08 / 0.04 / 0.02</code></td></tr>
+            <tr><td>er</td><td>entity-key / entity-attr</td><td>key = <code class="kami-code">accent-tint</code>；attr = <code class="kami-code">paper</code></td></tr>
+            <tr><td>其餘</td><td>基本 token 即足</td><td>不需 derived</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="s4">
+        <h2 class="kami-h2">04 SVG primitives</h2>
+        <p class="kami-body">四條 primitive 規範把 Kami 圖表的視覺簽名固定下來。每張 SVG 開頭必加 <code class="kami-code">&lt;defs&gt;</code> 內三個 marker（雖然 WeasyPrint marker 支援不可靠，所以 v1 實際輸出 chevron 用 <code class="kami-code">&lt;path&gt;</code>，<code class="kami-code">&lt;marker&gt;</code> 只作為 future-proof 容器）；節點背景採兩層 paper-mask；節點左上 7px Geist Mono uppercase 小 type tag；底部 ~60px legend strip 含 hairline rule + LEGEND text + items。</p>
+
+        <h3 class="kami-h3">每張 SVG 開頭必加</h3>
+        <pre class="kami-pre"><span class="tok-tag">&lt;defs&gt;</span>
+  <span class="tok-tag">&lt;pattern</span> <span class="tok-attr">id</span><span class="tok-punct">=</span><span class="tok-str">"dots"</span> <span class="tok-attr">width</span><span class="tok-punct">=</span><span class="tok-str">"22"</span> <span class="tok-attr">height</span><span class="tok-punct">=</span><span class="tok-str">"22"</span> <span class="tok-attr">patternUnits</span><span class="tok-punct">=</span><span class="tok-str">"userSpaceOnUse"</span><span class="tok-tag">&gt;</span>
+    <span class="tok-tag">&lt;circle</span> <span class="tok-attr">cx</span><span class="tok-punct">=</span><span class="tok-str">"1"</span> <span class="tok-attr">cy</span><span class="tok-punct">=</span><span class="tok-str">"1"</span> <span class="tok-attr">r</span><span class="tok-punct">=</span><span class="tok-str">"0.9"</span> <span class="tok-attr">fill</span><span class="tok-punct">=</span><span class="tok-str">"#E3E2DC"</span><span class="tok-tag">/&gt;</span>
+  <span class="tok-tag">&lt;/pattern&gt;</span>
+<span class="tok-tag">&lt;/defs&gt;</span>
+<span class="tok-tag">&lt;rect</span> <span class="tok-attr">width</span><span class="tok-punct">=</span><span class="tok-str">"100%"</span> <span class="tok-attr">height</span><span class="tok-punct">=</span><span class="tok-str">"100%"</span> <span class="tok-attr">fill</span><span class="tok-punct">=</span><span class="tok-str">"#f5f4ed"</span><span class="tok-tag">/&gt;</span>
+<span class="tok-tag">&lt;rect</span> <span class="tok-attr">width</span><span class="tok-punct">=</span><span class="tok-str">"100%"</span> <span class="tok-attr">height</span><span class="tok-punct">=</span><span class="tok-str">"100%"</span> <span class="tok-attr">fill</span><span class="tok-punct">=</span><span class="tok-str">"url(#dots)"</span> <span class="tok-attr">opacity</span><span class="tok-punct">=</span><span class="tok-str">"0.55"</span><span class="tok-tag">/&gt;</span></pre>
+
+        <p class="kami-body">三個 marker：<code class="kami-code">arrow</code>（default muted）、<code class="kami-code">arrow-accent</code>（focal / 主流，brand 色）、<code class="kami-code">arrow-link</code>（external / API call，brand-light）。Type tag 範例：<code class="kami-code">"API"</code> / <code class="kami-code">"DB"</code> / <code class="kami-code">"EXT"</code> / <code class="kami-code">"CACHE"</code>，0.8 stroke 細框。Legend strip 在 SVG 底部 hairline + LEGEND text + horizontal items（每項一個 mini swatch + label）。</p>
+      </section>
+
+      <section id="s5">
+        <h2 class="kami-h2">05 兩階層決策樹</h2>
+        <p class="kami-body">Stage 2A 的選擇分兩層、順序不可顛倒：</p>
+        <table class="kami-table">
+          <thead><tr><th>Layer</th><th>軸</th><th>結果</th><th>用途</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Layer 1</strong></td><td>content type</td><td>A=technical / B=narrative / C=research</td><td>整篇 HTML 的版面密度、TOC、cards 數</td></tr>
+            <tr><td><strong>Layer 2</strong></td><td>13 型 diagram selection</td><td>architecture / flowchart / sequence / state / er / swimlane / ...</td><td>每段 diagram 的結構</td></tr>
+          </tbody>
+        </table>
+        <p class="kami-body">兩軸<strong>正交</strong> — A/B/C 不影響每段 diagram 的選型，13 型也不影響整篇版面。每段含 diagram 的 section <i>獨立</i> lookup 13 型表，不沿用上一段。Lookup 後再走 <code class="kami-code">status: complete | ref-only</code> 檢查；v1 只有 architecture 是 complete，其餘 12 型 ref-only → render 退到通用 SVG primitives，final-report 標 <code class="kami-code">degraded-type: &lt;name&gt;</code>。</p>
+      </section>
+
+      <section id="s6">
+        <h2 class="kami-h2">06 錯誤處理與邊界</h2>
+        <p class="kami-body">驗證層分三類 gate — 結構 / 引用一致性 / deny-list。三類任一 FAIL 都停輸出。Token resolver 的 hex regex 不只擋格式錯，也擋 injection-shaped 注入（<code class="kami-code">red;}&lt;/style&gt;&lt;script&gt;</code> 視為非 hex 同類處理）— security critical。</p>
+
+        <table class="kami-table">
+          <thead><tr><th>錯誤場景</th><th>偵測層</th><th>處理</th></tr></thead>
+          <tbody>
+            <tr><td>DESIGN.md token 非 hex（含 injection-shape）</td><td>token resolver</td><td>reject 該 token，fallback Layer 2，記 warning（security critical）</td></tr>
+            <tr><td>DESIGN.md 不存在</td><td>token resolver</td><td>靜默 fallback Layer 2（非錯誤）</td></tr>
+            <tr><td>Type 為 ref-only 但 /book 選用</td><td>Stage 2A.3 lookup</td><td>fallback 通用 SVG primitives，final-report 標 degraded-type</td></tr>
+            <tr><td>validate-output.ts 結構 gate FAIL</td><td>Stage 4</td><td>報具體違反項目 + 行號，停輸出</td></tr>
+            <tr><td>validate-output.ts deny-list FAIL</td><td>Stage 4</td><td>列違反項目（script / foreignObject / on* / javascript:），停輸出（最高優先）</td></tr>
+            <tr><td>WeasyPrint marker 完全不支援</td><td>dogfood</td><td>known-issues + user PAUSE 決定降級 raster / path-based 或接受</td></tr>
+            <tr><td>paper-mask 第二層不夠</td><td>dogfood</td><td>記 v2 backlog（不在 v1 修補）</td></tr>
+            <tr><td>user dogfood 否決（gate PASS 但 user 不滿）</td><td>dogfood</td><td>標 in-progress，失敗項記 v2，最多 2 輪後升 issue</td></tr>
+          </tbody>
+        </table>
+
+        <h3 class="kami-h3">與 /design skill 的關係</h3>
+        <p class="kami-body">v1 為<strong>單向讀取</strong>：/design 寫 root DESIGN.md，/book 讀。/book 不主動通知 /design「我在用哪些 token」，也不要求 /design 適配 book 的 13 型。v2-N 若需雙向，另起 issue。</p>
+
+        <blockquote class="kami-quote">單向依賴是邊界誠實的表現。雙向耦合會讓兩個 skill 的演進互相鎖死，v1 拒絕走這條路。</blockquote>
+      </section>
+
+    </section>
+
+    <footer class="kami-footer">Generated by /baransu:book · preset kami · 2026-05-13 · source: .claude/archived/2026-05-11-book-diagram-port-v1-1778492443/design.md</footer>
+  </main>
+
+</div>
+</body>
+</html>
