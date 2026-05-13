@@ -1,5 +1,5 @@
 {
-  "iter_count": 19,
+  "iter_count": 20,
   "score_overall": null,
   "score_history": [],
   "last_review_findings": 0,
@@ -15,21 +15,21 @@
       "from_iter": 17,
       "task": "TASK-layouts-01/02/03",
       "severity": "P2 (cluster)",
-      "issue": "三 preset slide-cores all land at 21/22 (closing.html is overwrite not new). Consistent across kami/swiss/google.",
-      "action": "TASK-layouts-04 (validate-swiss-deck.mjs) can decide whether to add a 22nd layout uniformly OR amend spec target to 21"
+      "issue": "三 preset slide-cores all land at 21/22 (closing.html is overwrite not new)",
+      "action": "TASK-layouts-04 validator soft-warns 4 missing canonical layouts: toc / image-full / quote-stack / breakout. Could be added uniformly in a follow-up dogfood pass."
     }
   ],
   "pending_spec_drift": [
-    "task-shared.md vs requirement.md Scenario 2 wording: canonical 5 anti-patterns assigned to 紙 in task-md but to swiss in req-md; treated as semantic-equivalent",
+    "task-shared.md vs requirement.md Scenario 2 wording: canonical 5 anti-patterns assigned to 紙 in task-md but to swiss in req-md",
     "REQ-003 Scenario 3 wording references `--font-h*` CSS variables but 三 preset tokens.css use direct h1{} selectors",
-    "TASK-svg-01 P2: flowchart diamond uses 128×128 rotated rect; spec §4.7 strictly says height ∈ {32, 64}",
-    "TASK-svg-03 P1 (spec): REQ-001 Scenario 4 mod-4 wording is literal but validate-output.ts has no mod-4 gate",
+    "TASK-svg-01 P2: flowchart diamond uses 128×128 rotated rect",
+    "TASK-svg-03 P1: REQ-001 Scenario 4 mod-4 wording vs validator coverage",
     "TASK-svg-04 P2: chevron marker defs duplicated across 13 diagram-types",
-    "TASK-svg-05 infra: validate-output.ts has 10+ pre-existing TypeScript diagnostics. Runtime works.",
+    "TASK-svg-05 infra: validate-output.ts has 10+ pre-existing TypeScript diagnostics",
     "TASK-editorial-01 P2 nit: lead classes don't receive text-wrap: pretty",
-    "TASK-editorial-04 F2 (minor): editorial-sanity.sh relative path",
-    "TASK-schemas-01/02 P2: spec says `gd-*` but codebase uses `google-*`; TASK-layouts-03 continues this convention",
-    "TASK-schemas-04 P2 notes: Check B uses `continue` on missing; long-doc + slides schemas deferred"
+    "TASK-editorial-04 F2: editorial-sanity.sh relative path",
+    "TASK-schemas-01/02/layouts-03 P2: wording uses `gd-*` but codebase uses `google-*`",
+    "TASK-schemas-04 P2: Check B uses `continue` on missing; long-doc + slides schemas deferred"
   ],
   "ab_diff_status": "not_yet_attempted",
   "consecutive_no_progress": 0,
@@ -53,10 +53,11 @@
     {"id": "TASK-schemas-02", "commit": "4ab0b27", "review": "1 P1 fixed"},
     {"id": "TASK-schemas-03", "commit": "16615d4", "review": "0"},
     {"id": "TASK-schemas-04", "commit": "f968165", "review": "0"},
-    {"id": "TASK-layouts-01", "commit": "23f138f", "review": "21/22 documented"},
-    {"id": "TASK-layouts-02", "commit": "f3d051f", "review": "21/22 documented"},
-    {"id": "TASK-layouts-03", "commit": "9b6b66a", "review": "21/22 documented; 三 preset all consistent"}
+    {"id": "TASK-layouts-01", "commit": "23f138f", "review": "21/22"},
+    {"id": "TASK-layouts-02", "commit": "f3d051f", "review": "21/22"},
+    {"id": "TASK-layouts-03", "commit": "9b6b66a", "review": "21/22"},
+    {"id": "TASK-layouts-04", "commit": "5eae299", "review": "1 P1 fixed in 6661221 — alias map for v1.3 filenames"}
   ],
-  "next_task": "TASK-layouts-04",
-  "notes": "iter 19 done; layouts 3/5; 三 preset slide-cores all at 21 each; 19/33 tasks; 14 remaining."
+  "next_task": "TASK-layouts-05",
+  "notes": "iter 20 done; layouts 4/5; validate-swiss-deck.mjs live + 三 sanity 整合; 20/33 tasks; 13 remaining."
 }
