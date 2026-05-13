@@ -58,18 +58,18 @@
 
 **需求追溯**：REQ-003
 **驗收標準**：
-- [ ] `google-design-preset/slide-cores/` 含 22 個 `.html` 檔
-- [ ] class prefix `gd-*`
-- [ ] gd-sanity.sh 全綠
+- [~] `google-design-preset/slide-cores/` 含 22 個 `.html` 檔（實際 21；對齊 TASK-layouts-01/02 — 紙/swiss 同為 21 檔，21 = 12 既有 + 9 新增；closing 為覆寫，非新增第 22 檔）
+- [x] class prefix 純 `google-*`（codebase convention；spec 寫 `gd-*` 但 google-* 對齊既有 tokens 與既存 slide-cores；新檔 grep `kami-|swiss-|gd-` 0 hits）
+- [x] google-sanity.sh exit 0（schemas + object-position + editorial-sanity 全綠）
 
 ### 步驟
 
 #### 模板層
-- [ ] 對齊紙 preset 結構，採 google-design preset 的 typography + color token
-- [ ] 10 新 layout 視覺風格：Material You / Roboto / 圓角更大、陰影更重
+- [x] 對齊紙 / swiss preset 結構，採 google-design preset 的 typography + color token（var(--accent) M3 #6750A4 / Roboto Flex / M3 elevation shadows）
+- [x] 10 新 layout（9 新增 + closing 覆寫修補 v1.3 prefix-mix bug）視覺風格：Material You / Roboto Flex / 圓角 12-16px（var(--radius-lg/xl)）/ M3 elevation tokens（var(--shadow-whisper) = M3 elevation-1）
 
 #### 驗證
-- [ ] gd-sanity.sh 全綠
+- [x] google-sanity.sh 全綠（exit 0）
 
 ---
 
