@@ -72,22 +72,22 @@
 **需求追溯**：REQ-010 Scenario 2a
 **目標**：清掉 v1.2 wording / Kami-only 殘留；提到三 preset 適用。
 **驗收標準**：
-- [ ] `book/references/design-token-resolver.md` 含「v1.3」/「v1.4」字串 ≥ 1
-- [ ] 提到紙 / swiss / google-design 三 preset 各自的 hex 範例（不只 Kami）
-- [ ] 不含 v1.2-era wording（如「marker 用 polygon」/「節點寬 12 檔」）
+- [x] `book/references/design-token-resolver.md` 含「v1.3」/「v1.4」字串 ≥ 1
+- [x] 提到紙 / swiss / google-design 三 preset 各自的 hex 範例（不只 Kami）
+- [x] 不含 v1.2-era wording（如「marker 用 polygon」/「節點寬 12 檔」）
 
 ### 步驟
 
 #### 規格層
-- [ ] 讀 `book/references/design-token-resolver.md` 全文
-- [ ] 改寫 hex 範例段：列三 preset 的 `--paper` / `--accent` 對應 hex 表
-- [ ] 移除 v1.2-era marker polygon / 12 檔節點寬 wording
-- [ ] 加 v1.4 ack note
+- [x] 讀 `book/references/design-token-resolver.md` 全文
+- [x] 改寫 hex 範例段：列三 preset 的 `--paper` / `--accent` 對應 hex 表
+- [x] 移除 v1.2-era marker polygon / 12 檔節點寬 wording
+- [x] 加 v1.4 ack note
 
 #### 驗證
-- [ ] grep `v1.3\|v1.4` design-token-resolver.md 命中 ≥ 1
-- [ ] grep `swiss\|google-design` 命中 ≥ 2
-- [ ] **整合測試錨點**：grep 三 preset 的 `--paper` / `--accent` hex 對照表存在於 design-token-resolver.md 內（對應 test.md 整合測試「design-token-resolver 三 preset hex 範例存在」）
+- [x] grep `v1.3\|v1.4` design-token-resolver.md 命中 ≥ 1
+- [x] grep `swiss\|google-design` 命中 ≥ 2
+- [x] **整合測試錨點**：grep 三 preset 的 `--paper` / `--accent` hex 對照表存在於 design-token-resolver.md 內（對應 test.md 整合測試「design-token-resolver 三 preset hex 範例存在」）
 
 ---
 
