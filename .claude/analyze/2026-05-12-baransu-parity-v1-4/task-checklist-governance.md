@@ -88,20 +88,20 @@
 **需求追溯**：REQ-006 Scenario 3
 **目標**：每 preset 各自 `image-prompts.md` 含產品圖 / logo / UI 三段 fallback；prompt 結尾固定負面尾巴。
 **驗收標準**：
-- [ ] 三 preset 各含 `image-prompts.md`（含紙、swiss、google-design 各一）
-- [ ] 每檔含三段：產品圖 / logo / UI 三 fallback
-- [ ] 每段 prompt 結尾字面含：`no title, no footer, no page chrome, no logo, no border`
+- [x] 三 preset 各含 `image-prompts.md`（含紙、swiss、google-design 各一）
+- [x] 每檔含三段：產品圖 / logo / UI 三 fallback
+- [x] 每段 prompt 結尾字面含：`no title, no footer, no page chrome, no logo, no border`
 
 ### 步驟
 
 #### 規格層
-- [ ] 寫 `紙-preset/image-prompts.md`：
+- [x] 寫 `紙-preset/image-prompts.md`：
   - 段 1「產品圖」prompt：偏 editorial 攝影、紙質感、無 UI chrome
   - 段 2「logo」prompt：minimalist mark、單色（preset accent）
   - 段 3「UI」prompt：long-form 紙感 mockup
-- [ ] 每段 prompt 結尾加負面尾巴
-- [ ] swiss-preset / google-design-preset 同等（但風格詞換成 Swiss / Material）
+- [x] 每段 prompt 結尾加負面尾巴
+- [x] swiss-preset / google-design-preset 同等（但風格詞換成 Swiss / Material）
 
 #### 驗證
-- [ ] `grep -c "no title, no footer, no page chrome, no logo, no border" plugins/baransu/skills/design/references/*-preset/image-prompts.md` 命中 ≥ 9（三檔 × 3 段）
-- [ ] 三檔 sanity 跑過
+- [x] `grep -c "no title, no footer, no page chrome, no logo, no border" plugins/baransu/skills/design/references/*-preset/image-prompts.md` 命中 ≥ 9（三檔 × 3 段）
+- [x] 三檔 sanity 跑過
