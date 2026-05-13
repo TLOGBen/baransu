@@ -1,5 +1,5 @@
 {
-  "iter_count": 24,
+  "iter_count": 25,
   "score_overall": null,
   "score_history": [],
   "last_review_findings": 0,
@@ -15,7 +15,7 @@
       "from_iter": 17,
       "task": "TASK-layouts-01/02/03 cluster",
       "severity": "P2",
-      "issue": "三 preset slide-cores all at 21/22; 4 canonical missing",
+      "issue": "三 preset slide-cores all at 21/22",
       "action": "dogfood pass"
     },
     {
@@ -28,14 +28,14 @@
   ],
   "pending_spec_drift": [
     "task-shared.md vs requirement.md Scenario 2 wording",
-    "REQ-003 Scenario 3: `--font-h*` vs direct h1{}",
+    "REQ-003 Scenario 3: --font-h* vs direct h1{}",
     "TASK-svg-01 P2: diamond 128×128 rotated rect",
     "TASK-svg-03 P1: mod-4 wording vs validator",
     "TASK-svg-04 P2: chevron defs duplication",
     "TASK-svg-05 infra: validate-output.ts TypeScript diagnostics",
     "TASK-editorial-01 P2: lead classes no text-wrap",
     "TASK-editorial-04 F2: editorial-sanity.sh relative path",
-    "TASK-schemas/layouts P2: `gd-*` vs `google-*`",
+    "TASK-schemas/layouts P2: gd-* vs google-*",
     "TASK-schemas-04 P2: Check B continue on missing"
   ],
   "ab_diff_status": "not_yet_attempted",
@@ -67,8 +67,9 @@
     {"id": "TASK-layouts-05", "commit": "0f4993f", "review": "1 F1 fixed"},
     {"id": "TASK-cg-01", "commit": "028d076", "review": "0"},
     {"id": "TASK-cg-02", "commit": "93ddc5e", "review": "0"},
-    {"id": "TASK-cg-03", "commit": "27af130", "review": "0; Core Asset Protocol 4-step landed"}
+    {"id": "TASK-cg-03", "commit": "27af130", "review": "0"},
+    {"id": "TASK-cg-04", "commit": "02803bd", "review": "0; CG GROUP 4/4 COMPLETE"}
   ],
-  "next_task": "TASK-cg-04",
-  "notes": "iter 24 done; cg 3/4; 24/33 tasks = 73%; 9 remaining."
+  "next_task": "TASK-ct-01",
+  "notes": "iter 25 done; 🎉 CHECKLIST-GOVERNANCE GROUP 4/4 COMPLETE (REQ-005 + REQ-006 fully landed); 25/33 tasks = 76%; 8 remaining. Moving to cross-tool group."
 }
