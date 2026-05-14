@@ -8,7 +8,7 @@
       "name": "baransu",
       "source": {
         "source": "local",
-        "path": "./plugins/baransu-codex/plugins/baransu"
+        "path": "./codex/plugins/baransu"
       },
       "policy": {
         "installation": "AVAILABLE",

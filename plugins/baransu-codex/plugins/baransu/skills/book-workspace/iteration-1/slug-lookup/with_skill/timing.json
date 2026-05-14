@@ -1,7 +1,0 @@
-{
-  "total_tokens": 76896,
-  "duration_ms": 285289,
-  "total_duration_seconds": 285.3,
-  "status": "failed",
-  "note": "Agent went off-task — scanned session transcripts instead of running the book skill."
-}
