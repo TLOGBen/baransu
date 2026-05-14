@@ -127,6 +127,27 @@ When a perspective surfaces a real-but-off-goal observation, the load-bearing ru
 
 The fourth question itself is load-bearing — silently assuming it instead of asking it produced perspective drift on past runs. Treat it as a written check at every consolidation, not as ambient atmosphere.
 
+**Hard-stop ordering.** After balance check completes (findings have been filtered into the action pile and the advisory pile), run the Hard stops sweep below as an aggregate gate over the surviving findings. The sweep does **not** re-do per-finding balance judgment; it checks the report as a whole. Any hit forces the report verdict to 「需判斷」 or 「未完成」 and pins the relevant findings to needs-judgment — they may no longer be balance-downgraded to advisory.
+
+---
+
+## Hard stops sweep
+
+Run after Stage 6 consolidation, per the hard-stop ordering paragraph above. Each item is binary: does the report, taken as a whole, contain evidence of this failure mode? Any hit forces report verdict to 「需判斷」 or 「未完成」; pinned findings cannot be balance-downgraded to advisory. Conditions are observable from target + claim checklist + findings — no inference, no "looks risky".
+
+**Required (4)**:
+
+- **Unverified claims** — the target asserts something was done / verified / tested without in-session evidence (no shell output, no green-run record, no commit pointing to a real fix). Pin the relevant claim-vs-implementation finding to needs-judgment.
+- **Destructive auto-execution** — the target marks any operation that modifies user-visible state (history files, config, preferences, installed software, remote state) as "safe" or "auto-run" without explicit confirmation gating. Pin to needs-judgment.
+- **Unknown identifier in target** — any function / variable / type / module referenced in the target that does not exist in the codebase (verify by Read / Grep, not by memory). Pin to needs-judgment.
+- **Dependency changes** — additions, version bumps, or removals in package.json / Cargo.toml / go.mod / requirements.txt / lockfiles not obviously required by the target's stated goal. Pin to needs-judgment.
+
+**Optional (1)** — list only when `security-reviewer` was not dispatched in Stage 4; otherwise omit, since the perspective already enforces this and listing it here would duplicate the gate:
+
+- **Injection / hardcoded secret** — SQL / command / path injection at system entry points; credentials hardcoded, logged, committed, or copied into public docs. Pin to needs-judgment.
+
+This list deliberately does **not** include release-artifact missing, generated-artifact drift, or version skew — those belong to `/baransu:ship`, not to /review.
+
 ---
 
 ## Stage 7 — Four response tiers
@@ -159,8 +180,36 @@ Traditional Chinese, natural prose, this shape:
 - Claim checklist
 - Review goal
 - Who was dispatched and why
-- Findings by tier — 已修 / 待確認 / 需判斷 / 僅供參考
+- Findings by tier — 已修 / 待確認 / 需判斷 / 僅供參考. Themes hit by a Hard stops sweep item must be fully described in the prose; the hard-stops checklist below is a machine-readable companion, never a substitute — do not skip a topic in prose because it will appear in the checklist.
 - E2E status
+
+After the prose above, two structured-tail elements (additive — the prose is the body, these are the receipt):
+
+**Hard-stops sweep result** — checklist form. List every Required item from the Hard stops sweep section with its outcome; include the Optional item only when `security-reviewer` was not dispatched. Each line is one of: `□ <item>: not hit` or `☒ <item>: hit — <one-line citation>`.
+
+**Sign-off receipt** — fenced code block, key-value aligned, exactly these eight fields:
+
+```
+files:         N (+X -Y) | N/A for plan-type
+scope:         on target | drift: [what] | incomplete
+depth:         quick | standard | deep
+perspectives:  [arch, quality, security, style] + adversarial: yes | no
+hard_stops:    N hit ([item, item, ...]) | none
+new_tests:     N
+doc_debt:      none | <invariant>: <where to record>
+e2e_status:    完成 | 未完成等 e2e | n/a
+```
+
+Field semantics (single source of truth for each):
+
+- `files`: Stage 2's LOC / file-count classification. Plan-type targets: `N/A`.
+- `scope`: scope drift vs claim checklist. Vocabulary: `on target` / `drift: [one-phrase summary]` / `incomplete`.
+- `depth`: Stage 2's three-tier classification (`quick` / `standard` / `deep`).
+- `perspectives`: the Stage 4 dispatched set, with `+ adversarial: yes|no` from Stage 5. Not Waza's pooled-specialists semantics — quick-pass targets still list ≥1 perspective.
+- `hard_stops`: the source of truth for hits. The checklist above is a derived view; if `hard_stops: none` here, all checklist lines must read `□ ... not hit`.
+- `new_tests`: pure count. Does **not** carry Waza's "regression-first" semantics — that fidelity is intentionally not inherited; regression-first verification belongs to `/baransu:dev` or `/baransu:execute`, not /review.
+- `doc_debt`: invariants the reviewer noticed are missing from project docs (AGENTS / CLAUDE / `.claude/rules`). `none` when nothing surfaced.
+- `e2e_status`: three states from the E2E hard requirement section above. The hard-stop checklist's e2e-related line, if any, is **derived** from this field — do not judge e2e independently in the checklist.
 
 No verdict enum. No YAML schema. No skeleton template — write the kind of review a real engineer would read as a review.
 
