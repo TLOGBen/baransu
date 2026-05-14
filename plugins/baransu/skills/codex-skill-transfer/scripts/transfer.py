@@ -807,10 +807,17 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
                 continue
             if (child / "SKILL.md").is_file():
                 skill_reports.append(transfer_one(child, out_skills))
+            elif child.name.endswith("-workspace"):
+                # *-workspace/ dirs are harness optim scratch (run_loop_sub
+                # logs, eval outputs, optim/* state) — only self-referenced
+                # by their own contents, never consumed by SKILL.md bodies.
+                # Skip from the Codex distribution to keep the port lean.
+                continue
             else:
-                # Non-skill sibling dirs under skills/ (e.g. _shared/,
-                # *-workspace/) carry schema files and harness state referenced
-                # by SKILL.md bodies. Copy verbatim so cross-references resolve.
+                # Non-skill sibling dirs under skills/ (e.g. _shared/) carry
+                # cross-skill content referenced by SKILL.md bodies (e.g.
+                # _shared/tdd.md cited by grade/triage/dev/bridge). Copy
+                # verbatim so cross-references resolve.
                 shutil.copytree(child, out_skills / child.name)
                 aux_dirs_copied.append(child.name)
         summary["skill_count"] = len(skill_reports)
