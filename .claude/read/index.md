@@ -17,3 +17,4 @@
 | https://github.com/alchaincyf/huashu-design | huashu-design | GitHub - alchaincyf/huashu-design: HTML-native design skill for Claude Code | 2026-05-11T04:15:00Z |
 | https://github.com/op7418/guizang-ppt-skill | guizang-ppt-skill | Guizang PPT Skill · 网页 PPT / 配图 / 封面 | 2026-05-12T00:00:00+08:00 |
 | local:/home/vakarve/.claude/plugins/cache/baransu/baransu/1.1.21/skills/book/SKILL.md | book-skill | baransu /book SKILL.md | 2026-05-12T00:00:01+08:00 |
+| https://github.com/tw93/Waza/blob/main/skills/think | think-design-and-validate-before-you-build | Think: Design and Validate Before You Build | 2026-05-14T03:26:58Z |
