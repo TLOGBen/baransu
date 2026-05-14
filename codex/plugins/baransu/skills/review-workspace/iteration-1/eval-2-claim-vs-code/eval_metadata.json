@@ -1,0 +1,13 @@
+{
+  "eval_id": 2,
+  "eval_name": "eval-2-claim-vs-code",
+  "prompt": "同事聲稱 fixtures/counter.py 的 `Counter.increment()` 是 thread-safe 的。我不信。請用你最嚴格的 review 機制驗證這個宣稱 — 我只要結論：到底是不是 thread-safe，如果不是，最小必要的修法是什麼（不要 over-engineer，只要剛好夠用的）。",
+  "assertions": [
+    {"text": "最終報告以繁體中文輸出", "type": "language"},
+    {"text": "Verdict 為 FAIL 或 CONCERN（宣稱與實作不符）", "type": "verdict-claim"},
+    {"text": "Claim checklist 明確列出 thread-safe 為 target 宣稱", "type": "claim-extracted"},
+    {"text": "明確結論：increment() 非 thread-safe，理由為 read-modify-write 無同步", "type": "correct-diagnosis"},
+    {"text": "建議的最小修法為 threading.Lock（或等價輕量同步機制）", "type": "surgical-fix"},
+    {"text": "沒有建議改寫成 asyncio / multiprocessing.Queue / actor 模型 / immutable rewrite / lock-free 演算法 等 over-engineered 方案（若出現，應在 balance check 段明確降級）", "type": "no-overengineering"}
+  ]
+}

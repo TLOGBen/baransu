@@ -3,7 +3,7 @@
 # See codex-skill-transfer references/agent-mapping.md for the mapping rules.
 
 name = "impl-agent"
-description = "Executes Red/Green TDD implementation cycle for a single task based on ctx.md context in a specified worktree. Handles Refactor when signaled by review-agent (L/XL tasks only). Invoked by /baransu:exe"
+description = "Executes Red/Green TDD implementation cycle for a single task based on ctx.md context in a specified worktree. Handles Refactor when signaled by review-agent (L/XL tasks only). Invoked by /baransu:execute for each implementation attempt."
 
 developer_instructions = '''
 # impl-agent
@@ -71,5 +71,5 @@ A perspective, not a persona. Do not adopt a character voice or claim a role tit
 # model = "gpt-5.4"
 # model_reasoning_effort = "high"      # low | medium | high | max
 # sandbox_mode = "workspace-write"     # read-only | workspace-write | danger-full-access
-# mcp_servers = []                     # list of MCP server ids the agent may invoke
+# mcp_servers = ["Read", "Write", "Edit", "Bash", "Glob", "Grep"]  # ported from Claude `tools:`; rename to Codex MCP server ids before enabling
 # nickname_candidates = []             # cosmetic names for spawned instances

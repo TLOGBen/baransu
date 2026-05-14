@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kubernetes 三層架構總覽</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', 'Noto Sans TC', Arial, sans-serif;
+      background: #f0f4f8;
+      color: #1a202c;
+      line-height: 1.7;
+    }
+
+    header {
+      background: linear-gradient(135deg, #326ce5 0%, #1a44b8 100%);
+      color: #fff;
+      padding: 2.5rem 2rem 2rem;
+      text-align: center;
+    }
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: .02em;
+    }
+    header p {
+      margin-top: .6rem;
+      font-size: 1rem;
+      opacity: .85;
+    }
+
+    main {
+      max-width: 960px;
+      margin: 2rem auto;
+      padding: 0 1.25rem 3rem;
+    }
+
+    /* ---- Section cards ---- */
+    section {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+      padding: 1.75rem 2rem;
+      margin-bottom: 2rem;
+    }
+    section h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #326ce5;
+      border-left: 4px solid #326ce5;
+      padding-left: .75rem;
+      margin-bottom: 1.25rem;
+    }
+    section h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #2d3748;
+      margin: 1rem 0 .4rem;
+    }
+    section p { margin-bottom: .75rem; font-size: .95rem; }
+
+    /* ---- Component grid ---- */
+    .comp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: .75rem;
+    }
+    .comp-card {
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 1rem;
+      background: #f7fafc;
+    }
+    .comp-card .label {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #718096;
+      margin-bottom: .35rem;
+    }
+    .comp-card .name {
+      font-size: .95rem;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: .3rem;
+    }
+    .comp-card .desc {
+      font-size: .82rem;
+      color: #4a5568;
+    }
+    .cp  { border-top: 3px solid #326ce5; }
+    .nd  { border-top: 3px solid #38a169; }
+    .pod { border-top: 3px solid #dd6b20; }
+    .obj { border-top: 3px solid #805ad5; }
+    .hpa { border-top: 3px solid #e53e3e; }
+    .ing { border-top: 3px solid #d69e2e; }
+
+    /* ---- SVG diagram ---- */
+    .diagram-wrap {
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+    svg text { font-family: 'Segoe UI', Arial, sans-serif; }
+
+    /* ---- HPA flow ---- */
+    .flow-row {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      flex-wrap: wrap;
+      margin-top: .75rem;
+      font-size: .88rem;
+    }
+    .flow-box {
+      background: #ebf4ff;
+      border: 1.5px solid #90cdf4;
+      border-radius: 6px;
+      padding: .35rem .75rem;
+      font-weight: 600;
+      color: #2b6cb0;
+    }
+    .flow-arrow { font-size: 1.1rem; color: #718096; }
+
+    /* ---- Ingress table ---- */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .88rem;
+      margin-top: .75rem;
+    }
+    th {
+      background: #edf2f7;
+      color: #4a5568;
+      font-weight: 700;
+      padding: .55rem .85rem;
+      text-align: left;
+      border: 1px solid #e2e8f0;
+    }
+    td {
+      padding: .5rem .85rem;
+      border: 1px solid #e2e8f0;
+      vertical-align: top;
+    }
+    tr:nth-child(even) td { background: #f7fafc; }
+
+    footer {
+      text-align: center;
+      font-size: .8rem;
+      color: #a0aec0;
+      padding: 1.5rem 0 2rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Kubernetes 三層架構總覽</h1>
+  <p>Control Plane &nbsp;|&nbsp; Node &nbsp;|&nbsp; Pod &nbsp;&middot;&nbsp; 核心物件與自動擴縮</p>
+</header>
+
+<main>
+
+  <!-- ====== Architecture Diagram ====== -->
+  <section>
+    <h2>架構全景圖</h2>
+    <div class="diagram-wrap">
+      <svg width="860" height="420" viewBox="0 0 860 420"
+           xmlns="http://www.w3.org/2000/svg" role="img"
+           aria-label="Kubernetes 三層架構 SVG 示意圖">
+
+        <!-- Background layers -->
+        <!-- Control Plane band -->
+        <rect x="10" y="10" width="840" height="120" rx="10"
+              fill="#ebf4ff" stroke="#90cdf4" stroke-width="1.5"/>
+        <text x="26" y="34" font-size="12" font-weight="700" fill="#2b6cb0">Control Plane</text>
+
+        <!-- Node band -->
+        <rect x="10" y="150" width="840" height="140" rx="10"
+              fill="#f0fff4" stroke="#9ae6b4" stroke-width="1.5"/>
+        <text x="26" y="174" font-size="12" font-weight="700" fill="#276749">Node</text>
+
+        <!-- Pod band -->
+        <rect x="10" y="310" width="840" height="90" rx="10"
+              fill="#fffaf0" stroke="#fbd38d" stroke-width="1.5"/>
+        <text x="26" y="334" font-size="12" font-weight="700" fill="#c05621">Pod</text>
+
+        <!-- ===== Control Plane Components ===== -->
+        <!-- API Server -->
+        <rect x="60" y="45" width="160" height="64" rx="8"
+              fill="#326ce5" stroke="none"/>
+        <text x="140" y="73" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">API Server</text>
+        <text x="140" y="91" font-size="10" fill="#bee3f8" text-anchor="middle">中央通訊閘道</text>
+
+        <!-- Scheduler -->
+        <rect x="260" y="45" width="160" height="64" rx="8"
+              fill="#4299e1" stroke="none"/>
+        <text x="340" y="73" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">Scheduler</text>
+        <text x="340" y="91" font-size="10" fill="#bee3f8" text-anchor="middle">Pod 調度決策</text>
+
+        <!-- etcd -->
+        <rect x="460" y="45" width="160" height="64" rx="8"
+              fill="#2c5282" stroke="none"/>
+        <text x="540" y="73" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">etcd</text>
+        <text x="540" y="91" font-size="10" fill="#bee3f8" text-anchor="middle">分散式 KV 狀態儲存</text>
+
+        <!-- Controller Manager -->
+        <rect x="660" y="45" width="165" height="64" rx="8"
+              fill="#3182ce" stroke="none"/>
+        <text x="742" y="73" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">Controller Mgr</text>
+        <text x="742" y="91" font-size="10" fill="#bee3f8" text-anchor="middle">控制迴圈管理</text>
+
+        <!-- ===== Node Components ===== -->
+        <!-- kubelet -->
+        <rect x="60" y="185" width="150" height="64" rx="8"
+              fill="#38a169" stroke="none"/>
+        <text x="135" y="213" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">kubelet</text>
+        <text x="135" y="231" font-size="10" fill="#c6f6d5" text-anchor="middle">節點代理人</text>
+
+        <!-- kube-proxy -->
+        <rect x="240" y="185" width="150" height="64" rx="8"
+              fill="#2f855a" stroke="none"/>
+        <text x="315" y="213" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">kube-proxy</text>
+        <text x="315" y="231" font-size="10" fill="#c6f6d5" text-anchor="middle">網路規則 / iptables</text>
+
+        <!-- Container Runtime -->
+        <rect x="420" y="185" width="160" height="64" rx="8"
+              fill="#276749" stroke="none"/>
+        <text x="500" y="213" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">Container Runtime</text>
+        <text x="500" y="231" font-size="10" fill="#c6f6d5" text-anchor="middle">containerd / CRI-O</text>
+
+        <!-- ===== Pod Components ===== -->
+        <rect x="60" y="332" width="120" height="52" rx="8"
+              fill="#dd6b20" stroke="none"/>
+        <text x="120" y="355" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">Container A</text>
+        <text x="120" y="372" font-size="9" fill="#feebc8" text-anchor="middle">App 容器</text>
+
+        <rect x="200" y="332" width="120" height="52" rx="8"
+              fill="#c05621" stroke="none"/>
+        <text x="260" y="355" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">Container B</text>
+        <text x="260" y="372" font-size="9" fill="#feebc8" text-anchor="middle">Sidecar 容器</text>
+
+        <!-- Shared Volume indicator -->
+        <rect x="340" y="338" width="110" height="40" rx="6"
+              fill="#fff3cd" stroke="#f6ad55" stroke-width="1.5"/>
+        <text x="395" y="357" font-size="11" font-weight="600" fill="#744210" text-anchor="middle">Shared Volume</text>
+        <text x="395" y="372" font-size="9" fill="#975a16" text-anchor="middle">/var/data</text>
+
+        <!-- Ingress box -->
+        <rect x="660" y="160" width="175" height="52" rx="8"
+              fill="#d69e2e" stroke="none"/>
+        <text x="747" y="183" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">Ingress</text>
+        <text x="747" y="200" font-size="10" fill="#fefcbf" text-anchor="middle">L7 路由 / TLS 終止</text>
+
+        <!-- Service box -->
+        <rect x="660" y="230" width="175" height="52" rx="8"
+              fill="#805ad5" stroke="none"/>
+        <text x="747" y="253" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">Service</text>
+        <text x="747" y="270" font-size="10" fill="#e9d8fd" text-anchor="middle">ClusterIP / NodePort</text>
+
+        <!-- ===== Arrows ===== -->
+        <!-- API Server ↔ etcd -->
+        <line x1="220" y1="77" x2="460" y2="77"
+              stroke="#90cdf4" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr)"/>
+
+        <!-- API Server → kubelet -->
+        <line x1="140" y1="109" x2="135" y2="185"
+              stroke="#68d391" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+        <!-- kubelet → Container Runtime -->
+        <line x1="210" y1="217" x2="420" y2="217"
+              stroke="#68d391" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+        <!-- Container Runtime → Pod -->
+        <line x1="500" y1="249" x2="220" y2="332"
+              stroke="#fbd38d" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr3)"/>
+
+        <!-- Ingress → Service -->
+        <line x1="747" y1="212" x2="747" y2="230"
+              stroke="#f6e05e" stroke-width="1.5" marker-end="url(#arr4)"/>
+
+        <!-- Service → Pod area -->
+        <line x1="660" y1="256" x2="400" y2="358"
+              stroke="#d6bcfa" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr5)"/>
+
+        <!-- Arrowhead markers -->
+        <defs>
+          <marker id="arr"  markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#90cdf4"/>
+          </marker>
+          <marker id="arr2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#68d391"/>
+          </marker>
+          <marker id="arr3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#fbd38d"/>
+          </marker>
+          <marker id="arr4" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#f6e05e"/>
+          </marker>
+          <marker id="arr5" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#d6bcfa"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ====== Layer 1: Control Plane ====== -->
+  <section>
+    <h2>第一層：Control Plane（控制平面）</h2>
+    <p>Control Plane 是叢集的大腦，負責全域決策（如調度）及偵測並回應叢集事件（如當 Deployment 的副本數不足時啟動新 Pod）。</p>
+    <div class="comp-grid">
+      <div class="comp-card cp">
+        <div class="label">核心元件</div>
+        <div class="name">API Server</div>
+        <div class="desc">Kubernetes 控制平面的前端，所有 REST 請求的中央閘道；是唯一能讀寫 etcd 的元件。</div>
+      </div>
+      <div class="comp-card cp">
+        <div class="label">核心元件</div>
+        <div class="name">Scheduler</div>
+        <div class="desc">監看新建的、尚未分配 Node 的 Pod，依資源需求、親和性規則等選出最佳 Node。</div>
+      </div>
+      <div class="comp-card cp">
+        <div class="label">核心元件</div>
+        <div class="name">etcd</div>
+        <div class="desc">高可用分散式 KV 儲存，保存叢集所有狀態資料；所有元件皆透過 API Server 間接存取。</div>
+      </div>
+      <div class="comp-card cp">
+        <div class="label">核心元件</div>
+        <div class="name">Controller Manager</div>
+        <div class="desc">執行各種控制迴圈（Node controller、Replication controller 等），確保實際狀態符合期望狀態。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== Layer 2: Node ====== -->
+  <section>
+    <h2>第二層：Node（工作節點）</h2>
+    <p>每個 Node 是實際執行工作負載的機器（實體或虛擬），其上有三個必要元件共同管理容器生命週期與網路。</p>
+    <div class="comp-grid">
+      <div class="comp-card nd">
+        <div class="label">節點元件</div>
+        <div class="name">kubelet</div>
+        <div class="desc">節點上的代理人，接收來自 API Server 的 PodSpec，確保容器依規格運行，並定期回報狀態。</div>
+      </div>
+      <div class="comp-card nd">
+        <div class="label">節點元件</div>
+        <div class="name">kube-proxy</div>
+        <div class="desc">維護每個 Node 上的 iptables / IPVS 規則，實現 Service 的虛擬 IP 流量轉發。</div>
+      </div>
+      <div class="comp-card nd">
+        <div class="label">節點元件</div>
+        <div class="name">Container Runtime</div>
+        <div class="desc">實際拉取映像並執行容器的引擎（containerd、CRI-O），透過 CRI 介面與 kubelet 溝通。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== Layer 3: Pod ====== -->
+  <section>
+    <h2>第三層：Pod（最小部署單位）</h2>
+    <p>Pod 是 Kubernetes 的最小可部署物件，封裝一個或多個共享網路命名空間與儲存磁碟區的容器。同一 Pod 內的容器透過 <code>localhost</code> 互相通訊。</p>
+    <div class="comp-grid">
+      <div class="comp-card pod">
+        <div class="label">Pod 特性</div>
+        <div class="name">共享網路命名空間</div>
+        <div class="desc">同一 Pod 的容器共用 IP 位址與 port 空間，透過 localhost 直接通訊。</div>
+      </div>
+      <div class="comp-card pod">
+        <div class="label">Pod 特性</div>
+        <div class="name">共享 Volume</div>
+        <div class="desc">Pod 內可掛載相同 Volume，讓 App 容器與 Sidecar 容器共享資料（如 log 收集）。</div>
+      </div>
+      <div class="comp-card pod">
+        <div class="label">Pod 特性</div>
+        <div class="name">短暫性（Ephemeral）</div>
+        <div class="desc">Pod 本身無持久性；Deployment 等控制器負責在 Pod 失敗時重新建立，確保副本數量。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== Core Objects ====== -->
+  <section>
+    <h2>核心物件（Core Objects）</h2>
+    <div class="comp-grid">
+      <div class="comp-card obj">
+        <div class="label">Workload</div>
+        <div class="name">Deployment</div>
+        <div class="desc">宣告式管理 ReplicaSet，確保指定數量的 Pod 副本持續運行；支援滾動更新與回滾。</div>
+      </div>
+      <div class="comp-card obj">
+        <div class="label">Workload</div>
+        <div class="name">ReplicaSet</div>
+        <div class="desc">由 Deployment 自動管理，負責維持 Pod 副本數量穩定；通常不直接操作。</div>
+      </div>
+      <div class="comp-card obj">
+        <div class="label">Networking</div>
+        <div class="name">Service</div>
+        <div class="desc">為一組 Pod 提供穩定的 ClusterIP endpoint，透過 label selector 動態追蹤後端 Pod。</div>
+      </div>
+      <div class="comp-card obj">
+        <div class="label">Configuration</div>
+        <div class="name">ConfigMap</div>
+        <div class="desc">以鍵值對儲存非機密設定資料，可作為環境變數或設定檔掛載進容器。</div>
+      </div>
+      <div class="comp-card obj">
+        <div class="label">Configuration</div>
+        <div class="name">Secret</div>
+        <div class="desc">以 Base64 編碼（可搭配 encryption at rest）儲存機密資料（密碼、Token、TLS 憑證）。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== HPA ====== -->
+  <section>
+    <h2>HPA — 水平 Pod 自動擴縮</h2>
+    <p>HorizontalPodAutoscaler 依 CPU / Memory 使用率（或自訂 metrics）動態調整 Deployment / ReplicaSet 的副本數量，在負載升高時向外擴（scale out），負載下降時縮回（scale in），無需人工介入。</p>
+
+    <div class="diagram-wrap">
+      <svg width="700" height="140" viewBox="0 0 700 140"
+           xmlns="http://www.w3.org/2000/svg" role="img"
+           aria-label="HPA 自動擴縮流程圖">
+        <defs>
+          <marker id="ha" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#e53e3e"/>
+          </marker>
+        </defs>
+
+        <!-- Metrics Server -->
+        <rect x="20" y="44" width="130" height="52" rx="8" fill="#fed7d7" stroke="#fc8181" stroke-width="1.5"/>
+        <text x="85" y="67" font-size="12" font-weight="700" fill="#742a2a" text-anchor="middle">Metrics Server</text>
+        <text x="85" y="84" font-size="10" fill="#9b2c2c" text-anchor="middle">CPU / Memory</text>
+
+        <!-- HPA -->
+        <rect x="200" y="44" width="130" height="52" rx="8" fill="#fbb6ce" stroke="#f687b3" stroke-width="1.5"/>
+        <text x="265" y="67" font-size="12" font-weight="700" fill="#702459" text-anchor="middle">HPA Controller</text>
+        <text x="265" y="84" font-size="10" fill="#97266d" text-anchor="middle">評估擴縮決策</text>
+
+        <!-- Deployment -->
+        <rect x="380" y="44" width="130" height="52" rx="8" fill="#e9d8fd" stroke="#b794f4" stroke-width="1.5"/>
+        <text x="445" y="67" font-size="12" font-weight="700" fill="#44337a" text-anchor="middle">Deployment</text>
+        <text x="445" y="84" font-size="10" fill="#553c9a" text-anchor="middle">replicas: N → M</text>
+
+        <!-- Pods -->
+        <rect x="560" y="20" width="120" height="36" rx="6" fill="#c6f6d5" stroke="#68d391" stroke-width="1.5"/>
+        <text x="620" y="43" font-size="11" font-weight="700" fill="#22543d" text-anchor="middle">Pod ×3 (scale out)</text>
+
+        <rect x="560" y="84" width="120" height="36" rx="6" fill="#fefcbf" stroke="#f6e05e" stroke-width="1.5"/>
+        <text x="620" y="107" font-size="11" font-weight="700" fill="#744210" text-anchor="middle">Pod ×1 (scale in)</text>
+
+        <!-- Arrows -->
+        <line x1="150" y1="70" x2="200" y2="70" stroke="#e53e3e" stroke-width="1.5" marker-end="url(#ha)"/>
+        <line x1="330" y1="70" x2="380" y2="70" stroke="#e53e3e" stroke-width="1.5" marker-end="url(#ha)"/>
+        <line x1="510" y1="55" x2="560" y2="38" stroke="#e53e3e" stroke-width="1.5" marker-end="url(#ha)"/>
+        <line x1="510" y1="85" x2="560" y2="102" stroke="#e53e3e" stroke-width="1.5" marker-end="url(#ha)"/>
+      </svg>
+    </div>
+
+    <div class="flow-row">
+      <div class="flow-box">Metrics Server</div>
+      <span class="flow-arrow">&#8594;</span>
+      <div class="flow-box">HPA Controller</div>
+      <span class="flow-arrow">&#8594;</span>
+      <div class="flow-box">調整 replicas</div>
+      <span class="flow-arrow">&#8594;</span>
+      <div class="flow-box">ReplicaSet</div>
+      <span class="flow-arrow">&#8594;</span>
+      <div class="flow-box">建立 / 刪除 Pod</div>
+    </div>
+  </section>
+
+  <!-- ====== Ingress ====== -->
+  <section>
+    <h2>Ingress — L7 負載均衡入口</h2>
+    <p>Ingress 是叢集對外暴露 HTTP/HTTPS 服務的 L7 閘道，負責 TLS 終止與基於域名 / 路徑的路由。實際執行由 Ingress Controller（如 nginx-ingress、Traefik）負責。</p>
+
+    <div class="diagram-wrap">
+      <svg width="700" height="200" viewBox="0 0 700 200"
+           xmlns="http://www.w3.org/2000/svg" role="img"
+           aria-label="Ingress 路由示意圖">
+        <defs>
+          <marker id="ig" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#d69e2e"/>
+          </marker>
+        </defs>
+
+        <!-- Client -->
+        <rect x="20" y="80" width="100" height="44" rx="8" fill="#bee3f8" stroke="#63b3ed" stroke-width="1.5"/>
+        <text x="70" y="100" font-size="12" font-weight="700" fill="#2c5282" text-anchor="middle">Client</text>
+        <text x="70" y="116" font-size="10" fill="#2a69ac" text-anchor="middle">HTTPS Request</text>
+
+        <!-- Ingress -->
+        <rect x="170" y="70" width="140" height="60" rx="8" fill="#fefcbf" stroke="#ecc94b" stroke-width="2"/>
+        <text x="240" y="94" font-size="13" font-weight="700" fill="#744210" text-anchor="middle">Ingress</text>
+        <text x="240" y="110" font-size="9" fill="#975a16" text-anchor="middle">TLS 終止 / 路由規則</text>
+        <text x="240" y="122" font-size="9" fill="#975a16" text-anchor="middle">/api → svc-api   /web → svc-web</text>
+
+        <!-- Service A -->
+        <rect x="370" y="30" width="130" height="44" rx="8" fill="#e9d8fd" stroke="#9f7aea" stroke-width="1.5"/>
+        <text x="435" y="52" font-size="12" font-weight="700" fill="#44337a" text-anchor="middle">Service: api</text>
+        <text x="435" y="66" font-size="10" fill="#553c9a" text-anchor="middle">ClusterIP: 10.96.x.x</text>
+
+        <!-- Service B -->
+        <rect x="370" y="130" width="130" height="44" rx="8" fill="#e9d8fd" stroke="#9f7aea" stroke-width="1.5"/>
+        <text x="435" y="152" font-size="12" font-weight="700" fill="#44337a" text-anchor="middle">Service: web</text>
+        <text x="435" y="166" font-size="10" fill="#553c9a" text-anchor="middle">ClusterIP: 10.96.y.y</text>
+
+        <!-- Pod A -->
+        <rect x="560" y="30" width="110" height="44" rx="8" fill="#c6f6d5" stroke="#68d391" stroke-width="1.5"/>
+        <text x="615" y="52" font-size="11" font-weight="700" fill="#22543d" text-anchor="middle">Pod: api</text>
+        <text x="615" y="66" font-size="10" fill="#276749" text-anchor="middle">:8080</text>
+
+        <!-- Pod B -->
+        <rect x="560" y="130" width="110" height="44" rx="8" fill="#c6f6d5" stroke="#68d391" stroke-width="1.5"/>
+        <text x="615" y="152" font-size="11" font-weight="700" fill="#22543d" text-anchor="middle">Pod: web</text>
+        <text x="615" y="166" font-size="10" fill="#276749" text-anchor="middle">:3000</text>
+
+        <!-- Arrows -->
+        <line x1="120" y1="102" x2="170" y2="102" stroke="#d69e2e" stroke-width="1.5" marker-end="url(#ig)"/>
+        <line x1="310" y1="90" x2="370" y2="52" stroke="#d69e2e" stroke-width="1.5" marker-end="url(#ig)"/>
+        <line x1="310" y1="112" x2="370" y2="152" stroke="#d69e2e" stroke-width="1.5" marker-end="url(#ig)"/>
+        <line x1="500" y1="52" x2="560" y2="52" stroke="#d69e2e" stroke-width="1.5" marker-end="url(#ig)"/>
+        <line x1="500" y1="152" x2="560" y2="152" stroke="#d69e2e" stroke-width="1.5" marker-end="url(#ig)"/>
+      </svg>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>路徑規則</th>
+          <th>目標 Service</th>
+          <th>說明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>/api/*</code></td>
+          <td>svc-api:80</td>
+          <td>後端 API 服務，轉發至 api Pod 的 :8080</td>
+        </tr>
+        <tr>
+          <td><code>/web/*</code></td>
+          <td>svc-web:80</td>
+          <td>前端靜態站，轉發至 web Pod 的 :3000</td>
+        </tr>
+        <tr>
+          <td><code>/</code>（預設）</td>
+          <td>svc-web:80</td>
+          <td>未匹配路徑一律導向前端</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ====== Quick Reference ====== -->
+  <section>
+    <h2>物件速查表</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>物件</th>
+          <th>分類</th>
+          <th>主要職責</th>
+          <th>關鍵欄位</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Deployment</strong></td><td>Workload</td><td>宣告式管理 Pod 副本，支援滾動更新</td><td><code>replicas</code>, <code>strategy</code></td></tr>
+        <tr><td><strong>ReplicaSet</strong></td><td>Workload</td><td>維持指定數量的 Pod 副本</td><td><code>replicas</code>, <code>selector</code></td></tr>
+        <tr><td><strong>Service</strong></td><td>Networking</td><td>穩定的虛擬 IP / DNS 入口</td><td><code>type</code>, <code>selector</code>, <code>ports</code></td></tr>
+        <tr><td><strong>ConfigMap</strong></td><td>Configuration</td><td>注入非機密設定</td><td><code>data</code>, <code>binaryData</code></td></tr>
+        <tr><td><strong>Secret</strong></td><td>Configuration</td><td>注入機密資料（Base64）</td><td><code>type</code>, <code>data</code></td></tr>
+        <tr><td><strong>HPA</strong></td><td>Autoscaling</td><td>依 metrics 自動水平擴縮</td><td><code>minReplicas</code>, <code>maxReplicas</code>, <code>metrics</code></td></tr>
+        <tr><td><strong>Ingress</strong></td><td>Networking</td><td>L7 路由 / TLS 終止</td><td><code>rules</code>, <code>tls</code>, <code>ingressClassName</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+</main>
+
+<footer>
+  <p>Kubernetes 三層架構概覽文件 &mdash; 生成於 2026-05-11</p>
+</footer>
+
+</body>
+</html>

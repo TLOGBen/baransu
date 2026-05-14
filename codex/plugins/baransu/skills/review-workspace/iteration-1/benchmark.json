@@ -1,0 +1,383 @@
+{
+  "metadata": {
+    "skill_name": "baransu-review",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-04-24T08:35:29Z",
+    "evals_run": [
+      0,
+      1,
+      2
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.875,
+        "passed": 7,
+        "failed": 1,
+        "total": 8,
+        "time_seconds": 344.5,
+        "tokens": 70506,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\u6700\u7d42\u5831\u544a\u4ee5\u7e41\u9ad4\u4e2d\u6587\u8f38\u51fa\uff08\u542b Verdict\u3001Tier\u3001Claim \u7b49\u6bb5\u843d\uff09",
+          "passed": true,
+          "evidence": "review-report.md uses Traditional Chinese throughout \u2014 headings include '\u76ee\u6a19\u5ba3\u7a31 (Claim Checklist)', '\u6d3e\u9063\u7684\u5be9\u6838\u8005', '\u767c\u73fe\uff08\u56db\u7d1a triage\uff09', 'Tier 1 \u2014 \u5df2\u81ea\u52d5\u4fee\u5fa9', 'Tier 3 \u2014 \u9700\u5224\u65b7', '\u7d50\u8ad6'. Verdict line at L3: '**Verdict\uff1aFAIL**'."
+        },
+        {
+          "text": "Verdict \u70ba INCOMPLETE \u2014 \u56e0\u7121 e2e \u6e2c\u8a66\u8b49\u64da",
+          "passed": false,
+          "evidence": "review-report.md L3: '**Verdict\uff1aFAIL**' \u2014 verdict is FAIL, not INCOMPLETE. L158-160 explicitly states '\u5be9\u6838\u7d50\u679c\u4e0d\u56e0\u7f3a e2e \u800c INCOMPLETE' and treats e2e gate as n/a because fixtures/ has no test infra."
+        },
+        {
+          "text": "Tier 1 \u5217\u51fa\u81f3\u5c11\u4e00\u500b\u975e\u8a9e\u610f\u554f\u984c\uff08unused import: datetime \u6216 logging \u6216 os\uff1b\u6216 quote-style \u4e0d\u4e00\u81f4\uff09",
+          "passed": true,
+          "evidence": "review-report.md L59-60: 'T1-a | fixtures/user_service.py | 6 | \u522a\u9664 import datetime  # unused' and 'T1-b | fixtures/user_service.py | 7 | \u522a\u9664 import logging  # unused'."
+        },
+        {
+          "text": "Tier 3 \u5305\u542b\u786c\u7de8\u78bc API_KEY \u7684 finding\uff08\u542b\u6a94\u540d:\u884c\u865f\uff09",
+          "passed": true,
+          "evidence": "review-report.md L85 (Q1 security table, sec-01): 'user_service.py:9' severity critical \u2014 'API_KEY = \"sk-live-9f8a7b\u2026\"'."
+        },
+        {
+          "text": "Tier 3 \u5305\u542b authenticate() \u7684 null-check bug\uff08user \u53ef\u80fd\u70ba None \u6642\u76f4\u63a5\u5b58\u53d6 user['password_hash']\uff09",
+          "passed": true,
+          "evidence": "review-report.md L102 (Q2 qual-01): 'user_service.py:40-43 | critical | users.get(username) \u5728\u67e5\u7121\u6b64\u4eba\u6642\u56de None\uff0c\u4e0b\u4e00\u884c user[\"password_hash\"] \u76f4\u63a5\u5c0d None \u505a subscript \u2192 TypeError'."
+        },
+        {
+          "text": "UserBuilder \u7684\u67b6\u69cb finding \u7d93 balance check \u8a55\u4f30\uff08\u964d\u7d1a\u70ba advisory / FYI\uff0c\u6216\u660e\u78ba\u8a0e\u8ad6\u4e0d\u505a\u7684\u4ee3\u50f9 vs \u505a\u7684\u4ee3\u50f9\uff09",
+          "passed": true,
+          "evidence": "review-report.md L119-122 explicitly weighs costs: '\u4e0d\u505a\uff1a\u7559 17 \u884c\u7121 consumer \u7684\u62bd\u8c61 \u2192 \u8aa4\u5c0e reader\u3001\u589e\u52a0\u7dad\u8b77\u9762 / \u505a\uff1a\u522a ~20 \u884c\u3001\u95b1\u8b80\u66f4\u76f4\u63a5 \u2192 \u5931\u53bb... \u5e7b\u60f3\u9810\u7559 / \u4e2d\u9593\u65b9\u6848\uff1a\u4fdd\u7559 build_user helper\uff0c\u53ea\u522a UserBuilder \u2014\u2014 \u6210\u672c\u6700\u5c0f'. Plus dispatch-log.md L41: 'Balance-check applied to every new-work finding.'"
+        },
+        {
+          "text": "\u6c92\u6709\u5efa\u8b70\u4f7f\u7528\u8005\u91cd\u8dd1 /baransu:think \u6216 /baransu:review",
+          "passed": true,
+          "evidence": "grep of review-report.md finds '/baransu:review' only in header (L1) and simulation footer (L181) \u2014 no recommendation to re-run. No mention of '/baransu:think' anywhere. No '\u518d\u8dd1' / '\u91cd\u8dd1' language present."
+        },
+        {
+          "text": "\u6d3e\u9063\u7d00\u9304\u986f\u793a\u4e09\u500b perspective reviewer \u90fd\u88ab\u555f\u7528\uff08\u4ee3\u78bc\u542b auth + \u908f\u8f2f + \u7d50\u69cb\u4e09\u7a2e\u9762\u5411\uff09",
+          "passed": true,
+          "evidence": "dispatch-log.md L13-16 Stage 3 activation table: 'quality-reviewer | YES', 'security-reviewer | YES', 'architecture-reviewer | YES', 'adversarial | NO'. Mirrored in review-report.md L43-45 '\u6d3e\u9063\u7684\u5be9\u6838\u8005' section."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": 331.3,
+        "tokens": 72068,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\u6700\u7d42\u5831\u544a\u4ee5\u7e41\u9ad4\u4e2d\u6587\u8f38\u51fa",
+          "passed": true,
+          "evidence": "review-report.md L1-L135 \u5168\u6587\u70ba\u7e41\u9ad4\u4e2d\u6587\uff1be.g. L3 '**Verdict\uff1aCONCERN**'\u3001L13 '## \u76ee\u6a19\u5ba3\u7a31 (Claim Checklist)'\u3001L135 \u7d50\u8ad6\u6bb5\u843d\u7686\u70ba\u7e41\u4e2d\u3002"
+        },
+        {
+          "text": "Verdict \u4e0d\u70ba INCOMPLETE\uff08plan target\uff0ce2e gate \u61c9\u6a19\u70ba n/a\uff09",
+          "passed": true,
+          "evidence": "L3 'Verdict\uff1aCONCERN'\uff08\u975e INCOMPLETE\uff09\uff1bL12 'E2E gate: **n/a**\uff08plan target\uff0c\u975e executable code\uff09'\uff1bL131 'E2E Gate \u2014 n/a \u2014 plan target\uff0c\u4e0d\u9069\u7528 e2e gate\u3002'"
+        },
+        {
+          "text": "\u6b63\u78ba\u8b58\u5225\u70ba plan / \u6587\u4ef6 target\uff08\u975e code target\uff09",
+          "passed": true,
+          "evidence": "L8 'Shape: plan / design document\uff08`/baransu:think` \u7684 5-section \u7522\u51fa\uff09'\uff1bL10 Tier \u63cf\u8ff0\u70ba 'T3 deep'\uff1bL12 \u6a19\u8a18 e2e n/a \u56e0 'plan target\uff0c\u975e executable code'\u3002"
+        },
+        {
+          "text": "\u6d3e\u9063\u67b6\u69cb + \u54c1\u8cea reviewer\uff08\u5b89\u5168 reviewer \u61c9\u7565\u904e\uff0c\u9664\u975e\u660e\u78ba\u89f8\u767c\uff0c\u4e26\u5728\u5831\u544a\u4e2d\u8aaa\u660e\u7406\u7531\uff09",
+          "passed": true,
+          "evidence": "L49-L51 '\u67b6\u69cb\u5be9\u6838\uff1a\u555f\u7528 \u2026 \u54c1\u8cea\u5be9\u6838\uff1a\u555f\u7528 \u2026 \u5b89\u5168\u5be9\u6838\uff1a\u7565\u904e \u2014 plan \u672a\u89f8\u53ca auth / secret / crypto / network / injection / persistence / serialization / user-supplied template \u4efb\u4e00\u9805\uff1b\u50c5\u672c\u6a5f\u6a94\u6848\u5beb\u5165\uff08format/import/typo/dead-import\uff09\uff0c\u4e0d\u69cb\u6210 security surface'\u3002"
+        },
+        {
+          "text": "\u627e\u5230\u81f3\u5c11\u4e00\u500b Unknown \u7684\u5177\u9ad4\u6027\u7f3a\u53e3\uff08\u4f8b\uff1av0.2.0 vs v0.1.1 \u4e0d\u662f\u771f\u6b63\u7684 unknown\uff1b\u6216 rubric bullets \u672a\u5beb\u4e26\u975e\u5be6\u4f5c\u4e0d\u78ba\u5b9a\u800c\u662f\u6c7a\u7b56\uff09",
+          "passed": true,
+          "evidence": "T3-02\uff08L76-L80\uff09\uff1a'U3 \u5be6\u70ba\u300c\u672a\u6c7a\u300d\u800c\u975e\u300c\u672a\u77e5\u300d\u2026 plan \u5df2\u8aaa\u660e\u6b64\u6b21\u65b0\u589e skill + 3 agents + CLAUDE.md \u6bb5\u843d\uff0c\u5c6c\u65b0\u529f\u80fd\u3001\u975e\u7834\u58de\u6027\u8b8a\u66f4\uff1bSemVer \u6a5f\u68b0\u4e0a\u5c0d\u61c9 minor bump\uff08v0.2.0\uff09\u3002\u6b64\u70ba\u53ef\u6c7a\u5b9a\u7684\u9805\u76ee\u507d\u88dd\u6210 Unknown\u3002' \u540c\u6642 T3-01 \u6307\u51fa Unknowns \u4e09\u9805\u7686\u7f3a\u300c\u5ef6\u5f8c\u7406\u7531\u8207\u8ab0\u4f55\u6642\u6c7a\u5b9a\u300d\u3002"
+        },
+        {
+          "text": "\u6c92\u6709\u5efa\u8b70\u91cd\u8dd1 /baransu:think \u6216 /baransu:review\uff08/review \u53ea\u56de\u5831\uff0c\u4e0d\u8def\u7531\uff09",
+          "passed": true,
+          "evidence": "grep \u6aa2\u67e5\uff1a\u5831\u544a\u4e2d\u672a\u51fa\u73fe\u300c\u91cd\u8dd1\u300d\u300c\u91cd\u65b0\u8dd1\u300d\u300cre-run\u300d\u7b49\u5b57\u6a23\uff1b'think' \u5b57\u6a23\u53ea\u51fa\u73fe\u5728 target \u63cf\u8ff0\uff08L8 '/baransu:think \u7684 5-section \u7522\u51fa'\uff09\uff0c'/review' \u5f15\u7528\u50c5\u70ba FYI-03 \u63d0\u5230 '/review \u53ef\u7576\u81ea\u52d5 linter' \u7684\u8a9e\u5883\uff08\u975e\u5efa\u8b70\u91cd\u8dd1\uff09\u3002\u7d50\u8ad6\u6bb5\uff08L135\uff09\u50c5\u63d0\u300c\u4f7f\u7528\u8005\u4e0b\u4e00\u8f2a\u9078\u64c7\u63a1\u7d0d\u8207\u5426\u300d\uff0c\u672a\u8def\u7531\u56de think/review\u3002"
+        },
+        {
+          "text": "\u4e0d\u5617\u8a66\u70ba plan \u91cd\u65b0\u8dd1 Stage A \u5c0d\u7126 \u2014 \u9019\u662f /think \u7684 scope\uff0c\u4e0d\u662f /review \u7684",
+          "passed": true,
+          "evidence": "grep 'Stage A|\u5c0d\u7126' \u7121\u547d\u4e2d\u3002\u5831\u544a\u5168\u7a0b\u505c\u7559\u5728 review skill \u7684 Stage 0 (\u5206\u985e) \u2192 claim checklist \u2192 dispatch \u2192 findings \u2192 verdict \u6d41\u7a0b\uff0c\u672a\u91cd\u555f /think \u7684 alignment (Stage A) \u968e\u6bb5\uff1bL10-L135 \u5747\u70ba\u5be9\u6838\u8f38\u51fa\uff0c\u7121\u91cd\u65b0\u7522\u751f 5-section \u6216 alignment \u554f\u984c\u7684\u5617\u8a66\u3002"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 129.7,
+        "tokens": 54086,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\u6700\u7d42\u5831\u544a\u4ee5\u7e41\u9ad4\u4e2d\u6587\u8f38\u51fa",
+          "passed": true,
+          "evidence": "Report is in Traditional Chinese throughout; e.g. line 1: '# /baransu:review \u2014 \u5be9\u6838\u7d50\u679c', line 13: '## \u76ee\u6a19\u5ba3\u7a31 (Claim Checklist)', line 147 '## \u7d50\u8ad6'."
+        },
+        {
+          "text": "Verdict \u70ba FAIL \u6216 CONCERN\uff08\u5ba3\u7a31\u8207\u5be6\u4f5c\u4e0d\u7b26\uff09",
+          "passed": true,
+          "evidence": "Line 3: '**Verdict\uff1aFAIL**'; reiterated line 156: 'Verdict \u5224\u70ba **FAIL**'."
+        },
+        {
+          "text": "Claim checklist \u660e\u78ba\u5217\u51fa thread-safe \u70ba target \u5ba3\u7a31",
+          "passed": true,
+          "evidence": "Lines 17-19: '**[CLAIM-1 \u2014 \u4e3b\u5ba3\u7a31]** `Counter.increment()` \u662f thread-safe \u7684 \u2014 \u6839\u64da docstring\uff1a\u300csafe to call from multiple threads without a lock\u300d\u3002' under '## \u76ee\u6a19\u5ba3\u7a31 (Claim Checklist)'."
+        },
+        {
+          "text": "\u660e\u78ba\u7d50\u8ad6\uff1aincrement() \u975e thread-safe\uff0c\u7406\u7531\u70ba read-modify-write \u7121\u540c\u6b65",
+          "passed": true,
+          "evidence": "Lines 70-71: '`increment()` \u7684\u5be6\u4f5c\u70ba\u4e09\u884c\u7121\u540c\u6b65\u4fdd\u8b77\u7684 read-modify-write'; lines 79-82 describe LOAD/ADD/STORE race causing lost update; line 83 '**\u70ba\u5047**'; conclusion line 149-150 '\u5ba3\u7a31 ... \u70ba**\u5e7b\u89ba**\uff1a\u7a0b\u5f0f\u78bc\u7b2c 12\u201317 \u884c\u662f\u4e09\u500b bytecode \u7684 read-modify-write \u5e8f\u5217'."
+        },
+        {
+          "text": "\u5efa\u8b70\u7684\u6700\u5c0f\u4fee\u6cd5\u70ba threading.Lock\uff08\u6216\u7b49\u50f9\u8f15\u91cf\u540c\u6b65\u6a5f\u5236\uff09",
+          "passed": true,
+          "evidence": "Lines 84-97 suggested_fix uses `import threading` and `threading.Lock()` with `with self._lock:` block; line 111: '`threading.Lock` \u662f\u552f\u4e00\u901a\u904e\u5929\u5e73\u7684\u624b\u8853\u5200\u7d1a\u4fee\u6cd5'; line 153 conclusion confirms '\u6700\u5c0f\u5fc5\u8981\u4fee\u6cd5\u70ba `threading.Lock` + `with` block'."
+        },
+        {
+          "text": "\u6c92\u6709\u5efa\u8b70\u6539\u5beb\u6210 asyncio / multiprocessing.Queue / actor \u6a21\u578b / immutable rewrite / lock-free \u6f14\u7b97\u6cd5 \u7b49 over-engineered \u65b9\u6848\uff08\u82e5\u51fa\u73fe\uff0c\u61c9\u5728 balance check \u6bb5\u660e\u78ba\u964d\u7d1a\uff09",
+          "passed": true,
+          "evidence": "Lines 121-127 [FYI-2] explicitly downgrades all over-engineered options: 'asyncio.Lock \u2014\u2014 \u8207 thread model \u932f\u914d', 'queue.Queue \u2014\u2014 \u4e0d\u540c primitive', 'multiprocessing.Value \u2014\u2014 \u8de8 process \u554f\u984c', 'Redis / \u5916\u90e8\u539f\u5b50\u8a08\u6578\u5668 \u2014\u2014 \u5b8c\u5168\u812b\u96e2 target \u5c3a\u5bf8', 'dataclass(frozen=True) + \u56de\u50b3\u65b0 instance \u2014\u2014 \u5f9e\u53ef\u8b8a\u8a08\u6578\u5668\u6539\u4e0d\u53ef\u8b8a'. Header: '\u5c0d\u6297\u6027\u91cd\u5beb\u5efa\u8b70\uff08\u5168\u90e8 downgrade \u81f3\u6b64\uff09\u2014\u4ee5\u4e0b\u65bc\u672c\u6848\u4f8b\u7686\u5c6c**\u904e\u5ea6\u5de5\u7a0b**\uff0c\u5929\u5e73\u4e0d\u901a\u904e'. Lines 115-119 also downgrade itertools.count lock-free alternative to FYI."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.25,
+        "passed": 2,
+        "failed": 6,
+        "total": 8,
+        "time_seconds": 92.4,
+        "tokens": 40206,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\u6700\u7d42\u5831\u544a\u4ee5\u7e41\u9ad4\u4e2d\u6587\u8f38\u51fa\uff08\u542b Verdict\u3001Tier\u3001Claim \u7b49\u6bb5\u843d\uff09",
+          "passed": false,
+          "evidence": "\u5831\u544a\u4e3b\u9ad4\u70ba\u7e41\u9ad4\u4e2d\u6587\uff0c\u4f46\u4f7f\u7528 P0/P1/P2 \u8207\u300c\u7e3d\u7d50\u5224\u65b7\u300d\u7b49\u81ea\u8a02\u6a19\u984c\uff1b\u6c92\u6709 Verdict\u3001Tier\u3001Claim \u7b49\u6280\u80fd\u5951\u7d04\u4e2d\u8981\u6c42\u7684\u6bb5\u843d\u6a19\u7c64\u3002"
+        },
+        {
+          "text": "Verdict \u70ba INCOMPLETE \u2014 \u56e0\u7121 e2e \u6e2c\u8a66\u8b49\u64da",
+          "passed": false,
+          "evidence": "\u5831\u544a\u5168\u6587\u6c92\u6709 'Verdict: INCOMPLETE' \u6216\u7b49\u50f9\u7684\u7d50\u8ad6\u6a19\u8a18\uff1b\u50c5\u5728\u300e\u6e2c\u8a66\u300f\u6bb5\u843d\u63d0\u53ca\u300e\u76ee\u524d\u6c92\u6709 e2e\uff0c\u4f7f\u7528\u8005\u5df2\u81ea\u8ff0\u300f\u4e26\u7d66\u51fa\u5efa\u8b70\u6e05\u55ae\uff0c\u4f46\u672a\u6b63\u5f0f\u5224\u5b9a INCOMPLETE\u3002"
+        },
+        {
+          "text": "Tier 1 \u5217\u51fa\u81f3\u5c11\u4e00\u500b\u975e\u8a9e\u610f\u554f\u984c\uff08unused import: datetime \u6216 logging \u6216 os\uff1b\u6216 quote-style \u4e0d\u4e00\u81f4\uff09",
+          "passed": false,
+          "evidence": "P2 Cosmetic \u8868\u683c\u6307\u51fa 'import datetime \u672a\u4f7f\u7528'\u3001'import logging \u672a\u4f7f\u7528'\u3001'\u5f15\u865f\u98a8\u683c\u4e0d\u4e00\u81f4'\uff0c\u5167\u5bb9\u8986\u84cb\u5230\u4f4d\uff0c\u4f46\u6a19\u7c64\u70ba P2 \u800c\u975e Tier 1\uff0c\u672a\u4f9d skill \u7684 Tier \u7d50\u69cb\u8f38\u51fa\u3002"
+        },
+        {
+          "text": "Tier 3 \u5305\u542b\u786c\u7de8\u78bc API_KEY \u7684 finding\uff08\u542b\u6a94\u540d:\u884c\u865f\uff09",
+          "passed": false,
+          "evidence": "P0-1 \u660e\u78ba\u5217\u51fa\u786c\u7de8\u78bc API Key\uff08line 9\uff09\u4e26\u7d66\u51fa `sk-live-...` \u5b57\u4e32\u8207\u4fee\u6cd5\uff0c\u5167\u5bb9\u5145\u5206\uff1b\u4f46\u672a\u639b\u5728 'Tier 3' \u6a19\u7c64\u4e0b\u3002"
+        },
+        {
+          "text": "Tier 3 \u5305\u542b authenticate() \u7684 null-check bug\uff08user \u53ef\u80fd\u70ba None \u6642\u76f4\u63a5\u5b58\u53d6 user['password_hash']\uff09",
+          "passed": false,
+          "evidence": "P0-3 \u7cbe\u6e96\u63cf\u8ff0 `user is None` \u672a\u8655\u7406\u3001docstring \u627f\u8afe return None \u4f46\u5be6\u969b\u6703 crash\uff0c\u4e26\u7d66\u51fa\u4fee\u6cd5\uff1b\u4f46\u672a\u639b\u5728 'Tier 3' \u6a19\u7c64\u4e0b\u3002"
+        },
+        {
+          "text": "UserBuilder \u7684\u67b6\u69cb finding \u7d93 balance check \u8a55\u4f30\uff08\u964d\u7d1a\u70ba advisory / FYI\uff0c\u6216\u660e\u78ba\u8a0e\u8ad6\u4e0d\u505a\u7684\u4ee3\u50f9 vs \u505a\u7684\u4ee3\u50f9\uff09",
+          "passed": true,
+          "evidence": "P1-1 \u660e\u78ba\u5c07 UserBuilder \u5224\u70ba\u904e\u5ea6\u5de5\u7a0b\u4e26\u7d66\u51fa\u91cf\u5316\u4f9d\u64da\uff08\u53ea\u6709\u4e00\u500b\u547c\u53eb\u9ede\u3001\u5169\u6b04\u4f4d dict\u3001Builder pattern \u5728 Python \u591a\u70ba anti-pattern\uff09\uff0c\u4e26\u5728\u5143\u89c0\u5bdf 1 \u660e\u78ba\u6bd4\u8f03\u300e\u5b83\u53ea\u662f\u919c\u300fvs P0 \u7684\u8cc7\u6599/\u5b89\u5168\u98a8\u96aa\uff0c\u76f8\u7576\u65bc\u505a\u4e86 balance check \u4e26\u964d\u7d1a\u8655\u7406\u3002"
+        },
+        {
+          "text": "\u6c92\u6709\u5efa\u8b70\u4f7f\u7528\u8005\u91cd\u8dd1 /baransu:think \u6216 /baransu:review",
+          "passed": true,
+          "evidence": "\u5831\u544a\u5168\u6587\u6c92\u6709\u63d0\u53ca /baransu:think \u6216 /baransu:review\uff0c\u6c92\u6709\u5efa\u8b70\u905e\u8ff4\u547c\u53eb skill\u3002"
+        },
+        {
+          "text": "\u6d3e\u9063\u7d00\u9304\u986f\u793a\u4e09\u500b perspective reviewer \u90fd\u88ab\u555f\u7528\uff08\u4ee3\u78bc\u542b auth + \u908f\u8f2f + \u7d50\u69cb\u4e09\u7a2e\u9762\u5411\uff09",
+          "passed": false,
+          "evidence": "baseline \u8f38\u51fa\u53ea\u6709\u55ae\u4e00 review-report.md\uff0c\u6c92\u6709\u4efb\u4f55 dispatch \u7d00\u9304\u6216 perspective reviewer \u555f\u7528\u65e5\u8a8c\uff1b\u96d6\u7136\u5831\u544a\u5167\u5bb9\u5be6\u8cea\u6db5\u84cb auth\uff08P0-1/P0-2\uff09\u3001\u908f\u8f2f\uff08P0-3/P0-4\uff09\u3001\u7d50\u69cb\uff08P1-1\uff09\u4e09\u9762\u5411\uff0c\u4f46\u7121\u7d50\u69cb\u5316\u6d3e\u9063\u7d00\u9304\u3002"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8571,
+        "passed": 6,
+        "failed": 1,
+        "total": 7,
+        "time_seconds": 139.8,
+        "tokens": 42361,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\u6700\u7d42\u5831\u544a\u4ee5\u7e41\u9ad4\u4e2d\u6587\u8f38\u51fa",
+          "passed": true,
+          "evidence": "\u6574\u4efd\u5831\u544a\u901a\u7bc7\u7e41\u9ad4\u4e2d\u6587\uff08\u6a19\u984c\u3001\u88c1\u6c7a\u3001\u77db\u76fe\u5206\u6790\u3001\u5efa\u8b70\u7686\u70ba\u7e41\u4e2d\uff09\u3002"
+        },
+        {
+          "text": "Verdict \u4e0d\u70ba INCOMPLETE\uff08plan target\uff0ce2e gate \u61c9\u6a19\u70ba n/a\uff09",
+          "passed": true,
+          "evidence": "\u7e3d\u9ad4\u88c1\u6c7a\u70ba 'CONDITIONAL GO \u2014 \u9700\u4fee\u6b63\u5f8c\u518d\u9032\u8a2d\u8a08'\uff0c\u975e INCOMPLETE\u3002\u4f46\u5831\u544a\u672a\u660e\u78ba\u6a19\u8a18 e2e gate \u70ba n/a\uff08\u50c5\u5728\u5c0d\u76ee\u6a19\u8a08\u756b\u4e2d\u8a55\u8ad6 e2e \u5075\u6e2c\u6a5f\u5236\uff09\uff1b\u6838\u5fc3 verdict \u65b7\u8a00\u901a\u904e\u3002"
+        },
+        {
+          "text": "\u6b63\u78ba\u8b58\u5225\u70ba plan / \u6587\u4ef6 target\uff08\u975e code target\uff09",
+          "passed": true,
+          "evidence": "\u5831\u544a\u958b\u982d\u5beb\u300e\u5be9\u6838\u5c0d\u8c61\uff1afixtures/review_plan.md\uff08\u5df2\u7d93 /baransu:think \u8d70\u5b8c\uff09\u300f\uff0c\u5168\u6587\u4ee5\u300e\u8a08\u756b\u300f\u3001\u300e5-section \u8a08\u756b\u300f\u3001\u300eBuilding/Not-building/Approach/Key decisions/Unknown \u6bb5\u300f\u70ba\u5206\u6790\u55ae\u4f4d\uff0c\u660e\u78ba\u8996\u70ba plan \u6587\u4ef6 target\u3002"
+        },
+        {
+          "text": "\u6d3e\u9063\u67b6\u69cb + \u54c1\u8cea reviewer\uff08\u5b89\u5168 reviewer \u61c9\u7565\u904e\uff0c\u9664\u975e\u660e\u78ba\u89f8\u767c\uff0c\u4e26\u5728\u5831\u544a\u4e2d\u8aaa\u660e\u7406\u7531\uff09",
+          "passed": false,
+          "evidence": "Baseline \u6c92\u6709\u591a reviewer \u6d3e\u9063\u6982\u5ff5 \u2014 \u5831\u544a\u4ee5\u300e\u9810\u8a2d Claude\uff0c\u4e0d\u5957\u7528\u4efb\u4f55 skill\u300f\u55ae\u4e00\u8996\u89d2\u57f7\u884c\uff0c\u672a\u6d3e\u9063 architecture/quality reviewer\uff0c\u4e5f\u672a\u5ba3\u544a security reviewer \u7565\u904e\u7684\u7406\u7531\u3002\u6b64\u70ba skill-specific \u7d50\u69cb\u65b7\u8a00\uff0cbaseline \u7121\u8a72\u6a5f\u5236\u3002"
+        },
+        {
+          "text": "\u627e\u5230\u81f3\u5c11\u4e00\u500b Unknown \u7684\u5177\u9ad4\u6027\u7f3a\u53e3\uff08\u4f8b\uff1av0.2.0 vs v0.1.1 \u4e0d\u662f\u771f\u6b63\u7684 unknown\uff1b\u6216 rubric bullets \u672a\u5beb\u4e26\u975e\u5be6\u4f5c\u4e0d\u78ba\u5b9a\u800c\u662f\u6c7a\u7b56\uff09",
+          "passed": true,
+          "evidence": "\u7b2c\u4e8c\u7bc0\u300e\u507d\u88dd\u6210\u5df2\u89e3\u6c7a\u7684 Unknown\u300f\u6574\u6bb5\u5c08\u9580\u8655\u7406\u6b64\u985e\u7f3a\u53e3\uff1b\u77db\u76fe 2 \u660e\u78ba\u6307\u51fa\u300ev0.2.0 vs v0.1.1\u300f\u662f\u507d unknown\uff1a\u300eBuilding \u6bb5\u5df2\u7d93\u5beb\u6b7b v0.2.0... \u8981\u561b\u662f Unknown\uff0c\u8981\u561b\u662f Decision\u3002\u4e0d\u80fd\u540c\u6642\u3002\u300f"
+        },
+        {
+          "text": "\u6c92\u6709\u5efa\u8b70\u91cd\u8dd1 /baransu:think \u6216 /baransu:review\uff08/review \u53ea\u56de\u5831\uff0c\u4e0d\u8def\u7531\uff09",
+          "passed": true,
+          "evidence": "\u5831\u544a\u4f7f\u7528 '\u9001\u56de\u88dc\u5f37'\u3001'\u5fc5\u4fee/\u61c9\u4fee/\u53ef\u4fee' \u7b49\u63aa\u8fad\u5efa\u8b70\u4f7f\u7528\u8005\u56de\u53bb\u4fee\u8a08\u756b\uff0c\u4f46\u672a\u5efa\u8b70\u91cd\u8dd1 /baransu:think \u6216 /baransu:review \u6307\u4ee4\u3002\u8907\u96dc\u5ea6 G \u751a\u81f3\u5efa\u8b70\u5728 agent \u6a94\u7981\u5fcc\u6bb5\u660e\u5beb\u300e\u4e0d\u5f97\u547c\u53eb /think\u300f\u3002"
+        },
+        {
+          "text": "\u4e0d\u5617\u8a66\u70ba plan \u91cd\u65b0\u8dd1 Stage A \u5c0d\u7126 \u2014 \u9019\u662f /think \u7684 scope\uff0c\u4e0d\u662f /review \u7684",
+          "passed": true,
+          "evidence": "\u5831\u544a\u5168\u7a0b\u4ee5\u300e\u7368\u7acb\u5be9\u6838\u300f\u8996\u89d2\u8655\u7406\u65e2\u6709\u8a08\u756b\uff0c\u672a\u91cd\u65b0\u5c0d\u7126\uff08\u672a\u554f Building/Not-building/User questions\uff09\uff0c\u672a\u8dd1 Stage A\u3002\u50c5\u8a55\u8ad6\u8a08\u756b\u5167\u5bb9\uff0c\u7b26\u5408 review scope\u3002"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 4,
+        "failed": 2,
+        "total": 6,
+        "time_seconds": 50.2,
+        "tokens": 37057,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\u6700\u7d42\u5831\u544a\u4ee5\u7e41\u9ad4\u4e2d\u6587\u8f38\u51fa",
+          "passed": true,
+          "evidence": "Entire report is in Traditional Chinese, e.g. '# Thread-Safety \u5be9\u67e5\u5831\u544a', '\u7d50\u8ad6', '\u70ba\u4ec0\u9ebc\u4e0d\u662f Thread-Safe', '\u6700\u5c0f\u5fc5\u8981\u4fee\u6cd5'."
+        },
+        {
+          "text": "Verdict \u70ba FAIL \u6216 CONCERN\uff08\u5ba3\u7a31\u8207\u5be6\u4f5c\u4e0d\u7b26\uff09",
+          "passed": false,
+          "evidence": "Report concludes 'NOT thread-safe' and '\u6b64\u5ba3\u7a31\u70ba\u5047' which semantically equals FAIL, but there is no explicit 'Verdict: FAIL' or 'Verdict: CONCERN' label. Under strict structural grading this fails (no Verdict field)."
+        },
+        {
+          "text": "Claim checklist \u660e\u78ba\u5217\u51fa thread-safe \u70ba target \u5ba3\u7a31",
+          "passed": false,
+          "evidence": "No 'Claim checklist' section exists. The claim is mentioned inline at the top ('\u5ba3\u7a31: ...') but not as a structured checklist. Strict structural assertion fails."
+        },
+        {
+          "text": "\u660e\u78ba\u7d50\u8ad6\uff1aincrement() \u975e thread-safe\uff0c\u7406\u7531\u70ba read-modify-write \u7121\u540c\u6b65",
+          "passed": true,
+          "evidence": "Section \u4e8c explicitly names '\u8b80\u2014\u6539\u2014\u5beb (read-modify-write) race condition' and concludes 'NOT thread-safe'; section 2.1 walks through the lost-update timing; 2.2 rebuts GIL misconception."
+        },
+        {
+          "text": "\u5efa\u8b70\u7684\u6700\u5c0f\u4fee\u6cd5\u70ba threading.Lock\uff08\u6216\u7b49\u50f9\u8f15\u91cf\u540c\u6b65\u6a5f\u5236\uff09",
+          "passed": true,
+          "evidence": "Section \u4e09 '\u6700\u5c0f\u5fc5\u8981\u4fee\u6cd5': 'threading.Lock\uff0c\u7528 with \u5305\u4f4f increment() \u7684\u8b80\u2014\u6539\u2014\u5beb', with full code snippet showing self._lock = threading.Lock() and with self._lock: wrapping the increment."
+        },
+        {
+          "text": "\u6c92\u6709\u5efa\u8b70\u6539\u5beb\u6210 asyncio / multiprocessing.Queue / actor \u6a21\u578b / immutable rewrite / lock-free \u6f14\u7b97\u6cd5 \u7b49 over-engineered \u65b9\u6848\uff08\u82e5\u51fa\u73fe\uff0c\u61c9\u5728 balance check \u6bb5\u660e\u78ba\u964d\u7d1a\uff09",
+          "passed": true,
+          "evidence": "Section 3.1 explicitly rejects over-engineering: '\u4e0d\u9700\u8981 queue.Queue / actor / atomic \u7b2c\u4e09\u65b9\u5957\u4ef6', '\u4e0d\u9700\u8981 RLock', '\u4e0d\u9700\u8981 functools.lru_cache / __slots__ / atomic int \u64f4\u5145'. No asyncio/multiprocessing/lock-free suggestions present."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.9583,
+        "stddev": 0.0722,
+        "min": 0.875,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 268.5,
+        "stddev": 120.3854,
+        "min": 129.7,
+        "max": 344.5
+      },
+      "tokens": {
+        "mean": 65553.3333,
+        "stddev": 9961.6646,
+        "min": 54086,
+        "max": 72068
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.5913,
+        "stddev": 0.3105,
+        "min": 0.25,
+        "max": 0.8571
+      },
+      "time_seconds": {
+        "mean": 94.1333,
+        "stddev": 44.8251,
+        "min": 50.2,
+        "max": 139.8
+      },
+      "tokens": {
+        "mean": 39874.6667,
+        "stddev": 2667.4783,
+        "min": 37057,
+        "max": 42361
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.37",
+      "time_seconds": "+174.4",
+      "tokens": "+25679"
+    }
+  },
+  "notes": []
+}

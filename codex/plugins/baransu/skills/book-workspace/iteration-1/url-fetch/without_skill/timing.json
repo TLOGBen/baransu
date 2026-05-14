@@ -1,0 +1,7 @@
+{
+  "total_tokens": 22295,
+  "duration_ms": 21446,
+  "total_duration_seconds": 21.4,
+  "status": "failed",
+  "note": "Subagent denied Bash/WebFetch permissions in sandbox"
+}

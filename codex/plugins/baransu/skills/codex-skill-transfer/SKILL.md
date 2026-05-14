@@ -7,7 +7,7 @@ description: One-way port of Claude Code skills, plugins, or marketplaces to Ope
 license: Apache-2.0
 metadata:
   author: baransu
-  version: 0.7.3
+  version: 0.7.4
 compatibility: Designed for Claude Code; output targets Codex CLI. Optional `skills-ref`
   CLI for validation.
 ---

@@ -2,6 +2,27 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v1.4.6 (2026-05-14)
+
+**`/codex-skill-transfer`**：修 `emit_agent_stub` 兩條 bug，讓 13 個 agent stub TOML 成為 Codex `spawn_agent` 真正可載入的 schema（先前 Codex subagent runtime 實測四件套 `spawn_agent` / `send_input` / `wait_agent` / `close_agent` / `resume_agent` 全綠後，stub 內容的正確性從「UI 觀感」升格為「runtime 載入」）。
+
+### Fixes — 修正
+
+1. **F2：agent stub `description` 不再被截斷**。先前 200-char 硬切會在 11/13 個 stub 中產生 `Fills impl-checklist and returns s`、`Invoked once by /baransu:execute when Fin`、甚至 cut 在多 byte emoji 中間變 U+FFFD `�` 的情況。改為 first-line verbatim、`json.dumps` 處理 escape；descriptions 現完整保留（193–352 chars 範圍）。
+2. **F3：source frontmatter `tools:` 不再被洗成空 `# mcp_servers = []`**。實際運作邏輯 source 已有但舊 cache 版（1.4.1 安裝快取）缺；本輪改跑 source transfer.py 後正常產出 `# mcp_servers = ["Read", "Grep", "Glob", "Bash", "Edit"]  # ported from Claude tools:; rename to Codex MCP server ids before enabling`——使用者複製 stub 到 `~/.codex/agents/` 後一眼看到工具能力線索。
+3. **副產品**：跑 source（39k）vs cache（33k）transfer.py 的差異使 13 個 SKILL.md / reference 也套到 v0.7.3 既有但未套用的 Claude→Codex tool-name 重寫（`TaskCreate` → `track the task internally`、`AskUserQuestion` → `ask the user directly` 等）。文法略生硬，但符合 SKILL.md §Boundaries 規約。
+
+### Internal
+
+- 起因：本輪 `/review` 對 codex/ 派 architecture-reviewer，在 Codex subagent runtime 實測之後重新估權，把 F2/F3 升格為 needs-judgment。
+- 修正：`plugins/baransu/skills/codex-skill-transfer/scripts/transfer.py` `emit_agent_stub` line 634-642 改為 `desc = str(fm.get("description") or "").splitlines()[0]`（拿掉 200-char cap）。F3 之 mcp_servers 改寫 logic source v0.7.3 早已含。
+- skill metadata version: 0.7.3 → 0.7.4。
+- codex/ 重新覆蓋：13 agent stub + 13 SKILL.md/reference 被更新。
+
+### SemVer 註
+
+採 patch（1.4.5 → 1.4.6）：runtime schema 修正，使用者調用面（指令名、frontmatter shape）零變動。
+
 ## v1.4.5 (2026-05-14)
 
 **`/codex-skill-transfer`**：Step 2 補一句明示 `baransu` plugin 的 `<codex-output>` 是 repo 根目錄的 `codex/`，與 `<repo-root>/.agents/plugins/marketplace.json` (Layout A catalog) 的 `source.path` 對齊。避免下次跑時又另開一個輸出目錄、把 catalog 的 `source.path` 留成 dangling。skill metadata.version 0.7.2 → 0.7.3。

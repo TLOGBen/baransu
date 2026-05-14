@@ -1,0 +1,12 @@
+{
+  "summary": {"pass_rate": 0.5, "passed": 3, "failed": 3, "total": 6},
+  "timing": {"total_duration_seconds": 149.4, "total_tokens": 42566},
+  "expectations": [
+    {"text": "html_file_exists", "passed": true, "evidence": "output.html present"},
+    {"text": "has_kami_article", "passed": false, "evidence": "class=\"paper\" not found"},
+    {"text": "has_toc", "passed": false, "evidence": "toc-wrap not found"},
+    {"text": "svg_present_and_balanced", "passed": true, "evidence": "1 SVG balanced"},
+    {"text": "has_section_numbers", "passed": false, "evidence": "sec-num not found"},
+    {"text": "source_content_reflected", "passed": true, "evidence": "context/langchain terms found"}
+  ]
+}

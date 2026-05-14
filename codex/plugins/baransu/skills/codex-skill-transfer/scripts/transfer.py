@@ -107,7 +107,7 @@ ARGS_FULL = re.compile(r"\$ARGUMENTS\b")
 ARGS_INDEXED = re.compile(r"\$ARGUMENTS\[(\d+)\]|\$(\d+)\b")
 NAMED_ARG = re.compile(r"\$([a-z][a-z0-9_-]*)\b")
 SESSION_ID = re.compile(r"\$\{CLAUDE_SESSION_ID\}")
-SKILL_DIR = re.compile(r"\$\{CLAUDE_SKILL_DIR\}|\.\b")
+SKILL_DIR = re.compile(r"\$\{CLAUDE_SKILL_DIR\}|\$CLAUDE_SKILL_DIR\b")
 EFFORT = re.compile(r"\$\{CLAUDE_EFFORT\}")
 
 
@@ -409,7 +409,7 @@ def write_skill(
         )
 
 
-SKILL_DIR_ENV = re.compile(r"\$\{CLAUDE_SKILL_DIR\}|\.\b")
+SKILL_DIR_ENV = re.compile(r"\$\{CLAUDE_SKILL_DIR\}|\$CLAUDE_SKILL_DIR\b")
 
 
 def copy_aux(source: Path, target: Path, report: TransferReport) -> None:
@@ -431,9 +431,9 @@ def copy_aux(source: Path, target: Path, report: TransferReport) -> None:
             f"複製 skill-root 零散檔案：{', '.join(orphan_files)}"
         )
 
-    # `.` rewrite — same logic for scripts/ and references/.
+    # `$CLAUDE_SKILL_DIR` rewrite — same logic for scripts/ and references/.
     # Skip transfer.py itself: its source contains the literal regex pattern
-    # `\$\{CLAUDE_SKILL_DIR\}|\.\b`, which the rewriter would
+    # `\$\{CLAUDE_SKILL_DIR\}|\$CLAUDE_SKILL_DIR\b`, which the rewriter would
     # turn into `\$\{CLAUDE_SKILL_DIR\}|\.\b` (broken) on every self-port.
     rewritten = 0
     rewrite_roots = [target / "scripts", target / "references"]
@@ -631,15 +631,13 @@ def emit_agent_stub(agent_md: Path, dest: Path) -> None:
         try:
             fm = yaml.safe_load(body[4:fm_end]) or {}
             if isinstance(fm, dict):
-                full = str(fm.get("description") or "").splitlines()[0]
-                # Word-boundary truncation: 200-char hard cap was producing
-                # mid-word cuts like ".../baransu:exe" — split on whitespace
-                # before the boundary and add an ellipsis so cross-skill
-                # metadata stays intelligible.
-                if len(full) <= 200:
-                    desc = full
-                else:
-                    desc = full[:197].rsplit(" ", 1)[0].rstrip(",;:.") + "…"
+                # Take first line only (TOML basic string is single-line),
+                # no length cap: agent stubs are runtime-consumed by Codex
+                # spawn_agent reading ~/.codex/agents/*.toml, so truncating the
+                # description corrupts the agent's load-time metadata
+                # (architecture-reviewer F2, 2026-05-14). json.dumps below
+                # handles all escape concerns.
+                desc = str(fm.get("description") or "").splitlines()[0]
                 # Tools list — emit as a commented-out mcp_servers suggestion.
                 raw_tools = fm.get("tools") or fm.get("allowed-tools")
                 if isinstance(raw_tools, str):

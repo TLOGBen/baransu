@@ -3,7 +3,7 @@
 # See codex-skill-transfer references/agent-mapping.md for the mapping rules.
 
 name = "review-agent"
-description = "Directly implements four-tier semantic review (advisory / packaged confirm / needs judgment / direct fix) of impl-agent output without calling /baransu:review skill. Fills impl-checklist and returns s"
+description = "Directly implements four-tier semantic review (advisory / packaged confirm / needs judgment / direct fix) of impl-agent output without calling /baransu:review skill. Fills impl-checklist and returns structured result to main skill. Invoked by /baransu:execute after each Impl attempt."
 
 developer_instructions = '''
 # review-agent
@@ -93,5 +93,5 @@ Review 之前請閱讀 `plugins/baransu/skills/_shared/tdd.md`，並依其原則
 # model = "gpt-5.4"
 # model_reasoning_effort = "high"      # low | medium | high | max
 # sandbox_mode = "workspace-write"     # read-only | workspace-write | danger-full-access
-# mcp_servers = []                     # list of MCP server ids the agent may invoke
+# mcp_servers = ["Read", "Grep", "Glob", "Bash", "Edit"]  # ported from Claude `tools:`; rename to Codex MCP server ids before enabling
 # nickname_candidates = []             # cosmetic names for spawned instances

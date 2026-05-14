@@ -84,7 +84,7 @@ Write `goal.md`. Fill every section — do not leave template placeholders.
 - {item — and why it's excluded}
 ```
 
-After writing, show the `goal.md` content to the user. Then call `AskUserQuestion`:
+After writing, show the `goal.md` content to the user. Then call `ask the user directly`:
 
 ```
 question: "goal.md 確認"
@@ -317,7 +317,7 @@ If after auto-correction findings are still substantial (not just wording), paus
 
 ## Stage 7 — Handoff
 
-List all generated files with their paths. Then call `AskUserQuestion`:
+List all generated files with their paths. Then call `ask the user directly`:
 
 ```
 question: "spec 完成。接下來怎麼做？"

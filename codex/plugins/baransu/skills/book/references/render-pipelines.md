@@ -62,7 +62,7 @@ python3 -m weasyprint "{patched_html}" ".claude/book/{$SLUG}.pdf"
 **步驟三：呼叫 html2pptx.js**
 
 ```bash
-node "$CLAUDE_SKILL_DIR/scripts/html2pptx.js" "{slide_html_path}" ".claude/book/{$SLUG}.pptx"
+node "./scripts/html2pptx.js" "{slide_html_path}" ".claude/book/{$SLUG}.pptx"
 ```
 
 若命令失敗（exit code ≠ 0）：標記 `PPT：失敗（詳見上方錯誤）`，繼續其他格式，不停止整個流程。

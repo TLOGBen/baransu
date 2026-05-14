@@ -1,0 +1,6 @@
+{
+  "eval_id": 1,
+  "eval_name": "text-input",
+  "prompt": "/book --text \"Kubernetes 三層架構：Control Plane（API Server、Scheduler、etcd）、Node（kubelet、kube-proxy、Container Runtime）、Pod（最小部署單位）。核心物件包括 Deployment（管理 ReplicaSet 確保 Pod 數量）、Service（提供穩定 ClusterIP endpoint）、ConfigMap / Secret（設定注入）。HPA 依 CPU / memory metrics 自動水平擴縮；Ingress 作為 L7 負載均衡入口，路由到不同 Service。\"",
+  "assertions": []
+}

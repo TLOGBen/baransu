@@ -1,0 +1,12 @@
+{
+  "summary": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6},
+  "timing": {"total_duration_seconds": 333.4, "total_tokens": 74983},
+  "expectations": [
+    {"text": "html_file_exists", "passed": true, "evidence": "kubernetes.html present"},
+    {"text": "has_kami_article", "passed": true, "evidence": "class=\"paper\" found"},
+    {"text": "has_toc", "passed": true, "evidence": "toc-wrap found"},
+    {"text": "svg_present_and_balanced", "passed": true, "evidence": "4 SVGs balanced"},
+    {"text": "has_section_numbers", "passed": true, "evidence": "sec-num found"},
+    {"text": "word_count_lte_1800", "passed": true, "evidence": "1196 words"}
+  ]
+}

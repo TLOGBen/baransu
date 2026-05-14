@@ -1,0 +1,14 @@
+{
+  "eval_id": 2,
+  "eval_name": "slug-lookup",
+  "configuration": "without_skill",
+  "expectations": [
+    {"text": "html_file_exists", "passed": true, "evidence": "output.html present in outputs/"},
+    {"text": "has_kami_article", "passed": false, "evidence": "class=\"paper\" not found; baseline used custom design"},
+    {"text": "has_toc", "passed": false, "evidence": "toc-wrap not found; no sticky TOC"},
+    {"text": "svg_present_and_balanced", "passed": true, "evidence": "1 SVG, open/close balanced"},
+    {"text": "has_section_numbers", "passed": false, "evidence": "sec-num class not found"},
+    {"text": "source_content_reflected", "passed": true, "evidence": "context/langchain terms found in HTML"}
+  ],
+  "pass_rate": 0.5
+}

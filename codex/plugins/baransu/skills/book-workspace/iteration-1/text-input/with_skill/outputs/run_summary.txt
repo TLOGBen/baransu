@@ -1,0 +1,37 @@
+slug: kubernetes
+output_file: .claude/book/kubernetes.html
+
+content_type: technical
+  Signals: architecture document, system component enumeration, engineer audience,
+  explains how Kubernetes works — matches Type A (Technical) from perception-guide.md
+
+sections: 7
+  01 三層架構總覽
+  02 Control Plane 核心元件
+  03 Node 層元件
+  04 Pod：最小部署單位
+  05 核心工作負載物件
+  06 網路與流量入口
+  07 自動擴縮與設定注入
+
+svg_count: 4
+  SVG 1 (s1): 3-tier architecture flow diagram (Control Plane → Node → Pod)
+  SVG 2 (s4): Pod internal diagram (Main Container + Sidecar)
+  SVG 3 (s5): Deployment → ReplicaSet → Pod + Service flow
+  SVG 4 (s6): Internet → Ingress → Service A/B/C → Pods flow
+
+quality_gate: PASS
+  OK  html-parse
+  OK  structure
+  OK  svg-balance (4 diagram(s))
+  GATE PASS: .claude/book/kubernetes.html
+
+errors: none
+
+notes:
+  - Platform detected: WSL2
+  - markitdown 0.1.5 already installed
+  - Input routed via --text flag (Stage 1 §5), no acquisition needed
+  - Slug derived from title "Kubernetes 三層架構概覽": non-ASCII chars → hyphens → collapse → "kubernetes"
+  - No slug collision in .claude/book/
+  - Visual render verification (Stage 4 §2) skipped per eval instructions

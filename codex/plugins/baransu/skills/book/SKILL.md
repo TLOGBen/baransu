@@ -18,7 +18,7 @@ Converts any content into a Kami-themed, browser-ready HTML book saved to `.clau
 
 ## Stage 0 — Environment Self-Check
 
-> 本 SKILL.md 採 Fact-Verification Principle #0（見下文 Stage 2A §0「Fact-Verification Principle #0」段）：在合成長文前，凡偵測到具體產品 / 版本 / 人名 + 職位 pattern，強制 WebSearch 驗證；0 結果即 AskUserQuestion 阻擋。
+> 本 SKILL.md 採 Fact-Verification Principle #0（見下文 Stage 2A §0「Fact-Verification Principle #0」段）：在合成長文前，凡偵測到具體產品 / 版本 / 人名 + 職位 pattern，強制 search the web 驗證；0 結果即 ask the user directly 阻擋。
 
 ### 1. Design context soft-read
 
@@ -95,7 +95,7 @@ mkdir -p ".claude/book"
 
 ## Stage 0b — Pre-interview Gate（受眾 / 硬約束前置）
 
-在 Stage 1 取得 `$RAW_CONTENT` **之前**，先壓住 50% 不確定性。模式對齊 /design Gen Mode Step 1：用 **單一 AskUserQuestion 批次**（4 題並陳，不逐題阻塞）對齊受眾、用途、風格傾向、硬約束。
+在 Stage 1 取得 `$RAW_CONTENT` **之前**，先壓住 50% 不確定性。模式對齊 /design Gen Mode Step 1：用 **單一 ask the user directly 批次**（4 題並陳，不逐題阻塞）對齊受眾、用途、風格傾向、硬約束。
 
 ### 跳過條件（任一成立即整段跳過）
 
@@ -187,7 +187,7 @@ Receives `$RAW_CONTENT`. Produces `$STRUCTURE` (a JSON-like outline) and `$CONTE
 
 **Purpose**：在合成長文進入 §1 分類前先做事實閘，防止把幻想的具體規格（虛構版本號、虛構人物職位）寫進最終 HTML。對應 REQ-006 Scenario 1 / Criteria C6。歷史案例：「Linear MCP v3.4.7 released 2025-09-15」屬虛構，但若不驗證，會被當作既有事實渲染到 book 內。
 
-**Trigger regex**（對 `$RAW_CONTENT` 全文 soft-match，不強制全部命中視為錯誤，只作為觸發 WebSearch 的訊號）：
+**Trigger regex**（對 `$RAW_CONTENT` 全文 soft-match，不強制全部命中視為錯誤，只作為觸發 search the web 的訊號）：
 
 ```
 /([A-Z][a-zA-Z]+\s+(MCP|SDK|CLI|API)?\s*v?\d+(\.\d+)*)|([A-Z][a-z]+\s+[A-Z][a-z]+(\s|,)+(CEO|CTO|founder|engineer))/
@@ -200,13 +200,13 @@ Receives `$RAW_CONTENT`. Produces `$STRUCTURE` (a JSON-like outline) and `$CONTE
 **Flow on hit**（每命中一筆 `{hit}`）：
 
 1. **Sanitize `{hit}` before query**：將 `{hit}` 內所有 `"` (`U+0022`) 字元先剝除（regex 抓的是合法 identifier/version 字串，正常情況不含 quote；含則為 noise 或 adversarial input）。Sanitized `{hit_clean}` 再丟下一步。
-2. 跑 `WebSearch`，query template：`"{hit_clean}" release notes` 或 `"{hit_clean}" announcement`（人名命中改用 `"{hit_clean}" announcement` / `"{hit_clean}" interview`）。
-3. 若 WebSearch 回傳 **0 結果** → 透過 `AskUserQuestion` 顯示：「Fact-verify pending: '{hit_clean}' 在 WebSearch 0 結果。選擇：強制繼續 / 改用 `--text` 餵已驗證版本 / 中止本次 /book」。等使用者選擇後再決定是否進入 §1。
-4. 若 WebSearch 回傳 **≥ 1 結果** → 視為事實可驗，繼續，但仍把該 hit 列入 `$STRUCTURE` 末尾的「Sources」清單（在 Stage 2A §4 extract 階段一併處理）。
+2. 跑 `search the web`，query template：`"{hit_clean}" release notes` 或 `"{hit_clean}" announcement`（人名命中改用 `"{hit_clean}" announcement` / `"{hit_clean}" interview`）。
+3. 若 search the web 回傳 **0 結果** → 透過 `ask the user directly` 顯示：「Fact-verify pending: '{hit_clean}' 在 search the web 0 結果。選擇：強制繼續 / 改用 `--text` 餵已驗證版本 / 中止本次 /book」。等使用者選擇後再決定是否進入 §1。
+4. 若 search the web 回傳 **≥ 1 結果** → 視為事實可驗，繼續，但仍把該 hit 列入 `$STRUCTURE` 末尾的「Sources」清單（在 Stage 2A §4 extract 階段一併處理）。
 
 **Flow on no hit**：直接進入 §1 分類。
 
-**Boundary**：regex 為 soft trigger，不是 hard match——不命中不代表內容必為真，未來會視 telemetry 結果擴充 pattern。**測試 fixture**：字串 `Linear MCP v3.4.7 released 2025-09-15` 為虛構，預期觸發 regex、WebSearch 回傳 0 結果、走 ask 流程（不可靜默繼續）。
+**Boundary**：regex 為 soft trigger，不是 hard match——不命中不代表內容必為真，未來會視 telemetry 結果擴充 pattern。**測試 fixture**：字串 `Linear MCP v3.4.7 released 2025-09-15` 為虛構，預期觸發 regex、search the web 回傳 0 結果、走 ask 流程（不可靜默繼續）。
 
 ### 1. Classify content type
 
@@ -332,7 +332,7 @@ For each section from `$STRUCTURE`:
      codex prompt --stdin < .claude/design/brief-{preset}-{date}.md \
        --suffix "請生成符合上述 design brief 的封面圖，no title, no footer, no page chrome, no logo, no border"
      ```
-   - **Search**：呼叫 `WebSearch` 找現成資源；**只接受 CC license**（CC0 / CC-BY / CC-BY-SA），其餘一律退回 Generate 分支。
+   - **Search**：呼叫 `search the web` 找現成資源；**只接受 CC license**（CC0 / CC-BY / CC-BY-SA），其餘一律退回 Generate 分支。
 3. **Verify** — renderer 將圖嵌入 long-form HTML preview，user 肉眼確認構圖、版面對齊、無 AI slop、無 watermark；未通過則退回步驟 2 重跑。
 4. **Freeze** — commit 圖檔到 `.claude/book/{slug}/assets/`，並寫 `meta.json` 含 `source`（generate / search）、`prompt`（Generate 路徑必填）、`license`（Search 路徑必填）、`verified_at` 時戳。Freeze 後該圖視為不可變；要換 → 從步驟 1 重來。
 

@@ -631,15 +631,13 @@ def emit_agent_stub(agent_md: Path, dest: Path) -> None:
         try:
             fm = yaml.safe_load(body[4:fm_end]) or {}
             if isinstance(fm, dict):
-                full = str(fm.get("description") or "").splitlines()[0]
-                # Word-boundary truncation: 200-char hard cap was producing
-                # mid-word cuts like ".../baransu:exe" — split on whitespace
-                # before the boundary and add an ellipsis so cross-skill
-                # metadata stays intelligible.
-                if len(full) <= 200:
-                    desc = full
-                else:
-                    desc = full[:197].rsplit(" ", 1)[0].rstrip(",;:.") + "…"
+                # Take first line only (TOML basic string is single-line),
+                # no length cap: agent stubs are runtime-consumed by Codex
+                # spawn_agent reading ~/.codex/agents/*.toml, so truncating the
+                # description corrupts the agent's load-time metadata
+                # (architecture-reviewer F2, 2026-05-14). json.dumps below
+                # handles all escape concerns.
+                desc = str(fm.get("description") or "").splitlines()[0]
                 # Tools list — emit as a commented-out mcp_servers suggestion.
                 raw_tools = fm.get("tools") or fm.get("allowed-tools")
                 if isinstance(raw_tools, str):

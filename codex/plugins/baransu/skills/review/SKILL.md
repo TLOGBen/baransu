@@ -162,7 +162,7 @@ This list deliberately does **not** include release-artifact missing, generated-
 |---|---|
 | **Direct fix** | formatter, import order, unused import, obvious typo, dead import. Nothing that touches behavior. Apply via Edit. |
 | **Packaged confirm** | non-semantic but beyond direct fix (rename, delete dead code, semantic typo). Present the batch diff once. |
-| **Needs judgment** | logic / boundary / API / behavior / security findings with concrete fixes. Batch-ask via AskUserQuestion — group by theme, not by target question count. |
+| **Needs judgment** | logic / boundary / API / behavior / security findings with concrete fixes. Batch-ask via ask the user directly — group by theme, not by target question count. |
 | **Advisory** | balance-downgraded, off-goal, or no concrete fix. In the report, not in the user's face. |
 
 Do not change behavior without user consent. Do not ask one question per finding.
@@ -219,7 +219,7 @@ Field semantics (single source of truth for each):
 
 No verdict enum. No YAML schema. No skeleton template — write the kind of review a real engineer would read as a review.
 
-For **needs-judgment** items, batch-ask via AskUserQuestion. Let the question count follow the natural theme grouping; don't split to hit a number, don't merge to shrink one.
+For **needs-judgment** items, batch-ask via ask the user directly. Let the question count follow the natural theme grouping; don't split to hit a number, don't merge to shrink one.
 
 ---
 

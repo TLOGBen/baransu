@@ -1,0 +1,12 @@
+{
+  "summary": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6},
+  "timing": {"total_duration_seconds": 285.3, "total_tokens": 76896},
+  "expectations": [
+    {"text": "html_file_exists", "passed": true, "evidence": "context-engineering-langchain.html present"},
+    {"text": "has_kami_article", "passed": true, "evidence": "class=\"paper\" found"},
+    {"text": "has_toc", "passed": true, "evidence": "toc-wrap found"},
+    {"text": "svg_present_and_balanced", "passed": true, "evidence": "3 SVGs balanced"},
+    {"text": "has_section_numbers", "passed": true, "evidence": "sec-num found"},
+    {"text": "source_content_reflected", "passed": true, "evidence": "context/langchain terms found"}
+  ]
+}

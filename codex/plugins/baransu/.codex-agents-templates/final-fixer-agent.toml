@@ -3,7 +3,7 @@
 # See codex-skill-transfer references/agent-mapping.md for the mapping rules.
 
 name = "final-fixer-agent"
-description = "Supplements missing tests and minimal implementation for uncovered REQ-XXX items identified in the Coverage Report. Invoked once by /baransu:execute when Final-Review finds gaps; reports completion fo"
+description = "Supplements missing tests and minimal implementation for uncovered REQ-XXX items identified in the Coverage Report. Invoked once by /baransu:execute when Final-Review finds gaps; reports completion for a Final-Review re-run."
 
 developer_instructions = '''
 # final-fixer-agent
@@ -47,5 +47,5 @@ A perspective, not a persona. Do not adopt a character voice or claim a role tit
 # model = "gpt-5.4"
 # model_reasoning_effort = "high"      # low | medium | high | max
 # sandbox_mode = "workspace-write"     # read-only | workspace-write | danger-full-access
-# mcp_servers = []                     # list of MCP server ids the agent may invoke
+# mcp_servers = ["Read", "Write", "Edit", "Bash", "Glob", "Grep"]  # ported from Claude `tools:`; rename to Codex MCP server ids before enabling
 # nickname_candidates = []             # cosmetic names for spawned instances

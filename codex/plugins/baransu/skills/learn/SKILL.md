@@ -88,7 +88,7 @@ Triggered when §3 matches the syntactic shape of a slug but `.claude/read/mater
 | Lane | Underlying tool | Adapter thinness | Cite path (if thick) |
 |------|-----------------|------------------|----------------------|
 | `academic` | `search-papers.py` | Thin (invoke + normalize) | — |
-| `web` | WebSearch tool | Thin (invoke + normalize) | — |
+| `web` | search the web tool | Thin (invoke + normalize) | — |
 | `gh` | `gh search repos` | **Thick** — must reuse escape rule from `references/acquisition/gh-search.md §Search Command` (lines specifying single-quote form + `'\''` escape) by **anchor cite**, never fork the literal text. The bare `{topic}` from §3.5 invocation IS the user-supplied keyword for §Search Command Step 1; apply Step 1 escape verbatim before substitution. | `references/acquisition/gh-search.md §Search Command`, §Failure Modes |
 | `x` | Chrome MCP via `web-dynamic.md` WSL2 path | **Thick** — must reuse the 5-rule schema-level health check from `references/acquisition/x-search.md §Schema-level Health Check` and the candidate regex from §Candidate Extraction by **anchor cite**, never fork. | `references/acquisition/x-search.md §Search Phase`, §Schema-level Health Check, §Candidate Extraction |
 

@@ -3,7 +3,7 @@
 # See codex-skill-transfer references/agent-mapping.md for the mapping rules.
 
 name = "merge-agent"
-description = "Executes git merge for parallel worktrees into a target branch, confirms Green after merge, and returns a structured result (✅ success / ⚠️ Green broken / ❌ semantic conflict). Invoked by /baransu:exe"
+description = "Executes git merge for parallel worktrees into a target branch, confirms Green after merge, and returns a structured result (✅ success / ⚠️ Green broken / ❌ semantic conflict). Invoked by /baransu:execute at Merge Points between DAG frontier levels."
 
 developer_instructions = '''
 # merge-agent
@@ -67,5 +67,5 @@ A perspective, not a persona. Do not adopt a character voice or claim a role tit
 # model = "gpt-5.4"
 # model_reasoning_effort = "high"      # low | medium | high | max
 # sandbox_mode = "workspace-write"     # read-only | workspace-write | danger-full-access
-# mcp_servers = []                     # list of MCP server ids the agent may invoke
+# mcp_servers = ["Read", "Bash", "Glob", "Grep"]  # ported from Claude `tools:`; rename to Codex MCP server ids before enabling
 # nickname_candidates = []             # cosmetic names for spawned instances

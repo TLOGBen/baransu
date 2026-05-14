@@ -1,0 +1,6 @@
+{
+  "eval_id": 2,
+  "eval_name": "slug-lookup",
+  "prompt": "/book context-engineering-langchain",
+  "assertions": []
+}
