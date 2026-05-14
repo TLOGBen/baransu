@@ -1,0 +1,20 @@
+<!--
+  quote-callout.html — Swiss preset pull quote / callout element (v1.3)
+  Tokens: var(--accent), var(--text-secondary), var(--text-primary), var(--text-faint).
+-->
+<figure class="swiss-quote-callout">
+  <blockquote class="swiss-quote">
+    Pull-quote text in 17px line-height 1.55, color text-secondary. 2px accent left bar is the Swiss signature.
+  </blockquote>
+  <figcaption class="swiss-quote-attribution">
+    — Author Name, <span class="swiss-quote-context">Context or Source</span>
+  </figcaption>
+</figure>
+
+<style>
+  .swiss-quote-callout { margin: 24px 0; }
+  .swiss-quote { border-left: 2px solid var(--accent); padding: 8px 0 8px 16px; color: var(--text-secondary); font-size: 17px; line-height: 1.55; margin: 0; }
+  .swiss-quote-attribution { font-size: 12px; color: var(--text-faint); padding-left: 18px; margin-top: 8px; }
+  .swiss-quote-context { color: var(--text-secondary); }
+  em, i { font-style: normal; font-weight: 500; }
+</style>

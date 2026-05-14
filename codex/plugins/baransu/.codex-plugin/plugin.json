@@ -1,0 +1,29 @@
+{
+  "name": "baransu",
+  "version": "1.4.4",
+  "description": "バランス — deliberate before executing, verify after. 16 governance skills covering the full dev lifecycle.",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Baransu",
+    "shortDescription": "バランス — deliberate before executing, verify after. 16 governance skills covering the full dev lifecycle."
+  },
+  "license": "MIT",
+  "author": {
+    "name": "ben.tsai",
+    "email": "ben.tsai@hy-tech.com.tw"
+  },
+  "keywords": [
+    "governance",
+    "think",
+    "review",
+    "dev",
+    "tdd",
+    "design",
+    "book",
+    "learn",
+    "read",
+    "write",
+    "execute",
+    "ship"
+  ]
+}

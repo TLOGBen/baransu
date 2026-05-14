@@ -1,0 +1,109 @@
+/* preset: kami */
+/* 紙 (Kami) Preset — v1.3 baransu canonical token schema
+   ────────────────────────────────────────────────────────
+   Visual language: warm parchment background, deep ink-blue accent, serif typography.
+   All HTML骨架 (design-cores/, slide-cores/) consume tokens by their canonical names.
+   See plugins/baransu/skills/design/SKILL.md §Canonical Token Schema for the v1.3 spec.
+*/
+
+:root {
+  /* ── Surface ─────────────────────────────── */
+  --paper:          #f5f4ed;  /* page background — warm parchment, never pure white */
+  --surface:        #faf9f5;  /* cards, lifted containers — ivory */
+  --surface-strong: #e8e6dc;  /* buttons, interactive surfaces — warm sand */
+  --dark-surface:   #30302e;  /* dark containers */
+  --deep-dark:      #141413;  /* dark page background */
+
+  /* ── Accent (sole chromatic, ≤5% surface — Kami invariant #6) ── */
+  --accent:    #1B365D;  /* deep ink-blue */
+  --accent-on: #faf9f5;  /* foreground on --accent fills — ivory, not pure white */
+
+  /* ── Text hierarchy ──────────────────────── */
+  --ink:            #141413;  /* structural ink alias for primary text */
+  --text-primary:   #141413;  /* body and headings */
+  --text-secondary: #3d3d3a;  /* secondary text, table headers, link rest */
+  --text-muted:     #504e49;  /* tertiary, captions */
+  --text-faint:     #6b6a64;  /* metadata, placeholder */
+
+  /* ── Borders ─────────────────────────────── */
+  --border:      #e8e6dc;  /* primary border / divider */
+  --border-soft: #e5e3d8;  /* secondary border / row separator */
+
+  /* ── Typography ──────────────────────────── */
+  --font-serif: Charter, Georgia, Palatino, "Times New Roman", serif;
+  --font-sans:  var(--font-serif);   /* intentional: sans aliases serif (Kami) */
+  --font-mono:  "JetBrains Mono", "SF Mono", "Fira Code", Consolas, Monaco, monospace;
+
+  /* Chinese override — paste inside :lang(zh) or .lang-zh:
+     --font-serif: "TsangerJinKai02", "Source Han Serif SC", "Noto Serif CJK SC",
+                   "Songti SC", "STSong", Georgia, serif;                          */
+
+  /* ── Depth (ring / whisper only — no hard shadows; Kami inv #4) ── */
+  --shadow-ring:    0 0 0 1px var(--border);
+  --shadow-whisper: 0 4px 24px rgba(0, 0, 0, 0.05);
+
+  /* ── Spacing (4pt baseline + Kami spec) ── */
+  --space-xs:  3px;
+  --space-sm:  5px;
+  --space-md: 10px;
+  --space-lg: 20px;
+  --space-xl: 32px;
+  --space-2xl:56px;
+  --space-3xl:96px;
+
+  /* ── Radius scale ────────────────────────── */
+  --radius-xs:  4px;
+  --radius-sm:  6px;
+  --radius-md:  8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl:24px;
+  --radius-hero:32px;
+
+  /* ── Layout (preset-specific overrides) ── */
+  --cover-title-align: center;   /* Kami covers center; Swiss flushes left */
+  --grid-columns: 12;
+  --grid-gutter:  24px;
+
+  /* ── Semantic (metric.html consumer) ── */
+  --delta-up:   #2a6c45;  /* warm dark green */
+  --delta-down: #7a2e2e;  /* warm dark red */
+}
+
+/* ── Base reset (minimal, Kami-safe) ─────────────────────── */
+body {
+  background: var(--paper);
+  color: var(--text-primary);
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Heading weight locked at 500 — Kami invariant #5 */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+/* Modular scale: perfect fourth r=1.333 (anchor body=16px) — see canonical-tokens.md */
+h1 { font-size: 2.375rem;  line-height: 1.15; }  /* 38px ≈ 16 × 1.333³ */
+h2 { font-size: 1.75rem;   line-height: 1.20; }  /* 28px ≈ 16 × 1.333² */
+h3 { font-size: 1.3125rem; line-height: 1.30; }  /* 21px ≈ 16 × 1.333  */
+
+/* No italics — Kami invariant #10 */
+em, i { font-style: normal; font-weight: 500; }
+
+/* Links */
+a { color: var(--text-secondary); text-decoration-color: var(--border); }
+a:hover { color: var(--accent); }
+
+code, pre {
+  font-family: var(--font-mono);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+code { padding: 0.1em 0.4em; font-size: 0.875em; }
+pre  { padding: 1rem 1.25rem; font-size: 0.875em; line-height: 1.55; overflow-x: auto; }

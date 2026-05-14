@@ -1,0 +1,56 @@
+<!--
+---
+layout_id: before-after
+applies_to:
+  bullet_count: "2-6"
+  has_image: optional
+  role: body
+---
+Adapts to: state-change comparison slides (S14 in guizang baseline).
+Horizontal split: left = before, right = after. Use bullets or short paragraphs.
+Tokens consumed: var(--paper), var(--ink), var(--accent), var(--surface),
+  var(--border-soft), var(--radius-lg), var(--shadow-whisper).
+-->
+<link rel="stylesheet" href="../tokens.css">
+<style>
+  .google-slide--before-after { padding: 56px 64px; background: var(--paper); color: var(--ink);
+    font-family: var(--font-sans); text-wrap: pretty;
+    display: grid; grid-template-rows: auto 1fr auto; row-gap: 24px; }
+  .google-ba-heading { font-size: 28px; line-height: 1.20; font-weight: 400; margin: 0; }
+  .google-ba-split { display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    align-items: stretch; }
+  .google-ba-col { padding: 22px 24px; background: var(--surface);
+    border-radius: var(--radius-lg); box-shadow: var(--shadow-whisper); }
+  .google-ba-tag { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--accent); font-weight: 500; margin: 0 0 12px; }
+  .google-ba-title { font-size: 21px; line-height: 1.30; font-weight: 500; margin: 0 0 12px; }
+  .google-ba-list { list-style: none; padding: 0; margin: 0; }
+  .google-ba-item { font-size: 15px; line-height: 1.55; padding: 6px 0; text-wrap: pretty;
+    border-bottom: 1px solid var(--border-soft); }
+  .google-ba-item:last-child { border-bottom: 0; }
+  .google-ba-caption { font-size: 13px; color: var(--text-faint); margin: 0; }
+</style>
+<section data-layout="before-after" class="google-slide google-slide--before-after">
+  <h2 class="google-ba-heading">Review pipeline, before and after</h2>
+  <div class="google-ba-split">
+    <div class="google-ba-col">
+      <p class="google-ba-tag">Before</p>
+      <h3 class="google-ba-title">Ad-hoc loop</h3>
+      <ul class="google-ba-list">
+        <li class="google-ba-item">Verbal handoff; context lost overnight.</li>
+        <li class="google-ba-item">Disagreements surfaced at deploy time.</li>
+        <li class="google-ba-item">Median cycle &#x2248; 4.6 working days.</li>
+      </ul>
+    </div>
+    <div class="google-ba-col">
+      <p class="google-ba-tag">After</p>
+      <h3 class="google-ba-title">Envelope-led loop</h3>
+      <ul class="google-ba-list">
+        <li class="google-ba-item">Structured envelope carries intent and gates.</li>
+        <li class="google-ba-item">Disagreements caught at Stage 1, not Stage 7.</li>
+        <li class="google-ba-item">Median cycle &#x2248; 2.4 working days.</li>
+      </ul>
+    </div>
+  </div>
+  <figcaption class="google-ba-caption">Before / after &#x2014; horizontal split comparison</figcaption>
+</section>

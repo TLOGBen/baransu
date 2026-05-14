@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  one-pager-en.html — Swiss preset One-Pager template (v1.4, en)
+  Schema: schemas/one-pager.md
+  Class prefix: swiss-*
+  Single-page A4 print layout via @page rule.
+  Font stack excludes CJK fonts.
+-->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{TITLE}} — One-Pager</title>
+  <link rel="stylesheet" href="../tokens.css">
+  <style>
+    @page { size: A4; margin: 24mm; }
+    * { box-sizing: border-box; }
+    body {
+      background: var(--paper); color: var(--text-primary);
+      font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      margin: 0; text-wrap: pretty;
+    }
+    .swiss-page { max-width: 794px; min-height: 1123px; margin: 0 auto; padding: 48px 56px; display: grid; grid-template-rows: auto auto 1fr auto; gap: 32px; }
+    .swiss-eyebrow { font-size: 11px; color: var(--text-faint); letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 8px; }
+    .swiss-h1 { font-size: 40px; font-weight: 500; line-height: 1.1; letter-spacing: -0.01em; margin: 0 0 8px; text-wrap: pretty; }
+    .swiss-subline { font-size: 17px; color: var(--text-secondary); margin: 0; line-height: 1.5; text-wrap: pretty; }
+    .swiss-metric { padding: 24px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .swiss-metric-value { font-size: 104px; font-weight: 500; line-height: 1; letter-spacing: -0.03em; color: var(--accent); margin: 0; }
+    .swiss-metric-unit { font-size: 24px; color: var(--text-secondary); margin-left: 8px; font-weight: 500; }
+    .swiss-metric-caption { font-size: 12px; color: var(--text-muted); margin: 12px 0 0; letter-spacing: 0.06em; text-transform: uppercase; }
+    .swiss-body { font-size: 14px; line-height: 1.6; color: var(--text-primary); margin: 8px 0; text-wrap: pretty; }
+    .swiss-dropcap { float: left; font-size: 4.65em; line-height: 1; font-weight: 500; color: var(--accent); padding-right: 8px; padding-top: 2px; }
+    .swiss-h2 { font-size: 16px; font-weight: 500; line-height: 1.25; letter-spacing: -0.01em; border-left: 3px solid var(--accent); padding-left: 12px; margin: 0 0 12px; }
+    .swiss-cta { border-top: 1px solid var(--border); padding-top: 16px; }
+    .swiss-cta-line { font-size: 15px; font-weight: 500; margin: 0 0 6px; color: var(--text-primary); }
+    .swiss-cta-meta { font-size: 11px; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; }
+    em, i { font-style: normal; font-weight: 500; }
+  </style>
+</head>
+<body class="swiss-paper-body">
+<div class="swiss-page">
+
+  <header>
+    <p class="swiss-eyebrow">{{ORG}} · {{DATE}}</p>
+    <h1 class="swiss-h1">{{TITLE}}</h1>
+    <p class="swiss-subline">{{SUBLINE}}</p>
+  </header>
+
+  <section class="swiss-metric">
+    <p class="swiss-metric-value">{{METRIC_VALUE}}<span class="swiss-metric-unit">{{METRIC_UNIT}}</span></p>
+    <p class="swiss-metric-caption">{{METRIC_CAPTION}}</p>
+  </section>
+
+  <section>
+    <h2 class="swiss-h2">Context</h2>
+    <p class="swiss-body">ARR rose from NT$120M to NT$180M this quarter, with enterprise adoption reaching 67 percent. Personnel cost stayed flat at NT$24M, expanding gross margin by six points.</p>
+    <p class="swiss-body">Next-quarter assumptions: two flagship customers in North Asia and the GA of self-serve onboarding. Key risks remain FX exposure and customer concentration.</p>
+  </section>
+
+  <footer class="swiss-cta">
+    <p class="swiss-cta-line">Talk to us about joining the next round.</p>
+    <p class="swiss-cta-meta">{{CONTACT_EMAIL}} / {{CONTACT_PHONE}}</p>
+  </footer>
+
+</div>
+</body>
+</html>

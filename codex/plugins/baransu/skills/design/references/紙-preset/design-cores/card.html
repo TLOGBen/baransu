@@ -1,0 +1,27 @@
+<!--
+  card.html — Kami preset card element (v1.3)
+  Standalone reusable component. Composed in gallery.html / dashboard.html.
+  Tokens: var(--paper), var(--border), var(--radius-md), var(--shadow-whisper), var(--text-primary), var(--text-secondary).
+-->
+<article class="kami-card">
+  <header class="kami-card-header">
+    <h3 class="kami-card-title">Card Title</h3>
+    <p class="kami-card-meta">Optional metadata</p>
+  </header>
+  <div class="kami-card-body">
+    <p>Card body paragraph at 14px line-height 1.55, in primary text color.</p>
+  </div>
+  <footer class="kami-card-footer">
+    <a class="kami-card-link" href="#">Read more →</a>
+  </footer>
+</article>
+
+<style>
+  .kami-card { background: var(--paper); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px 24px; box-shadow: var(--shadow-ring); }
+  .kami-card:hover { box-shadow: var(--shadow-whisper); }
+  .kami-card-title { font-size: 16px; font-weight: 500; margin: 0 0 4px; color: var(--text-primary); }
+  .kami-card-meta { font-size: 11px; color: var(--text-faint); letter-spacing: 0.04em; text-transform: uppercase; margin: 0 0 12px; }
+  .kami-card-body p { font-size: 14px; line-height: 1.55; color: var(--text-primary); margin: 0 0 12px; }
+  .kami-card-link { color: var(--accent); font-size: 13px; text-decoration: none; }
+  .kami-card-link:hover { text-decoration: underline; text-decoration-color: var(--accent); }
+</style>

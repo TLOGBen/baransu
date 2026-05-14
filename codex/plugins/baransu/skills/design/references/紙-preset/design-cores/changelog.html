@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<!--
+  changelog.html — Kami preset Changelog template (v1.4, zh)
+  Schema: schemas/changelog.md
+  Class prefix: kami-*
+  Body: 標題 + 版本列表（semantic version）；each release has added / changed / removed / fixed.
+  Kami invariant: no polygon element anywhere.
+-->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{PROJECT}} — Changelog</title>
+  <link rel="stylesheet" href="../tokens.css">
+  <style>
+    @page { size: A4; margin: 22mm; }
+    * { box-sizing: border-box; }
+    body {
+      background: var(--paper); color: var(--text-primary);
+      font-family: 'TsangerJinKai02', 'Source Han Serif TC', 'Noto Serif TC',
+                   Charter, Georgia, Palatino, serif;
+      margin: 0; text-wrap: pretty;
+    }
+    .kami-page { max-width: 794px; margin: 0 auto; padding: 56px 56px; }
+    .kami-eyebrow { font-size: 11px; color: var(--text-faint); letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 8px; }
+    .kami-h1 { font-size: 30px; font-weight: 500; line-height: 1.2; letter-spacing: -0.01em; margin: 0 0 8px; text-wrap: pretty; }
+    .kami-subline { font-size: 14px; color: var(--text-secondary); margin: 0 0 32px; line-height: 1.55; }
+    .kami-dropcap { float: left; font-size: 4.65em; line-height: 1; font-weight: 500; color: var(--accent); padding-right: 8px; padding-top: 2px; }
+    .kami-changelog-list { list-style: none; padding: 0; margin: 0; }
+    .kami-changelog-release { border-top: 0.5px solid var(--border); padding: 24px 0; }
+    .kami-changelog-release:first-child { border-top: 0; padding-top: 0; }
+    .kami-changelog-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+    .kami-changelog-version { font-size: 22px; font-weight: 500; color: var(--text-primary); letter-spacing: -0.01em; margin: 0; }
+    .kami-changelog-date { font-size: 12px; color: var(--text-muted); letter-spacing: 0.06em; }
+    .kami-changelog-summary { font-size: 13px; color: var(--text-secondary); line-height: 1.55; margin: 0 0 16px; text-wrap: pretty; }
+    .kami-changelog-group { margin: 0 0 12px; }
+    .kami-changelog-group-label { font-size: 11px; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 6px; font-weight: 500; }
+    .kami-changelog-items { margin: 0; padding-left: 20px; }
+    .kami-changelog-items li { font-size: 13px; line-height: 1.55; color: var(--text-primary); margin: 0 0 4px; }
+    .kami-footer { font-size: 11px; color: var(--text-faint); border-top: 0.5px solid var(--border); padding-top: 16px; margin-top: 32px; }
+    em, i { font-style: normal; font-weight: 500; }
+    code { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 0.9em; color: var(--text-secondary); }
+  </style>
+</head>
+<body class="kami-paper-body">
+<article class="kami-page">
+
+  <header>
+    <p class="kami-eyebrow">{{PROJECT}} ・ {{REPO}}</p>
+    <h1 class="kami-h1">變更紀錄</h1>
+    <p class="kami-subline">本檔案遵循 Semantic Versioning（MAJOR.MINOR.PATCH）與 Keep a Changelog 慣例。</p>
+  </header>
+
+  <ul class="kami-changelog-list">
+
+    <li class="kami-changelog-release">
+      <div class="kami-changelog-header">
+        <p class="kami-changelog-version">1.4.0</p>
+        <p class="kami-changelog-date">2026-05-13</p>
+      </div>
+      <p class="kami-changelog-summary">v1.4 schema 套件完工：八種文件 schema × 三 preset × zh/en，配合 Kami chevron + 2-tier node-width 收斂。</p>
+
+      <section class="kami-changelog-group">
+        <p class="kami-changelog-group-label">Added</p>
+        <ul class="kami-changelog-items">
+          <li>Equity-Report schema（投資論點 / 估值 / 風險 + SVG quadrant 圖）。</li>
+          <li>Changelog schema（semantic version + Added / Changed / Removed / Fixed 四分類）。</li>
+          <li>三 preset × zh/en HTML 模板共 12 檔。</li>
+        </ul>
+      </section>
+
+      <section class="kami-changelog-group">
+        <p class="kami-changelog-group-label">Changed</p>
+        <ul class="kami-changelog-items">
+          <li>editorial-sanity.sh dropcap 範圍擴大為 4.0em–5.0em（原為 4.5em–4.85em）。</li>
+          <li>validate-output.ts GATE-J 將 node-width whitelist 收斂為 <code>{128, 144, 160}</code>。</li>
+        </ul>
+      </section>
+
+      <section class="kami-changelog-group">
+        <p class="kami-changelog-group-label">Removed</p>
+        <ul class="kami-changelog-items">
+          <li>舊版 <code>polygon</code>-based marker 寫法已全面下架。</li>
+        </ul>
+      </section>
+
+      <section class="kami-changelog-group">
+        <p class="kami-changelog-group-label">Fixed</p>
+        <ul class="kami-changelog-items">
+          <li>Letter en variant Charter 字體 fallback 順序錯誤。</li>
+          <li>Resume zh template <code>object-position</code> 缺失導致頭像偏移。</li>
+        </ul>
+      </section>
+    </li>
+
+    <li class="kami-changelog-release">
+      <div class="kami-changelog-header">
+        <p class="kami-changelog-version">1.3.0</p>
+        <p class="kami-changelog-date">2026-04-02</p>
+      </div>
+      <p class="kami-changelog-summary">引入三 preset class-prefix 白名單（kami / swiss / google）；新增 GATE-J / GATE-K 守門。</p>
+
+      <section class="kami-changelog-group">
+        <p class="kami-changelog-group-label">Added</p>
+        <ul class="kami-changelog-items">
+          <li>GATE-J node-width-whitelist（上限 2 tier）。</li>
+          <li>GATE-K chevron-strict（marker path 必為 <code>M2 1 L8 5 L2 9</code>）。</li>
+        </ul>
+      </section>
+
+      <section class="kami-changelog-group">
+        <p class="kami-changelog-group-label">Changed</p>
+        <ul class="kami-changelog-items">
+          <li>三 preset sanity.sh 改為呼叫共用 editorial-sanity.sh。</li>
+        </ul>
+      </section>
+
+      <section class="kami-changelog-group">
+        <p class="kami-changelog-group-label">Removed</p>
+        <ul class="kami-changelog-items">
+          <li>實驗性 <code>gd-*</code> class prefix（與既有 long-form 不符）。</li>
+        </ul>
+      </section>
+
+      <section class="kami-changelog-group">
+        <p class="kami-changelog-group-label">Fixed</p>
+        <ul class="kami-changelog-items">
+          <li>One-Pager <code>@page</code> 邊界於 Letter 紙張下超出可印區域。</li>
+        </ul>
+      </section>
+    </li>
+
+  </ul>
+
+  <footer class="kami-footer">{{PROJECT}}　／　Changelog　／　Keep a Changelog　／　SemVer</footer>
+
+</article>
+</body>
+</html>

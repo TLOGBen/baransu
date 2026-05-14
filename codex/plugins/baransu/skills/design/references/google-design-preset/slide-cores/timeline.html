@@ -1,0 +1,63 @@
+<!--
+---
+layout_id: timeline
+applies_to:
+  bullet_count: "5-7"
+  has_image: forbidden
+  role: body
+---
+Adapts to: chronological milestone slides (S08 in guizang baseline).
+Horizontal 5-7 milestone timeline with M3 disc markers. No <polygon>.
+Tokens consumed: var(--paper), var(--ink), var(--accent), var(--border),
+  var(--radius-lg), var(--shadow-whisper).
+-->
+<link rel="stylesheet" href="../tokens.css">
+<style>
+  .google-slide--timeline { padding: 56px 64px; background: var(--paper); color: var(--ink);
+    font-family: var(--font-sans); text-wrap: pretty; }
+  .google-timeline-heading { font-size: 28px; line-height: 1.20; font-weight: 400;
+    margin: 0 0 32px; color: var(--text-primary); }
+  .google-timeline-track { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+    gap: 20px; align-items: start; position: relative; padding: 0; margin: 0; }
+  .google-timeline-track::before { content: ""; position: absolute; left: 8px; right: 8px;
+    top: 14px; height: 2px; background: var(--border-soft); border-radius: var(--radius-md); }
+  .google-timeline-step { position: relative; padding: 36px 16px 18px;
+    background: var(--paper); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-whisper); list-style: none; }
+  .google-timeline-marker { position: absolute; top: 4px; left: 14px; width: 20px; height: 20px;
+    background: var(--accent); border-radius: 9999px;
+    box-shadow: 0 0 0 4px var(--paper); }
+  .google-timeline-date { font-size: 13px; letter-spacing: 0.04em; color: var(--accent);
+    font-weight: 500; margin-bottom: 4px; }
+  .google-timeline-label { font-size: 21px; line-height: 1.30; font-weight: 500;
+    margin: 0 0 6px; }
+  .google-timeline-note { font-size: 15px; line-height: 1.55; color: var(--text-secondary);
+    text-wrap: pretty; margin: 0; }
+  .google-timeline-caption { margin-top: 28px; font-size: 13px; color: var(--text-faint); }
+</style>
+<section data-layout="timeline" class="google-slide google-slide--timeline">
+  <h2 class="google-timeline-heading">Programme milestones</h2>
+  <ol class="google-timeline-track">
+    <li class="google-timeline-step"><span class="google-timeline-marker" aria-hidden="true"></span>
+      <div class="google-timeline-date">2024 Q1</div>
+      <h3 class="google-timeline-label">Discovery</h3>
+      <p class="google-timeline-note">Stakeholder interviews and field study.</p></li>
+    <li class="google-timeline-step"><span class="google-timeline-marker" aria-hidden="true"></span>
+      <div class="google-timeline-date">2024 Q2</div>
+      <h3 class="google-timeline-label">Pilot</h3>
+      <p class="google-timeline-note">Three teams onboard the new workflow.</p></li>
+    <li class="google-timeline-step"><span class="google-timeline-marker" aria-hidden="true"></span>
+      <div class="google-timeline-date">2024 Q3</div>
+      <h3 class="google-timeline-label">Iterate</h3>
+      <p class="google-timeline-note">Tighten gates after telemetry review.</p></li>
+    <li class="google-timeline-step"><span class="google-timeline-marker" aria-hidden="true"></span>
+      <div class="google-timeline-date">2024 Q4</div>
+      <h3 class="google-timeline-label">Rollout</h3>
+      <p class="google-timeline-note">Org-wide adoption with playbook.</p></li>
+    <li class="google-timeline-step"><span class="google-timeline-marker" aria-hidden="true"></span>
+      <div class="google-timeline-date">2025 Q1</div>
+      <h3 class="google-timeline-label">Sustain</h3>
+      <p class="google-timeline-note">Audit cadence and retrospectives.</p></li>
+  </ol>
+  <figcaption class="google-timeline-caption">Timeline &#x2014; 5 to 7 horizontal milestones</figcaption>
+</section>

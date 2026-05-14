@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<!--
+  letter.html — Google-Design (Material 3) preset Letter template (v1.4, zh)
+  Schema: schemas/letter.md
+  Class prefix: google-*
+  Dropcap on first body paragraph (.google-dropcap wraps a CJK character).
+-->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{SENDER}} — 致 {{RECIPIENT}}</title>
+  <link rel="stylesheet" href="../tokens.css">
+  <style>
+    @page { size: A4; margin: 28mm; }
+    * { box-sizing: border-box; }
+    body {
+      background: var(--paper); color: var(--text-primary);
+      font-family: "Roboto Flex", Roboto, "Noto Sans TC", "Helvetica Neue", Arial, sans-serif;
+      margin: 0; text-wrap: pretty;
+    }
+    .google-page { max-width: 720px; margin: 0 auto; padding: 64px 48px; }
+    .google-letter-header { display: flex; justify-content: space-between; align-items: baseline; padding: 16px 20px; background: var(--surface); border-radius: 16px; margin-bottom: 32px; }
+    .google-sender { font-size: 14px; color: var(--text-secondary); margin: 0; }
+    .google-date { font-size: 12px; color: var(--text-muted); letter-spacing: 0.04em; margin: 0; }
+    .google-salutation { font-size: 17px; color: var(--text-primary); margin: 0 0 24px; font-weight: 500; }
+    .google-body { font-size: 15px; line-height: 1.75; color: var(--text-primary); margin: 0 0 18px; text-wrap: pretty; }
+    .google-dropcap { float: left; font-size: 4.65em; line-height: 1; font-weight: 500; color: var(--accent); padding-right: 8px; padding-top: 2px; }
+    .google-closing { margin-top: 40px; font-size: 15px; line-height: 1.75; color: var(--text-primary); }
+    .google-closing-line { margin: 0 0 6px; }
+    .google-signature { font-size: 16px; font-weight: 500; margin: 16px 0 4px; }
+    .google-signature-meta { font-size: 12px; color: var(--text-muted); letter-spacing: 0.04em; }
+    .google-footer { font-size: 11px; color: var(--text-faint); border-top: 1px solid var(--border); padding-top: 16px; margin-top: 56px; }
+    em, i { font-style: normal; font-weight: 500; }
+  </style>
+</head>
+<body class="google-paper-body">
+<div class="google-page">
+
+  <header class="google-letter-header">
+    <p class="google-sender">{{SENDER}}</p>
+    <p class="google-date">{{DATE}}</p>
+  </header>
+
+  <p class="google-salutation">{{RECIPIENT}}　台鑒：</p>
+
+  <p class="google-body"><span class="google-dropcap">敬</span>啟者，過去一年於各位的支持與信任之下，本公司得以順利完成第二輪募資並維持穩定成長。年初設下的三項里程碑——產品 self-serve 流程、海外標竿客戶、團隊建制——已完成其二。</p>
+
+  <p class="google-body">關於剩餘的一項，我們選擇延後一季交付，以換取更紮實的客戶導入流程。這個決定並不容易，但我們相信 Material 的精神：「設計即動作的清晰度。」 寧可少做一步，也要把每一步走穩。</p>
+
+  <p class="google-body">展望下年度，我們將聚焦於三個方向：北亞市場拓展、產品自動化、以及財務透明度的進一步提升。具體規劃將於下次股東會詳述。</p>
+
+  <p class="google-body">最後，感謝各位一路以來的耐心與遠見。我們明白，每一份信任都是責任。</p>
+
+  <section class="google-closing">
+    <p class="google-closing-line">敬祝</p>
+    <p class="google-closing-line">　商祺</p>
+    <p class="google-signature">{{SENDER}}　敬上</p>
+    <p class="google-signature-meta">{{TITLE}}　／　{{ORG}}</p>
+  </section>
+
+  <footer class="google-footer">{{ORG}}　／　致 {{RECIPIENT}}　／　{{DATE}}</footer>
+
+</div>
+</body>
+</html>
