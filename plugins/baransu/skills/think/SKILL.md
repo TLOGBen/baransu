@@ -35,7 +35,9 @@ All output shown to the user — alignment questions, proposals, the final plan,
 
 ---
 
-## Step 0 — Pick a mode: Lightweight or Full
+## Step 0 — Pick a mode
+
+Mode selection has two layers. The first picks the **kind** of output (Plan vs Evaluation); the second — only if Plan — picks the **depth** (Lightweight vs Full). These two questions are independent; don't collapse them into a flat three-way choice.
 
 ### Design.md soft-read
 
@@ -46,9 +48,23 @@ Before mode selection, check for a DESIGN.md at the project root:
 
 理由：/think 經常討論 UI / 設計選擇；提早把 DESIGN.md 載入 context，避免在 Stage A 對焦時對「現有設計語言」一無所知。
 
-### Mode selection
+### First layer — Plan vs Evaluation (種類分歧)
 
-Before doing anything else, decide which mode applies. Get this wrong and you either bury a small fix in ceremony, or let a design decision slip through without alignment.
+Decide the kind of output the user wants:
+
+- **Plan** — how to build / fix / refactor something. Produces a five-section plan (Stages A-G). This is the default.
+- **Evaluation** — a value judgment about whether something should exist, be kept, or be removed. Produces a single-line verdict (Kill / Keep / Pivot) plus three reasons.
+
+Pick **Evaluation** when the user's intent matches one of these triggers and the user is NOT in the middle of debugging an error:
+「判断一下」, 「值不值得」, 「有没有必要」, 「我不想做」, 「商业前景」, "should we keep this", "is this worth it".
+
+**Disambiguation — Evaluation vs `/hunt`**: when the trigger is paired with an error / bug context (「判断一下这个报错」, 「判断这个错误」, 「这个报错值不值得修」, etc.), route to `/hunt` instead. Evaluation Mode is strictly for value / existence judgments, not debugging.
+
+If Plan is picked, continue to the second layer. If Evaluation is picked, skip the depth layer and jump to **Evaluation Mode** (below).
+
+### Second layer — Plan depth (Lightweight vs Full)
+
+Applies only inside the Plan branch. Get this wrong and you either bury a small fix in ceremony, or let a design decision slip through without alignment.
 
 **Lightweight mode** applies when **all three** hold:
 1. The user wants to fix a known problem, not build a new feature.
@@ -63,9 +79,11 @@ Typical phrasings: "fix the bug where…", "this throws when…", "this should r
 - Refactor that changes more than one file's shape.
 - Bug fix that on inspection hides a design decision.
 
-### Escalation from Lightweight to Full
+### Escalation from Lightweight to Full (inside the Plan branch only)
 
 If in Step 1 of Lightweight mode you find **3 or more substantively different fixes** (not the-same-fix-at-different-intensities), that's a disguised design decision. Tell the user plainly: "this looks like a bug fix, but there are three fundamentally different ways to fix it with real trade-offs — switching to full `/think`", and jump to Stage A.
+
+This rule is scoped to **Lightweight → Full inside Plan**. There is no automatic escalation between Plan and Evaluation, nor demotion between Full and Lightweight when started from Evaluation. If mid-flow you discover the outer layer was wrong (e.g. realised the user wants a Plan instead of an Evaluation), stop and tell them to restart `/think` — mode switching mid-stream is not supported.
 
 ### If Lightweight is rejected
 
@@ -96,6 +114,50 @@ Output template (translated to 繁體中文 in actual output):
 Then stop. Wait for one round of user confirmation. Don't keep working.
 
 If the user says "可以" (or equivalent): you're done with `/think`. Implementation is the next turn's problem, not this skill's problem.
+
+If the user instead asks to broaden Lightweight into Full ("actually let's plan this properly"), don't extend the current Lightweight in place — tell them to restart `/think` so the Full-mode Stages A-G run with a clean Alignment. Mode switching mid-stream is not supported (see Step 0).
+
+---
+
+## Evaluation Mode
+
+Total output: ~10 lines in Traditional Chinese, then wait. This mode is for value / existence judgment — "should X exist, be kept, or removed". It is not for "how to build X" (that's Plan) and it is not for debugging (that's `/hunt`; see the Step 0 disambiguation rule).
+
+### Output format (Kill / Keep / Pivot)
+
+Line 1 is exactly one of **Kill** / **Keep** / **Pivot** as the verdict. No preamble, no hedging.
+
+Then three reasons, each grounded in the user's **actual constraints** — time budget, motivation, business model, maintenance cost. Not generic trade-offs ("complexity could grow"); the kind of reason that only applies because this is *this* user's situation.
+
+If verdict is **Pivot**: list specific directions, one per line, each actionable. Not "consider alternative approaches" — "switch from X to Y because Z".
+
+If verdict is **Kill** or implies major rework: list impact scope (files touched, dependents, migration cost) before asking for confirmation.
+
+Do not present options for the user to pick between. Do not use Plan's five-section template. Give one verdict, three reasons, and the impact block when applicable.
+
+### Output template (translated to 繁體中文 in actual output)
+
+```
+**裁決：Kill / Keep / Pivot 之一**
+
+理由：
+- <基於使用者實際限制 1>
+- <基於使用者實際限制 2>
+- <基於使用者實際限制 3>
+
+（Pivot 時補：可行方向）
+- <具體方向 1>
+- <具體方向 2>
+
+（Kill 或重大重做時補：影響範圍）
+- 涉及檔案：...
+- 依賴者：...
+- 遷移成本：...
+
+請回覆「同意」或「不同意，因為…」。
+```
+
+Then stop. Wait for one round of user confirmation. Do not proceed to Plan's stages (A-G) — Evaluation produces a verdict, not a plan.
 
 ---
 
@@ -192,13 +254,27 @@ Skipping this check and proposing a hand-rolled solution that the framework alre
 
 ## Stage D — Premise validation
 
-This stage catches the common failure where the whole plan is built on a wrong assumption about what's already there.
+This stage catches the common failure where the whole plan is built on a wrong assumption about what's already there. Stage D also hosts one cross-Stage rule: when a premise comes from agent memory rather than direct observation, the rule below dispatches the premise to whichever downstream Stage (D / E / F) actually applies it.
 
 1. **Location check**: `pwd` and `git rev-parse --show-toplevel`. Confirm we're in the directory the user thinks we are.
 2. **Prior art inside the project**: look for existing ADRs, design docs, `docs/decisions/`, open issues, or the last 10-20 commits touching this area. Often the problem has been discussed — maybe even decided — already. Don't duplicate or contradict without naming what you're overriding.
 3. **Prior art outside the project**: a quick search (GitHub, the framework's issue tracker, official docs) for "how do people solve X in Y". You're looking for either a solved pattern to borrow or a known gotcha to avoid.
 
 Record what you found in one short paragraph as part of the proposal — the user should see that this check happened.
+
+### Memory type mapping (when a premise comes from memory)
+
+When a premise originates in agent memory (`decision`, `preference`, `principle`, `pattern`, `learning`, `fact`) rather than direct observation, map the memory type to its downstream effect — different types belong to different Stages, even though the mapping rule lives here:
+
+| Memory type | Treated as | Verified in / applied by |
+|---|---|---|
+| `decision` / `preference` / `principle` | Planning constraint | Stage F (becomes a constraint input to the final plan) |
+| `pattern` / `learning` | Design check | Stage E (informs attack-angle and complexity grading) |
+| `fact` | Premise to verify | Stage D itself — confirm against current state before relying on it |
+
+**Current state overrides memory.** The live repo, running services, current logs, tests, and remote state always overrule a remembered version. When they conflict, name the conflict in one sentence and go with the current state — never silently follow the memory.
+
+This skill is currently the sole written source for the mapping above; CLAUDE.md does not encode memory-type semantics as of this version. If CLAUDE.md or any global rule ever adds a conflicting type mapping, **CLAUDE.md is authoritative** (global > skill-local).
 
 ---
 
@@ -330,19 +406,22 @@ Do not loop more than 3 re-proposals on the same plan. If the third is also reje
 
 ## Gotchas
 
+One Gotcha keeps its long-form prose because its value is in the multi-layer response. The rest are tabulated for quick scanning — each row pairs an observed mistake with the rule it should obey.
+
 - **User fatigue during Stage A.** Three rounds of questions feels long to users who believe they've already been clear. When that pushback comes, don't skip — but explain why: 「這三輪是為了把我對你的理解縮到最小誤差；跳過的代價是最後的計畫會離你要的差一截」. Then press on. If they insist, you can collapse rounds 2 and 3 into one combined question, but never skip Round 1 (purpose) — purpose confusion is the most expensive kind.
 
-- **The "urgent fix" trap.** User says "just fix the bug quickly". You check — it's 4 fixes with real trade-offs. They don't want Full mode; Full mode is what they need. Tell them once, clearly, then run it. Don't apologise for the slowdown — the apology signals you might skip next time.
-
-- **Files read during Alignment.** Easy to slip. If you catch yourself about to Read/Glob/Grep before Stage A finishes, stop. If you already did, note it in Stage D's prior-art paragraph and move on; don't pretend it didn't happen.
-
-- **Stance dilution.** After drafting Stage B's recommendation, re-read it. If it's been softened into "X might be good, though Y has merit", you've regressed to hedging — rewrite with commitment. The falsification bullets are the safety net; you don't also need to hedge the stance itself.
-
-- **Ghost unknowns.** An `Unknowns` section full of bureaucratic placeholders ("scaling strategy: TBD", "monitoring: TODO") is worse than an empty one. If an unknown doesn't have (a) a specific question, (b) a reason it can be deferred, (c) a person/time to resolve it — it doesn't belong in Unknowns, it belongs back in Key decisions and unresolved.
-
-- **Approval drift.** The user says "looks good, go ahead" in free text instead of picking an option via `AskUserQuestion`. Accept it, but say: 「收到，把這當成批准實作（完全授權）」 so there's a clear recorded moment. The four-option gate is the audit trail.
-
-- **"Can we just add X?" during Stage F.** Users often want to tack on one more thing after seeing the plan. If it's small and fits, fine — fold it into Building and note it in Key decisions. If it's a real extension (new file, new decision), treat it as Option 2 (還有地方要對焦) and re-propose.
+| What happened | Rule |
+|---|---|
+| User said "just fix the bug quickly"; on inspection it's 4 fixes with real trade-offs | Tell them once it needs Full mode, then run it. No apology — apology signals you might skip next time |
+| About to Read / Glob / Grep before Stage A finishes | Stop. If you already did, note it in Stage D's prior-art paragraph and move on; don't pretend it didn't happen |
+| Stage B recommendation softened into "X might be good, though Y has merit" | Rewrite with commitment. The falsification bullets are the safety net; you don't also need to hedge the stance itself |
+| `Unknowns` filled with bureaucratic placeholders ("scaling strategy: TBD", "monitoring: TODO") | Each unknown needs (a) a specific question, (b) a reason it can be deferred, (c) a person / time to resolve it. Otherwise it belongs back in Key decisions, unresolved |
+| User said "looks good, go ahead" in free text instead of via `AskUserQuestion` | Accept it, but say 「收到，把這當成批准實作（完全授權）」 so there's a clear recorded moment. The four-option gate is the audit trail |
+| User asks "can we just add X?" after seeing the plan in Stage F | Small fit → fold into Building, note in Key decisions. Real extension (new file, new decision) → treat as Option 3 「還有地方要對焦」 and re-propose |
+| Files moved to `~/project`, but the repo actually lives at `~/www/project` | Run `pwd` (and `git rev-parse --show-toplevel`) before the first filesystem operation in Stage D. Never assume which checkout the user has in mind |
+| Planned an MCP workflow without checking whether the MCP server was loaded | Verify tool / server availability before handoff, not mid-implementation. Mid-flow "missing server" pauses cost more than the upfront check |
+| Slid a second language or runtime into a single-stack project ("just a small Rust helper for the Node app") | Never add a new language or runtime without explicit approval. Surface the stack expansion as a Key decision, not an implementation detail |
+| User said 「判断一下这个报错」 and got routed into Evaluation Mode | 「判断一下」 + error / bug context = debugging, route to `/hunt`. Evaluation Mode is strictly for value / existence judgments |
 
 ---
 
