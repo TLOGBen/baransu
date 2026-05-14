@@ -96,6 +96,8 @@ Round 2: 2–3 more points inside the problematic segment → narrow further
 Round 3: usually locates within 5–10 lines
 ```
 
+**Side-effect rule**: If adding a log changes the behavior (the bug disappears, the symptom shifts, the order of events differs), treat that as direct evidence of a timing, lifecycle, or concurrency problem — not as a logging side-effect to dismiss. The act of observing already pointed at the root cause class.
+
 ---
 
 ## Before You Fix
@@ -131,6 +133,25 @@ A preserved-but-contradicted hypothesis produces a new bug. Discard completely.
 
 ---
 
+## Scope Blast Mode
+
+Activate after the root cause is confirmed and before declaring the bug fixed. The same shape of bug often hides in N other places; a local fix that ignores the blast leaves N − 1 bugs in the tree.
+
+1. **Extract the pattern signature**: the specific function name, regex, API call, CSS selector, lock acquisition, validation skip, parser input boundary, or token-handling path that produced the bug.
+2. **`grep -rn <pattern>`** across the repo. Exclude generated directories, build output, and vendored dependencies. For class-of-bug patterns (e.g. "any handler missing the lock"), grep for the surrounding shape, not just the literal text.
+3. **For each match, record a decision in the case file's `Scope Blast` section** (template line per match: `<file:line> — fix | leave: <reason> | unsure: <question>`). After a user reply resolves an `unsure`, update the same line to `unsure → fix` or `unsure → leave: <reason> after user reply <date>`. Do not silently skip a match.
+4. **Do not claim fixed until** (a) every grep match has a recorded decision in the case file's `Scope Blast` section, AND (b) the success report's `迴歸守護` line names the locking test **and** cites the case file's Scope Blast section by id (例：`[tests/foo.spec.ts:42] + Scope Blast: HUNT-YYYY-NNN §3`).
+
+Common triggers:
+- Visual bug fixed on one page → every other page using the same component, layout, or media-query breakpoint.
+- One race fixed in one handler → every handler acquiring the same lock or touching the same shared state.
+- One validation skip patched at one entry point → every entry point reaching the same downstream sink.
+- One regex / parser fix for one input shape → every caller of the same regex / parser.
+
+If the blast surfaces unrelated bugs, list them in the case file but do not fix them in this PR unless the user agrees.
+
+---
+
 ## Bisect Mode
 
 Activate when: "It worked before and now it's broken" or "It broke after an update."
@@ -139,6 +160,22 @@ Activate when: "It worked before and now it's broken" or "It broke after an upda
 2. Before starting bisect, define a **pass/fail test command**. The command must be auto-executable and produce a clear exit code. Write it down; reuse the same command at every step.
 3. Execute: `git bisect start` → `git bisect bad` (current) → `git bisect good <tag>`. Let bisect guide — do not skip steps.
 4. When bisect identifies a commit: read only that commit's diff. Do not read surrounding history.
+
+---
+
+## Repeated Regression Mode
+
+Activate when the user says the same issue is still wrong after a previous fix, OR provides a "good" screenshot / version / file / fixture, OR describes a result as "previously correct" without a usable commit hash.
+
+Treat the reference as **evidence, not decoration**. Five-step flow:
+
+1. **List every reported and visible symptom**, preserving the user's exact words where useful (例：「還是慢」「不清楚」「尖刺」「先顯示上一個內容」). Multiple symptoms must all be explained by the eventual hypothesis.
+2. **Identify the reference oracle**: last-good commit / tag, old build, fixture file, screenshot, downloaded artifact, or the user's described expected state. Name the artifact concretely.
+3. **Define the pass/fail check before editing**. For visual bugs: a narrow screenshot checklist plus the command that renders the view. For behavioral bugs: an automated regression test or deterministic repro.
+4. **Compare current vs. reference and name the exact delta**. Do not generalize an observed defect into "style polish" when the evidence points to a broken render, race, font pipeline, or state path.
+5. **If the same symptom remains after one attempted fix**: this triggers the Hard Rule「Same symptom recurs after fix」(see Hard Rules — stop, do not touch code again). Then rebuild the hypothesis from the evidence collected in steps 1–4 above; do not stack more patches onto a disproven explanation.
+
+If the issue is purely subjective UI taste, route to `/baransu:design` instead. Stay in `/hunt` when the issue is rendering, state, timing, build output, font generation, or a regression from a known-good version.
 
 ---
 
@@ -154,6 +191,8 @@ Activate when: "It worked before and now it's broken" or "It broke after an upda
 | Visual / render bug | Static analysis first (DevTools layers, stacking context); logging is the second step. |
 | DB investigation test | Transaction must always rollback. Do not modify real data. |
 | Investigation involves file writes / external API calls | Use mocks to prevent real writes; emails and webhooks must not actually send. |
+| Fix plan or current diff touches 6 or more files (without a Scope Blast pattern justification) | Stop **before adding the 6th file**. Check at two points: (i) when drafting the fix plan, (ii) after each edit. If the scope is genuinely a class-of-bug sweep, route through Scope Blast Mode (which is an explicit exception). If it is symptom-patch creep growing into a refactor, narrow back or route to `/baransu:analyze`. |
+| Someone (user or agent) deflects suspicion from a specific area — semantic trigger, not literal string match. Examples: 「那段沒問題」「不是那邊的問題」「先別管那個」「我已經檢查過了」, "that part doesn't matter", "I already checked there" | Treat as a signal. The area being deflected from is often where the bug lives — especially in multi-stage pipelines (CI segments, data pipeline stages, baransu plane handoffs) where one stage is excluded from suspicion. Re-examine that area with one targeted instrument before accepting the deflection. |
 
 ---
 
