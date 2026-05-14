@@ -7,7 +7,7 @@ description: One-way port of Claude Code skills, plugins, or marketplaces to Ope
 license: Apache-2.0
 metadata:
   author: baransu
-  version: 0.7.2
+  version: 0.7.3
 compatibility: Designed for Claude Code; output targets Codex CLI. Optional `skills-ref`
   CLI for validation.
 ---
@@ -41,6 +41,8 @@ python3 scripts/transfer.py <claude-source> <codex-output>
 ```
 
 The script refuses if `<codex-output>` overlaps the source — there is a real data-loss path otherwise (rerun would `rmtree` the source). Always pick a separate output directory.
+
+**For the `baransu` plugin: `<codex-output>` is `codex/` at repo root.** This matches the path committed in `<repo-root>/.agents/plugins/marketplace.json` (Layout A catalog). Do not invent a new output dir — the catalog's `source.path` would dangle and `codex plugin marketplace add <git-url>` (the README install command) would silently break.
 
 For inline (in-conversation) execution without the script — when the user wants to inspect every change — read the source file(s), apply the rules in the relevant reference (see Step 3), and write the output yourself. The rules are deterministic enough that inline and scripted runs converge.
 
