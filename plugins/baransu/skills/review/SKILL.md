@@ -20,6 +20,7 @@ The body below is English (agent-facing). Wherever this file quotes literal user
 - **Done when**: 報告含八欄 sign-off receipt，且 hard-stops sweep 結果以 checklist 逐項列出（每項 not hit 或 hit＋一行引註）。
 - **Evidence**: 報告收尾的兩個結構化元素 — hard-stops sweep checklist 與八欄 sign-off receipt fenced block。
 - **Output**: 對話內的繁中審查報告（prose 本體＋結構化收尾），不另落檔。
+- **Automation**: ultracode=overlap, loop=drivable
 
 ## Four perspectives (agent files)
 
@@ -93,6 +94,14 @@ Launch one **parallel Task** per activated perspective, each in a clean context.
 Findings return in natural language (not YAML). Each must include: citation (file:line or section), which claim it contradicts (or "none — observation"), the observation itself, the surgical fix, and a balance note (see Stage 6).
 
 No recursion: this dispatch is the only depth /review uses. /review does not invoke /review, adversarial (Stage 5) is exactly one round, and reviewers do not review each other.
+
+### Orchestration interface (dual-mode)
+
+The dispatch/collection contract for this stage lives in `references/orchestration-interface.md`:
+isomorphic finding schema, Stage 0 mode pinning (ultracode detect → record → no mid-run switch),
+the current parallel-Task adapter, and a thin Workflow adapter. Both adapters return identical
+finding shapes — Stages 5–7 never sense the mode; the depth invariant is restated per adapter.
+Non-ultracode runs keep current-path semantics unchanged.
 
 ---
 

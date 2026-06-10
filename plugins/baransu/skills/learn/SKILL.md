@@ -16,6 +16,7 @@ This skill takes any content source and produces structured learning output via 
 - **Done when**: `--brief` path — `.claude/learn/briefs/{$BRIEF_SLUG}.md` exists with the five-column body per `references/brief-format.md`; full path — `.claude/learn/digests/{$DIGEST_SLUG}.md` exists with the `references/digest-frontmatter.md` schema and the refined body.
 - **Evidence**: The 繁中 completion notice naming the written file path; the file's frontmatter lists every surviving `$FILTERED_SOURCES` entry (and, for digests, `phases_completed`).
 - **Output**: A brief under `.claude/learn/briefs/` or a digest under `.claude/learn/digests/`.
+- **Automation**: ultracode=overlap, loop=drivable
 
 ## Stage 0 — Environment Self-Check
 
@@ -54,6 +55,14 @@ If this fails (markitdown not installed):
 If installation succeeds: continue.
 
 If installation fails: output 「markitdown 安裝失敗。請手動執行：pip install markitdown」 and stop.
+
+### Orchestration interface (dual-mode)
+
+The fan-out dispatch contract lives in `references/orchestration-interface.md`: the candidate-pool
+`{path, lane}` shape, Stage 0 mode pinning (ultracode detect → record → no mid-run switch), the
+current four-lane fan-out adapter, and a thin Workflow adapter. Both adapters return the identical
+pool shape — Stage 2 scoring never senses the mode; the depth invariant is restated per adapter.
+Non-ultracode runs keep current-path semantics unchanged.
 
 ## Stage 1 — Collect
 

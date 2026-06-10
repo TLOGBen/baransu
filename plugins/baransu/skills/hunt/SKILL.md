@@ -29,6 +29,7 @@ The body below is English (agent-facing). All user-facing output is in **Traditi
 - **Done when**: A 成功格式 report (根因/修復/確認方式/測試矩陣/迴歸守護) or a Handoff 格式 report is emitted with status 已解決 / 已解決（附帶條件說明）/ 受阻, and the case file `.claude/hunt-report/HUNT-YYYY-NNN.md` is written.
 - **Evidence**: The report's 確認方式 line cites the instrument or test that confirmed the root cause; all 🎯HUNT-id tagged instruments removed after confirmation (`grep "🎯HUNT-"` finds none).
 - **Output**: The 繁中 success or handoff report plus the `.claude/hunt-report/HUNT-YYYY-NNN.md` case file.
+- **Automation**: ultracode=assist, loop=assisted
 
 ## Rationalization Watch
 
@@ -200,6 +201,9 @@ If the issue is purely subjective UI taste, route to `/baransu:design` instead. 
 | Investigation involves file writes / external API calls | Use mocks to prevent real writes; emails and webhooks must not actually send. |
 | Fix plan or current diff touches 6 or more files (without a Scope Blast pattern justification) | Stop **before adding the 6th file**. Check at two points: (i) when drafting the fix plan, (ii) after each edit. If the scope is genuinely a class-of-bug sweep, route through Scope Blast Mode (which is an explicit exception). If it is symptom-patch creep growing into a refactor, narrow back or route to `/baransu:analyze`. |
 | Someone (user or agent) deflects suspicion from a specific area — semantic trigger, not literal string match. Examples: 「那段沒問題」「不是那邊的問題」「先別管那個」「我已經檢查過了」, "that part doesn't matter", "I already checked there" | Treat as a signal. The area being deflected from is often where the bug lives — especially in multi-stage pipelines (CI segments, data pipeline stages, baransu plane handoffs) where one stage is excluded from suspicion. Re-examine that area with one targeted instrument before accepting the deflection. |
+
+> ultracode session 中可派 Workflow 平行探查多條假說線（每線一個 instrument 焦點），結果仍匯回單一根因敘述。
+> loop 驅動時 loop-mode 預設值為 assisted：診斷自動推進，修復套用前回報 driver。
 
 ---
 

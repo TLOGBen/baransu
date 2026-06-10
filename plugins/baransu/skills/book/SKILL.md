@@ -17,6 +17,7 @@ Converts any content into a Kami-themed, browser-ready HTML book saved to `.clau
 - **Done when**: 輸出 HTML 通過 scripts/validate-output.ts 全部 GATE（exit 0），且檔案落於 `.claude/book/{slug}.html`。
 - **Evidence**: validate-output.ts 的執行結果（GATE A-E / F / G / J / K / L 全綠或合法 SKIP）。
 - **Output**: `.claude/book/{slug}.html`；依 `--format` 另含 `.pdf` / `.pptx`。
+- **Automation**: ultracode=neutral, loop=drivable
 
 ## Stage 0 — Environment Self-Check
 

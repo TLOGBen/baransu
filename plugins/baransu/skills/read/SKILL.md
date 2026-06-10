@@ -16,6 +16,7 @@ This skill captures any content source and converts it to clean, offline-readabl
 - **Done when**: `.claude/read/material/{final-slug}/index.md` exists with full frontmatter, downloaded images sit in `material/{final-slug}/assets/`, and `.claude/read/index.md` carries a matching row.
 - **Evidence**: The 繁中 completion report listing the saved path, image success/failure counts, and the markitdown version used.
 - **Output**: `material/{final-slug}/index.md` (+ `assets/`), an updated `.claude/read/index.md` row, and the immutable original under `raw/{slug}/`.
+- **Automation**: ultracode=neutral, loop=drivable
 
 ## Stage 0 — Environment Self-Check
 
