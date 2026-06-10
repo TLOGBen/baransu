@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # check_acceptance.sh — dogfood acceptance for TDD trigger plan v4
 #
-# Runs after /baransu:dev produced a test file from this fixture's task.md.
+# Runs after the /execute impl-agent loop (or a main-session direct
+# implementation per _shared/tdd.md §7) produced a test file from this
+# fixture's prompt.md.
 # Greps the test file for mattpocock-violation signals.
 #
 # CLI: check_acceptance.sh <test_file_path> [<review_report_path>]

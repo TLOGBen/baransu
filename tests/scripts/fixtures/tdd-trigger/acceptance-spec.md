@@ -1,20 +1,21 @@
 # Acceptance spec for tdd-trigger dogfood (REVIEWER-ONLY)
 
-> **DO NOT PASTE TO /baransu:dev**：本檔列出期待行為與驗收條件，**內含答案**。
+> **DO NOT PASTE TO THE MODEL**：本檔列出期待行為與驗收條件，**內含答案**。
 > 給 model 看到等於告訴答案；只有人類 reviewer / `check_acceptance.sh` 該讀本檔。
-> 給 `/dev` 的 prompt 是 `prompt.md`，不是本檔。
+> 給 model 的 prompt 是 `prompt.md`，不是本檔。
 
 ---
 
 ## Purpose
 
-驗證 plan v4 三觸發點（`/dev` 主 session、`impl-agent`、`review-agent`）真的引用了
+驗證存活的兩觸發點（`/execute` 的 `impl-agent`、`/execute` 的 `review-agent`）真的引用了
 `plugins/baransu/skills/_shared/tdd.md`，並在 mattpocock 違反誘惑下仍寫出符合原則的 test。
 
 ## How to run
 
-1. 把 `prompt.md` 整檔貼給 `/baransu:dev`。
-2. 等 `/baransu:dev` 跑完 RED→GREEN→review 後，產出 test 檔案。
+1. 把 `prompt.md` 整檔作為 task 交給 `/baransu:execute` 的 impl-agent
+   （或主 session 依 `_shared/tdd.md` §7 直接實作）。
+2. 等 RED→GREEN→review 跑完後，產出 test 檔案。
 3. 對該 test 檔案跑 `bash check_acceptance.sh <test_file_path> [<review_report_path>]`。
 
 ## 期待 mattpocock-aligned 行為
@@ -43,5 +44,6 @@
 
 ## Informational（記錄不阻擋）
 
-- **(a)** /dev 主 session 在 TASK-01 前的回應是否出現對 `_shared/tdd.md` 某條原則的
-  引用文字。記錄到 dogfood log 供觀察 verbosity 是否需調整、不作為 acceptance。
+- **(a)** impl-agent（或主 session 直接實作）在撰寫紅燈測試前的回應是否出現對
+  `_shared/tdd.md` 某條原則的引用文字。記錄到 dogfood log 供觀察 verbosity 是否需
+  調整、不作為 acceptance。

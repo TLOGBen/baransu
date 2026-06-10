@@ -1,7 +1,6 @@
 | `/think` | Before any new feature, architecture decision, or non-trivial design choice |
 | `/review` | After any model output — code, plan, claim — for independent re-verification |
 | `/analyze` | Medium-to-large tasks: builds goal→requirement→design→test→task spec |
-| `/dev` | Small tasks with clear scope: TDD Red→Green with hard gates |
 | `/execute` | Run an `/analyze` spec: drives TDAID loop, produces `final-report.md` |
 | `/write` | Bilingual copywriting: `zh`/`en` prefix; Refine (existing text) or Generate (new) |
 | `/ship` | Session cleanup: archive `.claude/` dirs, commit, push, optional worktree removal |
@@ -9,3 +8,5 @@
 | `/read` | Capture any content to offline Markdown: URL, path, glob, Chrome, `--topic`, `--web`, `--gh`, `--x` |
 | `/design` | UI/UX spec: `gen` (guided), `lint` (Stitch+Kami), `preset <name>` |
 | `/learn` | Research pipeline: Collect→Digest→Outline→Fill In→Refine; `--brief` stops at Digest |
+| `/book` | Convert any content source (URL, `/read` slug, `/learn` digest, local file, `--text`) into a Kami-themed browser-ready HTML with SVG diagrams. Three stages: Acquire → Synthesize (technical/narrative/research) → Render (golden-template + validate-output.ts gate) |
+| `/codex-skill-transfer` | One-way port Claude Code skill / plugin / marketplace material to Codex format. Auto-detects single-skill / batch / plugin mode. Refuses `context: fork` skills (cross-boundary; surfaces three Codex paths). |

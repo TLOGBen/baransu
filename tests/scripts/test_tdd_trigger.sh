@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 # test_tdd_trigger.sh — structural verification for TDD trigger plan v4
+# (pruned for the v2 slim-down: /dev was removed; surviving triggers are
+#  /execute impl-agent and /execute review-agent)
 #
-# Greps that all 6 deliverables of plan v4 are in place. Each check is
+# Greps that the surviving deliverables are in place. Each check is
 # deterministic; first failure prints reason and exits 1.
 #
 # CLI: test_tdd_trigger.sh
 # Exit codes:
-#   0 — all checks pass (TDD trigger reference + 3 citations + green_proof
-#       schema + 5-tier matrix + execute verify rule + fixture all present)
+#   0 — all checks pass (TDD trigger reference + impl-agent/review-agent
+#       citations + green_proof schema + 5-tier matrix + execute verify rule
+#       + fixture all present)
 #   1 — at least one check failed; stdout names the failing check
 
 set -uo pipefail
@@ -20,7 +23,6 @@ fi
 cd "$REPO_ROOT"
 
 TDD_REF="plugins/baransu/skills/_shared/tdd.md"
-DEV_SKILL="plugins/baransu/skills/dev/SKILL.md"
 IMPL_AGENT="plugins/baransu/agents/impl-agent.md"
 REVIEW_AGENT="plugins/baransu/agents/review-agent.md"
 EXECUTE_SKILL="plugins/baransu/skills/execute/SKILL.md"
@@ -45,26 +47,14 @@ else
   grep -qi "mock.*boundary\|boundary.*mock\|系統邊界\|邊界" "$TDD_REF" && pass "mock-at-boundaries principle present" || fail "mock-at-boundaries principle missing"
   grep -qi "refactor.*green\|green.*refactor\|綠燈.*refactor\|refactor.*只.*綠" "$TDD_REF" && pass "refactor-only-when-green principle present" || fail "refactor-only-when-green principle missing"
   grep -qi "觸發點\|trigger.*point\|baransu-specific" "$TDD_REF" && pass "trigger-points section (§8) present" || fail "trigger-points section (§8) missing — referenced citation paths lose anchor"
-  grep -q "dev/SKILL.md\|dev SKILL.md" "$TDD_REF" && pass "§8 cites dev/SKILL.md" || fail "§8 missing dev/SKILL.md citation"
   grep -q "impl-agent.md" "$TDD_REF" && pass "§8 cites impl-agent.md" || fail "§8 missing impl-agent.md citation"
   grep -q "review-agent.md" "$TDD_REF" && pass "§8 cites review-agent.md" || fail "§8 missing review-agent.md citation"
 fi
 
 # ---------------------------------------------------------------------------
-# Check 2: /dev SKILL.md citation
+# Check 2: impl-agent.md citation
 # ---------------------------------------------------------------------------
-echo "[2] /dev SKILL.md citation"
-if [[ ! -f "$DEV_SKILL" ]]; then
-  fail "$DEV_SKILL does not exist"
-else
-  grep -q "_shared/tdd.md" "$DEV_SKILL" && pass "tdd.md path cited" || fail "tdd.md path not cited in $DEV_SKILL"
-  grep -q "進入 RED 之前請閱讀\|RED 之前.*tdd.md" "$DEV_SKILL" && pass "passive citation phrasing present" || fail "passive citation phrasing missing in $DEV_SKILL"
-fi
-
-# ---------------------------------------------------------------------------
-# Check 3: impl-agent.md citation
-# ---------------------------------------------------------------------------
-echo "[3] impl-agent.md citation"
+echo "[2] impl-agent.md citation"
 if [[ ! -f "$IMPL_AGENT" ]]; then
   fail "$IMPL_AGENT does not exist"
 else
@@ -73,9 +63,9 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Check 4: review-agent.md citation + green_proof schema + 5-tier matrix
+# Check 3: review-agent.md citation + green_proof schema + 5-tier matrix
 # ---------------------------------------------------------------------------
-echo "[4] review-agent.md citation + green_proof + matrix"
+echo "[3] review-agent.md citation + green_proof + matrix"
 if [[ ! -f "$REVIEW_AGENT" ]]; then
   fail "$REVIEW_AGENT does not exist"
 else
@@ -96,9 +86,9 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Check 5: execute SKILL.md SWITCH verify rule for green_proof
+# Check 4: execute SKILL.md SWITCH verify rule for green_proof
 # ---------------------------------------------------------------------------
-echo "[5] execute SKILL.md verify rule"
+echo "[4] execute SKILL.md verify rule"
 if [[ ! -f "$EXECUTE_SKILL" ]]; then
   fail "$EXECUTE_SKILL does not exist"
 else
@@ -107,9 +97,9 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Check 6: dogfood fixture exists with mattpocock-violation lures
+# Check 5: dogfood fixture exists with mattpocock-violation lures
 # ---------------------------------------------------------------------------
-echo "[6] dogfood fixture"
+echo "[5] dogfood fixture"
 if [[ ! -d "$FIXTURE_DIR" ]]; then
   fail "$FIXTURE_DIR does not exist"
 else

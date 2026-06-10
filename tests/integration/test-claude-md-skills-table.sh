@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# Test suite for TASK-integration-01: CLAUDE.md Skills table 11 -> 14.
+# Test suite for the CLAUDE.md Skills table after the v2 slim-down (16 -> 12).
 #
-# Asserts (6 checks):
+# Asserts (4 check groups):
 #   B1) Project root CLAUDE.md exists.
-#   B2) Skills table contains 14 rows (count of "| `/" lines in the table block).
-#   B3) Three new skill names appear in the table: /grade, /triage, /bridge.
-#   B4) The 11 existing skill names are still present.
-#   B5) Each new skill row has a non-empty "When to invoke" description column.
-#   B6) The 11 existing skill descriptions are unchanged from the baseline
-#       (captured pre-edit and persisted alongside this script).
+#   B2) Skills table contains exactly 12 rows (count of "| `/" lines).
+#   B3) Removed skills are absent from the table: /dev, /grade, /triage, /bridge.
+#   B4) The 12 surviving skill names are present.
+#   B5) Each surviving skill row has a non-empty "When to invoke" description column.
+#   B6) The 12 skill descriptions match the baseline
+#       (regenerated post-slim and persisted alongside this script).
 #
 # Exit 0 on all pass; non-zero on any fail.
 
@@ -53,43 +53,43 @@ else
 fi
 
 # -------------------------------------------------------------------------
-# B2: Skills table has 14 rows
+# B2: Skills table has 12 rows
 # -------------------------------------------------------------------------
 ROW_COUNT=$(extract_skill_rows | wc -l | tr -d ' ')
-if [ "$ROW_COUNT" -eq 14 ]; then
-  ok "B2 Skills table has 14 rows"
+if [ "$ROW_COUNT" -eq 12 ]; then
+  ok "B2 Skills table has 12 rows"
 else
-  bad "B2 Skills table row count is $ROW_COUNT, expected 14"
+  bad "B2 Skills table row count is $ROW_COUNT, expected 12"
 fi
 
 # -------------------------------------------------------------------------
-# B3: three new skills appear in the table
+# B3: removed skills are absent from the table
 # -------------------------------------------------------------------------
-NEW_SKILLS=(grade triage bridge)
-for s in "${NEW_SKILLS[@]}"; do
+REMOVED_SKILLS=(dev grade triage bridge)
+for s in "${REMOVED_SKILLS[@]}"; do
   if extract_skill_rows | grep -qF "\`/$s\`"; then
-    ok "B3 new skill /$s present in Skills table"
+    bad "B3 removed skill /$s still present in Skills table"
   else
-    bad "B3 new skill /$s missing from Skills table"
+    ok "B3 removed skill /$s absent from Skills table"
   fi
 done
 
 # -------------------------------------------------------------------------
-# B4: 11 existing skill names still present
+# B4: 12 surviving skill names present
 # -------------------------------------------------------------------------
-EXISTING_SKILLS=(think review analyze dev execute write ship hunt read design learn)
-for s in "${EXISTING_SKILLS[@]}"; do
+SURVIVING_SKILLS=(think review analyze execute write ship hunt read design learn book codex-skill-transfer)
+for s in "${SURVIVING_SKILLS[@]}"; do
   if extract_skill_rows | grep -qF "\`/$s\`"; then
-    ok "B4 existing skill /$s still present"
+    ok "B4 surviving skill /$s present"
   else
-    bad "B4 existing skill /$s missing from Skills table"
+    bad "B4 surviving skill /$s missing from Skills table"
   fi
 done
 
 # -------------------------------------------------------------------------
-# B5: each new skill has a non-empty description column
+# B5: each surviving skill has a non-empty description column
 # -------------------------------------------------------------------------
-for s in "${NEW_SKILLS[@]}"; do
+for s in "${SURVIVING_SKILLS[@]}"; do
   ROW=$(extract_skill_rows | grep -F "\`/$s\`" || true)
   if [ -z "$ROW" ]; then
     bad "B5 row for /$s not found (cannot check description)"
@@ -106,11 +106,17 @@ for s in "${NEW_SKILLS[@]}"; do
 done
 
 # -------------------------------------------------------------------------
-# B6: 11 existing skill descriptions unchanged from baseline
+# B6: 12 skill descriptions match the regenerated baseline
 # -------------------------------------------------------------------------
 if [ ! -f "$BASELINE" ]; then
-  bad "B6 baseline file missing at $BASELINE (cannot verify existing descriptions)"
+  bad "B6 baseline file missing at $BASELINE (cannot verify descriptions)"
 else
+  BASELINE_ROWS=$(grep -cE '^\| `/' "$BASELINE" | tr -d ' ')
+  if [ "$BASELINE_ROWS" -eq 12 ]; then
+    ok "B6 baseline has 12 rows"
+  else
+    bad "B6 baseline row count is $BASELINE_ROWS, expected 12"
+  fi
   while IFS= read -r line; do
     [ -z "$line" ] && continue
     SKILL_NAME=$(echo "$line" | awk -F'|' '{print $2}' | sed 's/^ *//; s/ *$//')
@@ -122,9 +128,9 @@ else
     fi
     ACTUAL_DESC=$(echo "$ACTUAL_ROW" | awk -F'|' '{print $3}' | sed 's/^ *//; s/ *$//')
     if [ "$ACTUAL_DESC" = "$EXPECTED_DESC" ]; then
-      ok "B6 $SKILL_NAME description unchanged"
+      ok "B6 $SKILL_NAME description matches baseline"
     else
-      bad "B6 $SKILL_NAME description CHANGED from baseline"
+      bad "B6 $SKILL_NAME description DIFFERS from baseline"
       bad "    expected: $EXPECTED_DESC"
       bad "    actual:   $ACTUAL_DESC"
     fi
