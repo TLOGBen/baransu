@@ -23,6 +23,13 @@ The body below is English (agent-facing). All user-facing output is in **Traditi
 
 ---
 
+## Outcome Contract
+
+- **Outcome**: The bug's root cause is stated in one sentence with confirming evidence before any fix, and the hunt is recorded for future reference.
+- **Done when**: A 成功格式 report (根因/修復/確認方式/測試矩陣/迴歸守護) or a Handoff 格式 report is emitted with status 已解決 / 已解決（附帶條件說明）/ 受阻, and the case file `.claude/hunt-report/HUNT-YYYY-NNN.md` is written.
+- **Evidence**: The report's 確認方式 line cites the instrument or test that confirmed the root cause; all 🎯HUNT-id tagged instruments removed after confirmation (`grep "🎯HUNT-"` finds none).
+- **Output**: The 繁中 success or handoff report plus the `.claude/hunt-report/HUNT-YYYY-NNN.md` case file.
+
 ## Rationalization Watch
 
 When these thought patterns surface, stop and re-examine:

@@ -10,6 +10,13 @@ This skill captures any content source and converts it to clean, offline-readabl
 
 **User-facing language**: 繁體中文. All output shown to the user (stage notices, completion reports, error messages) must be in Traditional Chinese.
 
+## Outcome Contract
+
+- **Outcome**: The given content source is captured as clean, offline-readable Markdown with its images localized.
+- **Done when**: `.claude/read/material/{final-slug}/index.md` exists with full frontmatter, downloaded images sit in `material/{final-slug}/assets/`, and `.claude/read/index.md` carries a matching row.
+- **Evidence**: The 繁中 completion report listing the saved path, image success/failure counts, and the markitdown version used.
+- **Output**: `material/{final-slug}/index.md` (+ `assets/`), an updated `.claude/read/index.md` row, and the immutable original under `raw/{slug}/`.
+
 ## Stage 0 — Environment Self-Check
 
 ### 1. Python check

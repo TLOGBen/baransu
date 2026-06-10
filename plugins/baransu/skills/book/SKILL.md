@@ -11,6 +11,13 @@ Converts any content into a Kami-themed, browser-ready HTML book saved to `.clau
 
 ---
 
+## Outcome Contract
+
+- **Outcome**: 把任一內容來源（URL / slug / 本地檔 / 文字）經 Acquire → Synthesize → Render 三階段轉成 Kami 主題、瀏覽器可直接開啟的 HTML book。
+- **Done when**: 輸出 HTML 通過 scripts/validate-output.ts 全部 GATE（exit 0），且檔案落於 `.claude/book/{slug}.html`。
+- **Evidence**: validate-output.ts 的執行結果（GATE A-E / F / G / J / K / L 全綠或合法 SKIP）。
+- **Output**: `.claude/book/{slug}.html`；依 `--format` 另含 `.pdf` / `.pptx`。
+
 ## Stage 0 — Environment Self-Check
 
 > 本 SKILL.md 採 Fact-Verification Principle #0（見下文 Stage 2A §0「Fact-Verification Principle #0」段）：在合成長文前，凡偵測到具體產品 / 版本 / 人名 + 職位 pattern，強制 WebSearch 驗證；0 結果即 AskUserQuestion 阻擋。

@@ -13,6 +13,13 @@ The body below is English (agent-facing). All user-visible output is in **Tradit
 
 ---
 
+## Outcome Contract
+
+- **Outcome**: A five-layer spec (goal → requirement → design → test → task) exists for the stated goal, ready for /execute handoff.
+- **Done when**: `.claude/analyze/{date}-{slug}/` contains `goal.md`, `requirement.md`, `design.md`, `test.md`, and at least one `task-{group}.md`, and the Stage 6 cross-layer review round (3 subagents + one auto-correct round) has completed.
+- **Evidence**: The generated file list shown at Stage 7 handoff with full paths; Stage 6 findings and the auto-corrections applied to the design / test / task layers.
+- **Output**: Spec directory `.claude/analyze/{YYYY-MM-DD}-{slug}/` holding the five spec documents.
+
 ## Stage 0 — Lightweight alignment + scope gate
 
 Two steps before any file is written.

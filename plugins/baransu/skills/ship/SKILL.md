@@ -11,6 +11,13 @@ No user confirmation required. Five steps run automatically.
 
 ---
 
+## Outcome Contract
+
+- **Outcome**: The session's working files are archived and all pending changes are committed and pushed.
+- **Done when**: Archivable items are moved into `.claude/archived/`, `git status --porcelain` is empty after the commit, and the branch is pushed to origin (worktree removed and branch deleted when run inside a worktree).
+- **Evidence**: The session end output reporting the archived item count, the commit message (or 「跳過」), the push target `origin/{branch}`, and the worktree cleanup status.
+- **Output**: Archived directories under `.claude/archived/`, a pushed git commit, and the 繁中 session end report.
+
 ## Step 1 — Detect
 
 Check both whether the workspace dirs hold archivable items AND whether the git working tree has pending changes. Stop only when **both** are empty — otherwise there is still work to ship even when one side is empty.

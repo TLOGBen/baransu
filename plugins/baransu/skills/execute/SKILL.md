@@ -7,6 +7,13 @@ user-invocable: true
 
 Long-running orchestration engine for medium-to-large tasks. This body is English (agent-facing). All user-visible output is **Traditional Chinese (繁體中文)**.
 
+## Outcome Contract
+
+- **Outcome**: Every task in the /analyze spec is executed through the Summarize → Impl → Review TDAID loop and the run is fully reported.
+- **Done when**: `.claude/execute/{date}-{slug}/execute/final-report.md` exists, every registered task ended ✅ / blocked / cascade-blocked, and the Step 6 Final-Review coverage result is recorded in it.
+- **Evidence**: final-report.md carries the {N}/{M} REQ 達成率, the Goal-Alignment Filter Metric block, and the blocked list; all session gitworktrees removed.
+- **Output**: Working documents plus `final-report.md` under `.claude/execute/{date}-{slug}/execute/`.
+
 ## 目標
 
 Read an `/analyze` spec directory. Execute every task through a Summarize → Impl → Review TDAID loop with subagent context isolation. Run E2E tests and Final-Review. Write `final-report.md`. Never stop early — if a task is blocked, escalate and continue unblocked work.

@@ -13,6 +13,13 @@ If you find yourself thinking "I could just write this quickly" — that's exact
 
 ---
 
+## Outcome Contract
+
+- **Outcome**: 把模糊意圖收斂為一份使用者明確核可的五段式計畫（或 Evaluation 模式的 Kill / Keep / Pivot 單行判決），全程不產出任何程式碼。
+- **Done when**: 使用者於 Stage G 四選項閘（AskUserQuestion）批准最終提案，或明確放棄本輪計畫；自由文字批准須以「收到，把這當成批准實作」收口入檔。
+- **Evidence**: Stage G 的 AskUserQuestion 互動結果 — 四選項之一被選取，或自由文字批准的收口句已輸出。
+- **Output**: 對話內呈現的繁中五段式計畫（或判決＋三理由）；批准後交棒 /analyze 或依 _shared/tdd.md 直接實作。
+
 ## The iron rule
 
 Until the user has explicitly approved the final proposal through `AskUserQuestion` (Stage G), do **not** produce:
