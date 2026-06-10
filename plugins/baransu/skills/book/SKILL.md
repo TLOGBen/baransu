@@ -312,9 +312,9 @@ For each section from `$STRUCTURE`:
 
 ### 4. SVG 生成規格
 
-只在 long-form HTML 含 `<figure class="diagram">` 時生效。spec 含：色彩 token（canonical names + Kami hex 預設）、必備 `<defs>` / marker / 兩層 paper-mask、type tag、legend strip、4 px 對齊與 12 檔節點寬白名單、嵌入字體校正、14 型圖表 first-match 決策樹、13 型 selection 表（含 `status: complete | ref-only`）。
+只在 long-form HTML 含 `<figure class="diagram">` 時生效。spec 含：色彩 token（canonical names + Kami hex 預設）、必備 `<defs>` / marker / 兩層 paper-mask、type tag、legend strip、4 px 對齊與 3 檔節點寬白名單（128/144/160）、嵌入字體校正、14 型圖表 first-match 決策樹、13 型 selection 表（含 `status: complete | ref-only`）。
 
-**完整規則 → 讀 `references/svg-rendering-rules.md`。**SVG fill / stroke **禁用 `rgba()`**；節點寬限 12 檔；焦點節點透過 `data-role="focal"` 標記，每張 SVG 上限 2 個。
+**完整規則 → 讀 `references/svg-rendering-rules.md`。**SVG fill / stroke **禁用 `rgba()`**；節點寬限 3 檔（128/144/160）；焦點節點透過 `data-role="focal"` 標記，每張 SVG 上限 2 個。
 
 ### 5. Core Asset Protocol（圖片取得）
 

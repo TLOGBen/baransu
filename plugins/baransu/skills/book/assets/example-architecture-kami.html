@@ -117,15 +117,19 @@
     <svg viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg" role="img"
          aria-label="book skill 內部 5 層架構">
       <defs>
-        <!-- markers: 三型箭頭，皆有對應引用（GATE-D 要求 bijective） -->
-        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-          <polygon points="0 0, 8 3, 0 6" fill="#504e49"/>
+        <!-- markers: 三型箭頭，皆有對應引用（GATE-D 要求 bijective）；
+             GATE-K：chevron path，禁 <polygon> filled triangle -->
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+          <path d="M2 1 L8 5 L2 9" fill="none" stroke="#504e49"
+                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </marker>
-        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-          <polygon points="0 0, 8 3, 0 6" fill="#1B365D"/>
+        <marker id="arrow-accent" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+          <path d="M2 1 L8 5 L2 9" fill="none" stroke="#1B365D"
+                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </marker>
-        <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-          <polygon points="0 0, 8 3, 0 6" fill="#2D5A8A"/>
+        <marker id="arrow-link" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+          <path d="M2 1 L8 5 L2 9" fill="none" stroke="#2D5A8A"
+                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </marker>
       </defs>
 
@@ -139,27 +143,27 @@
            ================================================================= -->
 
       <!-- 指令層 → 規格層 (accent / focal flow) -->
-      <line x1="270" y1="180" x2="370" y2="240"
+      <line x1="280" y1="152" x2="368" y2="272"
             stroke="#1B365D" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
-      <text x="305" y="200" fill="#1B365D" font-size="8"
+      <text x="304" y="200" fill="#1B365D" font-size="8"
             font-family="'Geist Mono', ui-monospace, monospace"
             text-anchor="middle" letter-spacing="0.06em">DRIVES</text>
 
       <!-- 規格層 → 模板層 (default / internal) -->
-      <line x1="540" y1="270" x2="620" y2="180"
+      <line x1="528" y1="272" x2="620" y2="152"
             stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
-      <text x="585" y="220" fill="#504e49" font-size="8"
+      <text x="570" y="206" fill="#504e49" font-size="8"
             font-family="'Geist Mono', ui-monospace, monospace"
             text-anchor="middle" letter-spacing="0.06em">SHAPES</text>
 
       <!-- 模板層 → 資產層 (default / internal) -->
-      <line x1="790" y1="180" x2="820" y2="240"
+      <line x1="780" y1="152" x2="820" y2="272"
             stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
 
       <!-- 資產層 → 驗證層 (link / 回饋路徑) -->
-      <line x1="830" y1="310" x2="580" y2="400"
+      <line x1="892" y1="304" x2="560" y2="432"
             stroke="#2D5A8A" stroke-width="1.2" marker-end="url(#arrow-link)"/>
-      <text x="710" y="345" fill="#2D5A8A" font-size="8"
+      <text x="732" y="356" fill="#2D5A8A" font-size="8"
             font-family="'Geist Mono', ui-monospace, monospace"
             text-anchor="middle" letter-spacing="0.06em">GATES</text>
 
@@ -170,12 +174,12 @@
            ================================================================= -->
 
       <!-- ① 指令層 — SKILL.md（CMD，backend / 預設灰） -->
-      <rect x="120" y="120" width="160" height="68" rx="6" fill="#f5f4ed"/>
-      <rect x="120" y="120" width="160" height="68" rx="6"
+      <rect x="120" y="120" width="160" height="64" rx="6" fill="#f5f4ed"/>
+      <rect x="120" y="120" width="160" height="64" rx="6"
             fill="#ebeae5" stroke="#6b6a64" stroke-width="1"/>
-      <rect x="128" y="126" width="30" height="12" rx="2"
+      <rect x="128" y="128" width="32" height="12" rx="2"
             fill="transparent" stroke="#6b6a64" stroke-width="0.8"/>
-      <text x="143" y="135" fill="#6b6a64" font-size="7"
+      <text x="144" y="137" fill="#6b6a64" font-size="7"
             font-family="'Geist Mono', ui-monospace, monospace"
             text-anchor="middle" letter-spacing="0.08em">CMD</text>
       <text x="200" y="160" fill="#141413" font-size="13" font-weight="600"
@@ -186,61 +190,61 @@
             text-anchor="middle">指令層 / orchestrator</text>
 
       <!-- ② 規格層 — references/（SPEC，FOCAL） -->
-      <rect x="370" y="240" width="170" height="74" rx="6" fill="#f5f4ed"/>
+      <rect x="368" y="240" width="160" height="64" rx="6" fill="#f5f4ed"/>
       <rect data-role="focal"
-            x="370" y="240" width="170" height="74" rx="6"
+            x="368" y="240" width="160" height="64" rx="6"
             fill="#EEF2F7" stroke="#1B365D" stroke-width="1.4"/>
-      <rect x="378" y="246" width="32" height="12" rx="2"
+      <rect x="376" y="248" width="32" height="12" rx="2"
             fill="transparent" stroke="#1B365D" stroke-width="0.8"/>
-      <text x="394" y="255" fill="#1B365D" font-size="7"
+      <text x="392" y="257" fill="#1B365D" font-size="7"
             font-family="'Geist Mono', ui-monospace, monospace"
             text-anchor="middle" letter-spacing="0.08em">SPEC</text>
-      <text x="455" y="282" fill="#141413" font-size="13" font-weight="700"
+      <text x="448" y="280" fill="#141413" font-size="13" font-weight="600"
             font-family="'Geist', system-ui, sans-serif"
             text-anchor="middle">references/</text>
-      <text x="455" y="299" fill="#504e49" font-size="9"
+      <text x="448" y="296" fill="#504e49" font-size="9"
             font-family="'Geist Mono', ui-monospace, monospace"
             text-anchor="middle">規格層 / 13 型 + tokens</text>
 
       <!-- ③ 模板層 — golden-template.html（TPL，backend） -->
-      <rect x="620" y="120" width="170" height="68" rx="6" fill="#f5f4ed"/>
-      <rect x="620" y="120" width="170" height="68" rx="6"
+      <rect x="620" y="120" width="160" height="64" rx="6" fill="#f5f4ed"/>
+      <rect x="620" y="120" width="160" height="64" rx="6"
             fill="#f1f0eb" stroke="#6b6a64" stroke-width="1"/>
-      <rect x="628" y="126" width="28" height="12" rx="2"
+      <rect x="628" y="128" width="28" height="12" rx="2"
             fill="transparent" stroke="#6b6a64" stroke-width="0.8"/>
-      <text x="642" y="135" fill="#6b6a64" font-size="7"
+      <text x="642" y="137" fill="#6b6a64" font-size="7"
             font-family="'Geist Mono', ui-monospace, monospace"
             text-anchor="middle" letter-spacing="0.08em">TPL</text>
-      <text x="705" y="160" fill="#141413" font-size="13" font-weight="600"
+      <text x="700" y="160" fill="#141413" font-size="13" font-weight="600"
             font-family="'Geist', system-ui, sans-serif"
             text-anchor="middle">golden-template.html</text>
-      <text x="705" y="176" fill="#504e49" font-size="9"
+      <text x="700" y="176" fill="#504e49" font-size="9"
             font-family="'Geist Mono', ui-monospace, monospace"
             text-anchor="middle">模板層 / 起手骨架</text>
 
       <!-- ④ 資產層 — assets/（AST，store） -->
-      <rect x="820" y="240" width="60" height="68" rx="6" fill="#f5f4ed"/>
-      <rect x="820" y="240" width="60" height="68" rx="6"
+      <rect x="820" y="240" width="144" height="64" rx="6" fill="#f5f4ed"/>
+      <rect x="820" y="240" width="144" height="64" rx="6"
             fill="#ebeae5" stroke="#504e49" stroke-width="1"/>
-      <rect x="826" y="246" width="26" height="12" rx="2"
+      <rect x="828" y="248" width="28" height="12" rx="2"
             fill="transparent" stroke="#504e49" stroke-width="0.8"/>
-      <text x="839" y="255" fill="#504e49" font-size="7"
+      <text x="842" y="257" fill="#504e49" font-size="7"
             font-family="'Geist Mono', ui-monospace, monospace"
             text-anchor="middle" letter-spacing="0.08em">AST</text>
-      <text x="850" y="282" fill="#141413" font-size="12" font-weight="600"
+      <text x="892" y="280" fill="#141413" font-size="12" font-weight="600"
             font-family="'Geist', system-ui, sans-serif"
             text-anchor="middle">assets/</text>
-      <text x="850" y="298" fill="#504e49" font-size="9"
+      <text x="892" y="296" fill="#504e49" font-size="9"
             font-family="'Geist Mono', ui-monospace, monospace"
             text-anchor="middle">example HTML</text>
 
       <!-- ⑤ 驗證層 — validate-output.ts（VLD，backend） -->
-      <rect x="380" y="400" width="200" height="68" rx="6" fill="#f5f4ed"/>
-      <rect x="380" y="400" width="200" height="68" rx="6"
+      <rect x="400" y="400" width="160" height="64" rx="6" fill="#f5f4ed"/>
+      <rect x="400" y="400" width="160" height="64" rx="6"
             fill="#ebeae5" stroke="#6b6a64" stroke-width="1"/>
-      <rect x="388" y="406" width="28" height="12" rx="2"
+      <rect x="408" y="408" width="28" height="12" rx="2"
             fill="transparent" stroke="#6b6a64" stroke-width="0.8"/>
-      <text x="402" y="415" fill="#6b6a64" font-size="7"
+      <text x="422" y="417" fill="#6b6a64" font-size="7"
             font-family="'Geist Mono', ui-monospace, monospace"
             text-anchor="middle" letter-spacing="0.08em">VLD</text>
       <text x="480" y="440" fill="#141413" font-size="13" font-weight="600"

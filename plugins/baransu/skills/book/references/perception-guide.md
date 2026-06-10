@@ -73,7 +73,7 @@ These apply regardless of content type — they are the Kami invariants for `boo
 
 | Element | Rule |
 |---------|------|
-| Design tokens | Import from `design/references/paper-preset.md` — use named tokens, never raw hex |
+| Design tokens | Import from `design/references/紙-preset/tokens.css`（canonical 36-name tokens）— use named tokens, never raw hex |
 | Background | `--parchment` (#f5f4ed) as page canvas; `--ivory` (#faf9f5) for cards |
 | Accent | `--brand` (#1B365D) ink-blue only; no secondary accent colour |
 | Typography | Charter/Georgia (en) + TsangerJinKai02/Noto Serif TC (zh) — always serif for body |
