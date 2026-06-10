@@ -131,6 +131,7 @@ These have each caused regressions — do not "optimize" them away:
 - **`/ship` branch deletion uses `-D` not `-d`**: after push the branch is unmerged locally, so `-d` always fails. Both steps need `git -C "$MAIN_REPO" branch -D`.
 - **`failure_count` excludes compile errors**: compile errors do NOT count toward the 3-strike TDAID block limit. Merging these two counters breaks retry behavior.
 - **`DESIGN.md` ≠ `design.md`**: uppercase at project root = UI visual spec (from `/design`); lowercase in `.claude/analyze/` = technical architecture layer (from `/analyze`). Never confuse them.
+- **Cross-skill guardrails**: behavioral anti-patterns that apply across skills live in `plugins/baransu/rules/anti-patterns.md`; the skill-specific invariants above stay here.
 
 ## Install
 
