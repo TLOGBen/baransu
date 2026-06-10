@@ -6,7 +6,7 @@ When working on any UI/UX content, read the design system at the project root an
 - design-cores/ — component skeletons consuming the tokens (long-form / gallery / dashboard / 6 elements)
 - slide-cores/ — slide layouts (4 cover variants + 8 non-cover layouts)
 
-`baransu` is a Claude Code plugin distributing sixteen governance skills (thirteen user-facing + three cron-driven self-healing harness skills). Theme: バランス — deliberate before executing, verify after.
+`baransu` is a Claude Code plugin distributing twelve governance skills. Theme: バランス — deliberate before executing, verify after.
 
 ## Working Principles
 
@@ -77,11 +77,14 @@ Re-read any file before Edit/Write in the same turn. Never rely on memory of a p
 plugins/
   baransu/
     .claude-plugin/
-      plugin.json              # plugin manifest (v1.0.0)
+      plugin.json              # plugin manifest (v2.0.0)
     skills/
-      think/ review/ analyze/ dev/ write/ execute/ ship/ hunt/ read/ learn/ book/ design/ codex-skill-transfer/
+      think/ review/ analyze/ write/ execute/ ship/ hunt/ read/ learn/ book/ design/ codex-skill-transfer/
+      _shared/                 # cross-skill references (tdd.md, loop-contract.md)
+    rules/
+      anti-patterns.md         # cross-skill behavioral guardrails
     agents/
-      # Perspective: architecture-reviewer.md  quality-reviewer.md  security-reviewer.md
+      # Perspective: architecture-reviewer.md  quality-reviewer.md  security-reviewer.md  style-reviewer.md
       # Execute:     summarize-agent.md  impl-agent.md  review-agent.md  smart-friend-agent.md
       #              e2e-fix-agent.md  final-review-agent.md  final-fixer-agent.md  merge-agent.md
 ```
@@ -106,7 +109,6 @@ Invoke with `/baransu:<name>`. To edit a skill, read its `SKILL.md` — design c
 | `/think` | Before any new feature, architecture decision, or non-trivial design choice |
 | `/review` | After any model output — code, plan, claim — for independent re-verification |
 | `/analyze` | Medium-to-large tasks: builds goal→requirement→design→test→task spec |
-| `/dev` | Small tasks with clear scope: TDD Red→Green with hard gates |
 | `/execute` | Run an `/analyze` spec: drives TDAID loop, produces `final-report.md` |
 | `/write` | Bilingual copywriting: `zh`/`en` prefix; Refine (existing text) or Generate (new) |
 | `/ship` | Session cleanup: archive `.claude/` dirs, commit, push, optional worktree removal |
@@ -116,9 +118,8 @@ Invoke with `/baransu:<name>`. To edit a skill, read its `SKILL.md` — design c
 | `/learn` | Research pipeline: Collect→Digest→Outline→Fill In→Refine; `--brief` stops at Digest |
 | `/book` | Convert any content source (URL, `/read` slug, `/learn` digest, local file, `--text`) into a Kami-themed browser-ready HTML with SVG diagrams. Three stages: Acquire → Synthesize (technical/narrative/research) → Render (golden-template + validate-output.ts gate) |
 | `/codex-skill-transfer` | One-way port Claude Code skill / plugin / marketplace material to Codex format. Auto-detects single-skill / batch / plugin mode. Refuses `context: fork` skills (cross-boundary; surfaces three Codex paths). |
-| `/grade` | 對 baransu skill telemetry 評分：cron 觸發 5 維 equal-weight rubric，輸出 grade.jsonl |
-| `/triage` | 從 grade.jsonl 聚類 poor verdict、派 investigator-agent、走 5-black 閘門 auto-fix |
-| `/bridge` | 手動 head-to-head replay：在隔離 worktree 比對 main vs target branch，Δ-gate 統計閘門 |
+
+Small tasks with clear scope no longer route through a dedicated skill: implement directly under the red/green discipline in `plugins/baransu/skills/_shared/tdd.md` §7.
 
 All skills: English body, 繁體中文 user output. Do not change this convention in any skill.
 
@@ -148,7 +149,7 @@ These have each caused regressions — do not "optimize" them away:
 
 ## No Build / Test Commands
 
-The plugin itself ships no build toolchain. The self-healing harness includes its own structural and pytest tests under `tests/`; run them via the per-suite shell scripts and `python3 -m pytest tests/scripts/` for the Python unit tests.
+The plugin itself ships no build toolchain. Structural tests live under `tests/`; run them via the per-suite shell scripts and `python3 -m pytest tests/scripts/` for the Python unit tests.
 
 ## Commit Style
 
