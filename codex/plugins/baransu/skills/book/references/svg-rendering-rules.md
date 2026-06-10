@@ -4,6 +4,8 @@
 
 > **Token 命名**：本檔規格使用 v1.3 baransu canonical token names。hex 值欄位列的是 Kami preset 預設值，作為 reference；實作時應從 `{project_root}/tokens.css` 解析該 preset 的實際 hex（swiss `--paper` = `#fafaf8`、google-design `--paper` = `#FEF7FF`、etc.）。
 
+> Upstream anchors re-verified at tw93/Kami@5cd7c8e (2026-06-10): diagrams.md L49 / L79 / L86 unchanged.
+
 ## §4.1 色彩 token（SVG 角色）
 
 所有 SVG fill / stroke **禁用 `rgba()`**，一律使用 solid hex token：
@@ -13,7 +15,7 @@
 | Canvas 底色 | `--paper` | `#f5f4ed` |
 | 標準節點填色 | `--surface` | `#faf9f5` |
 | 標準節點描邊 / 主要文字 | `--ink` | `#141413` |
-| 焦點節點填色 | `--surface-strong` | `#e8e6dc` |
+| 焦點節點填色 | `--brand-tint` | `#EEF2F7` |
 | 焦點節點描邊 | `--accent` | `#1B365D` |
 | 標準箭頭 / 次要文字 | `--text-muted` | `#504e49` |
 
@@ -37,7 +39,7 @@
           stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
   </marker>
   <marker id="arrow-link" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
-    <path d="M2 1 L8 5 L2 9" fill="none" stroke="#1B365D"
+    <path d="M2 1 L8 5 L2 9" fill="none" stroke="#2D5A8A"
           stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
   </marker>
 </defs>
@@ -51,7 +53,7 @@
 |-----------|----------|--------|
 | `arrow` | default（一般 / 內部流向，muted） | `#504e49`（`--text-muted`） |
 | `arrow-accent` | focal / 主流（accent 色） | `#1B365D`（`--accent`） |
-| `arrow-link` | external / API call / 跨界 | `#1B365D` 或同色變淡 |
+| `arrow-link` | external / API call / 跨界 | `#2D5A8A`（`--brand-light`） |
 
 **marker 屬性固定**：`markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"`；chevron path 固定 `d="M2 1 L8 5 L2 9"`、`stroke-width="1.5"`、`stroke-linecap="round"`、`stroke-linejoin="round"`、`fill="none"`。
 
@@ -125,6 +127,7 @@
 - 焦點節點透過 `data-role="focal"` 屬性標記（**不**用 class），每張 SVG 最多 **2** 個 `data-role="focal"` 節點；焦點節點視覺走 `--accent` (`#1B365D`) 描邊 + **`#EEF2F7` fill**（Kami `diagrams.md` L49 對齊，**不**走 `--surface-strong`）+ `marker-end="url(#arrow-accent)"`
 - `<text y>` ≥ font-size × 1.2（防文字切頂）
 - 箭頭 endpoint 精確落在節點邊緣（透過 marker `refX="8"` 自動對齊 chevron 尖端）
+- focal 節點必須對應 caption 中 `<span class="hl">` 強調的元素；focal 與 caption 強調詞錯位即 anti-slop fail（Kami `diagrams.md` anti-slop 表對齊）
 
 ## §4.8 嵌入字體校正（嵌入 A4 後 scale ≈ 0.47）
 
@@ -166,7 +169,7 @@
 | Type | Best for | Reference | Status |
 |------|----------|-----------|--------|
 | architecture | 系統概覽 / data-flow / 整合 map / infra topology / 元件 + 連線 | `references/diagram-types/type-architecture.md` | `status: complete` |
-| flowchart | 決策邏輯 / 演算法步驟 / "Should I…?" 分支 / onboarding routing / support-triage | `references/diagram-types/type-flowchart.md` | `status: ref-only` |
+| flowchart | 決策邏輯 / 演算法步驟 / "Should I…?" 分支 / onboarding routing / support-triage | `references/diagram-types/type-flowchart.md` | `status: complete` |
 | sequence | request/response 流程 / protocol 交握 / 多 actor 互動 / API call trace / 事故重建 | `references/diagram-types/type-sequence.md` | `status: ref-only` |
 | state | 有限狀態邏輯 / order status / auth state / connection lifecycle / form wizard | `references/diagram-types/type-state.md` | `status: ref-only` |
 | er | database schema / API resource 關係 / domain model / aggregate boundary / 跨服務 ownership | `references/diagram-types/type-er.md` | `status: ref-only` |

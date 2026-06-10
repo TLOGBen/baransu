@@ -27,6 +27,14 @@ The body below is English (agent-facing). All user-facing output is in **Traditi
 
 ---
 
+## Outcome Contract
+
+- **Outcome**: The bug's root cause is stated in one sentence with confirming evidence before any fix, and the hunt is recorded for future reference.
+- **Done when**: A 成功格式 report (根因/修復/確認方式/測試矩陣/迴歸守護) or a Handoff 格式 report is emitted with status 已解決 / 已解決（附帶條件說明）/ 受阻, and the case file `.claude/hunt-report/HUNT-YYYY-NNN.md` is written.
+- **Evidence**: The report's 確認方式 line cites the instrument or test that confirmed the root cause; all 🎯HUNT-id tagged instruments removed after confirmation (`grep "🎯HUNT-"` finds none).
+- **Output**: The 繁中 success or handoff report plus the `.claude/hunt-report/HUNT-YYYY-NNN.md` case file.
+- **Automation**: ultracode=assist, loop=assisted
+
 ## Rationalization Watch
 
 When these thought patterns surface, stop and re-examine:
@@ -198,6 +206,9 @@ If the issue is purely subjective UI taste, route to `/baransu:design` instead. 
 | Fix plan or current diff touches 6 or more files (without a Scope Blast pattern justification) | Stop **before adding the 6th file**. Check at two points: (i) when drafting the fix plan, (ii) after each edit. If the scope is genuinely a class-of-bug sweep, route through Scope Blast Mode (which is an explicit exception). If it is symptom-patch creep growing into a refactor, narrow back or route to `/baransu:analyze`. |
 | Someone (user or agent) deflects suspicion from a specific area — semantic trigger, not literal string match. Examples: 「那段沒問題」「不是那邊的問題」「先別管那個」「我已經檢查過了」, "that part doesn't matter", "I already checked there" | Treat as a signal. The area being deflected from is often where the bug lives — especially in multi-stage pipelines (CI segments, data pipeline stages, baransu plane handoffs) where one stage is excluded from suspicion. Re-examine that area with one targeted instrument before accepting the deflection. |
 
+> ultracode session 中可派 Workflow 平行探查多條假說線（每線一個 instrument 焦點），結果仍匯回單一根因敘述。
+> loop 驅動時 loop-mode 預設值為 assisted：診斷自動推進，修復套用前回報 driver。
+
 ---
 
 ## Gotchas
@@ -231,7 +242,7 @@ All user-facing output is in Traditional Chinese (繁體中文).
 對於曾修過又再現的 bug，「已解決」的條件是：(1) 迴歸測試在舊 code 失敗、新 code 通過；(2) 測試在 project test suite 裡；(3) commit message 說明再現原因與防止方式。
 
 After confirming root cause, route the fix by task scope:
-- Single change point, small amount of code → invoke `/baransu:dev`
+- Single change point, small amount of code → 直接實作，依 _shared/tdd.md 紀律自建紅綠 task list（see `plugins/baransu/skills/_shared/tdd.md` §7）
 - Multiple files, design decision needed, or cross-module impact → invoke `/baransu:analyze`
 
 ### Handoff 格式（三次假說失敗後使用）

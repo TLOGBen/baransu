@@ -16,6 +16,14 @@ Converts any content into a Kami-themed, browser-ready HTML book saved to `.clau
 
 ---
 
+## Outcome Contract
+
+- **Outcome**: 把任一內容來源（URL / slug / 本地檔 / 文字）經 Acquire → Synthesize → Render 三階段轉成 Kami 主題、瀏覽器可直接開啟的 HTML book。
+- **Done when**: 輸出 HTML 通過 scripts/validate-output.ts 全部 GATE（exit 0），且檔案落於 `.claude/book/{slug}.html`。
+- **Evidence**: validate-output.ts 的執行結果（GATE A-E / F / G / J / K / L 全綠或合法 SKIP）。
+- **Output**: `.claude/book/{slug}.html`；依 `--format` 另含 `.pdf` / `.pptx`。
+- **Automation**: ultracode=neutral, loop=drivable
+
 ## Stage 0 — Environment Self-Check
 
 > 本 SKILL.md 採 Fact-Verification Principle #0（見下文 Stage 2A §0「Fact-Verification Principle #0」段）：在合成長文前，凡偵測到具體產品 / 版本 / 人名 + 職位 pattern，強制 search the web 驗證；0 結果即 ask the user directly 阻擋。
@@ -317,9 +325,9 @@ For each section from `$STRUCTURE`:
 
 ### 4. SVG 生成規格
 
-只在 long-form HTML 含 `<figure class="diagram">` 時生效。spec 含：色彩 token（canonical names + Kami hex 預設）、必備 `<defs>` / marker / 兩層 paper-mask、type tag、legend strip、4 px 對齊與 12 檔節點寬白名單、嵌入字體校正、14 型圖表 first-match 決策樹、13 型 selection 表（含 `status: complete | ref-only`）。
+只在 long-form HTML 含 `<figure class="diagram">` 時生效。spec 含：色彩 token（canonical names + Kami hex 預設）、必備 `<defs>` / marker / 兩層 paper-mask、type tag、legend strip、4 px 對齊與 3 檔節點寬白名單（128/144/160）、嵌入字體校正、14 型圖表 first-match 決策樹、13 型 selection 表（含 `status: complete | ref-only`）。
 
-**完整規則 → 讀 `references/svg-rendering-rules.md`。**SVG fill / stroke **禁用 `rgba()`**；節點寬限 12 檔；焦點節點透過 `data-role="focal"` 標記，每張 SVG 上限 2 個。
+**完整規則 → 讀 `references/svg-rendering-rules.md`。**SVG fill / stroke **禁用 `rgba()`**；節點寬限 3 檔（128/144/160）；焦點節點透過 `data-role="focal"` 標記，每張 SVG 上限 2 個。
 
 ### 5. Core Asset Protocol（圖片取得）
 

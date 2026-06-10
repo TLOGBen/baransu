@@ -1,8 +1,8 @@
 ---
 name: ship
 description: Use When wrapping up a session and pushing pending changes. Do Archive
-  .claude/{tmp,analyze,execute,think,dev}/ to .claude/archived/, commit and push,
-  optionally remove the current worktree. Trigger On '/ship', '收工', '上傳收尾', '結束這輪'.
+  .claude/{tmp,analyze,execute,think}/ to .claude/archived/, commit and push, optionally
+  remove the current worktree. Trigger On '/ship', '收工', '上傳收尾', '結束這輪'.
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex
@@ -16,12 +16,20 @@ No user confirmation required. Five steps run automatically.
 
 ---
 
+## Outcome Contract
+
+- **Outcome**: The session's working files are archived and all pending changes are committed and pushed.
+- **Done when**: Archivable items are moved into `.claude/archived/`, `git status --porcelain` is empty after the commit, and the branch is pushed to origin (worktree removed and branch deleted when run inside a worktree).
+- **Evidence**: The session end output reporting the archived item count, the commit message (or 「跳過」), the push target `origin/{branch}`, and the worktree cleanup status.
+- **Output**: Archived directories under `.claude/archived/`, a pushed git commit, and the 繁中 session end report.
+- **Automation**: ultracode=neutral, loop=assisted
+
 ## Step 1 — Detect
 
 Check both whether the workspace dirs hold archivable items AND whether the git working tree has pending changes. Stop only when **both** are empty — otherwise there is still work to ship even when one side is empty.
 
 ```bash
-ARCHIVE_ITEMS=$(find .claude/tmp .claude/analyze .claude/execute .claude/think .claude/dev -maxdepth 1 -mindepth 1 2>/dev/null | head -1)
+ARCHIVE_ITEMS=$(find .claude/tmp .claude/analyze .claude/execute .claude/think -maxdepth 1 -mindepth 1 2>/dev/null | head -1)
 GIT_DIRTY=$(git status --porcelain 2>/dev/null | head -1)
 ```
 
@@ -36,7 +44,7 @@ Decision:
 
 Create `.claude/archived/` if it does not exist.
 
-For each of `tmp`, `analyze`, `execute`, `think`, `dev`: for each item directly inside the source directory:
+For each of `tmp`, `analyze`, `execute`, `think`: for each item directly inside the source directory:
 - Destination: `.claude/archived/{item_name}`
 - If destination already exists: rename it to `.claude/archived/{item_name}-{unix_timestamp}` first
 - Move item to destination

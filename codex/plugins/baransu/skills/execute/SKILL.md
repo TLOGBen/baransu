@@ -11,6 +11,14 @@ metadata:
 
 Long-running orchestration engine for medium-to-large tasks. This body is English (agent-facing). All user-visible output is **Traditional Chinese (繁體中文)**.
 
+## Outcome Contract
+
+- **Outcome**: Every task in the /analyze spec is executed through the Summarize → Impl → Review TDAID loop and the run is fully reported.
+- **Done when**: `.claude/execute/{date}-{slug}/execute/final-report.md` exists, every registered task ended ✅ / blocked / cascade-blocked, and the Step 6 Final-Review coverage result is recorded in it.
+- **Evidence**: final-report.md carries the {N}/{M} REQ 達成率, the Goal-Alignment Filter Metric block, and the blocked list; all session gitworktrees removed.
+- **Output**: Working documents plus `final-report.md` under `.claude/execute/{date}-{slug}/execute/`.
+- **Automation**: ultracode=overlap, loop=drivable
+
 ## 目標
 
 Read an `/analyze` spec directory. Execute every task through a Summarize → Impl → Review TDAID loop with subagent context isolation. Run E2E tests and Final-Review. Write `final-report.md`. Never stop early — if a task is blocked, escalate and continue unblocked work.
@@ -27,6 +35,14 @@ These apply across all steps. The review-agent rule and the spec-read-only rule 
 - **All Task Tools created before execution begins.** Register every group × task via track the task internally in Step 2. No mid-execution task creation.
 - **Working files live under `.claude/execute/`.** Edit and Write are only permitted in the execute working directory.
 - **Goal-Alignment Filter is hard governance.** `failure_count` accounting is affected by the filter (off-goal findings are downgraded to advisory and do not increment the counter), but findings tied to 驗收標準直接失敗 are protected by the hard invariant — they keep their original tier and still increment `failure_count`.
+
+### Orchestration interface (dual-mode)
+
+The Step 4 agent-dispatch contract lives in `references/orchestration-interface.md`: the
+review-agent return shape consumed by the Goal-Alignment Filter, Step 0 mode pinning
+(ultracode detect → record in confirm.md → no mid-run switch), and a thin Workflow adapter.
+Both adapters return identical shapes — Phase 3 routing and `failure_count` accounting never
+sense the mode. TDAID loop logic and non-ultracode semantics are unchanged.
 
 ---
 

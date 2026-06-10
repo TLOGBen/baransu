@@ -53,7 +53,7 @@ no title, no footer, no page chrome, no logo, no border
 **Prompt template**
 
 ```
-Long-form web mockup screenshot in Kami warm-paper aesthetic. Single column reading layout, parchment background (#faf9f5), serif headings in near-black ink (#141413), generous line-height, deep ink-blue (#1B365D) accent on a few inline links only. Includes a hero block, three body paragraphs with a pulled blockquote, a small two-row data table, and a subtle drop-cap initial. Render as if photographed flat on a desk: no browser chrome, no address bar, no scrollbar, no operating-system shell. Pixel-sharp typography, deckle-edge crop at the bottom suggesting more content below.
+Long-form web mockup screenshot in Kami warm-paper aesthetic. Single column reading layout, parchment background (#f5f4ed), serif headings in near-black ink (#141413), generous line-height, deep ink-blue (#1B365D) accent on a few inline links only. Includes a hero block, three body paragraphs with a pulled blockquote, a small two-row data table, and a subtle drop-cap initial. Render as if photographed flat on a desk: no browser chrome, no address bar, no scrollbar, no operating-system shell. Pixel-sharp typography, deckle-edge crop at the bottom suggesting more content below.
 no title, no footer, no page chrome, no logo, no border
 ```
 

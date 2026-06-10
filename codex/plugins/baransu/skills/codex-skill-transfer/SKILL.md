@@ -16,6 +16,14 @@ compatibility: Designed for Claude Code; output targets Codex CLI. Optional `ski
 
 One-way port from Claude Code → Codex. Claude is canonical; this skill produces the Codex shadow.
 
+## Outcome Contract
+
+- **Outcome**: A derived Codex-format copy of the Claude Code skill / batch / plugin source exists in a separate output directory, with every lossy decision surfaced.
+- **Done when**: `python3 scripts/transfer.py <claude-source> <codex-output>` completes (or the equivalent inline port is written), the output directory contains the detected mode's expected shape, and the transfer report is printed.
+- **Evidence**: The 繁中 transfer report enumerating 完整保留 / 翻譯處理 / 動態注入改寫 / 已捨棄 / 需人工檢視 items; the source tree is untouched.
+- **Output**: The Codex output directory (single skill dir, batch subdirs, or marketplace root) plus the transfer report.
+- **Automation**: ultracode=assist, loop=assisted
+
 ## Direction is one-way (Claude → Codex)
 
 The user keeps editing on the Claude side. Each rerun regenerates the Codex output from the current Claude source. The Codex output is **derived**, not authoritative — never edit it by hand expecting changes to flow back.
@@ -117,4 +125,4 @@ codex-skill-transfer/
     └── transfer.py                       # CLI entry; auto-detects mode
 ```
 
-Single Python file by design — baransu's other tooling scripts (`grade-collector.py`, `health_check.py`) follow the same single-file convention. Output *shapes* live in `assets/` for the plugin manifest layer; the safety-critical outputs (openai.yaml, agent-stub TOML) are built via standard library serializers (`yaml.safe_dump`, `json.dumps`) so escape correctness doesn't depend on template discipline.
+Single Python file by design — baransu's other tooling scripts (`design/scripts/check.py`, `read/scripts/search-papers.py`) follow the same single-file convention. Output *shapes* live in `assets/` for the plugin manifest layer; the safety-critical outputs (openai.yaml, agent-stub TOML) are built via standard library serializers (`yaml.safe_dump`, `json.dumps`) so escape correctness doesn't depend on template discipline.

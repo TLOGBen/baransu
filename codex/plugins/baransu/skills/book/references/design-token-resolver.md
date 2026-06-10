@@ -126,7 +126,7 @@ golden-template variants):
 
 | Preset          | `--paper` | `--accent` | Notes                              |
 |-----------------|-----------|------------|------------------------------------|
-| Kami (紙)       | `#faf9f5` | `#1B365D`  | ink-blue, ≤5% surface              |
+| Kami (紙)       | `#f5f4ed` | `#1B365D`  | ink-blue, ≤5% surface              |
 | Swiss           | `#f5f5f1` | `#002FA7`  | International Klein Blue (IKB)     |
 | Google-design   | `#FEF7FF` | `#6750A4`  | Material 3 baseline primary        |
 

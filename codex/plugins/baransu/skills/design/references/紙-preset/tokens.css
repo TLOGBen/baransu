@@ -14,7 +14,7 @@
   --dark-surface:   #30302e;  /* dark containers */
   --deep-dark:      #141413;  /* dark page background */
 
-  /* ── Accent (sole chromatic, ≤5% surface — Kami invariant #6) ── */
+  /* ── Accent (sole chromatic, ≤5% surface — Kami invariant #2) ── */
   --accent:    #1B365D;  /* deep ink-blue */
   --accent-on: #faf9f5;  /* foreground on --accent fills — ivory, not pure white */
 
@@ -38,7 +38,7 @@
      --font-serif: "TsangerJinKai02", "Source Han Serif SC", "Noto Serif CJK SC",
                    "Songti SC", "STSong", Georgia, serif;                          */
 
-  /* ── Depth (ring / whisper only — no hard shadows; Kami inv #4) ── */
+  /* ── Depth (ring / whisper only — no hard shadows; Kami inv #9) ── */
   --shadow-ring:    0 0 0 1px var(--border);
   --shadow-whisper: 0 4px 24px rgba(0, 0, 0, 0.05);
 

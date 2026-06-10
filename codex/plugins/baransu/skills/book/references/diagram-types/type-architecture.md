@@ -15,9 +15,9 @@ example: inline
 - 線先畫、boxes 後畫：SVG 內箭頭 `<line>` 先進 DOM，節點 `<rect>` / `<g>` 後進，z-order 才會把連線壓在節點底下，避免箭頭尾巴穿過節點外框。
 - 1–2 個焦點節點用 `data-role="focal"` 屬性標記（**非** class）；焦點節點視覺走 `--brand-tint` 填色 + `--brand` 描邊，並以 `marker-end="url(#arrow-accent)"` 收尾。每張 SVG 最多 2 個 focal，超過則「重點」就消失。
 - Dashed boundary rectangle 標 region（VPC、security group、trust zone）；boundary 標籤坐在 `--parchment` 色 mask 上，覆蓋 dashed 線條與標籤交會處，避免線壓字。
-- 節點寬度走 grid 的 12 檔之一（如 96 / 144 / 192 / 240px），不要每個節點寬度自由發揮；視覺節律一致時讀者掃讀速度才會穩定。
+- 節點寬度只用 3 檔白名單 {128 / 144 / 160}（Kami diagrams.md L79；單張 SVG 最多混 2 檔），不要每個節點寬度自由發揮；視覺節律一致時讀者掃讀速度才會穩定。
 - 節點內嵌字 14–24px：超過 24 看起來像 hero、低於 14 在 1× SVG 下會糊。標題用 `--font-sans`、metric / id 用 `--font-mono`、單位用 `--color-muted`。
-- 三個 marker（`arrow` / `arrow-accent` / `arrow-link`）在 `<defs>` 內統一定義，屬性固定 `markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"`；不再手寫箭頭 path，避免 viewBox 縮放下對位偏差。
+- 三個 marker（`arrow` / `arrow-accent` / `arrow-link`）在 `<defs>` 內統一定義，屬性固定 `markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"`；不再手寫箭頭 path，避免 viewBox 縮放下對位偏差。
 
 ## Anti-patterns
 
@@ -38,7 +38,7 @@ Inline example below — 6-node microservice topology（User → CDN → API[foc
 <figure class="diagram">
   <svg viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Microservice architecture topology">
     <defs>
-      <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse">
+      <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
         <circle cx="1" cy="1" r="0.9" fill="#E3E2DC"/>
       </pattern>
       <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">

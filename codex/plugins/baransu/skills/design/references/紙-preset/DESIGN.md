@@ -4,7 +4,7 @@
 
 **哲學**：溫潤羊皮紙感。介面如一張好紙——有重量、有肌理、讓文字安靜地躺在上面。
 
-Kami 十不變量（來自 CHEATSHEET.md canonical invariants）：
+Kami 十不變量（來自 CHEATSHEET.md canonical invariants；upstream tw93/Kami@5cd7c8e，2026-06-10）：
 1. 背景不用純白，用暖調羊皮紙 `#f5f4ed`
 2. Accent 唯一墨藍 `#1B365D`，全頁只此一個彩色
 3. 中性灰限定暖調（黃棕底色），禁冷灰
@@ -50,12 +50,15 @@ Kami 十不變量（來自 CHEATSHEET.md canonical invariants）：
 - 主色 `--brand` 用於 accent、CTA、section left bar，佔比控制在 ≤5% 表面
 - 禁用純白 `#ffffff`；禁用純黑 `#000000`
 
+**Sanctioned exception — semantic warm accent（唯一豁免）**：changelog 類產物的 `.tag.breaking` 專用 `--breaking-bg: #f0e0d8` / `--breaking-fg: #8b4513`（皆暖調 R>G>B；已註冊於上游 tokens.json，為 off-palette lint 的唯一豁免）。文件列待遇（同 `--charcoal`）：不進 36-name canonical vocabulary，不寫入 tokens.css。僅 changelog 類產物可用；不得新增第二個 semantic accent。
+
 **RGBA → Solid hex 換算**（WeasyPrint 相容，以羊皮紙底 + 墨藍為基底）：
 
 | Alpha | Solid hex | 用途 |
 |-------|-----------|------|
-| 0.08 | `#EEF2F7` | 最淺 tag 背景（預設） |
+| 0.08 | `#EEF2F7` | 最淺 tag 背景 |
 | 0.14 | `#E4ECF5` | — |
+| 0.18 | `#E4ECF5` | 標準 tag 背景（預設；上游 token 名 `--tag-bg`） |
 | 0.22 | `#D0DCE9` | — |
 | 0.30 | `#D6E1EE` | — |
 
@@ -163,7 +166,7 @@ Hover：加 whisper shadow `0 4px 24px rgba(0,0,0,0.05)`
 
 **Tag / Badge**（solid hex 背景，禁 rgba）：
 ```css
-background: #EEF2F7;           /* solid hex，非 rgba */
+background: #E4ECF5;           /* 標準 tag（預設）；最淺層用 #EEF2F7，gradient brush 罕用 */
 color: var(--brand);
 font-size: 9pt; font-weight: 600;
 padding: 1pt 5pt;
@@ -260,7 +263,7 @@ line-height: 1.55;
 - ✅ Heading weight 用 500，不用 700/bold
 - ✅ Ring（`0 0 0 1px var(--border)`）或 whisper（`0 4px 24px rgba(0,0,0,0.05)`）陰影
 - ✅ Body 行高 1.5–1.55，headline 行高 1.1–1.3
-- ✅ Tag 背景用 solid hex（`#EEF2F7`），不用 rgba
+- ✅ Tag 背景用 solid hex（標準 `#E4ECF5`、最淺 `#EEF2F7`），不用 rgba
 - ✅ `--sans: var(--serif)` 讓 sans alias serif，不引入獨立字族
 - ✅ Section title 用 2.5pt brand left bar 作為 Kami 簽名視覺
 
@@ -281,7 +284,7 @@ line-height: 1.55;
 
 以下提示詞可在全新 AI 對話中重現本設計系統的視覺語言：
 
-> Design a UI using the Kami paper design system. Background: warm parchment `#f5f4ed`; card surfaces: `#faf9f5`; interactive surfaces: `#e8e6dc`. Primary accent: ink-blue `#1B365D` (≤5% surface area). Text hierarchy: near-black `#141413` → warm dark `#3d3d3a` → olive `#504e49` → stone `#6b6a64`. Borders: `--border: #e8e6dc` (primary), `--border-soft: #e5e3d8` (secondary). Typography: Charter/Georgia for English, TsangerJinKai02/Noto Serif SC for Chinese — all weights locked at 500 for headings (no bold), 400 for body. `--sans` aliases `--serif`. Line-height: headlines 1.1–1.3, body 1.5–1.55. Shadows: ring only (`0 0 0 1px var(--border)`) for static; whisper (`0 4px 24px rgba(0,0,0,0.05)`) for hover. No hard drop shadows. Tags use solid hex `#EEF2F7` (never rgba). Section titles use a 2.5pt brand left bar. No italics anywhere. The aesthetic is warm printed paper — ink on parchment, craft over chrome.
+> Design a UI using the Kami paper design system. Background: warm parchment `#f5f4ed`; card surfaces: `#faf9f5`; interactive surfaces: `#e8e6dc`. Primary accent: ink-blue `#1B365D` (≤5% surface area). Text hierarchy: near-black `#141413` → warm dark `#3d3d3a` → olive `#504e49` → stone `#6b6a64`. Borders: `--border: #e8e6dc` (primary), `--border-soft: #e5e3d8` (secondary). Typography: Charter/Georgia for English, TsangerJinKai02/Noto Serif SC for Chinese — all weights locked at 500 for headings (no bold), 400 for body. `--sans` aliases `--serif`. Line-height: headlines 1.1–1.3, body 1.5–1.55. Shadows: ring only (`0 0 0 1px var(--border)`) for static; whisper (`0 4px 24px rgba(0,0,0,0.05)`) for hover. No hard drop shadows. Tags use solid hex `#E4ECF5` (standard) or `#EEF2F7` (lightest), never rgba. Section titles use a 2.5pt brand left bar. No italics anywhere. The aesthetic is warm printed paper — ink on parchment, craft over chrome.
 
 ### (a) 焦點節點上限
 

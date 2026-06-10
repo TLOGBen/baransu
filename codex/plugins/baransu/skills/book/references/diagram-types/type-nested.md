@@ -32,7 +32,7 @@ Inline example below — 3-level containment（1 outer system context → 2 midd
 <figure class="diagram">
   <svg viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="3-level nested containment: System / Bounded contexts / Aggregates">
     <defs>
-      <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse">
+      <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
         <circle cx="1" cy="1" r="0.9" fill="#E3E2DC"/>
       </pattern>
       <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
