@@ -172,7 +172,7 @@ C. Official-first check  — framework-native / stdlib / well-maintained lib
 D. Premise validation    — pwd, existing ADRs, prior art
 E. Attack + complexity   — self-refute; file-count & component-count grading; deps list
 F. Final plan            — the five-section schema
-G. Approval              — AskUserQuestion with four options; downstream is /dev (small) or /analyze (medium-large)
+G. Approval              — AskUserQuestion with four options; downstream is direct implementation per _shared/tdd.md (small) or /analyze (medium-large)
 ```
 
 Do **not** read any files, run any shell commands, or fetch any URLs before Stage A completes. The whole point of Stage A is to close the gap between Claude's understanding and the user's intent. Touching the codebase first anchors you to what's already there instead of what the user actually wants.
@@ -377,11 +377,11 @@ options:
 
 **Option 2 — 批准實作（完全授權）.** You are done with the deliberation phase. Do two things:
 
-1. Identify the downstream skill based on task size:
-   - **Small task** (single-file or single-area change that fits one session): invoke `/baransu:dev`.
+1. Identify the downstream path based on task size:
+   - **Small task** (single-file or single-area change that fits one session): 直接實作，依 _shared/tdd.md 紀律自建紅綠 task list — the main session implements directly following `plugins/baransu/skills/_shared/tdd.md` §7; no skill handoff.
    - **Medium-to-large task** (spans ≥2 interdependent modules, context-rot risk): invoke `/baransu:analyze`.
-   - If neither skill is available, say so — 「沒有完美接手的 skill，建議直接進入手寫實作」.
-2. Produce a one-paragraph **handoff summary** in 繁體中文: what was approved, the key constraints, the first concrete step of implementation. Immediately invoke the identified skill with this summary as its input. Execute autonomously; do not ask the user for further confirmation during implementation unless a destructive or irreversible action arises.
+   - If no path fits, say so — 「沒有完美接手的 skill，建議直接進入手寫實作」.
+2. Produce a one-paragraph **handoff summary** in 繁體中文: what was approved, the key constraints, the first concrete step of implementation. Immediately continue with this summary as input — invoke `/baransu:analyze` for medium-to-large tasks, or begin the direct implementation for small tasks. Execute autonomously; do not ask the user for further confirmation during implementation unless a destructive or irreversible action arises.
 
 **Option 3 — 還有地方要對焦.** Call `AskUserQuestion` to find out what needs re-alignment. Then determine whether the new concern is an **extension** of the current direction or a **different concern**:
 

@@ -227,7 +227,7 @@ All user-facing output is in Traditional Chinese (繁體中文).
 對於曾修過又再現的 bug，「已解決」的條件是：(1) 迴歸測試在舊 code 失敗、新 code 通過；(2) 測試在 project test suite 裡；(3) commit message 說明再現原因與防止方式。
 
 After confirming root cause, route the fix by task scope:
-- Single change point, small amount of code → invoke `/baransu:dev`
+- Single change point, small amount of code → 直接實作，依 _shared/tdd.md 紀律自建紅綠 task list（see `plugins/baransu/skills/_shared/tdd.md` §7）
 - Multiple files, design decision needed, or cross-module impact → invoke `/baransu:analyze`
 
 ### Handoff 格式（三次假說失敗後使用）

@@ -816,7 +816,7 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
             else:
                 # Non-skill sibling dirs under skills/ (e.g. _shared/) carry
                 # cross-skill content referenced by SKILL.md bodies (e.g.
-                # _shared/tdd.md cited by grade/triage/dev/bridge). Copy
+                # _shared/tdd.md cited by think/hunt and the execute agents). Copy
                 # verbatim so cross-references resolve.
                 shutil.copytree(child, out_skills / child.name)
                 aux_dirs_copied.append(child.name)

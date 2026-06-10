@@ -1,6 +1,6 @@
 ---
 name: ship
-description: Use When wrapping up a session and pushing pending changes. Do Archive .claude/{tmp,analyze,execute,think,dev}/ to .claude/archived/, commit and push, optionally remove the current worktree. Trigger On '/ship', '收工', '上傳收尾', '結束這輪'.
+description: Use When wrapping up a session and pushing pending changes. Do Archive .claude/{tmp,analyze,execute,think}/ to .claude/archived/, commit and push, optionally remove the current worktree. Trigger On '/ship', '收工', '上傳收尾', '結束這輪'.
 ---
 
 # /baransu:ship — session cleanup
@@ -16,7 +16,7 @@ No user confirmation required. Five steps run automatically.
 Check both whether the workspace dirs hold archivable items AND whether the git working tree has pending changes. Stop only when **both** are empty — otherwise there is still work to ship even when one side is empty.
 
 ```bash
-ARCHIVE_ITEMS=$(find .claude/tmp .claude/analyze .claude/execute .claude/think .claude/dev -maxdepth 1 -mindepth 1 2>/dev/null | head -1)
+ARCHIVE_ITEMS=$(find .claude/tmp .claude/analyze .claude/execute .claude/think -maxdepth 1 -mindepth 1 2>/dev/null | head -1)
 GIT_DIRTY=$(git status --porcelain 2>/dev/null | head -1)
 ```
 
@@ -31,7 +31,7 @@ Decision:
 
 Create `.claude/archived/` if it does not exist.
 
-For each of `tmp`, `analyze`, `execute`, `think`, `dev`: for each item directly inside the source directory:
+For each of `tmp`, `analyze`, `execute`, `think`: for each item directly inside the source directory:
 - Destination: `.claude/archived/{item_name}`
 - If destination already exists: rename it to `.claude/archived/{item_name}-{unix_timestamp}` first
 - Move item to destination
