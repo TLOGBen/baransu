@@ -1,11 +1,11 @@
 {
   "name": "baransu",
-  "version": "2.0.0",
-  "description": "バランス — deliberate before executing, verify after. Twelve governance skills covering the full development lifecycle.",
+  "version": "2.1.0",
+  "description": "バランス — deliberate before executing, verify after. Thirteen governance skills covering the full development lifecycle.",
   "skills": "./skills/",
   "interface": {
     "displayName": "Baransu",
-    "shortDescription": "バランス — deliberate before executing, verify after. Twelve governance skills covering the full development lifecycle."
+    "shortDescription": "バランス — deliberate before executing, verify after. Thirteen governance skills covering the full development lifecycle."
   },
   "license": "MIT",
   "author": {
@@ -16,6 +16,7 @@
     "governance",
     "think",
     "review",
+    "health",
     "design",
     "book",
     "learn",

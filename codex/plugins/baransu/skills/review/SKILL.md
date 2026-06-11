@@ -25,7 +25,7 @@ The body below is English (agent-facing). Wherever this file quotes literal user
 - **Outcome**: 對目標完成一次跨視角獨立再驗證，發現經天平校驗後按四層回應分級，收斂為一份審查報告。
 - **Done when**: 報告含八欄 sign-off receipt，且 hard-stops sweep 結果以 checklist 逐項列出（每項 not hit 或 hit＋一行引註）。
 - **Evidence**: 報告收尾的兩個結構化元素 — hard-stops sweep checklist 與八欄 sign-off receipt fenced block。
-- **Output**: 對話內的繁中審查報告（prose 本體＋結構化收尾），不另落檔。
+- **Output**: 對話內的繁中審查報告（prose 本體＋結構化收尾），並同步落檔為 HTML 工作日誌 `.claude/review/<slug>.html`（見 HTML work journal 節）。
 - **Automation**: ultracode=overlap, loop=drivable
 
 ## Four perspectives (agent files)
@@ -97,7 +97,7 @@ If Stage 2's tier cap disagrees with activation count (e.g. a 100-LOC target tri
 
 Launch one **parallel Task** per activated perspective, each in a clean context. Pass each reviewer three things: target content, the **claim checklist** (Stage 1), and the **review goal** (Stage 1). Reviewers do not know about each other and do not coordinate.
 
-Findings return in natural language (not YAML). Each must include: citation (file:line or section), which claim it contradicts (or "none — observation"), the observation itself, the surgical fix, and a balance note (see Stage 6).
+Findings return in natural language (not YAML). Each must include: citation (file:line or section), which claim it contradicts (or "none — observation"), the observation itself, the surgical fix, and a balance note (see Stage 6). Any non-obvious claim inside a finding carries a source annotation — `(verified: <how>)` when the reviewer actually checked, or `(inferred: 未實查)` when it rests on reasoning alone.
 
 No recursion: this dispatch is the only depth /review uses. /review does not invoke /review, adversarial (Stage 5) is exactly one round, and reviewers do not review each other.
 
@@ -131,6 +131,19 @@ Adversarial augments reviewer findings; it does not override.
 ## Stage 6 — Consolidate + balance check
 
 Before consolidating, re-read this section's four balance-check questions — context accumulates between Stage 4 dispatch and Stage 6 consolidation, and the balance check is the load-bearing mechanism most vulnerable to attention decay.
+
+### Finding Quality Gate
+
+Before any finding enters consolidation, it passes four quality questions. This gate is **separate from the balance check below**: the gate asks whether a finding is *real*; the balance check asks whether it is *worth acting on*. Passing one never implies the other.
+
+1. Can it cite a concrete location (file:line, or section for plan-type targets)?
+2. Can it describe a triggering input — a concrete condition under which the problem actually manifests?
+3. Did the reviewer read the upstream/downstream context, not just the cited lines?
+4. Does the claimed severity hold when restated against that evidence?
+
+HIGH / CRITICAL findings additionally require **three pieces of evidence** (e.g. citation + triggering input + contradicted claim or reproduction record). A finding that fails any question downgrades one tier or drops entirely — nothing passes through "just in case".
+
+「乾淨的 review 是有效的 review — 零發現配上明說的審查面就是完整輸出」。A zero-finding report that states exactly which surfaces were examined is a complete, valid deliverable. Manufacturing findings to justify the invocation is prohibited.
 
 **Deduplicate**: collapse findings with the same citation + same observation, attributing to the narrowest-scope perspective.
 
@@ -205,6 +218,8 @@ Traditional Chinese, natural prose, this shape:
 - Findings by tier — 已修 / 待確認 / 需判斷 / 僅供參考. Themes hit by a Hard stops sweep item must be fully described in the prose; the hard-stops checklist below is a machine-readable companion, never a substitute — do not skip a topic in prose because it will appear in the checklist.
 - E2E status
 
+Throughout the report, non-obvious claims carry a source annotation — `(verified: <how>)` or `(inferred: 未實查)`.
+
 After the prose above, two structured-tail elements (additive — the prose is the body, these are the receipt):
 
 **Hard-stops sweep result** — checklist form. List every Required item from the Hard stops sweep section with its outcome; include the Optional item only when `security-reviewer` was not dispatched. Each line is one of: `□ <item>: not hit` or `☒ <item>: hit — <one-line citation>`.
@@ -236,6 +251,18 @@ Field semantics (single source of truth for each):
 No verdict enum. No YAML schema. No skeleton template — write the kind of review a real engineer would read as a review.
 
 For **needs-judgment** items, batch-ask via ask the user directly. Let the question count follow the natural theme grouping; don't split to hit a number, don't merge to shrink one.
+
+---
+
+## HTML work journal
+
+After the report has been presented in conversation, persist it as an HTML work journal:
+
+1. Render the full report as a single HTML file at `.claude/review/<slug>.html`, styled after the book golden-template. The shared rendering contract lives at `plugins/baransu/skills/_shared/output-journal.md` — follow it.
+2. Include an 「執行日誌」 section: off-spec decisions, forced changes, tradeoffs, and anything else from this run the user should know.
+3. Send the file to the user via SendUserFile.
+
+The in-conversation prose remains the primary deliverable; the HTML journal is its persisted, shareable form.
 
 ---
 

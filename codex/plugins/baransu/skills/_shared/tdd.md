@@ -179,6 +179,8 @@ GREEN 確認後才看下面的清單：
 | Test 透過 `db.query(...)` 直接驗結果 | 跳 interface；不寫 retrieve API 反而繞過去查 DB。 |
 | RED 階段同時 refactor 既有 impl | 混淆失敗來源；違反「refactor only when GREEN」。 |
 
+跨技能行為反模式（含紅綠紀律條目）見 `../../rules/anti-patterns.md`；本表僅收 test 設計層反模式。
+
 ---
 
 ## 7. 直接實作時的紅綠閘（文件紀律）
@@ -186,6 +188,8 @@ GREEN 確認後才看下面的清單：
 小任務不經 `/execute` 管線、由主 session 直接實作時（例如 `/think` 核可方案或 `/hunt`
 診斷收斂後的單一變更點），紅綠閘以**文件紀律（discipline-suggested）**形式運作：沒有
 orchestrator 替你把關，實作者依本節自建紅綠 task list、先紅後綠、紅燈確認後才寫實作。
+若核可方案已有上游工作日誌（`.claude/think/*.html`），實作期間的規範外決策依
+`output-journal.md` 契約追記至該日誌的「執行日誌」節。
 
 ### 7.1 先分類：TDD 或 cosmetic
 

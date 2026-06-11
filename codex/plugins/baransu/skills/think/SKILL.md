@@ -25,7 +25,7 @@ If you find yourself thinking "I could just write this quickly" — that's exact
 - **Outcome**: 把模糊意圖收斂為一份使用者明確核可的五段式計畫（或 Evaluation 模式的 Kill / Keep / Pivot 單行判決），全程不產出任何程式碼。
 - **Done when**: 使用者於 Stage G 四選項閘（ask the user directly）批准最終提案，或明確放棄本輪計畫；自由文字批准須以「收到，把這當成批准實作」收口入檔。
 - **Evidence**: Stage G 的 ask the user directly 互動結果 — 四選項之一被選取，或自由文字批准的收口句已輸出。
-- **Output**: 對話內呈現的繁中五段式計畫（或判決＋三理由）；批准後交棒 /analyze 或依 _shared/tdd.md 直接實作。
+- **Output**: 對話內呈現的繁中五段式計畫（或判決＋三理由）；批准後落檔 `.claude/think/<slug>.md`（計畫原文）與 `.claude/think/<slug>.html`（HTML 工作日誌，含「執行日誌」節，依 `_shared/output-journal.md` 契約），並以 SendUserFile 送出；隨後交棒 /analyze 或依 _shared/tdd.md 直接實作。
 - **Automation**: ultracode=neutral, loop=not-drivable
 
 ## The iron rule
@@ -277,6 +277,8 @@ This stage catches the common failure where the whole plan is built on a wrong a
 
 Record what you found in one short paragraph as part of the proposal — the user should see that this check happened.
 
+**Claim-cite-first**: any non-obvious premise must cite how it was verified — annotate it `(verified: <how>)`（例：DB 查詢、changelog、file:line）— or be explicitly marked `(inferred: 未實查)` before anything downstream relies on it.
+
 ### Memory type mapping (when a premise comes from memory)
 
 When a premise originates in agent memory (`decision`, `preference`, `principle`, `pattern`, `learning`, `fact`) rather than direct observation, map the memory type to its downstream effect — different types belong to different Stages, even though the mapping rule lives here:
@@ -358,6 +360,8 @@ Produce **exactly** this structure, in 繁體中文, with these exact section ti
 （如果沒有 unknown，寫「無」並解釋為什麼這個規模的工作不需要延後任何決定。）
 ```
 
+Claim-cite-first applies to the plan itself: a non-obvious claim in any section carries `(verified: <how>)` or `(inferred: 未實查)` — an unmarked non-obvious claim is a handwave.
+
 ### Section-by-section defaults to correct
 
 - **Building**: Claude's default is to describe the mechanism ("we'll add a handler that processes events from the queue"). Push harder: describe the *observable outcome* ("when a user uploads a CSV, within 30 seconds they see a confirmation email with row-count and error-row CSV attached").
@@ -404,6 +408,16 @@ options:
 - **Different concern** (goal changes, problem reframed, direction diverges): restart from Stage A. State clearly: 「這是一個不同的問題方向，重新從 Stage A 對焦。」
 
 **Option 4 — 放棄.** End the skill. Don't argue. Don't offer a simplified version. If the user later returns with a different angle, that's a fresh `/think`.
+
+### Work journal (after approval)
+
+Once the plan is approved — Option 2 selected, a free-text approval closed with 「收到，把這當成批准實作」, or the plan sent onward after Option 1's review loop ends in approval — produce the persistent artifacts before handing off:
+
+- [ ] Write the five-section plan verbatim to `.claude/think/<slug>.md` (slug: short kebab-case derived from the plan topic).
+- [ ] Render an HTML work journal at `.claude/think/<slug>.html`, based on the book golden-template, per the shared contract in `plugins/baransu/skills/_shared/output-journal.md`. It contains the original skill output (the five-section plan) plus an 「執行日誌」 section, initially seeded with the approval record (誰批准、哪個選項、何時).
+- [ ] Send both files via `SendUserFile` with a one-line 繁中 caption（例：「計畫已落檔；執行日誌將隨實作持續追記」）.
+
+During subsequent implementation, the 「執行日誌」 section MUST be continuously appended with off-spec decisions, forced changes, trade-offs, and anything else the user should know. **The implementing party owns the appending** — `/execute` on the medium-to-large path, or the main session implementing directly per `_shared/tdd.md` §7. /think's responsibility ends at creating the journal and naming this ownership in the handoff summary.
 
 ---
 

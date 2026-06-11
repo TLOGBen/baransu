@@ -2,6 +2,41 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.1.0 (2026-06-11)
+
+**理念合併版**：baransu（結構化管線）×（tw93/Waza 的）規則即天花板哲學熔成一套，成文為 README「核心理念」五條（條款綁機制，錨點存在性由 verify-skills 機器驗證）。18 項收錄全數落地，每項標明對應理念條。規格軌跡：`.claude/think/baransu-v2.1-philosophy-merge-plan.md`（含 /review 複審紀錄）。
+
+### Added — 新增
+
+1. **`/health` 第 13 技能**〔結構是地板〕：移植 Waza /health — 體檢「使用者專案」的 agent 配置與 AI 可維護性，五層審計、預算姿態先行、Step 0 專案分級；9 支 stdlib-only 腳本＋3 個 inspector 子代理人（`agents/health-inspector-*.md`）。定位句明寫：baransu 自身結構驗證歸 `scripts/verify-skills.py`、審單次模型輸出歸 `/review`。
+2. **「13 即上限、以裁換建」條款**〔規則是天花板〕：寫入 CLAUDE.md；機制錨點＝verify-skills 技能數檢查（12→13）。
+3. **/review Finding Quality Gate**〔證據優先〕：Stage 6 四問門檻（file:line／觸發輸入／上下游已讀／嚴重度站得住）、HIGH/CRITICAL 三證據、「乾淨的 review 是有效的 review」、禁止為正當化呼叫製造發現。
+4. **HTML 工作日誌**〔狀態落盤〕：/think 與 /review 交付物以 book golden-template 渲染至 `.claude/{think,review}/<slug>.html` 並 SendUserFile；實作期間持續追記規範外決策／變更／取捨。共用契約＝`_shared/output-journal.md`（新檔）；execute 與 tdd.md §7 各掛追記鉤子。
+5. **claim-cite-first**〔證據優先〕：anti-patterns 新條「無源依賴」＋ `(verified: <how>)` / `(inferred: 未實查)` 標注慣例進 review/think 輸出格式。
+6. **重述＋列步驟＋條件式等確認**〔人在授權點〕：anti-patterns 新條「悶頭就做」— 顯示永遠做；等確認分流（互動等、完全授權/ultracode/loop 走 Input-PAUSE 預設值）。
+7. **anti-patterns 淨增 4 條**〔規則是天花板〕：Worktree Safety（授權層級＋隔離驗證）、不受信任內容、無源依賴、悶頭就做（6→10 條）；與 tdd.md 雙向 cross-ref。
+8. **/write 長文 change-points 分支＋中文 AI 腔指紋**〔證據優先〕：~300 行以上輸出改變更點清單（可 diff 審）；writing-principles 折入指紋 4 條；em-dash 分級 — en 新 rule 8（U+2014 硬禁、U+2013 限數字區間）、zh 新 rule 10 軟規則＋voice-overridable 新語義類別；en 規則範例自違規兩處改寫。
+9. **CLAUDE.md Skills 表「Not for（易混淆）」欄**〔規則是天花板〕：13 列歧義消解（RESOLVER 輕量版），單路由面。
+10. **verify-skills 擴充**〔結構是地板〕：三發行面版本一致（plugin.json＝marketplace.json＝codex 鏡像，鏡像缺檔即違規）；README 理念段逐條錨點存在性檢查；`EXPECTED_SKILL_COUNT` 13。
+
+### Changed — 變更（含行為變更，升級必讀）
+
+1. **`/read` 預設改 local-first（隱私面破壞性變更）**〔人在授權點〕：舊版非 GitHub/PDF URL 一律先送 defuddle.md 代理；新版預設本地抽取、URL 不離機，代理需 `--use-proxy` 顯式開啟；本地品質不足時不再無聲降級走代理，改為停止並建議 `--use-proxy` 或 `--chrome`。認證／內部 URL 任何情況不得餵代理。
+2. **/think、/review 的 Outcome Contract Output 行**：由「不另落檔」改為同步落檔 HTML 工作日誌（顯式契約變更）。
+3. **/ship push 在 loop 驅動下升為 Authorization 等級**：loop-contract 補註 — 驅動上下文無常設授權紀錄即不得自動 push。
+4. **execute/SKILL.md 瘦身 605→447 行**：四段自足內容逐字下放 `execute/references/`（green-proof-verify／goal-alignment-filter／correction-strategy／error-reference），failure_count 措辭經逐行比對 verbatim 保留；500 行官方上限 advisory 清除。
+5. doc-debt 清零其餘三項：README Codex `--ref` 過時 pin → v2.1.0；book-stage0 測試修復（worktree 相對路徑＋重錨 Stage 0 區段）；anti-patterns↔tdd.md cross-ref 補齊。
+6. 測試面 12→13 漣漪全清：baseline 重生（13 列）、D1 改 semver 斷言（不再釘死版本字串）、D2/D7、automation 標注表加 health（assist/assisted）。
+
+### 盤點收尾（差異清零）
+
+- **已存在、不重做**：Pattern-Fix Completeness（/hunt Scope Blast）、Autofix 四級路由（/review 四層 tier）。
+- **declined（理由見計畫 Not building）**：make regenerate codegen、36 條 anti-patterns 照搬、/check maintainer 鏈、串聯改手動、第 14 技能。
+
+### SemVer 註
+
+採 minor（2.0.1 → 2.1.0）：主軸為新增（第 13 技能＋治理資產）。/read 的 local-first 預設變更具行為破壞性但屬隱私強化方向，已在本節 Changed 首條顯著標記；嚴格解讀者可視為 major 候選，維持 minor 是因調用面（指令、旗標、模式集）全部向前相容。
+
 ## v2.0.1 (2026-06-11)
 
 **`hooks/wiki-sync.sh` 修 slug 抽取 bug**：`read/index.md` 以 `# Read Index` 標題行開頭時，表頭列落在 `NR>2` 之後，awk 把字面值 `slug`（表頭字）當成待同步 slug，產生 `sync | slug` 幽靈紀錄。修法：抽取條件追加 `$3=="slug"` 過濾。實測舊版對現行 index.md 首筆吐出 `slug`、新版正確過濾。採 patch：hook 內部行為修正，調用面零變動。

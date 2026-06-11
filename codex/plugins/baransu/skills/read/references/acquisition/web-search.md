@@ -60,7 +60,7 @@ When the user selects one URL, hand it back to `/read`'s existing URL routing in
 - `github.com` / `raw.githubusercontent.com` host → web-static.md GitHub section
 - `.pdf` URL or `content-type: application/pdf` → web-static.md PDF URL section
 - SPA detected (response < 500 bytes or feature strings) → web-dynamic.md
-- Otherwise → web-static.md proxy cascade
+- Otherwise → web-static.md Local-First Fetch flow（代理需 --use-proxy 顯式開啟）
 
 The existing `raw/{slug}/index.{ext}` → markitdown → `material/{slug}/index.md` chain is unchanged.
 

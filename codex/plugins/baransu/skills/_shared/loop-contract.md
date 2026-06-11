@@ -99,6 +99,16 @@ by design it never stops early except Step 0.
 learn's terminal stops (Stage 0 environment failures, all-lanes-fail in §3.5)
 are error exits, not PAUSEs — the driver receives an explicit failure message.
 
+### /ship
+
+| Interaction point | Class | Non-interactive default |
+|---|---|---|
+| Step 4 push (`git push origin {branch}`) | **Authorization** | Hard stop. Under loop drive, never auto-push unless a standing user authorization is recorded in the driving context (e.g. the loop prompt or approved plan explicitly authorizes push); absent that record, report `needs input` to the driver |
+
+/ship's push step is interaction-free in human-present sessions (Step 4 pushes
+unconditionally), but pushing publishes state beyond the local repo — under a
+non-interactive driver it carries Authorization-PAUSE weight.
+
 ### /think
 
 | Skill | Loop-drivable? |

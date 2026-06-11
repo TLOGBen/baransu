@@ -1,8 +1,40 @@
 # Web — Static Content Acquisition
 
-## Proxy Cascade
+## Local-First Fetch (default)
 
-Try each layer in order. Move to the next layer if the result is fewer than 5 non-empty lines or lacks substantive text (word count < 100).
+This is the default path. The URL is fetched directly from this machine and extraction happens locally (markitdown in Stage 2) — the URL is never sent to any third-party proxy unless the user explicitly passed `--use-proxy`.
+
+```bash
+curl -sL "{url}" \
+  -H "Accept: text/html" \
+  -H "User-Agent: Mozilla/5.0" \
+  -o raw/{slug}/index.html
+```
+
+Quality checks:
+- Word count > 100
+- More than 5 non-empty lines
+
+Routing after the checks:
+
+- **Checks pass** → continue to Stage 2 (Convert) with the local file.
+- **Checks fail, `--use-proxy` NOT passed** → do NOT silently fall back to a proxy. Discard the file, record the failure, and report to the user: 「本地抓取品質不足：{url}。可改用 --use-proxy（內容會經第三方代理）或 --chrome（瀏覽器抓取）。」
+- **Checks fail, `--use-proxy` passed** → run the Hard Rule check below, then proceed to the Proxy Cascade.
+
+## Proxy Cascade (`--use-proxy` opt-in only)
+
+The cascade sends the URL to third-party services (defuddle.md, r.jina.ai). It runs only when the user explicitly passed `--use-proxy` and the direct fetch above failed quality checks.
+
+### Hard rule — never proxy authenticated or internal URLs
+
+Even with `--use-proxy`, a URL must NEVER be sent to any proxy if it matches any of:
+
+- Credentials embedded in the URL (`user:pass@host`)
+- Query parameters carrying secrets or session material (`token=`, `key=`, `apikey=`, `api_key=`, `access_token=`, `sig=`, `signature=`, `session=`)
+- Private or internal hosts: `localhost`, `127.0.0.1`, `*.local`, `*.internal`, RFC1918 addresses (`10.*`, `172.16-31.*`, `192.168.*`), or single-label intranet hostnames
+- Any URL the user has indicated requires login
+
+If matched: skip the cascade entirely and output 「此 URL 屬於認證或內部資源，禁止送往代理服務。請改用 --chrome 以登入態瀏覽器抓取。」
 
 ### Layer 1 — Defuddle proxy
 
@@ -26,20 +58,9 @@ Note: pass the target URL as-is after the slash. For `http://` URLs, Jina prepen
 
 Quality checks: same as Layer 1 (word count > 100, > 5 non-empty lines).
 
-If either check fails, discard the file and proceed to Layer 3.
-
-### Layer 3 — Direct fetch
-
-```bash
-curl -sL "{url}" \
-  -H "Accept: text/html" \
-  -H "User-Agent: Mozilla/5.0" \
-  -o raw/{slug}/index.html
-```
-
 ### All layers fail
 
-If all three layers fail quality checks or return HTTP errors:
+If the direct fetch and (when permitted) both proxy layers fail quality checks or return HTTP errors:
 - Do NOT create any `raw/{slug}/` files.
 - Record the failure.
 - Report to the user: what URL was attempted, which layers were tried, and the failure reason for each.

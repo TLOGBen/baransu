@@ -6,13 +6,13 @@
   },
   "metadata": {
     "description": "バランス — a Claude Code plugin marketplace",
-    "version": "2.0.1"
+    "version": "2.1.0"
   },
   "plugins": [
     {
       "name": "baransu",
       "source": "./plugins/baransu",
-      "description": "バランス — deliberate before executing, verify after. Twelve governance skills covering the full development lifecycle.",
+      "description": "バランス — deliberate before executing, verify after. Thirteen governance skills covering the full development lifecycle.",
       "category": "governance",
       "tags": ["governance", "think", "review", "design", "book", "learn", "read", "write", "execute", "ship"]
     }
