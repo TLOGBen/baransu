@@ -10,7 +10,7 @@
 
 要麼什麼都不管，模型照自己理解直接開工；要麼儀式太重，一個小改動也要先填五張表才動得了手。
 
-第一次嘗試是自己做了一套 `everything-cli`。做完才發現，它走到了另一個極端——token 燒得飛快，每個小任務都要過七道關才能動手。好用，但太重了。
+第一次嘗試是自己做了一套 `everything-cli`。做完才發現，它走到了另一個極端：token 燒得飛快，每個小任務都要過七道關才能動手。好用，但太重了。
 
 baransu 是第二次。
 
@@ -24,7 +24,7 @@ baransu 是第二次。
 
 每個 skill 都有清楚的觸發界線——什麼能省、什麼一定要做。
 
-v2.1.0 起，這條路線與 [tw93/Waza](https://github.com/tw93/Waza) 的克制哲學完成合併，成文為五條可驗收的理念。每條綁定一個倉內機制——**無錨點的條款不入冊**，錨點存在性由結構驗證器把關：
+v2.1.0 起，這條路線成文為五條可驗收的理念。每條綁定一個倉內機制——**無錨點的條款不入冊**，錨點是否存在，由結構驗證器把關：
 
 | 理念 | 一句話 | 機制錨點 |
 |---|---|---|
@@ -34,7 +34,7 @@ v2.1.0 起，這條路線與 [tw93/Waza](https://github.com/tw93/Waza) 的克制
 | 證據優先 | 非顯然主張依賴前先引查證來源；發現過四問門檻，乾淨的 review 也是有效的 review | `plugins/baransu/skills/review/SKILL.md` |
 | 狀態落盤 | 長流程的結論落檔交付、不賭終端顯示；工作日誌隨實作持續追記 | `plugins/baransu/skills/_shared/output-journal.md` |
 
-技能串聯維持五平面自動交接——這是合併中 baransu 保留的那半注：Waza 押「人手動串每一步」，baransu 押「結構化管線＋人在授權點」。這是顯式立場，不是疏漏。
+技能串聯維持五平面自動交接：管線負責把事串起來，人守在授權點上。這是刻意的取捨。
 
 ---
 
@@ -85,7 +85,7 @@ codex plugin marketplace add /path/to/baransu
 | `/think` | 動手前的對焦工具。先用三輪提問把方向收斂，再用五節計畫釘死細節，最後拿到一句明確批准才往實作走。防的是這件事：模型抓到一個假需求，還把它做得很完整。 |
 | `/review` | 帶著明確問題，在乾淨 context 裡重新讀一次已經做完的工作。重點不是抓語法錯誤，是抓慣性讓人看不見的事——邊界沒守住、邏輯有跳格、宣稱和實作對不起來。 |
 | `/hunt` | 抓 bug 的工作流。先選對觀測層放工具（看事件時序、重現資料、髒資料特徵），再用 log 二分法一輪不超過三個探點往內收斂，直到能一句話講清根因——指到 file:line，不接受「可能是狀態問題」這種答案。動手修以前先把呼叫鏈與會被影響的測試列出來，修完依規模走直接實作（`_shared/tdd.md` §7 紅綠紀律）或 `/analyze` 收尾。 |
-| `/health` | 體檢「你的專案」的 agent 配置與 AI 可維護性——指令漂移、hooks/MCP、驗證面、code-rot 訊號。五層審計（agent config → instruction surfaces → tools/runtime → verifiers → maintainability），預算姿態先行：預設只跑 summary，深審需明確觸發並先告知成本。對象是使用者專案；baransu 自身的結構驗證歸 `scripts/verify-skills.py`，審單次模型輸出歸 `/review`。 |
+| `/health` | 體檢你專案的 agent 配置與 AI 可維護性——指令漂移、hooks/MCP、驗證面、code-rot 訊號。五層審計（agent config → instruction surfaces → tools/runtime → verifiers → maintainability），預算姿態先行：預設只跑 summary，深審需明確觸發並先告知成本。baransu 自身的結構驗證歸 `scripts/verify-skills.py`，審單次模型輸出歸 `/review`。 |
 
 ### 設計型
 

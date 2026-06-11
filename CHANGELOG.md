@@ -2,6 +2,10 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.1.1 (2026-06-11)
+
+**README 潤稿（/write zh Refine）**：核心理念段去除上游品牌引用（strip-provenance 的自我實踐——規則靠防什麼掙位置，不靠來自哪裡）；理念段收尾的對仗句式與「存在性」名詞化改寫（rules 5/8 地板）；起源段一處破折號改冒號（rule 10 軟規則）；/health 表列去贅句。機制錨點路徑與技術 token 零變動，verify-skills 理念錨點檢查仍綠。採 patch：純文案，調用面零變動。
+
 ## v2.1.0 (2026-06-11)
 
 **理念合併版**：baransu（結構化管線）×（tw93/Waza 的）規則即天花板哲學熔成一套，成文為 README「核心理念」五條（條款綁機制，錨點存在性由 verify-skills 機器驗證）。18 項收錄全數落地，每項標明對應理念條。規格軌跡：`.claude/think/baransu-v2.1-philosophy-merge-plan.md`（含 /review 複審紀錄）。
