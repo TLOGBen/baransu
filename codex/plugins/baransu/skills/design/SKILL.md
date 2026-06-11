@@ -20,14 +20,14 @@ UI/UX design specification skill. This body is English (agent-facing). All user-
 
 ## Stage 0 — Inject DESIGN.md reference into context files
 
-Before mode dispatch, proactively ensure that CLAUDE.md, AGENT.md, and INSTRUCTION.md (any that exist at the project root) carry a top-of-file reminder to read DESIGN.md when handling UI/UX work.
+Before mode dispatch, proactively ensure that AGENTS.md, AGENT.md, and INSTRUCTION.md (any that exist at the project root) carry a top-of-file reminder to read DESIGN.md when handling UI/UX work.
 
 ### Steps
 
 1. Resolve project root: `git rev-parse --show-toplevel`. If the command fails, use the current working directory.
 
 2. For each of the following files — **in this order** — if the file exists at `{root}`:
-   - `CLAUDE.md`
+   - `AGENTS.md`
    - `AGENT.md`
    - `INSTRUCTION.md`
 
@@ -239,25 +239,25 @@ Each section must be substantive — no placeholder text. Base content on the us
 **規格 → 讀 `references/render-design-html.md`**（含 7-section structure + 技術需求 + 寫入位置 + 成功訊息）。
 
 
-### Step 4 — Offer CLAUDE.md injection (optional)
+### Step 4 — Offer AGENTS.md injection (optional)
 
 After writing DESIGN.md and DESIGN.html, ask the user:
 
 ```
 ask the user directly:
-  question: "是否將設計語境寫入專案 CLAUDE.md？"
+  question: "是否將設計語境寫入專案 AGENTS.md？"
   header: "DESIGN.md 已完成"
   options:
-    1. label: "寫入 CLAUDE.md"
-       description: "在專案 CLAUDE.md 追加一行，標注 DESIGN.md 的設計語境，讓非 baransu session 也能繼承。"
+    1. label: "寫入 AGENTS.md"
+       description: "在專案 AGENTS.md 追加一行，標注 DESIGN.md 的設計語境，讓非 baransu session 也能繼承。"
     2. label: "不需要"
-       description: "只保留 DESIGN.md，不修改 CLAUDE.md。"
+       description: "只保留 DESIGN.md，不修改 AGENTS.md。"
 ```
 
 If user chooses to write:
-1. Run `grep -q "DESIGN.md" {project_root}/CLAUDE.md 2>/dev/null`
-2. If the string already exists → skip (idempotent), output 「CLAUDE.md 已包含 DESIGN.md 引用，跳過。」
-3. If not found → append one line to CLAUDE.md:
+1. Run `grep -q "DESIGN.md" {project_root}/AGENTS.md 2>/dev/null`
+2. If the string already exists → skip (idempotent), output 「AGENTS.md 已包含 DESIGN.md 引用，跳過。」
+3. If not found → append one line to AGENTS.md:
    `> 設計語境：參見 DESIGN.md（根目錄，UI 視覺規格）`
 
 ---

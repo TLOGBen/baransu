@@ -2,6 +2,38 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.2.0 (2026-06-11)
+
+**`/codex-skill-transfer` 對照 2026-06 官方 Codex 文件全面重驗**（developers.openai.com/codex：plugins/build、hooks、subagents、skills），skill metadata version 0.7.4 → 0.8.0：
+
+### Fixed — 修正
+
+1. **Plugin mode 安裝指引重寫**：移除不存在的 `codex plugin install` 子指令（`marketplace add` 即安裝）與錯誤的「必須帶 `--sparse`」宣稱（--sparse 只過濾 checkout，不會重定 marketplace root）；改印 Layout B 本地路徑安裝 + git URL 需 repo-root Layout A catalog 的正確指引，導向 marketplace-mapping.md §8。
+2. **plugin.json 必填欄位對齊官方**：Codex 只必填 `name`（kebab-case）+ `version`（semver），`description` 為選填；name-暫代 fallback 保留但報告措辭改「(建議補上；Codex 選填)」；§3 補 component pointer 路徑 ≤125 字元、必以 `./` 開頭。
+3. **marketplace source types 對齊官方**：官方文件列三種 source（local / url / git-subdir），非「local 唯一」；§8 加註 git-subdir 與 2026-05 `--sparse` 實測發現的未解衝突（先重驗再改 Layout A/B 建議）；provenance 改以官方 build docs 為主、plugin-creator system skill 為輔。
+
+### Changed — 變更
+
+1. **hooks 現實對齊**：Codex 確有 experimental lifecycle hooks（`~/.codex/hooks.json` / config.toml `[hooks]`；事件鏡像 Claude Code），預設關閉、信任授權、僅 command 型執行；frontmatter `hooks` drop 報告改「手動遷移至 .codex/hooks.json（experimental，預設關閉）」；plugin 層 hooks/MCP 設定不再無聲流失，改發需人工檢視行（不自動輸出指標）。
+2. **`CLAUDE.md` → `AGENTS.md` body 改寫**：skill body 內的 CLAUDE.md 引用改寫為 AGENTS.md（Codex root-down 讀取，合併上限 32 KiB），翻譯處理報告行；references/*.md 不改寫，改掃描 Claude-only token（AskUserQuestion / Task tool / TodoWrite / EnterPlanMode / $ARGUMENTS / !`cmd` / CLAUDE.md）逐檔發需人工檢視行。
+3. **裸 `$N` 改寫加防護**：僅當 frontmatter 宣告 `arguments` / `argument-hint` 時改寫，避免破壞 awk/sed/bash 字面 $1/$2；`$ARGUMENTS[n]` 改寫不受影響。
+4. **輸出不變量落地**：每個 SKILL.md 寫出後檢查 ≤500 行、name 字元集/長度（agentskills.io ≤64）；`skills-ref validate` 在 PATH 上才跑並回報結果；違規照常輸出但入報告。
+5. **commands 升級為可行動指引**：Codex custom prompts 已官方棄用——逐檔轉 Codex skill，勿移植 `~/.codex/prompts/`（0.117.0 regression）。
+6. **安裝目的地指引**：single-skill/batch 模式輸出複製到 `<repo>/.agents/skills/`（專案）或 `~/.agents/skills/`（個人）——是 `.agents/` 不是 `.codex/`/`.claude/`；SKILL.md Step 2 + 報告各加一句。
+7. **AskUserQuestion 行降信心**：「request_user_input 僅 Plan mode 可用」改為「無已驗證 Codex 等價物（官方文件未載；社群指南稱任一模式皆無）」——衝突浮出、不裁決；一律改寫為純文字提問。
+8. **agent-mapping 欄位信心標注**：name/description/developer_instructions（必填）、model/sandbox_mode/mcp_servers（選填）、built-ins、max_threads=6/max_depth=1 已官方確認（codex/subagents）；model_reasoning_effort / skills.config / nickname_candidates 標社群來源待確認；gpt-5.4 為 2026-06 社群 opus 對等、會漂移。
+9. **skill-root 孤兒子目錄列報**：非 scripts/references/assets/agents 的子目錄不複製、逐一入已捨棄。
+10. **倉庫工程面**：AGENTS.md 改寫為委派檔（單一事實源指向 CLAUDE.md，只補非 Claude agent 所需）；新增 `make test` 統一驗證入口；測試套件 worktree-safe 修正（test-distribution-metadata / test_check_design 路徑重錨）。
+
+### Internal
+
+- transfer.py 雜項：刪除死碼 NAMED_ARG regex、修 batch 分支過時註解、description 縮減段補官方 skills-list context cap（~2% window / 8,000 chars）系統性理由註解並標注兩條 trigger-phrase regex 為 baransu 專屬啟發式；docstring 改正已退役 template 引用（openai.yaml / agent stub 實為 yaml.safe_dump / json.dumps 直建）。
+- codex/ 鏡像以新版 transfer.py 全量重產（13 skills、v2.2.0），鏡像 skill body 已套 CLAUDE.md→AGENTS.md 改寫。
+
+### SemVer 註
+
+採 minor（2.1.2 → 2.2.0）：plugin mode 報告/輸出面新增需人工檢視管道與安裝指引變更屬使用者可見行為擴增；指令、frontmatter shape 向前相容。
+
 ## v2.1.2 (2026-06-11)
 
 **`/design` 紙-preset 重新初始化揭露的三組修正**（`/design preset 紙` 等冪重跑 → lint 52 violations → 0）：

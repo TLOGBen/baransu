@@ -16,11 +16,11 @@ Authoritative translation table from Claude Code SKILL.md frontmatter to Codex s
 | `user-invocable: false` | — | Drop. No Codex equivalent. Note in report; the skill may need a body-side note saying "this skill is intended for model-side use only" |
 | `argument-hint` | — | Drop. Inform body rewrite of `$ARGUMENTS`. |
 | `arguments` | — | Drop. Use the names to rewrite `$name` placeholders in the body. |
-| `model` | — | Drop. Codex model is set via CLI flag. Optionally surface as a comment in the body. |
+| `model` | — | Drop. Codex model is set via CLI flag, `config.toml`, or profile overlay files (`$CODEX_HOME/<profile>.config.toml` with `--profile`; legacy `[profiles.x]` deprecated 0.134.0). Optionally surface as a comment in the body. |
 | `effort` | — | Drop. No Codex equivalent. |
 | `context: fork` | `.codex/agents/{name}.toml` (user-side) | **Manual review required.** Three Codex paths exist (see §5); choice depends on isolation needs. |
 | `agent` | `.codex/agents/{name}.toml` `name` field | **Manual review required.** Coupled with `context: fork`. |
-| `hooks` | — | Drop. No Codex equivalent. Note in report. |
+| `hooks` | — | Drop from frontmatter (correct — Codex skills have no frontmatter hooks). But Codex DOES have experimental lifecycle hooks: `~/.codex/hooks.json` or `[hooks]` in `config.toml`; events mirror Claude Code (SessionStart, PreToolUse, PostToolUse, Stop, …). Off by default, trust-gated, only `type="command"` executes. Report reads 手動遷移至 `.codex/hooks.json`（experimental，預設關閉）. Source: developers.openai.com/codex/hooks |
 | `paths` | — | Drop. No Codex equivalent for glob-scoped activation. Note in report. |
 | `shell` | — | Drop. Codex skills run shell via tool calls, not a pre-declared shell. |
 
@@ -28,7 +28,7 @@ Authoritative translation table from Claude Code SKILL.md frontmatter to Codex s
 
 ### 1. Open-standard fields
 
-`name`, `description`, `license`, `compatibility`, `metadata`, `allowed-tools` are defined by [agentskills.io/specification](https://agentskills.io/specification). Both Claude and Codex are supersets of this standard.
+`name`, `description`, `license`, `compatibility`, `metadata`, `allowed-tools` are defined by [agentskills.io/specification](https://agentskills.io/specification); the official Codex skills docs ([developers.openai.com/codex/skills](https://developers.openai.com/codex/skills)) confirm the same set. Both Claude and Codex are supersets of this standard. Note the `compatibility` field caps at 500 chars — keep pass-through values within that limit.
 
 Pass these through unchanged. If `compatibility` is absent, set:
 
@@ -132,13 +132,14 @@ Skill bodies often mention Claude Code surface APIs:
 | Claude API | Codex equivalent or rewrite |
 |-----------|----------------------------|
 | `Task tool` (subagent dispatch) | "spawn a Codex subagent" — see [`agent-mapping.md`](agent-mapping.md) Path 1; or, if user opted for skill chaining (Path 2), rewrite as `$skill-name` mention |
-| `AskUserQuestion` tool | "ask the user directly" — Codex's `request_user_input` is **only available in Plan mode**, so do not map it as a drop-in. Default mode skills must ask in plain text. |
+| `AskUserQuestion` tool | "ask the user directly" — **no verified Codex equivalent.** Official docs are silent on a user-questioning tool; community migration guides say none exists in any mode (an earlier claim that `request_user_input` works in Plan mode is unconfirmed — conflict surfaced, not resolved). Always rewrite to plain-text questioning. |
 | `EnterPlanMode` / `ExitPlanMode` tools | **No skill-callable equivalent in Codex.** In Claude Code these are model-callable, harness-managed; the skill can instruct the model to enter Plan Mode (subject to user approval). In Codex, `active mode` only changes when the developer/system/client message changes it — a skill cannot self-switch. Rewrite as a prompt-driven plan gate ("produce a plan and pause for confirmation before any edits"); if the skill genuinely needs Plan Mode, add a note that the runtime/client must enter Plan Mode externally before invocation. |
 | `TodoWrite` tool | "track steps internally" or use Codex's own task system if mentioned |
 | `Skill tool` (calling another skill) | "invoke the related skill" — Codex supports skill-to-skill dispatch via `$skill-name` mention |
 | `WebFetch` / `WebSearch` | Codex has its own browse tool; rephrase as "fetch the URL" / "search the web" |
 | `Bash` tool | identical (both have shell tool) |
 | `Read` / `Edit` / `Write` | identical (both have file tools) |
+| `CLAUDE.md` (instruction-file reference) | `AGENTS.md` — Codex reads `AGENTS.md` files from the repo root down, with a 32 KiB combined cap. Body-level rewrite only; references/ files are scanned-and-flagged, never rewritten (see §8). |
 
 If a reference cannot be rewritten cleanly, prefer "ask the model to perform X" over inventing a Codex-specific name.
 
@@ -148,10 +149,18 @@ The output `SKILL.md` must:
 
 - Have valid YAML frontmatter delimited by `---` lines
 - Have `name` exactly equal to the output directory name (open spec rule)
+- Have a `name` of lowercase letters / digits / hyphens, ≤ 64 chars (agentskills.io)
 - Be ≤ 500 lines (open spec recommendation; if the source exceeds this, suggest splitting into `references/`)
 - Pass `skills-ref validate` if available
 
-If any of these fail after translation, emit the result anyway but flag the failure in the report.
+`transfer.py` enforces these after writing each SKILL.md (`check_output_invariants`): line count and name charset/length are checked directly; `skills-ref validate` runs only when found on PATH (skipped silently otherwise) and its result lands in the report. If any check fails after translation, the result is emitted anyway but the failure is flagged in the report.
+
+### 8. Auxiliary content handling (`copy_aux`)
+
+- `scripts/`, `references/`, `assets/` are copied verbatim (with the `.` → `.` rewrite in scripts/ and references/).
+- **`references/*.md` bodies are never rewritten.** Instead, each copied reference is scanned for Claude-only tokens (`AskUserQuestion`, `Task tool`, `TodoWrite`, `EnterPlanMode`, `$ARGUMENTS`, `` !`cmd` `` injection, `CLAUDE.md`) and one 需人工檢視 report line per affected file lists what was found. Rationale: references may quote these tokens *as documentation* (this skill's own mapping tables are the canonical example) — a blind rewrite would corrupt them.
+- Skill-root orphan **files** are copied and reported (翻譯處理).
+- Skill-root orphan **directories** (any subdir other than `scripts` / `references` / `assets` / `agents`) are NOT copied; each is listed under 已捨棄 so the omission is visible.
 
 ## See also
 

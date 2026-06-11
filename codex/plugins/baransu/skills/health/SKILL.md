@@ -62,8 +62,8 @@ Pick one. Apply only that tier's requirements.
 
 | Tier | Signal | What's expected |
 |---|---|---|
-| **Simple** | <500 files, 1 contributor, no CI | CLAUDE.md only; 0-1 skills; hooks optional |
-| **Standard** | 500-5K files, small team or CI | CLAUDE.md + 1-2 rules; 2-4 skills; basic hooks |
+| **Simple** | <500 files, 1 contributor, no CI | AGENTS.md only; 0-1 skills; hooks optional |
+| **Standard** | 500-5K files, small team or CI | AGENTS.md + 1-2 rules; 2-4 skills; basic hooks |
 | **Complex** | >5K files, multi-contributor, active CI | Full layered setup: instructions + rules + skills + hooks + executable verification |
 
 ## Step 1: Collect data

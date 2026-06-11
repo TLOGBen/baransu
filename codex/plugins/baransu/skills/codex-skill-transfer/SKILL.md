@@ -7,7 +7,7 @@ description: One-way port of Claude Code skills, plugins, or marketplaces to Ope
 license: Apache-2.0
 metadata:
   author: baransu
-  version: 0.7.4
+  version: 0.8.0
 compatibility: Designed for Claude Code; output targets Codex CLI. Optional `skills-ref`
   CLI for validation.
 ---
@@ -49,6 +49,8 @@ python3 scripts/transfer.py <claude-source> <codex-output>
 ```
 
 The script refuses if `<codex-output>` overlaps the source — there is a real data-loss path otherwise (rerun would `rmtree` the source). Always pick a separate output directory.
+
+For single-skill and batch output, install by copying each skill directory into `<repo>/.agents/skills/` (project) or `~/.agents/skills/` (personal) — note `.agents/`, NOT `.codex/` or `.claude/` — then restart Codex to pick it up.
 
 **For the `baransu` plugin: `<codex-output>` is `codex/` at repo root.** This matches the path committed in `<repo-root>/.agents/plugins/marketplace.json` (Layout A catalog). Do not invent a new output dir — the catalog's `source.path` would dangle and `codex plugin marketplace add <git-url>` (the README install command) would silently break.
 

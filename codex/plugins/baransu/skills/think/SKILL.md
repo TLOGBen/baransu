@@ -291,7 +291,7 @@ When a premise originates in agent memory (`decision`, `preference`, `principle`
 
 **Current state overrides memory.** The live repo, running services, current logs, tests, and remote state always overrule a remembered version. When they conflict, name the conflict in one sentence and go with the current state — never silently follow the memory.
 
-This skill is currently the sole written source for the mapping above; CLAUDE.md does not encode memory-type semantics as of this version. If CLAUDE.md or any global rule ever adds a conflicting type mapping, **CLAUDE.md is authoritative** (global > skill-local).
+This skill is currently the sole written source for the mapping above; AGENTS.md does not encode memory-type semantics as of this version. If AGENTS.md or any global rule ever adds a conflicting type mapping, **AGENTS.md is authoritative** (global > skill-local).
 
 ---
 

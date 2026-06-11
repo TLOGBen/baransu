@@ -1,6 +1,6 @@
 # Marketplace Mapping (`.claude-plugin/marketplace.json` → `.agents/plugins/marketplace.json`)
 
-⚠️ **Not script-automated.** Marketplace publication is a deliberate act and the converted catalog should be reviewed by hand. The schema below comes from the Codex `plugin-creator` skill (`~/.codex/skills/.system/plugin-creator/references/plugin-json-spec.md`), not guesswork.
+⚠️ **Not script-automated.** Marketplace publication is a deliberate act and the converted catalog should be reviewed by hand. The schema below comes from the official Codex plugin build docs ([developers.openai.com/codex/plugins/build](https://developers.openai.com/codex/plugins/build), primary) and the Codex `plugin-creator` system skill (`~/.codex/skills/.system/plugin-creator/references/plugin-json-spec.md`, secondary), not guesswork.
 
 For automated layers, see [`skill-mapping.md`](skill-mapping.md) (skill files) and [`plugin-mapping.md`](plugin-mapping.md) (plugin manifests).
 
@@ -56,7 +56,7 @@ Codex requires this exact shape:
 
 - **`name`** — Plugin id. Match the plugin folder name and the plugin's own `plugin.json` `name`. Port verbatim from Claude.
 - **`source`** — **Object, not string** (this is the most common mistake when porting from Claude).
-  - `source.source`: `"local"` for the in-repo workflow. The Codex spec lists this as the only documented value.
+  - `source.source`: the official docs document **three** source types — `"local"`, `"url"`, and `"git-subdir"` (the latter taking `url` / `path` / `ref` / `sha` fields). Use `"local"` for the in-repo workflow this file describes.
   - `source.path`: `./plugins/<plugin-name>`. The path is relative to the marketplace root (the dir containing `.agents/`), not the marketplace.json file.
 - **`policy`** — **Required block.** Always include `installation` and `authentication`.
   - `installation`: `NOT_AVAILABLE` | `AVAILABLE` | `INSTALLED_BY_DEFAULT`. Default to `AVAILABLE`.
@@ -166,6 +166,8 @@ When the source is a git URL (or git shorthand), Codex clones into a staging dir
 ```
 
 `--sparse <PATH>` filters the checkout but does **NOT** rebase the marketplace root inside `<PATH>`. Empirically (Codex CLI as of 2026-05): even with `--sparse codex`, the staging dir still contains repo-root files, and Codex looks for the manifest at staging root, not at `staging/codex/`. So `--sparse <PATH>` alone is not enough to make a `<repo>/codex/.agents/plugins/marketplace.json` reachable via git install.
+
+> ⚠️ **Unresolved conflict — re-verify before relying on either side.** The official docs' `git-subdir` source type (`url` / `path` / `ref` / `sha`) suggests a repo-subdirectory plugin *may* be reachable without the manual Layout A catalog. That conflicts with the empirical 2026-05 `--sparse` finding above. Re-verify against a current Codex CLI before changing the Layout A/B recommendation; until then this file surfaces the conflict without resolving it.
 
 ### Two layouts that actually work
 

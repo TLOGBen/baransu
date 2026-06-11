@@ -20,6 +20,12 @@ Codex defines subagents as standalone TOML files at:
 
 Required fields: `name`, `description`, `developer_instructions`. Optional: `model`, `model_reasoning_effort`, `sandbox_mode`, `mcp_servers`, `skills.config`, `nickname_candidates`. Three built-in agents ship by default: `default`, `worker`, `explorer`.
 
+Field confidence (as of 2026-06):
+
+- **Officially confirmed** ([developers.openai.com/codex/subagents](https://developers.openai.com/codex/subagents)): `name` / `description` / `developer_instructions` required; `model` / `sandbox_mode` / `mcp_servers` optional; built-ins `default` / `worker` / `explorer`; global caps `agents.max_threads = 6`, `agents.max_depth = 1`.
+- **Community-sourced, pending official confirmation**: `model_reasoning_effort`, `skills.config`, `nickname_candidates`.
+- `"gpt-5.4"` is the community-cited opus-equivalent model id as of 2026-06 and **will drift** — verify the current id before filling stubs.
+
 **Spawn semantics:**
 - Explicit only — Codex never spawns a subagent without the parent telling it to.
 - Spawning is via natural-language instruction in the SKILL.md body (e.g. "Spawn a `worker` subagent to handle X"), not via frontmatter.
@@ -103,10 +109,12 @@ developer_instructions = '''
 
 If the body contains literal `'''`, the script falls back to TOML basic multi-line (`"""..."""`) with full backslash + quote escape. This is rare for natural-language agent instructions.
 
+Of the commented optional fields in the stub, `model` / `sandbox_mode` / `mcp_servers` are officially confirmed; `model_reasoning_effort` and `nickname_candidates` are community-sourced (see §1 field confidence). The `"gpt-5.4"` example is the 2026-06 community opus-equivalent and will drift.
+
 ### 4.2 What the user fills in after copying
 
-- `model` — Codex model id (e.g. `"gpt-5.4"`) or omit to inherit from parent session.
-- `model_reasoning_effort` — map from Claude's `effort` if it was present (`low` / `medium` / `high` / `max`).
+- `model` — Codex model id (e.g. `"gpt-5.4"`, the 2026-06 community opus-equivalent; will drift) or omit to inherit from parent session.
+- `model_reasoning_effort` — map from Claude's `effort` if it was present (`low` / `medium` / `high` / `max`). Community-sourced field, pending official confirmation.
 - `sandbox_mode` — usually safer to omit; parent session policy applies.
 - `mcp_servers` — list of MCP server ids this agent should access. If the Claude source had `tools: ...`, the stub already includes a commented suggestion with the original Claude tool names; rename each entry to the corresponding Codex MCP server id, then uncomment.
 - `nickname_candidates` — optional cosmetic names.

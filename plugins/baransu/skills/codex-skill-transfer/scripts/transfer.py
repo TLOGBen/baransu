@@ -11,7 +11,8 @@ detected:
   - **Plugin** (source has `.claude-plugin/plugin.json`):
         Translates the plugin manifest via assets/codex-plugin.template.json,
         batch-transfers all skills under `<source>/skills/`, and emits TOML
-        stubs (assets/agent-stub.template.toml) for each `<source>/agents/*.md`.
+        stubs (built via json.dumps + TOML literal strings, not templated)
+        for each `<source>/agents/*.md`.
         Output tree:
           <output>/.codex-plugin/plugin.json
           <output>/skills/<name>/...
@@ -35,9 +36,10 @@ assets/codex-marketplace.template.json for a starting copy.
 The script is intentionally conservative: when a rewrite is ambiguous, it
 emits a `<!-- TODO(codex-transfer): ... -->` marker rather than guessing.
 
-Output shapes (plugin.json, agents/openai.yaml, agent stub TOML) live in
-assets/*.template.* — editing those changes the output without touching the
-script.
+The plugin.json output shape lives in assets/codex-plugin.template.json —
+editing it changes the output without touching the script. agents/openai.yaml
+and the agent-stub TOMLs are NOT templated: they're built via yaml.safe_dump /
+json.dumps so escape correctness is ironclad (see SKILL.md Step 4).
 """
 
 from __future__ import annotations
@@ -46,6 +48,7 @@ import json
 import re
 import shutil
 import string
+import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -104,8 +107,11 @@ OPEN_STANDARD = {"name", "description", "license", "compatibility", "metadata", 
 INLINE_BACKTICK_CMD = re.compile(r"!`([^`]+)`")
 BLOCK_BACKTICK_CMD = re.compile(r"^```!\s*\n(.*?)^```\s*$", re.MULTILINE | re.DOTALL)
 ARGS_FULL = re.compile(r"\$ARGUMENTS\b")
-ARGS_INDEXED = re.compile(r"\$ARGUMENTS\[(\d+)\]|\$(\d+)\b")
-NAMED_ARG = re.compile(r"\$([a-z][a-z0-9_-]*)\b")
+ARGS_INDEXED = re.compile(r"\$ARGUMENTS\[(\d+)\]")
+# Bare `$N` is rewritten ONLY when the source frontmatter declares `arguments`
+# or `argument-hint` (the signal that positional substitution is in use).
+# Unconditional rewriting corrupted literal $1/$2 in awk/sed/bash snippets.
+ARGS_BARE_NUM = re.compile(r"\$(\d+)\b")
 SESSION_ID = re.compile(r"\$\{CLAUDE_SESSION_ID\}")
 SKILL_DIR = re.compile(r"\$\{CLAUDE_SKILL_DIR\}|\$CLAUDE_SKILL_DIR\b")
 EFFORT = re.compile(r"\$\{CLAUDE_EFFORT\}")
@@ -182,10 +188,15 @@ def translate_frontmatter(fm: dict, report: TransferReport) -> tuple[dict, dict 
         out[k] = fm[k]
         report.lossless.append(f"`{k}`")
 
-    # Codex enforces a 1024-char limit on `description`. Trim by stripping
+    # Codex enforces a 1024-char limit on `description`. Beyond that hard
+    # limit, short descriptions matter systemically: the skills list shares a
+    # context cap (~2% of the window / 8,000 chars per official docs), so
+    # every description char crowds out the others. Trim by stripping
     # Claude-style trigger phrase sentences first (these are useless to Codex
     # since Codex skills are command-invoked, not phrase-triggered); fall back
     # to a hard cut at the last sentence boundary if still over budget.
+    # NOTE: the two trigger-phrase regexes below are baransu-specific
+    # heuristics, not general Claude conventions.
     desc = out["description"]
     if len(desc) > 1024:
         trimmed = re.sub(
@@ -246,13 +257,25 @@ def translate_frontmatter(fm: dict, report: TransferReport) -> tuple[dict, dict 
 
     for k in CLAUDE_ONLY_DROP:
         if k in fm:
-            report.dropped.append(f"`{k}` (no Codex equivalent)")
+            if k == "hooks":
+                # Codex skills have no frontmatter hooks, but Codex DOES have
+                # experimental lifecycle hooks (~/.codex/hooks.json or [hooks]
+                # in config.toml) — off by default, trust-gated, command-type
+                # only. See references/skill-mapping.md hooks row.
+                report.dropped.append(
+                    "`hooks` 手動遷移至 .codex/hooks.json（experimental，預設關閉）"
+                )
+            else:
+                report.dropped.append(f"`{k}` (no Codex equivalent)")
 
     return out, openai_yaml
 
 
 def rewrite_body(
-    body: str, report: TransferReport, named_args: list[str] | None = None
+    body: str,
+    report: TransferReport,
+    named_args: list[str] | None = None,
+    positional_args: bool = False,
 ) -> str:
     inline_count = 0
     block_count = 0
@@ -289,14 +312,28 @@ def rewrite_body(
         return "the arguments the user provided"
 
     def args_indexed_sub(m: re.Match[str]) -> str:
+        # $ARGUMENTS[n] is 0-based.
         nonlocal arg_count
         arg_count += 1
-        idx = int(m.group(1) or m.group(2))
+        idx = int(m.group(1))
         ordinals = ["first", "second", "third", "fourth", "fifth"]
         word = ordinals[idx] if idx < len(ordinals) else f"#{idx + 1}"
         return f"the {word} argument the user provided"
 
+    def args_bare_num_sub(m: re.Match[str]) -> str:
+        # Bare $N is 1-based (Claude Code positional args).
+        nonlocal arg_count
+        arg_count += 1
+        n = int(m.group(1))
+        ordinals = ["first", "second", "third", "fourth", "fifth"]
+        word = ordinals[n - 1] if 0 < n <= len(ordinals) else f"#{n}"
+        return f"the {word} argument the user provided"
+
     body = ARGS_INDEXED.sub(args_indexed_sub, body)
+    # Bare `$N` only when frontmatter signals positional substitution —
+    # otherwise literal $1/$2 in awk/sed/bash snippets would be corrupted.
+    if positional_args:
+        body = ARGS_BARE_NUM.sub(args_bare_num_sub, body)
     body = ARGS_FULL.sub(args_full_sub, body)
 
     named_count = 0
@@ -368,6 +405,28 @@ def rewrite_body(
             f"{tool_count} 處 Claude tool / agent 派遣關鍵字改寫為 Codex 對等敘述（AskUserQuestion / Dispatch X-agent / TaskCreate 等）"
         )
 
+    # Instruction-file rewrite: Codex reads AGENTS.md (root-down, 32 KiB
+    # combined cap), not CLAUDE.md. Body-level rewrite only — references/*.md
+    # are scanned-and-flagged instead (see copy_aux), never rewritten.
+    # Lines that already mention AGENTS.md are listing both files on purpose
+    # (e.g. "scan AGENTS.md, CLAUDE.md") — rewriting there would produce
+    # redundant "AGENTS.md / AGENTS.md" prose, so leave them untouched.
+    agents_md_count = 0
+    rewritten_lines = []
+    for line in body.split("\n"):
+        if "AGENTS.md" in line:
+            rewritten_lines.append(line)
+            continue
+        new_line, n = re.subn(r"\bCLAUDE\.md\b", "AGENTS.md", line)
+        agents_md_count += n
+        rewritten_lines.append(new_line)
+    body = "\n".join(rewritten_lines)
+    if agents_md_count:
+        report.mapped.append(
+            f"{agents_md_count} 處 `CLAUDE.md` 改寫為 `AGENTS.md`"
+            "（Codex 由 root 向下讀 AGENTS.md，合併上限 32 KiB）"
+        )
+
     return body
 
 
@@ -379,8 +438,8 @@ def write_skill(
 ) -> None:
     """Write SKILL.md and (when policy is locked down) agents/openai.yaml.
 
-    The openai.yaml output uses assets/openai.template.yaml so its shape
-    stays in sync with the references/skill-mapping.md §2 example.
+    The openai.yaml output is built via yaml.safe_dump (not templated) and
+    matches the references/skill-mapping.md §2 example shape.
     `openai_meta` carries display_name and short_description; passing None
     means no openai.yaml is emitted.
     """
@@ -409,6 +468,43 @@ def write_skill(
         )
 
 
+def check_output_invariants(target: Path, report: TransferReport) -> None:
+    """Verify the documented output invariants (skill-mapping.md §7).
+
+    Failures are flagged in the report but the output is emitted anyway —
+    the user decides whether to split/rename.
+    """
+    skill_md = target / "SKILL.md"
+    line_count = len(skill_md.read_text(encoding="utf-8").splitlines())
+    if line_count > 500:
+        report.manual_review.append(
+            f"輸出 SKILL.md 共 {line_count} 行，超過開放規格建議的 500 行；建議拆分至 references/"
+        )
+
+    name = target.name
+    if len(name) > 64 or not re.fullmatch(r"[a-z0-9-]+", name):
+        report.manual_review.append(
+            f"skill 名 `{name}` 不符開放規格（agentskills.io：小寫字母/數字/連字號，≤64 字元）"
+        )
+
+    # Optional external validator — run only when present on PATH.
+    skills_ref = shutil.which("skills-ref")
+    if skills_ref:
+        proc = subprocess.run(
+            [skills_ref, "validate", str(target)],
+            capture_output=True,
+            text=True,
+        )
+        if proc.returncode == 0:
+            report.mapped.append("`skills-ref validate` 通過")
+        else:
+            detail = (proc.stderr or proc.stdout).strip().splitlines()
+            first = detail[0] if detail else f"exit {proc.returncode}"
+            report.manual_review.append(
+                f"`skills-ref validate` 失敗（exit {proc.returncode}）：{first}"
+            )
+
+
 SKILL_DIR_ENV = re.compile(r"\$\{CLAUDE_SKILL_DIR\}|\$CLAUDE_SKILL_DIR\b")
 
 
@@ -429,6 +525,25 @@ def copy_aux(source: Path, target: Path, report: TransferReport) -> None:
     if orphan_files:
         report.mapped.append(
             f"複製 skill-root 零散檔案：{', '.join(orphan_files)}"
+        )
+
+    # Skill-root orphan DIRECTORIES (anything beyond the standard four). These
+    # are NOT copied — list each so the omission is visible, not silent.
+    orphan_dirs = [
+        p.name
+        for p in sorted(source.iterdir())
+        if p.is_dir() and p.name not in ("scripts", "references", "assets", "agents")
+    ]
+    for d in orphan_dirs:
+        report.dropped.append(
+            f"skill-root 子目錄 `{d}/` 未複製（非 scripts/references/assets/agents 標準目錄）"
+        )
+
+    # A skill-root agents/ dir is also not copied (agent stubs are generated
+    # only from PLUGIN-level agents/ in plugin mode) — say so, never silent.
+    if (source / "agents").is_dir():
+        report.dropped.append(
+            "skill-root 子目錄 `agents/` 未複製（TOML stub 僅由 plugin 層級 agents/ 產生；skill 內附 agents/ 需手動遷移）"
         )
 
     # `$CLAUDE_SKILL_DIR` rewrite — same logic for scripts/ and references/.
@@ -461,6 +576,34 @@ def copy_aux(source: Path, target: Path, report: TransferReport) -> None:
         report.rewrites.append(
             f"{rewritten} 處 scripts/ + references/ 內的 `${{CLAUDE_SKILL_DIR}}` 改寫為 `.`（skill root）"
         )
+
+    # Claude-only token scan over copied references/*.md. Conservative by
+    # design: reference bodies are NEVER rewritten (they may quote these
+    # tokens as documentation — e.g. this skill's own mapping tables); each
+    # affected file is flagged for manual review instead.
+    token_patterns: list[tuple[str, re.Pattern[str]]] = [
+        ("AskUserQuestion", re.compile(r"\bAskUserQuestion\b")),
+        ("Task tool", re.compile(r"\bTask\s+tool\b")),
+        ("TodoWrite", re.compile(r"\bTodoWrite\b")),
+        ("EnterPlanMode", re.compile(r"\bEnterPlanMode\b")),
+        ("$ARGUMENTS", re.compile(r"\$ARGUMENTS\b")),
+        ("!`cmd` injection", re.compile(r"!`[^`]+`")),
+        ("CLAUDE.md", re.compile(r"\bCLAUDE\.md\b")),
+    ]
+    refs_root = target / "references"
+    if refs_root.is_dir():
+        for path in sorted(refs_root.rglob("*.md")):
+            try:
+                text = path.read_text(encoding="utf-8")
+            except (UnicodeDecodeError, OSError):
+                continue
+            found = [label for label, pat in token_patterns if pat.search(text)]
+            if found:
+                rel = path.relative_to(target)
+                report.manual_review.append(
+                    f"`{rel}` 含 Claude-only token（{', '.join(found)}）；"
+                    "引用文件不自動改寫，請人工確認語境後處理"
+                )
 
 
 def transfer_one(source: Path, output_root: Path) -> TransferReport:
@@ -525,8 +668,12 @@ def transfer_one(source: Path, output_root: Path) -> TransferReport:
     else:
         named_args = None
 
-    new_body = rewrite_body(body, report, named_args=named_args)
+    positional_args = bool(fm.get("arguments") or fm.get("argument-hint"))
+    new_body = rewrite_body(
+        body, report, named_args=named_args, positional_args=positional_args
+    )
     write_skill(target, new_fm, new_body, openai_yaml)
+    check_output_invariants(target, report)
     copy_aux(source, target, report)
     return report
 
@@ -564,9 +711,10 @@ def detect_mode(source: Path) -> str:
 def translate_plugin_manifest(claude_pj: dict, has_skills: bool) -> tuple[dict, list[str], list[str]]:
     """Translate Claude Code plugin.json → Codex .codex-plugin/plugin.json.
 
-    Returns (codex_pj, mapped_notes, dropped_notes). Codex requires
-    name/version/description and (per the build docs) an explicit `skills`
-    pointer when the plugin bundles skills.
+    Returns (codex_pj, mapped_notes, dropped_notes). Codex requires only
+    `name` (kebab-case) + `version` (semver); `description` is optional per
+    the official build docs but recommended, and (per the same docs) an
+    explicit `skills` pointer is needed when the plugin bundles skills.
     """
     out: dict = {}
     mapped: list[str] = []
@@ -582,7 +730,7 @@ def translate_plugin_manifest(claude_pj: dict, has_skills: bool) -> tuple[dict, 
 
     out["description"] = str(claude_pj.get("description") or claude_pj["name"])
     if "description" not in claude_pj:
-        mapped.append("`description` 缺，以 `name` 暫代 (Codex 必填)")
+        mapped.append("`description` 缺，以 `name` 暫代 (建議補上；Codex 選填)")
 
     for k in ("author", "homepage", "repository", "license", "keywords"):
         if k in claude_pj:
@@ -601,7 +749,9 @@ def translate_plugin_manifest(claude_pj: dict, has_skills: bool) -> tuple[dict, 
     mapped.append("加入 `interface` 預設 (display_name + short_description)")
 
     # Claude-side fields that have no Codex equivalent at the plugin level.
-    for k in ("commands", "lspServers", "agents"):
+    # (`commands` is handled separately in transfer_plugin — it needs
+    # actionable manual-review guidance, not a plain drop line.)
+    for k in ("lspServers", "agents"):
         if k in claude_pj:
             dropped.append(f"`{k}` (Claude-only at plugin level; agents 走 user-side `.codex/agents/*.toml`)")
 
@@ -721,6 +871,7 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
     summary: dict = {
         "manifest_mapped": [],
         "manifest_dropped": [],
+        "manifest_manual": [],
         "agent_stubs": 0,
         "skill_count": 0,
         "plugin_name": "",
@@ -738,6 +889,40 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
     codex_pj, mapped, dropped = translate_plugin_manifest(claude_pj, has_skills)
     summary["manifest_mapped"] = mapped
     summary["manifest_dropped"] = dropped
+
+    manual: list[str] = summary["manifest_manual"]
+
+    # Plugin-level hooks / MCP config: never silently lose, never auto-port.
+    # Codex pointers exist (`"hooks": "./hooks/hooks.json"`,
+    # `"mcpServers": "./.mcp.json"`) but Codex hooks are experimental
+    # ([features].hooks off by default), trust-gated via /hooks approval,
+    # and only type="command" executes. The report flags the loss; pointers
+    # are NOT auto-emitted.
+    if (plugin_root / "hooks" / "hooks.json").is_file() or "hooks" in claude_pj:
+        manual.append(
+            "來源 plugin 帶 `hooks/hooks.json`：Codex 有對應指標"
+            "（`\"hooks\": \"./hooks/hooks.json\"`），但 Codex hooks 為 experimental"
+            "（`[features].hooks` 預設關閉）、需 `/hooks` 信任授權、且僅 "
+            "`type=\"command\"` 會執行——請人工移植，勿假設會自動生效；本次未自動輸出指標"
+        )
+    if (
+        (plugin_root / "mcp.json").is_file()
+        or (plugin_root / ".mcp.json").is_file()
+        or "mcpServers" in claude_pj
+    ):
+        manual.append(
+            "來源 plugin 帶 MCP 設定（mcp.json / .mcp.json）：Codex 有對應指標"
+            "（`\"mcpServers\": \"./.mcp.json\"`），但伺服器啟用受信任授權把關——"
+            "請人工移植並驗證，本次未自動輸出指標"
+        )
+
+    # Claude `commands/` → Codex: custom prompts are officially DEPRECATED.
+    if (plugin_root / "commands").is_dir() or "commands" in claude_pj:
+        manual.append(
+            "來源 plugin 帶 `commands/`：Codex custom prompts 已官方棄用——"
+            "請將每個 commands/*.md 轉為獨立 Codex skill（目錄 + SKILL.md）；"
+            "切勿移植到 `~/.codex/prompts/`（0.117.0 已知 regression 使 prompt 載入失效）"
+        )
     plugin_name = codex_pj["name"]
     summary["plugin_name"] = plugin_name
 
@@ -911,6 +1096,10 @@ def main(argv: list[str]) -> int:
             print(f"- Manifest 已捨棄：")
             for n in summary["manifest_dropped"]:
                 print(f"    - {n}")
+        if summary["manifest_manual"]:
+            print(f"- Manifest ⚠️ 需人工檢視：")
+            for n in summary["manifest_manual"]:
+                print(f"    - {n}")
         if summary["agent_stubs"]:
             print(
                 f"- Agent stubs 已產出 {summary['agent_stubs']} 份至 "
@@ -924,9 +1113,13 @@ def main(argv: list[str]) -> int:
         print(f"- 寫入 `.agents/plugins/marketplace.json` (marketplace 目錄結構：plugins/{summary['plugin_name']}/)")
         print(
             "- End-user install (記得寫進 README)：\n"
-            f"    `codex plugin marketplace add <git-url> --sparse {output_root.name} [--ref <tag>]`\n"
-            f"    `codex plugin install {summary['plugin_name']}`\n"
-            "    必須帶 `--sparse <output-dir>`，否則 Codex 會在 repo 根目錄找不到 `.agents/plugins/marketplace.json`。\n"
+            f"    本輸出為 Layout B（自含 marketplace root）：\n"
+            f"    `codex plugin marketplace add /local/path/to/{output_root.name}`\n"
+            "    （`marketplace add` 即安裝；Codex 沒有獨立的 `plugin install` 子指令。）\n"
+            "    若要走 git URL 安裝，需在 repo 根目錄另維護 Layout A catalog —\n"
+            f"    `<repo>/.agents/plugins/marketplace.json`，其 `source.path` 指向 "
+            f"`./{output_root.name}/plugins/{summary['plugin_name']}`。\n"
+            "    詳見 references/marketplace-mapping.md §8。\n"
         )
         reports = skill_reports
     else:
@@ -934,7 +1127,7 @@ def main(argv: list[str]) -> int:
         reports = []
         if mode == "single-skill":
             reports.append(transfer_one(source_root, output_root))
-        else:  # skills-batch or unknown (treat as batch)
+        else:  # skills-batch (unknown already exited above)
             for child in sorted(source_root.iterdir()):
                 if not child.is_dir():
                     continue
@@ -943,7 +1136,12 @@ def main(argv: list[str]) -> int:
                 reports.append(transfer_one(child, output_root))
         print(f"# Codex Transfer Batch Report\n")
         print(f"- 處理 {len(reports)} 個 skill")
-        print(f"- 輸出: `{output_root}`\n")
+        print(f"- 輸出: `{output_root}`")
+        print(
+            "- 安裝位置：將輸出 skill 目錄複製到 `<repo>/.agents/skills/`（專案）"
+            "或 `~/.agents/skills/`（個人）——注意是 `.agents/`，"
+            "不是 `.codex/` 或 `.claude/`——重啟 Codex 後生效。\n"
+        )
     for r in reports:
         print(r.render())
 
