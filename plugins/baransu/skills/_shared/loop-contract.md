@@ -8,12 +8,44 @@
 
 Applies whenever a baransu skill is driven by a non-interactive context:
 `/loop`, `/goal`-style external verifiers, cron, Workflow orchestration, or
-any automation harness. Human-present sessions follow platform defaults per
-the rule cited below.
+any automation harness. Human-present sessions follow platform defaults.
 
 ---
 
-## 1. PAUSE semantics
+## 1. Automation field vocabulary
+
+Every skill's Outcome Contract carries
+`- **Automation**: ultracode={value}, loop={value}` whose read trigger points
+here. The value vocabularies (per-skill assignments are pinned by
+`tests/skills/test-automation-annotation.sh`, not listed here):
+
+`ultracode=` — how the skill's internal fan-out relates to a Workflow-capable
+(ultracode) session:
+
+- **overlap** — the skill has its own multi-agent dispatch that can ride
+  Workflow primitives. Structural marker: it ships a
+  `references/orchestration-interface.md` defining dual adapters (parallel-Task
+  vs thin Workflow), an isomorphic result schema, and Stage-0 mode pinning.
+- **assist** — no adapter. Specific divergent stages may be accelerated by
+  Workflow fan-out, marked by in-body hint sentences; collected data shapes
+  are unchanged.
+- **neutral** — orthogonal. Ultracode neither helps nor conflicts; no special
+  handling exists or is needed.
+
+`loop=` — whether a non-interactive driver may iterate the skill:
+
+- **drivable** — safe to re-invoke under §2/§3 obligations; every interaction
+  point has a classified default (§4).
+- **assisted** — drivable only with §4 defaults substituted and annotated;
+  at least one judgment point materially benefits from a human.
+- **not-drivable** — the interactive dialogue IS the product; no recommended
+  default can substitute it.
+
+Across all grades, non-ultracode and human-present runs keep current-path
+semantics unchanged — support is conditional, never a behavior change for
+interactive sessions.
+
+## 2. PAUSE semantics
 
 Two PAUSE classes (defined here, self-contained — the plugin ships with no
 external rule dependency):
@@ -44,7 +76,7 @@ never overridable — not by `--auto`, not by driver flags, not by platform mode
 
 ---
 
-## 2. Three hard stops — responsibility boundary
+## 3. Three hard stops — responsibility boundary
 
 Loop control belongs to the driver; reentrancy and reporting belong to the
 skill. Three driver-owned hard stops, explicitly:
@@ -66,7 +98,7 @@ Skill-side obligations (all mandatory):
 
 ---
 
-## 3. PAUSE classification table
+## 4. PAUSE classification table
 
 Enumerated from the live SKILL.md of each skill (read at authoring time, not
 recalled). Re-verify this table when any listed SKILL.md changes its

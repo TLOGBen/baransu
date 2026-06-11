@@ -2,6 +2,23 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.2.3 (2026-06-11)
+
+**Automation 語彙正式定義**：
+
+### Fixed — 修正
+
+1. **`ultracode=` / `loop=` 三值語彙落點**：`overlap`（自有多代理派遣、出貨 orchestration-interface.md 雙 adapter）/ `assist`（無 adapter、body 提示句標記可加速段）/ `neutral`（正交），與 `drivable` / `assisted` / `not-drivable` 的定義此前散落於 gate 期望表與各 body 提示句，無單一定義點——現正式寫入 `_shared/loop-contract.md` §1（Automation 行的讀取觸發已指向該檔，語彙隨之可達）。逐 skill 的分級指派仍由 `tests/skills/test-automation-annotation.sh` 釘死，文件不重複列表（避免漂移）。
+2. **Scope 段過時引用清理**：「per the rule cited below」殘句（v2.2.1 內聯後已無被引規則）刪除。
+
+### Internal
+
+- codex/ 鏡像同步重產。
+
+### SemVer 註
+
+採 patch（2.2.2 → 2.2.3）：純文件語彙定義，無行為變更。
+
 ## v2.2.2 (2026-06-11)
 
 **引用接線全面修復（reference wiring audit）**：稽核發現 aux 檔（`references/`、`../_shared/`）在 skill 調用時不會自動載入——只有 body 內在流程點下令 Read 的句子才會被執行。本版將「可達」引用全面升級為「會讀」的條件式祈使，並修復跨 skill 斷路徑：
