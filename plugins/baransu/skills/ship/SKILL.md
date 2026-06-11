@@ -17,7 +17,7 @@ No user confirmation required. Five steps run automatically.
 - **Done when**: Archivable items are moved into `.claude/archived/`, `git status --porcelain` is empty after the commit, and the branch is pushed to origin (worktree removed and branch deleted when run inside a worktree).
 - **Evidence**: The session end output reporting the archived item count, the commit message (or 「跳過」), the push target `origin/{branch}`, and the worktree cleanup status.
 - **Output**: Archived directories under `.claude/archived/`, a pushed git commit, and the 繁中 session end report.
-- **Automation**: ultracode=neutral, loop=assisted（contract: `../_shared/loop-contract.md`）
+- **Automation**: ultracode=neutral, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 ## Step 1 — Detect
 

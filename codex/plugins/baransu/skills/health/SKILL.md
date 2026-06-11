@@ -35,7 +35,7 @@ The body below is English (agent-facing). All user-facing output is in **Traditi
 - **Done when**: 每條 finding 標明失準的層（五層框架之一）、具體證據（file:line 或腳本輸出區段）、以及可直接複製執行的行動或診斷指令；或輸出乾淨健康證明＋殘餘風險。
 - **Evidence**: collect-data.sh 輸出區段、追蹤中的專案指示檔、runtime 配置摘要、驗證器日誌、hooks/MCP 面，以及（deep 模式）inspector 子代理人回報。
 - **Output**: 對話內的繁中健康報告（依 tier 分級、兩車道、按嚴重度排序），不另落檔。
-- **Automation**: ultracode=assist, loop=assisted（contract: `../_shared/loop-contract.md`）
+- **Automation**: ultracode=assist, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 ## Two lanes share one report
 

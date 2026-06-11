@@ -29,7 +29,7 @@ The body below is English (agent-facing). All user-facing output is in **Traditi
 - **Done when**: A 成功格式 report (根因/修復/確認方式/測試矩陣/迴歸守護) or a Handoff 格式 report is emitted with status 已解決 / 已解決（附帶條件說明）/ 受阻, and the case file `.claude/hunt-report/HUNT-YYYY-NNN.md` is written.
 - **Evidence**: The report's 確認方式 line cites the instrument or test that confirmed the root cause; all 🎯HUNT-id tagged instruments removed after confirmation (`grep "🎯HUNT-"` finds none).
 - **Output**: The 繁中 success or handoff report plus the `.claude/hunt-report/HUNT-YYYY-NNN.md` case file.
-- **Automation**: ultracode=assist, loop=assisted（contract: `../_shared/loop-contract.md`）
+- **Automation**: ultracode=assist, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 ## Rationalization Watch
 
@@ -86,6 +86,8 @@ After selecting a tool in Tool Scan, answer these four questions before adding a
 4. **Environment**: Can the bug be reproduced in a test environment, or only in production?
 
 These four questions determine where the first observation point goes. Adding a log before answering these questions = setting traps in a forest without knowing where the prey is.
+
+Before instrumenting, run `python3 "$CLAUDE_SKILL_DIR/references/hunt-search.py" --keyword "<symptom term>"` to check whether a similar case in `.claude/hunt-report/` was already solved; cite any hit in the report.
 
 ---
 
@@ -238,7 +240,7 @@ All user-facing output is in Traditional Chinese (繁體中文).
 對於曾修過又再現的 bug，「已解決」的條件是：(1) 迴歸測試在舊 code 失敗、新 code 通過；(2) 測試在 project test suite 裡；(3) commit message 說明再現原因與防止方式。
 
 After confirming root cause, route the fix by task scope:
-- Single change point, small amount of code → 直接實作，依 _shared/tdd.md 紀律自建紅綠 task list（see `plugins/baransu/skills/_shared/tdd.md` §7）
+- Single change point, small amount of code → 直接實作，依 _shared/tdd.md 紀律自建紅綠 task list（read `../_shared/tdd.md` §7 before implementing）
 - Multiple files, design decision needed, or cross-module impact → invoke `/baransu:analyze`
 
 ### Handoff 格式（三次假說失敗後使用）
@@ -261,7 +263,7 @@ After confirming root cause, route the fix by task scope:
 
 ---
 
-After completing the hunt, create a case file at `.claude/hunt-report/HUNT-YYYY-NNN.md` (format: `references/hunt-case-template.md`) to record the root cause and fix for future reference. Use `hunt-search.py` (see `references/hunt-search.py`) to search past cases.
+After completing the hunt, create a case file at `.claude/hunt-report/HUNT-YYYY-NNN.md` (format: `references/hunt-case-template.md`) to record the root cause and fix for future reference. Past cases are searchable via `references/hunt-search.py` — invoked at the Locate stage.
 
 ---
 

@@ -2,6 +2,33 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.2.2 (2026-06-11)
+
+**引用接線全面修復（reference wiring audit）**：稽核發現 aux 檔（`references/`、`../_shared/`）在 skill 調用時不會自動載入——只有 body 內在流程點下令 Read 的句子才會被執行。本版將「可達」引用全面升級為「會讀」的條件式祈使，並修復跨 skill 斷路徑：
+
+### Fixed — 修正
+
+1. **13 條 Automation 行升級為條件式祈使**：`（contract: ../_shared/loop-contract.md）` 後綴改為 `（when driven non-interactively — /loop, cron, Workflow — read ../_shared/loop-contract.md first and apply its PAUSE semantics）`，從可達指標變成讀取觸發；gate `tests/skills/test-automation-annotation.sh` 同步更新。
+2. **orchestration-interface 引用由 locative 轉祈使**：execute（Step 0 前讀＋Step 4 入口重套）、learn（Stage 0 讀＋§3.5 fan-out 觸發時重套）、review（Stage 0 釘模式＋Stage 4 派發前讀）三處「contract lives in …」改為明確的 read-and-apply 指令。
+3. **learn §3.5 跨 skill 斷路徑修復**：learn 不附帶 scripts/ 與 acquisition refs——install-deps、search-papers.py、gh-search.md、x-search.md、web-dynamic.md 全數補上 `../read/` 前綴（自安裝目錄可解析），gh/x lane 並加「先讀再跑」觸發句。
+4. **design 路徑與過時引用修正**：export-brief Step 2 兩處 `{plugin_root}` 改為既定義的 `{skill_dir}`；Check D 過時的「design.md Appendix B」改指 `scripts/check.py` Check D；`紙-sanity.sh` 描述改寫對齊實際行為（自動定位 check.py、legacy per-file mode、內建 Kami 規則——原述的 `紙-sanity-rules.json` 並不存在）。
+5. **hunt 接線修正**：repo-root 路徑 `plugins/baransu/skills/_shared/tdd.md`（安裝目錄不可解析）改 `../_shared/tdd.md` 並加讀取觸發；`hunt-search.py` 接到 Locate 階段（instrument 前先查 `.claude/hunt-report/` 既往案例），尾段無觸發提及改為儲存指標。
+6. **read 平台疑難排解收進失敗路徑**：安裝失敗時先讀 `references/setup/{$PLATFORM}.md` 嘗試排解，仍失敗才停；刪除原無觸發的尾句提及。
+7. **book perception-guide Layer-1 觸發**：Stage 2A Layer 1 加條件句——§1 未讀過 `references/perception-guide.md` 者套用前先讀。
+8. **execute output-journal / error-reference 觸發**：Step 7 工作日誌追記改為明確 read-and-append；Error Reference 段改為「inline Fallback 未涵蓋的錯誤條件發生時讀表套用」。
+
+### 決策記錄
+
+- 否決獨立 References 段：會複製 ~50 條已正確的 in-body 觸發、徒增漂移面。採 in-place 條件式祈使為唯一慣例。
+
+### Internal
+
+- codex/ 鏡像同步重產。
+
+### SemVer 註
+
+採 patch（2.2.1 → 2.2.2）：文件接線與路徑修復，無行為變更。
+
 ## v2.2.1 (2026-06-11)
 
 **loop-contract.md 供應鏈修復＋調用路徑接線**：

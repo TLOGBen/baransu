@@ -21,7 +21,7 @@ This skill captures any content source and converts it to clean, offline-readabl
 - **Done when**: `.claude/read/material/{final-slug}/index.md` exists with full frontmatter, downloaded images sit in `material/{final-slug}/assets/`, and `.claude/read/index.md` carries a matching row.
 - **Evidence**: The 繁中 completion report listing the saved path, image success/failure counts, and the markitdown version used.
 - **Output**: `material/{final-slug}/index.md` (+ `assets/`), an updated `.claude/read/index.md` row, and the immutable original under `raw/{slug}/`.
-- **Automation**: ultracode=neutral, loop=drivable（contract: `../_shared/loop-contract.md`）
+- **Automation**: ultracode=neutral, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 ## Stage 0 — Environment Self-Check
 
@@ -59,9 +59,7 @@ If this fails (markitdown not installed):
 
 If installation succeeds: continue.
 
-If installation fails: output 「markitdown 安裝失敗。請手動執行：pip install markitdown」 and stop.
-
-Refer to `references/setup/{platform}.md` for platform-specific troubleshooting.
+If installation fails: read `references/setup/{$PLATFORM}.md` ($PLATFORM lowercased — wsl2 / macos / windows / linux) and attempt its troubleshooting steps; if still failing, output 「markitdown 安裝失敗。請手動執行：pip install markitdown」 and stop.
 
 ### 4. Chrome check (soft dependency)
 

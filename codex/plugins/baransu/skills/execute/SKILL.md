@@ -17,7 +17,7 @@ Long-running orchestration engine for medium-to-large tasks. This body is Englis
 - **Done when**: `.claude/execute/{date}-{slug}/execute/final-report.md` exists, every registered task ended ✅ / blocked / cascade-blocked, and the Step 6 Final-Review coverage result is recorded in it.
 - **Evidence**: final-report.md carries the {N}/{M} REQ 達成率, the Goal-Alignment Filter Metric block, and the blocked list; all session gitworktrees removed.
 - **Output**: Working documents plus `final-report.md` under `.claude/execute/{date}-{slug}/execute/`.
-- **Automation**: ultracode=overlap, loop=drivable（contract: `../_shared/loop-contract.md`）
+- **Automation**: ultracode=overlap, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 ## 目標
 
@@ -38,9 +38,10 @@ These apply across all steps. The review-agent rule and the spec-read-only rule 
 
 ### Orchestration interface (dual-mode)
 
-The Step 4 agent-dispatch contract lives in `references/orchestration-interface.md`: the
-review-agent return shape consumed by the Goal-Alignment Filter, Step 0 mode pinning
-(ultracode detect → record in confirm.md → no mid-run switch), and a thin Workflow adapter.
+At Step 0 entry, read `references/orchestration-interface.md`; apply its mode pinning
+during Step 0 (ultracode detect → record in confirm.md → no mid-run switch); re-apply
+its dispatch contract at Step 4 entry. The contract covers: the review-agent return shape consumed
+by the Goal-Alignment Filter, Step 0 mode pinning, and a thin Workflow adapter.
 Both adapters return identical shapes — Phase 3 routing and `failure_count` accounting never
 sense the mode. TDAID loop logic and non-ultracode semantics are unchanged.
 
@@ -387,7 +388,7 @@ Write `.claude/execute/{date}-{slug}/execute/final-report.md`. Template: `refere
 
 When emitting the report:
 - 將 §4b Phase 3 累加的 `total_findings_count` 與 `downgraded_to_advisory_count` 寫入 `## Goal-Alignment Filter Metric` 段（即 `goal_alignment_filter_metric` block）。若整個 session 內無任何 review-agent 回傳（counters 從未遞增），兩值皆寫 `0`，metric 段仍須輸出（不得省略）。filter 行為與降級判斷準則維持 §4b Phase 3 定義，本步驟僅做序列化，不重新計算。
-- If an upstream work journal exists (`.claude/think/*.html` for the approved plan; contract: `../_shared/output-journal.md`), append this run's off-spec decisions / forced changes / tradeoffs to its 執行日誌 section and SendUserFile the updated journal.
+- If an upstream work journal exists (`.claude/think/*.html` for the approved plan), read `../_shared/output-journal.md` and append this run's off-spec decisions / forced changes / tradeoffs to its 執行日誌 section per that contract, then SendUserFile the updated journal.
 
 Remove all gitworktrees created this session:
 ```bash
@@ -454,4 +455,4 @@ final-report.md: .claude/execute/{date}-{slug}/execute/final-report.md
 
 ## Error Reference
 
-Condition / detection point / action lookup table (all steps, verbatim): `references/error-reference.md`.
+When any step hits an error condition not covered by an inline Fallback, read `references/error-reference.md` and apply the matching condition → action row (condition / detection point / action lookup table, all steps).

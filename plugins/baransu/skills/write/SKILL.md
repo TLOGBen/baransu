@@ -17,7 +17,7 @@ The body below is English (agent-facing). Operational notifications are Traditio
 - **Done when**: Refine 輸出含 Before/After 與逐條修正說明（或 Generate 輸出含格式/語氣注記），且無 rules 5/7/8（禁對仗句/禁排比/禁名詞化）違反殘留。
 - **Evidence**: 輸出本體的結構 — Refine 的 Before / After / 修正說明三段與規則標記（或 Generate 成稿附帶的格式/語氣注記），逐項可對照內嵌規則集。
 - **Output**: 對話內輸出的修訂稿或生成稿；操作通知為繁體中文，內容語言依前綴或偵測結果。
-- **Automation**: ultracode=neutral, loop=drivable（contract: `../_shared/loop-contract.md`）
+- **Automation**: ultracode=neutral, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 ## User-facing language
 

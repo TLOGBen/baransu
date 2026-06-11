@@ -21,7 +21,7 @@ This skill takes any content source and produces structured learning output via 
 - **Done when**: `--brief` path — `.claude/learn/briefs/{$BRIEF_SLUG}.md` exists with the five-column body per `references/brief-format.md`; full path — `.claude/learn/digests/{$DIGEST_SLUG}.md` exists with the `references/digest-frontmatter.md` schema and the refined body.
 - **Evidence**: The 繁中 completion notice naming the written file path; the file's frontmatter lists every surviving `$FILTERED_SOURCES` entry (and, for digests, `phases_completed`).
 - **Output**: A brief under `.claude/learn/briefs/` or a digest under `.claude/learn/digests/`.
-- **Automation**: ultracode=overlap, loop=drivable（contract: `../_shared/loop-contract.md`）
+- **Automation**: ultracode=overlap, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 ## Stage 0 — Environment Self-Check
 
@@ -54,8 +54,8 @@ python3 -m markitdown --version 2>/dev/null
 
 If this fails (markitdown not installed):
 
-- On Windows: run `"the skill's root directory/scripts/install-deps.bat"`
-- On Linux/macOS/WSL2: run `bash "the skill's root directory/scripts/install-deps.sh"`
+- On Windows: run `"the skill's root directory/../read/scripts/install-deps.bat"`
+- On Linux/macOS/WSL2: run `bash "the skill's root directory/../read/scripts/install-deps.sh"`
 
 If installation succeeds: continue.
 
@@ -63,9 +63,10 @@ If installation fails: output 「markitdown 安裝失敗。請手動執行：pip
 
 ### Orchestration interface (dual-mode)
 
-The fan-out dispatch contract lives in `references/orchestration-interface.md`: the candidate-pool
-`{path, lane}` shape, Stage 0 mode pinning (ultracode detect → record → no mid-run switch), the
-current four-lane fan-out adapter, and a thin Workflow adapter. Both adapters return the identical
+At Stage 0, read `references/orchestration-interface.md` and pin the dispatch mode
+(ultracode detect → record → no mid-run switch); re-apply its adapter contract whenever §3.5
+fan-out is triggered. The contract covers: the candidate-pool `{path, lane}` shape, Stage 0
+mode pinning, the current four-lane fan-out adapter, and a thin Workflow adapter. Both adapters return the identical
 pool shape — Stage 2 scoring never senses the mode; the depth invariant is restated per adapter.
 Non-ultracode runs keep current-path semantics unchanged.
 
@@ -103,10 +104,10 @@ Triggered when §3 matches the syntactic shape of a slug but `.claude/read/mater
 
 | Lane | Underlying tool | Adapter thinness | Cite path (if thick) |
 |------|-----------------|------------------|----------------------|
-| `academic` | `search-papers.py` | Thin (invoke + normalize) | — |
+| `academic` | `../read/scripts/search-papers.py` | Thin (invoke + normalize) | — |
 | `web` | search the web tool | Thin (invoke + normalize) | — |
-| `gh` | `gh search repos` | **Thick** — must reuse escape rule from `references/acquisition/gh-search.md §Search Command` (lines specifying single-quote form + `'\''` escape) by **anchor cite**, never fork the literal text. The bare `{topic}` from §3.5 invocation IS the user-supplied keyword for §Search Command Step 1; apply Step 1 escape verbatim before substitution. | `references/acquisition/gh-search.md §Search Command`, §Failure Modes |
-| `x` | Chrome MCP via `web-dynamic.md` WSL2 path | **Thick** — must reuse the 5-rule schema-level health check from `references/acquisition/x-search.md §Schema-level Health Check` and the candidate regex from §Candidate Extraction by **anchor cite**, never fork. | `references/acquisition/x-search.md §Search Phase`, §Schema-level Health Check, §Candidate Extraction |
+| `gh` | `gh search repos` | **Thick** — before running the gh lane, read `../read/references/acquisition/gh-search.md` §Search Command and apply the Step 1 escape rule to `{topic}`. Must reuse its escape rule (lines specifying single-quote form + `'\''` escape) by **anchor cite**, never fork the literal text. The bare `{topic}` from §3.5 invocation IS the user-supplied keyword for §Search Command Step 1; apply Step 1 escape verbatim before substitution. | `../read/references/acquisition/gh-search.md §Search Command`, §Failure Modes |
+| `x` | Chrome MCP via `../read/references/acquisition/web-dynamic.md` WSL2 path | **Thick** — before running the x lane, read both `../read/references/acquisition/x-search.md` and `../read/references/acquisition/web-dynamic.md`, and apply §Schema-level Health Check and §Candidate Extraction verbatim. Must reuse the 5-rule schema-level health check from x-search.md §Schema-level Health Check and the candidate regex from §Candidate Extraction by **anchor cite**, never fork. | `../read/references/acquisition/x-search.md §Search Phase`, §Schema-level Health Check, §Candidate Extraction |
 
 **Lane fail-mode mapping (Theme A)**: All four lanes invoke their underlying tools directly (not via `/read --{lane}`); each ref's Failure Modes / Health Check / No Results sections are reused as **lane-status mapping rules**, not as `/learn`-level stops. Specifically: any condition that the ref says "stop" maps to `{lane}: failed (...)` or `{lane}: 0 hits (no results)` per the three-state surface below; `/learn` never propagates the lane's stop verb.
 
