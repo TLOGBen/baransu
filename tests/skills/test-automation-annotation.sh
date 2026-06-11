@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # TASK-automation-03 gate (REQ-004): all 13 surviving skills carry a fifth
 # contract line inside the Outcome Contract block, after the Output bullet:
-#   - **Automation**: ultracode={overlap|assist|neutral}, loop={drivable|assisted|not-drivable}
+#   - **Automation**: ultracode={overlap|assist|neutral}, loop={drivable|assisted|not-drivable}（contract: `../_shared/loop-contract.md`）
+# The trailing contract pointer wires invocation-time semantics to the shared
+# loop-contract reference (added v2.2.1; rules/anti-patterns.md alone is not
+# loaded when an installed skill is invoked).
 # Grading must match the plan table; the annotation lives in the body contract
 # block only (no non-standard frontmatter field). hunt/analyze additionally
 # carry a Workflow parallel-dispatch hint + loop-mode default sentence.
@@ -31,7 +34,8 @@ expected = {
 }
 auto_pat = re.compile(
     r"^- \*\*Automation\*\*: ultracode=(overlap|assist|neutral), "
-    r"loop=(drivable|assisted|not-drivable)$"
+    r"loop=(drivable|assisted|not-drivable)"
+    r"（contract: `\.\./_shared/loop-contract\.md`）$"
 )
 output_pat = re.compile(r"^- \*\*Output\*\*:\s*\S")
 failures = []

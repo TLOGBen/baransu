@@ -2,6 +2,23 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.2.1 (2026-06-11)
+
+**loop-contract.md 供應鏈修復＋調用路徑接線**：
+
+### Fixed — 修正
+
+1. **PAUSE 分類學內聯**：`_shared/loop-contract.md` §1 原引用使用者私人全域 rule（`~/.claude/rules/common/platform-awareness.md`）定義 Input/Authorization PAUSE 二分法——散布的 plugin 不應依賴未隨附的本機檔（安裝者從未有該檔；本機亦已歸檔致引用死亡）。定義改為自含內聯，平台成本軸保留為背景說明。
+2. **調用路徑接線**：loop-contract 此前無任何 SKILL.md 指向（僅 `rules/anti-patterns.md` 提及，而 plugin `rules/` 非 Claude Code 自動載入元件）——skill 被調用時 `Automation: ultracode=…, loop=…` 的值無處可查語義。13 個 SKILL.md 的 Automation 行統一加註 `（contract: ../_shared/loop-contract.md）`。
+
+### Internal
+
+- codex/ 鏡像同步重產（_shared 與 13 個 SKILL.md 鏡像更新）。
+
+### SemVer 註
+
+採 patch（2.2.0 → 2.2.1）：純文件修復與引用接線，無行為變更。
+
 ## v2.2.0 (2026-06-11)
 
 **`/codex-skill-transfer` 對照 2026-06 官方 Codex 文件全面重驗**（developers.openai.com/codex：plugins/build、hooks、subagents、skills），skill metadata version 0.7.4 → 0.8.0：

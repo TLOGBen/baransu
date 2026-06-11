@@ -15,14 +15,20 @@ the rule cited below.
 
 ## 1. PAUSE semantics
 
-The Input / Authorization PAUSE taxonomy is defined in the user global rule
-`~/.claude/rules/common/platform-awareness.md`. This contract **cites** that
-taxonomy and does not restate it.
+Two PAUSE classes (defined here, self-contained — the plugin ships with no
+external rule dependency):
 
-**Delta vs the cited rule**: platform-awareness maps PAUSE behavior to
-*platform cost models* (Claude Code / Copilot / Claude.ai). This contract adds
-an orthogonal axis — the *driving context*. When a non-interactive driver is
-detected, the skill behaves as follows regardless of platform:
+- **Input PAUSE** — a preference or confirmation checkpoint (typically an
+  AskUserQuestion). Platform modes or `--auto`-style flags may skip it by
+  taking the recommended default.
+- **Authorization PAUSE** — a hard stop requiring explicit human authorization
+  (acceptance gates, publishing actions). Never skippable, on any platform.
+
+Platforms map PAUSE *cost* to their own models (free UX stop on Claude Code
+vs billed request on Copilot / Claude.ai); that axis stays platform-owned.
+This contract adds an orthogonal axis — the *driving context*. When a
+non-interactive driver is detected, the skill behaves as follows regardless
+of platform:
 
 - **Input PAUSE** — take the recommended default and continue. The final
   report MUST annotate every substituted decision as 「此處採預設：{假設}」.

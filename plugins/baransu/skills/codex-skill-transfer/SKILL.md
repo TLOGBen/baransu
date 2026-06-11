@@ -18,7 +18,7 @@ One-way port from Claude Code → Codex. Claude is canonical; this skill produce
 - **Done when**: `python3 scripts/transfer.py <claude-source> <codex-output>` completes (or the equivalent inline port is written), the output directory contains the detected mode's expected shape, and the transfer report is printed.
 - **Evidence**: The 繁中 transfer report enumerating 完整保留 / 翻譯處理 / 動態注入改寫 / 已捨棄 / 需人工檢視 items; the source tree is untouched.
 - **Output**: The Codex output directory (single skill dir, batch subdirs, or marketplace root) plus the transfer report.
-- **Automation**: ultracode=assist, loop=assisted
+- **Automation**: ultracode=assist, loop=assisted（contract: `../_shared/loop-contract.md`）
 
 ## Direction is one-way (Claude → Codex)
 

@@ -13,7 +13,7 @@ Long-running orchestration engine for medium-to-large tasks. This body is Englis
 - **Done when**: `.claude/execute/{date}-{slug}/execute/final-report.md` exists, every registered task ended ✅ / blocked / cascade-blocked, and the Step 6 Final-Review coverage result is recorded in it.
 - **Evidence**: final-report.md carries the {N}/{M} REQ 達成率, the Goal-Alignment Filter Metric block, and the blocked list; all session gitworktrees removed.
 - **Output**: Working documents plus `final-report.md` under `.claude/execute/{date}-{slug}/execute/`.
-- **Automation**: ultracode=overlap, loop=drivable
+- **Automation**: ultracode=overlap, loop=drivable（contract: `../_shared/loop-contract.md`）
 
 ## 目標
 

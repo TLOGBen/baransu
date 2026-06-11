@@ -21,7 +21,7 @@ This skill takes any content source and produces structured learning output via 
 - **Done when**: `--brief` path — `.claude/learn/briefs/{$BRIEF_SLUG}.md` exists with the five-column body per `references/brief-format.md`; full path — `.claude/learn/digests/{$DIGEST_SLUG}.md` exists with the `references/digest-frontmatter.md` schema and the refined body.
 - **Evidence**: The 繁中 completion notice naming the written file path; the file's frontmatter lists every surviving `$FILTERED_SOURCES` entry (and, for digests, `phases_completed`).
 - **Output**: A brief under `.claude/learn/briefs/` or a digest under `.claude/learn/digests/`.
-- **Automation**: ultracode=overlap, loop=drivable
+- **Automation**: ultracode=overlap, loop=drivable（contract: `../_shared/loop-contract.md`）
 
 ## Stage 0 — Environment Self-Check
 

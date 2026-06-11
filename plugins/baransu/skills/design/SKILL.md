@@ -13,7 +13,7 @@ UI/UX design specification skill. This body is English (agent-facing). All user-
 - **Done when**: gen/preset — the five artifacts (`tokens.css` / `DESIGN.md` / `DESIGN.html` / `design-cores/` / `slide-cores/`) are atomically written at project root; lint — `python3 scripts/check.py` exits 0 (clean) or 1 with violations listed; export-brief — `.claude/design/brief-{preset}-{date}.md` is written (or printed with `--stdout`).
 - **Evidence**: The mode's completion message (「✅ 已套用…」 / lint pass-fail line with violation list / 「Brief 已寫入…」) and `check.py` exit code.
 - **Output**: Project-root design artifacts, a lint report, or a prompt-ready brief markdown file.
-- **Automation**: ultracode=neutral, loop=drivable
+- **Automation**: ultracode=neutral, loop=drivable（contract: `../_shared/loop-contract.md`）
 
 ## Stage 0 — Inject DESIGN.md reference into context files
 
