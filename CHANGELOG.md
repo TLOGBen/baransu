@@ -2,6 +2,45 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.0.0 (2026-06-10)
+
+**破壞性改版：治理瘦身，16 技能裁併為 12。** 依使用證據裁決（grade/triage/bridge 自癒迴路從未運轉、dev 使用最少），同版交付四項治理資產。規格與驗收軌跡見 `.claude/analyze/2026-06-10-baransu-v2-slim/` 與 `.claude/execute/2026-06-10-baransu-v2-slim/execute/final-report.md`。
+
+### Removed — 移除（Breaking）
+
+1. **四技能**：`/dev`、`/grade`、`/triage`、`/bridge`。
+2. **自癒 harness 全套附屬資產**：`plugins/baransu/hooks/` 三支 telemetry 腳本（903 行；保留 hooks.json 與 wiki-sync.sh）、`plugins/baransu/scripts/` 9 檔（2,889 行，含零引用死碼 baseline-parity-score.py）、`agents/investigator-agent.md`、`_shared/` 三份 telemetry schema、耦合測試約 27 檔。
+3. **升級註記（必讀）**：曾依 harness 安裝流程在 `~/.claude/settings.json` 註冊 hooks 者，需手動移除三個條目（`UserPromptSubmit` / `PostToolUse` / `Stop` → `plugins/baransu/hooks/*.py`），否則每個 session 都會呼叫已不存在的腳本。`.claude/harness/` 下的本地 telemetry 累積檔已無消費者，可自行刪除。
+
+### Changed — 變更
+
+1. **小任務 TDD 閘語義降級（明文承認）**：workflow-enforced（`/dev` 硬閘）→ discipline-suggested（`_shared/tdd.md` 新 §7「直接實作時的紅綠閘」文件紀律）；`/think` 與 `/hunt` 的小任務交接均改道至該節。中大型任務 `/analyze` → `/execute` 的 TDAID 閘門不受影響。`failure_count` 不變量唯一事實源維持在 execute/SKILL.md，tdd.md 只引用不複製。
+2. **發行面全同步**：CLAUDE.md 技能表、README 工作流鏈、`plugin.json` 與 `marketplace.json` 全改 12 技能；`codex/` 鏡像以 transfer.py 全量重產（12 技能、v2.0.0）。
+
+### Added — 新增
+
+1. **Outcome Contract 四行頭 + Automation 第五行**：12 個 SKILL.md 統一 `Outcome / Done when / Evidence / Output` 契約 + `- **Automation**: ultracode=…, loop=…` 雙軸標注（review/execute/learn＝overlap・drivable；hunt/analyze/codex-skill-transfer＝assist・assisted；think＝neutral・not-drivable；其餘中立）。Done when 以可驗證條件為預設，審美／事件型技能允許事件型逃生門。
+2. **`_shared/loop-contract.md`**：技能被 /loop、cron、Workflow 驅動時的契約單一知識源 — Input PAUSE 走預設值並在報告標注假設、Authorization PAUSE 任何情況硬停、三硬停承接（迭代上限／無進展偵測／預算上限）、per-skill PAUSE 分類表（review 2 點／execute 4 列／learn 6 點／think 不可驅動）。驅動上下文覆寫平台 supervised 預設，但 Authorization 永不可覆寫。
+3. **`rules/anti-patterns.md` 容器**：含「收斂不堆積」與「strip-provenance」自治條款，首批 6 條跨技能護欄（巢狀 skill 呼叫、憑記憶改檔、改測試遷就實作、跳紅燈、語言慣例漂移、不 bump 版本）。
+4. **雙模 orchestration interface（選項 A：單一介面＋薄 adapter）**：review/execute/learn 各加 `references/orchestration-interface.md` — 同形 finding schema、depth 不變量逐模重述（每檔 grep ≥2）、Stage 0 模式釘死（system-reminder 偵測，退化為使用者顯式聲明）。
+5. **`scripts/verify-skills.py`**（repo root）：單一結構驗證入口，7 檢查面（frontmatter／引用檔存在／被裁名稱零殘留／雙 manifest 版本一致／Outcome Contract 四行齊備／Automation 標注／500 行 advisory），exit 0/1/2；附負向 fixture 測試（`tests/fixtures/verify-skills/bad-skill/`）堵驗證器自證循環。
+
+### 驗收
+
+`verify-skills.py` 綠燈（12/12 技能）、`claude plugin validate` 通過、pytest 20 綠、5/5 REQ 覆蓋（Final-Review needs_fixer: false）、15/15 TDAID 任務完成（1 重試、0 blocked）。
+
+### SemVer 註
+
+採 major（1.5.0 → 2.0.0）：移除四個使用者調用面技能，且升級需手動清理 settings.json hook 條目，破壞性明確。
+
+## v1.5.0 (2026-06-10)
+
+**`/design` 紙-preset 與 `/book` Kami 渲染對齊 tw93/Kami@5cd7c8e**：
+
+- design 紙-preset：tag 三層規格（#E4ECF5 standard / #EEF2F7 lightest）、breaking-badge 例外色（#f0e0d8/#8b4513）、parchment hex 修正、上游 provenance pin；根目錄 DESIGN.md / tokens.css 重新同步至 byte-identical。
+- book：修 stale `--paper`（#faf9f5 → #f5f4ed）、focal fill → #EEF2F7、node width 12 層 → 3 層 {128/144/160}、dots pattern 24 → 22（橫跨 13 個 diagram types）、arrow-link → `--brand-light` #2D5A8A；example-architecture 幾何修正後通過全部 validate-output.ts gates（先前違反 GATE-J/K）。
+- 另含 `codex-skill-transfer` 修正：Codex port 排除 `*-workspace/` 目錄。
+
 ## v1.4.6 (2026-05-14)
 
 **`/codex-skill-transfer`**：修 `emit_agent_stub` 兩條 bug，讓 13 個 agent stub TOML 成為 Codex `spawn_agent` 真正可載入的 schema（先前 Codex subagent runtime 實測四件套 `spawn_agent` / `send_input` / `wait_agent` / `close_agent` / `resume_agent` 全綠後，stub 內容的正確性從「UI 觀感」升格為「runtime 載入」）。
