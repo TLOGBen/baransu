@@ -202,50 +202,7 @@ Dispatch **review-agent** with:
 
 review-agent returns one of five tiers. Map them to actions as follows:
 
-**Pre-SWITCH guard — verify green_proof**: 在進入下方 SWITCH、`mark task ✅` 之前，主 skill
-必須先 verify review-agent 回報的 `green_proof` 欄位符合 `agents/review-agent.md` §3 的 5-tier
-必填矩陣。verify 規則：
-
-```
-verify_green_proof(review_result):
-  # Step 1 — existence check applies to ALL tiers (including direct fix).
-  # 4 keys 必須在 schema 中存在（值的語義由 tier 決定，但 key 本身不可省）。
-  REQUIRE green_proof.test_command          key present
-  REQUIRE green_proof.exit_code             key present (value 為整數)
-  REQUIRE green_proof.output_tail           key present
-  REQUIRE green_proof.tests_correspondence  key present
-  IF any REQUIRE fails:
-    return FAIL, reason="green_proof key missing"
-
-  # Step 2 — tier-specific value check.
-  IF review_result.tier == "direct fix":
-    # direct-fix tier 允許 4 個 value 為 "n/a"/0/""/"n/a"；不再驗 value 內容
-    return PASS
-  ELSE:
-    # advisory / packaged confirm (quality|correctness) / needs judgment 必填實 test
-    REQUIRE green_proof.test_command          non-empty AND != "n/a"
-    REQUIRE green_proof.tests_correspondence  non-empty AND != "n/a"
-    REQUIRE green_proof.exit_code == 0        # else Green failed, not a passed review
-    REQUIRE green_proof.output_tail           non-empty
-    IF any REQUIRE fails:
-      return FAIL, reason="green_proof incomplete or exit_code != 0"
-    return PASS
-```
-
-verify 結果處理：
-- `PASS` → 進入下方 SWITCH，照原邏輯 routing。
-- `FAIL` → review 視為失敗：**直接跳過 Goal-Alignment Filter**（因 verify-fail 注入的
-  finding 是 process-level、既不對應 task 驗收標準也不對應 task 目標，若送入 filter 會被
-  誤判為 off-goal observation 而 downgrade 至 advisory，導致 task 在無實 test 證據下被
-  mark ✅；此漏洞由本段顯式處理）。直接走以下路徑：
-    1. `failure_count += 1`（verify-fail 計入 task-level failure_count，與 §4b Phase 2
-       的 compile-error 排除規則不同——compile error 走 `compile_error_count`、不計入；
-       verify-fail 是 review-stage 的 process 失敗、計入 failure_count）。
-    2. 附加 finding `{citation: "green_proof", observation: "<verify reason>", fix:
-       "重派 review-agent 並要求附完整 green_proof"}` 到 review_result.findings。
-    3. 重派 impl-agent + review-agent（接 §4b Phase 2 retry 邏輯：第 1 次重試直接
-       重派；第 2 次失敗觸發 smart-friend 補上 correction_strategy）。
-    4. 不進下方 SWITCH，本輪 Phase 3 結束。
+**Pre-SWITCH guard — verify green_proof**: mandatory before entering the SWITCH below or marking any task ✅. Full verify procedure and FAIL handling (failure_count accounting, finding injection, re-dispatch): `references/green-proof-verify.md`. PASS → enter the SWITCH; FAIL → follow that file's failure path and skip the SWITCH this round.
 
 ```
 SWITCH review_tier:
@@ -291,81 +248,7 @@ SWITCH review_tier:
 
 **Goal-Alignment Filter** (applies to: `packaged confirm (correctness)`, `needs judgment`)
 
-Applicability gate. This sub-step runs ONLY when the SWITCH above landed on
-`packaged confirm (correctness)` or `needs judgment`. For `advisory`,
-`direct fix`, and `packaged confirm (quality)` the filter is **skipped**
-and the original SWITCH outcome stands unchanged.
-
-Purpose. review-agent is a finding-producing perspective; governance lives
-here. Some findings reviewer raises are **off-goal observations** (style,
-unrelated polish) that should not block the task. The filter walks each
-finding and decides whether it serves `ctx.md → Task.目標` / corresponds
-to a `Task.驗收標準` failure. Off-goal findings are downgraded to advisory
-and do not contribute to `failure_count`.
-
-Finding-level loop:
-
-```
-# Initial counter accumulation: every finding observed feeds the metric.
-total_findings_count += len(findings)
-
-FOR each finding F in review.findings:
-  # Step 1 — does F correspond to a 驗收標準 failure (semantic coverage)?
-  is_acceptance_failure = semantic_match(F.observation, ctx.Task.驗收標準)
-  # Step 2 — does F serve Task.目標?
-  serves_goal           = semantic_match(F.observation, ctx.Task.目標)
-
-  IF is_acceptance_failure:
-    # Hard invariant — see below. F keeps its original tier; never downgraded.
-    F.downgraded_to_advisory = false
-  ELIF serves_goal:
-    # On-goal but not acceptance-bound: keep original tier.
-    F.downgraded_to_advisory = false
-  ELSE:
-    # Off-goal observation. Downgrade to advisory.
-    F.downgraded_to_advisory = true
-    downgraded_to_advisory_count += 1
-END FOR
-```
-
-**Hard invariant — 驗收標準直接失敗 finding 不可 downgrade 為 advisory.**
-Any finding whose observation corresponds to a 驗收標準直接失敗
-(`is_acceptance_failure == true`) **不可**被 goal-alignment 邏輯
-downgrade 為 advisory；該 finding 維持原 tier，並依原邏輯計入
-`failure_count`。invariant 是 R2 的下界，不是建議。
-
-Filter 判斷準則：以驗收標準語意覆蓋範圍判斷，而非字面引用編號。若
-finding 的 observation 描述了某個失敗條件，而 `Task.驗收標準` 任一
-條目的語意涵蓋此條件，即視為「對應驗收標準直接失敗」並受 invariant
-保護 — 即使 finding 文字不只字面引用驗收標準編號（例如 finding 寫
-「authentication middleware 未掛載」、驗收標準寫「endpoint 必須要求
-授權」即構成語意覆蓋）。
-
-Post-step — review-level tier 重新計算 (re-tier):
-
-```
-# After all findings have been classified, recompute the review-level tier.
-remaining = [F for F in review.findings if not F.downgraded_to_advisory]
-
-IF every F in review.findings was downgraded to advisory  (remaining is empty):
-  # All findings off-goal → review-level tier 改 advisory；task 走 ✅ 路徑。
-  review_tier = "advisory"
-  failure_count is NOT incremented   # filter absorbed the failure
-  mark task ✅
-  TaskUpdate: status=completed
-  break LOOP
-
-ELSE:
-  # At least one finding survives (acceptance failure or on-goal). Keep
-  # original tier (correctness / judgment) for routing.
-  failure_count += 1
-  → go to failure escalation logic below
-```
-
-`total_findings_count` and `downgraded_to_advisory_count` are the source
-of truth for the matching `goal_alignment_filter_metric` block in Step 7's
-`final-report.md`; both counters live across the task's full TDAID loop
-and are emitted at report time.
+Full procedure — applicability gate, finding-level loop, hard invariant (驗收標準直接失敗 finding 不可 downgrade), 語意覆蓋判斷準則, re-tier post-step, and the metric counters feeding Step 7 — lives in `references/goal-alignment-filter.md` and is authoritative for `failure_count` accounting in this sub-step. Follow it; its outcome routes to either task ✅ (all findings downgraded to advisory) or the failure escalation logic below (`failure_count += 1`).
 
 **Failure escalation logic** (reached from correctness/judgment cases):
 
@@ -400,31 +283,7 @@ and are emitted at report time.
   continue LOOP  # failure_count == 1: retry with review findings
 ```
 
-**Composite `correction_strategy`** (built by orchestrator from smart-friend output for the next impl dispatch):
-
-```
-correction_strategy:
-  text: |
-    [broader guidance from smart-friend]
-    {smart-friend.broader_guidance}
-    [/broader guidance]
-
-    {smart-friend.correction_strategy}
-  investigate_files: {smart-friend.investigate_files}   # passed through as-is; absent → []
-```
-
-Rules:
-- `broader_guidance` is **prepended** to `text` wrapped in the paired markers
-  `[broader guidance from smart-friend]` ... `[/broader guidance]` so newlines
-  or special characters in the over-scope note cannot bleed into the body.
-  Both markers MUST appear (paired); never emit one without the other.
-- If `smart-friend.broader_guidance` is empty (`""` or absent), still wrap the
-  empty string with the paired markers — downstream parsing relies on the pair.
-- `investigate_files` is forwarded verbatim; orchestrator does not filter it.
-- This composite schema is consumed by **`agents/impl-agent.md` 通用原則 5
-  (`correction_strategy`)**, which mandates Read-before-Red-gate on every
-  path in `investigate_files`. Field names here MUST match that schema
-  exactly; any drift is a cross-file invariant violation.
+**Composite `correction_strategy`**: schema and assembly rules (paired broader-guidance markers, `investigate_files` pass-through, `agents/impl-agent.md` 通用原則 5 field coupling) in `references/correction-strategy.md` — build it from smart-friend output exactly as specified there before the next impl dispatch.
 
 ### 4c. Cascade-blocked propagation
 
@@ -524,6 +383,7 @@ Write `.claude/execute/{date}-{slug}/execute/final-report.md`. Template: `refere
 
 When emitting the report:
 - 將 §4b Phase 3 累加的 `total_findings_count` 與 `downgraded_to_advisory_count` 寫入 `## Goal-Alignment Filter Metric` 段（即 `goal_alignment_filter_metric` block）。若整個 session 內無任何 review-agent 回傳（counters 從未遞增），兩值皆寫 `0`，metric 段仍須輸出（不得省略）。filter 行為與降級判斷準則維持 §4b Phase 3 定義，本步驟僅做序列化，不重新計算。
+- If an upstream work journal exists (`.claude/think/*.html` for the approved plan; contract: `../_shared/output-journal.md`), append this run's off-spec decisions / forced changes / tradeoffs to its 執行日誌 section and SendUserFile the updated journal.
 
 Remove all gitworktrees created this session:
 ```bash
@@ -590,22 +450,4 @@ final-report.md: .claude/execute/{date}-{slug}/execute/final-report.md
 
 ## Error Reference
 
-| Condition | Detection point | Action |
-|-----------|-----------------|--------|
-| Spec dir missing | Step 0 | Stop; tell user to run /analyze |
-| Spec file missing | Step 0 | List gaps; escalate; stop |
-| Red gate not passed ⚠️ | §4b Phase 2 | BLOCKED (wrong test); escalate |
-| Compile error ❌ | §4b Phase 2 | Retry; does NOT count toward failure_count |
-| Impl failure (correctness/judgment) | §4b Phase 3 | failure_count++; retry |
-| failure_count == 2 | §4b escalation | Dispatch smart-friend; retry |
-| failure_count == 3 | §4b escalation | BLOCKED |
-| Spec contradiction | review-agent output | BLOCKED; escalate |
-| Merge semantic conflict ❌ | §4d | BLOCKED downstream; escalate |
-| Merge Green broken × 3 | §4d | BLOCKED downstream; escalate |
-| E2E fails | Step 5 | e2e-fix-agents (one cluster per agent); one re-run |
-| E2E still fails after fix | Step 5 | Record ❌; continue to Step 6 |
-| Final-Review needs_fixer: true | Step 6 | final-fixer once; one re-review |
-| Final-Review still needs_fixer: true | Step 6 | Record remaining gaps as BLOCKED; proceed |
-| Write attempt to analyze dir | All steps | Immediate structural blocker; escalate |
-| Filter downgraded finding to advisory | §4b Phase 3 | 正常路徑；計入 metric，不增 failure_count |
-| Invariant violation: 驗收標準失敗 finding 被誤降級 | §4b Phase 3 filter sub-step | Structural blocker; escalate (hard invariant breach) |
+Condition / detection point / action lookup table (all steps, verbatim): `references/error-reference.md`.

@@ -50,19 +50,21 @@ This exception is intentional. The skill's purpose is language-targeted copywrit
 7. **避免純裝飾性的三段排比**：「不是A，不是B，而是C」「願妳X，願妳Y，願妳Z」這類以節奏感為目的的排比。若排比各項有實質內容差異則可保留；純裝飾性的節奏堆疊須打散改寫。
 8. **禁用概念名詞化**：「○○感」「○○性」「○○化」的組合（自我的探索、認同感的建構、孤獨的覺察）。改法：改用動詞或具體短語（「找自己」「知道自己是誰」「發現自己很寂寞」）。
 9. **禁用飄浮敘事錨點**：「某個午後」「在這個忙碌的城市裡」「我認識一個朋友她」「曾經有個人告訴我」。改法：換成具體時間（上禮拜三下午三點）、具體地點（台北車站三樓的星巴克）、具體人名（我大學同學阿芳）。
+10. **「——」軟規則（voice-overridable）**：避免以破折號「——」充當邏輯連接詞（佔據「因為」「所以」「也就是」的位置）。改法：改用明確連接詞，或拆成兩句。此為軟規則，屬 voice cue 段定義的 voice-overridable 類別：voice preset 來源文體正當使用「——」（如節奏停頓、聲音延宕）時，依 preset 保留，不視為違規。
 
 ### en rules (compact English copywriting)
 
 1. **Oxford comma**: Include a serial comma before "and" or "or" in lists of three or more items (a, b, and c).
 2. **Active voice**: Prefer "We updated X" over "X was updated." Passive is acceptable when the agent is unknown or irrelevant to the meaning.
 3. **Sentence length**: Aim for ≤ 25 words per sentence. Split longer sentences at natural conjunctions (and, but, because, which, where).
-4. **Parallel structure**: Align grammatical form across list items and paired phrases (all verbs, all nouns, or all adjectives — not mixed).
+4. **Parallel structure**: Align grammatical form across list items and paired phrases (all verbs, all nouns, or all adjectives; never mixed).
 
 #### Anti-AI voice
 
-5. **No binary opposition**: Avoid standalone "It's not X, it's Y" sentence constructions that exist purely as rhetorical contrast. Use specific context instead: "She wasn't mourning the past — she was grieving a childhood where stories still had endings."
+5. **No binary opposition**: Avoid standalone "It's not X, it's Y" sentence constructions that exist purely as rhetorical contrast. Use specific context instead: "She wasn't mourning the past. She was grieving a childhood where stories still had endings."
 6. **Anchor claims**: Replace vague time/place/person references ("a friend once told me", "one afternoon", "in this busy city") with specifics: a name, a date, a location. Vague anchors signal fabricated experience.
 7. **No nominalization chains**: Prefer verbs and concrete phrases over noun-phrase stacks. "The exploration of one's identity" → "figuring out who you are". "The cultivation of resilience" → "learning to keep going".
+8. **Em-dash tiering**: the em-dash U+2014 (—) is hard-banned in en output, with no exceptions. The en-dash U+2013 (–) is banned except inside numeric ranges (pages 3–5, 2010–2020). When a dash would join two clauses, use a period, a colon, or a comma, or restructure into two sentences. (The dash characters in this rule are mentions of the banned glyphs, not uses.)
 
 ---
 
@@ -82,7 +84,12 @@ The prefix simultaneously determines the **rule set** and the **output language*
 - preset name (e.g. `voice="he-cai-tou"`) → if `references/{name}-voice.md` exists, read it as a stylistic reference
 - named author or descriptor (e.g. `voice="和菜頭"` or `voice="像和菜頭那種口語部落格"`) → use the string directly as a stylistic reference
 
-When provided, Refine adjusts wording toward the voice while still applying the rule set. Voice cue is **optional**; when omitted, Refine behaves as before. Voice cue does not override rules 5, 7, 8 (anti-AI 味 floor: 禁對仗句 / 禁排比 / 禁名詞化) — these continue to apply at every match regardless of voice. In Generate mode, voice cue is silently ignored.
+When provided, Refine adjusts wording toward the voice while still applying the rule set. Voice cue is **optional**; when omitted, Refine behaves as before. In Generate mode, voice cue is silently ignored.
+
+Rules interact with voice in two semantic classes:
+
+- **Must-not-override floor**: rules 5, 7, 8 (anti-AI 味 floor: 禁對仗句 / 禁排比 / 禁名詞化). Voice cue never overrides these — they continue to apply at every match regardless of voice.
+- **Voice-overridable rules**: rules explicitly marked as soft. Currently only zh rule 10 (the 「——」 soft rule) belongs to this class. When the active voice preset's source style legitimately uses the flagged construction (e.g., a preset whose author employs 「——」 as a rhythmic pause), the preset overrides the soft rule for those instances; without such a preset, the soft rule applies normally. A rule joins this class only by being explicitly labeled voice-overridable in its own text — unlabeled rules are never overridable.
 
 **Prefix–content mismatch (Refine mode only)**: if the user's prefix language does not match the actual language of the input text (e.g., `en` prefix with a Chinese-language body, or `zh` prefix with an English-only body), the selected rule set cannot be meaningfully applied. In this case respond:
 
@@ -126,7 +133,26 @@ Additionally, read context cues (salutation style, register of existing vocabula
 
 Rules 5 / 7 / 8 (anti-AI 味 floor: 禁對仗句 / 禁排比 / 禁名詞化) are exempt from suppression and apply to every match regardless of input length.
 
-**Output format**:
+**Long-form output: change-points list**: when the Refine output would be roughly 300 lines or longer, do not emit the whole-block Before/After rewrite. A whole rewrite at that size cannot be reviewed as a diff, and re-emitting the full text silently overwrites hand-tuned wording the rules never touched. Instead, emit a change-points list and let the user pick which changes to apply:
+
+```
+**變更點清單：**
+
+1. 位置：[第 N 段／約第 X–Y 行]
+   原文：[原句逐字引用]
+   建議：[修改後的句子]
+   理由：[規則標記＋一句說明]
+
+2. …
+
+請回覆要套用的編號（例：「1 3」），或「全部」。
+```
+
+After the user replies with their selection, apply only the chosen change points and output the affected fragments (not the full text). This selection step is part of the same Refine pass, not an iterative refinement loop.
+
+**Boundary between the two long-form mechanisms**: the input thresholds above (≥ 5 paragraphs OR ≥ 800 characters zh / ≥ 500 words en) govern **per-rule suppression** — how many instances each rule may touch. The ~300-line threshold governs **output form** — whole-block Before/After versus change-points list, measured on the would-be output. They are independent and can co-occur: a 6-paragraph, 80-line text gets per-rule suppression with the inline Before/After format; a 350-line text gets per-rule suppression and the change-points format.
+
+**Output format** (outputs below the ~300-line threshold; longer outputs use the change-points list above):
 
 ```
 **Before:**
@@ -140,8 +166,8 @@ Rules 5 / 7 / 8 (anti-AI 味 floor: 禁對仗句 / 禁排比 / 禁名詞化) are
 - [規則標記]：[具體改動說明]
 ```
 
-Rule tag examples for zh: `空格規則`、`標點規則`、`數字規則`、`專有名詞`、`語氣調整`、`動詞直用`、`「的」克制`、`具象優先`、`空洞形容詞`、`密度克制`、`禁對仗句`、`感官錨點`、`禁排比`、`禁名詞化`、`敘事錨點`、`voice 套用`.
-Rule tag examples for en: `Oxford comma`、`Active voice`、`Sentence length`、`Parallel structure`、`Tone`、`No stale metaphors`、`Cut filler`、`Short words`、`One idea`、`No binary opposition`、`Anchor claims`、`No nominalization chains`、`Voice applied`.
+Rule tag examples for zh: `空格規則`、`標點規則`、`數字規則`、`專有名詞`、`語氣調整`、`動詞直用`、`「的」克制`、`具象優先`、`空洞形容詞`、`密度克制`、`禁對仗句`、`感官錨點`、`禁排比`、`禁名詞化`、`敘事錨點`、`破折號軟規則`、`段末總結`、`升華句`、`套話連接`、`voice 套用`.
+Rule tag examples for en: `Oxford comma`、`Active voice`、`Sentence length`、`Parallel structure`、`Tone`、`No stale metaphors`、`Cut filler`、`Short words`、`One idea`、`No binary opposition`、`Anchor claims`、`No nominalization chains`、`Em-dash`、`Voice applied`.
 
 If no rules were triggered and no tone adjustment is needed, output:
 > 「文字已符合規則，無需修改。」
@@ -189,7 +215,7 @@ When format is not identifiable but the topic is clear, silently default to Shor
 
 ## Constraints
 
-- Single-pass only. No iterative refinement loop inside the skill. If the user wants a different result, they re-invoke.
+- Single-pass only. No iterative refinement loop inside the skill. If the user wants a different result, they re-invoke. (The change-points selection reply in long-form Refine is part of the same pass — a pick step, not a refinement loop.)
 - Content output language follows the prefix (or auto-detection). Operational notifications are always Traditional Chinese.
 - Refine mode never silently applies rules to incompatible-language content. Report the mismatch; do not guess.
 - Generate mode vague-topic fallback is always short prose. Do not ask the user to clarify before outputting — produce something and let the user re-invoke with a more specific prompt if needed.
