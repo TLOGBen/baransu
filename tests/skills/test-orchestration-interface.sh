@@ -99,6 +99,17 @@ if git -C "$ROOT" show "HEAD:$EXEC_REL" > /tmp/exec-head.$$ 2>/dev/null; then
     echo "T5[$section]: execute/SKILL.md $LABEL zero diff vs HEAD..."
     HEAD_SEC=$("$EXTRACT" < /tmp/exec-head.$$)
     WORK_SEC=$("$EXTRACT" < "$EXEC_MD")
+    # v2.1.0 slimming moved the filter section verbatim into
+    # execute/references/goal-alignment-filter.md (a pointer stays in
+    # SKILL.md). When the working-tree section is shorter than HEAD's,
+    # compare HEAD's section against the reference file instead.
+    if [ "$section" = "filter" ] && [ "$HEAD_SEC" != "$WORK_SEC" ] \
+       && [ -f "$ROOT/plugins/baransu/skills/execute/references/goal-alignment-filter.md" ]; then
+      REF_SEC=$("$EXTRACT" < "$ROOT/plugins/baransu/skills/execute/references/goal-alignment-filter.md")
+      if [ -n "$REF_SEC" ]; then
+        WORK_SEC="$REF_SEC"
+      fi
+    fi
     if [ -z "$WORK_SEC" ]; then
       fail "T5[$section]: $LABEL not found in working copy of execute/SKILL.md"
     elif [ "$HEAD_SEC" = "$WORK_SEC" ]; then

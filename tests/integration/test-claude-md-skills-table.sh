@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Test suite for the CLAUDE.md Skills table after the v2 slim-down (16 -> 12).
+# Test suite for the CLAUDE.md Skills table after the v2 slim-down (16 -> 12 -> 13, v2.1.0 adds /health).
 #
 # Asserts (4 check groups):
 #   B1) Project root CLAUDE.md exists.
-#   B2) Skills table contains exactly 12 rows (count of "| `/" lines).
+#   B2) Skills table contains exactly 13 rows (count of "| `/" lines).
 #   B3) Removed skills are absent from the table: /dev, /grade, /triage, /bridge.
-#   B4) The 12 surviving skill names are present.
+#   B4) The 13 surviving skill names are present.
 #   B5) Each surviving skill row has a non-empty "When to invoke" description column.
-#   B6) The 12 skill descriptions match the baseline
+#   B6) The 13 skill descriptions match the baseline
 #       (regenerated post-slim and persisted alongside this script).
 #
 # Exit 0 on all pass; non-zero on any fail.
@@ -53,13 +53,13 @@ else
 fi
 
 # -------------------------------------------------------------------------
-# B2: Skills table has 12 rows
+# B2: Skills table has 13 rows
 # -------------------------------------------------------------------------
 ROW_COUNT=$(extract_skill_rows | wc -l | tr -d ' ')
-if [ "$ROW_COUNT" -eq 12 ]; then
-  ok "B2 Skills table has 12 rows"
+if [ "$ROW_COUNT" -eq 13 ]; then
+  ok "B2 Skills table has 13 rows"
 else
-  bad "B2 Skills table row count is $ROW_COUNT, expected 12"
+  bad "B2 Skills table row count is $ROW_COUNT, expected 13"
 fi
 
 # -------------------------------------------------------------------------
@@ -75,9 +75,9 @@ for s in "${REMOVED_SKILLS[@]}"; do
 done
 
 # -------------------------------------------------------------------------
-# B4: 12 surviving skill names present
+# B4: 13 surviving skill names present
 # -------------------------------------------------------------------------
-SURVIVING_SKILLS=(think review analyze execute write ship hunt read design learn book codex-skill-transfer)
+SURVIVING_SKILLS=(think review analyze execute write ship hunt health read design learn book codex-skill-transfer)
 for s in "${SURVIVING_SKILLS[@]}"; do
   if extract_skill_rows | grep -qF "\`/$s\`"; then
     ok "B4 surviving skill /$s present"
@@ -90,12 +90,14 @@ done
 # B5: each surviving skill has a non-empty description column
 # -------------------------------------------------------------------------
 for s in "${SURVIVING_SKILLS[@]}"; do
-  ROW=$(extract_skill_rows | grep -F "\`/$s\`" || true)
+  # Anchor on the first column — the 易混淆 column cross-references other
+  # skill names, so an unanchored grep would match multiple rows.
+  ROW=$(extract_skill_rows | grep -F "| \`/$s\` |" || true)
   if [ -z "$ROW" ]; then
     bad "B5 row for /$s not found (cannot check description)"
     continue
   fi
-  # Row format: | `/name` | description |
+  # Row format: | `/name` | description | 易混淆 |
   # Extract second column.
   DESC=$(echo "$ROW" | awk -F'|' '{print $3}' | sed 's/^ *//; s/ *$//')
   if [ -n "$DESC" ]; then
@@ -106,22 +108,22 @@ for s in "${SURVIVING_SKILLS[@]}"; do
 done
 
 # -------------------------------------------------------------------------
-# B6: 12 skill descriptions match the regenerated baseline
+# B6: 13 skill descriptions match the regenerated baseline
 # -------------------------------------------------------------------------
 if [ ! -f "$BASELINE" ]; then
   bad "B6 baseline file missing at $BASELINE (cannot verify descriptions)"
 else
   BASELINE_ROWS=$(grep -cE '^\| `/' "$BASELINE" | tr -d ' ')
-  if [ "$BASELINE_ROWS" -eq 12 ]; then
-    ok "B6 baseline has 12 rows"
+  if [ "$BASELINE_ROWS" -eq 13 ]; then
+    ok "B6 baseline has 13 rows"
   else
-    bad "B6 baseline row count is $BASELINE_ROWS, expected 12"
+    bad "B6 baseline row count is $BASELINE_ROWS, expected 13"
   fi
   while IFS= read -r line; do
     [ -z "$line" ] && continue
     SKILL_NAME=$(echo "$line" | awk -F'|' '{print $2}' | sed 's/^ *//; s/ *$//')
     EXPECTED_DESC=$(echo "$line" | awk -F'|' '{print $3}' | sed 's/^ *//; s/ *$//')
-    ACTUAL_ROW=$(extract_skill_rows | grep -F "$SKILL_NAME |" || true)
+    ACTUAL_ROW=$(extract_skill_rows | grep -F "| $SKILL_NAME |" || true)
     if [ -z "$ACTUAL_ROW" ]; then
       bad "B6 baseline row for $SKILL_NAME not found in current CLAUDE.md"
       continue

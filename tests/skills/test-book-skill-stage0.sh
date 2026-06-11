@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
-# Tests for plugins/baransu/skills/book/SKILL.md Stage 0 §0 (format flag parsing)
-# Coverage (TASK-skill-01 retry): invalid --format guard must be present in §0
+# Tests for plugins/baransu/skills/book/SKILL.md Stage 0 (format flag parsing)
+# Coverage (TASK-skill-01 retry): invalid --format guard must be present in Stage 0
 #
-# Strategy: extract only the §0 block (### 0. --format 旗標解析) and check its content.
-# This avoids false positives from other sections of the file.
+# Strategy: extract the "## Stage 0" section (up to the next H2) and check its
+# content. The guard lives in Stage 0 §2 「--format 旗標解析」; the old anchor
+# "### 0." now matches Stage 2A's Fact-Verification block instead, and the old
+# absolute path broke under worktrees — both fixed here (v2.1.0 doc-debt).
 
 set -u
 
-SKILL_MD="/home/vakarve/projects/baransu/plugins/baransu/skills/book/SKILL.md"
+SKILL_MD="$(cd "$(dirname "$0")/../.." && pwd)/plugins/baransu/skills/book/SKILL.md"
 
 PASS=0
 FAIL=0
@@ -21,8 +23,8 @@ fail() {
   if [ -n "${2:-}" ]; then echo "        $2"; fi
 }
 
-# Extract §0 block: from "### 0." up to (but not including) the next "### " heading
-SECTION_0=$(awk '/^### 0\./{found=1} found && /^### [^0]/{exit} found{print}' "$SKILL_MD")
+# Extract the Stage 0 section: from "## Stage 0" up to (but not including) the next "## " heading
+SECTION_0=$(awk '/^## Stage 0/{found=1; print; next} found && /^## /{exit} found{print}' "$SKILL_MD")
 
 echo "--- Extracted §0 block ---"
 echo "$SECTION_0"

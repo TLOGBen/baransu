@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# Test suite for TASK-distribution-01: release metadata reflects 12 skills @ 2.0.0.
+# Test suite for TASK-distribution-01: release metadata reflects 13 skills @ 2.1.0.
 #
 # Asserts (behavioral, against release surfaces only):
-#   D1) plugin.json version == 2.0.0
-#   D2) plugin.json description describes twelve skills (no "16"/"sixteen")
+#   D1) plugin.json version is semver with major >= 2 (not pinned to a string)
+#   D2) plugin.json description describes thirteen skills (no "16"/"sixteen")
 #   D3) plugin.json keywords contain none of: dev, tdd, harness, grade, triage, bridge
 #   D4) marketplace.json plugin description synced (no "16"/"sixteen");
 #       metadata.version identical to plugin.json version
 #   D5) marketplace.json tags contain none of: dev, tdd, harness, grade, triage, bridge
 #   D6) CLAUDE.md has no "sixteen" / "self-healing harness" wording
-#   D7) CLAUDE.md skills table has exactly 12 rows; no /dev /grade /triage /bridge rows
+#   D7) CLAUDE.md skills table has exactly 13 rows; no removed-skill rows
 #   D8) CLAUDE.md keeps the cross-skill anti-patterns pointer (rules/anti-patterns.md)
 #   D9) README has no functional reference to removed skills
 #       (word-boundary scan: \bgrade\b|\btriage\b|\bbridge\b|`/dev`|baransu:dev)
@@ -45,21 +45,29 @@ bad() {
 BANNED_TERMS="dev tdd harness grade triage bridge"
 
 # --- D1: plugin.json version ---
+# Not pinned to an exact string (that broke at every bump); assert semver
+# shape and major >= 2. Cross-manifest equality is owned by
+# scripts/verify-skills.py (three-face check), not duplicated here.
 PLUGIN_VERSION=$(python3 -c "import json;print(json.load(open('$PLUGIN_JSON'))['version'])" 2>/dev/null)
-if [ "$PLUGIN_VERSION" = "2.0.0" ]; then
-  ok "D1 plugin.json version is 2.0.0"
+if echo "$PLUGIN_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+  MAJOR=${PLUGIN_VERSION%%.*}
+  if [ "$MAJOR" -ge 2 ]; then
+    ok "D1 plugin.json version is semver and >= 2.x ($PLUGIN_VERSION)"
+  else
+    bad "D1 plugin.json version major < 2: '$PLUGIN_VERSION'"
+  fi
 else
-  bad "D1 plugin.json version is '$PLUGIN_VERSION', expected 2.0.0"
+  bad "D1 plugin.json version is not semver: '$PLUGIN_VERSION'"
 fi
 
 # --- D2: plugin.json description ---
 PLUGIN_DESC=$(python3 -c "import json;print(json.load(open('$PLUGIN_JSON'))['description'])" 2>/dev/null)
 if echo "$PLUGIN_DESC" | grep -qiE '\b16\b|sixteen'; then
   bad "D2 plugin.json description still says 16/sixteen: $PLUGIN_DESC"
-elif echo "$PLUGIN_DESC" | grep -qiE '\b12\b|twelve'; then
-  ok "D2 plugin.json description describes twelve skills"
+elif echo "$PLUGIN_DESC" | grep -qiE '\b13\b|thirteen'; then
+  ok "D2 plugin.json description describes thirteen skills"
 else
-  bad "D2 plugin.json description does not mention twelve/12: $PLUGIN_DESC"
+  bad "D2 plugin.json description does not mention thirteen/13: $PLUGIN_DESC"
 fi
 
 # --- D3: plugin.json keywords ---
@@ -104,10 +112,10 @@ fi
 
 # --- D7: CLAUDE.md skills table ---
 ROW_COUNT=$(grep -cE '^\| `/' "$CLAUDE_MD")
-if [ "$ROW_COUNT" -eq 12 ]; then
-  ok "D7a CLAUDE.md skills table has 12 rows"
+if [ "$ROW_COUNT" -eq 13 ]; then
+  ok "D7a CLAUDE.md skills table has 13 rows"
 else
-  bad "D7a CLAUDE.md skills table has $ROW_COUNT rows, expected 12"
+  bad "D7a CLAUDE.md skills table has $ROW_COUNT rows, expected 13"
 fi
 if grep -E '^\| `/' "$CLAUDE_MD" | grep -qE '`/(dev|grade|triage|bridge)`'; then
   bad "D7b CLAUDE.md skills table still has /dev, /grade, /triage, or /bridge row"

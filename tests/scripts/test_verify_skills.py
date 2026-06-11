@@ -2,8 +2,8 @@
 """Tests for scripts/verify-skills.py — structure verifier (REQ-005 Scenario 2).
 
 Positive: the current repo passes every check (exit 0); the per-skill pass
-list covers all 12 skills; the >500-line advisory is emitted (execute is the
-known oversize SKILL.md) without affecting the exit code.
+list covers all 13 skills; no >500-line advisory remains (execute was slimmed
+under the cap in v2.1.0).
 
 Negative: a fixture SKILL.md stub missing the Outcome Contract block makes
 the verifier exit 1 and name the violation (falsifiability proof for C6).
@@ -31,6 +31,7 @@ EXPECTED_SKILLS = [
     "codex-skill-transfer",
     "design",
     "execute",
+    "health",
     "hunt",
     "learn",
     "read",
@@ -79,21 +80,21 @@ class TestCurrentRepoPasses(unittest.TestCase):
             f"exit={self.result.returncode}\noutput:\n{self.out}",
         )
 
-    def test_per_skill_pass_list_covers_all_12_skills(self):
+    def test_per_skill_pass_list_covers_all_13_skills(self):
         for name in EXPECTED_SKILLS:
             self.assertIn(name, self.out, f"per-skill pass list missing: {name}")
 
-    def test_oversize_advisory_lists_execute_without_failing(self):
-        # execute SKILL.md is the known >500-line file: it must appear in the
-        # ADVISORY list, while the overall run still exits 0 (asserted above).
+    def test_no_oversize_advisory_remains(self):
+        # v2.1.0 slimmed execute/SKILL.md under the 500-line official cap
+        # (sections moved verbatim to execute/references/). No skill should
+        # trigger the ADVISORY list any more; a reappearing line means a
+        # SKILL.md regressed past the cap.
         advisory_lines = [
             line for line in self.out.splitlines() if "ADVISORY" in line
         ]
-        self.assertTrue(advisory_lines, "no ADVISORY line in output")
-        self.assertTrue(
-            any("execute" in line for line in advisory_lines),
-            f"ADVISORY must list the oversize 'execute' SKILL.md; "
-            f"got: {advisory_lines}",
+        self.assertFalse(
+            advisory_lines,
+            f"unexpected oversize ADVISORY lines: {advisory_lines}",
         )
 
 

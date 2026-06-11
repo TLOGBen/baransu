@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# TASK-automation-03 gate (REQ-004): all 12 surviving skills carry a fifth
+# TASK-automation-03 gate (REQ-004): all 13 surviving skills carry a fifth
 # contract line inside the Outcome Contract block, after the Output bullet:
 #   - **Automation**: ultracode={overlap|assist|neutral}, loop={drivable|assisted|not-drivable}
 # Grading must match the plan table; the annotation lives in the body contract
@@ -19,6 +19,7 @@ expected = {
     "execute": ("overlap", "drivable"),
     "learn": ("overlap", "drivable"),
     "hunt": ("assist", "assisted"),
+    "health": ("assist", "assisted"),
     "analyze": ("assist", "assisted"),
     "codex-skill-transfer": ("assist", "assisted"),
     "think": ("neutral", "not-drivable"),
@@ -118,5 +119,5 @@ if failures:
         print(f"  - {f}")
     sys.exit(1)
 
-print("GREEN: all 12 skills carry a correctly graded Automation contract line")
+print("GREEN: all 13 skills carry a correctly graded Automation contract line")
 PY

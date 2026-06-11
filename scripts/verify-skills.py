@@ -3,15 +3,16 @@
 """verify-skills.py — baransu 結構驗證器（一條命令證明 C1/C2/C3/C6）。
 
 Repo mode（無參數）執行全部檢查：
-  1. plugins/baransu/skills/ 技能目錄數 = 12（_shared/ 除外，且每目錄有 SKILL.md）
+  1. plugins/baransu/skills/ 技能目錄數 = 13（_shared/ 除外，且每目錄有 SKILL.md）
   2. SKILL.md frontmatter 可解析（think 極簡式 / read-learn 完整式皆容納）
      ＋官方細目：name ≤64 字元小寫連字符、description 非空 ≤1024、第三人稱啟發式
   3. SKILL.md 引用的 references/ 檔存在，且 references/ 內不得再巢狀 references/
   4. 被裁名稱（grade/triage/bridge/dev）word-boundary 零功能殘留
      （掃描面與排除規則內嵌於本腳本，見 RESIDUE_* 常數；git 歷史不掃）
-  5. 雙 manifest（plugin.json / marketplace.json）version 一致
+  5. 三發行面（plugin.json / marketplace.json / codex 鏡像）version 一致
   6. Outcome Contract 四行（Outcome / Done when / Evidence / Output）齊備且值非空
   7. 契約區塊第五行 Automation 標注存在且值非空
+  8. README「核心理念」理念表逐條錨點存在（條款綁機制）
 
 Advisory（不影響 exit code）：SKILL.md 本文 >500 行清單（官方上限；
 execute 為既有超限戶）。
@@ -39,8 +40,9 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILLS_DIR = REPO_ROOT / "plugins" / "baransu" / "skills"
 PLUGIN_MANIFEST = REPO_ROOT / "plugins" / "baransu" / ".claude-plugin" / "plugin.json"
 MARKETPLACE_MANIFEST = REPO_ROOT / ".claude-plugin" / "marketplace.json"
+CODEX_MANIFEST = REPO_ROOT / "codex" / "plugins" / "baransu" / ".codex-plugin" / "plugin.json"
 
-EXPECTED_SKILL_COUNT = 12
+EXPECTED_SKILL_COUNT = 13
 BODY_LINE_ADVISORY_LIMIT = 500
 
 # 官方 frontmatter 細目
@@ -329,11 +331,20 @@ def check_manifest_versions():
             versions["marketplace.json"] = entry.get("version") or doc.get(
                 "metadata", {}
             ).get("version")
-    if versions["plugin.json"] != versions["marketplace.json"]:
+    # 第三發行面：codex 鏡像 manifest（由 transfer.py 重產；缺檔即違規，
+    # 因為鏡像是發行物的一部分，不可在 bump 後遺留舊版）
+    try:
+        codex_doc = json.loads(CODEX_MANIFEST.read_text(encoding="utf-8"))
+        versions["codex"] = codex_doc.get("version")
+    except (OSError, json.JSONDecodeError) as exc:
+        return [f"codex 鏡像 manifest 無法讀取（{CODEX_MANIFEST}: {exc}）"], None
+    distinct = {repr(v) for v in versions.values()}
+    if len(distinct) > 1:
         return [
-            "雙 manifest version 不一致："
+            "三發行面 version 不一致："
             f"plugin.json={versions['plugin.json']!r} vs "
-            f"marketplace.json={versions['marketplace.json']!r}"
+            f"marketplace.json={versions['marketplace.json']!r} vs "
+            f"codex={versions['codex']!r}"
         ], None
     return [], versions["plugin.json"]
 
@@ -341,6 +352,50 @@ def check_manifest_versions():
 # ---------------------------------------------------------------------------
 # main
 # ---------------------------------------------------------------------------
+def check_philosophy_anchors() -> list[str]:
+    """README「核心理念」段：理念表每列須含 ≥1 個存在於倉內的機制錨點路徑。
+
+    條款綁機制（v2.1.0 KD4）：無錨點的理念條不入冊；錨點以反引號路徑表示，
+    存在性在此機器驗證 — 防止理念段退化為口號。
+    """
+    readme = REPO_ROOT / "README.md"
+    try:
+        text = readme.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise Structural(f"{readme}: 無法讀取（{exc}）")
+    lines = text.splitlines()
+    try:
+        start = next(i for i, l in enumerate(lines) if l.strip() == "## 核心理念")
+    except StopIteration:
+        return ["README.md 缺「## 核心理念」段（理念成文為 v2.1.0 驗收項）"]
+    end = next(
+        (i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")),
+        len(lines),
+    )
+    v: list[str] = []
+    rows = 0
+    for line in lines[start:end]:
+        s = line.strip()
+        if not s.startswith("|"):
+            continue
+        if set(s.replace("|", "").strip()) <= {"-", " ", ":"}:
+            continue  # separator row
+        cells = [c.strip() for c in s.strip("|").split("|")]
+        if len(cells) < 3 or cells[0] in ("理念", ""):
+            continue
+        rows += 1
+        anchors = re.findall(r"`([^`]+)`", s)
+        paths = [a for a in anchors if "/" in a or a.endswith(".py") or a.endswith(".md")]
+        if not paths:
+            v.append(f"理念條「{cells[0]}」無機制錨點路徑（條款綁機制：無錨點不入冊）")
+            continue
+        if not any((REPO_ROOT / p).exists() for p in paths):
+            v.append(f"理念條「{cells[0]}」錨點不存在於倉內：{paths}")
+    if rows == 0:
+        v.append("README「核心理念」段無理念表列（預期 ≥1 列、每列含機制錨點）")
+    return v
+
+
 def discover_skills(root: Path) -> list[Path]:
     if not root.is_dir():
         raise Structural(f"{root}: 技能根目錄不存在")
@@ -386,7 +441,11 @@ def main(argv: list[str]) -> int:
             mv, version = check_manifest_versions()
             violations += mv
             if not mv:
-                print(f"✅ 雙 manifest version 一致：{version}")
+                print(f"✅ 三發行面 version 一致：{version}")
+            pv = check_philosophy_anchors()
+            violations += pv
+            if not pv:
+                print("✅ README 理念段逐條錨點存在（條款綁機制）")
             if len(skills) == EXPECTED_SKILL_COUNT:
                 print(f"✅ 技能目錄數 = {EXPECTED_SKILL_COUNT}")
 
