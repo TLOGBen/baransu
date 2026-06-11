@@ -151,9 +151,9 @@ These have each caused regressions — do not "optimize" them away:
 
 `plugins/baransu/.claude-plugin/plugin.json` holds the authoritative version. **Bump on every distributed change** — plugin caching means users won't see updates without a bump. `plugin.json` wins over `marketplace.json`.
 
-## No Build / Test Commands
+## Verification
 
-The plugin itself ships no build toolchain. Structural tests live under `tests/`; run them via the per-suite shell scripts and `python3 -m pytest tests/scripts/` for the Python unit tests.
+The plugin itself ships no build toolchain. `make test` is the single stable entrypoint: it runs `scripts/verify-skills.py`, `python3 -m pytest tests/scripts/`, and every per-suite shell script under `tests/`. Individual suites stay runnable on their own.
 
 ## Commit Style
 

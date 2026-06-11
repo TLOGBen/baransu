@@ -13,10 +13,9 @@
 #   D8) CLAUDE.md keeps the cross-skill anti-patterns pointer (rules/anti-patterns.md)
 #   D9) README has no functional reference to removed skills
 #       (word-boundary scan: \bgrade\b|\btriage\b|\bbridge\b|`/dev`|baransu:dev)
-#   D10) release-notes-draft.md exists with the three mandated sections:
-#        16→12 list + settings.json hook-removal instruction,
-#        gate-semantics downgrade (discipline-suggested),
-#        new governance assets (loop-contract.md, anti-patterns.md, verify-skills.py)
+#
+# (D10 — release-notes-draft gate for the 2.1.0 slim release — was retired
+# after shipping; it asserted a transient untracked .claude/execute/ artifact.)
 #
 # Exit 0 on all pass; non-zero on any fail.
 
@@ -27,7 +26,6 @@ PLUGIN_JSON="$WORKTREE_ROOT/plugins/baransu/.claude-plugin/plugin.json"
 MARKETPLACE_JSON="$WORKTREE_ROOT/.claude-plugin/marketplace.json"
 CLAUDE_MD="$WORKTREE_ROOT/CLAUDE.md"
 README_MD="$WORKTREE_ROOT/README.md"
-RELEASE_NOTES="$WORKTREE_ROOT/.claude/execute/2026-06-10-baransu-v2-slim/execute/release-notes-draft.md"
 
 PASS_COUNT=0
 FAIL_COUNT=0
@@ -136,24 +134,6 @@ if [ -n "$README_HITS" ]; then
   bad "D9 README still references removed assets:"$'\n'"$README_HITS"
 else
   ok "D9 README clean of removed-asset references"
-fi
-
-# --- D10: release notes draft ---
-if [ ! -f "$RELEASE_NOTES" ]; then
-  bad "D10 release-notes-draft.md missing at $RELEASE_NOTES"
-else
-  D10_OK=1
-  for needle in "settings.json" "discipline-suggested" "loop-contract.md" "anti-patterns.md" "verify-skills.py" "tdd.md"; do
-    if ! grep -qF "$needle" "$RELEASE_NOTES"; then
-      bad "D10 release-notes-draft.md missing required content: $needle"
-      D10_OK=0
-    fi
-  done
-  if ! grep -qE '16.*12|sixteen.*twelve' "$RELEASE_NOTES"; then
-    bad "D10 release-notes-draft.md missing the 16→12 statement"
-    D10_OK=0
-  fi
-  [ "$D10_OK" = "1" ] && ok "D10 release-notes-draft.md present with all three mandated sections"
 fi
 
 echo ""

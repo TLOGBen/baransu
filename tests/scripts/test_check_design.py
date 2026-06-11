@@ -20,17 +20,16 @@ import textwrap
 import unittest
 from pathlib import Path
 
-# Resolve repo paths. Tests can run from either the worktree or main repo;
-# we always invoke the check.py from this worktree, but lint targets live in
-# the *main* working tree (Wave 1 artifacts are untracked in main).
+# Resolve repo paths relative to this file so the suite passes from any
+# checkout (main repo or git worktree). All lint fixtures are tracked.
 THIS_FILE = Path(__file__).resolve()
 WORKTREE_ROOT = THIS_FILE.parents[2]
-MAIN_ROOT = Path("/home/vakarve/projects/baransu")
+MAIN_ROOT = WORKTREE_ROOT
 
 CHECK_PY = WORKTREE_ROOT / "plugins" / "baransu" / "skills" / "design" / "scripts" / "check.py"
 
 SWISS_TOKENS = MAIN_ROOT / "plugins/baransu/skills/design/references/swiss-preset/tokens.css"
-SLIDE_CORES_DIR = MAIN_ROOT / "plugins/baransu/skills/design/references/slide-cores"
+SLIDE_CORES_DIR = MAIN_ROOT / "plugins/baransu/skills/design/references/紙-preset/slide-cores"
 KAMI_DIR = MAIN_ROOT / "plugins/baransu/skills/design/references/紙-preset"
 
 
@@ -133,11 +132,11 @@ class TestSwissPresetTokensLint(unittest.TestCase):
 class TestSlideCoresHtmlLint(unittest.TestCase):
     """REQ-005 Scenario 3 / 4 — slide-cores/ path triggers new HTML checks."""
 
-    def test_all_nine_real_slide_cores_pass(self):
-        """Scenario 3: all 9 real slide-core HTML files PASS new lint."""
+    def test_all_real_slide_cores_pass(self):
+        """Scenario 3: all real slide-core HTML files PASS new lint (21 as of 2.1.2)."""
         self.assertTrue(SLIDE_CORES_DIR.is_dir(), f"missing fixture dir: {SLIDE_CORES_DIR}")
         files = sorted(SLIDE_CORES_DIR.glob("*.html"))
-        self.assertEqual(len(files), 9, f"expected 9 slide-cores, found {len(files)}: {files}")
+        self.assertEqual(len(files), 21, f"expected 21 slide-cores, found {len(files)}: {files}")
         result = run_check(SLIDE_CORES_DIR)
         self.assertEqual(
             result.returncode, 0,
@@ -296,29 +295,33 @@ class TestExistingRulesRegression(unittest.TestCase):
     Behavior on 紙-preset/ artifacts must be byte-equivalent to pre-change baseline.
     """
 
-    # Pre-change baseline captured from running existing check.py on 紙-preset/
-    # (see ctx — task requires "既有 fixture 跑出來行為等價"):
-    #   2 violations in 紙-preset/tokens.css:
-    #     L46 [#8 no-rgba] rgba() outside box-shadow
-    #     L102 [#6 line-height] line-height 1.6 > 1.55 for body text
-    #   0 violations in 紙-preset/DESIGN.md
-    EXPECTED_KAMI_VIOLATION_COUNT = 2
+    # Baseline recalibrated after 30231f3 (kami preset lint-clean, v2.1.2):
+    # tokens.css / DESIGN.md / cores are now violation-free. The only remaining
+    # hit is check-A artifact-completeness — reference presets ship sources
+    # only; DESIGN.html is generated when the preset is applied to a project.
+    #   1 violation in 紙-preset/:
+    #     L1 [#1 check-A-artifact-completeness] 缺少 v1.3 artifact: DESIGN.html
+    EXPECTED_KAMI_VIOLATION_COUNT = 1
     EXPECTED_KAMI_WARM_TONES_HITS = 0
 
     def test_kami_preset_directory_regression(self):
         self.assertTrue(KAMI_DIR.is_dir(), f"missing baseline dir: {KAMI_DIR}")
         result = run_check(KAMI_DIR)
-        # Should still fail with exit=1 (baseline has 2 violations)
+        # Should still fail with exit=1 (baseline has exactly 1 known violation)
         self.assertEqual(result.returncode, 1,
                          f"baseline 紙-preset must still flag violations\n{result.stdout}")
         # Count specific violations to detect regression in either direction
+        artifact_hits = result.stdout.count("[#1 check-A-artifact-completeness]")
         no_rgba_hits = result.stdout.count("[#8 no-rgba]")
         line_height_hits = result.stdout.count("[#6 line-height]")
         warm_tone_hits = result.stdout.count("[#3 warm-tones]")
-        self.assertEqual(no_rgba_hits, 1,
-                         f"expected exactly 1 no-rgba hit on 紙-preset, got {no_rgba_hits}\n{result.stdout}")
-        self.assertEqual(line_height_hits, 1,
-                         f"expected exactly 1 line-height hit on 紙-preset, got {line_height_hits}")
+        self.assertEqual(artifact_hits, 1,
+                         f"expected exactly 1 artifact-completeness hit on 紙-preset, "
+                         f"got {artifact_hits}\n{result.stdout}")
+        self.assertEqual(no_rgba_hits, 0,
+                         f"no-rgba regression on lint-clean 紙-preset: got {no_rgba_hits}\n{result.stdout}")
+        self.assertEqual(line_height_hits, 0,
+                         f"line-height regression on lint-clean 紙-preset: got {line_height_hits}")
         self.assertEqual(warm_tone_hits, self.EXPECTED_KAMI_WARM_TONES_HITS,
                          f"cool-gray hit count regression on 紙-preset: "
                          f"baseline={self.EXPECTED_KAMI_WARM_TONES_HITS}, now={warm_tone_hits}")

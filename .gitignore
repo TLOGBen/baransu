@@ -9,6 +9,10 @@
 .claude/dev/
 .claude/think/
 
+# /read raw captures — bulky offline page snapshots; converted output under
+# .claude/read/material/ stays tracked.
+.claude/read/raw/
+
 # self-healing harness telemetry — local only
 # Directory persists by virtue of telemetry being written into it; no .gitkeep needed.
 .claude/harness/
