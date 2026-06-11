@@ -2,6 +2,10 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.0.1 (2026-06-11)
+
+**`hooks/wiki-sync.sh` 修 slug 抽取 bug**：`read/index.md` 以 `# Read Index` 標題行開頭時，表頭列落在 `NR>2` 之後，awk 把字面值 `slug`（表頭字）當成待同步 slug，產生 `sync | slug` 幽靈紀錄。修法：抽取條件追加 `$3=="slug"` 過濾。實測舊版對現行 index.md 首筆吐出 `slug`、新版正確過濾。採 patch：hook 內部行為修正，調用面零變動。
+
 ## v2.0.0 (2026-06-10)
 
 **破壞性改版：治理瘦身，16 技能裁併為 12。** 依使用證據裁決（grade/triage/bridge 自癒迴路從未運轉、dev 使用最少），同版交付四項治理資產。規格與驗收軌跡見 `.claude/analyze/2026-06-10-baransu-v2-slim/` 與 `.claude/execute/2026-06-10-baransu-v2-slim/execute/final-report.md`。

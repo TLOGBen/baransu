@@ -13,7 +13,9 @@ WIKI_SCHEMA="$PROJECT_DIR/.claude/wiki/wiki-schema.md"
 
 # Extract slugs from read/index.md (col 2, skip header + separator rows)
 # gsub spaces BEFORE checking for separator pattern — critical ordering
-read_slugs=$(awk -F'|' 'NR>2{gsub(/ /,"",$3); if($3~/^[-]+$/ || $3=="") next; print $3}' "$READ_INDEX")
+# $3=="slug" filters the header row, which lands past NR 2 when the file
+# starts with a "# Read Index" title line
+read_slugs=$(awk -F'|' 'NR>2{gsub(/ /,"",$3); if($3~/^[-]+$/ || $3=="" || $3=="slug") next; print $3}' "$READ_INDEX")
 
 # Extract already-processed slugs from wiki/log.md
 if [ -f "$WIKI_LOG" ]; then
