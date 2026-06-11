@@ -29,6 +29,7 @@
 
 - transfer.py 雜項：刪除死碼 NAMED_ARG regex、修 batch 分支過時註解、description 縮減段補官方 skills-list context cap（~2% window / 8,000 chars）系統性理由註解並標注兩條 trigger-phrase regex 為 baransu 專屬啟發式；docstring 改正已退役 template 引用（openai.yaml / agent stub 實為 yaml.safe_dump / json.dumps 直建）。
 - codex/ 鏡像以新版 transfer.py 全量重產（13 skills、v2.2.0），鏡像 skill body 已套 CLAUDE.md→AGENTS.md 改寫。
+- verify-skills.py 對 gitignored 本地目錄全面免疫：殘留掃描排除 `*-workspace/` 與 `node_modules/`，skill discovery 排除 `*-workspace/`（skill-creator eval 工作區與本地 npm 安裝皆非散布內容；先前在留有這類本地檔的 checkout 上會誤報 'dev' 殘留、技能數 16≠13、workspace 缺 SKILL.md，導致 `make test` 紅而乾淨 worktree 綠——同一倉庫兩種結果）。
 
 ### SemVer 註
 

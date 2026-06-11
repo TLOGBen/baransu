@@ -269,7 +269,11 @@ def iter_residue_files():
             if not p.is_file() or p.suffix not in RESIDUE_SCAN_EXTS:
                 continue
             rel = p.relative_to(REPO_ROOT).as_posix()
-            if "/__pycache__/" in rel:
+            if "/__pycache__/" in rel or "/node_modules/" in rel:
+                continue
+            # Transient eval workspaces (gitignored: plugins/*/skills/*-workspace/)
+            # hold scratch from skill-creator runs — not distributed content.
+            if "-workspace/" in rel:
                 continue
             if base == "tests" and "/fixtures/" in rel:
                 continue
@@ -399,8 +403,12 @@ def check_philosophy_anchors() -> list[str]:
 def discover_skills(root: Path) -> list[Path]:
     if not root.is_dir():
         raise Structural(f"{root}: 技能根目錄不存在")
+    # *-workspace dirs are gitignored skill-creator eval scratch
+    # (plugins/*/skills/*-workspace/), present only on local checkouts.
     return sorted(
-        d for d in root.iterdir() if d.is_dir() and d.name != "_shared"
+        d
+        for d in root.iterdir()
+        if d.is_dir() and d.name != "_shared" and not d.name.endswith("-workspace")
     )
 
 
