@@ -2,6 +2,16 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.1.2 (2026-06-11)
+
+**`/design` 紙-preset 重新初始化揭露的三組修正**（`/design preset 紙` 等冪重跑 → lint 52 violations → 0）：
+
+1. **slide-cores prefix-mix（Check C，8 檔）**：`section/quote/compare/data/closing/content-bullets/content-2col/kpi-grid` 內殘留 `swiss-*` 懸空 class（v1.3 共用 slide-cores 收編進 preset 時改名未盡），全數更名 `kami-*`；全倉本無任何 `.swiss-*` 樣式定義，純 class 字面修正，渲染零變動。
+2. **long-form.html slot 註解誤判（Check E）**：slot contract 註解含字面 `data-slot="long-form-body"` 觸發唯一性檢查，改寫註解措辭；實際 slot 本來就唯一。
+3. **DESIGN.md token 名對齊 canonical（Check D，43 處）**：§2 表與全文由上游 tw93/Kami 原名（parchment/brand/ivory…）改為 tokens.css 實際存在的 canonical 名（paper/accent/surface…），hex 與視覺規格零變動；表下加上游原名對應註記；`accent-light`/`charcoal`/`accent-tint(-strong)` 四個無 canonical 槽位者改文件列記法（去 `--` 前綴、字面 hex）。使用者裁決：放棄與上游文件逐位同步，換取文件與實際 token 一致＋lint 全綠。
+
+root 與 preset source（`references/紙-preset/`）同步修改，維持 byte-identical；紙-sanity 與 verify-skills 全綠。採 patch：視覺輸出零變動。
+
 ## v2.1.1 (2026-06-11)
 
 **README 潤稿（/write zh Refine）**：核心理念段去除上游品牌引用（strip-provenance 的自我實踐——規則靠防什麼掙位置，不靠來自哪裡）；理念段收尾的對仗句式與「存在性」名詞化改寫（rules 5/8 地板）；起源段一處破折號改冒號（rule 10 軟規則）；/health 表列去贅句。機制錨點路徑與技術 token 零變動，verify-skills 理念錨點檢查仍綠。採 patch：純文案，調用面零變動。

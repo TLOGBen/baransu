@@ -8,7 +8,7 @@ Kami 十不變量（來自 CHEATSHEET.md canonical invariants；upstream tw93/Ka
 1. 背景不用純白，用暖調羊皮紙 `#f5f4ed`
 2. Accent 唯一墨藍 `#1B365D`，全頁只此一個彩色
 3. 中性灰限定暖調（黃棕底色），禁冷灰
-4. 每頁只用一套 serif；`--sans` 永遠 alias `--serif`，不引入獨立 sans
+4. 每頁只用一套 serif；`--font-sans` 永遠 alias `--font-serif`，不引入獨立 sans
 5. Serif weight 鎖定 500——禁用 bold（700）做 heading
 6. 行高：headline 1.1–1.3 / 密排 1.4–1.45 / 閱讀 1.5–1.55
 7. 字距：中文 0.1–0.3pt；英文 body 0；label/cap +0.2–1pt
@@ -26,31 +26,34 @@ Kami 十不變量（來自 CHEATSHEET.md canonical invariants；upstream tw93/Ka
 
 | Token Name | Hex | Role |
 |------------|-----|------|
-| `--parchment` | `#f5f4ed` | 主背景（Primary background） |
-| `--ivory` | `#faf9f5` | 卡片、面板背景（Card / panel surface） |
-| `--warm-sand` | `#e8e6dc` | 按鈕、互動表面（Button / interactive surface） |
+| `--paper` | `#f5f4ed` | 主背景（Primary background） |
+| `--surface` | `#faf9f5` | 卡片、面板背景（Card / panel surface） |
+| `--surface-strong` | `#e8e6dc` | 按鈕、互動表面（Button / interactive surface） |
 | `--dark-surface` | `#30302e` | 深色容器（Dark container） |
 | `--deep-dark` | `#141413` | 深色頁面背景（Dark page background） |
-| `--brand` | `#1B365D → oklch(0.32 0.08 256)` | 主色 / Accent（Ink-blue，唯一彩色，≤5% 表面） |
-| `--brand-light` | `#2D5A8A → oklch(0.49 0.10 256)` | 深色背景上的連結 / 亮版（Link on dark surface） |
-| `--near-black` | `#141413` | 主要文字（Primary text） |
-| `--dark-warm` | `#3d3d3a` | 次要文字、表格標頭（Secondary text / table header） |
-| `--olive` | `#504e49` | 輔助文字、說明（Subtext / description） |
-| `--stone` | `#6b6a64` | 第三層文字、metadata（Tertiary / metadata） |
-| `--charcoal` | `#4d4c48` | 深色輔助文字（Dark muted，介於 olive 與 stone 之間） |
+| `--accent` | `#1B365D → oklch(0.32 0.08 256)` | 主色 / Accent（Ink-blue，唯一彩色，≤5% 表面） |
+| `accent-light` | `#2D5A8A → oklch(0.49 0.10 256)` | 深色背景上的連結 / 亮版（Link on dark surface） |
+| `--text-primary` | `#141413` | 主要文字（Primary text） |
+| `--text-secondary` | `#3d3d3a` | 次要文字、表格標頭（Secondary text / table header） |
+| `--text-muted` | `#504e49` | 輔助文字、說明（Subtext / description） |
+| `--text-faint` | `#6b6a64` | 第三層文字、metadata（Tertiary / metadata） |
+| `charcoal` | `#4d4c48` | 深色輔助文字（Dark muted，介於 olive 與 stone 之間） |
 | `--border` | `#e8e6dc` | 主要邊框、分隔線（Primary border / divider） |
 | `--border-soft` | `#e5e3d8` | 次要邊框、表格行線（Secondary border / row separator） |
-| `--brand-tint` | `#EEF2F7` | Tag 背景最淺版（solid hex，0.08 rgba equivalent） |
-| `--brand-tint-strong` | `#E4ECF5` | Tag 背景標準版（solid hex，0.18 rgba equivalent） |
+| `accent-tint` | `#EEF2F7` | Tag 背景最淺版（solid hex，0.08 rgba equivalent） |
+| `accent-tint-strong` | `#E4ECF5` | Tag 背景標準版（solid hex，0.18 rgba equivalent） |
+
+
+> 上游 tw93/Kami 原名對應（hex 不變）：paper←parchment、surface←ivory、surface-strong←warm-sand、accent←brand、text-primary←near-black、text-secondary←dark-warm、text-muted←olive、text-faint←stone、font-*←serif/sans/mono；accent-light、charcoal、accent-tint(-strong) 為文件列（不進 canonical 36、不寫入 tokens.css，骨架以字面 hex 使用）。
 
 **用色原則**：
-- 背景層次：`--parchment` → `--ivory`（卡片浮在底色上）
-- 文字層次：`--near-black` → `--dark-warm` → `--olive` → `--stone`
-- 互動表面：`--warm-sand`；hover/focus 時用 ring 陰影傳達狀態
-- 主色 `--brand` 用於 accent、CTA、section left bar，佔比控制在 ≤5% 表面
+- 背景層次：`--paper` → `--surface`（卡片浮在底色上）
+- 文字層次：`--text-primary` → `--text-secondary` → `--text-muted` → `--text-faint`
+- 互動表面：`--surface-strong`；hover/focus 時用 ring 陰影傳達狀態
+- 主色 `--accent` 用於 accent、CTA、section left bar，佔比控制在 ≤5% 表面
 - 禁用純白 `#ffffff`；禁用純黑 `#000000`
 
-**Sanctioned exception — semantic warm accent（唯一豁免）**：changelog 類產物的 `.tag.breaking` 專用 `--breaking-bg: #f0e0d8` / `--breaking-fg: #8b4513`（皆暖調 R>G>B；已註冊於上游 tokens.json，為 off-palette lint 的唯一豁免）。文件列待遇（同 `--charcoal`）：不進 36-name canonical vocabulary，不寫入 tokens.css。僅 changelog 類產物可用；不得新增第二個 semantic accent。
+**Sanctioned exception — semantic warm accent（唯一豁免）**：changelog 類產物的 `.tag.breaking` 專用 `--breaking-bg: #f0e0d8` / `--breaking-fg: #8b4513`（皆暖調 R>G>B；已註冊於上游 tokens.json，為 off-palette lint 的唯一豁免）。文件列待遇（同 `charcoal`）：不進 36-name canonical vocabulary，不寫入 tokens.css。僅 changelog 類產物可用；不得新增第二個 semantic accent。
 
 **RGBA → Solid hex 換算**（WeasyPrint 相容，以羊皮紙底 + 墨藍為基底）：
 
@@ -70,26 +73,26 @@ Kami 十不變量（來自 CHEATSHEET.md canonical invariants；upstream tw93/Ka
 
 **英文字型堆疊**：
 ```css
---serif: Charter, Georgia, Palatino, "Times New Roman", serif;
---sans:  var(--serif);
---mono:  "JetBrains Mono", "SF Mono", "Fira Code", Consolas, Monaco, monospace;
+--font-serif: Charter, Georgia, Palatino, "Times New Roman", serif;
+--font-sans:  var(--font-serif);
+--font-mono:  "JetBrains Mono", "SF Mono", "Fira Code", Consolas, Monaco, monospace;
 ```
 
 **中文字型堆疊**：
 ```css
---serif: "TsangerJinKai02", "Source Han Serif SC", "Noto Serif CJK SC",
+--font-serif: "TsangerJinKai02", "Source Han Serif SC", "Noto Serif CJK SC",
          "Songti SC", "STSong", Georgia, serif;
---sans:  var(--serif);
---mono:  "JetBrains Mono", "SF Mono", Consolas, "TsangerJinKai02",
+--font-sans:  var(--font-serif);
+--font-mono:  "JetBrains Mono", "SF Mono", Consolas, "TsangerJinKai02",
          "Source Han Serif SC", monospace;
 ```
 
 **日文字型堆疊**：
 ```css
---serif: "YuMincho", "Yu Mincho", "Hiragino Mincho ProN",
+--font-serif: "YuMincho", "Yu Mincho", "Hiragino Mincho ProN",
          "Noto Serif CJK JP", "Source Han Serif JP",
          "TsangerJinKai02", Georgia, serif;
---sans:  var(--serif);
+--font-sans:  var(--font-serif);
 ```
 
 **層次規則**（螢幕 px；印刷以 pt × 1.33 換算）：
@@ -109,7 +112,7 @@ Kami 十不變量（來自 CHEATSHEET.md canonical invariants；upstream tw93/Ka
 **字型規則**：
 - **Heading weight 鎖定 500**，禁用 700 bold——這是 invariant #5
 - 標題不用 all-caps，不用 italics（invariant #10）
-- `--sans` 永遠 alias `--serif`，不引入獨立 sans-serif 字族（invariant #4）
+- `--font-sans` 永遠 alias `--font-serif`，不引入獨立 sans-serif 字族（invariant #4）
 - 所有含 CJK 內容的字型宣告（header、footer、SVG label、code）必須包含 CJK fallback
 - 中英文混排：中文字型在前，英文 Charter/Georgia 在後
 
@@ -144,15 +147,15 @@ class 前綴對齊 preset：`.kami-dropcap`。
 - 禁用硬邊陰影（無 blur 或 blur < 4px 的 drop shadow）
 
 **Button（按鈕）**：
-- Primary：`--brand` 填色，`--ivory` 文字，border-radius `8px`，padding `8px 14px`
-- Secondary：`--warm-sand` 背景，`--dark-warm` 文字
-- Hover：Primary 亮化至 `--brand-light`；Secondary 加 whisper 陰影
+- Primary：`--accent` 填色，`--surface` 文字，border-radius `8px`，padding `8px 14px`
+- Secondary：`--surface-strong` 背景，`--text-secondary` 文字
+- Hover：Primary 亮化至 `accent-light`；Secondary 加 whisper 陰影
 - Disabled：整體透明度降至 40%，cursor not-allowed
 - 字型 12px sans（alias serif），無 italics
 
 **Card（卡片）**：
 ```css
-background: var(--ivory);
+background: var(--surface);
 border: 0.5pt solid var(--border);
 border-radius: 8px;
 padding: 20px 24px;
@@ -161,13 +164,13 @@ Hover：加 whisper shadow `0 4px 24px rgba(0,0,0,0.05)`
 
 **Input（輸入框）**：
 - 靜態：ring shadow（`0 0 0 1px var(--border)`），border-radius `6px`
-- Focus：ring 換成 `0 0 0 1px var(--brand)`
-- 背景：`--ivory`；佔位符：`--stone`
+- Focus：ring 換成 `0 0 0 1px var(--accent)`
+- 背景：`--surface`；佔位符：`--text-faint`
 
 **Tag / Badge**（solid hex 背景，禁 rgba）：
 ```css
 background: #E4ECF5;           /* 標準 tag（預設）；最淺層用 #EEF2F7，gradient brush 罕用 */
-color: var(--brand);
+color: var(--accent);
 font-size: 9pt; font-weight: 600;
 padding: 1pt 5pt;
 border-radius: 2pt;
@@ -178,8 +181,8 @@ text-transform: uppercase;
 **Section Title**（brand left bar，Kami 簽名元件）：
 ```css
 font-size: 14pt; font-weight: 500;
-color: var(--near-black);
-border-left: 2.5pt solid var(--brand);
+color: var(--text-primary);
+border-left: 2.5pt solid var(--accent);
 border-radius: 1.5pt;
 padding-left: 8pt;
 margin: 24pt 0 10pt 0;
@@ -187,13 +190,13 @@ margin: 24pt 0 10pt 0;
 
 **Quote（引言）**：
 ```css
-border-left: 2pt solid var(--brand);
+border-left: 2pt solid var(--accent);
 padding: 4pt 0 4pt 14pt;
-color: var(--olive);
+color: var(--text-muted);
 line-height: 1.55;
 ```
 
-**Code block**：`--ivory` 背景，`0.5pt solid var(--border)` 邊框，`6pt` radius，mono 字型
+**Code block**：`--surface` 背景，`0.5pt solid var(--border)` 邊框，`6pt` radius，mono 字型
 
 ---
 
@@ -225,11 +228,11 @@ line-height: 1.55;
 - 線條型（outline），stroke-width 1.5–2px
 - 圓角端點（round linecap / linejoin）
 - 尺寸：16px / 20px / 24px 三種標準尺寸
-- 顏色繼承文字色（currentColor），特殊強調才用 `--brand`
+- 顏色繼承文字色（currentColor），特殊強調才用 `--accent`
 
 **圖片處理原則**：
 - 避免高飽和度攝影；優先使用低飽和度、暖調、有紙質感的視覺
-- Hero 圖可套用暖色調濾鏡（warm overlay）與 `--parchment` 的漸層疊加
+- Hero 圖可套用暖色調濾鏡（warm overlay）與 `--paper` 的漸層疊加
 - 人物圖像避免過於商業化的 stock photo 風格
 - SVG 插圖優先於位圖，風格採細線手繪或幾何簡約
 - Data chart 色序：`#1B365D` → `#504e49` → `#6b6a64` → `#b8b7b0` → `#d4d3cd` → `#EEF2F7`
@@ -264,7 +267,7 @@ line-height: 1.55;
 - ✅ Ring（`0 0 0 1px var(--border)`）或 whisper（`0 4px 24px rgba(0,0,0,0.05)`）陰影
 - ✅ Body 行高 1.5–1.55，headline 行高 1.1–1.3
 - ✅ Tag 背景用 solid hex（標準 `#E4ECF5`、最淺 `#EEF2F7`），不用 rgba
-- ✅ `--sans: var(--serif)` 讓 sans alias serif，不引入獨立字族
+- ✅ `--font-sans: var(--font-serif)` 讓 sans alias serif，不引入獨立字族
 - ✅ Section title 用 2.5pt brand left bar 作為 Kami 簽名視覺
 
 **Don't**：
@@ -284,7 +287,7 @@ line-height: 1.55;
 
 以下提示詞可在全新 AI 對話中重現本設計系統的視覺語言：
 
-> Design a UI using the Kami paper design system. Background: warm parchment `#f5f4ed`; card surfaces: `#faf9f5`; interactive surfaces: `#e8e6dc`. Primary accent: ink-blue `#1B365D` (≤5% surface area). Text hierarchy: near-black `#141413` → warm dark `#3d3d3a` → olive `#504e49` → stone `#6b6a64`. Borders: `--border: #e8e6dc` (primary), `--border-soft: #e5e3d8` (secondary). Typography: Charter/Georgia for English, TsangerJinKai02/Noto Serif SC for Chinese — all weights locked at 500 for headings (no bold), 400 for body. `--sans` aliases `--serif`. Line-height: headlines 1.1–1.3, body 1.5–1.55. Shadows: ring only (`0 0 0 1px var(--border)`) for static; whisper (`0 4px 24px rgba(0,0,0,0.05)`) for hover. No hard drop shadows. Tags use solid hex `#E4ECF5` (standard) or `#EEF2F7` (lightest), never rgba. Section titles use a 2.5pt brand left bar. No italics anywhere. The aesthetic is warm printed paper — ink on parchment, craft over chrome.
+> Design a UI using the Kami paper design system. Background: warm parchment `#f5f4ed`; card surfaces: `#faf9f5`; interactive surfaces: `#e8e6dc`. Primary accent: ink-blue `#1B365D` (≤5% surface area). Text hierarchy: near-black `#141413` → warm dark `#3d3d3a` → olive `#504e49` → stone `#6b6a64`. Borders: `--border: #e8e6dc` (primary), `--border-soft: #e5e3d8` (secondary). Typography: Charter/Georgia for English, TsangerJinKai02/Noto Serif SC for Chinese — all weights locked at 500 for headings (no bold), 400 for body. `--font-sans` aliases `--font-serif`. Line-height: headlines 1.1–1.3, body 1.5–1.55. Shadows: ring only (`0 0 0 1px var(--border)`) for static; whisper (`0 4px 24px rgba(0,0,0,0.05)`) for hover. No hard drop shadows. Tags use solid hex `#E4ECF5` (standard) or `#EEF2F7` (lightest), never rgba. Section titles use a 2.5pt brand left bar. No italics anywhere. The aesthetic is warm printed paper — ink on parchment, craft over chrome.
 
 ### (a) 焦點節點上限
 
