@@ -20,3 +20,4 @@
 | using-claude-code-the-unreasonable-effectiveness-of-html | Using Claude Code: The Unreasonable Effectiveness of HTML | stub:read/using-claude-code-the-unreasonable-effectiveness-of-html | 工具與實踐 |
 | waza-hunt | Hunt: Diagnose Before You Fix | digest:learn/digests/waza-hunt-skill-diagnose-before-fix-debugging-methodology.md | 方法論 |
 | ygzsw007 | 听听那冷雨 | stub:read/ygzsw007 | 文學 |
+| waza-health | Health: Agent-Assisted Engineering Health | stub:read/waza-health | 方法論 |
