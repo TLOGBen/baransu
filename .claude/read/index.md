@@ -20,3 +20,4 @@
 | https://github.com/tw93/Waza/blob/main/skills/check/SKILL.md | check-review-before-you-ship | Check: Review Before You Ship | 2026-05-14T03:26:53Z |
 | https://github.com/tw93/Waza/blob/main/skills/think | think-design-and-validate-before-you-build | Think: Design and Validate Before You Build | 2026-05-14T03:26:58Z |
 | https://github.com/tw93/Waza/tree/main/skills/hunt | waza-hunt | Hunt: Diagnose Before You Fix | 2026-05-14T03:27:53Z |
+| https://github.com/tw93/Waza/tree/main/skills/health | waza-health | Waza /health skill（SKILL+3 agents+9 scripts） | 2026-06-11 |
