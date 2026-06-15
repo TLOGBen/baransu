@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# TASK-automation-03 gate (REQ-004): all 13 surviving skills carry a fifth
+# TASK-automation-03 gate (REQ-004): all 14 surviving skills carry a fifth
 # contract line inside the Outcome Contract block, after the Output bullet:
 #   - **Automation**: ultracode={overlap|assist|neutral}, loop={drivable|assisted|not-drivable}（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 # The trailing conditional imperative wires invocation-time semantics to the
@@ -25,6 +25,7 @@ expected = {
     "health": ("assist", "assisted"),
     "analyze": ("assist", "assisted"),
     "codex-skill-transfer": ("assist", "assisted"),
+    "evolve": ("assist", "assisted"),
     "think": ("neutral", "not-drivable"),
     "ship": ("neutral", "assisted"),
     "write": ("neutral", "drivable"),
@@ -124,5 +125,5 @@ if failures:
         print(f"  - {f}")
     sys.exit(1)
 
-print("GREEN: all 13 skills carry a correctly graded Automation contract line")
+print("GREEN: all 14 skills carry a correctly graded Automation contract line")
 PY

@@ -3,7 +3,7 @@
 """verify-skills.py — baransu 結構驗證器（一條命令證明 C1/C2/C3/C6）。
 
 Repo mode（無參數）執行全部檢查：
-  1. plugins/baransu/skills/ 技能目錄數 = 13（_shared/ 除外，且每目錄有 SKILL.md）
+  1. plugins/baransu/skills/ 技能目錄數 = 14（_shared/ 除外，且每目錄有 SKILL.md）
   2. SKILL.md frontmatter 可解析（think 極簡式 / read-learn 完整式皆容納）
      ＋官方細目：name ≤64 字元小寫連字符、description 非空 ≤1024、第三人稱啟發式
   3. SKILL.md 引用的 references/ 檔存在，且 references/ 內不得再巢狀 references/
@@ -42,7 +42,7 @@ PLUGIN_MANIFEST = REPO_ROOT / "plugins" / "baransu" / ".claude-plugin" / "plugin
 MARKETPLACE_MANIFEST = REPO_ROOT / ".claude-plugin" / "marketplace.json"
 CODEX_MANIFEST = REPO_ROOT / "codex" / "plugins" / "baransu" / ".codex-plugin" / "plugin.json"
 
-EXPECTED_SKILL_COUNT = 13
+EXPECTED_SKILL_COUNT = 14
 BODY_LINE_ADVISORY_LIMIT = 500
 
 # 官方 frontmatter 細目

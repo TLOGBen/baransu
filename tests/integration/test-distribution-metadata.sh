@@ -3,7 +3,7 @@
 #
 # Asserts (behavioral, against release surfaces only):
 #   D1) plugin.json version is semver with major >= 2 (not pinned to a string)
-#   D2) plugin.json description describes thirteen skills (no "16"/"sixteen")
+#   D2) plugin.json description describes fourteen skills (no "16"/"sixteen")
 #   D3) plugin.json keywords contain none of: dev, tdd, harness, grade, triage, bridge
 #   D4) marketplace.json plugin description synced (no "16"/"sixteen");
 #       metadata.version identical to plugin.json version
@@ -62,10 +62,10 @@ fi
 PLUGIN_DESC=$(python3 -c "import json;print(json.load(open('$PLUGIN_JSON'))['description'])" 2>/dev/null)
 if echo "$PLUGIN_DESC" | grep -qiE '\b16\b|sixteen'; then
   bad "D2 plugin.json description still says 16/sixteen: $PLUGIN_DESC"
-elif echo "$PLUGIN_DESC" | grep -qiE '\b13\b|thirteen'; then
-  ok "D2 plugin.json description describes thirteen skills"
+elif echo "$PLUGIN_DESC" | grep -qiE '\b14\b|fourteen'; then
+  ok "D2 plugin.json description describes fourteen skills"
 else
-  bad "D2 plugin.json description does not mention thirteen/13: $PLUGIN_DESC"
+  bad "D2 plugin.json description does not mention fourteen/14: $PLUGIN_DESC"
 fi
 
 # --- D3: plugin.json keywords ---
@@ -110,10 +110,10 @@ fi
 
 # --- D7: CLAUDE.md skills table ---
 ROW_COUNT=$(grep -cE '^\| `/' "$CLAUDE_MD")
-if [ "$ROW_COUNT" -eq 13 ]; then
-  ok "D7a CLAUDE.md skills table has 13 rows"
+if [ "$ROW_COUNT" -eq 14 ]; then
+  ok "D7a CLAUDE.md skills table has 14 rows"
 else
-  bad "D7a CLAUDE.md skills table has $ROW_COUNT rows, expected 13"
+  bad "D7a CLAUDE.md skills table has $ROW_COUNT rows, expected 14"
 fi
 if grep -E '^\| `/' "$CLAUDE_MD" | grep -qE '`/(dev|grade|triage|bridge)`'; then
   bad "D7b CLAUDE.md skills table still has /dev, /grade, /triage, or /bridge row"

@@ -6,7 +6,7 @@ When working on any UI/UX content, read the design system at the project root an
 - design-cores/ — component skeletons consuming the tokens (long-form / gallery / dashboard / 6 elements)
 - slide-cores/ — slide layouts (4 cover variants + 8 non-cover layouts)
 
-`baransu` is a Claude Code plugin distributing thirteen governance skills. Theme: バランス — deliberate before executing, verify after.
+`baransu` is a Claude Code plugin distributing fourteen governance skills. Theme: バランス — deliberate before executing, verify after.
 
 ## Working Principles
 
@@ -79,7 +79,7 @@ plugins/
     .claude-plugin/
       plugin.json              # plugin manifest (v2.1.0)
     skills/
-      think/ review/ analyze/ write/ execute/ ship/ hunt/ health/ read/ learn/ book/ design/ codex-skill-transfer/
+      think/ review/ analyze/ write/ execute/ ship/ hunt/ health/ read/ learn/ book/ design/ codex-skill-transfer/ evolve/
       _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md)
     rules/
       anti-patterns.md         # cross-skill behavioral guardrails
@@ -120,8 +120,9 @@ Invoke with `/baransu:<name>`. To edit a skill, read its `SKILL.md` — design c
 | `/learn` | Research pipeline: Collect→Digest→Outline→Fill In→Refine; `--brief` stops at Digest | 只要離線原文不要筆記 → `/read` |
 | `/book` | Convert any content source (URL, `/read` slug, `/learn` digest, local file, `--text`) into a Kami-themed browser-ready HTML with SVG diagrams. Three stages: Acquire → Synthesize (technical/narrative/research) → Render (golden-template + validate-output.ts gate) | 要可編輯的 Markdown 工件 → `/read` 或 `/learn` |
 | `/codex-skill-transfer` | One-way port Claude Code skill / plugin / marketplace material to Codex format. Auto-detects single-skill / batch / plugin mode. Refuses `context: fork` skills (cross-boundary; surfaces three Codex paths). | 單向 Claude→Codex；不做反向移植 |
+| `/evolve` | Improve a SKILL.md against a fixed 9-dim rubric: forward-only ratchet, blind multi-judge, held-out validation | 寫新 skill 是 authoring 非演化 → 直接撰寫；存廢/價值判斷 → `/think` Evaluation Mode |
 
-**13 is the skill-count ceiling** — adding a 14th requires retiring one first (以裁換建). Mechanism anchor: the skill-count check in `scripts/verify-skills.py`.
+**14 is the skill-count ceiling** — adding a 15th requires retiring one first (以裁換建). Mechanism anchor: the skill-count check in `scripts/verify-skills.py`.
 
 Small tasks with clear scope no longer route through a dedicated skill: implement directly under the red/green discipline in `plugins/baransu/skills/_shared/tdd.md` §7.
 

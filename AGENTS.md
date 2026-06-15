@@ -1,8 +1,8 @@
 # AGENTS.md
 
-**Single source of truth: [CLAUDE.md](CLAUDE.md).** Working principles, repo layout, the thirteen-skill table, non-obvious invariants, versioning, and commit style all live there — read it first and follow it. This file only adds what a non-Claude agent (e.g. Codex CLI) needs to know.
+**Single source of truth: [CLAUDE.md](CLAUDE.md).** Working principles, repo layout, the fourteen-skill table, non-obvious invariants, versioning, and commit style all live there — read it first and follow it. This file only adds what a non-Claude agent (e.g. Codex CLI) needs to know.
 
-`baransu` is a Claude Code plugin distributing thirteen governance skills. Theme: バランス — deliberate before executing, verify after.
+`baransu` is a Claude Code plugin distributing fourteen governance skills. Theme: バランス — deliberate before executing, verify after.
 
 ## Notes for non-Claude agents
 

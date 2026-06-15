@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Test suite for the CLAUDE.md Skills table after the v2 slim-down (16 -> 12 -> 13, v2.1.0 adds /health).
+# Test suite for the CLAUDE.md Skills table after the v2 slim-down (16 -> 12 -> 13, v2.1.0 adds /health; 14 adds /evolve).
 #
 # Asserts (4 check groups):
 #   B1) Project root CLAUDE.md exists.
-#   B2) Skills table contains exactly 13 rows (count of "| `/" lines).
+#   B2) Skills table contains exactly 14 rows (count of "| `/" lines).
 #   B3) Removed skills are absent from the table: /dev, /grade, /triage, /bridge.
-#   B4) The 13 surviving skill names are present.
+#   B4) The 14 surviving skill names are present.
 #   B5) Each surviving skill row has a non-empty "When to invoke" description column.
-#   B6) The 13 skill descriptions match the baseline
+#   B6) The 14 skill descriptions match the baseline
 #       (regenerated post-slim and persisted alongside this script).
 #
 # Exit 0 on all pass; non-zero on any fail.
@@ -56,10 +56,10 @@ fi
 # B2: Skills table has 13 rows
 # -------------------------------------------------------------------------
 ROW_COUNT=$(extract_skill_rows | wc -l | tr -d ' ')
-if [ "$ROW_COUNT" -eq 13 ]; then
-  ok "B2 Skills table has 13 rows"
+if [ "$ROW_COUNT" -eq 14 ]; then
+  ok "B2 Skills table has 14 rows"
 else
-  bad "B2 Skills table row count is $ROW_COUNT, expected 13"
+  bad "B2 Skills table row count is $ROW_COUNT, expected 14"
 fi
 
 # -------------------------------------------------------------------------
@@ -77,7 +77,7 @@ done
 # -------------------------------------------------------------------------
 # B4: 13 surviving skill names present
 # -------------------------------------------------------------------------
-SURVIVING_SKILLS=(think review analyze execute write ship hunt health read design learn book codex-skill-transfer)
+SURVIVING_SKILLS=(think review analyze execute write ship hunt health read design learn book codex-skill-transfer evolve)
 for s in "${SURVIVING_SKILLS[@]}"; do
   if extract_skill_rows | grep -qF "\`/$s\`"; then
     ok "B4 surviving skill /$s present"
@@ -114,10 +114,10 @@ if [ ! -f "$BASELINE" ]; then
   bad "B6 baseline file missing at $BASELINE (cannot verify descriptions)"
 else
   BASELINE_ROWS=$(grep -cE '^\| `/' "$BASELINE" | tr -d ' ')
-  if [ "$BASELINE_ROWS" -eq 13 ]; then
-    ok "B6 baseline has 13 rows"
+  if [ "$BASELINE_ROWS" -eq 14 ]; then
+    ok "B6 baseline has 14 rows"
   else
-    bad "B6 baseline row count is $BASELINE_ROWS, expected 13"
+    bad "B6 baseline row count is $BASELINE_ROWS, expected 14"
   fi
   while IFS= read -r line; do
     [ -z "$line" ] && continue

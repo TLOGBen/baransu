@@ -2,7 +2,7 @@
 """Tests for scripts/verify-skills.py — structure verifier (REQ-005 Scenario 2).
 
 Positive: the current repo passes every check (exit 0); the per-skill pass
-list covers all 13 skills; no >500-line advisory remains (execute was slimmed
+list covers all 14 skills; no >500-line advisory remains (execute was slimmed
 under the cap in v2.1.0).
 
 Negative: a fixture SKILL.md stub missing the Outcome Contract block makes
@@ -30,6 +30,7 @@ EXPECTED_SKILLS = [
     "book",
     "codex-skill-transfer",
     "design",
+    "evolve",
     "execute",
     "health",
     "hunt",
@@ -80,7 +81,7 @@ class TestCurrentRepoPasses(unittest.TestCase):
             f"exit={self.result.returncode}\noutput:\n{self.out}",
         )
 
-    def test_per_skill_pass_list_covers_all_13_skills(self):
+    def test_per_skill_pass_list_covers_all_14_skills(self):
         for name in EXPECTED_SKILLS:
             self.assertIn(name, self.out, f"per-skill pass list missing: {name}")
 
