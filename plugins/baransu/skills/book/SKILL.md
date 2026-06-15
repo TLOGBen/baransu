@@ -96,7 +96,7 @@ mkdir -p ".claude/book"
 
 ---
 
-## Stage 0b — Pre-interview Gate（受眾 / 硬約束前置）
+## Stage 0b — 🔴 CHECKPOINT — Pre-interview Gate（受眾 / 硬約束前置）
 
 在 Stage 1 取得 `$RAW_CONTENT` **之前**，先壓住 50% 不確定性。模式對齊 /design Gen Mode Step 1：用 **單一 AskUserQuestion 批次**（4 題並陳，不逐題阻塞）對齊受眾、用途、風格傾向、硬約束。
 
@@ -204,7 +204,7 @@ Receives `$RAW_CONTENT`. Produces `$STRUCTURE` (a JSON-like outline) and `$CONTE
 
 1. **Sanitize `{hit}` before query**：將 `{hit}` 內所有 `"` (`U+0022`) 字元先剝除（regex 抓的是合法 identifier/version 字串，正常情況不含 quote；含則為 noise 或 adversarial input）。Sanitized `{hit_clean}` 再丟下一步。
 2. 跑 `WebSearch`，query template：`"{hit_clean}" release notes` 或 `"{hit_clean}" announcement`（人名命中改用 `"{hit_clean}" announcement` / `"{hit_clean}" interview`）。
-3. 若 WebSearch 回傳 **0 結果** → 透過 `AskUserQuestion` 顯示：「Fact-verify pending: '{hit_clean}' 在 WebSearch 0 結果。選擇：強制繼續 / 改用 `--text` 餵已驗證版本 / 中止本次 /book」。等使用者選擇後再決定是否進入 §1。
+3. 若 WebSearch 回傳 **0 結果** → 🛑 STOP — Fact-verify pending：透過 `AskUserQuestion` 顯示：「Fact-verify pending: '{hit_clean}' 在 WebSearch 0 結果。選擇：強制繼續 / 改用 `--text` 餵已驗證版本 / 中止本次 /book」。等使用者選擇後再決定是否進入 §1。
 4. 若 WebSearch 回傳 **≥ 1 結果** → 視為事實可驗，繼續，但仍把該 hit 列入 `$STRUCTURE` 末尾的「Sources」清單（在 Stage 2A §4 extract 階段一併處理）。
 
 **Flow on no hit**：直接進入 §1 分類。
@@ -260,7 +260,7 @@ Derive `$SLUG` from the title:
 - Truncate to 60 chars
 
 Check `.claude/book/` for existing files with the same slug.
-If a collision exists: append `_v2`, `_v3`, etc.
+If a collision exists: append `_v2`, `_v3`, etc., and **output one Traditional-Chinese notice line so the renamed output is not silent** (notify, not a blocking PAUSE): 「偵測到既有 {slug}.html，本次另存為 {slug}_v2.html（如要覆寫請刪除舊檔後重跑）」, then continue.
 
 **$SLUG 只在 Stage 2A 推導一次，Stage 2B 和所有 Render 步驟繼承相同 $SLUG，不另行推導。**
 
@@ -287,6 +287,8 @@ Before generating any HTML:
    - 檔案**不存在** → fallback 至 `references/golden-template.html`（v1.2 Kami 風內建範本）；stderr warning「current preset 為 {style} 但 fallback 到 Kami template，class prefix 可能不一致；建議先跑 /baransu:design preset {style}」；繼續產出（GATE-F 將檢出 class prefix 不一致，是預期行為）。
 
 The long-form.html slot 是 show-by-example contract — slot 內示範 6+ section type（heading / paragraph / quote / code / SVG / list）。Token 值由 `{project_root}/tokens.css` 提供；模板只引用 canonical 名（var(--paper) / var(--accent) 等）。不發明新 CSS 模式。
+
+🔴 GATE — 開始產 HTML 前，無論 Stage 2A §1 是否已讀，必讀 `references/perception-guide.md` 的「Output Anti-Slop Blacklist」與「Quantified Type Scale」兩節，作為 render 期 standing instruction（防止 clean-classification run 在從未載入排版/反 slop 規則的情況下退回 AI 通用感產出）。
 
 ### 2. Generate HTML structure
 
@@ -316,7 +318,22 @@ For each section from `$STRUCTURE`:
 - Immediately follow with a `<figure class="diagram">` block containing an SVG if the section was flagged for it
 - Use `.callout`, `.card-grid`, `table.cmp`, or `.tradeoff-row` components from the template where they improve readability
 
+**Section rhythm standing instruction (render-time hard rule, not vibes)**: when applying the components above, resolve every "generous" / "tight" / "airy" treatment to a number in `references/perception-guide.md` Quantified Type Scale, never to vibes. Three highest-leverage values are binding at render time — each constrains how existing `long-form.html` template classes / tokens are *used* (no new CSS, no new token):
+
+1. **Inter-section vertical gap = 3xl 80–120pt** between long-doc `<section>` blocks — drive it with the existing spacing token at the 3xl step; never inherit the browser-default margin.
+2. **Reading-body line-height locked 1.50–1.55** (CJK on screen may relax to 1.55–1.65); **`≥ 1.70` is banned** (reads as floating web-prose, not print).
+3. **Reading column capped 680px / max body width 760px** — wider than this is a slop signal, not "generous".
+
 **No improvisation**: every component class must exist in the SSOT template (`{project_root}/design-cores/long-form.html`) or fallback `references/golden-template.html`. If a component isn't in either source, use plain `<p>` — do not add new CSS.
+
+🔴 GATE — Render 前視覺自查（pre-write checklist）：在 Stage 3 §7 把 HTML 寫檔**之前**，逐條過下列六行二值清單（每條皆復述既有 reference 規則，非新規則）。任一條 ✗ → 修正後再 Write，不直接落檔；六條全 ✓ 才進 §7。
+
+1. **章節間距** — 每對相鄰 `<section>` 用 3xl spacing token（80–120pt）驅動，非 browser-default margin？（§3 render-time hard rule #1）
+2. **閱讀行高** — body line-height ∈ [1.50, 1.55]（CJK 螢幕可放寬至 1.65），且全文無任一 `≥ 1.70`？（§3 render-time hard rule #2）
+3. **閱讀欄寬** — 閱讀欄 ≤ 680px、max body width ≤ 760px？（§3 render-time hard rule #3）
+4. **單一 accent** — 只用一個 chromatic accent（`var(--accent)`），accent-painted 面積 ≤ 5% body，且強調為「色 OR 重，不同時」？（perception-guide Anti-Slop #8）
+5. **SVG focal + 對齊** — 每張 SVG `data-role="focal"` ≤ 2 個，且所有座標 / 寬度 / 間距為 4 的倍數？（svg-rendering-rules §4.7）
+6. **figcaption** — 每個 `<figcaption>` 通過 perception-guide Anti-Slop #5 pass test（帶 trade-off / 下一步 / 圖未直接顯示的維度其一），非純複述標題或節點名？（perception-guide Anti-Slop #5）
 
 ### 4. SVG 生成規格
 
@@ -328,7 +345,7 @@ For each section from `$STRUCTURE`:
 
 任一階段需 fetch 點陣 / 攝影 / logo / UI mockup 圖時，**嚴格依序**走以下 4 步。**Steps must run in order; skipping = fail and abort.**（跳步即視為 fail 並中止；例：未 verify 就 freeze。）
 
-1. **Ask** — 與 user 確認圖片用途、構圖、必含元素、禁用元素（避免 AI slop：六指、扭曲文字、浮水印、page chrome）。未拿到確認前不得進入步驟 2。
+1. **Ask** — 🔴 CHECKPOINT — 圖片用途確認（未確認不得進步驟 2）：與 user 確認圖片用途、構圖、必含元素、禁用元素（避免 AI slop：六指、扭曲文字、浮水印、page chrome）。未拿到確認前不得進入步驟 2。
 2. **Generate OR Search** — 二擇一：
    - **Generate**：跑 **Codex CLI image-gen**，brief 由 `/baransu:design export-brief` 產出後 stdin 餵入。範例：
      ```bash
@@ -365,8 +382,10 @@ npx tsx "$CLAUDE_SKILL_DIR/scripts/validate-output.ts" ".claude/book/{$SLUG}.htm
 
 Exit codes:
 - `0` (GATE PASS): proceed to completion report
-- `1` (GATE FAIL): read the failure lines printed to stdout; fix the specific failing element and re-write the file; re-run the gate once more
-  - If the gate fails a second time: output 「品質閘第二次失敗，請手動開啟 .claude/book/{$SLUG}.html 確認問題。」 and stop.
+- `1` (GATE FAIL): 三段式 fallback：
+  - **觸發條件**：validate-output.ts 回傳 exit 1。
+  - **一線修復**：讀 stdout 印出的失敗行，只修該失敗元素並重寫檔案，重跑一次品質閘。
+  - **仍失敗兜底**：🛑 STOP — 品質閘第二次失敗，人工介入：若第二次仍 exit 1，output 「品質閘第二次失敗，請手動開啟 .claude/book/{$SLUG}.html 確認問題。」 and stop（不進入完成報告）。
 - `2` (usage error): script invocation was wrong — fix and re-run
 
 ### 2. Visual render verification + completion report
@@ -395,6 +414,20 @@ SVG 圖解：{N} 張
 - **Length cap**: final HTML body ≤ 1800 words. Excess goes into a 延伸閱讀 link block.
 - **No LLM-generated commentary**: the rendered HTML contains the source content, structured and styled — not Claude's own analysis. The Synthesize stage extracts; the Render stage presents.
 - **Partial failure**: if Acquire fails for one of multiple inputs, report the failure per-input and continue with the rest.
+
+## Red Lines（不要做什麼）
+
+掃描禁區靠 🛑 視覺標記，不靠通讀散文。下列每條皆復述既有規則，違反 = 該次產出失守；每列附「為何失守」理據錨點與正確做法。
+
+| 🛑 反模式 | 為何是失守（理據錨點） | 正確做法（權威 reference） |
+|----------|---------------------|--------------------------|
+| 🛑 發明新 CSS class / 用 inline hex 色 | 跳出 active SSOT template 的 set membership，GATE-F class-prefix 與 36-token 名單失守，退回 AI 通用感 | class 必存在於 active template；色用 canonical 名變數（§3.3、Constraints；perception-guide Anti-Slop Blacklist #7） |
+| 🛑 SVG fill / stroke 用 `rgba()` | WeasyPrint 把 alpha 合成出雙矩形 ghost-border，PDF 失真 | SVG fill/stroke 一律 solid hex token（§3.4、svg-rendering-rules §4.1） |
+| 🛑 節點寬離開 3 檔白名單自由發揮 | 混用 3 檔以上即 anti-slop fail，破壞 diagram 節奏 | 節點寬限 {128/144/160}，單張最多 2 檔（svg-rendering-rules §4.7） |
+| 🛑 Acquire 失敗仍靜默產空頁 / skeleton | 把失敗偽裝成成功產出，使用者拿到空殼 | 清楚回報每筆失敗，不產空殼（Gotchas SPA、Constraints Partial failure） |
+| 🛑 `tokens.css` 缺失時 fallback 到 `find` / sibling-skill 路徑 | 違反唯一 token 來源 = project root 的不變量 | tokens.css 缺失 → 中止並提示先跑 `/baransu:design preset`（Gotchas Missing project-root tokens、§3.1） |
+| 🛑 Core Asset 跳步（未 Verify 就 Freeze） | 4 步協定的順序保證「無 AI slop 才凍結」，跳步即繞過品質確認 | Ask → Generate/Search → Verify → Freeze 嚴格依序（§3.5） |
+| 🛑 把 Claude 自評 / 評論 / 分析寫進 HTML | 產出應是被結構化的來源內容，非模型自己的議論 | Synthesize 萃取、Render 呈現；不夾帶 LLM 評論（Constraints No LLM-generated commentary） |
 
 ## Gotchas
 
