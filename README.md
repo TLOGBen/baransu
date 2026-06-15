@@ -106,6 +106,7 @@ codex plugin marketplace add /path/to/baransu
 |---|---|
 | `/execute` | 中大型任務的自動執行入口。吃 `/analyze` 產出的 spec 目錄（`.claude/analyze/{date}-{slug}/`），依任務之間的相依關係算出可以並行的子組（規模分 XL/L/M），開多個 git worktree 同時跑；每個任務都走 Summarize → Impl → Review 的 TDAID 迴圈，由 8 個專責 agent 接力，跑到 spec 上所有 requirement 全綠、E2E 與 final review 都簽掉為止，最後產出 `final-report.md`。需先完成 `/analyze`。範例：`/baransu:execute .claude/analyze/2026-04-25-my-feature/` |
 | `/write` | 雙語寫作 / 潤色助手。給它已有文字，它會逐條套上排版規則與寫作風格（zh 參考余光中，en 參考 Orwell），輸出 Before/After 與每處改動的理由；給它需求而沒給文字，它直接生一份格式、語氣、用字都校準過的成品。 |
+| `/evolve` | 把一份既有 SKILL.md 對著固定標準一輪輪磨成更好的版本，只保留確實有改進的改動，最後給你演化後的 skill 和一張成果卡。用在想紮實打磨某個 skill、又要每步改動都可追溯的時候。 |
 
 ### 研究型
 
@@ -124,14 +125,6 @@ codex plugin marketplace add /path/to/baransu
 | Skill | 核心介紹 |
 |---|---|
 | `/codex-skill-transfer` | 一份 Claude Code 的 SKILL.md（或整個 plugin）轉成 Codex 對應格式（`.codex-plugin/plugin.json` + 翻譯後的 SKILL.md + agent stub TOML）。三種輸入自動偵測：單一 skill / 多 skill 批次 / 整個 plugin。動態注入（`` !`cmd` ``、`$ARGUMENTS`）改寫成 Codex 不會誤解的自然語言；`disable-model-invocation` 翻成 `agents/openai.yaml` policy；含 `context: fork` 的 skill 拒絕自動轉並列出三條 Codex 路徑（native Subagents / skill chain / Codex MCP）給人挑。高風險 Claude 能力會經 capability 降級表評估「對抗哪種模型慣性」，必要時搬到 artifact gate / phase split / machine gate，而非只降成 prompt。Plugin mode 會產生 Codex Layout B marketplace；git URL 發布仍需 repo-root Layout A catalog 手動維護。 |
-
-### 演化型
-
-把既有 skill 對著固定 rubric 持續打磨的工具。
-
-| Skill | 核心介紹 |
-|---|---|
-| `/evolve` | 像訓練模型一樣優化一份 SKILL.md。固定 9 維 rubric 當選擇環境，跑只能向前轉的棘輪：每輪由獨立 diagnostician 挑最弱一維、只改一處、再由 3 個全新盲評委（中性命名、奇偶換位）投票，≥2/3 判嚴格進步才採納、否則還原檔案級快照，連續 3 輪無進步收斂。雙軸評估（結構軸＝9 維 rubric 靜態；效果軸＝經信任+能力雙閘 real-exec，否則降階 offline-同源重演）、held-out 加獨立層驗證防 rubric 過擬合、Kami 成果卡。採納寫入是 Authorization PAUSE（任何驅動不可跳），回滾用檔案級快照、絕不碰 git 工作樹。基座淨室自寫，不照抄 prior art 原文。 |
 
 ### 收尾型
 
