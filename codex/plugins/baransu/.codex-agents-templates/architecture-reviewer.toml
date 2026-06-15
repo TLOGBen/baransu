@@ -1,5 +1,6 @@
 # Stub generated from architecture-reviewer.md.
-# Review before copying to ~/.codex/agents/architecture-reviewer.toml.
+# Review before copying to ~/.codex/agents/architecture-reviewer.toml (personal)
+# or .codex/agents/architecture-reviewer.toml (project-scoped trusted repo).
 # See codex-skill-transfer references/agent-mapping.md for the mapping rules.
 
 name = "architecture-reviewer"
@@ -101,10 +102,16 @@ Findings produced must fall into one of these categories only:
 
 '''
 
-# Choose what to fill in below; all are optional and inherit from parent if absent.
+# Choose what to fill in below; omit optional fields to inherit from the parent session.
 #
-# model = "gpt-5.4"
-# model_reasoning_effort = "high"      # low | medium | high | max
-# sandbox_mode = "workspace-write"     # read-only | workspace-write | danger-full-access
+# model = "gpt-5.5"                   # demanding agents; use gpt-5.4-mini for light read-heavy scans
+# model_reasoning_effort = "high"      # minimal | low | medium | high | xhigh
+# sandbox_mode = "workspace-write"     # read-only | workspace-write | danger-full-access; parent runtime overrides win
 # mcp_servers = ["Read", "Grep", "Glob", "Bash"]  # ported from Claude `tools:`; rename to Codex MCP server ids before enabling
+# Sandbox note: source tools include Write/Edit/Bash; this agent writes or runs shell commands.
+# Review workspace-write scope and approval policy before enabling it.
 # nickname_candidates = []             # cosmetic names for spawned instances
+#
+# [[skills.config]]                    # optional per-agent skill enable/disable override
+# path = "/path/to/skill/SKILL.md"
+# enabled = false

@@ -64,7 +64,7 @@ Dropped (no plugin-level Codex equivalent): `lspServers` (Codex plugins don't ho
 
 ## 6. Agent stub generation
 
-When the source plugin ships `agents/*.md` files, the transfer emits TOML stubs at `<output>/.codex-agents-templates/*.toml`. The full stub shape, escaping rules, and per-field guidance live in [`agent-mapping.md`](agent-mapping.md) §4. The user reviews each stub and copies it into their own `~/.codex/agents/` — this skill never writes to user config dirs.
+When the source plugin ships `agents/*.md` files, the transfer emits TOML stubs at `<output>/.codex-agents-templates/*.toml`. The full stub shape, escaping rules, and per-field guidance live in [`agent-mapping.md`](agent-mapping.md) §4. The user reviews each stub and copies it into their own `~/.codex/agents/` (personal) or `.codex/agents/` (project-scoped trusted repo) — this skill never writes to user config dirs.
 
 ## 7. Template assets
 

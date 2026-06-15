@@ -54,8 +54,8 @@ python3 -m markitdown --version 2>/dev/null
 
 If this fails (markitdown not installed):
 
-- On Windows: run `"the skill's root directory/../read/scripts/install-deps.bat"`
-- On Linux/macOS/WSL2: run `bash "the skill's root directory/../read/scripts/install-deps.sh"`
+- On Windows: run `"./../read/scripts/install-deps.bat"`
+- On Linux/macOS/WSL2: run `bash "./../read/scripts/install-deps.sh"`
 
 If installation succeeds: continue.
 

@@ -92,7 +92,7 @@ Write `goal.md`. Fill every section — do not leave template placeholders.
 - {item — and why it's excluded}
 ```
 
-After writing, show the `goal.md` content to the user. Then call `ask the user directly`:
+After writing, show the `goal.md` content to the user. Then call `authorization PAUSE`:
 
 ```
 question: "goal.md 確認"
@@ -289,7 +289,7 @@ Every task must have at least one requirement reference (`REQ-XXX`). Do not inve
 
 ## Stage 6 — Cross-layer subagent review
 
-Dispatch 3 subagents in parallel Tasks, each in a clean context. Pass each agent: the spec_dir path, its required file list (below), and its specific review question. Each agent reads its required files independently via Read tool — do not pass all spec content inline.
+Spawn 3 Codex subagents in parallel, each in a clean context. Pass each agent: the spec_dir path, its required file list (below), and its specific review question. Each agent reads its required files independently via Read tool — do not pass all spec content inline.
 
 > ultracode session 中，本 stage 的 3 路審查可改派 Workflow 平行調研原語執行，回傳資料形態不變。
 > loop 驅動時 loop-mode 預設值為 assisted：auto-correct 後仍有未解 findings 時回報 driver，不自行裁決。
@@ -328,7 +328,7 @@ If after auto-correction findings are still substantial (not just wording), paus
 
 ## Stage 7 — Handoff
 
-List all generated files with their paths. Then call `ask the user directly`:
+List all generated files with their paths. Then call `authorization PAUSE`:
 
 ```
 question: "spec 完成。接下來怎麼做？"

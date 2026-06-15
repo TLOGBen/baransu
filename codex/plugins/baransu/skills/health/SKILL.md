@@ -17,6 +17,13 @@ compatibility: Designed for Claude Code; ported to Codex.
 
 # health — agent-assisted engineering health audit
 
+## Codex Port Adapter - Inspector Isolation
+
+This skill is countering the model's inertia to treat same-context self-audit as independent evidence. Before using inspector subagents for deep audits, run or consult a `codex-isolation-probe.md` conclusion for this Codex runtime. If native Codex subagents are isolated, use them directly. If not, run each inspector perspective in an independent Codex invocation or session, write the raw findings to files, then merge from those artifacts.
+
+Do not treat same-context sequential prompts as independent inspection. Authorization PAUSE remains a hard stop; only input-selection PAUSE may degrade to direct text questions.
+
+
 Audit the current project's agent setup and AI coding maintainability against this five-layer framework:
 
 `agent config → instruction surfaces → tools/runtime → verifiers → maintainability`
@@ -72,7 +79,7 @@ Run the collection script in summary mode first. Do not interpret yet.
 
 ```bash
 # Resolve scripts from the installed skill dir, falling back to the repo layout.
-HEALTH_SCRIPTS_DIR="${CLAUDE_SKILL_DIR:+the skill's root directory/scripts}"
+HEALTH_SCRIPTS_DIR="./scripts"
 if [ ! -f "${HEALTH_SCRIPTS_DIR:-}/collect-data.sh" ]; then
   HEALTH_SCRIPTS_DIR="./plugins/baransu/skills/health/scripts"
 fi
@@ -139,7 +146,7 @@ Confirm the tier. Then route:
 
 - **Simple:** Analyze locally. No subagents.
 - **Standard:** Analyze locally from the summary output. Do not launch subagents by default. If the user asks for a deep/full/thorough audit, or if local analysis cannot classify a security/control issue, escalate to deep mode and explain the likely token cost.
-- **Complex, remembered deep preference, explicit deep audit, or explicit AI maintainability audit:** Re-run collection with `bash "$HEALTH_SCRIPTS_DIR/collect-data.sh" auto deep`, then launch the relevant inspector subagents in parallel via Task. Redact credentials to `[REDACTED]`.
+- **Complex, remembered deep preference, explicit deep audit, or explicit AI maintainability audit:** Re-run collection with `bash "$HEALTH_SCRIPTS_DIR/collect-data.sh" auto deep`, then launch the relevant inspector subagents in parallel by spawning Codex subagents. Redact credentials to `[REDACTED]`.
   - **Inspector 1** (Context + Security): `plugins/baransu/agents/health-inspector-context.md`. Feed the `CONVERSATION SIGNALS` section.
   - **Inspector 2** (Control + Behavior): `plugins/baransu/agents/health-inspector-control.md`. Feed the detected tier.
   - **Inspector 3** (AI Maintainability): `plugins/baransu/agents/health-inspector-maintainability.md`. Feed only `TIER METRICS`, `AI MAINTAINABILITY SUMMARY` or `AI MAINTAINABILITY DETAIL`, and the script hotspot lists. Launch this inspector only for deep health audits, Complex projects, or explicit code-rot/AI-maintainability requests.

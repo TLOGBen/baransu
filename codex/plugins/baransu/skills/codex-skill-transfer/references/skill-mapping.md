@@ -129,12 +129,30 @@ For the full decision matrix, frontmatter mapping table, and body-rewrite patter
 
 Skill bodies often mention Claude Code surface APIs:
 
+The transfer is governed by [`CODEX_PORT_PLAN.md`](CODEX_PORT_PLAN.md): each rewrite preserves the counterweight against model inertia, not merely a feature name. `transfer.py` therefore keeps a capability registry for lossy tokens. Each entry records:
+
+- `codex_level`: hard stop / artifact gate / machine gate / runtime probe / soft prompt.
+- `strategy`: the Codex-side replacement.
+- `habit_strength`: how hard the original mechanism pushed against the shortcut.
+- `countered_inertia`: the concrete shortcut or self-serving model behavior the original mechanism countered.
+- `tier` and weighted risk: used to sort the transfer report's `Capability 降級風險` section.
+
+Strong-inertia mechanisms must not silently degrade to soft prompts. If the original mechanism fought a shortcut the model naturally wants to take, move the tooth to a durable surface: artifact gate, phase split, sandbox/approval gate, or independent session artifacts.
+
 | Claude API | Codex equivalent or rewrite |
 |-----------|----------------------------|
 | `Task tool` (subagent dispatch) | "spawn a Codex subagent" — see [`agent-mapping.md`](agent-mapping.md) Path 1; or, if user opted for skill chaining (Path 2), rewrite as `$skill-name` mention |
-| `AskUserQuestion` tool | "ask the user directly" — **no verified Codex equivalent.** Official docs are silent on a user-questioning tool; community migration guides say none exists in any mode (an earlier claim that `request_user_input` works in Plan mode is unconfirmed — conflict surfaced, not resolved). Always rewrite to plain-text questioning. |
+| `Dispatch **review-agent** with:` / `Dispatch impl-agent with:` | `Spawn a `review-agent` subagent with:` / `Spawn a `impl-agent` subagent with:` |
+| `Dispatch 3 subagents in parallel Tasks` | `Spawn 3 Codex subagents in parallel` |
+| `parallel Task(s)` | `parallel Codex subagent(s)` |
+| `clean Task contexts` | `clean Codex subagent contexts` |
+| `via Task` | `by spawning Codex subagents` |
+| `Stage 4 Tasks have returned` | `Stage 4 Codex subagents have returned` |
+| `AskUserQuestion` tool | No verified Codex equivalent. Official docs are silent on a user-questioning tool; community migration guides say none exists in any mode (an earlier claim that `request_user_input` works in Plan mode is unconfirmed — conflict surfaced, not resolved). The transfer classifies each use by the model inertia it counters: `/think` gets a phase split + `alignment.md` artifact gate; `/analyze` and `/review` remain authorization PAUSE hard stops; `/hunt` is an input gate; `/read`, `/book`, and `/design` are low-inertia selection/cosmetic prompts that rewrite to numbered options and stop. Unknown future skills are reported as unclassified so they cannot silently inherit a soft downgrade. |
 | `EnterPlanMode` / `ExitPlanMode` tools | **No skill-callable equivalent in Codex.** In Claude Code these are model-callable, harness-managed; the skill can instruct the model to enter Plan Mode (subject to user approval). In Codex, `active mode` only changes when the developer/system/client message changes it — a skill cannot self-switch. Rewrite as a prompt-driven plan gate ("produce a plan and pause for confirmation before any edits"); if the skill genuinely needs Plan Mode, add a note that the runtime/client must enter Plan Mode externally before invocation. |
 | `TodoWrite` tool | "track steps internally" or use Codex's own task system if mentioned |
+| `TaskCreate` / `TaskUpdate` / `TaskGet` / `TaskList` / `TaskOutput` / `TaskStop` | Rewrite to `task-map.md` durable state. `update_plan` or any runtime plan display is presentation only; after session restart, state must be recoverable from `task-map.md` and adjacent artifacts. In `/execute`, the task map, blocked/cascade-blocked statuses, failure counters, and green-proof gates are a contract, not cosmetic wording. |
+| `SendUserFile` | Write the artifact to disk and list its absolute path. This is weak-inertia delivery convenience, not a hard gate. |
 | `Skill tool` (calling another skill) | "invoke the related skill" — Codex supports skill-to-skill dispatch via `$skill-name` mention |
 | `WebFetch` / `WebSearch` | Codex has its own browse tool; rephrase as "fetch the URL" / "search the web" |
 | `Bash` tool | identical (both have shell tool) |
@@ -142,6 +160,10 @@ Skill bodies often mention Claude Code surface APIs:
 | `CLAUDE.md` (instruction-file reference) | `AGENTS.md` — Codex reads `AGENTS.md` files from the repo root down, with a 32 KiB combined cap. Body-level rewrite only; references/ files are scanned-and-flagged, never rewritten (see §8). |
 
 If a reference cannot be rewritten cleanly, prefer "ask the model to perform X" over inventing a Codex-specific name.
+
+The subagent rewrite is intentionally explicit because Codex does not infer subagent fan-out from a skill body. A Codex-facing skill should say who to spawn, how many agents to run in parallel, what inputs each one gets, whether to wait for all results, and what consolidated result shape to return. For `/review` and `/health`, isolation is itself the tooth countering self-rubber-stamp inertia: first run or consult a `codex-isolation-probe.md` conclusion. If native Codex subagents are not clean enough, run each perspective in an independent invocation/session and merge from file artifacts. When the source uses ad-hoc reviewers rather than plugin-level `agents/*.md` definitions (for example `/analyze` Stage 6), rewrite to built-in `worker`/`explorer` subagents only when the task prompt is fully inline; otherwise flag for manual review.
+
+`/execute` also receives an adapter note: red/green decisions must come from real test runner exit codes, not model self-report, and compile errors still do not increment `failure_count`.
 
 ### 7. Output format invariants
 
@@ -157,8 +179,9 @@ The output `SKILL.md` must:
 
 ### 8. Auxiliary content handling (`copy_aux`)
 
-- `scripts/`, `references/`, `assets/` are copied verbatim (with the `.` → `.` rewrite in scripts/ and references/).
-- **`references/*.md` bodies are never rewritten.** Instead, each copied reference is scanned for Claude-only tokens (`AskUserQuestion`, `Task tool`, `TodoWrite`, `EnterPlanMode`, `$ARGUMENTS`, `` !`cmd` `` injection, `CLAUDE.md`) and one 需人工檢視 report line per affected file lists what was found. Rationale: references may quote these tokens *as documentation* (this skill's own mapping tables are the canonical example) — a blind rewrite would corrupt them.
+- `scripts/`, `references/`, `assets/` are copied. `scripts/` gets the `$CLAUDE_SKILL_DIR` → `.` rewrite; `references/` stays verbatim.
+- **`references/*.md` bodies are never rewritten.** Instead, each copied reference is scanned for Claude-only tokens (`AskUserQuestion`, `Task tool`, `TodoWrite`, `EnterPlanMode`, `$ARGUMENTS`, `` !`cmd` `` injection, `CLAUDE_SKILL_DIR`, `CLAUDE.md`, `parallel Tasks`, `clean Task contexts`, `via Task`, `TaskCreate`, `TaskUpdate`, `Dispatch **...**`) and one 需人工檢視 report line per affected file lists what was found. Rationale: references may quote these tokens *as documentation* (this skill's own mapping tables are the canonical example) — a blind rewrite would corrupt them.
+- `SendUserFile` is also scanned in references so delivery-only gaps are visible without rewriting quoted documentation.
 - Skill-root orphan **files** are copied and reported (翻譯處理).
 - Skill-root orphan **directories** (any subdir other than `scripts` / `references` / `assets` / `agents`) are NOT copied; each is listed under 已捨棄 so the omission is visible.
 
@@ -166,6 +189,7 @@ The output `SKILL.md` must:
 
 - [`plugin-mapping.md`](plugin-mapping.md) — `.claude-plugin/plugin.json` → `.codex-plugin/plugin.json` and agent stubs.
 - [`marketplace-mapping.md`](marketplace-mapping.md) — `.claude-plugin/marketplace.json` → `.agents/plugins/marketplace.json` (manual).
+- [`CODEX_PORT_PLAN.md`](CODEX_PORT_PLAN.md) — behavior-weight plan for preserving counterweights against model inertia.
 
 ## Cross-tool implications
 

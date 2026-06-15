@@ -2,6 +2,59 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.3.0 (2026-06-15)
+
+**`/codex-skill-transfer` Codex Port 施工圖落地**：把 Claude→Codex 轉換從「API 對映」升級為「對抗模型慣性的配重保留」，skill metadata version 0.9.0 → 0.10.0：
+
+### Added — 新增
+
+1. **Capability 降級表**：`transfer.py` 新增 capability registry，每個 Claude 能力 token 對應 Codex 執行強度、替代策略、對抗的模型慣性強度、Tier 與加權風險；transfer report 新增 `Capability 降級風險 (weighted by model inertia)` 區塊。
+2. **Codex Port 施工圖**：新增 `references/CODEX_PORT_PLAN.md`，明確定義「牙齒搬家，而不是降級」原則：強慣性 × 軟提示不得只靠 prompt，必須搬到 artifact gate、phase split、sandbox/approval gate 或獨立 session artifact。
+3. **skill-specific adapter 注入**：Codex mirror 的 `/think`、`/review`、`/health`、`/execute` 會自動注入 adapter note，將高風險降級從報告提示變成 runtime 可見流程。
+
+### Changed — 變更
+
+1. **`/think` AskUserQuestion 搬牙**：不再降成一般文字詢問；Codex 版要求 Phase 1 只產對焦問題並停止，Phase 2 必須有 `alignment.md` 才能產出五段計畫。
+2. **`/review` / `/health` 隔離驗證**：Codex 版要求先跑或查 `codex-isolation-probe.md`，若 subagent context 不夠乾淨，改以獨立 invocation/session 產 artifact 後再彙整，避免同 context 連續提問假裝多視角。
+3. **`/execute` machine gate 與 durable state**：紅綠判定明確要求真實 test runner exit code；`TaskCreate` / `TaskUpdate` / `TaskGet` / `TaskList` / `TaskOutput` / `TaskStop` 改寫為 `task-map.md` durable source of truth，`update_plan` 僅是顯示層。
+4. **AskUser 與 SendUserFile 分級**：`AskUserQuestion` 依 skill 分成 `/think` artifact gate、`/analyze`/`/review` authorization PAUSE、`/hunt` input gate、`/read`/`/book`/`/design` selection/cosmetic；`SendUserFile` 降成「寫檔並列絕對路徑」，列為低風險 delivery convenience。
+
+### Added — 測試
+
+- 擴充 `tests/scripts/test_codex_skill_transfer.py`，覆蓋 capability report 排序、`/think` alignment artifact gate、cosmetic AskUser 降級、`/execute` machine gate/task-map adapter、`SendUserFile` path delivery、reference scan。
+
+### Internal
+
+- codex/ 鏡像同步重產。
+
+### SemVer 註
+
+採 minor（2.2.4 → 2.3.0）：Codex port 的 runtime-facing skill body 與 transfer report 行為新增高風險 gate adapter，屬於功能級增強。
+
+## v2.2.4 (2026-06-15)
+
+**`/codex-skill-transfer` Codex subagent 對齊強化**（對照 2026-06-15 官方 Codex manual：Agent Skills、Build plugins、Subagents、MCP、sandbox/approval），skill metadata version 0.8.0 → 0.9.0：
+
+### Changed — 變更
+
+1. **多階段 subagent wording 改寫補完**：Codex mirror 不再保留 Claude `parallel Tasks` / `clean Task contexts` / `via Task` / `Dispatch **review-agent**` 等高頻語彙；轉為明確 `Spawn ... Codex subagents` wording，符合 Codex「明確要求才 spawn subagent」語意。
+2. **Task 狀態面保留為 task-tracking contract**：`TaskCreate` / `TaskUpdate` / `Task Tool ID` 不再被模糊改成一般內部記憶，轉為 task-tracking record / task state wording；保留 `/execute` 的 task-map、blocked/cascade-blocked、failure_count、green-proof gate 等主 orchestrator contract。
+3. **agent TOML stub 對齊官方欄位**：custom agent stubs 改為「預設繼承 parent session」語意，模型範例更新為 `gpt-5.5`（重任務）/ `gpt-5.4-mini`（輕量讀取掃描），reasoning effort 列 `minimal | low | medium | high | xhigh`，補 `.codex/agents/` project-scoped 路徑與 `skills.config` 註解。
+4. **stub sandbox/approval 提醒**：依 Claude `tools:` 分辨 read-only 與 Write/Edit/Bash 類 agent，分別提示可考慮 read-only sandbox 或需人工確認 workspace-write 與 approval policy；仍不自動寫入使用者 `~/.codex/agents/`。
+5. **reference scan 擴充**：references 仍不自動改寫，但現在會 flag `parallel Tasks`、`clean Task contexts`、`via Task`、`TaskCreate`、`TaskUpdate`、`Dispatch **...**`、`Workflow primitives` 等 Claude orchestration token，讓手動檢視面更完整。
+
+### Added — 測試
+
+- 新增 `tests/scripts/test_codex_skill_transfer.py`，直接鎖住 body rewrite、description rewrite、agent stub shape/sandbox hint、reference scan 四組行為。
+
+### Internal
+
+- codex/ 鏡像同步重產。
+
+### SemVer 註
+
+採 patch（2.2.3 → 2.2.4）：強化既有轉換器輸出與報告精度，無指令介面破壞；Codex 端行為更接近官方 subagent 模型。
+
 ## v2.2.3 (2026-06-11)
 
 **Automation 語彙正式定義**：

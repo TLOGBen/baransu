@@ -52,6 +52,7 @@ import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Callable
 
 try:
     import yaml  # type: ignore
@@ -114,7 +115,265 @@ ARGS_INDEXED = re.compile(r"\$ARGUMENTS\[(\d+)\]")
 ARGS_BARE_NUM = re.compile(r"\$(\d+)\b")
 SESSION_ID = re.compile(r"\$\{CLAUDE_SESSION_ID\}")
 SKILL_DIR = re.compile(r"\$\{CLAUDE_SKILL_DIR\}|\$CLAUDE_SKILL_DIR\b")
+SKILL_DIR_PLUS = re.compile(r"\$\{CLAUDE_SKILL_DIR:\+([^}]+)\}")
 EFFORT = re.compile(r"\$\{CLAUDE_EFFORT\}")
+
+
+def _inside_fenced_code_block(text: str, pos: int) -> bool:
+    in_fence = False
+    fence_marker = ""
+    for line in text[:pos].splitlines():
+        m = re.match(r"^[ \t]*(```|~~~)", line)
+        if not m:
+            continue
+        marker = m.group(1)
+        if not in_fence:
+            in_fence = True
+            fence_marker = marker
+        elif marker == fence_marker:
+            in_fence = False
+            fence_marker = ""
+    return in_fence
+
+
+def _inside_inline_code_span(text: str, pos: int) -> bool:
+    """Best-effort Markdown inline-code detection for local token rewrites."""
+    line_start = text.rfind("\n", 0, pos) + 1
+    line_end = text.find("\n", pos)
+    if line_end == -1:
+        line_end = len(text)
+    line = text[line_start:line_end]
+    stripped = line.lstrip()
+    if stripped.startswith("```") or stripped.startswith("~~~"):
+        return False
+    return line[: pos - line_start].count("`") % 2 == 1
+
+
+def _inside_markdown_code_context(text: str, pos: int) -> bool:
+    return _inside_fenced_code_block(text, pos) or _inside_inline_code_span(text, pos)
+
+
+def _inline_code_safe(replacement: str) -> str:
+    return replacement.replace("`", "")
+
+
+def markdown_aware_subn(
+    pattern: str | re.Pattern[str],
+    replacement: str | Callable[[re.Match[str]], str],
+    text: str,
+    flags: int = 0,
+    code_replacement: str | Callable[[re.Match[str]], str] | None = None,
+) -> tuple[str, int]:
+    """Replace tokens without introducing nested backticks inside code spans."""
+    compiled = re.compile(pattern, flags) if isinstance(pattern, str) else pattern
+    count = 0
+
+    def sub(m: re.Match[str]) -> str:
+        nonlocal count
+        count += 1
+        repl = replacement(m) if callable(replacement) else m.expand(replacement)
+        if _inside_markdown_code_context(text, m.start()):
+            if code_replacement is not None:
+                code_repl = (
+                    code_replacement(m)
+                    if callable(code_replacement)
+                    else m.expand(code_replacement)
+                )
+                return _inline_code_safe(code_repl)
+            return _inline_code_safe(repl)
+        return repl
+
+    return compiled.sub(sub, text), count
+
+
+def normalize_codex_subagent_terms(text: str) -> tuple[str, int]:
+    """Rewrite Claude Task/subagent orchestration terms to Codex wording.
+
+    Codex subagents are explicit natural-language spawns, not Claude Task
+    invocations. Keep the operational shape intact while removing Claude-only
+    Task vocabulary from Codex-facing skill bodies and descriptions.
+    """
+    count = 0
+
+    def apply(
+        pattern: str,
+        repl: str | Callable[[re.Match[str]], str],
+        flags: int = 0,
+    ) -> None:
+        nonlocal text, count
+        text, n = markdown_aware_subn(pattern, repl, text, flags=flags)
+        count += n
+
+    def dispatch_numbered_subagents(m: re.Match[str]) -> str:
+        return f"Spawn {m.group(1)} Codex subagents in parallel"
+
+    def dispatch_one_agent_per_sub(m: re.Match[str]) -> str:
+        return f"Spawn one `{m.group(1)}` subagent per"
+
+    def dispatching_agent_sub(m: re.Match[str]) -> str:
+        return f"spawning a `{m.group(1)}` subagent"
+
+    def dispatch_agent_sub(m: re.Match[str]) -> str:
+        return f"Spawn a `{m.group(1)}` subagent"
+
+    def parallel_task_sub(m: re.Match[str]) -> str:
+        return "parallel Codex subagents" if m.group(1) else "parallel Codex subagent"
+
+    apply(
+        r"\bDispatch\s+(\d+)\s+subagents\s+in\s+parallel\s+Tasks\b",
+        dispatch_numbered_subagents,
+    )
+    apply(
+        r"\bDispatch\s+one\s+(?:\*\*)?`?([a-zA-Z][\w-]*?-agent)`?(?:\*\*)?\s+per\b",
+        dispatch_one_agent_per_sub,
+    )
+    apply(
+        r"\bdispatching\s+(?:\*\*)?`?([a-zA-Z][\w-]*?-agent)`?(?:\*\*)?",
+        dispatching_agent_sub,
+        flags=re.IGNORECASE,
+    )
+    apply(
+        r"\bDispatch(?:es)?\s+(?:\*\*)?`?([a-zA-Z][\w-]*?-agent)`?(?:\*\*)?",
+        dispatch_agent_sub,
+    )
+    apply(r"\bDispatch isolated\b", "Spawn isolated")
+    apply(r"\bparallel Task(s?)\b", parallel_task_sub)
+    apply(r"\bparallel-Task\b", "parallel-subagent")
+    apply(r"\bStage\s+(\d+)\s+Tasks\b", r"Stage \1 Codex subagents")
+    apply(r"\bvia Task\b", "by spawning Codex subagents")
+    apply(r"\bTask contexts\b", "Codex subagent contexts")
+    apply(r"\bTask Tool Creation\b", "Task Map Setup")
+    apply(r"\bTask Tool IDs\b", "`task-map.md` IDs")
+    apply(r"\bTask Tool ID\b", "`task-map.md` ID")
+    apply(r"\bTask Tools\b", "`task-map.md` records")
+
+    return text, count
+
+
+@dataclass(frozen=True)
+class CapabilityPort:
+    codex_level: str
+    strategy: str
+    habit_strength: str
+    countered_inertia: str
+    tier: str
+    risk: int
+
+
+CAPABILITY_REGISTRY: dict[str, CapabilityPort] = {
+    "AskUserQuestion:unclassified": CapabilityPort(
+        codex_level="manual-classification",
+        strategy="Classify the pause as authorization, input-alignment, or cosmetic before treating it as a soft prompt.",
+        habit_strength="unknown",
+        countered_inertia="unknown until the pause type is classified",
+        tier="T2-1",
+        risk=3,
+    ),
+    "AskUserQuestion:cosmetic": CapabilityPort(
+        codex_level="soft-prompt",
+        strategy="List numbered options and stop for the user's reply.",
+        habit_strength="none-or-low selection inertia",
+        countered_inertia="choosing between already-bounded options",
+        tier="T2-2",
+        risk=1,
+    ),
+    "AskUserQuestion:authorization": CapabilityPort(
+        codex_level="hard-pause",
+        strategy="Ask directly, record the answer, and do not proceed until the user authorizes the next step.",
+        habit_strength="medium-to-strong premature-continuation inertia",
+        countered_inertia="continuing past an authorization boundary without user consent",
+        tier="Boundary",
+        risk=3,
+    ),
+    "AskUserQuestion:input-gate": CapabilityPort(
+        codex_level="soft-prompt",
+        strategy="Ask numbered input-alignment options and stop; escalate to artifact/phase gate if the skill would otherwise continue into irreversible work.",
+        habit_strength="medium missing-input inertia",
+        countered_inertia="continuing with missing user input",
+        tier="Boundary",
+        risk=2,
+    ),
+    "AskUserQuestion:think": CapabilityPort(
+        codex_level="artifact-gate",
+        strategy="Split alignment into Phase 1 questions-only output and Phase 2 gated by `alignment.md`.",
+        habit_strength="strong",
+        countered_inertia="skipping alignment and starting design or implementation immediately",
+        tier="T0-1",
+        risk=5,
+    ),
+    "Task tool": CapabilityPort(
+        codex_level="runtime-probe",
+        strategy="Spawn explicit Codex subagents; for review/health, verify isolation or fall back to independent sessions with file outputs.",
+        habit_strength="medium-to-strong",
+        countered_inertia="rubber-stamping the current context as independent review",
+        tier="T0-2",
+        risk=4,
+    ),
+    "test-runner": CapabilityPort(
+        codex_level="machine-gate",
+        strategy="Green proof must come from actual runner exit codes, never model self-report.",
+        habit_strength="strong",
+        countered_inertia="declaring success without machine evidence",
+        tier="T1-1",
+        risk=4,
+    ),
+    "TaskCreate": CapabilityPort(
+        codex_level="durable-artifact",
+        strategy="Create or update `task-map.md`; `update_plan` is display-only.",
+        habit_strength="strong",
+        countered_inertia="creating multi-step work without durable state",
+        tier="T1-2",
+        risk=4,
+    ),
+    "TaskUpdate": CapabilityPort(
+        codex_level="durable-artifact",
+        strategy="Persist every state transition in `task-map.md`.",
+        habit_strength="strong",
+        countered_inertia="claiming progress through conversation memory instead of state transitions",
+        tier="T1-2",
+        risk=4,
+    ),
+    "TaskGet": CapabilityPort(
+        codex_level="durable-artifact",
+        strategy="Read task state from `task-map.md`, including after session restart.",
+        habit_strength="strong",
+        countered_inertia="reconstructing state from stale or invented memory",
+        tier="T1-2",
+        risk=4,
+    ),
+    "TaskList": CapabilityPort(
+        codex_level="durable-artifact",
+        strategy="List task state from `task-map.md`, not conversation memory.",
+        habit_strength="strong",
+        countered_inertia="losing parallel task state across long orchestration",
+        tier="T1-2",
+        risk=4,
+    ),
+    "TaskOutput": CapabilityPort(
+        codex_level="durable-artifact",
+        strategy="Record output pointers in `task-map.md` or adjacent artifacts.",
+        habit_strength="strong",
+        countered_inertia="treating subtask output as remembered rather than recorded evidence",
+        tier="T1-2",
+        risk=4,
+    ),
+    "TaskStop": CapabilityPort(
+        codex_level="durable-artifact",
+        strategy="Persist stopped/blocked state in `task-map.md`.",
+        habit_strength="strong",
+        countered_inertia="forgetting blocked or stopped work and continuing anyway",
+        tier="T1-2",
+        risk=4,
+    ),
+    "SendUserFile": CapabilityPort(
+        codex_level="soft-prompt",
+        strategy="Write the artifact to disk and list its absolute path.",
+        habit_strength="weak",
+        countered_inertia="delivery convenience only; no behavior tooth",
+        tier="T3-1",
+        risk=1,
+    ),
+}
 
 
 @dataclass
@@ -126,6 +385,7 @@ class TransferReport:
     mapped: list[str] = field(default_factory=list)
     rewrites: list[str] = field(default_factory=list)
     dropped: list[str] = field(default_factory=list)
+    capability_risks: dict[str, CapabilityPort] = field(default_factory=dict)
     manual_review: list[str] = field(default_factory=list)
     skipped: bool = False
     skip_reason: str = ""
@@ -157,11 +417,183 @@ class TransferReport:
             lines += ["### 已捨棄 (dropped)"]
             lines += [f"- {x}" for x in self.dropped]
             lines += [""]
+        if self.capability_risks:
+            lines += ["### Capability 降級風險 (weighted by model inertia)"]
+            for key, cap in sorted(
+                self.capability_risks.items(),
+                key=lambda item: (-item[1].risk, item[0]),
+            ):
+                lines.append(
+                    f"- `{key}` → {cap.tier} / level={cap.codex_level} / "
+                    f"strength={cap.habit_strength} / counters={cap.countered_inertia}: "
+                    f"{cap.strategy}"
+                )
+            lines += [""]
         if self.manual_review:
             lines += ["### ⚠️ 需人工檢視 (manual review)"]
             lines += [f"- {x}" for x in self.manual_review]
             lines += [""]
         return "\n".join(lines)
+
+
+def note_capability(report: TransferReport, key: str) -> None:
+    cap = CAPABILITY_REGISTRY.get(key)
+    if cap is not None:
+        report.capability_risks.setdefault(key, cap)
+
+
+ASK_USER_CAPABILITY_BY_SKILL: dict[str, str] = {
+    "think": "AskUserQuestion:think",
+    "analyze": "AskUserQuestion:authorization",
+    "review": "AskUserQuestion:authorization",
+    "hunt": "AskUserQuestion:input-gate",
+    "read": "AskUserQuestion:cosmetic",
+    "book": "AskUserQuestion:cosmetic",
+    "design": "AskUserQuestion:cosmetic",
+}
+
+
+ASK_USER_REWRITE_BY_CAPABILITY: dict[str, str] = {
+    "AskUserQuestion:think": (
+        "run the Codex alignment gate: output numbered alignment questions, "
+        "stop, then require `alignment.md` before planning"
+    ),
+    "AskUserQuestion:authorization": (
+        "ask the user directly, record the authorization decision, and stop until the user answers"
+    ),
+    "AskUserQuestion:input-gate": (
+        "ask the user directly with numbered input options, then stop for the user's reply"
+    ),
+    "AskUserQuestion:cosmetic": (
+        "ask the user directly with numbered options, then stop for the user's reply"
+    ),
+    "AskUserQuestion:unclassified": (
+        "ask the user directly with numbered options, then stop; classify whether this is an authorization PAUSE before continuing"
+    ),
+}
+
+
+ASK_USER_CODE_REWRITE_BY_CAPABILITY: dict[str, str] = {
+    "AskUserQuestion:think": "Codex alignment gate requiring alignment.md",
+    "AskUserQuestion:authorization": "authorization PAUSE",
+    "AskUserQuestion:input-gate": "input-alignment question PAUSE",
+    "AskUserQuestion:cosmetic": "numbered-options question",
+    "AskUserQuestion:unclassified": "user-question PAUSE (unclassified)",
+}
+
+
+def classify_ask_user_occurrence(
+    report: TransferReport,
+    text: str,
+    match: re.Match[str],
+) -> str:
+    if report.skill_name != "think":
+        return ASK_USER_CAPABILITY_BY_SKILL.get(
+            report.skill_name,
+            "AskUserQuestion:unclassified",
+        )
+
+    line_start = text.rfind("\n", 0, match.start()) + 1
+    line_end = text.find("\n", match.end())
+    if line_end == -1:
+        line_end = len(text)
+    line = text[line_start:line_end]
+    before = text[: match.start()]
+    h2_matches = list(re.finditer(r"^##\s+(.+)$", before, re.MULTILINE))
+    section = h2_matches[-1].group(1) if h2_matches else ""
+    context = text[max(0, match.start() - 250) : match.end()]
+    lowered_line = line.lower()
+    lowered_section = section.lower()
+    lowered_context = context.lower()
+
+    if (
+        "option 3" in lowered_line
+        or "re-alignment" in lowered_line
+        or "realignment" in lowered_line
+        or "還有地方要對焦" in line
+    ):
+        return "AskUserQuestion:input-gate"
+    if (
+        "stage g" in lowered_section
+        or "approval" in lowered_section
+        or "stage g" in lowered_line
+        or "approval" in lowered_line
+        or "approved" in lowered_line
+        or "final proposal" in lowered_context
+        or "four-option gate" in lowered_context
+        or "批准" in line
+        or "核可" in line
+        or "自由文字批准" in line
+    ):
+        return "AskUserQuestion:authorization"
+    if (
+        "stage a" in lowered_section
+        or "alignment" in lowered_section
+        or "stage a" in lowered_line
+        or "before planning" in lowered_line
+        or "each round" in lowered_line
+        or "對焦" in line
+    ):
+        return "AskUserQuestion:think"
+    if "label" in lowered_line:
+        return "AskUserQuestion:cosmetic"
+    return "AskUserQuestion:unclassified"
+
+
+CODEX_SKILL_ADAPTERS: dict[str, str] = {
+    "think": """## Codex Port Adapter - Alignment Gate
+
+Codex has no verified AskUserQuestion hard stop. This skill is countering the model's inertia to skip alignment and start designing immediately, so plain prompt wording is not enough. For ambiguous requests, run the skill in two phases:
+
+1. Phase 1 outputs only numbered alignment questions, then stops. It must not include implementation, scaffolding, pseudo-code, or the five-section plan.
+2. Phase 2 may produce the five-section plan only after an `alignment.md` artifact exists in the active think workspace and records the user's answers. If the artifact is missing, refuse to plan and ask for the answers to be written first.
+
+This rebuilds the hard gate at the artifact layer. It does not guarantee answer quality; it only prevents planning without a recorded alignment step. Authorization PAUSE remains a hard stop; only input-selection PAUSE may degrade to direct text questions.""",
+    "review": """## Codex Port Adapter - Review Isolation
+
+This skill is countering the model's inertia to rubber-stamp its own prior work. Before relying on spawned reviewers as anti-hallucination evidence, run or consult a `codex-isolation-probe.md` conclusion for this Codex runtime. If native Codex subagents receive clean independent context, spawn the perspective agents directly. If they inherit enough parent context to rubber-stamp the current answer, run each perspective in an independent Codex invocation or session, write each result to an artifact file, then synthesize from those files.
+
+Do not simulate independent review by asking the same conversation context several times in sequence. Authorization PAUSE remains a hard stop; only input-selection PAUSE may degrade to direct text questions.""",
+    "health": """## Codex Port Adapter - Inspector Isolation
+
+This skill is countering the model's inertia to treat same-context self-audit as independent evidence. Before using inspector subagents for deep audits, run or consult a `codex-isolation-probe.md` conclusion for this Codex runtime. If native Codex subagents are isolated, use them directly. If not, run each inspector perspective in an independent Codex invocation or session, write the raw findings to files, then merge from those artifacts.
+
+Do not treat same-context sequential prompts as independent inspection. Authorization PAUSE remains a hard stop; only input-selection PAUSE may degrade to direct text questions.""",
+    "execute": """## Codex Port Adapter - Machine Gates and Task Map
+
+This skill is countering the model's inertia to declare progress without machine proof or durable state. Red/green decisions must come from actual command exit codes. Model self-report is never green proof. Keep the existing invariant that compile errors do not increment `failure_count`.
+
+Use `task-map.md` as the durable source of truth for TaskCreate/TaskUpdate semantics. `update_plan` or other runtime plan displays are presentation only; after a session restart, reconstruct task state from `task-map.md` and adjacent artifacts before continuing. Authorization PAUSE remains a hard stop.""",
+}
+
+
+CODEX_SKILL_ADAPTER_CAPABILITIES: dict[str, tuple[str, ...]] = {
+    "think": ("AskUserQuestion:think",),
+    "review": ("Task tool",),
+    "health": ("Task tool",),
+    "execute": ("test-runner", "TaskCreate", "TaskUpdate"),
+}
+
+
+def inject_codex_port_adapter(body: str, report: TransferReport) -> str:
+    adapter = CODEX_SKILL_ADAPTERS.get(report.skill_name)
+    if adapter is None:
+        return body
+
+    for key in CODEX_SKILL_ADAPTER_CAPABILITIES.get(report.skill_name, ()):
+        note_capability(report, key)
+
+    lines = body.splitlines()
+    block = adapter.strip()
+    if lines and lines[0].startswith("# "):
+        new_lines = [lines[0], "", block, "", *lines[1:]]
+        result = "\n".join(new_lines)
+    else:
+        result = f"{block}\n\n{body.lstrip()}"
+    if body.endswith("\n"):
+        result += "\n"
+    report.rewrites.append(f"注入 `{report.skill_name}` Codex port adapter note")
+    return result
 
 
 def split_frontmatter(text: str) -> tuple[dict, str]:
@@ -198,6 +630,13 @@ def translate_frontmatter(fm: dict, report: TransferReport) -> tuple[dict, dict 
     # NOTE: the two trigger-phrase regexes below are baransu-specific
     # heuristics, not general Claude conventions.
     desc = out["description"]
+    codex_desc, desc_rewrite_count = normalize_codex_subagent_terms(str(desc))
+    if desc_rewrite_count:
+        out["description"] = codex_desc
+        desc = codex_desc
+        report.mapped.append(
+            f"`description` {desc_rewrite_count} 處 Claude Task/subagent wording 改為 Codex wording"
+        )
     if len(desc) > 1024:
         trimmed = re.sub(
             r"\s*Trigger immediately when[^.]*\.",
@@ -329,12 +768,27 @@ def rewrite_body(
         word = ordinals[n - 1] if 0 < n <= len(ordinals) else f"#{n}"
         return f"the {word} argument the user provided"
 
-    body = ARGS_INDEXED.sub(args_indexed_sub, body)
+    body, _ = markdown_aware_subn(
+        ARGS_INDEXED,
+        args_indexed_sub,
+        body,
+        code_replacement=lambda m: m.group(0),
+    )
     # Bare `$N` only when frontmatter signals positional substitution —
     # otherwise literal $1/$2 in awk/sed/bash snippets would be corrupted.
     if positional_args:
-        body = ARGS_BARE_NUM.sub(args_bare_num_sub, body)
-    body = ARGS_FULL.sub(args_full_sub, body)
+        body, _ = markdown_aware_subn(
+            ARGS_BARE_NUM,
+            args_bare_num_sub,
+            body,
+            code_replacement=lambda m: m.group(0),
+        )
+    body, _ = markdown_aware_subn(
+        ARGS_FULL,
+        args_full_sub,
+        body,
+        code_replacement=lambda m: m.group(0),
+    )
 
     named_count = 0
     if named_args:
@@ -353,8 +807,31 @@ def rewrite_body(
 
             body = pattern.sub(named_sub, body)
 
-    body = SESSION_ID.sub("the current session", body)
-    body = SKILL_DIR.sub("the skill's root directory", body)
+    body, _ = markdown_aware_subn(
+        SESSION_ID,
+        "the current session",
+        body,
+        code_replacement=lambda m: m.group(0),
+    )
+
+    def skill_dir_plus_sub(m: re.Match[str]) -> str:
+        return f"the skill's root directory/{m.group(1).split('/', 1)[-1]}"
+
+    def skill_dir_plus_code_sub(m: re.Match[str]) -> str:
+        return SKILL_DIR.sub(".", m.group(1))
+
+    body, _ = markdown_aware_subn(
+        SKILL_DIR_PLUS,
+        skill_dir_plus_sub,
+        body,
+        code_replacement=skill_dir_plus_code_sub,
+    )
+    body, _ = markdown_aware_subn(
+        SKILL_DIR,
+        "the skill's root directory",
+        body,
+        code_replacement=".",
+    )
     body = EFFORT.sub("", body)
 
     if arg_count:
@@ -367,42 +844,62 @@ def rewrite_body(
     # Claude tool-name / agent-dispatch rewrites (skill-mapping.md §6).
     # Multi-token patterns first so they don't get partially consumed.
     tool_count = 0
+    body, subagent_term_count = normalize_codex_subagent_terms(body)
+    tool_count += subagent_term_count
+    if subagent_term_count:
+        note_capability(report, "Task tool")
 
-    # `Dispatch <X>-agent` / `Dispatches <X>-agent` → `spawn a `<X>-agent` subagent`.
-    def dispatch_sub(m: re.Match[str]) -> str:
-        nonlocal tool_count
-        tool_count += 1
-        return f"spawn a `{m.group(1)}` subagent"
+    ask_keys_seen: set[str] = set()
 
-    body = re.sub(r"\bDispatch[s]?\s+`?([a-zA-Z][\w-]*?-agent)`?", dispatch_sub, body)
+    def ask_user_sub(m: re.Match[str]) -> str:
+        key = classify_ask_user_occurrence(report, body, m)
+        ask_keys_seen.add(key)
+        return ASK_USER_REWRITE_BY_CAPABILITY[key]
+
+    def ask_user_code_sub(m: re.Match[str]) -> str:
+        key = classify_ask_user_occurrence(report, body, m)
+        return ASK_USER_CODE_REWRITE_BY_CAPABILITY[key]
+
+    body, ask_count = markdown_aware_subn(
+        r"\bAskUserQuestion\b",
+        ask_user_sub,
+        body,
+        code_replacement=ask_user_code_sub,
+    )
+    if ask_count:
+        tool_count += ask_count
+        for key in sorted(ask_keys_seen):
+            note_capability(report, key)
 
     # Single-token Claude API references.
-    TOKEN_MAP: list[tuple[str, str]] = [
+    TOKEN_MAP: list[tuple[str, str, str | None]] = [
         # Subagent / task plumbing
-        (r"\bTask\s+tool\b", "Codex subagent"),
-        (r"\bTaskCreate\b", "track the task internally"),
-        (r"\bTaskUpdate\b", "update task state internally"),
-        (r"\bTaskGet\b", "look up the task internally"),
-        (r"\bTaskList\b", "list tracked tasks internally"),
-        (r"\bTaskOutput\b", "read tracked task output internally"),
-        (r"\bTaskStop\b", "stop the tracked task internally"),
-        (r"\bTodoWrite\b", "track steps internally"),
-        # User interaction
-        (r"\bAskUserQuestion\b", "ask the user directly"),
+        (r"\bTask\s+tool\b", "Codex subagent", "Task tool"),
+        (r"\bTaskCreate\b", "create a `task-map.md` record", "TaskCreate"),
+        (r"\bTaskUpdate\b", "update `task-map.md` task state", "TaskUpdate"),
+        (r"\bTaskGet\b", "look up `task-map.md` task state", "TaskGet"),
+        (r"\bTaskList\b", "list `task-map.md` records", "TaskList"),
+        (r"\bTaskOutput\b", "read task output recorded in `task-map.md`", "TaskOutput"),
+        (r"\bTaskStop\b", "mark the task stopped in `task-map.md`", "TaskStop"),
+        (r"\bTodoWrite\b", "track steps internally", None),
         # Plan mode (no skill-callable equivalent in Codex)
-        (r"\bEnterPlanMode\b", "produce a plan and pause for confirmation"),
-        (r"\bExitPlanMode\b", "exit the plan and proceed with edits"),
+        (r"\bEnterPlanMode\b", "produce a plan and pause for confirmation", None),
+        (r"\bExitPlanMode\b", "exit the plan and proceed with edits", None),
+        # Artifact delivery
+        (r"\bSendUserFile\b", "write the artifact to disk and list its absolute path", "SendUserFile"),
         # Web access
-        (r"\bWebFetch\b", "fetch the URL"),
-        (r"\bWebSearch\b", "search the web"),
+        (r"\bWebFetch\b", "fetch the URL", None),
+        (r"\bWebSearch\b", "search the web", None),
     ]
-    for pat, repl in TOKEN_MAP:
-        body, n = re.subn(pat, repl, body)
+    for pat, repl, cap_key in TOKEN_MAP:
+        body, n = markdown_aware_subn(pat, repl, body)
         tool_count += n
+        if n and cap_key:
+            note_capability(report, cap_key)
 
     if tool_count:
         report.rewrites.append(
-            f"{tool_count} 處 Claude tool / agent 派遣關鍵字改寫為 Codex 對等敘述（AskUserQuestion / Dispatch X-agent / TaskCreate 等）"
+            f"{tool_count} 處 Claude tool / agent 派遣關鍵字改寫為 Codex 對等敘述（AskUserQuestion / Dispatch X-agent / TaskCreate / SendUserFile 等）"
         )
 
     # Instruction-file rewrite: Codex reads AGENTS.md (root-down, 32 KiB
@@ -546,12 +1043,14 @@ def copy_aux(source: Path, target: Path, report: TransferReport) -> None:
             "skill-root 子目錄 `agents/` 未複製（TOML stub 僅由 plugin 層級 agents/ 產生；skill 內附 agents/ 需手動遷移）"
         )
 
-    # `$CLAUDE_SKILL_DIR` rewrite — same logic for scripts/ and references/.
+    # `$CLAUDE_SKILL_DIR` rewrite for copied scripts only. References are
+    # copied verbatim and scanned below because they often document literal
+    # mapping tokens; rewriting them corrupts the transfer guide itself.
     # Skip transfer.py itself: its source contains the literal regex pattern
     # `\$\{CLAUDE_SKILL_DIR\}|\$CLAUDE_SKILL_DIR\b`, which the rewriter would
     # turn into `\$\{CLAUDE_SKILL_DIR\}|\.\b` (broken) on every self-port.
     rewritten = 0
-    rewrite_roots = [target / "scripts", target / "references"]
+    rewrite_roots = [target / "scripts"]
     for root in rewrite_roots:
         if not root.is_dir():
             continue
@@ -574,7 +1073,7 @@ def copy_aux(source: Path, target: Path, report: TransferReport) -> None:
                 rewritten += n
     if rewritten:
         report.rewrites.append(
-            f"{rewritten} 處 scripts/ + references/ 內的 `${{CLAUDE_SKILL_DIR}}` 改寫為 `.`（skill root）"
+            f"{rewritten} 處 scripts/ 內的 `${{CLAUDE_SKILL_DIR}}` 改寫為 `.`（skill root）"
         )
 
     # Claude-only token scan over copied references/*.md. Conservative by
@@ -586,8 +1085,21 @@ def copy_aux(source: Path, target: Path, report: TransferReport) -> None:
         ("Task tool", re.compile(r"\bTask\s+tool\b")),
         ("TodoWrite", re.compile(r"\bTodoWrite\b")),
         ("EnterPlanMode", re.compile(r"\bEnterPlanMode\b")),
+        ("TaskCreate", re.compile(r"\bTaskCreate\b")),
+        ("TaskUpdate", re.compile(r"\bTaskUpdate\b")),
+        ("TaskGet", re.compile(r"\bTaskGet\b")),
+        ("TaskList", re.compile(r"\bTaskList\b")),
+        ("TaskOutput", re.compile(r"\bTaskOutput\b")),
+        ("TaskStop", re.compile(r"\bTaskStop\b")),
+        ("SendUserFile", re.compile(r"\bSendUserFile\b")),
+        ("parallel Tasks", re.compile(r"\bparallel\s+Tasks\b")),
+        ("clean Task contexts", re.compile(r"\bclean\s+Task\s+contexts\b")),
+        ("via Task", re.compile(r"\bvia\s+Task\b")),
+        ("Dispatch **agent**", re.compile(r"\bDispatch\s+\*\*[a-zA-Z][\w-]*?-agent\*\*")),
+        ("Workflow primitives", re.compile(r"\bWorkflow\s+primitives\b")),
         ("$ARGUMENTS", re.compile(r"\$ARGUMENTS\b")),
         ("!`cmd` injection", re.compile(r"!`[^`]+`")),
+        ("CLAUDE_SKILL_DIR", re.compile(r"\bCLAUDE_SKILL_DIR\b")),
         ("CLAUDE.md", re.compile(r"\bCLAUDE\.md\b")),
     ]
     refs_root = target / "references"
@@ -672,6 +1184,7 @@ def transfer_one(source: Path, output_root: Path) -> TransferReport:
     new_body = rewrite_body(
         body, report, named_args=named_args, positional_args=positional_args
     )
+    new_body = inject_codex_port_adapter(new_body, report)
     write_skill(target, new_fm, new_body, openai_yaml)
     check_output_invariants(target, report)
     copy_aux(source, target, report)
@@ -819,9 +1332,27 @@ def emit_agent_stub(agent_md: Path, dest: Path) -> None:
     else:
         mcp_line = "# mcp_servers = []                     # list of MCP server ids the agent may invoke"
 
+    tool_names = {t.split("(", 1)[0].strip().lower() for t in tools}
+    write_or_exec = bool(tool_names & {"write", "edit", "multiedit", "bash"})
+    read_only = bool(tools) and not write_or_exec
+    if write_or_exec:
+        sandbox_hint = (
+            "# Sandbox note: source tools include Write/Edit/Bash; this agent writes or runs shell commands.\n"
+            "# Review workspace-write scope and approval policy before enabling it."
+        )
+    elif read_only:
+        sandbox_hint = (
+            "# Sandbox note: source tools look read-only; consider a read-only sandbox unless the prompt requires writes."
+        )
+    else:
+        sandbox_hint = (
+            "# Sandbox note: source did not declare tools; inherit parent sandbox unless you intentionally narrow it."
+        )
+
     stub = (
         f"# Stub generated from {agent_md.name}.\n"
-        f"# Review before copying to ~/.codex/agents/{name}.toml.\n"
+        f"# Review before copying to ~/.codex/agents/{name}.toml (personal)\n"
+        f"# or .codex/agents/{name}.toml (project-scoped trusted repo).\n"
         f"# See codex-skill-transfer references/agent-mapping.md for the mapping rules.\n"
         f"\n"
         f"name = {name_quoted}\n"
@@ -829,13 +1360,18 @@ def emit_agent_stub(agent_md: Path, dest: Path) -> None:
         f"\n"
         f"developer_instructions = {instructions_block}\n"
         f"\n"
-        f"# Choose what to fill in below; all are optional and inherit from parent if absent.\n"
+        f"# Choose what to fill in below; omit optional fields to inherit from the parent session.\n"
         f"#\n"
-        f"# model = \"gpt-5.4\"\n"
-        f"# model_reasoning_effort = \"high\"      # low | medium | high | max\n"
-        f"# sandbox_mode = \"workspace-write\"     # read-only | workspace-write | danger-full-access\n"
+        f"# model = \"gpt-5.5\"                   # demanding agents; use gpt-5.4-mini for light read-heavy scans\n"
+        f"# model_reasoning_effort = \"high\"      # minimal | low | medium | high | xhigh\n"
+        f"# sandbox_mode = \"workspace-write\"     # read-only | workspace-write | danger-full-access; parent runtime overrides win\n"
         f"{mcp_line}\n"
+        f"{sandbox_hint}\n"
         f"# nickname_candidates = []             # cosmetic names for spawned instances\n"
+        f"#\n"
+        f"# [[skills.config]]                    # optional per-agent skill enable/disable override\n"
+        f"# path = \"/path/to/skill/SKILL.md\"\n"
+        f"# enabled = false\n"
     )
     dest.write_text(stub, encoding="utf-8")
 
@@ -1103,7 +1639,8 @@ def main(argv: list[str]) -> int:
         if summary["agent_stubs"]:
             print(
                 f"- Agent stubs 已產出 {summary['agent_stubs']} 份至 "
-                f"`.codex-agents-templates/`（請人工檢視後複製至 `~/.codex/agents/`）"
+                f"`.codex-agents-templates/`（請人工檢視後複製至 `~/.codex/agents/` "
+                "或專案 `.codex/agents/`）"
             )
         print(f"- Skills 處理：{summary['skill_count']} 個")
         if summary.get("aux_dirs_copied"):

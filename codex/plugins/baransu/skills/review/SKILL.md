@@ -1,8 +1,8 @@
 ---
 name: review
 description: Use When the user wants an independent second opinion on a model's output,
-  or after a model declares something done. Do Dispatch isolated architecture / quality
-  / security perspective agents in clean Task contexts, surfacing hallucinations,
+  or after a model declares something done. Do Spawn isolated architecture / quality
+  / security perspective agents in clean Codex subagent contexts, surfacing hallucinations,
   drift, and over-engineering. Trigger On 「看一下」「看看」「幫我看」「check 一下」「review 一下」, or
   casual "take a look at X". 繁體中文輸出。
 compatibility: Designed for Claude Code; ported to Codex.
@@ -12,7 +12,14 @@ metadata:
 
 # review — cross-perspective re-verification
 
-Models drift. After a model claims "done" — especially after a long-running or multi-turn session — it is the wrong one to audit itself: inertia and context pollution make it confirm its own assumptions. `/review` is the counter-move. Dispatch isolated perspectives in clean Task contexts and let them re-read the target with fresh eyes — but with a surgeon's mindset: find only what matters to the user's actual concern, don't over-correct.
+## Codex Port Adapter - Review Isolation
+
+This skill is countering the model's inertia to rubber-stamp its own prior work. Before relying on spawned reviewers as anti-hallucination evidence, run or consult a `codex-isolation-probe.md` conclusion for this Codex runtime. If native Codex subagents receive clean independent context, spawn the perspective agents directly. If they inherit enough parent context to rubber-stamp the current answer, run each perspective in an independent Codex invocation or session, write each result to an artifact file, then synthesize from those files.
+
+Do not simulate independent review by asking the same conversation context several times in sequence. Authorization PAUSE remains a hard stop; only input-selection PAUSE may degrade to direct text questions.
+
+
+Models drift. After a model claims "done" — especially after a long-running or multi-turn session — it is the wrong one to audit itself: inertia and context pollution make it confirm its own assumptions. `/review` is the counter-move. Spawn isolated perspectives in clean Codex subagent contexts and let them re-read the target with fresh eyes — but with a surgeon's mindset: find only what matters to the user's actual concern, don't over-correct.
 
 This skill is not a monolithic reviewer. It is a **task analyst + dispatcher**: it lifts a claim checklist out of the target, derives the review's goal, decides who to dispatch, lets them think independently, weighs returned findings on a balance scale (complexity must justify itself), and applies findings in four response tiers.
 
@@ -95,7 +102,7 @@ If Stage 2's tier cap disagrees with activation count (e.g. a 100-LOC target tri
 
 ## Stage 4 — Parallel dispatch
 
-Launch one **parallel Task** per activated perspective, each in a clean context. Pass each reviewer three things: target content, the **claim checklist** (Stage 1), and the **review goal** (Stage 1). Reviewers do not know about each other and do not coordinate.
+Launch one **parallel Codex subagent** per activated perspective, each in a clean context. Pass each reviewer three things: target content, the **claim checklist** (Stage 1), and the **review goal** (Stage 1). Reviewers do not know about each other and do not coordinate.
 
 Findings return in natural language (not YAML). Each must include: citation (file:line or section), which claim it contradicts (or "none — observation"), the observation itself, the surgical fix, and a balance note (see Stage 6). Any non-obvious claim inside a finding carries a source annotation — `(verified: <how>)` when the reviewer actually checked, or `(inferred: 未實查)` when it rests on reasoning alone.
 
@@ -106,7 +113,7 @@ No recursion: this dispatch is the only depth /review uses. /review does not inv
 Before dispatching Stage 4 (and at Stage 0 when pinning the run mode), read
 `references/orchestration-interface.md` and apply its finding schema and adapter contract:
 isomorphic finding schema, Stage 0 mode pinning (ultracode detect → record → no mid-run switch),
-the current parallel-Task adapter, and a thin Workflow adapter. Both adapters return identical
+the current parallel-subagent adapter, and a thin Workflow adapter. Both adapters return identical
 finding shapes — Stages 5–7 never sense the mode; the depth invariant is restated per adapter.
 Non-ultracode runs keep current-path semantics unchanged.
 
@@ -114,7 +121,7 @@ Non-ultracode runs keep current-path semantics unchanged.
 
 ## Stage 5 — Adversarial round (conditional)
 
-Run after all Stage 4 Tasks have returned (not in parallel with Stage 4). Receive Stage 4 findings as inline input — list them in the adversarial reasoning context so angles 5 and 6 have concrete material to work with. Six angles:
+Run after all Stage 4 Codex subagents have returned (not in parallel with Stage 4). Receive Stage 4 findings as inline input — list them in the adversarial reasoning context so angles 5 and 6 have concrete material to work with. Six angles:
 
 1. **Violated assumption** — what unstated premise does the target rely on? Flip one — does the target still hold?
 2. **Combinatorial failure** — which combination of inputs / events / states jointly breaks the target, even when each is fine alone?
@@ -192,7 +199,7 @@ This list deliberately does **not** include release-artifact missing, generated-
 |---|---|
 | **Direct fix** | formatter, import order, unused import, obvious typo, dead import. Nothing that touches behavior. Apply via Edit. |
 | **Packaged confirm** | non-semantic but beyond direct fix (rename, delete dead code, semantic typo). Present the batch diff once. |
-| **Needs judgment** | logic / boundary / API / behavior / security findings with concrete fixes. Batch-ask via ask the user directly — group by theme, not by target question count. |
+| **Needs judgment** | logic / boundary / API / behavior / security findings with concrete fixes. Batch-ask via ask the user directly, record the authorization decision, and stop until the user answers — group by theme, not by target question count. |
 | **Advisory** | balance-downgraded, off-goal, or no concrete fix. In the report, not in the user's face. |
 
 Do not change behavior without user consent. Do not ask one question per finding.
@@ -251,7 +258,7 @@ Field semantics (single source of truth for each):
 
 No verdict enum. No YAML schema. No skeleton template — write the kind of review a real engineer would read as a review.
 
-For **needs-judgment** items, batch-ask via ask the user directly. Let the question count follow the natural theme grouping; don't split to hit a number, don't merge to shrink one.
+For **needs-judgment** items, batch-ask via ask the user directly, record the authorization decision, and stop until the user answers. Let the question count follow the natural theme grouping; don't split to hit a number, don't merge to shrink one.
 
 ---
 
@@ -261,7 +268,7 @@ After the report has been presented in conversation, persist it as an HTML work 
 
 1. Render the full report as a single HTML file at `.claude/review/<slug>.html`, styled after the book golden-template. The shared rendering contract lives at `plugins/baransu/skills/_shared/output-journal.md` — follow it.
 2. Include an 「執行日誌」 section: off-spec decisions, forced changes, tradeoffs, and anything else from this run the user should know.
-3. Send the file to the user via SendUserFile.
+3. Send the file to the user via write the artifact to disk and list its absolute path.
 
 The in-conversation prose remains the primary deliverable; the HTML journal is its persisted, shareable form.
 

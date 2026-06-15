@@ -12,6 +12,16 @@ metadata:
 
 # think — deliberate before you build
 
+## Codex Port Adapter - Alignment Gate
+
+Codex has no verified AskUserQuestion hard stop. This skill is countering the model's inertia to skip alignment and start designing immediately, so plain prompt wording is not enough. For ambiguous requests, run the skill in two phases:
+
+1. Phase 1 outputs only numbered alignment questions, then stops. It must not include implementation, scaffolding, pseudo-code, or the five-section plan.
+2. Phase 2 may produce the five-section plan only after an `alignment.md` artifact exists in the active think workspace and records the user's answers. If the artifact is missing, refuse to plan and ask for the answers to be written first.
+
+This rebuilds the hard gate at the artifact layer. It does not guarantee answer quality; it only prevents planning without a recorded alignment step. Authorization PAUSE remains a hard stop; only input-selection PAUSE may degrade to direct text questions.
+
+
 Claude's default when a user says "build X" is to start writing code almost immediately — often against a version of X that Claude *assumed* matched the user, rather than one both sides actually agreed on. This skill exists to correct that default.
 
 The deliverable of `/think` is not code. It's an **approved plan** that someone else (usually Claude, in the next turn) can hand off to implementation with zero remaining ambiguity.
@@ -23,14 +33,14 @@ If you find yourself thinking "I could just write this quickly" — that's exact
 ## Outcome Contract
 
 - **Outcome**: 把模糊意圖收斂為一份使用者明確核可的五段式計畫（或 Evaluation 模式的 Kill / Keep / Pivot 單行判決），全程不產出任何程式碼。
-- **Done when**: 使用者於 Stage G 四選項閘（ask the user directly）批准最終提案，或明確放棄本輪計畫；自由文字批准須以「收到，把這當成批准實作」收口入檔。
-- **Evidence**: Stage G 的 ask the user directly 互動結果 — 四選項之一被選取，或自由文字批准的收口句已輸出。
-- **Output**: 對話內呈現的繁中五段式計畫（或判決＋三理由）；批准後落檔 `.claude/think/<slug>.md`（計畫原文）與 `.claude/think/<slug>.html`（HTML 工作日誌，含「執行日誌」節，依 `_shared/output-journal.md` 契約），並以 SendUserFile 送出；隨後交棒 /analyze 或依 _shared/tdd.md 直接實作。
+- **Done when**: 使用者於 Stage G 四選項閘（ask the user directly, record the authorization decision, and stop until the user answers）批准最終提案，或明確放棄本輪計畫；自由文字批准須以「收到，把這當成批准實作」收口入檔。
+- **Evidence**: Stage G 的 ask the user directly, record the authorization decision, and stop until the user answers 互動結果 — 四選項之一被選取，或自由文字批准的收口句已輸出。
+- **Output**: 對話內呈現的繁中五段式計畫（或判決＋三理由）；批准後落檔 `.claude/think/<slug>.md`（計畫原文）與 `.claude/think/<slug>.html`（HTML 工作日誌，含「執行日誌」節，依 `_shared/output-journal.md` 契約），並以 write the artifact to disk and list its absolute path 送出；隨後交棒 /analyze 或依 _shared/tdd.md 直接實作。
 - **Automation**: ultracode=neutral, loop=not-drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 ## The iron rule
 
-Until the user has explicitly approved the final proposal through `ask the user directly` (Stage G), do **not** produce:
+Until the user has explicitly approved the final proposal through `authorization PAUSE` (Stage G), do **not** produce:
 
 - Production code, even one-liners
 - Scaffolding, directory trees, file layouts written out
@@ -46,7 +56,7 @@ Why so strict: the whole point is that a premature code artefact anchors the use
 
 ## User-facing language
 
-All output shown to the user — alignment questions, proposals, the final plan, `ask the user directly` labels — must be in **Traditional Chinese (繁體中文)**. The body of this SKILL.md is in English because it is agent-facing.
+All output shown to the user — alignment questions, proposals, the final plan, `numbered-options question` labels — must be in **Traditional Chinese (繁體中文)**. The body of this SKILL.md is in English because it is agent-facing.
 
 ---
 
@@ -187,7 +197,7 @@ C. Official-first check  — framework-native / stdlib / well-maintained lib
 D. Premise validation    — pwd, existing ADRs, prior art
 E. Attack + complexity   — self-refute; file-count & component-count grading; deps list
 F. Final plan            — the five-section schema
-G. Approval              — ask the user directly with four options; downstream is direct implementation per _shared/tdd.md (small) or /analyze (medium-large)
+G. Approval              — authorization PAUSE with four options; downstream is direct implementation per _shared/tdd.md (small) or /analyze (medium-large)
 ```
 
 Do **not** read any files, run any shell commands, or fetch any URLs before Stage A completes. The whole point of Stage A is to close the gap between Claude's understanding and the user's intent. Touching the codebase first anchors you to what's already there instead of what the user actually wants.
@@ -206,7 +216,7 @@ Round 3: **成功 (success)** — how we'll know it's done; what observable beha
 
 Open the round by listing **3 specific things that feel ambiguous** in the user's current statement of this dimension. Don't list generic things ("what's the scale?") — list things grounded in what they actually said ("you said 'make it faster' but you haven't said whether latency or throughput matters more — those lead to different designs").
 
-Then call `ask the user directly` with 2-3 options that are **fundamentally different in kind**, not "same direction, different intensity". Wrong: [A: cache for 5min, B: cache for 1hr, C: cache for 1day]. Right: [A: read-through cache, B: materialised view refreshed nightly, C: no cache, fix the slow query directly].
+Then call `Codex alignment gate requiring alignment.md` with 2-3 options that are **fundamentally different in kind**, not "same direction, different intensity". Wrong: [A: cache for 5min, B: cache for 1hr, C: cache for 1day]. Right: [A: read-through cache, B: materialised view refreshed nightly, C: no cache, fix the slow query directly].
 
 Exactly one option must be labelled **【推薦】** and should come first. Explain in the option's description *why* you think it's right given what the user has said. If none of the options fits, the user can pick "Other" and type a free answer — that's fine and often the most useful outcome.
 
@@ -374,7 +384,7 @@ Claim-cite-first applies to the plan itself: a non-obvious claim in any section 
 
 ## Stage G — Approval (the four-option gate)
 
-After the plan is presented, call `ask the user directly` with these four options. Keep the labels short and stable — same wording every invocation, so they're predictable to the user and cache-friendly.
+After the plan is presented, call `authorization PAUSE` with these four options. Keep the labels short and stable — same wording every invocation, so they're predictable to the user and cache-friendly.
 
 ```
 question: "要怎麼處理這份計畫？"
@@ -402,7 +412,7 @@ options:
    - If no path fits, say so — 「沒有完美接手的 skill，建議直接進入手寫實作」.
 2. Produce a one-paragraph **handoff summary** in 繁體中文: what was approved, the key constraints, the first concrete step of implementation. Immediately continue with this summary as input — invoke `/baransu:analyze` for medium-to-large tasks, or begin the direct implementation for small tasks. Execute autonomously; do not ask the user for further confirmation during implementation unless a destructive or irreversible action arises.
 
-**Option 3 — 還有地方要對焦.** Call `ask the user directly` to find out what needs re-alignment. Then determine whether the new concern is an **extension** of the current direction or a **different concern**:
+**Option 3 — 還有地方要對焦.** Call `input-alignment question PAUSE` to find out what needs re-alignment. Then determine whether the new concern is an **extension** of the current direction or a **different concern**:
 
 - **Extension** (same goal, same problem, deeper constraint or refinement): restart only the affected stage with the user's new constraint folded in. Open the re-proposal with one sentence: 「本次修改了 X 假設/約束，因此 Y 和 Z 有調整」 so the diff is visible. If the extension path is taken three consecutive times without convergence, treat as a different concern and restart from Stage A.
 - **Different concern** (goal changes, problem reframed, direction diverges): restart from Stage A. State clearly: 「這是一個不同的問題方向，重新從 Stage A 對焦。」
@@ -415,7 +425,7 @@ Once the plan is approved — Option 2 selected, a free-text approval closed wit
 
 - [ ] Write the five-section plan verbatim to `.claude/think/<slug>.md` (slug: short kebab-case derived from the plan topic).
 - [ ] Render an HTML work journal at `.claude/think/<slug>.html`, based on the book golden-template, per the shared contract in `plugins/baransu/skills/_shared/output-journal.md`. It contains the original skill output (the five-section plan) plus an 「執行日誌」 section, initially seeded with the approval record (誰批准、哪個選項、何時).
-- [ ] Send both files via `SendUserFile` with a one-line 繁中 caption（例：「計畫已落檔；執行日誌將隨實作持續追記」）.
+- [ ] Send both files via `write the artifact to disk and list its absolute path` with a one-line 繁中 caption（例：「計畫已落檔；執行日誌將隨實作持續追記」）.
 
 During subsequent implementation, the 「執行日誌」 section MUST be continuously appended with off-spec decisions, forced changes, trade-offs, and anything else the user should know. **The implementing party owns the appending** — `/execute` on the medium-to-large path, or the main session implementing directly per `_shared/tdd.md` §7. /think's responsibility ends at creating the journal and naming this ownership in the handoff summary.
 
@@ -445,7 +455,7 @@ One Gotcha keeps its long-form prose because its value is in the multi-layer res
 | About to Read / Glob / Grep before Stage A finishes | Stop. If you already did, note it in Stage D's prior-art paragraph and move on; don't pretend it didn't happen |
 | Stage B recommendation softened into "X might be good, though Y has merit" | Rewrite with commitment. The falsification bullets are the safety net; you don't also need to hedge the stance itself |
 | `Unknowns` filled with bureaucratic placeholders ("scaling strategy: TBD", "monitoring: TODO") | Each unknown needs (a) a specific question, (b) a reason it can be deferred, (c) a person / time to resolve it. Otherwise it belongs back in Key decisions, unresolved |
-| User said "looks good, go ahead" in free text instead of via `ask the user directly` | Accept it, but say 「收到，把這當成批准實作（完全授權）」 so there's a clear recorded moment. The four-option gate is the audit trail |
+| User said "looks good, go ahead" in free text instead of via `authorization PAUSE` | Accept it, but say 「收到，把這當成批准實作（完全授權）」 so there's a clear recorded moment. The four-option gate is the audit trail |
 | User asks "can we just add X?" after seeing the plan in Stage F | Small fit → fold into Building, note in Key decisions. Real extension (new file, new decision) → treat as Option 3 「還有地方要對焦」 and re-propose |
 | Files moved to `~/project`, but the repo actually lives at `~/www/project` | Run `pwd` (and `git rev-parse --show-toplevel`) before the first filesystem operation in Stage D. Never assume which checkout the user has in mind |
 | Planned an MCP workflow without checking whether the MCP server was loaded | Verify tool / server availability before handoff, not mid-implementation. Mid-flow "missing server" pauses cost more than the upfront check |

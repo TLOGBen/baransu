@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Designed for Claude Code; output targets Codex CLI. Optional `skills-ref` CLI for validation.
 metadata:
   author: baransu
-  version: "0.8.0"
+  version: "0.10.0"
 ---
 
 # Codex Skill Transfer
@@ -56,6 +56,9 @@ For inline (in-conversation) execution without the script — when the user want
 
 The transformation is layered; each reference owns one layer. Read the matching one for the work in front of you, not all three:
 
+When changing the mapping rules themselves, refresh the current OpenAI Codex docs first and compare against the relevant official sections: Agent Skills, Build plugins, Subagents, MCP, Hooks, and sandbox/approval behavior. The docs can drift faster than this skill; do not preserve an old mapping just because the transfer script already emits it.
+
+- [`references/CODEX_PORT_PLAN.md`](references/CODEX_PORT_PLAN.md) — behavior-weight survival plan. Read this before changing lossy rewrites: the question is not "which Codex API matches this Claude API", but "which model shortcut/inertia did the original mechanism counter, and is the Codex replacement still hard enough?" Strong-inertia soft-prompt downgrades must move to an artifact/phase/sandbox gate instead.
 - [`references/skill-mapping.md`](references/skill-mapping.md) — SKILL.md frontmatter + body rewrites. Covers `disable-model-invocation` → `agents/openai.yaml`, `$ARGUMENTS` → natural language, bang-backtick shell injection → imperative TODO, and tool-API rewrites. **Read this for any per-skill question.**
 - [`references/plugin-mapping.md`](references/plugin-mapping.md) — `.claude-plugin/plugin.json` → `.codex-plugin/plugin.json`. Read when porting a whole plugin.
 - [`references/agent-mapping.md`](references/agent-mapping.md) — Claude `context: fork` / `agent: ...` → Codex Subagents (`.codex/agents/*.toml`), and `agents/*.md` → `.codex-agents-templates/*.toml` stubs. Read whenever agents are involved at either layer. Co-locates per-skill rules with per-plugin stub generation so you don't bounce between files.
@@ -101,7 +104,7 @@ The report is the point of friction-resolution: **每一條 dropped/manual revie
 ## Boundaries
 
 - **Never mutate the source.** Always write to a separate directory. The script refuses overlapping paths; inline work follows the same rule.
-- **Never auto-write to user config dirs.** Agent stubs land in `<output>/.codex-agents-templates/` — the user copies them into `~/.codex/agents/` themselves. The plugin package has no business reaching into the user's home directory.
+- **Never auto-write to user config dirs.** Agent stubs land in `<output>/.codex-agents-templates/` — the user copies them into `~/.codex/agents/` (personal) or `.codex/agents/` (project-scoped trusted repo) themselves. The plugin package has no business reaching into the user's home directory.
 - **Never invent fields the user didn't author.** When a Claude field has no Codex target and no rewrite preserves intent, document it in the report. Silent fabrication is worse than an obvious gap.
 - **Never translate domain-specific instructions or examples** in skill bodies — only the structural elements (frontmatter, dynamic injection, argument substitution, Claude-specific tool references). The author's voice stays.
 - **Flag aggressively when in doubt.** A noisy report is cheaper than a silently wrong port.
@@ -112,6 +115,7 @@ The report is the point of friction-resolution: **每一條 dropped/manual revie
 codex-skill-transfer/
 ├── SKILL.md                              # this file
 ├── references/
+│   ├── CODEX_PORT_PLAN.md                # behavior-weight / model-inertia port plan
 │   ├── skill-mapping.md                  # per-skill frontmatter + body rewrites
 │   ├── plugin-mapping.md                 # plugin manifest
 │   ├── agent-mapping.md                  # context: fork → Codex Subagents (both layers)

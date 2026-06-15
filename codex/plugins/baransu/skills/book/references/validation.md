@@ -5,7 +5,7 @@
 After Stage 4 §1 GATE PASS，render the HTML in headless Chromium via the bundled helper (Playwright is guaranteed installed by Stage 0)。一次 invocation 同時產 preview screenshot 與 structural JSON probe：
 
 ```bash
-PROBE=$(python3 "./scripts/verify-render.py" \
+PROBE=$(python3 "$CLAUDE_SKILL_DIR/scripts/verify-render.py" \
   ".claude/book/{$SLUG}.html" \
   ".claude/book/{$SLUG}-preview.png")
 echo "$PROBE"

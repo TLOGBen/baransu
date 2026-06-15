@@ -200,7 +200,7 @@ Gen mode 後續流程（訪談 → derive tokens → atomic staging → mv）與
 
 ### Step 1 — Ask direction questions
 
-Use ask the user directly to ask 3–5 design direction questions. Suggested questions (adapt based on what the user already provided):
+Use ask the user directly with numbered options, then stop for the user's reply to ask 3–5 design direction questions. Suggested questions (adapt based on what the user already provided):
 
 1. **氛圍與風格** — 「這個介面的整體氛圍是什麼？（例如：溫潤手感紙張、現代冷調、活潑色彩、極簡留白）」
 2. **色彩方向** — 「主色調的方向是什麼？有沒有需要傳達的品牌色或情感色？」
@@ -244,7 +244,7 @@ Each section must be substantive — no placeholder text. Base content on the us
 After writing DESIGN.md and DESIGN.html, ask the user:
 
 ```
-ask the user directly:
+numbered-options question:
   question: "是否將設計語境寫入專案 AGENTS.md？"
   header: "DESIGN.md 已完成"
   options:

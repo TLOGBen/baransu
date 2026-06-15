@@ -16,22 +16,25 @@ Codex **does** have an equivalent for `context: fork` — native Subagents at `.
 Codex defines subagents as standalone TOML files at:
 
 - `~/.codex/agents/{name}.toml` (personal)
-- `.codex/agents/{name}.toml` (project)
+- `.codex/agents/{name}.toml` (project-scoped, trusted repo)
 
-Required fields: `name`, `description`, `developer_instructions`. Optional: `model`, `model_reasoning_effort`, `sandbox_mode`, `mcp_servers`, `skills.config`, `nickname_candidates`. Three built-in agents ship by default: `default`, `worker`, `explorer`.
+Required fields: `name`, `description`, `developer_instructions`. Optional fields inherit from the parent session when omitted: `nickname_candidates`, `model`, `model_reasoning_effort`, `sandbox_mode`, `mcp_servers`, and `skills.config`. Three built-in agents ship by default: `default`, `worker`, `explorer`.
 
-Field confidence (as of 2026-06):
+Officially confirmed by the Codex Subagents docs (2026-06):
 
-- **Officially confirmed** ([developers.openai.com/codex/subagents](https://developers.openai.com/codex/subagents)): `name` / `description` / `developer_instructions` required; `model` / `sandbox_mode` / `mcp_servers` optional; built-ins `default` / `worker` / `explorer`; global caps `agents.max_threads = 6`, `agents.max_depth = 1`.
-- **Community-sourced, pending official confirmation**: `model_reasoning_effort`, `skills.config`, `nickname_candidates`.
-- `"gpt-5.4"` is the community-cited opus-equivalent model id as of 2026-06 and **will drift** — verify the current id before filling stubs.
+- Required custom-agent fields: `name`, `description`, `developer_instructions`.
+- Optional custom-agent/config fields: `nickname_candidates`, `model`, `model_reasoning_effort`, `sandbox_mode`, `mcp_servers`, `skills.config`.
+- Built-ins: `default`, `worker`, `explorer`.
+- Global settings: `agents.max_threads` default `6`, `agents.max_depth` default `1`, optional `agents.job_max_runtime_seconds`.
+- Model guidance: omit `model` and `model_reasoning_effort` unless you need deterministic routing; Codex can choose or inherit a balanced setup. When pinning, start with `gpt-5.5` for demanding agents, use `gpt-5.4` only for workflows pinned to GPT-5.4, and use `gpt-5.4-mini` for fast read-heavy scans.
 
 **Spawn semantics:**
 - Explicit only — Codex never spawns a subagent without the parent telling it to.
 - Spawning is via natural-language instruction in the SKILL.md body (e.g. "Spawn a `worker` subagent to handle X"), not via frontmatter.
 - Multiple subagents run in parallel; Codex waits for all and consolidates.
-- Sandbox / approval inherits from the parent session (parent's runtime overrides take precedence over TOML defaults).
-- Global caps: `agents.max_threads = 6` and `agents.max_depth = 1` by default.
+- Subagents inherit the parent sandbox and approval policy; live parent runtime overrides take precedence over custom-agent TOML defaults.
+- In non-interactive flows, a subagent action that needs fresh approval fails and surfaces the error back to the parent workflow.
+- Depth is capped by `agents.max_depth`; the default `1` allows direct child agents but prevents deeper recursion.
 
 **Best for**: heavy-IO forks where context isolation is the *reason* the original used `context: fork` — e.g. baransu `/execute`'s impl-agent, `/triage`'s investigator-agent.
 
@@ -57,7 +60,7 @@ When the user picks Path 1, the per-skill frontmatter translates as follows:
 | `agent: Explore` | `name = "explorer"` (built-in) or matching custom |
 | `agent: general-purpose` | `name = "default"` |
 | `agent: Plan` | custom TOML mirroring Plan agent's behavior |
-| `model: opus` | `model = "gpt-5.4"` (or current Codex equivalent) |
+| `model: opus` | Usually omit `model` and inherit. If pinning is required, choose the current Codex model intentionally (`gpt-5.5` for demanding agents as of 2026-06). |
 | `effort: high` | `model_reasoning_effort = "high"` |
 | `allowed-tools: ...` / `tools: ...` | emitted as a **commented** `# mcp_servers = [...]` line in the stub. Codex `mcp_servers` takes MCP server ids (not Claude tool names) so the user must rename each entry to the matching Codex MCP server before uncommenting. |
 
@@ -88,7 +91,8 @@ The stub uses TOML literal multi-line strings (`'''...'''`) for the body — the
 
 ```toml
 # Stub generated from <agent-name>.md.
-# Review before copying to ~/.codex/agents/<name>.toml.
+# Review before copying to ~/.codex/agents/<name>.toml (personal)
+# or .codex/agents/<name>.toml (project-scoped trusted repo).
 # See codex-skill-transfer references/agent-mapping.md for the mapping rules.
 
 name = "<name>"
@@ -98,26 +102,40 @@ developer_instructions = '''
 <the original .md body, with frontmatter stripped>
 '''
 
-# Choose what to fill in below; all are optional and inherit from parent if absent.
+# Choose what to fill in below; omit optional fields to inherit from the parent session.
 #
-# model = "gpt-5.4"
-# model_reasoning_effort = "high"      # low | medium | high | max
-# sandbox_mode = "workspace-write"     # read-only | workspace-write | danger-full-access
+# model = "gpt-5.5"                   # demanding agents; use gpt-5.4-mini for light read-heavy scans
+# model_reasoning_effort = "high"      # minimal | low | medium | high | xhigh
+# sandbox_mode = "workspace-write"     # read-only | workspace-write | danger-full-access; parent runtime overrides win
 # mcp_servers = []                     # list of MCP server ids the agent may invoke
+# Sandbox note: source tools look read-only; consider a read-only sandbox unless the prompt requires writes.
 # nickname_candidates = []             # cosmetic names for spawned instances
+#
+# [[skills.config]]                    # optional per-agent skill enable/disable override
+# path = "/path/to/skill/SKILL.md"
+# enabled = false
 ```
 
 If the body contains literal `'''`, the script falls back to TOML basic multi-line (`"""..."""`) with full backslash + quote escape. This is rare for natural-language agent instructions.
 
-Of the commented optional fields in the stub, `model` / `sandbox_mode` / `mcp_servers` are officially confirmed; `model_reasoning_effort` and `nickname_candidates` are community-sourced (see §1 field confidence). The `"gpt-5.4"` example is the 2026-06 community opus-equivalent and will drift.
+All commented optional fields in the stub are official Codex custom-agent/config fields as of 2026-06. They are commented because inheritance is the safer default and because pinning model, sandbox, MCP, or per-agent skill visibility is an operator choice.
+
+The script adds a sandbox note derived from Claude `tools:`:
+
+- Read/Grep/Glob-style agents get a read-only suggestion.
+- Write/Edit/Bash-style agents get a workspace-write + approval-policy warning.
+- Missing `tools:` gets an inheritance note.
+
+This is intentionally advisory. Codex custom agents still inherit the parent runtime policy, and live `/permissions` / CLI overrides take precedence over TOML defaults.
 
 ### 4.2 What the user fills in after copying
 
-- `model` — Codex model id (e.g. `"gpt-5.4"`, the 2026-06 community opus-equivalent; will drift) or omit to inherit from parent session.
-- `model_reasoning_effort` — map from Claude's `effort` if it was present (`low` / `medium` / `high` / `max`). Community-sourced field, pending official confirmation.
-- `sandbox_mode` — usually safer to omit; parent session policy applies.
+- `model` — Codex model id. Omit to inherit or let Codex choose; use `"gpt-5.5"` for demanding agents, `"gpt-5.4-mini"` for light read-heavy scans, or `"gpt-5.4"` only when the workflow is intentionally pinned.
+- `model_reasoning_effort` — map from Claude's `effort` if it was present (`minimal` / `low` / `medium` / `high` / `xhigh`).
+- `sandbox_mode` — usually safer to omit; parent session policy and live runtime overrides apply.
 - `mcp_servers` — list of MCP server ids this agent should access. If the Claude source had `tools: ...`, the stub already includes a commented suggestion with the original Claude tool names; rename each entry to the corresponding Codex MCP server id, then uncomment.
 - `nickname_candidates` — optional cosmetic names.
+- `skills.config` — optional per-agent skill enable/disable overrides when a custom agent should see a narrower or broader skill set than the parent.
 
 ### 4.3 What the stub deliberately doesn't translate
 

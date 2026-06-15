@@ -91,7 +91,7 @@ After selecting a tool in Tool Scan, answer these four questions before adding a
 
 These four questions determine where the first observation point goes. Adding a log before answering these questions = setting traps in a forest without knowing where the prey is.
 
-Before instrumenting, run `python3 "the skill's root directory/references/hunt-search.py" --keyword "<symptom term>"` to check whether a similar case in `.claude/hunt-report/` was already solved; cite any hit in the report.
+Before instrumenting, run `python3 "./references/hunt-search.py" --keyword "<symptom term>"` to check whether a similar case in `.claude/hunt-report/` was already solved; cite any hit in the report.
 
 ---
 

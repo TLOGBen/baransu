@@ -26,7 +26,7 @@ Converts any content into a Kami-themed, browser-ready HTML book saved to `.clau
 
 ## Stage 0 — Environment Self-Check
 
-> 本 SKILL.md 採 Fact-Verification Principle #0（見下文 Stage 2A §0「Fact-Verification Principle #0」段）：在合成長文前，凡偵測到具體產品 / 版本 / 人名 + 職位 pattern，強制 search the web 驗證；0 結果即 ask the user directly 阻擋。
+> 本 SKILL.md 採 Fact-Verification Principle #0（見下文 Stage 2A §0「Fact-Verification Principle #0」段）：在合成長文前，凡偵測到具體產品 / 版本 / 人名 + 職位 pattern，強制 search the web 驗證；0 結果即 ask the user directly with numbered options, then stop for the user's reply 阻擋。
 
 ### 1. Design context soft-read
 
@@ -83,7 +83,7 @@ python3 -m markitdown --version 2>/dev/null
 Run the format-aware dependency installer:
 
 ```bash
-npx tsx "the skill's root directory/scripts/install-deps.ts" --format $FORMAT
+npx tsx "./scripts/install-deps.ts" --format $FORMAT
 ```
 
 若腳本回傳非零 exit code：
@@ -103,7 +103,7 @@ mkdir -p ".claude/book"
 
 ## Stage 0b — Pre-interview Gate（受眾 / 硬約束前置）
 
-在 Stage 1 取得 `$RAW_CONTENT` **之前**，先壓住 50% 不確定性。模式對齊 /design Gen Mode Step 1：用 **單一 ask the user directly 批次**（4 題並陳，不逐題阻塞）對齊受眾、用途、風格傾向、硬約束。
+在 Stage 1 取得 `$RAW_CONTENT` **之前**，先壓住 50% 不確定性。模式對齊 /design Gen Mode Step 1：用 **單一 ask the user directly with numbered options, then stop for the user's reply 批次**（4 題並陳，不逐題阻塞）對齊受眾、用途、風格傾向、硬約束。
 
 ### 跳過條件（任一成立即整段跳過）
 
@@ -209,7 +209,7 @@ Receives `$RAW_CONTENT`. Produces `$STRUCTURE` (a JSON-like outline) and `$CONTE
 
 1. **Sanitize `{hit}` before query**：將 `{hit}` 內所有 `"` (`U+0022`) 字元先剝除（regex 抓的是合法 identifier/version 字串，正常情況不含 quote；含則為 noise 或 adversarial input）。Sanitized `{hit_clean}` 再丟下一步。
 2. 跑 `search the web`，query template：`"{hit_clean}" release notes` 或 `"{hit_clean}" announcement`（人名命中改用 `"{hit_clean}" announcement` / `"{hit_clean}" interview`）。
-3. 若 search the web 回傳 **0 結果** → 透過 `ask the user directly` 顯示：「Fact-verify pending: '{hit_clean}' 在 search the web 0 結果。選擇：強制繼續 / 改用 `--text` 餵已驗證版本 / 中止本次 /book」。等使用者選擇後再決定是否進入 §1。
+3. 若 search the web 回傳 **0 結果** → 透過 `numbered-options question` 顯示：「Fact-verify pending: '{hit_clean}' 在 search the web 0 結果。選擇：強制繼續 / 改用 `--text` 餵已驗證版本 / 中止本次 /book」。等使用者選擇後再決定是否進入 §1。
 4. 若 search the web 回傳 **≥ 1 結果** → 視為事實可驗，繼續，但仍把該 hit 列入 `$STRUCTURE` 末尾的「Sources」清單（在 Stage 2A §4 extract 階段一併處理）。
 
 **Flow on no hit**：直接進入 §1 分類。
@@ -365,7 +365,7 @@ Do not write partial content — write the full file in one operation.
 ### 1. Run quality gate
 
 ```bash
-npx tsx "the skill's root directory/scripts/validate-output.ts" ".claude/book/{$SLUG}.html"
+npx tsx "./scripts/validate-output.ts" ".claude/book/{$SLUG}.html"
 ```
 
 Exit codes:

@@ -11,7 +11,7 @@ This guard is shared with the other three search-type lanes (`--web` / `--gh` / 
 ## Search Command
 
 ```bash
-python3 "./scripts/search-papers.py" "{keyword}" 2>/dev/null
+python3 "$CLAUDE_SKILL_DIR/scripts/search-papers.py" "{keyword}" 2>/dev/null
 ```
 
 Replace `{keyword}` with the user's search term (quote it to handle spaces).
