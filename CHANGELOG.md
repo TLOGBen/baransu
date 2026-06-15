@@ -2,6 +2,32 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.4.2 (2026-06-15)
+
+**`/book` + `/design` 達爾文式 10 輪盲評演化打磨**，plugin version 2.4.1 → 2.4.2：
+
+### Changed — 變更
+
+1. **/book — 10 輪棘輪（69.6→82.6；最終獨立複評 66→89。20/20 輪 keep、每輪 3/3 盲評、0 revert）**：
+   - 新增 `## Red Lines（不要做什麼）` 反模式表（🛑 + 理據錨點 + 正確做法 + 權威 reference）。
+   - `references/perception-guide.md`：新增 Output Anti-Slop Blacklist（8 條 grep 可驗）+ Quantified Type Scale 量化字級表 + Kami 行高禁區/單一 accent ≤5%/暖灰限定。
+   - `references/slide-synthesis.md`：新增投影片字級/限高硬規則（vw/vh 雙約束 Y≥X×1.6）；SKILL.md render-time 🔴 GATE 把反 slop/字級規則由條件式升為 render 前必載；Stage 4 品質閘失敗改三段式「觸發/一線修復/兜底」。
+   - `references/svg-rendering-rules.md`：修 13 型選型表 status 事實漂移，改為可 grep 二值驗證。
+2. **/design — 10 輪棘輪（59.5→83.7；最終獨立複評 52→82。20/20 輪 keep、每輪 3/3 盲評、0 revert）**：
+   - 新增 Decision checkpoint map + 三處行內 🔴 GATE/CHECKPOINT 顯性標記。
+   - 新增 Anti-patterns 專章（5 條 ❌X→because Y→✅Z）。
+   - `references/render-design-html.md`：落 Kami 編輯級排版硬規則 + E1–E4 grep 自查；`slide-checklist.md` 現象→根因→做法 fallback 正式 wire；`slide-image-prompts.md` 補 guizang P0-A-04 大字雙約束。
+   - reference-honesty 修正：把假稱可跑的 script 改標 proposed 並指向真實 validator。
+3. **codex 鏡像同步重產**：`/codex-skill-transfer` plugin mode 重產 book/design 鏡像（10 檔），三發行面 version 同步 2.4.2。
+
+### 方法
+
+達爾文式（alchaincyf/darwin-skill）：固定 9 維適應度標準 + 5 設計參考（Kami / diagram-design / guizang-ppt / huashu-design / guizang-social-card）+ 官方 Agent Skills 最佳實踐。每輪全新獨立評委盲評、不吸收前次、棘輪只進不退（嚴格進步 + `verify-skills` exit 0 + 體積 ≤150% 才 keep）。零新增檔、HTML 模板未手改、不變量全守。
+
+### SemVer 註
+
+patch：純改善既有 skill 的指令撰寫與產出品質，未改 skill 對外契約/功能，未新增 skill。
+
 ## v2.4.1 (2026-06-15)
 
 **`/baransu:evolve` 自我演化三輪精修 + codex 鏡像補產**，plugin version 2.4.0 → 2.4.1：

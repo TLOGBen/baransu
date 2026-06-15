@@ -48,6 +48,7 @@ python3 -m weasyprint "{patched_html}" ".claude/book/{$SLUG}.pdf"
 - 每個 slide 包在 `<div class="slide" data-layout="{layout_type}">` 中
 - 文字內容使用 `<h1>`/`<h2>` 和 `<ul><li>` 呈現
 - 若 `has_svg` 為 true，插入對應的 inline SVG
+- **大字字級與最小字號**：套用 `slide-synthesis.md` §「投影片字級與限高硬規則」的三條硬規則（大字雙約束 `min(Xvw,Yvh)` 且 `Y≥X×1.6`、中文標題分檔表、最小字號 18/16/14px 下限）；違反任一條在 final-report 自查標 fail，先修文案或拆頁再 render。
 
 **步驟二：驗證 slide HTML**
 
