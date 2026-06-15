@@ -164,24 +164,24 @@
 
 ## §4.10 13 型 selection 表（v1 ref skeleton + status 揭露）
 
-每段含 diagram 的 section 依 Layer 2 從本表 lookup 對應 ref。Status 欄一律對齊各 ref frontmatter：`complete` 表示有可直接重用的 example HTML；`ref-only` 表示僅有 ref 規格、example HTML 待 v2-N 補（renderer fallback 通用 SVG primitives）。
+每段含 diagram 的 section 依 Layer 2 從本表 lookup 對應 ref。Status 欄一律對齊各 ref frontmatter（事實同步，可 `grep '^status:' references/diagram-types/type-*.md` 二值驗證）：`complete` 表示該 ref 內含 `example: inline` 的可直接重用 SVG example HTML，renderer 應 reuse 該骨架；`ref-only` 表示僅有 ref 規格、example HTML 待補（renderer fallback 通用 SVG primitives）。13 型目前 frontmatter **全部 `status: complete` + `example: inline`**，本表與其對齊；`ref-only` 列僅為未來新增型尚未附 example 時的保留語義。
 
 | Type | Best for | Reference | Status |
 |------|----------|-----------|--------|
 | architecture | 系統概覽 / data-flow / 整合 map / infra topology / 元件 + 連線 | `references/diagram-types/type-architecture.md` | `status: complete` |
 | flowchart | 決策邏輯 / 演算法步驟 / "Should I…?" 分支 / onboarding routing / support-triage | `references/diagram-types/type-flowchart.md` | `status: complete` |
-| sequence | request/response 流程 / protocol 交握 / 多 actor 互動 / API call trace / 事故重建 | `references/diagram-types/type-sequence.md` | `status: ref-only` |
-| state | 有限狀態邏輯 / order status / auth state / connection lifecycle / form wizard | `references/diagram-types/type-state.md` | `status: ref-only` |
-| er | database schema / API resource 關係 / domain model / aggregate boundary / 跨服務 ownership | `references/diagram-types/type-er.md` | `status: ref-only` |
-| timeline | release 歷史 / project milestone / 事故時間線 / roadmap / changelog | `references/diagram-types/type-timeline.md` | `status: ref-only` |
-| swimlane | 跨職能流程 / RACI flow / vendor handoff / multi-team workflow / 跨團隊責任歸屬 | `references/diagram-types/type-swimlane.md` | `status: ref-only` |
-| quadrant | 優先級排序（Impact × Effort）/ 定位圖 / portfolio map / 2×2 decision / scenario planning | `references/diagram-types/type-quadrant.md` | `status: ref-only` |
-| nested | 透過 containment 表達 hierarchy / scope boundary / CLAUDE.md cascade / trust zone / blast radius | `references/diagram-types/type-nested.md` | `status: ref-only` |
-| tree | org chart / dependency tree / taxonomy / file tree / decision breakdown / skill tree | `references/diagram-types/type-tree.md` | `status: ref-only` |
-| layers | OSI model / CSS cascade / context hierarchy / tech stack / abstraction layer / memory hierarchy | `references/diagram-types/type-layers.md` | `status: ref-only` |
-| venn | 概念交集 / 跨類別共同屬性 / ikigai-style frame / 定位 sweet spot | `references/diagram-types/type-venn.md` | `status: ref-only` |
-| pyramid | hierarchy of needs / prioritization rank / value pyramid / conversion funnel / content importance | `references/diagram-types/type-pyramid.md` | `status: ref-only` |
+| sequence | request/response 流程 / protocol 交握 / 多 actor 互動 / API call trace / 事故重建 | `references/diagram-types/type-sequence.md` | `status: complete` |
+| state | 有限狀態邏輯 / order status / auth state / connection lifecycle / form wizard | `references/diagram-types/type-state.md` | `status: complete` |
+| er | database schema / API resource 關係 / domain model / aggregate boundary / 跨服務 ownership | `references/diagram-types/type-er.md` | `status: complete` |
+| timeline | release 歷史 / project milestone / 事故時間線 / roadmap / changelog | `references/diagram-types/type-timeline.md` | `status: complete` |
+| swimlane | 跨職能流程 / RACI flow / vendor handoff / multi-team workflow / 跨團隊責任歸屬 | `references/diagram-types/type-swimlane.md` | `status: complete` |
+| quadrant | 優先級排序（Impact × Effort）/ 定位圖 / portfolio map / 2×2 decision / scenario planning | `references/diagram-types/type-quadrant.md` | `status: complete` |
+| nested | 透過 containment 表達 hierarchy / scope boundary / CLAUDE.md cascade / trust zone / blast radius | `references/diagram-types/type-nested.md` | `status: complete` |
+| tree | org chart / dependency tree / taxonomy / file tree / decision breakdown / skill tree | `references/diagram-types/type-tree.md` | `status: complete` |
+| layers | OSI model / CSS cascade / context hierarchy / tech stack / abstraction layer / memory hierarchy | `references/diagram-types/type-layers.md` | `status: complete` |
+| venn | 概念交集 / 跨類別共同屬性 / ikigai-style frame / 定位 sweet spot | `references/diagram-types/type-venn.md` | `status: complete` |
+| pyramid | hierarchy of needs / prioritization rank / value pyramid / conversion funnel / content importance | `references/diagram-types/type-pyramid.md` | `status: complete` |
 
-> `ref-only` 型 fallback 通用 SVG primitives（marker / paper-mask / type tag / legend strip 規格仍生效）；final-report 標 `degraded-type: <type-name>` 告知 v2-N 補 example HTML。
+> **Fallback（僅 ref-only 型觸發）**：當且僅當某型 frontmatter 仍為 `status: ref-only`（目前 13 型皆非此狀態，故當前無型別走此路徑）時，renderer fallback 通用 SVG primitives（marker / paper-mask / type tag / legend strip 規格仍生效），並於 final-report 標 `degraded-type: <type-name>` 告知補 example HTML。`status: complete` 型一律 reuse 該 ref 的 `example: inline` SVG 骨架，不得降級為通用 primitives。
 
 > **Forward note**：v2-N 補 dark/full variant 或新 SVG primitive 時，必須沿用 `design-token-resolver.md` 的 hex shape contract（`^#[0-9a-fA-F]{3,8}$`），不得另開 sink。
