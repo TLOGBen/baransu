@@ -2,6 +2,29 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.4.0 (2026-06-15)
+
+**新增第 14 個治理 skill `/baransu:evolve`（skill 演化器）**，純擴增（技能上限 13 → 14），plugin version 2.3.0 → 2.4.0：
+
+### Added — 新增
+
+1. **`/evolve` skill**：像訓練模型一樣優化一份 SKILL.md。固定 9 維 rubric 當選擇環境，跑只能向前轉的棘輪——獨立 diagnostician 挑最弱一維、單變數 mutation、3 個全新盲評委（中性命名、奇偶換位）≥2/3 判嚴格進步才採納、否則還原檔案級快照；連續 N=3 輪無進步收斂。含 `SKILL.md` + 4 references（`rubric-9dim` 選擇環境 / `safety-gates` 四道紅線 / `output-contract` / `provenance` 淨室）。
+2. **2 個 perspective agent**：`evolve-diagnostician`（挑最弱維、只診斷不改寫）、`evolve-judge`（盲評嚴格進步，subagent depth=1）。
+3. **雙軸評估與安全閘**：結構軸（9 維 rubric 靜態）+ 效果軸（real-exec 經信任+能力雙閘，否則 offline-同源重演）；held-out 加獨立層驗證防 rubric 過擬合；採納寫入釘 Authorization PAUSE（任何驅動不可跳）；回滾用檔案級 snapshot，禁 `git reset --hard` / `stash` / `clean` / `checkout`。
+4. **E2E fixture**：`tests/fixtures/weak-skill/`。
+
+### Changed — 變更
+
+1. **技能上限 13 → 14**：同步更新 `scripts/verify-skills.py`（`EXPECTED_SKILL_COUNT` + docstring）、`tests/scripts/test_verify_skills.py`、三支 shell gate（`test-claude-md-skills-table.sh` / `test-distribution-metadata.sh` / `test-automation-annotation.sh`）、`tests/integration/claude-md-skills-baseline.txt`、`CLAUDE.md`（ceiling 句改述為「14 is the skill-count ceiling」）、`AGENTS.md`、`README.md`，以及三發行面 description（`plugin.json` / `marketplace.json` / codex `.codex-plugin/plugin.json`，皆 fourteen / 2.4.0）。
+
+### SemVer 註
+
+採 minor（2.3.0 → 2.4.0）：新增一個功能級 skill，向後相容。
+
+### 建置全程
+
+經 `/think → /review → /analyze → /execute` 全管線（兩次方向轉向：外掛式→catalog、裁撤→純擴增）；review 補抓 AGENTS.md 漏網觸點；E2E diagnostician smoke 並驅動一處 rubric 改進（dim6 vacuous-compliance 計分）。`make test` 全綠。
+
 ## v2.3.0 (2026-06-15)
 
 **`/codex-skill-transfer` Codex Port 施工圖落地**：把 Claude→Codex 轉換從「API 對映」升級為「對抗模型慣性的配重保留」，skill metadata version 0.9.0 → 0.10.0：
