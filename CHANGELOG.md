@@ -2,6 +2,22 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.4.1 (2026-06-15)
+
+**`/baransu:evolve` 自我演化三輪精修 + codex 鏡像補產**，plugin version 2.4.0 → 2.4.1：
+
+### Changed — 變更
+
+1. **evolve SKILL.md 三輪自演化（dogfood，皆盲評 3/3 採納）**：
+   - R1 — dim3 失敗模式編碼 6→7：Stage 0.4 補上「無 benchmark / 使用者拒絕」的顯式 if-then 復原分支（只跑結構軸、硬標 dims 7–9 為 `no-benchmark`、跳過 held-out、禁靜默假裝已測效）。
+   - R2 — dim4 可執行具體性 7→8：Stage 7 把未定值的 round cap 釘成 `R=6 total rounds`（與 `N=3` 對齊）。
+   - R3（使用者直接回饋）— dim8 輸出保真：收尾摘要與成果卡文案強制先過 `/write` 寫成可讀白話，成果卡強制走 `/book` 渲染（禁手工拼 HTML）；`references/output-contract.md` 新增「Human-readable delivery」節。
+2. **codex 鏡像全量重產**：`/codex-skill-transfer` plugin mode 重產 `codex/`，`evolve`（SKILL.md + 4 references + `evolve-diagnostician`/`evolve-judge` agent stub）正式進鏡像；三發行面 version 同步 2.4.1。
+
+### SemVer 註
+
+採 patch（2.4.0 → 2.4.1）：evolve skill body 精修 + 鏡像同步，無新 skill、向後相容。
+
 ## v2.4.0 (2026-06-15)
 
 **新增第 14 個治理 skill `/baransu:evolve`（skill 演化器）**，純擴增（技能上限 13 → 14），plugin version 2.3.0 → 2.4.0：

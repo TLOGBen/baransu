@@ -1,6 +1,19 @@
 ---
 name: evolve
-description: Use when the user wants to improve, score, or evolve a SKILL.md. Point it at any skill and it runs a forward-only ratchet — a fixed 9-dimension rubric is the selection environment; each round an independent judge picks the weakest dimension, one single-variable change is made, and three fresh blind judges vote, keeping the change only on a strict improvement (else the file-level snapshot is restored). Dual-axis evaluation (structure + effectiveness — effectiveness via real-exec gated by a trust+capability check, else offline replay), held-out validation with an independence layer, and a Kami result card. Adoption of any change is an Authorization PAUSE; rollback never touches the git working tree. Trigger on '/evolve', '優化 skill', 'skill 評分', '演化 skill', 'optimize skill', 'improve skill quality', 'evolve a skill', '幫我改 skill'. 繁體中文輸出。
+description: Use when the user wants to improve, score, or evolve a SKILL.md. Point
+  it at any skill and it runs a forward-only ratchet — a fixed 9-dimension rubric
+  is the selection environment; each round an independent judge picks the weakest
+  dimension, one single-variable change is made, and three fresh blind judges vote,
+  keeping the change only on a strict improvement (else the file-level snapshot is
+  restored). Dual-axis evaluation (structure + effectiveness — effectiveness via real-exec
+  gated by a trust+capability check, else offline replay), held-out validation with
+  an independence layer, and a Kami result card. Adoption of any change is an Authorization
+  PAUSE; rollback never touches the git working tree. Trigger on '/evolve', '優化 skill',
+  'skill 評分', '演化 skill', 'optimize skill', 'improve skill quality', 'evolve a skill',
+  '幫我改 skill'. 繁體中文輸出。
+compatibility: Designed for Claude Code; ported to Codex.
+metadata:
+  version: 0.1.0-codex
 ---
 
 # evolve — optimize a SKILL.md like you train a model
