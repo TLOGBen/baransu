@@ -2,7 +2,19 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
-## v2.4.2 (2026-06-15)
+## v2.4.3 (2026-06-16)
+
+**English-body 慣例落實**：把「agent-facing 內文一律英文、僅使用者輸出與 `/write` 內容留中文」這條從一句宣告，擴寫成可執行慣例並全面落實。plugin version 2.4.2 → 2.4.3。
+
+### Changed — 變更
+
+1. **Codify 慣例**：`CLAUDE.md` 的 English-body 條款由單句擴寫成完整定義 —— 涵蓋 `SKILL.md` body、`references/`、`skills/_shared/`、`rules/`、`agents/` system prompt；明列四類合法中文豁免（使用者輸出 / 觸發詞與 routing cue / 示範產物 / `/write` 雙語寫作內容）。
+
+2. **全面英文化（ultracode 多 agent 盤點 + 翻譯）**：先以 17-agent 盤點量化違規（約 1,322 行 agent-facing 中文指令散文），再以 30-agent 逐檔翻譯 **51 個檔、約 2,180 行** 指令散文為英文，逐字保留 frontmatter 觸發詞、使用者輸出字串、grep anchor（design E1–E4、check.py 偵測字面、正則/CSS/code）、範例產物與 `/write` 寫作內容。熱點：`_shared/tdd.md`、`design/SKILL.md` 與五個 reference、`book/SKILL.md` 與全 reference 群（含 13 個 diagram-type）、Execute 家族 8 個 agent prompt、`codex-skill-transfer/references/CODEX_PORT_PLAN.md`、`rules/anti-patterns.md`。`evolve / read / ship` 原本 body 軸即乾淨。
+
+3. **Gate 同步**：翻譯後對齊四處被語言耦合的測試錨點 —— `test_tdd_trigger.sh` 的被動引用語句改抓英文、`test-automation-annotation.sh` 的 loop-mode 預設句改抓 `default`（原抓 `預設`）、`tdd.md §8` 引用表改記英文句、`render-design-html.md` 的「編輯級」改譯 `editorial-tier`（避開 verify-skills 被裁名稱 `grade` 殘留掃描）、design SKILL.md 廢除目錄說明句補回 `removed/deprecated` 標記。`make test` 全綠。
+
+4. **Codex 鏡像重產**：49 檔同步為英文鏡像，版本同步 2.4.3。
 
 **`/book` + `/design` 達爾文式 10 輪盲評演化打磨**，plugin version 2.4.1 → 2.4.2：
 

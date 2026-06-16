@@ -20,5 +20,5 @@ verbatim from SKILL.md; semantics unchanged.
 | Final-Review needs_fixer: true | Step 6 | final-fixer once; one re-review |
 | Final-Review still needs_fixer: true | Step 6 | Record remaining gaps as BLOCKED; proceed |
 | Write attempt to analyze dir | All steps | Immediate structural blocker; escalate |
-| Filter downgraded finding to advisory | §4b Phase 3 | 正常路徑；計入 metric，不增 failure_count |
-| Invariant violation: 驗收標準失敗 finding 被誤降級 | §4b Phase 3 filter sub-step | Structural blocker; escalate (hard invariant breach) |
+| Filter downgraded finding to advisory | §4b Phase 3 | Normal path; counted in metric, does not increment failure_count |
+| Invariant violation: 驗收標準失敗 finding wrongly downgraded | §4b Phase 3 filter sub-step | Structural blocker; escalate (hard invariant breach) |

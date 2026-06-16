@@ -19,10 +19,10 @@ The body below is English (agent-facing). Operational notifications are Traditio
 
 ## Outcome Contract
 
-- **Outcome**: 依語言前綴（zh/en）或自動偵測，完成一次規則驅動的潤稿（Refine）或生成（Generate），規則套用逐條可追溯。
-- **Done when**: Refine 輸出含 Before/After 與逐條修正說明（或 Generate 輸出含格式/語氣注記），且無 rules 5/7/8（禁對仗句/禁排比/禁名詞化）違反殘留。
-- **Evidence**: 輸出本體的結構 — Refine 的 Before / After / 修正說明三段與規則標記（或 Generate 成稿附帶的格式/語氣注記），逐項可對照內嵌規則集。
-- **Output**: 對話內輸出的修訂稿或生成稿；操作通知為繁體中文，內容語言依前綴或偵測結果。
+- **Outcome**: Per the language prefix (zh/en) or auto-detection, complete one rule-driven refine (Refine) or generation (Generate), with rule application traceable rule by rule.
+- **Done when**: Refine output contains Before/After plus per-rule 修正說明 (or Generate output carries a format/tone note), and no rules 5/7/8 (禁對仗句/禁排比/禁名詞化) violations remain.
+- **Evidence**: The structure of the output body — Refine's Before / After / 修正說明 three sections with rule tags (or the format/tone note attached to the Generate piece), each item cross-checkable against the embedded rule sets.
+- **Output**: The revised or generated piece output in the conversation; operational notifications are Traditional Chinese, content language follows the prefix or detection result.
 - **Automation**: ultracode=neutral, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 ## User-facing language
@@ -40,7 +40,7 @@ This exception is intentional. The skill's purpose is language-targeted copywrit
 
 ### zh rules (sparanoid compact)
 
-**套用方式**：格式規則機械套用；文體規則依語義判斷。
+**Application method**: format rules are applied mechanically; style rules are applied by semantic judgment.
 
 #### 格式規則
 
@@ -215,7 +215,7 @@ When format is not identifiable but the topic is clear, silently default to Shor
 格式：[Email／短訊／短文／社群貼文] ｜ 語氣：[正式／輕鬆／中性]
 ```
 
-生成時同樣避免上述 zh 反 AI 腔 pattern（對仗句、純裝飾性排比、概念名詞化、飄浮錨點）。
+When generating, equally avoid the zh anti-AI-voice patterns above (對仗句、純裝飾性排比、概念名詞化、飄浮錨點).
 
 ---
 

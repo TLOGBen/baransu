@@ -15,10 +15,10 @@ If you find yourself thinking "I could just write this quickly" — that's exact
 
 ## Outcome Contract
 
-- **Outcome**: 把模糊意圖收斂為一份使用者明確核可的五段式計畫（或 Evaluation 模式的 Kill / Keep / Pivot 單行判決），全程不產出任何程式碼。
-- **Done when**: 使用者於 Stage G 四選項閘（AskUserQuestion）批准最終提案，或明確放棄本輪計畫；自由文字批准須以「收到，把這當成批准實作」收口入檔。
-- **Evidence**: Stage G 的 AskUserQuestion 互動結果 — 四選項之一被選取，或自由文字批准的收口句已輸出。
-- **Output**: 對話內呈現的繁中五段式計畫（或判決＋三理由）；批准後落檔 `.claude/think/<slug>.md`（計畫原文）與 `.claude/think/<slug>.html`（HTML 工作日誌，含「執行日誌」節，依 `_shared/output-journal.md` 契約），並以 SendUserFile 送出；隨後交棒 /analyze 或依 _shared/tdd.md 直接實作。
+- **Outcome**: Converge a vague intent into a five-section plan explicitly approved by the user (or, in Evaluation mode, a single-line Kill / Keep / Pivot verdict), producing no code at any point.
+- **Done when**: The user approves the final proposal at the Stage G four-option gate (AskUserQuestion), or explicitly abandons this round's plan; a free-text approval must be closed and recorded with 「收到，把這當成批准實作」.
+- **Evidence**: The Stage G AskUserQuestion interaction result — one of the four options selected, or the closing sentence of a free-text approval has been emitted.
+- **Output**: The 繁中 five-section plan presented in the conversation (or the verdict + three reasons); after approval, persist `.claude/think/<slug>.md` (the plan verbatim) and `.claude/think/<slug>.html` (HTML work journal, containing an 「執行日誌」 section, per the `_shared/output-journal.md` contract), and send them via SendUserFile; then hand off to /analyze or implement directly per _shared/tdd.md.
 - **Automation**: ultracode=neutral, loop=not-drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 ## The iron rule
@@ -54,9 +54,9 @@ Before mode selection, check for a DESIGN.md at the project root:
 2. If `{root}/DESIGN.md` exists, read it into context and output one line in 繁中: 「已載入 DESIGN.md，視覺規格已參考」
 3. If absent, skip silently. Non-blocking.
 
-理由：/think 經常討論 UI / 設計選擇；提早把 DESIGN.md 載入 context，避免在 Stage A 對焦時對「現有設計語言」一無所知。
+Rationale: /think frequently discusses UI / design choices; loading DESIGN.md into context early avoids being blind to the "existing design language" during Stage A alignment.
 
-### First layer — Plan vs Evaluation (種類分歧)
+### First layer — Plan vs Evaluation (kind divergence)
 
 Decide the kind of output the user wants:
 
@@ -208,7 +208,7 @@ Exactly one option must be labelled **【推薦】** and should come first. Expl
 - Don't read files (Read tool, Glob, Grep): the point is you-vs-them, not you-vs-the-code.
 - Don't search the web, fetch docs, check GitHub.
 - Don't write draft plans or pseudo-options.
-- Don't collapse multiple rounds into one mega-question — the sequential pressure of 三輪對焦 is part of what surfaces hidden assumptions.
+- Don't collapse multiple rounds into one mega-question — the sequential pressure of the three alignment rounds is part of what surfaces hidden assumptions.
 
 If after Round 3 the user's answers still contradict each other, say so in one sentence and offer one more narrowing question before moving on.
 
@@ -270,7 +270,7 @@ This stage catches the common failure where the whole plan is built on a wrong a
 
 Record what you found in one short paragraph as part of the proposal — the user should see that this check happened.
 
-**Claim-cite-first**: any non-obvious premise must cite how it was verified — annotate it `(verified: <how>)`（例：DB 查詢、changelog、file:line）— or be explicitly marked `(inferred: 未實查)` before anything downstream relies on it.
+**Claim-cite-first**: any non-obvious premise must cite how it was verified — annotate it `(verified: <how>)` (e.g. DB query, changelog, file:line) — or be explicitly marked `(inferred: 未實查)` before anything downstream relies on it.
 
 ### Memory type mapping (when a premise comes from memory)
 
@@ -390,7 +390,7 @@ options:
 **Option 2 — 批准實作（完全授權）.** You are done with the deliberation phase. Do two things:
 
 1. Identify the downstream path based on task size:
-   - **Small task** (single-file or single-area change that fits one session): 直接實作，依 _shared/tdd.md 紀律自建紅綠 task list — the main session implements directly following `plugins/baransu/skills/_shared/tdd.md` §7; no skill handoff.
+   - **Small task** (single-file or single-area change that fits one session): implement directly, building a red/green task list under the _shared/tdd.md discipline — the main session implements directly following `plugins/baransu/skills/_shared/tdd.md` §7; no skill handoff.
    - **Medium-to-large task** (spans ≥2 interdependent modules, context-rot risk): invoke `/baransu:analyze`.
    - If no path fits, say so — 「沒有完美接手的 skill，建議直接進入手寫實作」.
 2. Produce a one-paragraph **handoff summary** in 繁體中文: what was approved, the key constraints, the first concrete step of implementation. Immediately continue with this summary as input — invoke `/baransu:analyze` for medium-to-large tasks, or begin the direct implementation for small tasks. Execute autonomously; do not ask the user for further confirmation during implementation unless a destructive or irreversible action arises.
@@ -407,7 +407,7 @@ options:
 Once the plan is approved — Option 2 selected, a free-text approval closed with 「收到，把這當成批准實作」, or the plan sent onward after Option 1's review loop ends in approval — produce the persistent artifacts before handing off:
 
 - [ ] Write the five-section plan verbatim to `.claude/think/<slug>.md` (slug: short kebab-case derived from the plan topic).
-- [ ] Render an HTML work journal at `.claude/think/<slug>.html`, based on the book golden-template, per the shared contract in `plugins/baransu/skills/_shared/output-journal.md`. It contains the original skill output (the five-section plan) plus an 「執行日誌」 section, initially seeded with the approval record (誰批准、哪個選項、何時).
+- [ ] Render an HTML work journal at `.claude/think/<slug>.html`, based on the book golden-template, per the shared contract in `plugins/baransu/skills/_shared/output-journal.md`. It contains the original skill output (the five-section plan) plus an 「執行日誌」 section, initially seeded with the approval record (who approved, which option, when).
 - [ ] Send both files via `SendUserFile` with a one-line 繁中 caption（例：「計畫已落檔；執行日誌將隨實作持續追記」）.
 
 During subsequent implementation, the 「執行日誌」 section MUST be continuously appended with off-spec decisions, forced changes, trade-offs, and anything else the user should know. **The implementing party owns the appending** — `/execute` on the medium-to-large path, or the main session implementing directly per `_shared/tdd.md` §7. /think's responsibility ends at creating the journal and naming this ownership in the handoff summary.

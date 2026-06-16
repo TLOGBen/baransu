@@ -6,27 +6,27 @@ example: inline
 
 # Flowchart
 
-**Best for**: 決策邏輯（decision logic）、演算法步驟（algorithms）、面向使用者的分支流程（"Should I…?"）、onboarding routing、support-triage 分流樹。
+**Best for**: decision logic, algorithm steps (algorithms), user-facing branching flows ("Should I…?"), onboarding routing, support-triage routing trees.
 
 ## Layout conventions
 
-- Shape 帶 type，**顏色不帶 type**：oval（`rx=20`）= start / end；rect（`rx=6`）= step / action；diamond = decision（≤3 個出口）；small filled `--ink` dot（`r=4`）= merge point（分支匯流點）。
-- 主流方向 top→down 固定；從 diamond 出去時 Yes 走右、No 走下為慣例，但**每一條 outgoing arrow 都要 label**，不可省略。
-- `--brand` 只用在 happy path **或**單一最關鍵 decision 二擇一，不可同時用在多個 decision；其餘節點走 `--ink` / `--color-muted` 描邊與 `--parchment` 底。
-- 若兩條 arrow 必須交叉，在其中一條畫一個 small arc jump 標示穿越，避免讀者誤判為連線。
+- Shape carries type, **color does not carry type**: oval (`rx=20`) = start / end; rect (`rx=6`) = step / action; diamond = decision (≤3 exits); small filled `--ink` dot (`r=4`) = merge point (branch confluence point).
+- The main flow direction is fixed top→down; when leaving a diamond, Yes-goes-right and No-goes-down is the convention, but **every outgoing arrow must be labelled** and none may be omitted.
+- `--brand` is used only on the happy path **or** a single most-critical decision — one of the two, never on multiple decisions at once; the remaining nodes go with `--ink` / `--color-muted` strokes and a `--parchment` background.
+- If two arrows must cross, draw a small arc jump on one of them to mark the crossing, so the reader does not misread it as a connection.
 
 ## Anti-patterns
 
-- 用 fill color 區分 node type（例如所有 action 紅、所有 decision 藍）。
-  - *Why fails*：Kami 只給三個語意色（`--brand` / `--brand-tint` / `--color-muted`），fill 拿來標 type 會跟 focal 語意衝突，且色盲讀者無法分辨；type 區分本就是 shape 的工作，shape 已做完的事不需顏色再做一次。
-- Decision diamond 開出 4 個以上 exit。
-  - *Why fails*：人眼在 diamond 上能快速處理的分支上限是 3；4 個以上會逼讀者把 diamond 當 dispatch table 讀，違背 flowchart 「視覺化判斷」的目的，應重構為 nested diamonds。
-- 未 label 的 decision 分支。
-  - *Why fails*：flowchart 的本質是「在這一步決定了什麼條件」，少了 label 就只剩拓樸結構，讀者必須回去看 prose 才能理解，圖等同失效。
+- Distinguishing node type by fill color (e.g. all actions red, all decisions blue).
+  - *Why fails*: Kami gives only three semantic colors (`--brand` / `--brand-tint` / `--color-muted`), and using fill to mark type collides with the focal semantics and cannot be told apart by colorblind readers; distinguishing type is the job of shape, and what shape already does need not be repeated by color.
+- A decision diamond opening 4 or more exits.
+  - *Why fails*: the upper limit the human eye can quickly process on a diamond is 3 branches; 4 or more forces the reader to read the diamond as a dispatch table, betraying the flowchart's purpose of "visualizing judgment," and should be refactored into nested diamonds.
+- Unlabelled decision branches.
+  - *Why fails*: the essence of a flowchart is "what condition was decided at this step"; without the label only the topological structure remains, the reader has to go back to the prose to understand it, and the diagram is effectively void.
 
 ## Examples
 
-Inline example below — 2 decision diamond + 5 process / terminal node 的標準流程圖（Start → Validate → Decision₁ → Decision₂ → {Persist | Reject} → End）。Diamond 以 `<rect>` 旋轉 45° 表達（rect 寬高皆走 {128} 白名單，旋轉後視覺即菱形）。1 個 `data-role="focal"` 落在 Decision₁（主要分支判斷），所有 `x/y/width/height` 為 4 的倍數。
+Inline example below — standard flowchart with 2 decision diamonds + 5 process / terminal nodes (Start → Validate → Decision₁ → Decision₂ → {Persist | Reject} → End). The diamond is expressed as a `<rect>` rotated 45° (rect width and height both use the {128} whitelist, and after rotation the visual is a diamond). 1 `data-role="focal"` lands on Decision₁ (the primary branch decision), all `x/y/width/height` multiples of 4.
 
 ```html
 <figure class="diagram">

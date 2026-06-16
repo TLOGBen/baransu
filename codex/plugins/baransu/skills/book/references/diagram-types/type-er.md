@@ -6,27 +6,27 @@ example: inline
 
 # ER / Data Model
 
-**Best for**: database schema、API resource 關係、domain model、aggregate boundary、跨服務資料 ownership map。
+**Best for**: database schema, API resource relationships, domain model, aggregate boundary, cross-service data ownership map.
 
 ## Layout conventions
 
-- Layer 3 derived token：`entity-key` = `--brand-tint`（v1 ground truth `#EEF2F7`），`entity-attr` = `--parchment`（v1 ground truth `#faf9f5`）；皆預計算為 solid hex，不得出現 alpha-channel CSS 函式形式，參見 `references/design-token-resolver.md`。
-- 每個 entity 為兩段式 box：**header** = type tag（`ENTITY`）+ entity 名（`--font-sans`），底色走 `entity-key`；**body** = field list（`--font-mono`，每行一個），底色走 `entity-attr`；PK 前綴 `#`，FK 前綴 `→`。
-- Relationship 為 entity 之間的線，**兩端各標 cardinality**（`1` / `N` / `0..1` / `1..*`），`--font-mono` 8px，距 entity 邊 10–12px；可選的關係 label（"has"、"belongs to"）置於線中央。
-- 相關 entity 群聚靠近，rearrange 直到大多數 relationship 為直線（不糾結）；`--brand` 只用在 aggregate root 或模型的中心 entity，一張圖一個。
+- Layer 3 derived token: `entity-key` = `--brand-tint` (v1 ground truth `#EEF2F7`), `entity-attr` = `--parchment` (v1 ground truth `#faf9f5`); both are precomputed to solid hex and must not appear as an alpha-channel CSS function form, see `references/design-token-resolver.md`.
+- Each entity is a two-part box: **header** = type tag (`ENTITY`) + entity name (`--font-sans`), background goes `entity-key`; **body** = field list (`--font-mono`, one per line), background goes `entity-attr`; PK prefixed with `#`, FK prefixed with `→`.
+- A relationship is a line between entities, **with cardinality labelled at each end** (`1` / `N` / `0..1` / `1..*`), `--font-mono` 8px, 10–12px from the entity edge; the optional relationship label ("has", "belongs to") sits at the center of the line.
+- Cluster related entities close together, rearranging until most relationships are straight lines (don't obsess over it); `--brand` is used only on the aggregate root or the model's central entity, one per diagram.
 
 ## Anti-patterns
 
-- 在數十個 FK 的模型上每條 FK 都畫 arrow。
-  - *Why fails*：線數量會以 O(entities²) 暴增，視覺變 hairball；ER 圖的價值是讓人在 5 秒內看出 cluster 邊界，FK 太多時應改以 cluster 分組或拆 sub-diagram。
-- 同一條 relationship 的兩端 cardinality 標注不一致（如一端 `1`、另一端忘記標）。
-  - *Why fails*：cardinality 是 relationship 唯一回答的問題，缺一端等於宣告未定義；讀者會在「是 1:N 還是 N:M」之間反覆推敲，圖的決策力為零。
-- 為了視覺整齊把 field 強制 padding 成等高 box。
-  - *Why fails*：natural height 本就應 by content；padding 補白會讓 entity 大小錯位 imply 「這個 entity 比較重要」，但實際只是 field 數差異，誤導讀者建立錯誤心智模型。
+- Drawing an arrow for every FK on a model with dozens of FKs.
+  - *Why fails*: the line count explodes at O(entities²) and the visual becomes a hairball; the value of an ER diagram is letting someone see the cluster boundaries within 5 seconds, so when there are too many FKs you should group by cluster or split into a sub-diagram.
+- Inconsistent cardinality annotation on the two ends of a single relationship (e.g. one end marked `1`, the other forgotten).
+  - *Why fails*: cardinality is the only question a relationship answers, and a missing end is a declaration of "undefined"; the reader keeps deliberating "is it 1:N or N:M" and the diagram's decision power drops to zero.
+- Force-padding fields into equal-height boxes for visual tidiness.
+  - *Why fails*: natural height should follow content; padding whitespace misaligns entity sizes and implies "this entity is more important," when in reality it is only a difference in field count, misleading the reader into building a wrong mental model.
 
 ## Examples
 
-Inline example below — 3-entity ER（`User → Order[focal] → Item`，含 1-to-many cardinality）。完整 `<defs>` 三 chevron marker、兩層 paper-mask、1 個 `data-role="focal"` 節點、節點寬 2 檔白名單 `{128, 160}`、legend strip、所有 `x/y/width/height` 為 4 的倍數。Entity body 內的細條（field row）寬度走 sub-primitive，不計入 node-width 白名單。
+Inline example below — 3-entity ER (`User → Order[focal] → Item`, with 1-to-many cardinality). Full `<defs>` with three chevron markers, two paper-mask layers, 1 `data-role="focal"` node, node-width 2-value whitelist `{128, 160}`, legend strip, all `x/y/width/height` multiples of 4. The thin bars (field rows) inside the entity body use sub-primitive widths and are not counted against the node-width whitelist.
 
 ```html
 <figure class="diagram">

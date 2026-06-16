@@ -94,9 +94,9 @@ Do NOT call `/read`. Read `.claude/read/material/{slug}/index.md` directly.
 
 If the file exists: append `.claude/read/material/{slug}/index.md` to `$SOURCES`.
 
-If the file does not exist: do NOT stop. **Fall through to §3.5 — 純文字主題 fan-out fallback** (the input is treated as a bare topic, not a slug typo).
+If the file does not exist: do NOT stop. **Fall through to §3.5 — Bare Topic fan-out fallback** (the input is treated as a bare topic, not a slug typo).
 
-### 3.5. 純文字主題 (Bare Topic) — fan-out fallback
+### 3.5. Bare Topic — fan-out fallback
 
 Triggered when §3 matches the syntactic shape of a slug but `.claude/read/material/{slug}/index.md` does not exist. The input is interpreted as a research topic; `/learn` runs an automatic fan-out across four search lanes.
 
@@ -175,11 +175,11 @@ The topic string is needed for the brief filename (slug) and YAML frontmatter.
 
 For each entry in `$SOURCES`, read its `index.md` and evaluate it on three criteria using **visual judgment (1–5)**. There is no quantitative formula in v1; scores are assigned by holistic reading.
 
-| 標準 | 說明 |
+| Criterion | Meaning |
 |------|------|
-| 多情境適用性 | 此來源的觀點／發現是否能跨越多種場景或領域應用？ |
-| 預測力 | 此來源是否提供可驗證的預測或可操作的因果推斷？ |
-| 通用性 | 此來源的結論是否具備跨時間、跨族群的穩定性？ |
+| 多情境適用性 | Can this source's viewpoint / findings be applied across multiple scenarios or domains? |
+| 預測力 | Does this source offer verifiable predictions or actionable causal inferences? |
+| 通用性 | Are this source's conclusions stable across time and across populations? |
 
 Scale: 1 = very low, 5 = very high. Each criterion is scored independently.
 

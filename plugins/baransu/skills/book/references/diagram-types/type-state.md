@@ -6,28 +6,28 @@ example: inline
 
 # State Machine
 
-**Best for**: 有限狀態邏輯——order status、auth state、connection lifecycle、form wizard、job queue status。
+**Best for**: finite-state logic — order status、auth state、connection lifecycle、form wizard、job queue status.
 
 ## Layout conventions
 
-- Layer 3 derived token：`state-active` = `--brand`（v1 ground truth `#1B365D`），`state-inactive` = `--ink @ 0.05`（v1 ground truth `#f1f0eb`）；皆預計算為 solid hex，不得出現 alpha-channel CSS 函式形式，參見 `references/design-token-resolver.md`。
-- State 為 rounded rectangle（`rx=8`），label 用 `--font-sans`；start = filled `--ink` dot（`r=6`），end = ringed dot（外 `r=8` outline、內 filled `r=5`）。
-- Transition 為 curved arrow，label 用 `--font-mono`，格式 `event [guard] / action`，不需要的欄位省略；self-loop 從 state 上方繞回。
-- 主流方向沿 left→right 或 top→down 對齊；rearrange 直到 transition 不交叉，再考慮繪製。
-- `--brand` / `state-active` 只能上在讀者最該注意的單一 state——通常是 error state 或 happy completion，二擇一。
+- Layer 3 derived token: `state-active` = `--brand` (v1 ground truth `#1B365D`), `state-inactive` = `--ink @ 0.05` (v1 ground truth `#f1f0eb`); both are precomputed into solid hex and must not appear in alpha-channel CSS-function form — see `references/design-token-resolver.md`.
+- States are rounded rectangles (`rx=8`) with the label in `--font-sans`; start = a filled `--ink` dot (`r=6`), end = a ringed dot (outer `r=8` outline, inner filled `r=5`).
+- Transitions are curved arrows with the label in `--font-mono`, formatted `event [guard] / action`, omitting fields that aren't needed; a self-loop wraps back over the top of the state.
+- Align the main flow direction along left→right or top→down; rearrange until transitions don't cross before you consider drawing.
+- `--brand` / `state-active` may only go on the single state the reader should focus on most — usually the error state or the happy completion, pick one of the two.
 
 ## Anti-patterns
 
-- Transition 數量超過 `states × 2`。
-  - *Why fails*：經驗值上這代表你正在把兩個獨立 state machine 硬畫成一張；視覺上會出現 hairball，讀者無法 trace 任何一條路徑，應拆分為兩張圖。
-- "From any state" transition 從每個 state 各畫一條到同一目標（如全部 → Error）。
-  - *Why fails*：N 條重複線把畫面瓜分，但語意只是「any」一個 quantifier；應改為單一 annotation（`* → Error on timeout`），讓視覺密度與資訊密度對齊。
-- 未 label 的 transition。
-  - *Why fails*：state machine 的核心問題就是「在什麼條件下從 A 跳到 B」，省掉 label 等於丟掉這張圖唯一回答的問題，剩下的拓樸資訊用 list 就能呈現。
+- The transition count exceeds `states × 2`.
+  - *Why fails*: empirically this means you're forcing two independent state machines onto one canvas; a hairball appears visually, the reader can't trace any single path, and you should split it into two diagrams.
+- A "from any state" transition drawn as one line from every state to the same target (e.g. everything → Error).
+  - *Why fails*: the N duplicate lines carve up the canvas, but the meaning is only the single quantifier "any"; replace them with one annotation (`* → Error on timeout`) so visual density matches information density.
+- An unlabeled transition.
+  - *Why fails*: a state machine's core question is "under what condition does it jump from A to B"; dropping the label throws away the one question this diagram answers, and the remaining topology could just as well be shown as a list.
 
 ## Examples
 
-Inline example below — 5-state connection lifecycle（`idle → connecting → active[focal] → closing → closed`，含 retry / timeout 回邊）。完整 `<defs>` 三 chevron marker、兩層 paper-mask、1 個 `data-role="focal"` 節點、節點寬 2 檔白名單 `{128, 144}`、legend strip、所有 `x/y/width/height` 為 4 的倍數。
+Inline example below — 5-state connection lifecycle (`idle → connecting → active[focal] → closing → closed`, with retry / timeout return edges). A complete `<defs>` with three chevron markers, two paper-mask layers, 1 `data-role="focal"` node, the 2-step node-width whitelist `{128, 144}`, a legend strip, and all `x/y/width/height` as multiples of 4.
 
 ```html
 <figure class="diagram">

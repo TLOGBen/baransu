@@ -126,7 +126,7 @@ Invoke with `/baransu:<name>`. To edit a skill, read its `SKILL.md` — design c
 
 Small tasks with clear scope no longer route through a dedicated skill: implement directly under the red/green discipline in `plugins/baransu/skills/_shared/tdd.md` §7.
 
-All skills: English body, 繁體中文 user output. Do not change this convention in any skill.
+**English-body convention.** All agent-facing prose — every `SKILL.md` body, every file under `references/`, the cross-skill docs in `skills/_shared/`, `rules/`, and the agent system prompts in `agents/` — MUST be written in English. The only sanctioned Traditional Chinese is: (1) user-facing output — completion / error / status messages, output-template content, 「」-quoted user strings, sample rendered output; (2) trigger keywords and routing cues in the frontmatter `description` and 易混淆 tables; (3) example artifacts demonstrating Chinese content; (4) the `/write` skill's bilingual-writing content (rules, before/after samples, voice presets). Instructional prose, conditions, branching logic, rationale, and internal headings are English everywhere. Do not change this convention in any skill.
 
 ## Non-obvious Invariants
 

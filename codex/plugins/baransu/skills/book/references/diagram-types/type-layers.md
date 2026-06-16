@@ -6,27 +6,27 @@ example: inline
 
 # Layer Stack
 
-**Best for**: OSI model、CSS cascade、context hierarchy、tech stack、abstraction layer、memory hierarchy。
+**Best for**: OSI model, CSS cascade, context hierarchy, tech stack, abstraction layer, memory hierarchy.
 
 ## Layout conventions
 
-- 水平 band 垂直堆疊；每層為 full-width rectangle（同 x、同 width），4–6 層為限；layer 高度 56–72px，寬度通常 800–880px 落在 1000px viewBox 內。
-- 每列由左至右含三段：(1) **index tag**（`L3` / `07` / `APPLICATION`）`--font-mono` 8–9px eyebrow；(2) **layer name** 略偏左中`--font-sans` 14–16px 600；(3) **sublabel / note** 靠最右`--font-mono` 9–10px `--color-muted`。
-- 層間 border 為 1px hairline `--ink @ 0.12`；外輪廓 1px `--ink` 或 `--color-muted`；fill 二擇一：交替淡色（`--parchment` / paper-2）**或**全 `--parchment` 配 hairline divider，**選定後守一個**不可混用。
-- 左 margin 外側放方向指示（small up/down arrow + `--font-mono` label，如 `abstraction ↑` / `packets ↓`）；`--brand` 只上在**單一 focal layer**（stroke + 微 tint fill），代表 bottleneck / pay-rent layer / 討論主軸。
+- Horizontal bands stacked vertically; each layer is a full-width rectangle (same x, same width), 4–6 layers max; layer height 56–72px, width typically 800–880px sitting inside the 1000px viewBox.
+- Each row contains three segments, left to right: (1) **index tag** (`L3` / `07` / `APPLICATION`) `--font-mono` 8–9px eyebrow; (2) **layer name** slightly left of center, `--font-sans` 14–16px 600; (3) **sublabel / note** at the far right, `--font-mono` 9–10px `--color-muted`.
+- Inter-layer borders are 1px hairline `--ink @ 0.12`; outer contour 1px `--ink` or `--color-muted`; fill is one of two options: alternating light tints (`--parchment` / paper-2) **or** all `--parchment` with hairline dividers — **pick one and stick to it**, never mix.
+- Place a direction indicator outside the left margin (small up/down arrow + `--font-mono` label, e.g. `abstraction ↑` / `packets ↓`); `--brand` is applied only to the **single focal layer** (stroke + slight tint fill), representing the bottleneck / pay-rent layer / focus of discussion.
 
 ## Anti-patterns
 
-- 把實際非 hierarchical 的概念硬塞成 layer。
-  - *Why fails*：layer stack 的承諾是「上層依賴下層、下層為上層提供 abstraction」；用它表達 cross-cutting concern（如 monitoring）或 peer relationship 會讓讀者誤建依賴關係，應改用 swimlane 或 architecture。
-- 層編號跳號（L3 → L5 中間沒 L4 也沒解釋）。
-  - *Why fails*：layer 編號是 hierarchy 唯一可用的序列承諾；跳號代表「中間有東西但我沒畫」，讀者無法判斷是設計漏掉還是刻意省略，hierarchy 的完整性破功。
-- 每層上不同色塊（rainbow stack）。
-  - *Why fails*：layer 的 hierarchy 是靠垂直位置 + 編號傳遞，色塊只是噪音；多色讓讀者誤以為「每層代表一種類別」而非「上下層級」，且與 single-brand focal 規則衝突。
+- Forcing a genuinely non-hierarchical concept into a layer.
+  - *Why fails*: a layer stack promises "upper layers depend on lower layers, lower layers provide abstraction to upper layers"; using it for a cross-cutting concern (like monitoring) or a peer relationship makes the reader infer a dependency that isn't there — use a swimlane or architecture diagram instead.
+- Skipping a layer number (L3 → L5 with no L4 and no explanation).
+  - *Why fails*: layer numbering is the only sequential promise a hierarchy has; a gap signals "something is in the middle but I didn't draw it", and the reader can't tell whether it's a design omission or a deliberate elision — the hierarchy's completeness breaks.
+- A different color block per layer (rainbow stack).
+  - *Why fails*: a layer's hierarchy is conveyed by vertical position + numbering, color blocks are just noise; multiple colors make the reader think "each layer represents a category" rather than "an upper/lower rank", and it clashes with the single-brand focal rule.
 
 ## Examples
 
-Inline example below — 4-layer 水平堆疊（典型 web stack：UI / API / Service[focal] / Data），每層 band 為 sub-primitive full-width rect（不算「節點」），node 角色由置中 160-wide **function box** 承擔以對齊白名單。完整 `<defs>` 三 chevron marker、兩層 paper-mask、1 個 `data-role="focal"` 節點（Service function box）、所有節點 `rect` 寬度均為 160（單檔白名單）、abstraction ↑ 方向指示、legend strip、所有 `x/y/width/height` 為 4 的倍數。
+Inline example below — 4-layer horizontal stack (typical web stack: UI / API / Service[focal] / Data), where each band is a sub-primitive full-width rect (not counted as a "node"), and the node role is carried by a centered 160-wide **function box** to match the allowlist. Complete `<defs>` with three chevron markers, two paper-mask layers, 1 `data-role="focal"` node (Service function box), all node `rect` widths of 160 (single-file allowlist), an abstraction ↑ direction indicator, a legend strip, and all `x/y/width/height` as multiples of 4.
 
 ```html
 <figure class="diagram">

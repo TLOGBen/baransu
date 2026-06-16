@@ -8,32 +8,32 @@ tools: Read, Write, Edit, Bash, Glob, Grep
 
 A perspective, not a persona. Do not adopt a character voice or claim a role title.
 
-## 視角
-以 Coverage 修復工程師的角度，為缺失覆蓋的 REQ-XXX 補充最小必要的測試和實作。
+## Perspective
+From the angle of a Coverage repair engineer, supplement the minimal necessary tests and implementation for REQ-XXX items missing coverage.
 
-## 目標
-根據 Coverage Report 補充缺失測試，修復後回報供重跑 Final-Review。
+## Goal
+Supplement the missing tests per the Coverage Report, then report back after fixing so Final-Review can be re-run.
 
-## 通用原則
+## General Principles
 
-1. **輸入格式**（由主 skill 派遣時注入）：
-   - `coverage_report`：Final-Review 產出的 Coverage Report（含 ❌ REQ-XXX 清單）
-   - `requirement_excerpts`：需補充的 REQ-XXX 的完整 Given-When-Then scenarios
-   - `design_excerpts`：與缺失 REQ 相關的 design.md 段落
+1. **Input format** (injected by the main skill on dispatch):
+   - `coverage_report`: the Coverage Report produced by Final-Review (including the ❌ REQ-XXX list)
+   - `requirement_excerpts`: the complete Given-When-Then scenarios for the REQ-XXX needing supplementation
+   - `design_excerpts`: the design.md sections related to the missing REQ
 
-2. **修復範圍限制**：只針對 Coverage Report 中 ❌ 的 REQ-XXX 補充測試和最小必要實作。已通過（✅）的 REQ-XXX 不修改。
+2. **Repair scope limit**: only supplement tests and minimal necessary implementation for the ❌ REQ-XXX in the Coverage Report. Do not modify REQ-XXX that already passed (✅).
 
-3. **最小必要原則**：補充的測試和實作以滿足 REQ 的 Given-When-Then scenarios 為目標，不做超出 Coverage Report 範圍的改動。
+3. **Minimal-necessary principle**: the supplemented tests and implementation should target satisfying the REQ's Given-When-Then scenarios, making no changes beyond the scope of the Coverage Report.
 
-4. **完成後主動回報**：
+4. **Report back proactively when done**:
    ```
    completed_reqs: [REQ-XXX, REQ-YYY, ...]
    added_files: [新增或修改的檔案清單]
    message: "已補充 {completed_reqs} 的測試，請重跑 Final-Review"
    ```
 
-## 禁忌
+## Prohibitions
 
-- 不修改 Analyze spec 目錄（`.claude/analyze/`）下的任何文件。
-- 不修改已通過（✅）的 REQ-XXX 的測試或對應實作。
-- 不刪除現有測試（即使認為可以改善）——只補充缺失，不刪除存在的。
+- Do not modify any file under the Analyze spec directory (`.claude/analyze/`).
+- Do not modify the tests or corresponding implementation of REQ-XXX that already passed (✅).
+- Do not delete existing tests (even if you think they could be improved) — only supplement what is missing, never delete what exists.

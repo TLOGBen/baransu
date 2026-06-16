@@ -6,27 +6,27 @@ example: inline
 
 # Tree / Hierarchy
 
-**Best for**: org chart、dependency tree、taxonomy、file tree、decision breakdown、skill tree。
+**Best for**: org chart, dependency tree, taxonomy, file tree, decision breakdown, skill tree.
 
 ## Layout conventions
 
-- Root 置頂、children 向下扇開（或 root 在左、children 向右）；root 不能有兩個。
-- Node 為 small labeled rectangle（`rx=6`），name 用 `--font-sans` 12px 600，可選 sublabel 用 `--font-mono` 9px；node 寬度 120–180px，高度 40–52px，整張圖只用 2 種寬度。
-- **Connector 一律 orthogonal（elbow）不畫對角線**：parent 下一條 short vertical → horizontal bus 連接 sibling → 每個 child 上方 short vertical 入頂邊；stroke 走 `--color-muted` 1px；connector 必須先畫，node 後畫（z-order）。
-- 最大深度 4（root + 3 tier）、每層最大寬度 5；`--brand` 只能上在**單一 node**（root 或關鍵 leaf，二擇一，不可兩者皆有）。
+- Root on top, children fanning out downward (or root on the left, children to the right); there must not be two roots.
+- Node is a small labeled rectangle (`rx=6`); name uses `--font-sans` 12px 600, optional sublabel uses `--font-mono` 9px; node width 120–180px, height 40–52px, and the whole diagram uses only 2 widths.
+- **Connectors are always orthogonal (elbow), never diagonal**: a short vertical from the parent → a horizontal bus connecting siblings → a short vertical into the top edge of each child; stroke uses `--color-muted` 1px; connectors must be drawn first, nodes after (z-order).
+- Maximum depth 4 (root + 3 tiers), maximum width 5 per tier; `--brand` may be applied only to a **single node** (root or a key leaf — pick one, never both).
 
 ## Anti-patterns
 
-- 在單張圖畫 5 層以上深度。
-  - *Why fails*：tree 越深 leaf 字越小、垂直空間越擠，5 層後讀者無法掃讀整體結構；應水平拆分為 sub-tree 或改用 nested containment 重新表達。
-- Node 寬度自由發揮、每個都不一樣。
-  - *Why fails*：tree 結構本應靠拓撲傳遞 hierarchy，寬度變化會被讀者誤讀為「這個 node 比較重要」；統一 2 種寬度可讓視覺節律穩定，讓讀者聚焦在連線結構而非 box 尺寸。
-- 跳級連線（parent 直接連到 grandchild，中間 node 不畫）。
-  - *Why fails*：tree 的語意是「parent → child」單階關係，跳級線等於宣告中介層級不存在，但實際 tree 結構仍有；視覺上讀者會誤判 depth，導致對整體 hierarchy 的錯估。
+- Drawing more than 5 levels of depth in a single diagram.
+  - *Why fails*: the deeper the tree, the smaller the leaf text and the tighter the vertical space; beyond 5 levels the reader cannot scan the overall structure. Split horizontally into sub-trees or re-express it as nested containment.
+- Letting node width run free, with every node different.
+  - *Why fails*: tree structure should convey hierarchy through topology, so width variation gets misread as "this node is more important". Standardizing on 2 widths keeps the visual rhythm steady and lets the reader focus on the connector structure rather than box size.
+- Skip-level connectors (parent connecting straight to a grandchild, with the intermediate node not drawn).
+  - *Why fails*: a tree's semantics are the single-step "parent → child" relation; a skip-level line declares the intermediate tier does not exist, even though the actual tree structure still has it. Visually the reader misjudges the depth, leading to a wrong reading of the overall hierarchy.
 
 ## Examples
 
-Inline example below — 3-level hierarchy（1 root[focal] → 3 child → 6 leaf，2 leaf per child）。完整 `<defs>` 三 chevron marker、兩層 paper-mask、1 個 `data-role="focal"` 節點（root）、節點寬 2 檔白名單 `{128, 144}`、orthogonal elbow connector、legend strip、所有 `x/y/width/height` 為 4 的倍數。複製此 `<figure class="diagram">` block 後改節點即可重用。
+Inline example below — 3-level hierarchy (1 root[focal] → 3 children → 6 leaves, 2 leaves per child). Complete `<defs>` with three chevron markers, a two-layer paper-mask, 1 `data-role="focal"` node (root), a 2-step node-width whitelist `{128, 144}`, orthogonal elbow connectors, a legend strip, and every `x/y/width/height` a multiple of 4. Copy this `<figure class="diagram">` block and swap the nodes to reuse it.
 
 ```html
 <figure class="diagram">
@@ -49,9 +49,9 @@ Inline example below — 3-level hierarchy（1 root[focal] → 3 child → 6 lea
       </marker>
     </defs>
 
-    <!-- Paper-mask layer 1（強制） -->
+    <!-- Paper-mask layer 1 (required) -->
     <rect width="100%" height="100%" fill="#f5f4ed"/>
-    <!-- Paper-mask layer 2（可選 dotted overlay） -->
+    <!-- Paper-mask layer 2 (optional dotted overlay) -->
     <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
 
     <!-- ===== CONNECTORS (orthogonal elbow, drawn before nodes) ===== -->
@@ -101,8 +101,8 @@ Inline example below — 3-level hierarchy（1 root[focal] → 3 child → 6 lea
     <line x1="832" y1="368" x2="832" y2="408"
           stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
 
-    <!-- ===== NODES — 寬白名單 2 檔 {128, 144}；focal 用 144 ===== -->
-    <!-- Tier 1：Root — FOCAL（144） -->
+    <!-- ===== NODES — node-width whitelist, 2 steps {128, 144}; focal uses 144 ===== -->
+    <!-- Tier 1: Root — FOCAL (144) -->
     <rect x="428" y="96" width="144" height="64" rx="6" fill="#f5f4ed"/>
     <rect data-role="focal"
           x="428" y="96" width="144" height="64" rx="6"
@@ -118,7 +118,7 @@ Inline example below — 3-level hierarchy（1 root[focal] → 3 child → 6 lea
           font-family="'Geist Mono', ui-monospace, monospace"
           text-anchor="middle">catalog root</text>
 
-    <!-- Tier 2：Child 1（128） -->
+    <!-- Tier 2: Child 1 (128) -->
     <rect x="168" y="260" width="128" height="64" rx="6" fill="#f5f4ed"/>
     <rect x="168" y="260" width="128" height="64" rx="6"
           fill="#ebeae5" stroke="#504e49" stroke-width="1"/>
@@ -133,7 +133,7 @@ Inline example below — 3-level hierarchy（1 root[focal] → 3 child → 6 lea
           font-family="'Geist Mono', ui-monospace, monospace"
           text-anchor="middle">tangible</text>
 
-    <!-- Tier 2：Child 2（128） -->
+    <!-- Tier 2: Child 2 (128) -->
     <rect x="436" y="260" width="128" height="64" rx="6" fill="#f5f4ed"/>
     <rect x="436" y="260" width="128" height="64" rx="6"
           fill="#ebeae5" stroke="#504e49" stroke-width="1"/>
@@ -148,7 +148,7 @@ Inline example below — 3-level hierarchy（1 root[focal] → 3 child → 6 lea
           font-family="'Geist Mono', ui-monospace, monospace"
           text-anchor="middle">licensed</text>
 
-    <!-- Tier 2：Child 3（128） -->
+    <!-- Tier 2: Child 3 (128) -->
     <rect x="704" y="260" width="128" height="64" rx="6" fill="#f5f4ed"/>
     <rect x="704" y="260" width="128" height="64" rx="6"
           fill="#ebeae5" stroke="#504e49" stroke-width="1"/>
@@ -163,7 +163,7 @@ Inline example below — 3-level hierarchy（1 root[focal] → 3 child → 6 lea
           font-family="'Geist Mono', ui-monospace, monospace"
           text-anchor="middle">recurring</text>
 
-    <!-- Tier 3：6 leaves（128 each） -->
+    <!-- Tier 3: 6 leaves (128 each) -->
     <!-- Leaf 1.1 -->
     <rect x="104" y="408" width="128" height="64" rx="6" fill="#f5f4ed"/>
     <rect x="104" y="408" width="128" height="64" rx="6"

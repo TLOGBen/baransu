@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-hunt-search.py — 搜尋 .claude/hunt-report/ 裡的狩獵案例
+hunt-search.py — search hunt cases under .claude/hunt-report/
 
-用法：
-  python hunt-search.py                          # 列出全部
-  python hunt-search.py --status fixed           # 按狀態篩選
-  python hunt-search.py --keyword "cache"        # 在 target / root_cause 裡關鍵字搜尋
-  python hunt-search.py --id HUNT-2024-001       # 精確 ID 查詢
-  python hunt-search.py --dir /path/to/reports   # 指定目錄（預設 .claude/hunt-report/）
+Usage:
+  python hunt-search.py                          # list all
+  python hunt-search.py --status fixed           # filter by status
+  python hunt-search.py --keyword "cache"        # keyword search across target / root_cause
+  python hunt-search.py --id HUNT-2024-001       # exact ID lookup
+  python hunt-search.py --dir /path/to/reports   # specify directory (default .claude/hunt-report/)
 """
 
 import argparse
@@ -70,11 +70,11 @@ def print_catalog(cases: list[tuple[Path, dict]]) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="狩獵報告目錄搜尋")
-    parser.add_argument("--dir",     default=".claude/hunt-report", help="報告目錄")
-    parser.add_argument("--status",  help="篩選 status（scoping|investigating|root_caused|fixed|closed）")
-    parser.add_argument("--keyword", help="在 target 和 root_cause 裡搜尋關鍵字（大小寫不敏感）")
-    parser.add_argument("--id",      help="精確 hunt_id 查詢")
+    parser = argparse.ArgumentParser(description="Search the hunt-report catalog")
+    parser.add_argument("--dir",     default=".claude/hunt-report", help="report directory")
+    parser.add_argument("--status",  help="filter by status (scoping|investigating|root_caused|fixed|closed)")
+    parser.add_argument("--keyword", help="search keyword across target and root_cause (case-insensitive)")
+    parser.add_argument("--id",      help="exact hunt_id lookup")
     args = parser.parse_args()
 
     report_dir = Path(args.dir)

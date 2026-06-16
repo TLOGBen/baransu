@@ -6,27 +6,27 @@ example: inline
 
 # Pyramid / Funnel
 
-**Best for**: hierarchy of needs、prioritization rank、value pyramid、conversion funnel、content importance stack。
+**Best for**: hierarchy of needs, prioritization rank, value pyramid, conversion funnel, content importance stack.
 
 ## Layout conventions
 
-- **二擇一方向，不可混用**：pyramid（尖端朝上）= 頂端為最重要 / 最稀有 / 最有價值，底層為最基礎；funnel（尖端朝下）= 底端為 conversion（最小群），頂為 widest audience。
-- 4–6 層為限；視覺由 `<path>` 梯形外輪廓 + 每層 `<rect>` callout 構成（**Kami spec 禁用 `<polygon>`**，見下 Examples 段），**層高一致**（56–72px）；寬度從 base 到 apex 線性遞減（pyramid）或 top 到 bottom 遞減（funnel），呈現真實 funnel 資料時寬度必須誠實（與 count / percentage 成比例）。
-- 每層三段資訊：name label 置中`--font-sans` 12–14px 600；sublabel 在 name 下方或側邊`--font-mono` 9–10px；可選 side annotation 放右或左（funnel 的 drop-off 百分比，如 `−40%`）。
-- 層間 1px hairline divider，外輪廓 1px `--color-muted` 或 `--ink`；fill 二擇一：subtle 漸層 tint **或**全 paper-2 + hairline divider；`--brand` 只上在**單一層**（pyramid 的 apex、funnel 的 conversion 層、或關鍵 bottleneck）。
+- **Pick one orientation, never mix**: pyramid (apex up) = the top is the most important / rarest / most valuable, the bottom is the most foundational; funnel (apex down) = the bottom is conversion (smallest group), the top is the widest audience.
+- 4–6 levels max; the visual is built from a `<path>` trapezoid contour + a `<rect>` callout per level (**Kami spec forbids `<polygon>`**, see the Examples section below), with **uniform level height** (56–72px); width decreases linearly from base to apex (pyramid) or top to bottom (funnel) — when showing real funnel data the width must be honest (proportional to count / percentage).
+- Three pieces of info per level: name label centered, `--font-sans` 12–14px 600; sublabel below or beside the name, `--font-mono` 9–10px; optional side annotation on the right or left (the funnel's drop-off percentage, e.g. `−40%`).
+- 1px hairline divider between levels, outer contour 1px `--color-muted` or `--ink`; fill is one of two options: a subtle gradient tint **or** all paper-2 + hairline dividers; `--brand` is applied only to a **single level** (the pyramid's apex, the funnel's conversion level, or a key bottleneck).
 
 ## Anti-patterns
 
-- 7 層以上。
-  - *Why fails*：梯形層數一多每層垂直空間就被擠到無法容納 label，且讀者難以一眼數出層級；應壓縮（合併語意接近的層）或拆兩張圖。
-- 用 pyramid 表達非 hierarchical 資料（純分類、平行比較）。
-  - *Why fails*：pyramid 的視覺承諾是「上下有 rank 關係」（稀有度 / 重要性 / 規模）；用在無 rank 的資料上會誤導讀者建立根本不存在的階層，應改用 tree 或 bar chart。
-- 寬度造假（drop-off 不等時偽裝成等寬遞減）。
-  - *Why fails*：funnel 唯一的量化承諾是「寬度反映實際漏斗比例」；等寬遞減在視覺上抹平真實 conversion drop，讀者無法看出哪個階段流失嚴重，圖直接違背 honest data viz 原則。
+- More than 7 levels.
+  - *Why fails*: once there are many trapezoid levels the vertical space per level gets squeezed too tight to fit a label, and the reader struggles to count the levels at a glance; compress (merge semantically close levels) or split into two diagrams.
+- Using a pyramid for non-hierarchical data (pure categorization, parallel comparison).
+  - *Why fails*: a pyramid's visual promise is "an up/down rank relationship exists" (rarity / importance / scale); using it on rankless data misleads the reader into building a hierarchy that doesn't exist — use a tree or bar chart instead.
+- Faking the width (disguising unequal drop-offs as an equal-width taper).
+  - *Why fails*: a funnel's only quantitative promise is "width reflects the actual funnel proportions"; an equal-width taper visually flattens the real conversion drop, the reader can't see which stage loses the most, and the diagram directly violates the honest-data-viz principle.
 
 ## Examples
 
-Inline example below — 5-level value pyramid（Vision[focal] / Strategy / Tactics / Execution / Foundation）。**Kami spec 禁用 `<polygon>`**，故梯形視覺由 `<path>` 描繪外輪廓 + 5 個 `<rect>` 階層 callout（寬度交替 {128, 160} 兩檔白名單）構成；節點寬白名單仍合規。完整 `<defs>` 三 chevron marker、兩層 paper-mask、1 個 `data-role="focal"` 節點（apex Vision）、所有 `x/y/width/height` 為 4 的倍數、legend strip。
+Inline example below — 5-level value pyramid (Vision[focal] / Strategy / Tactics / Execution / Foundation). **Kami spec forbids `<polygon>`**, so the trapezoid visual is built from a `<path>` outer contour + 5 `<rect>` level callouts (widths alternating between the {128, 160} two-value allowlist); the node width allowlist still holds. Complete `<defs>` with three chevron markers, two paper-mask layers, 1 `data-role="focal"` node (apex Vision), all `x/y/width/height` as multiples of 4, and a legend strip.
 
 ```html
 <figure class="diagram">

@@ -103,7 +103,7 @@ For automated runs the script prints the report. For inline runs you write it. U
 - ...
 ```
 
-The report is the point of friction-resolution: **每一條 dropped/manual review 都是一個未來想優化的線索**。Encourage the user to track these.
+The report is the point of friction-resolution: **every dropped / manual-review entry is a clue for a future optimization**. Encourage the user to track these.
 
 ## Boundaries
 

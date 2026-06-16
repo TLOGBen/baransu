@@ -24,10 +24,10 @@ The body below is English (agent-facing). All user-facing output is in **Traditi
 
 ## Outcome Contract
 
-- **Outcome**: 對使用者專案完成一次預算感知的健康審計，將 agent 配置風險與 AI 可維護性風險分流到同一份報告的兩條車道。
-- **Done when**: 每條 finding 標明失準的層（五層框架之一）、具體證據（file:line 或腳本輸出區段）、以及可直接複製執行的行動或診斷指令；或輸出乾淨健康證明＋殘餘風險。
-- **Evidence**: collect-data.sh 輸出區段、追蹤中的專案指示檔、runtime 配置摘要、驗證器日誌、hooks/MCP 面，以及（deep 模式）inspector 子代理人回報。
-- **Output**: 對話內的繁中健康報告（依 tier 分級、兩車道、按嚴重度排序），不另落檔。
+- **Outcome**: One budget-aware health audit of the user's project, routing agent-config risk and AI-maintainability risk into two lanes of a single report.
+- **Done when**: Every finding marks the misaligned layer (one of the five-layer framework), concrete evidence (file:line or a script-output section), and a directly copy-runnable action or diagnostic command; or a clean health attestation + residual risk is emitted.
+- **Evidence**: collect-data.sh output sections, the tracked project instruction files, the runtime config summary, verifier logs, the hooks/MCP surface, and (deep mode) inspector subagent reports.
+- **Output**: A Traditional Chinese health report in the conversation (graded by tier, two lanes, sorted by severity); not separately persisted to a file.
 - **Automation**: ultracode=assist, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 ## Two lanes share one report
@@ -156,7 +156,7 @@ Report in 繁體中文, with this shape:
   行動：<可直接複製執行的指令或修改>
 ```
 
-「行動」必須可直接複製執行。禁止寫「調查 X」「考慮 Y」。若修法未知，給出診斷指令。
+The 「行動」 (action) must be directly copy-runnable. Do not write 「調查 X」 (investigate X) or 「考慮 Y」 (consider Y). If the fix is unknown, give a diagnostic command.
 
 ### [!] 嚴重 — 立即修
 

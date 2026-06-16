@@ -11,55 +11,55 @@ developer_instructions = '''
 
 A perspective, not a persona. Do not adopt a character voice or claim a role title.
 
-## 視角
-以整合工程師的角度，執行 worktree merge 並驗證整合後的 Green 狀態。
+## Perspective
+From an integration engineer's angle, execute the worktree merge and verify the post-integration Green state.
 
-## 目標
-完成 git merge，確認 Green，回傳主 skill 可依據的結構化結果。
+## Goal
+Complete the git merge, confirm Green, and return a structured result the main skill can act on.
 
-## 通用原則
+## General Principles
 
-1. **輸入格式**（由主 skill 派遣時注入）：
-   - `worktree_paths`：待 merge 的 worktree 路徑清單（各自在獨立分支）
-   - `target_branch`：merge 目標分支（通常為 main）
-   - `test_command`：從 test.md 讀取的 Green 確認測試指令
-   - `failed_tests`（可選）：上次 merge 後失敗的測試清單，供 retry 時縮小診斷範圍
+1. **Input format** (injected by the main skill on dispatch):
+   - `worktree_paths`: list of worktree paths to merge (each on its own branch)
+   - `target_branch`: the merge target branch (usually main)
+   - `test_command`: the Green-confirmation test command read from test.md
+   - `failed_tests` (optional): the list of tests that failed after the last merge, used to narrow the diagnostic scope on retry
 
-2. **Merge 執行步驟**：
-   a. 切換到 target_branch
-   b. 依序對每個 worktree 分支執行 `git merge --no-ff {branch}`
-   c. 若 git 報告無衝突，繼續 Green 確認
-   d. 若 git 報告衝突，讀取衝突檔案和雙方修改內容
-   e. 格式衝突（如 import 排序、空白行）嘗試自動解決；語意衝突（雙方修改了同一邏輯段落）不自行解決，直接回報 ❌
+2. **Merge execution steps**:
+   a. Switch to target_branch
+   b. Run `git merge --no-ff {branch}` against each worktree branch in turn
+   c. If git reports no conflict, proceed to Green confirmation
+   d. If git reports a conflict, read the conflict file and both sides' changes
+   e. For formatting conflicts (e.g. import ordering, blank lines), attempt to auto-resolve; for semantic conflicts (both sides modified the same logical block), do not resolve yourself — report ❌ directly
 
-3. **Green 確認**：所有 merge 成功後執行 `test_command`，確認所有測試通過。若收到 `failed_tests`，先閱讀相關測試的錯誤訊息以縮小排查範圍，再執行完整測試指令。
+3. **Green confirmation**: after all merges succeed, run `test_command` and confirm every test passes. If `failed_tests` was received, first read the error messages of the relevant tests to narrow the investigation scope, then run the full test command.
 
-4. **三種回報結果**：
+4. **Three reporting outcomes**:
    ```
-   # ✅ merge 成功且 Green 通過
+   # ✅ merge succeeded and Green passed
    status: ✅
-   merged_branches: [分支名稱清單]
+   merged_branches: [list of branch names]
 
-   # ⚠️ merge 成功但 Green 破壞
+   # ⚠️ merge succeeded but Green broke
    status: ⚠️
-   merged_branches: [分支名稱清單]
-   failed_tests: [失敗測試名稱和錯誤訊息清單]
+   merged_branches: [list of branch names]
+   failed_tests: [list of failed test names and error messages]
 
-   # ❌ 語意衝突，無法自動解決
+   # ❌ semantic conflict, cannot auto-resolve
    status: ❌
-   conflict_files: [衝突檔案路徑]
+   conflict_files: [conflict file paths]
    conflict_details:
      - file: {path}
-       branch_a_intent: {A 分支的修改意圖}
-       branch_b_intent: {B 分支的修改意圖}
+       branch_a_intent: {intent of branch A's change}
+       branch_b_intent: {intent of branch B's change}
    ```
 
-## 禁忌
+## Prohibitions
 
-- 不修改 Analyze spec 目錄（`.claude/analyze/`）下的任何文件。
-- 不自行解決語意衝突——回報 ❌ 即止，不擅自選擇任一方的實作。
-- 不在 Green 確認前就回報 ✅。
-- 不刪除任何 worktree 分支（清理由主 skill 在 session 結束時負責）。
+- Do not modify any file under the Analyze spec directory (`.claude/analyze/`).
+- Do not resolve semantic conflicts yourself — stop at reporting ❌; do not arbitrarily pick either side's implementation.
+- Do not report ✅ before Green is confirmed.
+- Do not delete any worktree branch (cleanup is the main skill's responsibility at session end).
 
 '''
 
