@@ -19,6 +19,16 @@ No user confirmation required. The steps below run automatically.
 - **Output**: Archived directories under `.claude/archived/`, a pushed git commit, and the 繁中 session end report.
 - **Automation**: ultracode=neutral, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
+## Invariants
+
+Named red-lines, each enforced by the step in parentheses; none is optional. The step keeps its own if-then recovery — these name the rule it enforces.
+
+- **INV-1 — Allowlist-only archive.** Only the Step 1 `ARCHIVE_DIRS` allowlist is swept; the `read` / `learn` / `book` products and all Claude Code infrastructure (`worktrees/`, `projects/`, `jobs/`, `plugins/`, `settings*.json`) are never archived. (Step 2)
+- **INV-2 — Source dirs are emptied, never deleted.** Archiving moves items out; the source directory itself stays in place. (Step 2)
+- **INV-3 — Never force-push.** `--force` is forbidden on every push; `--force-with-lease` is used only when the user explicitly asks. (Step 4)
+- **INV-4 — No worktree teardown until the work is on origin.** A worktree is destroyed only after `git merge-base --is-ancestor` confirms the branch is on `$SAFE_REF`. (Step 5)
+- **INV-5 — Branch deletion uses `-D`, not `-d`.** After a merge the branch may read as unmerged locally, so `-d` fails. (Step 5)
+
 ## Step 0 — Parse target branch
 
 The optional target-branch argument may be written as `<branch>`, `到 <branch>`, or `to <branch>`. Strip a leading `到` / `to` token and take the next token as `$TARGET`; if no argument is given, `$TARGET` is empty.

@@ -14,9 +14,11 @@
 
 3. **worktree 退出順化 + 安全閘**：Step 5 改為 **ancestor 安全閘** —— 拆除前以 `git merge-base --is-ancestor <branch> <safe-ref>`（Mode B 對 `origin/<target>`、Mode A 對 `origin/<branch>`）確認工作已落地才拆；精準，不像 branch-tip 啟發式會誤拒已合併分支，也不會默默丟棄未合併工作。移除採三段 fallback（`remove` → `--force` → `rm -rf` + `prune`），`branch -D` 保留。
 
-4. **發行**：CLAUDE.md skills 表為通用敘述（archive `.claude/` dirs, commit, push）故 baseline 無需變動；codex 鏡像重產、版本同步 2.4.4。
+4. **`/evolve` 棘輪打磨(dim 5 Constraint Explicitness 6→8)**：跑一輪盲評棘輪,診斷出最弱維為「紅線散在各 step、未具名」,單變數加入具名 `## Invariants` 區塊(INV-1..5),把 allowlist-only、source-emptied-not-deleted、never-force-push、ancestor-gate-before-teardown、`-D`-not-`-d` 提升為綁定 enforcing step 的具名約束。3/3 盲評一致 strict improvement、結構閘過、held-out 獨立驗證 generalization pass(且誠實標出 dim5 7/8 —— 還缺一條 INV-6「目標分支須先存在、不可 force-create」)。
 
-> 設計依據：`/learn` 研究 brief 落於 `.claude/learn/briefs/ship-release-automation-git-branching-strategies.md`（分支策略 / release 自動化 / worktree merged 偵測 / push 安全）。
+5. **發行**:CLAUDE.md skills 表為通用敘述故 baseline 無需變動;codex 鏡像重產、版本同步 2.4.4。
+
+> 設計依據:`/learn` 研究 brief 落於 `.claude/learn/briefs/ship-release-automation-git-branching-strategies.md`;`/evolve` 演化包落於 `.claude/evolve/ship/`(report / results.tsv / held-out / log)。
 
 ## v2.4.3 (2026-06-16)
 
