@@ -2,6 +2,22 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.4.4 (2026-06-16)
+
+**`/ship` 能力演化（由真實收尾摩擦驅動，先 `/learn` 業界做法再改）**。plugin version 2.4.3 → 2.4.4。
+
+### Changed — 變更
+
+1. **歸檔範圍擴大（白名單）**：Step 1/2 歸檔來源由 `{tmp,analyze,execute,think}` 擴為涵蓋全部 baransu 工作目錄 `{tmp,analyze,execute,think,design,hunt-report,evolve,review}`；`read/learn/book` 為保留產物不歸檔；Claude Code 基礎設施（worktrees/projects/jobs/settings…）以白名單機制天然不受影響。
+
+2. **可指定 ship 到目標分支**：新增 Step 0 解析 `/ship <branch>`／`/ship 到 <branch>`／`/ship to <branch>`。land-on-target 模式（GitHub Flow 心智）將當前 worktree 分支 `merge --no-ff` 進目標分支再 push 目標；**絕不 `--force`**，遇 non-fast-forward 先 `pull --no-rebase` 再推一次。
+
+3. **worktree 退出順化 + 安全閘**：Step 5 改為 **ancestor 安全閘** —— 拆除前以 `git merge-base --is-ancestor <branch> <safe-ref>`（Mode B 對 `origin/<target>`、Mode A 對 `origin/<branch>`）確認工作已落地才拆；精準，不像 branch-tip 啟發式會誤拒已合併分支，也不會默默丟棄未合併工作。移除採三段 fallback（`remove` → `--force` → `rm -rf` + `prune`），`branch -D` 保留。
+
+4. **發行**：CLAUDE.md skills 表為通用敘述（archive `.claude/` dirs, commit, push）故 baseline 無需變動；codex 鏡像重產、版本同步 2.4.4。
+
+> 設計依據：`/learn` 研究 brief 落於 `.claude/learn/briefs/ship-release-automation-git-branching-strategies.md`（分支策略 / release 自動化 / worktree merged 偵測 / push 安全）。
+
 ## v2.4.3 (2026-06-16)
 
 **English-body 慣例落實**：把「agent-facing 內文一律英文、僅使用者輸出與 `/write` 內容留中文」這條從一句宣告，擴寫成可執行慣例並全面落實。plugin version 2.4.2 → 2.4.3。
