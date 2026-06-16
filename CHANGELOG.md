@@ -2,6 +2,22 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.4.5 (2026-06-16)
+
+**`/evolve` dogfood:用 /evolve 演化 /evolve 自己,2 輪盲評棘輪(結構軸 44→48)**。plugin version 2.4.4 → 2.4.5。
+
+### Fixed — 修正
+
+1. **Stage 3 結構閘對「有 references/ 的 skill」假性失敗(dim 3,headroom 最大)**:原指令 `verify-skills.py <skill_dir>` 會被 verify-skills 當成 skills-root 迭代,把 skill 自己的 `references/`/`scripts/` 子目錄誤掃成 skill → 噴 `references: 缺 SKILL.md` exit 1。這讓 /evolve 對 book/design/evolve **自己** 等含 references/ 的 skill 整輪 produce nothing。改為 whole-repo 無參數模式 + 寫明陷阱。3 位盲評委各自 trace `verify-skills.py` + test fixture 實證確認。
+
+2. **Stage 7 成果卡未持久化(dim 4)**:原「render the result card through /book」沒明說落地路徑,`成果卡`/`card.png`/「透過 /book」三方命名不一致 —— 導致上一輪 evolve 只送出暫存 PNG、沒進演化包。釘死所有工件落地 `.claude/evolve/<slug>/`、成果卡 = `card.png`、補 `convergence.svg` 語意。
+
+### Notes
+
+- 兩輪皆 3/3 盲評 strict improvement、0 revert、dry-run 0%;held-out 獨立層驗證 generalization pass(`硬證據`):dim-3 修正泛化到 book/design,dim-4 工件釘定 target-agnostic。
+- 演化包(含本次 dogfood 正確落地的 `card.png`)落於 `.claude/evolve/evolve/`。
+- 開放後續(非回歸):`held-out.md` inline 路徑、`safety-gates.md` Gate 4 殘留 `<skill_dir>` 字樣。
+
 ## v2.4.4 (2026-06-16)
 
 **`/ship` 能力演化（由真實收尾摩擦驅動，先 `/learn` 業界做法再改）**。plugin version 2.4.3 → 2.4.4。

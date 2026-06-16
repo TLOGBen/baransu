@@ -59,7 +59,7 @@ Apply exactly one change, targeting only the weakest dimension, into a scratch c
 
 ## Stage 3 — Structure gate (before any judging matters)
 
-Run `python3 scripts/verify-skills.py <skill_dir>` on the mutated copy. **Keep is only possible** if exit code is 0 **and** stdout carries no `⚠️ ADVISORY` line (a body-bloat advisory returns exit 0 but must be read and treated as a failure). On failure: restore the snapshot and skip to Stage 6 — this round produced nothing. Score never overrides structure (`references/safety-gates.md` Gate 4).
+Run `python3 scripts/verify-skills.py` (no argument — repo mode) over the repo containing the mutated copy, then read the mutated skill's line in the output. Do **not** pass the skill dir as an argument: verify-skills treats its arg as a skills-root to iterate, so the single-dir form mis-scans the skill's own `references/` / `scripts/` subdirs as skills and emits a false `references: 缺 SKILL.md` failure (this breaks every skill-with-`references/`, including evolve itself). **Keep is only possible** if exit code is 0 **and** stdout carries no `⚠️ ADVISORY` line (a body-bloat advisory returns exit 0 but must be read and treated as a failure). On failure: restore the snapshot and skip to Stage 6 — this round produced nothing. Score never overrides structure (`references/safety-gates.md` Gate 4).
 
 ## Stage 4 — Effectiveness axis (real-exec or offline)
 
@@ -84,7 +84,7 @@ Dispatch **three fresh evolve-judge agents in parallel**. Present the pre- and p
 
 - **Converge** when the no-progress counter reaches **N=3** consecutive rounds, or the round cap **R=6** total rounds is hit. Otherwise loop back to Stage 1.
 - **Held-out**: validate the converged version on the held-out set with an **independence layer** (default: a separate judge pool; options: different rubric weighting, or human ground-truth). Write `held-out.md` with the evidence-strength label (`硬證據` only if an independence layer was applied; otherwise `題目泛化證據`). See `references/output-contract.md`.
-- **Package**: write `results.tsv`, `convergence.svg`, `report.md` (start/end score, dry_run ratio, per-axis evidence source). **Make the user-facing surfaces human-readable — draft the convergence summary and the card copy through `/write` (zh), then render the result card through `/book` (never hand-assemble HTML); see `references/output-contract.md` §Human-readable delivery.** Surface the `/write`-refined 繁中 convergence summary, not the raw round-by-round trace.
+- **Package**: write `results.tsv`, `convergence.svg` (the score-over-rounds curve; the effective baseline steps up on keeps only), and `report.md` (start/end score, dry_run ratio, per-axis evidence source) — every artifact lands in `.claude/evolve/<slug>/`. **Make the user-facing surfaces human-readable — draft the convergence summary and the card copy through `/write` (zh), then render the result card through the `/book` entry (never hand-assemble HTML) and write it to `.claude/evolve/<slug>/card.png` (the durable card artifact named in `references/output-contract.md`); see that file's §Human-readable delivery.** Surface the `/write`-refined 繁中 convergence summary, not the raw round-by-round trace.
 
 ## Provenance + optional engine
 
