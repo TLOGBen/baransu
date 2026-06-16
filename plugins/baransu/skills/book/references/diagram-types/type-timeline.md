@@ -6,27 +6,27 @@ example: inline
 
 # Timeline
 
-**Best for**: release 歷史、project milestone、事故時間線（incident timeline）、roadmap、changelog 視覺化。
+**Best for**: release history, project milestones, incident timelines, roadmap, changelog visualization.
 
 ## Layout conventions
 
-- 中央一條 horizontal hairline baseline（`stroke-width=1`，`--color-muted`）；tick marks 落在 time boundary（quarters / months / sprints），下方 date label 用 `--font-mono`。
-- Event 為 baseline 上 small filled circle（`r=4`，`--ink`）；label 上下交替排列以避免碰撞，靠 1px hairline drop 連回 circle。
-- Major milestone 為 `--brand` 顏色的 circle（`r=6`）+ `--font-sans` bold label；一張圖只 highlight 真正的「里程碑」，不可每個 event 都標 brand。
-- 時間刻度必須誠實：間隔不等時 circle 間距也必須不等；密度過高的區段顯式做 axis break，不為美觀偽造 linear spacing。
+- A single central horizontal hairline baseline (`stroke-width=1`, `--color-muted`); tick marks land on time boundaries (quarters / months / sprints), with the date label below in `--font-mono`.
+- An event is a small filled circle on the baseline (`r=4`, `--ink`); labels alternate above and below to avoid collisions, connecting back to the circle via a 1px hairline drop.
+- A major milestone is a `--brand`-colored circle (`r=6`) + a `--font-sans` bold label; a single diagram highlights only the true "milestones" — not every event should be marked with brand.
+- Time scale must be honest: when intervals are unequal, circle spacing must be unequal too; in over-dense segments do an explicit axis break, never faking linear spacing for aesthetics.
 
 ## Anti-patterns
 
-- 把時間上不等距的 event 等距排列。
-  - *Why fails*：timeline 唯一的語意承諾就是「x 軸代表時間」；等距排列把不等變相等，讀者會誤判 release cadence 或事故頻率，圖直接說謊。
-- 缺少 axis 單位 label（「這是 day / week / quarter？」）。
-  - *Why fails*：timeline 的 tick 數字（如 `2024-Q1`）必須有單位 context，否則 `Q1` 跟 `Sprint 1` 在視覺上長一樣；缺單位 = reader 必須回 prose 推測，違背 diagram 自我承載的原則。
-- 多個 label 沒做垂直 offset，全擠在 baseline 一側。
-  - *Why fails*：相鄰 event 的 label 會互相 overlap 到看不清字；timeline 規範 label 必須上下交替排列正是為了在 1D 空間用 2D 來解決碰撞，省略此 offset 等於放棄可讀性。
+- Spacing temporally unequal events at equal distances.
+  - *Why fails*: a timeline's sole semantic promise is "the x-axis represents time"; equal spacing turns unequal into equal, and the reader misjudges release cadence or incident frequency — the diagram simply lies.
+- Missing an axis unit label ("is this day / week / quarter?").
+  - *Why fails*: a timeline's tick numbers (e.g. `2024-Q1`) need unit context, otherwise `Q1` and `Sprint 1` look the same visually; no unit = the reader must go back to the prose to guess, violating the principle that a diagram should be self-carrying.
+- Multiple labels with no vertical offset, all crammed on one side of the baseline.
+  - *Why fails*: labels of adjacent events overlap to the point of illegibility; the timeline convention that labels must alternate above and below exists precisely to use 2D to resolve collisions in a 1D space — omitting this offset means giving up readability.
 
 ## Examples
 
-Inline example below — 6-milestone release timeline（`v0.1 → v0.5 → v1.0[focal] → v1.1 → v1.2 → v2.0`），horizontal baseline + alternating date / label，chevron markers 在每個 milestone connector 上。完整 `<defs>` 三 chevron marker、兩層 paper-mask、1 個 `data-role="focal"` milestone（v1.0 release）、節點寬 2 檔白名單 `{128, 160}`、legend strip、所有 `x/y/width/height` 為 4 的倍數。Baseline tick circle 屬於 sub-primitive（< 40px），不計入 node-width 白名單。
+Inline example below — a 6-milestone release timeline (`v0.1 → v0.5 → v1.0[focal] → v1.1 → v1.2 → v2.0`), horizontal baseline + alternating date / label, chevron markers on each milestone connector. Complete `<defs>` with three chevron markers, two paper-mask layers, 1 `data-role="focal"` milestone (v1.0 release), a node-width whitelist of 2 values `{128, 160}`, a legend strip, and all `x/y/width/height` as multiples of 4. The baseline tick circle is a sub-primitive (< 40px) and does not count toward the node-width whitelist.
 
 ```html
 <figure class="diagram">
@@ -49,9 +49,9 @@ Inline example below — 6-milestone release timeline（`v0.1 → v0.5 → v1.0[
       </marker>
     </defs>
 
-    <!-- Paper-mask layer 1（強制） -->
+    <!-- Paper-mask layer 1 (required) -->
     <rect width="100%" height="100%" fill="#f5f4ed"/>
-    <!-- Paper-mask layer 2（可選 dotted overlay） -->
+    <!-- Paper-mask layer 2 (optional dotted overlay) -->
     <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
 
     <!-- ===== AXIS BASELINE ===== -->
@@ -66,7 +66,7 @@ Inline example below — 6-milestone release timeline（`v0.1 → v0.5 → v1.0[
           font-family="'Geist Mono', ui-monospace, monospace"
           text-anchor="middle" letter-spacing="0.14em">RELEASE TIMELINE (quarters)</text>
 
-    <!-- ===== MILESTONE CONNECTOR ARROWS（chevron between events） ===== -->
+    <!-- ===== MILESTONE CONNECTOR ARROWS (chevron between events) ===== -->
     <!-- v0.1 → v0.5 -->
     <line x1="156" y1="304" x2="220" y2="304"
           stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>

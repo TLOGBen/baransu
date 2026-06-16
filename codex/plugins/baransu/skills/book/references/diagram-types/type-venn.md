@@ -6,27 +6,27 @@ example: inline
 
 # Venn / Set Overlap
 
-**Best for**: 概念 / 領域交集、跨類別的共同屬性、「A 與 B 交會處」、ikigai-style frame（desirable × feasible × viable）、定位 sweet spot。
+**Best for**: concept / domain intersections, shared attributes across categories, "where A meets B", ikigai-style frame (desirable × feasible × viable), locating a sweet spot.
 
 ## Layout conventions
 
-- **優先用 2 或 3 個圓**，避免 4+（不可讀，改用 matrix）；圓 stroke 1px hairline，每個 set 一個色（`--ink` / `--color-muted` / soft）。
-- 圓 fill 走極低 opacity tint（`--ink @ 0.04` 或 `--color-muted @ 0.05`），overlap 區會自然疊出較深底；radii 在 set 大小相當時等大，差異有意義時按比例縮放，**不為美觀偽造等大**。
-- **Set label 放在圓外**，絕不跨 stroke；`--font-sans` 12–14px 600 為 set name，可選 `--font-mono` 9px sublabel。
-- **Intersection label** 放在 overlap 區內，`--font-sans` 12px 600 置中；overlap 過小時用 leader line 引出到 clear space；`--brand` 只上在**單一 focal 交集**（sweet spot），可選 brand stroke 或 clipPath-bounded brand tint fill；圓心與半徑皆可被 4 整除。
+- **Prefer 2 or 3 circles**, avoid 4+ (unreadable — switch to matrix); circle stroke 1px hairline, one color per set (`--ink` / `--color-muted` / soft).
+- Circle fill uses an extremely low-opacity tint (`--ink @ 0.04` or `--color-muted @ 0.05`), so the overlap region naturally builds a darker ground; radii are equal when sets are comparable in size and scaled proportionally when the difference is meaningful — **do not fake equal sizes for aesthetics**.
+- **Place set labels outside the circles**, never crossing a stroke; `--font-sans` 12–14px 600 for the set name, optional `--font-mono` 9px sublabel.
+- **Intersection labels** go inside the overlap region, `--font-sans` 12px 600 centered; when the overlap is too small, pull the label out to clear space with a leader line; `--brand` is applied only to the **single focal intersection** (sweet spot), optionally as a brand stroke or clipPath-bounded brand tint fill; circle centers and radii are all divisible by 4.
 
 ## Anti-patterns
 
-- 區域未 label（讀者無法分辨哪個圓是哪個 set）。
-  - *Why fails*：venn 的整個價值是「set 名 + 交集 label」帶來的語意；缺 label 只剩拓樸（兩個圓重疊）讀者必須回 prose 推敲哪個圓代表什麼，圖等同失效。
-- 該重疊的圓未重疊（畫成相切或分離）。
-  - *Why fails*：venn 的視覺承諾就是「重疊區存在 = 元素同時屬於多個 set」；不重疊等於宣告交集為空，與要表達的 sweet spot 語意直接矛盾。
-- Set 大小明顯不同卻畫成等大圓。
-  - *Why fails*：圓面積在讀者潛意識中對應 set 規模；等大圓會誤導對相對大小的判斷，例如把 1% 邊角案例與 80% 主流情境放在等大圓上，圖在量級上說謊。
+- Regions left unlabeled (the reader can't tell which circle is which set).
+  - *Why fails*: the entire value of a venn is the meaning carried by "set name + intersection label"; without labels only the topology remains (two overlapping circles) and the reader must go back to the prose to work out what each circle represents — the diagram is effectively useless.
+- Circles that should overlap don't (drawn tangent or separate).
+  - *Why fails*: the visual promise of a venn is "an overlap region exists = elements belong to multiple sets at once"; no overlap declares the intersection empty, directly contradicting the sweet-spot meaning you're trying to convey.
+- Sets that are clearly different in size drawn as equal circles.
+  - *Why fails*: circle area maps to set scale in the reader's subconscious; equal circles mislead the judgment of relative size — e.g. putting a 1% edge case and an 80% mainstream scenario on equal circles makes the diagram lie about magnitude.
 
 ## Examples
 
-Inline example below — 3-circle 經典 Venn（ikigai-style：Desirable × Feasible × Viable），7 區齊備（3 single + 3 double + 1 triple intersection at 中心 [focal]）。`<circle>` 不入 rect 寬白名單；頂端 128-wide title callout `<rect>` 滿足白名單。完整 `<defs>` 三 chevron marker（皆於 legend 引用）、兩層 paper-mask、1 個 `data-role="focal"` 節點（triple-intersection callout）、所有 `cx/cy/r` 與 `x/y/width/height` 為 4 的倍數。
+Inline example below — classic 3-circle Venn (ikigai-style: Desirable × Feasible × Viable), all 7 regions present (3 single + 3 double + 1 triple intersection at the center [focal]). `<circle>` is not on the rect width allowlist; the 128-wide title callout `<rect>` at the top satisfies the allowlist. Complete `<defs>` with three chevron markers (all referenced in the legend), two paper-mask layers, 1 `data-role="focal"` node (triple-intersection callout), and all `cx/cy/r` and `x/y/width/height` as multiples of 4.
 
 ```html
 <figure class="diagram">

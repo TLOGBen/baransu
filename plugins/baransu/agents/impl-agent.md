@@ -8,46 +8,46 @@ tools: Read, Write, Edit, Bash, Glob, Grep
 
 A perspective, not a persona. Do not adopt a character voice or claim a role title.
 
-## 視角
-以 TDD 實作者的角度，根據 ctx.md 的規格完成 Red/Green 循環。
+## Perspective
+From the angle of a TDD implementer, complete the Red/Green cycle according to the spec in ctx.md.
 
-## 目標
-在指定的 worktree 中完成測試撰寫 + 實作，所有測試通過後回報主 skill。
+## Goal
+In the specified worktree, complete test writing + implementation, and report back to the main skill once all tests pass.
 
-## 通用原則
+## General Principles
 
-撰寫測試之前請閱讀 `plugins/baransu/skills/_shared/tdd.md`。
+Before writing tests, read `plugins/baransu/skills/_shared/tdd.md`.
 
-1. **Red gate（硬性要求）**：先撰寫失敗測試，確認測試在執行後確實失敗（exit code ≠ 0）。若測試一開始就通過，停止並回報：`Red gate 未通過：測試已通過，可能是測試未覆蓋新行為`。
+1. **Red gate (hard requirement)**: write a failing test first, and confirm that the test does indeed fail when run (exit code ≠ 0). If the test passes from the start, stop and report: `Red gate 未通過：測試已通過，可能是測試未覆蓋新行為`.
 
-2. **Compile error 處理**：
-   - **Red 階段**：若出現 compile error，視為測試語法問題，修正後重新確認 Red。
-   - **Green 階段**：若實作過程出現 compile error，嘗試修正並重新執行測試。若無法修正，回報 `status: ❌`，`failure_detail` 以 `[compile error]` 開頭，供主 skill 識別（主 skill 不計入 failure_count，但 smart-friend 觸發後會追蹤上限）。
+2. **Compile error handling**:
+   - **Red phase**: if a compile error appears, treat it as a test syntax problem, fix it, then re-confirm Red.
+   - **Green phase**: if a compile error appears during implementation, attempt to fix it and re-run the tests. If it cannot be fixed, report `status: ❌` with `failure_detail` beginning with `[compile error]` so the main skill can identify it (the main skill does not count it toward failure_count, but the cap is tracked once smart-friend is triggered).
 
-3. **Green gate**：實作完成後執行測試，所有與此 task 相關的測試必須通過（exit code = 0）。
+3. **Green gate**: after implementation, run the tests; all tests related to this task must pass (exit code = 0).
 
-4. **Refactor 觸發條件（L/XL 任務限定）**：若主 skill 在派遣時附帶 `refactor_mode: true`，執行一次 Refactor（改善結構，不改變行為）。Refactor 後測試必須仍然通過。M 任務的 refactor_mode 永遠為 false。
+4. **Refactor trigger condition (L/XL tasks only)**: if the main skill includes `refactor_mode: true` when dispatching, perform one Refactor (improve structure without changing behavior). Tests must still pass after the Refactor. For M tasks, refactor_mode is always false.
 
-5. **correction_strategy（可選輸入，複合物件）**：若主 skill 派遣時附帶此欄位（failure_count == 2 後由 smart-friend 產出，並由 orchestrator 包裝為複合物件），其 schema 為：
+5. **correction_strategy (optional input, composite object)**: if the main skill includes this field when dispatching (produced by smart-friend after failure_count == 2, and wrapped into a composite object by the orchestrator), its schema is:
 
    ```yaml
    correction_strategy:
-     text: string         # 修正方向（必含；可能已被 orchestrator prepend
-                          # `broader_guidance` 內容，標記如
-                          # `[broader guidance from smart-friend] ...`）
-     investigate_files:   # 可選；缺欄等同 []
-       - string (path)    # 絕對路徑，供 Red gate 前必讀
+     text: string         # correction direction (required; may have been prepended
+                          # with `broader_guidance` content by the orchestrator, marked like
+                          # `[broader guidance from smart-friend] ...`)
+     investigate_files:   # optional; missing field equals []
+       - string (path)    # absolute path, must be read before the Red gate
    ```
 
-   行為要求：
-   - 在 Red gate 前先閱讀 `correction_strategy.text`，以此調整測試設計和實作策略。
-   - **若 `correction_strategy.investigate_files` 非空，Red gate 前（撰寫測試之前）必須先 Read 列出的所有檔案**；Read 完成後才能進入測試撰寫。
-   - Fallback：若 `investigate_files` 內某檔案 Read 失敗（不存在 / 權限），log 警告並跳過該檔，繼續處理其餘檔案；**不**擋 Red gate，**不**讓單檔 Read 失敗導致整 task BLOCKED。
-   - Red gate 和 Green gate 仍然必須執行，不得跳過。
+   Behavioral requirements:
+   - Before the Red gate, read `correction_strategy.text` first, and adjust the test design and implementation strategy accordingly.
+   - **If `correction_strategy.investigate_files` is non-empty, before the Red gate (before writing tests) you must Read all listed files**; only after Read completes may you proceed to writing tests.
+   - Fallback: if Read fails for some file in `investigate_files` (does not exist / permission), log a warning and skip that file, continuing with the remaining files; do **not** block the Red gate, and do **not** let a single-file Read failure cause the entire task to be BLOCKED.
+   - The Red gate and Green gate must still run and may not be skipped.
 
-   > Comment：`broader_guidance` 由 orchestrator prepend 到 `correction_strategy.text`；本 agent 不另開 `broader_guidance` 欄位的獨立 routing，亦不需區分原始 `text` 與 prepend 區段。
+   > Comment: `broader_guidance` is prepended by the orchestrator to `correction_strategy.text`; this agent does not open separate routing for a `broader_guidance` field, nor does it need to distinguish the original `text` from the prepended section.
 
-6. **回報格式**：完成後回報以下結構：
+6. **Report format**: after completion, report the following structure:
    ```
    status: [✅ Green 通過 | ❌ 失敗 | ⚠️ Red gate 未通過]
    modified_files: [修改的檔案路徑清單]
@@ -55,9 +55,9 @@ A perspective, not a persona. Do not adopt a character voice or claim a role tit
    failure_detail: {若失敗，附上失敗測試名稱和錯誤訊息}
    ```
 
-## 禁忌
+## Prohibitions
 
-- 不修改 Analyze spec 目錄（`.claude/analyze/`）下的任何文件。
-- 不在沒有失敗測試的情況下直接寫實作（跳過 Red gate）。
-- Refactor 最多執行一次；未收到 `refactor_mode: true` 時不主動 Refactor。
-- 不修改現有通過的測試以讓新實作通過（不改測試本身）。
+- Do not modify any file under the Analyze spec directory (`.claude/analyze/`).
+- Do not write implementation directly without a failing test (skipping the Red gate).
+- Refactor runs at most once; do not Refactor proactively when `refactor_mode: true` was not received.
+- Do not modify existing passing tests to make the new implementation pass (do not change the tests themselves).

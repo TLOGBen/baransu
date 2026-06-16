@@ -6,33 +6,33 @@ example: inline
 
 # Architecture
 
-**Best for**: 系統概覽（system overview）、資料流圖（data-flow）、整合 map（integration map）、基礎設施拓樸（infra topology）、元件 + 連線（components & connections）。
+**Best for**: system overview、data-flow diagrams、integration map、infra topology（infrastructure topology）、components & connections.
 
 ## Layout conventions
 
-- 依 tier 或 trust boundary 分群（frontend → backend → data；public → private）；同群節點水平或垂直對齊，群間以間距區隔，不靠連線去暗示分層。
-- 主流方向選 LTR 或 TTB 一個守一個；不要在同一張圖內混用兩個主流方向。次要回饋線（callback、retry）可逆向，但箭頭一定要顯式標出。
-- 線先畫、boxes 後畫：SVG 內箭頭 `<line>` 先進 DOM，節點 `<rect>` / `<g>` 後進，z-order 才會把連線壓在節點底下，避免箭頭尾巴穿過節點外框。
-- 1–2 個焦點節點用 `data-role="focal"` 屬性標記（**非** class）；焦點節點視覺走 `--brand-tint` 填色 + `--brand` 描邊，並以 `marker-end="url(#arrow-accent)"` 收尾。每張 SVG 最多 2 個 focal，超過則「重點」就消失。
-- Dashed boundary rectangle 標 region（VPC、security group、trust zone）；boundary 標籤坐在 `--parchment` 色 mask 上，覆蓋 dashed 線條與標籤交會處，避免線壓字。
-- 節點寬度只用 3 檔白名單 {128 / 144 / 160}（Kami diagrams.md L79；單張 SVG 最多混 2 檔），不要每個節點寬度自由發揮；視覺節律一致時讀者掃讀速度才會穩定。
-- 節點內嵌字 14–24px：超過 24 看起來像 hero、低於 14 在 1× SVG 下會糊。標題用 `--font-sans`、metric / id 用 `--font-mono`、單位用 `--color-muted`。
-- 三個 marker（`arrow` / `arrow-accent` / `arrow-link`）在 `<defs>` 內統一定義，屬性固定 `markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"`；不再手寫箭頭 path，避免 viewBox 縮放下對位偏差。
+- Group by tier or trust boundary (frontend → backend → data; public → private); align same-group nodes horizontally or vertically, separate groups with spacing — don't rely on connections to imply layering.
+- Pick one main flow direction, LTR or TTB, and stick to it; never mix two main flow directions within one diagram. Secondary feedback lines (callback, retry) may run in reverse, but their arrows must be explicitly marked.
+- Draw lines first, boxes second: in the SVG, arrow `<line>` elements enter the DOM first and node `<rect>` / `<g>` elements after, so that z-order pushes connections beneath nodes and arrow tails don't pierce node outlines.
+- Mark 1–2 focal nodes with the `data-role="focal"` attribute (**not** a class); focal nodes use `--brand-tint` fill + `--brand` stroke and terminate with `marker-end="url(#arrow-accent)"`. At most 2 focal per SVG — beyond that the "emphasis" disappears.
+- A dashed boundary rectangle marks a region (VPC, security group, trust zone); the boundary label sits on a `--parchment`-colored mask that covers the intersection of the dashed line and the label, so the line doesn't cross the text.
+- Use only the 3-step width whitelist {128 / 144 / 160} (Kami diagrams.md L79; mix at most 2 steps per SVG); don't let each node's width vary freely — readers scan at a stable speed only when the visual rhythm is consistent.
+- Node embedded text is 14–24px: above 24 it looks like a hero, below 14 it blurs in a 1× SVG. Use `--font-sans` for titles, `--font-mono` for metric / id, and `--color-muted` for units.
+- The three markers (`arrow` / `arrow-accent` / `arrow-link`) are defined once inside `<defs>` with fixed attributes `markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"`; never hand-write arrow paths, to avoid alignment drift under viewBox scaling.
 
 ## Anti-patterns
 
-- **每個 box 都 focal**（全部 `--brand-tint` 填、`--brand` 描邊）。
-  - *Why fails*：focal 的本質是相對比較——當所有節點都「重點」，視覺階層就崩，讀者無法在 3 秒內鎖定主流路徑或主整合點，圖等同沒有重點。
-- **雙向箭頭當單向意義已經明確**（例如 `Browser ↔ CDN`，但實際只關心讀取路徑）。
-  - *Why fails*：雙向箭頭增加一個方向的雜訊，讀者得多花一拍判斷「這條線到底要看哪一邊」；同時讓真正需要雙向語意的節點（如 cache write-back）失去辨識度。
-- **Legend 飄在 diagram canvas 內**，與節點或連線重疊。
-  - *Why fails*：legend 是 meta-information，與 diagram body 屬不同閱讀層級；放在 canvas 內會與節點碰撞、被連線穿過，讀者得在「讀圖」與「對照 legend」之間反覆切換視焦。應放在 SVG 底部約 60px 的 legend strip（hairline 隔開、horizontal items）或 canvas 外。
-- **用顏色標 node type 而非用 shape**（例如所有 service 用紅色、所有 datastore 用藍色）。
-  - *Why fails*：Kami 規格僅給三個語意色（`--brand` / `--brand-tint` / `--color-muted`），多餘的色彩會 over-load 配色系統，與 focal 的語意衝突，色盲讀者也無法分辨；type 區分應走 shape（rect / cylinder / hexagon）或 dashed border，把色彩留給 focal 與 boundary。
+- **Every box is focal** (all `--brand-tint` fill, `--brand` stroke).
+  - *Why fails*: focal is inherently a relative comparison — when every node is "emphasized," the visual hierarchy collapses, the reader can't lock onto the main path or principal integration point within 3 seconds, and the diagram effectively has no emphasis.
+- **A bidirectional arrow where the one-way meaning is already clear** (e.g. `Browser ↔ CDN`, when only the read path actually matters).
+  - *Why fails*: the bidirectional arrow adds noise in one extra direction, forcing the reader to spend an extra beat deciding "which side of this line do I read"; it also robs the nodes that genuinely need bidirectional semantics (such as cache write-back) of their distinctiveness.
+- **The legend floats inside the diagram canvas**, overlapping nodes or connections.
+  - *Why fails*: the legend is meta-information, at a different reading level from the diagram body; placed inside the canvas it collides with nodes and gets crossed by connections, forcing the reader to shift focus back and forth between "reading the diagram" and "consulting the legend." Put it in a legend strip about 60px from the bottom of the SVG (separated by a hairline, horizontal items) or outside the canvas.
+- **Marking node type by color rather than by shape** (e.g. all services red, all datastores blue).
+  - *Why fails*: the Kami spec gives only three semantic colors (`--brand` / `--brand-tint` / `--color-muted`); extra colors over-load the palette system, conflict with the semantics of focal, and can't be distinguished by colorblind readers. Type distinction should go through shape (rect / cylinder / hexagon) or a dashed border, leaving color for focal and boundary.
 
 ## Examples
 
-Inline example below — 6-node microservice topology（User → CDN → API[focal] → DB；側支 Auth、Cache、Queue）。完整 `<defs>` 三 chevron marker（`#arrow` / `#arrow-accent` / `#arrow-link`，皆 `path d="M2 1 L8 5 L2 9"` 描線 chevron）、兩層 paper-mask、1 個 `data-role="focal"` 節點、節點寬 2 檔白名單 `{128, 160}`、legend strip 與所有 `x/y/width/height` 為 4 的倍數。複製此 `<figure class="diagram">` block 後改節點即可重用。
+Inline example below — 6-node microservice topology (User → CDN → API[focal] → DB; side branches Auth, Cache, Queue). A complete `<defs>` with three chevron markers (`#arrow` / `#arrow-accent` / `#arrow-link`, all stroke-drawn chevrons via `path d="M2 1 L8 5 L2 9"`), two paper-mask layers, 1 `data-role="focal"` node, the 2-step node-width whitelist `{128, 160}`, a legend strip, and all `x/y/width/height` as multiples of 4. Copy this `<figure class="diagram">` block and swap the nodes to reuse it.
 
 ```html
 <figure class="diagram">

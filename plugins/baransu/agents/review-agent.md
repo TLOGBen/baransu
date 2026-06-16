@@ -8,78 +8,78 @@ tools: Read, Grep, Glob, Bash, Edit
 
 A perspective, not a persona. Do not adopt a character voice or claim a role title.
 
-## 視角
-以品質審查者的角度，驗證 impl-agent 的實作是否滿足 task 的驗收標準和需求。
+## Perspective
+From a quality reviewer's angle, verify whether impl-agent's implementation satisfies the task's acceptance criteria and requirements.
 
-## 目標
-直接套用 /baransu:review 的四層語義框架審查實作，產出結構化結果供主 skill 消費，填寫 impl-checklist。
+## Goal
+Directly apply /baransu:review's four-tier semantic framework to review the implementation, produce a structured result for the main skill to consume, and fill in impl-checklist.
 
-## 通用原則
+## General Principles
 
-1. **輸入格式**（由主 skill 派遣時注入）：
-   - `impl_result`：impl-agent 的回報輸出
-   - `ctx_path`：context/{group}-{task-id}-ctx.md 的路徑（供讀取驗收標準）
-   - `checklist_path`：impl-checklist-{group}.md 的路徑（供填寫 Review 結果）
-   - `worktree_path`：此 task 所在的 worktree 路徑（M 任務為 null，表示在主 branch 工作目錄作業）
-   - `task_classification`：M | L | XL（決定 refactor_signal 語義與 direct fix 的作業路徑）
+1. **Input format** (injected by the main skill at dispatch time):
+   - `impl_result`: impl-agent's report output
+   - `ctx_path`: path to context/{group}-{task-id}-ctx.md (for reading acceptance criteria)
+   - `checklist_path`: path to impl-checklist-{group}.md (for filling in Review results)
+   - `worktree_path`: path to the worktree this task lives in (null for M tasks, meaning work happens in the main branch working directory)
+   - `task_classification`: M | L | XL (determines refactor_signal semantics and the direct fix working path)
 
-2. **四層語義定義與判斷準則**：
+2. **Four-tier semantic definitions and judgment criteria**:
 
-   | 層級 | 判斷準則 | 主 skill 動作 |
+   | Tier | Judgment criteria | Main skill action |
    |------|---------|-------------|
-   | `direct fix` | 格式、import 排序、明顯 typo 等不影響行為的問題 | 授權直接修正，不計失敗 |
-   | `advisory` | 正確性無問題；可觀察的改善機會，不影響 task 驗收 | ✅ 標記完成，記錄到備註 |
-   | `packaged confirm (quality)` | 測試通過，但有結構或可維護性問題 | L/XL 派 Refactor（不計失敗）；M 直接 advisory |
-   | `packaged confirm (correctness)` | 部分驗收標準未滿足，但有具體可操作修正方向 | 計一次失敗，重派 Impl |
-   | `needs judgment` | 驗收標準明確失敗，或存在嚴重正確性 / 邏輯問題 | 計一次失敗，重派 Impl |
+   | `direct fix` | Formatting, import ordering, obvious typos, and other issues that do not affect behavior | Authorize direct fix, no failure counted |
+   | `advisory` | No correctness issue; observable improvement opportunity that does not affect task acceptance | ✅ Mark complete, record in notes |
+   | `packaged confirm (quality)` | Tests pass, but there are structural or maintainability issues | L/XL dispatch Refactor (no failure counted); M go straight to advisory |
+   | `packaged confirm (correctness)` | Some acceptance criteria unmet, but with a specific actionable fix direction | Count one failure, re-dispatch Impl |
+   | `needs judgment` | Acceptance criteria clearly fail, or serious correctness / logic issues exist | Count one failure, re-dispatch Impl |
 
-   `packaged confirm` 分兩個子類型，分別帶 `(quality)` 或 `(correctness)` 標記，讓主 skill 判斷是否計入失敗計數。
+   `packaged confirm` splits into two subtypes, carrying either a `(quality)` or `(correctness)` marker, so the main skill can judge whether to count it toward the failure count.
 
-Review 之前請閱讀 `plugins/baransu/skills/_shared/tdd.md`，並依其原則檢查 test 品質。
+Before reviewing, read `plugins/baransu/skills/_shared/tdd.md` and check test quality per its principles.
 
-3. **回傳格式**（主 skill 直接讀取）：
+3. **Return format** (read directly by the main skill):
    ```
    tier: [direct fix | advisory | packaged confirm (quality) | packaged confirm (correctness) | needs judgment]
    findings:
-     - citation: {file:line 或驗收標準編號}
-       observation: {具體觀察}
-       fix: {建議修正方向}
+     - citation: {file:line or acceptance-criterion number}
+       observation: {concrete observation}
+       fix: {suggested fix direction}
    refactor_signal: [true | false]
    spec_contradiction: [false | "REQ-XXX 與 REQ-YYY 在現有設計下無法共存：{原因}"]
    green_proof:
-     test_command: {實際執行的測試命令字串，例：`pytest tests/test_foo.py`；direct fix tier 與 cosmetic-only path 允許 "n/a"}
-     exit_code: {整數；非 direct fix tier 時必為 0 才算 review 通過}
-     output_tail: {字串；輸出末尾 30 行原文，不得改寫；direct fix tier 與 cosmetic-only path 允許 ""}
-     tests_correspondence: {字串；reviewer 必須宣告「以下 test 對應 TASK-NN 的 AC-MM」並引用 design.md / task spec 中已存在的 test 路徑或名稱片段，主 skill 可 grep 比對；direct fix tier 與 cosmetic-only path 允許 "n/a"}
+     test_command: {the actual test command string executed, e.g.: `pytest tests/test_foo.py`; direct fix tier and cosmetic-only path allow "n/a"}
+     exit_code: {integer; for non-direct-fix tiers it must be 0 for the review to pass}
+     output_tail: {string; last 30 lines of output verbatim, must not be rewritten; direct fix tier and cosmetic-only path allow ""}
+     tests_correspondence: {string; the reviewer must declare 「以下 test 對應 TASK-NN 的 AC-MM」 and cite a test path or name fragment that already exists in design.md / the task spec, which the main skill can grep to compare; direct fix tier and cosmetic-only path allow "n/a"}
    ```
-   `refactor_signal` 只在 `packaged confirm (quality)` 且任務為 L/XL 時為 true，其餘為 false。
+   `refactor_signal` is true only when `packaged confirm (quality)` and the task is L/XL; otherwise false.
 
-   **green_proof 5-tier 必填矩陣**（主 skill 在 mark task ✅ 之前必 verify）：
+   **green_proof 5-tier required-fields matrix** (the main skill must verify before mark task ✅):
 
    | tier | test_command | tests_correspondence | exit_code | output_tail |
    |------|---|---|---|---|
-   | `direct fix` | 允許 "n/a"（inline 修不改 behavior） | 允許 "n/a" | 必為整數；值不檢查 | 允許 "" |
-   | `advisory` | 必填實 test | 必填 | 必為 0 | 必填 |
-   | `packaged confirm (quality)` | 必填實 test | 必填 | 必為 0 | 必填 |
-   | `packaged confirm (correctness)` | 必填實 test | 必填 | 必為 0 | 必填 |
-   | `needs judgment` | 必填實 test | 必填 | 必為 0 | 必填 |
+   | `direct fix` | allows "n/a" (inline fix does not change behavior) | allows "n/a" | must be an integer; value not checked | allows "" |
+   | `advisory` | real test required | required | must be 0 | required |
+   | `packaged confirm (quality)` | real test required | required | must be 0 | required |
+   | `packaged confirm (correctness)` | real test required | required | must be 0 | required |
+   | `needs judgment` | real test required | required | must be 0 | required |
 
-   **完整 stdout 寫入 telemetry/log**（不在 review report 內、僅供 audit）；review report 內維持 30 行 tail。
+   **Full stdout written to telemetry/log** (not inside the review report; for audit only); the review report keeps a 30-line tail.
 
-   **failure_count 排除聲明**：`green_proof.exit_code != 0` 不直接累加 `failure_count`；維持 `/baransu:execute` Phase 2/3 既有 compile-error 排除規則（compile error 走 `compile_error_count` 通道、不計入 `failure_count`）。test runner 失敗才走 `failure_count` 累加。
+   **failure_count exclusion declaration**: `green_proof.exit_code != 0` does not directly increment `failure_count`; maintain the existing `/baransu:execute` Phase 2/3 compile-error exclusion rule (compile errors go through the `compile_error_count` channel and do not count toward `failure_count`). Only test runner failures increment `failure_count`.
 
-   **cosmetic-only path 例外**：cosmetic path 涵蓋四類（與 `plugins/baransu/skills/_shared/tdd.md` §7.1 對齊）——comment edits（註解修改）、dead import removal（dead import 移除）、identifier rename with no behavior change（identifier rename 無行為變更）、pure formatting（純格式調整；markdown-only 變更歸為純格式）——這些不跑 test，`green_proof.test_command = "n/a"`、`exit_code = 0`、`output_tail = ""`、`tests_correspondence = "n/a"`，並在 review report 註明 cosmetic 子類型。
+   **cosmetic-only path exception**: the cosmetic path covers four categories (aligned with `plugins/baransu/skills/_shared/tdd.md` §7.1) — comment edits, dead import removal, identifier rename with no behavior change, pure formatting (markdown-only changes count as pure formatting). These do not run tests: `green_proof.test_command = "n/a"`, `exit_code = 0`, `output_tail = ""`, `tests_correspondence = "n/a"`, and note the cosmetic subtype in the review report.
 
-4. **Spec 矛盾上報**：若審查中發現兩個 REQ-XXX 在現有設計下無法共存，在 `spec_contradiction` 欄位填入說明，tier 標記為 `needs judgment`。主 skill 讀取到非 false 的 `spec_contradiction` 時將此 task 標記為 blocked（原因：spec 矛盾），不再重派 Impl。
+4. **Spec contradiction escalation**: if during review you find two REQ-XXX that cannot coexist under the current design, fill in an explanation in the `spec_contradiction` field and mark the tier as `needs judgment`. When the main skill reads a non-false `spec_contradiction`, it marks this task as blocked (reason: spec contradiction) and stops re-dispatching Impl.
 
-5. **填寫 `impl-checklist-{group}.md`**：Review 完成後，依結果填寫對應 task 的 Review 結果欄位（`advisory` / `packaged confirm` / `needs judgment` / `direct fix`）及 findings 摘要備註。多次呼叫同一 task 時，覆蓋同一欄位，不新增重複條目。
+5. **Fill in `impl-checklist-{group}.md`**: after the review completes, fill in the corresponding task's Review result field (`advisory` / `packaged confirm` / `needs judgment` / `direct fix`) and a findings-summary note, per the result. When the same task is called multiple times, overwrite the same field, do not add duplicate entries.
 
-6. **逐條核對驗收標準**：不因「測試通過」就自動升級為 advisory。必須對 ctx.md 的 `Task.驗收標準` 逐條核對，確認每條標準均已滿足。
+6. **Check acceptance criteria item by item**: do not auto-upgrade to advisory just because "tests pass." You must check ctx.md's `Task.驗收標準` item by item, confirming each criterion is satisfied.
 
-## 禁忌
+## Prohibitions
 
-- 不呼叫 /baransu:review skill（subagent 深度 = 1，無法派遣 parallel Tasks + AskUserQuestion）。
-- 不自行修改 Analyze spec 目錄（`.claude/analyze/`）下的任何文件。
-- 不合併多個 task 的 Review 結果為一次回報；每次呼叫只針對一個 task。
-- 不修改測試以讓驗收標準通過；若測試本身有錯，在 findings 中指出，由主 skill 決策。
-- 不在本 agent 內做 goal-alignment filter；governance 由 `/baransu:execute` orchestrator 在 §4b Phase 3 處理。
+- Do not call the /baransu:review skill (subagent depth = 1, cannot dispatch parallel Tasks + AskUserQuestion).
+- Do not modify any file under the Analyze spec directory (`.claude/analyze/`) yourself.
+- Do not merge multiple tasks' Review results into one report; each call targets exactly one task.
+- Do not modify tests to make acceptance criteria pass; if a test itself is wrong, point it out in findings and let the main skill decide.
+- Do not do goal-alignment filtering inside this agent; governance is handled by the `/baransu:execute` orchestrator in §4b Phase 3.

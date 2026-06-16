@@ -1,141 +1,141 @@
-# Codex Port 施工圖：反慣性配重的牙齒重建
+# Codex Port Construction Plan: Rebuilding the Teeth of Anti-Inertia Ballast
 
-> **定位**：這不是「功能對映清單」，是「行為配重存續清單」。
+> **Positioning**: This is not a "feature mapping checklist", it is a "behavioral-ballast survival checklist".
 >
-> 每個 baransu 機制的本質，是對抗模型某個慣性的**配重**——不是 feature。所以 port 到
-> Codex 的正確問句不是「Codex 有沒有對應的 API」，而是 **「降級後，還夠不夠力把模型
-> 從那條捷徑上拽回來」**。
+> The essence of each baransu mechanism is a **ballast** that counters some model inertia — not a feature. So the correct question when porting to
+> Codex is not "does Codex have an equivalent API", but **"after degrading, is there still enough force to drag the model
+> back off that shortcut"**.
 >
-> 排序鍵：**牙齒是否 UI-bound × 對抗的慣性強弱**。降級最危險的地方，恰好是價值最高的
-> 地方——把唯一的牙齒（UI 硬停）拔掉，留給模型的是它本來就最想走的捷徑。
+> Sort key: **whether the tooth is UI-bound × the strength of the inertia it counters**. The most dangerous place to degrade is exactly the place of highest value
+> — pull out the only tooth (UI hard-stop), and what you leave the model is precisely the shortcut it most wanted to take.
 
 ---
 
-## 通則：牙齒搬家，而不是降級
+## General Rule: Relocate the Tooth, Don't Degrade It
 
-當原本的執行面（UI 硬停）沒得 port，**不要退而求其次變成 prompt 提示**——把牙齒搬到
-一個能在 Codex 存活的面上。Codex 有這些可用面：
+When the original execution surface (UI hard-stop) cannot be ported, **do not settle for turning it into a prompt hint** — relocate the tooth to
+a surface that can survive in Codex. Codex offers these usable surfaces:
 
-- **檔案前置條件**（artifact-gate）：下一步結構上需要上一步的產物檔。
-- **phase 切分**：把「會抄捷徑」的階段與「無捷徑可抄」的階段拆開。
-- **sandbox / approval gate**：deterministic 的機器閘。
+- **File precondition** (artifact-gate): the next step structurally requires the artifact file from the previous step.
+- **phase split**: separate the stage that "would cheat the shortcut" from the stage where "there is no shortcut to cheat".
+- **sandbox / approval gate**: a deterministic machine gate.
 
-共同原理：**模型沒法用嘴穿過去，因為下一步結構上需要上一步的產物。**
-
----
-
-## Tier 0 — 強慣性 × UI 硬停：必須搬牙，不可降成提示
-
-### T0-1　`/think` 對焦閘 → phase-split + alignment artifact
-
-| 欄位 | 內容 |
-|------|------|
-| **對抗項目** | 模型「不跟使用者對焦就直接動手寫」的慣性 |
-| **原因** | Claude 靠 AskUserQuestion 硬停；Codex 降成「列編號選項並等待」是軟約定，而 `/think` 對抗的*正是*穿過去的慣性本身——牙齒拔掉等於把模型放回它最想走的捷徑。全盤風險最高的一格。 |
-| **Codex 動作** | 把 `/think` 切成兩段。**Phase 1 只產對焦問句然後停**，此階段在結構上沒有通往五段計畫的出口。**Phase 2 以使用者答案檔（`alignment.md`）為前置輸入**，缺檔則拒絕產出計畫。把「請對焦」（軟）變成「沒有對焦紀錄就生不出計畫」（硬）。 |
-| **完成判準** | 在 Codex runtime 餵一個模糊需求，驗證它*無法*在未產生 `alignment.md` 的情況下吐出五段計畫；且 Phase 1 的輸出不含任何實作 / scaffolding / pseudo-code。 |
-
-### T0-2　`/review`、`/health` 隔離牙齒 → 先驗證 Codex subagent context 是否真隔離
-
-| 欄位 | 內容 |
-|------|------|
-| **對抗項目** | 模型「自我背書、橡皮圖章自己剛產出的東西」的慣性 |
-| **原因** | 這兩個 skill 的反幻覺價值*來自乾淨的獨立 context*。若 Codex subagent 與主程共享 context 或更弱，隔離牙齒就鈍了——而這格在原 P-list 裡根本沒被標成風險。**這是 sleeper。** |
-| **Codex 動作** | (a) 先做一次 runtime 探針——同一審查任務，確認 Codex subagent 拿到的是 fresh context 還是繼承主程記憶；(b) 若**真隔離** → 直接 port，標綠；(c) 若**不隔離** → 改用「獨立 invocation / 獨立 session 跑每個 perspective，結果寫檔再彙整」重建隔離，不可用同一 context 內連續提問假裝多視角。 |
-| **完成判準** | 有一份探針結論文件說明 Codex subagent 隔離等級；review / health 的 Codex 版按該結論落定 port 策略（直 port 或 session 拆分）。 |
+Common principle: **the model cannot talk its way through, because the next step structurally requires the previous step's artifact.**
 
 ---
 
-## Tier 1 — 牙齒不靠 UI 的好案例：port 成本低，別過度設計
+## Tier 0 — Strong Inertia × UI Hard-Stop: Must Relocate the Tooth, Cannot Degrade to a Hint
 
-### T1-1　`/execute` 紅綠閘 → 確認 runner 真的跑、gate 真的讀 exit code
+### T0-1　`/think` Alignment Gate → phase-split + alignment artifact
 
-| 欄位 | 內容 |
+| Field | Content |
 |------|------|
-| **對抗項目** | 模型「沒測試就宣稱完成」的慣性 |
-| **原因** | 這格牙齒是 deterministic 事實（測試紅 / 綠），兩個 runtime 都成立，**不需要搬牙**。風險只在於 Codex 端 gate 是否真去執行測試、而非讀 LLM 自述。 |
-| **Codex 動作** | 確保 Codex 版 `/execute` 的紅綠判定來自實際 test runner 的 exit code（machine gate），sandbox 內網路 / 依賴可跑。維持 `failure_count` 排除 compile error 的語義（既有 invariant，勿合併計數器）。 |
-| **完成判準** | Codex 端跑一個會失敗的測試，gate 確實 exit≠0 並擋住「宣稱完成」。 |
+| **Counters** | The model's inertia of "starting to write directly without aligning with the user" |
+| **Why** | Claude relies on AskUserQuestion as a hard-stop; Codex degrading it to "list numbered options and wait" is a soft convention, and what `/think` counters is *precisely* the inertia of talking through it — pulling the tooth puts the model right back on the shortcut it most wants. The highest overall risk cell. |
+| **Codex action** | Split `/think` into two segments. **Phase 1 only produces the alignment questions and then stops**; this stage structurally has no exit toward the five-section plan. **Phase 2 takes the user's answer file (`alignment.md`) as a required input**; refuse to produce the plan if the file is missing. Turn "please align" (soft) into "no plan can be produced without an alignment record" (hard). |
+| **Done when** | Feed an ambiguous requirement into the Codex runtime and verify it *cannot* emit the five-section plan without having produced `alignment.md`; and Phase 1's output contains no implementation / scaffolding / pseudo-code. |
 
-### T1-2　`/execute` 任務狀態 → TaskCreate/Update 改 durable `task-map.md`
+### T0-2　`/review`, `/health` Isolation Tooth → first verify whether the Codex subagent context is truly isolated
 
-| 欄位 | 內容 |
+| Field | Content |
 |------|------|
-| **對抗項目** | 模型「多步驟丟失狀態、口頭宣稱 done」的慣性 |
-| **原因** | Claude 的 Task tool 是內建狀態面；Codex 沒有對應內建，降成「口頭追蹤」= 慣性復活。 |
-| **Codex 動作** | 以 `task-map.md` 作 durable source of truth，每次狀態轉移寫檔；有 `update_plan` 之類 runtime 顯示層時當*顯示*用，但真值永遠在檔。 |
-| **完成判準** | 殺掉 session 後重啟，任務狀態能從 `task-map.md` 完整重建，無口頭依賴。 |
+| **Counters** | The model's inertia of "self-endorsing, rubber-stamping what it just produced" |
+| **Why** | The anti-hallucination value of these two skills *comes from a clean, independent context*. If the Codex subagent shares context with the main process or is weaker, the isolation tooth is blunted — and this cell was never flagged as a risk in the original P-list. **This is a sleeper.** |
+| **Codex action** | (a) First run a runtime probe — same review task, confirm whether the Codex subagent gets a fresh context or inherits the main process's memory; (b) if **truly isolated** → port directly, mark green; (c) if **not isolated** → rebuild isolation using "run each perspective in an independent invocation / independent session, write results to files, then aggregate"; do not fake multiple perspectives by asking successive questions within the same context. |
+| **Done when** | There is a probe-conclusion document explaining the Codex subagent's isolation level; the Codex versions of review / health settle their port strategy (direct port or session split) according to that conclusion. |
 
 ---
 
-## Tier 2 — 機制收斂：把散落降級收成一張表
+## Tier 1 — Good Cases Where the Tooth Doesn't Rely on UI: low port cost, don't over-engineer
 
-### T2-1　capability 降級表（帶**執行強度等級**，不只 strategy）
+### T1-1　`/execute` Red-Green Gate → confirm the runner actually runs and the gate actually reads the exit code
 
-| 欄位 | 內容 |
+| Field | Content |
 |------|------|
-| **對抗項目** | 跨 13 skill 的降級話術各寫各的，新 skill 會漏配重 |
-| **原因** | ask_user / send_artifact / browser / tools→mcp 是同一 pattern 的多個 instance。但表的每格**必須記執行強度**（硬停 / artifact-gate / 軟提示），否則會把「AskUser→純文字」誤標成半綠。 |
-| **Codex 動作** | 建 registry，每個 Claude 能力 token 對應 `{codex 等級, strategy, 對抗的慣性強度}`。transfer.py 掃到 token 查表注入。**strong-habit × 軟提示的格子一律退回 Tier 0 走搬牙路線**，不准只留提示。 |
-| **完成判準** | 表存在；任一新 skill 的 port 不需手寫降級語彙即繼承正確等級；表能產出加權後的風險清單。 |
+| **Counters** | The model's inertia of "claiming done without tests" |
+| **Why** | This cell's tooth is a deterministic fact (tests red / green), which holds in both runtimes, **so no relocation is needed**. The only risk is whether the Codex-side gate actually executes the tests, rather than reading the LLM's self-report. |
+| **Codex action** | Ensure the Codex version of `/execute` derives its red-green verdict from the actual test runner's exit code (machine gate), with network / dependencies runnable inside the sandbox. Preserve the semantics of `failure_count` excluding compile errors (an existing invariant; do not merge the counters). |
+| **Done when** | Run a failing test on the Codex side; the gate indeed exits ≠0 and blocks "claiming done". |
 
-### T2-2　cosmetic AskUser → 直接降純文字編號選項
+### T1-2　`/execute` Task State → TaskCreate/Update changed to durable `task-map.md`
 
-| 欄位 | 內容 |
+| Field | Content |
 |------|------|
-| **對抗項目** | 無（這些是選模式，不是對抗慣性） |
-| **原因** | `/read`、`/book`、`/design` 的 AskUser 只是選 gen/lint/source，無行為配重，降級無傷。**明確標為低優先，避免把力氣花錯地方。** |
-| **Codex 動作** | 統一降成「列編號選項、停止等待回覆」即可，不需搬牙。 |
-| **完成判準** | 三者 port 後選單可用；不投入 artifact-gate。 |
+| **Counters** | The model's inertia of "losing state across many steps, verbally claiming done" |
+| **Why** | Claude's Task tool is a built-in state surface; Codex has no built-in equivalent, and degrading to "verbal tracking" = inertia resurrected. |
+| **Codex action** | Use `task-map.md` as the durable source of truth, writing the file on every state transition; when a runtime display layer like `update_plan` exists, use it as *display* only, but the true value always lives in the file. |
+| **Done when** | After killing the session and restarting, the task state can be fully reconstructed from `task-map.md`, with no verbal dependency. |
 
 ---
 
-## Tier 3 — 低價值：降級無傷，最後做
+## Tier 2 — Mechanism Convergence: collect scattered degradations into one table
 
-### T3-1　`SendUserFile`（execute / review / think）→ 寫檔後列路徑
+### T2-1　capability degradation table (with **execution-strength levels**, not just strategy)
 
-| 欄位 | 內容 |
+| Field | Content |
 |------|------|
-| **對抗項目** | 無（純交付便利） |
-| **原因** | weak-habit × 軟降級，自然排到最後。 |
-| **Codex 動作** | 寫檔後列出絕對路徑；runtime 有附件面再用。 |
-| **完成判準** | 檔案產出且路徑可見即可。 |
+| **Counters** | Degradation phrasing written separately across 13 skills; new skills will miss the ballast |
+| **Why** | ask_user / send_artifact / browser / tools→mcp are multiple instances of the same pattern. But every cell of the table **must record execution strength** (hard-stop / artifact-gate / soft hint), otherwise "AskUser→plain text" gets mis-marked as half-green. |
+| **Codex action** | Build a registry mapping each Claude capability token to `{codex level, strategy, strength of inertia countered}`. transfer.py looks up the table and injects when it scans a token. **Any strong-habit × soft-hint cell is sent back to Tier 0 to take the tooth-relocation route**; leaving only a hint is not allowed. |
+| **Done when** | The table exists; any new skill's port inherits the correct level without hand-writing degradation vocabulary; the table can produce a weighted risk list. |
+
+### T2-2　cosmetic AskUser → degrade directly to plain-text numbered options
+
+| Field | Content |
+|------|------|
+| **Counters** | None (these are mode selection, not countering inertia) |
+| **Why** | The AskUser in `/read`, `/book`, `/design` only selects gen/lint/source, with no behavioral ballast, so degrading is harmless. **Clearly mark as low priority to avoid spending effort in the wrong place.** |
+| **Codex action** | Uniformly degrade to "list numbered options, stop and wait for a reply"; no tooth relocation needed. |
+| **Done when** | After porting all three, the menus work; do not invest in an artifact-gate. |
 
 ---
 
-## 兩條貫穿全表的邊界（寫進每個 Codex 工作項的前提）
+## Tier 3 — Low Value: degradation is harmless, do it last
 
-1. **目標上限是「重建逼停的牙齒」，不是「重建對焦 / 判斷的品質」。** Artifact-gate 能保證
-   「沒答案就不准往下」，攔不住敷衍的答案——那是 runtime + 人的問題，不是 adapter 能補的。
-   釘住這條，就不會掉進 differential testing 無底洞。
-2. **authorization-PAUSE 與 input-PAUSE 要分開**：前者（驗收 / 授權）在任何 runtime 都維持
-   硬停；後者（選項對焦）才適用降級。13 個 skill 幾乎都有 PAUSE，別一刀切。
+### T3-1　`SendUserFile` (execute / review / think) → write the file then list the path
+
+| Field | Content |
+|------|------|
+| **Counters** | None (pure delivery convenience) |
+| **Why** | weak-habit × soft degradation, naturally sorts to the end. |
+| **Codex action** | After writing the file, list the absolute path; use an attachment surface when the runtime has one. |
+| **Done when** | The file is produced and the path is visible — that's enough. |
 
 ---
 
-## 優先序一覽
+## Two Boundaries Running Through the Whole Table (preconditions written into every Codex work item)
 
-| 序 | 工作項 | 對抗慣性強度 | 牙齒來源 | 性質 |
+1. **The ceiling of the goal is "rebuilding the tooth that forces a stop", not "rebuilding the quality of alignment / judgment".** An artifact-gate can guarantee
+   "no answer, no going further", but it cannot stop a perfunctory answer — that is a runtime + human problem, not something an adapter can patch.
+   Pin this down and you won't fall into the differential-testing abyss.
+2. **Separate authorization-PAUSE from input-PAUSE**: the former (acceptance / authorization) stays a hard-stop in any runtime;
+   only the latter (option alignment) is eligible for degradation. Almost all 13 skills have a PAUSE; don't cut them all the same way.
+
+---
+
+## Priority Overview
+
+| # | Work Item | Inertia Strength | Tooth Source | Nature |
 |----|--------|:---:|------|------|
-| 1 | T0-1　think 對焦閘 | 強 | UI → 搬到 artifact | 搬牙 |
-| 2 | T0-2　review/health 隔離驗證 | 強 | UI → 驗證 runtime | 先探針再定 |
-| 3 | T1-1　execute 紅綠 runner | 強 | deterministic（不搬） | 低成本 port |
-| 4 | T1-2　execute task-map | 強 | 內建 → durable 檔 | 搬到檔 |
-| 5 | T2-1　capability 降級表 | 機制 | — | 收斂 |
-| 6 | T2-2　cosmetic AskUser | 無 | 直降 | 雜項 |
-| 7 | T3-1　SendUserFile | 無 | 直降 | 雜項 |
+| 1 | T0-1　think alignment gate | Strong | UI → relocate to artifact | relocate tooth |
+| 2 | T0-2　review/health isolation verification | Strong | UI → verify runtime | probe first, then decide |
+| 3 | T1-1　execute red-green runner | Strong | deterministic (no relocation) | low-cost port |
+| 4 | T1-2　execute task-map | Strong | built-in → durable file | relocate to file |
+| 5 | T2-1　capability degradation table | mechanism | — | convergence |
+| 6 | T2-2　cosmetic AskUser | none | direct degrade | miscellaneous |
+| 7 | T3-1　SendUserFile | none | direct degrade | miscellaneous |
 
 ---
 
-## 機制歸位（grounding 依據）
+## Mechanism Placement (grounding basis)
 
-以下為 canonical skills 的執行面原語掃描結果，本施工圖據此把機制安到正確的 skill：
+The following is the result of scanning the execution-surface primitives of the canonical skills; this construction plan uses it to place mechanisms on the correct skill:
 
-- **AskUserQuestion**：analyze, book, design, hunt, read, review, think
-  → 其中 think 為強慣性（對焦）；analyze/review/hunt 中等；read/book/design 為 cosmetic（選模式）。
-- **隔離 subagent**：analyze, execute, health, review
-  → 隔離*作為牙齒*的關鍵在 review / health。
-- **紅綠 / 測試先行**：execute（核心）, health, hunt, learn, think
-- **TaskCreate/Update / 狀態檔**：execute（唯一）
-- **SendUserFile**：execute, review, think
-- **PAUSE / gate**：13 skill 幾近全覆蓋 → 必須區分 authorization vs input PAUSE。
+- **AskUserQuestion**: analyze, book, design, hunt, read, review, think
+  → among them think is strong inertia (alignment); analyze/review/hunt are medium; read/book/design are cosmetic (mode selection).
+- **Isolated subagent**: analyze, execute, health, review
+  → the key to isolation *as a tooth* lies in review / health.
+- **Red-green / test-first**: execute (core), health, hunt, learn, think
+- **TaskCreate/Update / state file**: execute (the only one)
+- **SendUserFile**: execute, review, think
+- **PAUSE / gate**: nearly full coverage across 13 skills → must distinguish authorization vs input PAUSE.

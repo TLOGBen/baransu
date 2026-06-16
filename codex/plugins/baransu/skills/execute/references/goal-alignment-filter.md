@@ -1,8 +1,8 @@
 # Goal-Alignment Filter — finding-level governance procedure
 
 Invoked from SKILL.md §4b Phase 3, when the review-tier SWITCH lands on
-`packaged confirm (correctness)` or `needs judgment`. 「failure escalation
-logic below」 in this file refers to the failure escalation logic in SKILL.md
+`packaged confirm (correctness)` or `needs judgment`. "failure escalation
+logic below" in this file refers to the failure escalation logic in SKILL.md
 §4b Phase 3. Content moved verbatim from SKILL.md; semantics unchanged —
 the `failure_count` accounting and the hard invariant are authoritative here.
 
@@ -45,27 +45,31 @@ FOR each finding F in review.findings:
 END FOR
 ```
 
-**Hard invariant — 驗收標準直接失敗 finding 不可 downgrade 為 advisory.**
+**Hard invariant — a 驗收標準直接失敗 finding must NOT be downgraded to advisory.**
 Any finding whose observation corresponds to a 驗收標準直接失敗
-(`is_acceptance_failure == true`) **不可**被 goal-alignment 邏輯
-downgrade 為 advisory；該 finding 維持原 tier，並依原邏輯計入
-`failure_count`。invariant 是 R2 的下界，不是建議。
+(`is_acceptance_failure == true`) **must not** be downgraded to advisory by
+the goal-alignment logic; that finding keeps its original tier and still
+counts toward `failure_count` per the original logic. The invariant is R2's
+lower bound, not a suggestion.
 
-Filter 判斷準則：以驗收標準語意覆蓋範圍判斷，而非字面引用編號。若
-finding 的 observation 描述了某個失敗條件，而 `Task.驗收標準` 任一
-條目的語意涵蓋此條件，即視為「對應驗收標準直接失敗」並受 invariant
-保護 — 即使 finding 文字不只字面引用驗收標準編號（例如 finding 寫
-「authentication middleware 未掛載」、驗收標準寫「endpoint 必須要求
-授權」即構成語意覆蓋）。
+Filter decision criterion: judge by the semantic coverage of the acceptance
+criteria, not by literal reference numbers. If a finding's observation
+describes some failure condition and the semantics of any entry in
+`Task.驗收標準` cover that condition, it is treated as "corresponds to an
+acceptance-criterion direct failure" and is protected by the invariant —
+even when the finding text does more than literally cite an acceptance-criterion
+number (for example, a finding stating "authentication middleware not mounted"
+against an acceptance criterion stating "endpoint must require authorization"
+constitutes semantic coverage).
 
-Post-step — review-level tier 重新計算 (re-tier):
+Post-step — review-level tier recomputation (re-tier):
 
 ```
 # After all findings have been classified, recompute the review-level tier.
 remaining = [F for F in review.findings if not F.downgraded_to_advisory]
 
 IF every F in review.findings was downgraded to advisory  (remaining is empty):
-  # All findings off-goal → review-level tier 改 advisory；task 走 ✅ 路徑。
+  # All findings off-goal → review-level tier becomes advisory; task takes the ✅ path.
   review_tier = "advisory"
   failure_count is NOT incremented   # filter absorbed the failure
   mark task ✅

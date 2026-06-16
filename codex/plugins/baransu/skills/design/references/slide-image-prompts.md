@@ -6,82 +6,82 @@
 
 ---
 
-## 1. Scope 宣告
+## 1. Scope Declaration
 
-- **適用**: 所有 `--format ppt` slide-core HTML（9 版式）。
-- **不適用**: `--format longform`（單欄長文不受本文件約束）。
-- **不涵蓋**: 外部 AI 生圖工具的實際呼叫；本文件僅提供 prompt 模板供使用者複製貼上。
+- **Applies to**: all `--format ppt` slide-core HTML (9 layouts).
+- **Does not apply to**: `--format longform` (single-column long-form is not governed by this document).
+- **Out of scope**: actual invocation of external AI image-generation tools; this document only provides prompt templates for the user to copy and paste.
 
 ---
 
-## 2. 使用者圖片處理規則
+## 2. User Image Handling Rules
 
-使用者貼入 slide-core 的 `<img>` 或 `background-image` 必須遵守以下 `object-fit` / `object-position` 預設。不同版式因 image_slot 寬高比與內容焦點不同，預設值不同。
+An `<img>` or `background-image` the user pastes into a slide-core must follow the `object-fit` / `object-position` defaults below. Defaults differ per layout because each image_slot has a different aspect ratio and content focal point.
 
-### 對照表
+### Reference Table
 
-| Layout       | 預設 object-fit | 預設 object-position | fit-contain fallback | 備註 |
+| Layout       | Default object-fit | Default object-position | fit-contain fallback | Notes |
 |--------------|-----------------|----------------------|----------------------|------|
-| cover        | `cover`         | `center 40%`         | 允許切換 `contain`  | 全幅鋪滿；人物頭像偏上時用 `center 35%` |
-| section      | `cover`         | `center center`      | 允許切換 `contain`  | 章節分隔頁，純背景或裝飾用 |
-| content-bullets | `cover`      | `center center`      | 允許 `contain`       | 條列頁；若有右側 image_slot 視同 2col |
-| content-2col | `cover`         | `center 35%`         | 不建議 `contain`     | 雙欄人物 / 場景照；禁用 `top center`（P0-2） |
-| data         | `contain`       | `center center`      | 預設即 contain       | 圖表 / 截圖；不可裁切，保留完整邊框 |
-| kpi-grid     | `cover`         | `center center`      | 允許 `contain`       | 多格 KPI，背景圖通常為紋理或抽象 |
-| compare      | `cover`         | `center 35%`         | 允許 `contain`       | 並列對比；兩側焦點需一致（皆 `center 35%`） |
-| quote        | `cover`         | `center center`      | 允許 `contain`       | 引言頁背景，避免人物臉部置中 |
-| closing      | `cover`         | `center 40%`         | 允許 `contain`       | 結語頁；與 cover 一致 |
+| cover        | `cover`         | `center 40%`         | switch to `contain` allowed  | Full-bleed; use `center 35%` when the portrait head sits high |
+| section      | `cover`         | `center center`      | switch to `contain` allowed  | Chapter divider page, pure background or decorative use |
+| content-bullets | `cover`      | `center center`      | `contain` allowed       | Bulleted page; if a right-side image_slot exists, treat as 2col |
+| content-2col | `cover`         | `center 35%`         | `contain` not recommended     | Two-column portrait / scene photo; `top center` forbidden (P0-2) |
+| data         | `contain`       | `center center`      | already contain by default       | Charts / screenshots; must not be cropped, keep the full border |
+| kpi-grid     | `cover`         | `center center`      | `contain` allowed       | Multi-tile KPI, background image is usually texture or abstract |
+| compare      | `cover`         | `center 35%`         | `contain` allowed       | Side-by-side comparison; both focal points must match (both `center 35%`) |
+| quote        | `cover`         | `center center`      | `contain` allowed       | Quotation page background, avoid centering a person's face |
+| closing      | `cover`         | `center 40%`         | `contain` allowed       | Closing page; consistent with cover |
 
-### 共通規則
+### Common Rules
 
-- **P0-2 對齊**: 含人物或主視覺焦點的場景一律使用 `center 35%`，**不可** `top center`（會切掉下巴與身體）。
-- **fit-contain**: 圖表類（data 版式）一律 `contain`，避免裁切；其他版式若使用者圖片比例異常，允許手動切換為 `contain`，但需在 HTML 註解標註原因。
-- **背景色 fallback**: `object-fit: contain` 時 `<figure>` 父層 background 走 `--swiss-canvas-muted` token，避免出現透明色洞。
-- **`<figcaption>` 必填**: 含 image_slot 的版式（content-2col / data / kpi-grid / compare）必須有 `<figure>` + `<figcaption>` wrapping（即使 caption 為空白，也保留 DOM 結構以利 lint）。
+- **P0-2 alignment**: scenes containing a person or a primary visual focal point must use `center 35%`, **never** `top center` (which crops off the chin and body).
+- **fit-contain**: chart-type layouts (data layout) always use `contain` to avoid cropping; for other layouts, if the user image has an abnormal aspect ratio, manually switching to `contain` is allowed, but the reason must be noted in an HTML comment.
+- **Background-color fallback**: with `object-fit: contain`, the `<figure>` parent background uses the `--swiss-canvas-muted` token to avoid transparent color holes.
+- **`<figcaption>` required**: layouts containing an image_slot (content-2col / data / kpi-grid / compare) must have `<figure>` + `<figcaption>` wrapping (even when the caption is blank, keep the DOM structure for lint).
 
 ---
 
-## 2b. Slide 字級與密度硬門檻（可驗數值表）
+## 2b. Slide Type-Size and Density Hard Thresholds (machine-verifiable value table)
 
-slide 逐張獨立全屏呈現，字級失控是 PPT 產出最常見破綻。下列三組為可機器檢的硬數值，非建議；違反即重排，不縮 body 字號。
+Slides render one at a time, each full-screen, and runaway type size is the most common defect in PPT output. The three groups below are hard, machine-checkable values, not suggestions; on violation, reflow — do not shrink the body type size.
 
-### (1) 大字雙約束（vw + vh）
+### (1) Large-Type Dual Constraint (vw + vh)
 
-大字一律 `font-size: min(Xvw, Yvh)`，且 `Y ≥ X × 1.6`。理由：16:9 屏下 `1vw : 1vh ≈ 1.78`，單 `vw` 約束在標準屏縮水約 20%，是可復現 bug；補 `vh` 約束才能在窄屏鎖住視覺重量。
+Large type always uses `font-size: min(Xvw, Yvh)`, with `Y ≥ X × 1.6`. Reason: on a 16:9 screen `1vw : 1vh ≈ 1.78`, so a `vw`-only constraint shrinks about 20% on a standard screen — a reproducible bug; adding the `vh` constraint is what locks the visual weight on a narrow screen.
 
-| 角色 | 約束 |
+| Role | Constraint |
 |------|------|
-| `h-hero`（封面主標） | `min(11.6vw, 19vh)` |
-| `h-xl`（章節大標） | `min(7vw, 12vh)` |
-| 大數字（KPI / data） | `min(8.4vw, 14vh)` |
+| `h-hero` (cover main title) | `min(11.6vw, 19vh)` |
+| `h-xl` (chapter heading) | `min(7vw, 12vh)` |
+| Large numeral (KPI / data) | `min(8.4vw, 14vh)` |
 
-### (2) 中文標題長度 → 字級對照（先分檔再定級）
+### (2) Chinese Title Length → Type-Size Mapping (bin first, then assign level)
 
-中文標題先按字數 / 行數分檔，再定字級；**超長先砍文案，不縮 body**。
+Bin a Chinese title by character count / line count first, then assign the type size; **when overlong, cut the copy first — do not shrink the body**.
 
-| 檔位 | 字數 / 行數 | 處理 |
+| Bin | Characters / lines | Handling |
 |------|------------|------|
-| 特短 | ≤6 字 | 用 `h-hero` 上限 |
-| 短 | 7–10 字 | 降一級至 `h-xl` |
-| 雙行 | 2 行各 ≤8 字 | `h-xl`，行距收緊 |
-| 雙行長 | 2 行 9–12 字 | 再降一級 |
-| 三行 | 3 行 | 先砍文案回雙行；無法砍才用 body 標題級 |
+| Extra short | ≤6 chars | Use the `h-hero` ceiling |
+| Short | 7–10 chars | Drop one level to `h-xl` |
+| Two lines | 2 lines, ≤8 chars each | `h-xl`, tighten line spacing |
+| Two lines long | 2 lines, 9–12 chars | Drop one more level |
+| Three lines | 3 lines | Cut copy back to two lines first; only use the body heading level when it can't be cut |
 
-### (3) 演示最小字號下限
+### (3) Presentation Minimum Type-Size Floor
 
-| 文字類別 | 下限 |
+| Text category | Floor |
 |----------|------|
-| 正文 body | ≥18px |
-| 圖說 caption | ≥16px |
-| meta / 頁眉頁尾 | ≥14px |
+| Body text | ≥18px |
+| Caption | ≥16px |
+| meta / header & footer | ≥14px |
 
-放不下時：先刪文案或拆頁，**不准壓字號到下限以下**。
+When it won't fit: delete copy or split the page first — **never compress the type size below the floor**.
 
 ---
 
-## 3. 對外部 AI 生圖工具 Prompt 模板
+## 3. Prompt Templates for External AI Image-Generation Tools
 
-以下 9 條 prompt 對應 9 個 slide-core 版式（每版式一條 H2 區段）。每條為「正向描述 + 風格錨點」，使用者複製到任一外部 AI 生圖工具（Midjourney / DALL·E / Stable Diffusion / nano-banana 等）後，**必須**在尾端附加共用負面尾巴（見第 4 節）。
+The 9 prompts below correspond to the 9 slide-core layouts (one H2 section per layout). Each is a "positive description + style anchor"; after the user copies it into any external AI image-generation tool (Midjourney / DALL·E / Stable Diffusion / nano-banana, etc.), they **must** append the shared negative tail at the end (see section 4).
 
 ## Layout: cover
 
@@ -139,12 +139,12 @@ Editorial closing-slide hero image: open horizon or forward-looking composition,
 
 ---
 
-## 4. 共用負面尾巴
+## 4. Shared Negative Tail
 
-所有 9 條 prompt 在送進外部 AI 生圖工具前，**必須**在尾端附加以下字串（逐字，不可改寫）：
+Before sending any of the 9 prompts into an external AI image-generation tool, you **must** append the following string at the end (verbatim, do not reword):
 
 ```
 no title, no footer, no page chrome, no logo, no border
 ```
 
-理由：slide-core 的 chrome（標題、頁尾、邊框、Logo）由 HTML + tokens.css 負責繪製。若生成圖本身內嵌了這些元素，會與 slide-core chrome 雙重疊加、破版。負面尾巴強制 AI 工具產出「純內容」圖片，由 slide-core 自行包裝。
+Reason: the slide-core's chrome (title, footer, border, logo) is drawn by HTML + tokens.css. If the generated image embeds these elements itself, it double-stacks with the slide-core chrome and breaks the layout. The negative tail forces the AI tool to produce a "pure content" image, which the slide-core then wraps on its own.

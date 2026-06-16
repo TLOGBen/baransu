@@ -13,47 +13,47 @@ Converts any content into a Kami-themed, browser-ready HTML book saved to `.clau
 
 ## Outcome Contract
 
-- **Outcome**: 把任一內容來源（URL / slug / 本地檔 / 文字）經 Acquire → Synthesize → Render 三階段轉成 Kami 主題、瀏覽器可直接開啟的 HTML book。
-- **Done when**: 輸出 HTML 通過 scripts/validate-output.ts 全部 GATE（exit 0），且檔案落於 `.claude/book/{slug}.html`。
-- **Evidence**: validate-output.ts 的執行結果（GATE A-E / F / G / J / K / L 全綠或合法 SKIP）。
-- **Output**: `.claude/book/{slug}.html`；依 `--format` 另含 `.pdf` / `.pptx`。
+- **Outcome**: Convert any content source (URL / slug / local file / text) through the three stages Acquire → Synthesize → Render into a Kami-themed, browser-openable HTML book.
+- **Done when**: The output HTML passes all GATEs of scripts/validate-output.ts (exit 0), and the file lands at `.claude/book/{slug}.html`.
+- **Evidence**: The execution result of validate-output.ts (GATE A-E / F / G / J / K / L all green or a legitimate SKIP).
+- **Output**: `.claude/book/{slug}.html`; per `--format` additionally includes `.pdf` / `.pptx`.
 - **Automation**: ultracode=neutral, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 ## Stage 0 — Environment Self-Check
 
-> 本 SKILL.md 採 Fact-Verification Principle #0（見下文 Stage 2A §0「Fact-Verification Principle #0」段）：在合成長文前，凡偵測到具體產品 / 版本 / 人名 + 職位 pattern，強制 WebSearch 驗證；0 結果即 AskUserQuestion 阻擋。
+> This SKILL.md adopts Fact-Verification Principle #0 (see the Stage 2A §0 "Fact-Verification Principle #0" section below): before synthesizing long-form text, whenever a concrete product / version / person-name + title pattern is detected, WebSearch verification is forced; 0 results triggers an AskUserQuestion block.
 
 ### 1. Design context soft-read
 
-執行於所有其他 Stage 0 步驟之前。沿用 /design / /analyze 的同款 soft-read 模式，把當下 preset 的設計哲學帶進 context 作 advisory framing。
+Runs before all other Stage 0 steps. Follows the same soft-read pattern as /design / /analyze, bringing the current preset's design philosophy into context as advisory framing.
 
-1. 解析 project root：`git rev-parse --show-toplevel 2>/dev/null`，失敗則用 cwd。
-2. 嘗試讀取以下檔（皆 best-effort，**全部失敗也不中止 Stage 0**，只 stderr warning）：
-   - `{project_root}/DESIGN.md`：當下 preset 的九段設計規格。讀入 context 供後續 Stage 2A typography 選用 / Stage 3 SVG token decisions 參考。
-   - `{project_root}/tokens.css` 第一行：解析 preset slug（例：`/* preset: kami */` → `kami`），存為 `$STYLE` 預備值（之後若 user 顯式給 `--style` 則覆寫，否則沿用本值）。
-3. 若 `DESIGN.md` 存在 → stderr `已載入 DESIGN.md，視覺規格已參考（preset=$STYLE）`。
-4. 若 `DESIGN.md` 不存在 → stderr `未找到 DESIGN.md；建議先跑 /baransu:design preset <name>。本次 /book 將使用 fallback 模板，視覺風格可能與 preset 不一致`，繼續執行。
+1. Resolve project root: `git rev-parse --show-toplevel 2>/dev/null`; on failure use cwd.
+2. Attempt to read the following files (all best-effort, **failing all of them does not abort Stage 0**, only a stderr warning):
+   - `{project_root}/DESIGN.md`: the current preset's nine-section design spec. Read into context for later Stage 2A typography selection / Stage 3 SVG token decisions reference.
+   - `{project_root}/tokens.css` first line: parse the preset slug (e.g. `/* preset: kami */` → `kami`), store as the `$STYLE` prepared value (later overridden if the user explicitly passes `--style`, otherwise this value is kept).
+3. If `DESIGN.md` exists → stderr `已載入 DESIGN.md，視覺規格已參考（preset=$STYLE）`.
+4. If `DESIGN.md` does not exist → stderr `未找到 DESIGN.md；建議先跑 /baransu:design preset <name>。本次 /book 將使用 fallback 模板，視覺風格可能與 preset 不一致`, then continue.
 
-此步驟讀入的 DESIGN.md 內容在 Stage 4 視 user 是否觸發 `/baransu:review --include=style` 而被傳遞給 style-reviewer 作為 spec anchor；正常 /book 流程中只作為 generation-time advisory，不影響任何 gate。
+The DESIGN.md content read in this step is, in Stage 4, passed to the style-reviewer as a spec anchor depending on whether the user triggers `/baransu:review --include=style`; in the normal /book flow it serves only as a generation-time advisory and affects no gate.
 
-### 2. --format 旗標解析
+### 2. --format flag parsing
 
-解析使用者呼叫中的 `--format` 旗標：
+Parse the `--format` flag in the user's invocation:
 
-- 支援值：`html` | `pdf` | `ppt` | `all`
-- 若未提供 `--format`：預設為 `html`
-- 若值不合法（非 html/pdf/ppt/all）：輸出「`--format` 值不合法。支援：html | pdf | ppt | all」並停止（不呼叫 install-deps.ts）
-- 設定 `$FORMAT` 供後續所有 Stage 使用
+- Supported values: `html` | `pdf` | `ppt` | `all`
+- If `--format` is not provided: default to `html`
+- If the value is invalid (not html/pdf/ppt/all): output 「`--format` 值不合法。支援：html | pdf | ppt | all」 and stop (do not call install-deps.ts)
+- Set `$FORMAT` for use by all later Stages
 
-### 3. --style 旗標解析
+### 3. --style flag parsing
 
-解析使用者呼叫中的 `--style` 旗標（v1.3 PPT + HTML 雙模式）：
+Parse the `--style` flag in the user's invocation (v1.3 PPT + HTML dual mode):
 
-- 支援值：`kami` | `google-design` | `swiss` | user-supplied gen slug（pattern `/^[a-z][a-z0-9-]{1,15}$/`，須先跑過 `/baransu:design gen --slug <slug>`）
-- 未提供 `--style`：從 `{project_root}/tokens.css` 第一行 `/* preset: <slug> */` 解析；都無則預設 `kami`
-- 不合法值：輸出「--style 不合法。支援 v1.3 三 preset 或已註冊 gen slug」並停止
-- HTML 模式從 `{project_root}/design-cores/long-form.html` 動態讀模板；PPT 模式從 `{project_root}/slide-cores/` 動態讀 layout
-- 設定 `$STYLE` 供後續 Stage 使用（Stage 3 tokens.css tie-break / GATE-F prefix 比對讀 `$STYLE`）
+- Supported values: `kami` | `google-design` | `swiss` | user-supplied gen slug (pattern `/^[a-z][a-z0-9-]{1,15}$/`, must have run `/baransu:design gen --slug <slug>` first)
+- If `--style` is not provided: parse from `{project_root}/tokens.css` first line `/* preset: <slug> */`; if neither is present, default to `kami`
+- Invalid value: output 「--style 不合法。支援 v1.3 三 preset 或已註冊 gen slug」 and stop
+- HTML mode dynamically reads the template from `{project_root}/design-cores/long-form.html`; PPT mode dynamically reads the layout from `{project_root}/slide-cores/`
+- Set `$STYLE` for use by later Stages (Stage 3 tokens.css tie-break / GATE-F prefix matching reads `$STYLE`)
 
 ### 4. Python check
 
@@ -81,10 +81,10 @@ Run the format-aware dependency installer:
 npx tsx "$CLAUDE_SKILL_DIR/scripts/install-deps.ts" --format $FORMAT
 ```
 
-若腳本回傳非零 exit code：
-- 輸出錯誤訊息（腳本已列出詳情）並停止，不進入 Stage 1
-- 若 `$FORMAT` 含 `pdf`：確認 WeasyPrint 可用
-- 若 `$FORMAT` 含 `ppt`：確認 playwright + pptxgenjs 可用
+If the script returns a non-zero exit code:
+- Output the error message (the script has already listed details) and stop; do not enter Stage 1
+- If `$FORMAT` contains `pdf`: confirm WeasyPrint is available
+- If `$FORMAT` contains `ppt`: confirm playwright + pptxgenjs are available
 
 ### 7. Output directory
 
@@ -96,30 +96,30 @@ mkdir -p ".claude/book"
 
 ---
 
-## Stage 0b — 🔴 CHECKPOINT — Pre-interview Gate（受眾 / 硬約束前置）
+## Stage 0b — 🔴 CHECKPOINT — Pre-interview Gate (audience / hard-constraint front-loading)
 
-在 Stage 1 取得 `$RAW_CONTENT` **之前**，先壓住 50% 不確定性。模式對齊 /design Gen Mode Step 1：用 **單一 AskUserQuestion 批次**（4 題並陳，不逐題阻塞）對齊受眾、用途、風格傾向、硬約束。
+**Before** Stage 1 acquires `$RAW_CONTENT`, first suppress 50% of the uncertainty. Pattern aligned with /design Gen Mode Step 1: use a **single AskUserQuestion batch** (4 questions presented together, not blocking question-by-question) to align audience, purpose, style leaning, and hard constraints.
 
-### 跳過條件（任一成立即整段跳過）
+### Skip conditions (the whole section is skipped if any one holds)
 
-- `--auto` 或 `--no-interview` 旗標出現
-- input 是 `/read` slug / `/learn` digest slug（受眾 + 用途已隱含於原 capture metadata）
-- input 是 `--text "…"` 且字數 < 200（極短 inline 不值得問）
+- The `--auto` or `--no-interview` flag is present
+- The input is a `/read` slug / `/learn` digest slug (audience + purpose are already implicit in the original capture metadata)
+- The input is `--text "…"` with word count < 200 (an extremely short inline is not worth asking about)
 
-跳過時 stderr 印一行：「Stage 0b skipped: {reason}」，繼續 Stage 1。
+When skipping, print one stderr line: 「Stage 0b skipped: {reason}」, then continue to Stage 1.
 
-### 訪談題目（batch 一次提，4 題並陳）
+### Interview questions (batched, 4 questions presented together)
 
-1. **受眾** — 「主要讀者是誰？（例如：技術同儕 / 產品 PM / 非技術主管 / 公開讀者 / 自己備忘）」
-2. **用途與時長** — 「這份 book 的使用情境？（例如：5 分鐘速讀 / 30 分鐘深讀 / 簡報前置 / 長期參考文件）」
-3. **風格傾向** — 「視覺密度偏哪邊？（例如：高密度技術文件 / 留白敘事散文 / 多圖表 research 報告 / 隨 preset 預設）」
-4. **硬約束** — 「有沒有必須 / 不要的元素？（例如：必含某段內文、不要 SVG diagram、限定字數、特定 callout 數）」
+1. **Audience** — 「主要讀者是誰？（例如：技術同儕 / 產品 PM / 非技術主管 / 公開讀者 / 自己備忘）」
+2. **Purpose and duration** — 「這份 book 的使用情境？（例如：5 分鐘速讀 / 30 分鐘深讀 / 簡報前置 / 長期參考文件）」
+3. **Style leaning** — 「視覺密度偏哪邊？（例如：高密度技術文件 / 留白敘事散文 / 多圖表 research 報告 / 隨 preset 預設）」
+4. **Hard constraints** — 「有沒有必須 / 不要的元素？（例如：必含某段內文、不要 SVG diagram、限定字數、特定 callout 數）」
 
-未答 / 「隨預設」一律走 preset 既有 default，不另存。已答內容寫入 `$INTERVIEW_BRIEF`（純文字 4-8 行），於 Stage 2A §1 分類前 prepend 為 advisory framing，**不覆寫** `references/perception-guide.md` 既有 A/B/C 分類邏輯（衝突時以 perception-guide 為準，brief 僅作 nudge）。
+Unanswered / 「隨預設」 always follows the preset's existing default and is not separately stored. Answered content is written into `$INTERVIEW_BRIEF` (plain text 4-8 lines), prepended as advisory framing before Stage 2A §1 classification, and **does not override** the existing A/B/C classification logic in `references/perception-guide.md` (on conflict, perception-guide wins; the brief is only a nudge).
 
-### 完成輸出
+### Completion output
 
-一行：「訪談完成：受眾={...} / 用途={...} / 風格={...} / 約束={...}，進入 Stage 1。」
+One line: 「訪談完成：受眾={...} / 用途={...} / 風格={...} / 約束={...}，進入 Stage 1。」
 
 ---
 
@@ -182,40 +182,40 @@ Output one progress line:
 
 ---
 
-## Stage 2A — Synthesize（長文，所有 format）
+## Stage 2A — Synthesize (long-form, all formats)
 
 Receives `$RAW_CONTENT`. Produces `$STRUCTURE` (a JSON-like outline) and `$CONTENT_TYPE`.
 
 ### 0. Fact-Verification Principle #0
 
-**Purpose**：在合成長文進入 §1 分類前先做事實閘，防止把幻想的具體規格（虛構版本號、虛構人物職位）寫進最終 HTML。對應 REQ-006 Scenario 1 / Criteria C6。歷史案例：「Linear MCP v3.4.7 released 2025-09-15」屬虛構，但若不驗證，會被當作既有事實渲染到 book 內。
+**Purpose**: run a fact gate before long-form synthesis enters §1 classification, preventing hallucinated concrete specs (fabricated version numbers, fabricated person titles) from being written into the final HTML. Corresponds to REQ-006 Scenario 1 / Criteria C6. Historical case: 「Linear MCP v3.4.7 released 2025-09-15」 is fabricated, but if not verified it would be rendered into the book as established fact.
 
-**Trigger regex**（對 `$RAW_CONTENT` 全文 soft-match，不強制全部命中視為錯誤，只作為觸發 WebSearch 的訊號）：
+**Trigger regex** (soft-match against the full `$RAW_CONTENT`; not all hits are required and a miss is not an error — it only serves as a signal to trigger WebSearch):
 
 ```
 /([A-Z][a-zA-Z]+\s+(MCP|SDK|CLI|API)?\s*v?\d+(\.\d+)*)|([A-Z][a-z]+\s+[A-Z][a-z]+(\s|,)+(CEO|CTO|founder|engineer))/
 ```
 
-說明：
-- 前半 alternation：產品名（capitalized word）+ 選擇性 MCP/SDK/CLI/API + 選擇性 `v` + 一段以上點分數字 → 命中如「Linear MCP v3.4.7」「Anthropic SDK 0.39」。
-- 後半 alternation：人名（兩個 capitalized words）+ 空白或逗號 + 職位（CEO/CTO/founder/engineer）→ 命中如「Jane Doe, CTO」。
+Explanation:
+- First-half alternation: product name (capitalized word) + optional MCP/SDK/CLI/API + optional `v` + one or more dot-separated numbers → matches such as 「Linear MCP v3.4.7」「Anthropic SDK 0.39」.
+- Second-half alternation: person name (two capitalized words) + space or comma + title (CEO/CTO/founder/engineer) → matches such as 「Jane Doe, CTO」.
 
-**Flow on hit**（每命中一筆 `{hit}`）：
+**Flow on hit** (for each matched `{hit}`):
 
-1. **Sanitize `{hit}` before query**：將 `{hit}` 內所有 `"` (`U+0022`) 字元先剝除（regex 抓的是合法 identifier/version 字串，正常情況不含 quote；含則為 noise 或 adversarial input）。Sanitized `{hit_clean}` 再丟下一步。
-2. 跑 `WebSearch`，query template：`"{hit_clean}" release notes` 或 `"{hit_clean}" announcement`（人名命中改用 `"{hit_clean}" announcement` / `"{hit_clean}" interview`）。
-3. 若 WebSearch 回傳 **0 結果** → 🛑 STOP — Fact-verify pending：透過 `AskUserQuestion` 顯示：「Fact-verify pending: '{hit_clean}' 在 WebSearch 0 結果。選擇：強制繼續 / 改用 `--text` 餵已驗證版本 / 中止本次 /book」。等使用者選擇後再決定是否進入 §1。
-4. 若 WebSearch 回傳 **≥ 1 結果** → 視為事實可驗，繼續，但仍把該 hit 列入 `$STRUCTURE` 末尾的「Sources」清單（在 Stage 2A §4 extract 階段一併處理）。
+1. **Sanitize `{hit}` before query**: first strip all `"` (`U+0022`) characters inside `{hit}` (the regex captures legitimate identifier/version strings, which normally contain no quote; if present it is noise or adversarial input). The sanitized `{hit_clean}` is then passed to the next step.
+2. Run `WebSearch`, query template: `"{hit_clean}" release notes` or `"{hit_clean}" announcement` (for person-name hits use `"{hit_clean}" announcement` / `"{hit_clean}" interview` instead).
+3. If WebSearch returns **0 results** → 🛑 STOP — Fact-verify pending: via `AskUserQuestion` show: 「Fact-verify pending: '{hit_clean}' 在 WebSearch 0 結果。選擇：強制繼續 / 改用 `--text` 餵已驗證版本 / 中止本次 /book」. Wait for the user's choice before deciding whether to enter §1.
+4. If WebSearch returns **≥ 1 result** → treat as fact-verifiable, continue, but still add the hit to the 「Sources」 list at the end of `$STRUCTURE` (handled together in the Stage 2A §4 extract phase).
 
-**Flow on no hit**：直接進入 §1 分類。
+**Flow on no hit**: enter §1 classification directly.
 
-**Boundary**：regex 為 soft trigger，不是 hard match——不命中不代表內容必為真，未來會視 telemetry 結果擴充 pattern。**測試 fixture**：字串 `Linear MCP v3.4.7 released 2025-09-15` 為虛構，預期觸發 regex、WebSearch 回傳 0 結果、走 ask 流程（不可靜默繼續）。
+**Boundary**: the regex is a soft trigger, not a hard match — a miss does not mean the content is necessarily true, and the pattern will be expanded in the future based on telemetry results. **Test fixture**: the string `Linear MCP v3.4.7 released 2025-09-15` is fabricated and is expected to trigger the regex, return 0 WebSearch results, and go through the ask flow (must not silently continue).
 
 ### 1. Classify content type
 
-對 `$RAW_CONTENT` 做粗略 keyword + 結構 scan，先猜 `$CONTENT_TYPE` 落在哪一類；若邊界不明（如混合敘事+技術 / 全新類型 / 多源綜述 vs 單篇分析難分），**才讀** `references/perception-guide.md` 做最終分類。
+Do a rough keyword + structure scan over `$RAW_CONTENT` and first guess which category `$CONTENT_TYPE` falls into; if the boundary is unclear (e.g. mixed narrative+technical / a brand-new type / hard to tell multi-source synthesis vs single-piece analysis), **only then read** `references/perception-guide.md` to make the final classification.
 
-`perception-guide.md` 含完整 taxonomy（Technical / Narrative / Research）、各類視覺處理策略、SVG 策略、合成長度上限（4–8 sections、≤1800 words）。
+`perception-guide.md` contains the full taxonomy (Technical / Narrative / Research), each category's visual-treatment strategy, SVG strategy, and synthesis length caps (4–8 sections, ≤1800 words).
 
 ### 2. Decide $CONTENT_TYPE
 
@@ -226,14 +226,14 @@ Based on the perception guide signals, assign `$CONTENT_TYPE` to one of:
 
 Output one line: 「內容類型偵測：{$CONTENT_TYPE}」
 
-### 3. 兩階層決策樹（Layer 1 內容類型 → Layer 2 diagram 結構）
+### 3. Two-layer decision tree (Layer 1 content type → Layer 2 diagram structure)
 
-Stage 2A 的選擇分為兩層，**順序不可顛倒**：
+The Stage 2A selection splits into two layers, **the order must not be reversed**:
 
-- **Layer 1（content type → HTML 版面密度）**：由 §2 已產出的 `$CONTENT_TYPE`（A=`technical` / B=`narrative` / C=`research`）決定整篇 HTML 的版面樣式——TOC 是否展開、cards 數量、密度、callout 風格等，皆由 `references/perception-guide.md` 對應 A/B/C 三類分別給定。若 §1 未讀過 `references/perception-guide.md`，於套用 Layer 1 前先讀之，取該 $CONTENT_TYPE 對應的版面密度與視覺處理規則。
-- **Layer 2（13 型 selection → 每段 diagram 結構）**：每個含 diagram 的 section 獨立 lookup Stage 3 §4「13 型 selection 表」，依該段資料形狀挑一個 diagram type（architecture / flowchart / sequence / ...）。
+- **Layer 1 (content type → HTML layout density)**: the `$CONTENT_TYPE` already produced by §2 (A=`technical` / B=`narrative` / C=`research`) determines the whole HTML's layout style — whether the TOC is expanded, number of cards, density, callout style, etc., all given separately for the A/B/C categories by `references/perception-guide.md`. If §1 did not read `references/perception-guide.md`, read it before applying Layer 1, and take the layout density and visual-treatment rules corresponding to that $CONTENT_TYPE.
+- **Layer 2 (13-type selection → per-section diagram structure)**: each section containing a diagram independently looks up the Stage 3 §4 「13 型 selection 表」, picking one diagram type based on that section's data shape (architecture / flowchart / sequence / ...).
 
-兩軸正交：Layer 1 控版面，Layer 2 控每段 SVG 結構；先 Layer 1、再 Layer 2，每段獨立決定不沿用上一段選擇。
+The two axes are orthogonal: Layer 1 controls layout, Layer 2 controls each section's SVG structure; do Layer 1 first, then Layer 2, deciding each section independently without inheriting the previous section's choice.
 
 ### 4. Extract structure
 
@@ -262,15 +262,15 @@ Derive `$SLUG` from the title:
 Check `.claude/book/` for existing files with the same slug.
 If a collision exists: append `_v2`, `_v3`, etc., and **output one Traditional-Chinese notice line so the renamed output is not silent** (notify, not a blocking PAUSE): 「偵測到既有 {slug}.html，本次另存為 {slug}_v2.html（如要覆寫請刪除舊檔後重跑）」, then continue.
 
-**$SLUG 只在 Stage 2A 推導一次，Stage 2B 和所有 Render 步驟繼承相同 $SLUG，不另行推導。**
+**$SLUG is derived only once in Stage 2A; Stage 2B and all Render steps inherit the same $SLUG and do not re-derive it.**
 
 ---
 
-## Stage 2B — Synthesize（投影片，僅 --format ppt 或 all）
+## Stage 2B — Synthesize (slides, only --format ppt or all)
 
-僅在 `$FORMAT` ∈ {`ppt`, `all`} 時執行；產出 `$STRUCTURE_SLIDES`（6–12 slides，首頁固定 `cover`、末頁條件式 `closing`）。**layout 不寫死**：動態讀 `{project_root}/slide-cores/*.html` 的 YAML front-matter 註冊決策表，以 first-match + positional override 派 layout_type。
+Runs only when `$FORMAT` ∈ {`ppt`, `all`}; produces `$STRUCTURE_SLIDES` (6–12 slides, first page fixed as `cover`, last page conditionally `closing`). **The layout is not hard-coded**: dynamically read the YAML front-matter registration decision table of `{project_root}/slide-cores/*.html`, assigning layout_type via first-match + positional override.
 
-**規則細節（10-row 決策表 / closing 條件辨識 / graceful degradation / `$STRUCTURE_SLIDES` schema）→ 讀 `references/slide-synthesis.md`。**
+**Rule details (10-row decision table / closing condition recognition / graceful degradation / `$STRUCTURE_SLIDES` schema) → read `references/slide-synthesis.md`.**
 ## Stage 3 — Render
 
 Produces a complete HTML file at `.claude/book/{$SLUG}.html`.
@@ -279,16 +279,16 @@ Produces a complete HTML file at `.claude/book/{$SLUG}.html`.
 
 Before generating any HTML:
 
-1. **唯一 token 來源**：讀 `{project_root}/tokens.css`（由 `/baransu:design preset <style>` 寫入；本 skill 只讀，不改）。此規則**同時適用** `--format ppt` 與 `--format html`。
-   - 若 `{project_root}/tokens.css` **不存在** → 報錯「請先跑 `/baransu:design preset <style>`（kami / google-design / swiss）」並**中止 Stage 3**。
-   - tokens.css 開頭含 preset 識別註解（`/* preset: kami */` / `/* preset: google-design */` / `/* preset: swiss */` 或 user-supplied gen slug），供 Stage 0 解析得到的 `$STYLE` 變數於 GATE-F 做 tie-break 比對。
-2. **v1.3 long-form template SSOT 動態讀**：優先讀 `{project_root}/design-cores/long-form.html`，將 `<section data-slot="long-form-body">` 視為 body insertion point。
-   - 檔案**存在但讀失敗**（malformed / chmod 000 / 0 bytes）→ **hard fail**，不靜默 fallback；stderr「long-form.html 讀取失敗：{原因}」、中止 Stage 3。
-   - 檔案**不存在** → fallback 至 `references/golden-template.html`（v1.2 Kami 風內建範本）；stderr warning「current preset 為 {style} 但 fallback 到 Kami template，class prefix 可能不一致；建議先跑 /baransu:design preset {style}」；繼續產出（GATE-F 將檢出 class prefix 不一致，是預期行為）。
+1. **Sole token source**: read `{project_root}/tokens.css` (written by `/baransu:design preset <style>`; this skill only reads, never modifies). This rule **applies to both** `--format ppt` and `--format html`.
+   - If `{project_root}/tokens.css` **does not exist** → error 「請先跑 `/baransu:design preset <style>`（kami / google-design / swiss）」 and **abort Stage 3**.
+   - tokens.css begins with a preset-identifying comment (`/* preset: kami */` / `/* preset: google-design */` / `/* preset: swiss */` or a user-supplied gen slug), for the `$STYLE` variable parsed in Stage 0 to do a tie-break comparison in GATE-F.
+2. **v1.3 long-form template SSOT dynamic read**: prefer reading `{project_root}/design-cores/long-form.html`, treating `<section data-slot="long-form-body">` as the body insertion point.
+   - File **exists but fails to read** (malformed / chmod 000 / 0 bytes) → **hard fail**, no silent fallback; stderr 「long-form.html 讀取失敗：{原因}」, abort Stage 3.
+   - File **does not exist** → fall back to `references/golden-template.html` (the v1.2 Kami-style built-in template); stderr warning 「current preset 為 {style} 但 fallback 到 Kami template，class prefix 可能不一致；建議先跑 /baransu:design preset {style}」; continue producing output (GATE-F will detect the class-prefix inconsistency, which is expected behavior).
 
-The long-form.html slot 是 show-by-example contract — slot 內示範 6+ section type（heading / paragraph / quote / code / SVG / list）。Token 值由 `{project_root}/tokens.css` 提供；模板只引用 canonical 名（var(--paper) / var(--accent) 等）。不發明新 CSS 模式。
+The long-form.html slot is a show-by-example contract — the slot demonstrates 6+ section types (heading / paragraph / quote / code / SVG / list). Token values are provided by `{project_root}/tokens.css`; the template only references canonical names (var(--paper) / var(--accent) etc.). Do not invent new CSS patterns.
 
-🔴 GATE — 開始產 HTML 前，無論 Stage 2A §1 是否已讀，必讀 `references/perception-guide.md` 的「Output Anti-Slop Blacklist」與「Quantified Type Scale」兩節，作為 render 期 standing instruction（防止 clean-classification run 在從未載入排版/反 slop 規則的情況下退回 AI 通用感產出）。
+🔴 GATE — before starting to produce HTML, regardless of whether Stage 2A §1 already read it, you MUST read the 「Output Anti-Slop Blacklist」 and 「Quantified Type Scale」 sections of `references/perception-guide.md` as a render-time standing instruction (to prevent a clean-classification run from regressing to generic-AI-feel output when the typography / anti-slop rules were never loaded).
 
 ### 2. Generate HTML structure
 
@@ -307,7 +307,7 @@ Produce the full HTML document using the SSOT template loaded in step 2:
 </main>
 ```
 
-`<slug>` is the preset prefix read from `tokens.css` line 1 (kami / google / swiss / gen slug). All class names in output 必須使用該 prefix；GATE-F 守護一致性。
+`<slug>` is the preset prefix read from `tokens.css` line 1 (kami / google / swiss / gen slug). All class names in output must use that prefix; GATE-F guards consistency.
 
 ### 3. Section content rules
 
@@ -326,44 +326,44 @@ For each section from `$STRUCTURE`:
 
 **No improvisation**: every component class must exist in the SSOT template (`{project_root}/design-cores/long-form.html`) or fallback `references/golden-template.html`. If a component isn't in either source, use plain `<p>` — do not add new CSS.
 
-🔴 GATE — Render 前視覺自查（pre-write checklist）：在 Stage 3 §7 把 HTML 寫檔**之前**，逐條過下列六行二值清單（每條皆復述既有 reference 規則，非新規則）。任一條 ✗ → 修正後再 Write，不直接落檔；六條全 ✓ 才進 §7。
+🔴 GATE — pre-render visual self-check (pre-write checklist): **before** writing the HTML to file in Stage 3 §7, go through the following six-line binary checklist item by item (each restates an existing reference rule, not a new rule). Any ✗ → fix it then Write, do not write to disk directly; only enter §7 when all six are ✓.
 
-1. **章節間距** — 每對相鄰 `<section>` 用 3xl spacing token（80–120pt）驅動，非 browser-default margin？（§3 render-time hard rule #1）
-2. **閱讀行高** — body line-height ∈ [1.50, 1.55]（CJK 螢幕可放寬至 1.65），且全文無任一 `≥ 1.70`？（§3 render-time hard rule #2）
-3. **閱讀欄寬** — 閱讀欄 ≤ 680px、max body width ≤ 760px？（§3 render-time hard rule #3）
-4. **單一 accent** — 只用一個 chromatic accent（`var(--accent)`），accent-painted 面積 ≤ 5% body，且強調為「色 OR 重，不同時」？（perception-guide Anti-Slop #8）
-5. **SVG focal + 對齊** — 每張 SVG `data-role="focal"` ≤ 2 個，且所有座標 / 寬度 / 間距為 4 的倍數？（svg-rendering-rules §4.7）
-6. **figcaption** — 每個 `<figcaption>` 通過 perception-guide Anti-Slop #5 pass test（帶 trade-off / 下一步 / 圖未直接顯示的維度其一），非純複述標題或節點名？（perception-guide Anti-Slop #5）
+1. **Inter-section spacing** — is each pair of adjacent `<section>` driven by the 3xl spacing token (80–120pt), not browser-default margin? (§3 render-time hard rule #1)
+2. **Reading line-height** — is body line-height ∈ [1.50, 1.55] (CJK screens may relax to 1.65), with no `≥ 1.70` anywhere in the text? (§3 render-time hard rule #2)
+3. **Reading column width** — is the reading column ≤ 680px and max body width ≤ 760px? (§3 render-time hard rule #3)
+4. **Single accent** — only one chromatic accent (`var(--accent)`) used, accent-painted area ≤ 5% of body, and emphasis is "color OR weight, not both"? (perception-guide Anti-Slop #8)
+5. **SVG focal + alignment** — each SVG has ≤ 2 `data-role="focal"`, and all coordinates / widths / spacing are multiples of 4? (svg-rendering-rules §4.7)
+6. **figcaption** — does each `<figcaption>` pass the perception-guide Anti-Slop #5 pass test (carrying one of: trade-off / next step / a dimension the figure doesn't directly show), rather than merely restating the title or node name? (perception-guide Anti-Slop #5)
 
-### 4. SVG 生成規格
+### 4. SVG generation spec
 
-只在 long-form HTML 含 `<figure class="diagram">` 時生效。spec 含：色彩 token（canonical names + Kami hex 預設）、必備 `<defs>` / marker / 兩層 paper-mask、type tag、legend strip、4 px 對齊與 3 檔節點寬白名單（128/144/160）、嵌入字體校正、14 型圖表 first-match 決策樹、13 型 selection 表（含 `status: complete | ref-only`）。
+Takes effect only when the long-form HTML contains `<figure class="diagram">`. The spec includes: color tokens (canonical names + Kami hex defaults), the required `<defs>` / marker / two-layer paper-mask, type tag, legend strip, 4px alignment and the 3-step node-width whitelist (128/144/160), embedded-font correction, the 14-type diagram first-match decision tree, and the 13-type selection table (including `status: complete | ref-only`).
 
-**完整規則 → 讀 `references/svg-rendering-rules.md`。**SVG fill / stroke **禁用 `rgba()`**；節點寬限 3 檔（128/144/160）；焦點節點透過 `data-role="focal"` 標記，每張 SVG 上限 2 個。
+**Full rules → read `references/svg-rendering-rules.md`.** SVG fill / stroke **must not use `rgba()`**; node width is limited to 3 steps (128/144/160); focal nodes are marked via `data-role="focal"`, capped at 2 per SVG.
 
-### 5. Core Asset Protocol（圖片取得）
+### 5. Core Asset Protocol (image acquisition)
 
-任一階段需 fetch 點陣 / 攝影 / logo / UI mockup 圖時，**嚴格依序**走以下 4 步。**Steps must run in order; skipping = fail and abort.**（跳步即視為 fail 並中止；例：未 verify 就 freeze。）
+Whenever any stage needs to fetch a raster / photographic / logo / UI mockup image, follow the 4 steps below **strictly in order**. **Steps must run in order; skipping = fail and abort.** (Skipping a step is treated as a fail and aborts; e.g. freezing before verifying.)
 
-1. **Ask** — 🔴 CHECKPOINT — 圖片用途確認（未確認不得進步驟 2）：與 user 確認圖片用途、構圖、必含元素、禁用元素（避免 AI slop：六指、扭曲文字、浮水印、page chrome）。未拿到確認前不得進入步驟 2。
-2. **Generate OR Search** — 二擇一：
-   - **Generate**：跑 **Codex CLI image-gen**，brief 由 `/baransu:design export-brief` 產出後 stdin 餵入。範例：
+1. **Ask** — 🔴 CHECKPOINT — image-purpose confirmation (may not advance to step 2 without confirmation): confirm with the user the image's purpose, composition, required elements, and forbidden elements (avoid AI slop: six fingers, distorted text, watermark, page chrome). May not enter step 2 before confirmation is obtained.
+2. **Generate OR Search** — pick one:
+   - **Generate**: run **Codex CLI image-gen**, with the brief produced by `/baransu:design export-brief` then fed in via stdin. Example:
      ```bash
      codex prompt --stdin < .claude/design/brief-{preset}-{date}.md \
        --suffix "請生成符合上述 design brief 的封面圖，no title, no footer, no page chrome, no logo, no border"
      ```
-   - **Search**：呼叫 `WebSearch` 找現成資源；**只接受 CC license**（CC0 / CC-BY / CC-BY-SA），其餘一律退回 Generate 分支。
-3. **Verify** — renderer 將圖嵌入 long-form HTML preview，user 肉眼確認構圖、版面對齊、無 AI slop、無 watermark；未通過則退回步驟 2 重跑。
-4. **Freeze** — commit 圖檔到 `.claude/book/{slug}/assets/`，並寫 `meta.json` 含 `source`（generate / search）、`prompt`（Generate 路徑必填）、`license`（Search 路徑必填）、`verified_at` 時戳。Freeze 後該圖視為不可變；要換 → 從步驟 1 重來。
+   - **Search**: call `WebSearch` to find ready-made resources; **accept only CC licenses** (CC0 / CC-BY / CC-BY-SA), everything else falls back to the Generate branch.
+3. **Verify** — the renderer embeds the image into the long-form HTML preview, and the user visually confirms composition, layout alignment, no AI slop, no watermark; if it fails, fall back to step 2 and rerun.
+4. **Freeze** — commit the image file to `.claude/book/{slug}/assets/`, and write a `meta.json` containing `source` (generate / search), `prompt` (required on the Generate path), `license` (required on the Search path), and a `verified_at` timestamp. After freezing the image is treated as immutable; to change it → start over from step 1.
 
-### 6. 多 format pipeline (PDF / PPTX)
+### 6. Multi-format pipeline (PDF / PPTX)
 
-只在 `$FORMAT` ∈ {`pdf`, `ppt`, `all`} 時生效。
+Takes effect only when `$FORMAT` ∈ {`pdf`, `ppt`, `all`}.
 
-- **PDF**：HTML 注入 `@page` + 隱藏 `.toc-wrap` + serif `body { font-family: var(--font-serif) }`，存 patched HTML，呼叫 `python3 -m weasyprint`。失敗 → warning，不中止。
-- **PPTX**：依 `$STRUCTURE_SLIDES` 從 `{project_root}/slide-cores/<layout-id>.html` 取骨架；輸出 `<body width=960>` + 每 slide `<div class="slide" data-layout=...>`；呼叫前驗三項 (`width=960` / `.slide` 存在 / 無 `background-image`)；通過後呼叫 `node html2pptx.js`。
+- **PDF**: inject `@page` + hidden `.toc-wrap` + serif `body { font-family: var(--font-serif) }` into the HTML, save the patched HTML, call `python3 -m weasyprint`. On failure → warning, do not abort.
+- **PPTX**: per `$STRUCTURE_SLIDES`, take the skeleton from `{project_root}/slide-cores/<layout-id>.html`; output `<body width=960>` + per slide `<div class="slide" data-layout=...>`; before calling, verify three items (`width=960` / `.slide` present / no `background-image`); once passed, call `node html2pptx.js`.
 
-**詳細步驟（HTML 預處理 / 驗證項 / 失敗處理）→ 讀 `references/render-pipelines.md`。**
+**Detailed steps (HTML preprocessing / verification items / failure handling) → read `references/render-pipelines.md`.**
 ### 7. Write the output file
 
 Write the complete HTML to `.claude/book/{$SLUG}.html`.
@@ -382,19 +382,19 @@ npx tsx "$CLAUDE_SKILL_DIR/scripts/validate-output.ts" ".claude/book/{$SLUG}.htm
 
 Exit codes:
 - `0` (GATE PASS): proceed to completion report
-- `1` (GATE FAIL): 三段式 fallback：
-  - **觸發條件**：validate-output.ts 回傳 exit 1。
-  - **一線修復**：讀 stdout 印出的失敗行，只修該失敗元素並重寫檔案，重跑一次品質閘。
-  - **仍失敗兜底**：🛑 STOP — 品質閘第二次失敗，人工介入：若第二次仍 exit 1，output 「品質閘第二次失敗，請手動開啟 .claude/book/{$SLUG}.html 確認問題。」 and stop（不進入完成報告）。
+- `1` (GATE FAIL): three-stage fallback:
+  - **Trigger condition**: validate-output.ts returns exit 1.
+  - **First-line fix**: read the failure lines printed to stdout, fix only the failing element and rewrite the file, then rerun the quality gate once.
+  - **Still-failing fallback**: 🛑 STOP — quality gate failed a second time, human intervention: if exit 1 still on the second run, output 「品質閘第二次失敗，請手動開啟 .claude/book/{$SLUG}.html 確認問題。」 and stop (do not enter the completion report).
 - `2` (usage error): script invocation was wrong — fix and re-run
 
 ### 2. Visual render verification + completion report
 
-GATE PASS 後跑 Playwright headless render（產 preview screenshot + JSON probe）並輸出最終 completion report。
+After GATE PASS, run a Playwright headless render (producing a preview screenshot + JSON probe) and output the final completion report.
 
-**詳細規格 → 讀 `references/validation.md`**（含 `verify-render.py` 呼叫方式、probe JSON schema、判讀規則、完整 report template）。
+**Detailed spec → read `references/validation.md`** (including how to call `verify-render.py`, the probe JSON schema, interpretation rules, and the full report template).
 
-最終 user-visible 輸出固定格式（核心 lines）：
+The final user-visible output's fixed format (core lines):
 
 ```
 ✅ 已儲存：
@@ -415,19 +415,19 @@ SVG 圖解：{N} 張
 - **No LLM-generated commentary**: the rendered HTML contains the source content, structured and styled — not Claude's own analysis. The Synthesize stage extracts; the Render stage presents.
 - **Partial failure**: if Acquire fails for one of multiple inputs, report the failure per-input and continue with the rest.
 
-## Red Lines（不要做什麼）
+## Red Lines (what not to do)
 
-掃描禁區靠 🛑 視覺標記，不靠通讀散文。下列每條皆復述既有規則，違反 = 該次產出失守；每列附「為何失守」理據錨點與正確做法。
+Scan the forbidden zone via the 🛑 visual marker, not by reading through prose. Each item below restates an existing rule; violating it = that output is compromised; each row carries a "why compromised" rationale anchor and the correct approach.
 
-| 🛑 反模式 | 為何是失守（理據錨點） | 正確做法（權威 reference） |
+| 🛑 Anti-pattern | Why it's compromised (rationale anchor) | Correct approach (authoritative reference) |
 |----------|---------------------|--------------------------|
-| 🛑 發明新 CSS class / 用 inline hex 色 | 跳出 active SSOT template 的 set membership，GATE-F class-prefix 與 36-token 名單失守，退回 AI 通用感 | class 必存在於 active template；色用 canonical 名變數（§3.3、Constraints；perception-guide Anti-Slop Blacklist #7） |
-| 🛑 SVG fill / stroke 用 `rgba()` | WeasyPrint 把 alpha 合成出雙矩形 ghost-border，PDF 失真 | SVG fill/stroke 一律 solid hex token（§3.4、svg-rendering-rules §4.1） |
-| 🛑 節點寬離開 3 檔白名單自由發揮 | 混用 3 檔以上即 anti-slop fail，破壞 diagram 節奏 | 節點寬限 {128/144/160}，單張最多 2 檔（svg-rendering-rules §4.7） |
-| 🛑 Acquire 失敗仍靜默產空頁 / skeleton | 把失敗偽裝成成功產出，使用者拿到空殼 | 清楚回報每筆失敗，不產空殼（Gotchas SPA、Constraints Partial failure） |
-| 🛑 `tokens.css` 缺失時 fallback 到 `find` / sibling-skill 路徑 | 違反唯一 token 來源 = project root 的不變量 | tokens.css 缺失 → 中止並提示先跑 `/baransu:design preset`（Gotchas Missing project-root tokens、§3.1） |
-| 🛑 Core Asset 跳步（未 Verify 就 Freeze） | 4 步協定的順序保證「無 AI slop 才凍結」，跳步即繞過品質確認 | Ask → Generate/Search → Verify → Freeze 嚴格依序（§3.5） |
-| 🛑 把 Claude 自評 / 評論 / 分析寫進 HTML | 產出應是被結構化的來源內容，非模型自己的議論 | Synthesize 萃取、Render 呈現；不夾帶 LLM 評論（Constraints No LLM-generated commentary） |
+| 🛑 Inventing a new CSS class / using inline hex colors | Breaks out of the active SSOT template's set membership, compromising the GATE-F class-prefix and the 36-token list, regressing to generic AI feel | class must exist in the active template; use canonical-name variables for color (§3.3, Constraints; perception-guide Anti-Slop Blacklist #7) |
+| 🛑 Using `rgba()` for SVG fill / stroke | WeasyPrint composites the alpha into a double-rectangle ghost-border, distorting the PDF | SVG fill/stroke must always be a solid hex token (§3.4, svg-rendering-rules §4.1) |
+| 🛑 Free-styling node widths outside the 3-step whitelist | Mixing more than 3 steps is an anti-slop fail and breaks the diagram rhythm | node width limited to {128/144/160}, at most 2 steps per diagram (svg-rendering-rules §4.7) |
+| 🛑 Silently producing an empty page / skeleton when Acquire fails | Disguises failure as a successful output, leaving the user with an empty shell | report each failure clearly, do not produce an empty shell (Gotchas SPA, Constraints Partial failure) |
+| 🛑 Falling back to `find` / sibling-skill paths when `tokens.css` is missing | Violates the invariant that the sole token source = project root | tokens.css missing → abort and prompt to run `/baransu:design preset` first (Gotchas Missing project-root tokens, §3.1) |
+| 🛑 Skipping a Core Asset step (freezing before verifying) | The 4-step protocol's ordering guarantees "freeze only when there's no AI slop"; skipping bypasses quality confirmation | Ask → Generate/Search → Verify → Freeze strictly in order (§3.5) |
+| 🛑 Writing Claude's self-assessment / commentary / analysis into the HTML | The output should be structured source content, not the model's own argumentation | Synthesize extracts, Render presents; do not smuggle in LLM commentary (Constraints No LLM-generated commentary) |
 
 ## Gotchas
 
@@ -436,13 +436,13 @@ SVG 圖解：{N} 張
 - **SVG path closure**: always close `<path>` elements with `/>`; validate-output.ts checks SVG tag balance but not path syntax. Keep SVG shapes simple (lines, rects, circles, ellipses, simple paths).
 - **Missing project-root tokens**: if `{project_root}/tokens.css` is absent, Stage 3 aborts with 「請先跑 `/baransu:design preset <style>`（kami / google-design / swiss）或 `/baransu:design gen --slug <slug>`」 — **do not** fall back to `find` or sibling-skill paths. Fallback to `references/golden-template.html` is allowed only when long-form.html is absent (see §3.1).
 
-## Validator 分工
+## Validator division of labor
 
-- `scripts/validate-output.ts`：負責輸出層（output HTML）的 set membership 與 prefix 一致性，含 GATE A-E (SVG 既有規則) / GATE-F (class prefix `kami-*` / `swiss-*` 不混 + tokens.css preset tie-break) / GATE-G (`data-layout` 必對應 `{project_root}/slide-cores/` 實存檔) / GATE-J node-width whitelist / GATE-K chevron-strict / GATE-L viewBox containment (rect/line/circle/ellipse/text 全落在 viewBox 內，0.5px 容差；skips defs/marker/pattern/clipPath/mask/symbol 與 transformed group)。**信任** `/design` 端 `check.py` 已 lint 過 slide-core artifact 內部結構，本驗證不重做 per-file lint。
-- 對應 `/design` 端見 `plugins/baransu/skills/design/scripts/check.py` 的 artifact-internal lint 規則。
+- `scripts/validate-output.ts`: responsible for the output layer's (output HTML) set membership and prefix consistency, including GATE A-E (existing SVG rules) / GATE-F (class prefix `kami-*` / `swiss-*` not mixed + tokens.css preset tie-break) / GATE-G (`data-layout` must correspond to a real file under `{project_root}/slide-cores/`) / GATE-J node-width whitelist / GATE-K chevron-strict / GATE-L viewBox containment (rect/line/circle/ellipse/text all fall within the viewBox, 0.5px tolerance; skips defs/marker/pattern/clipPath/mask/symbol and transformed groups). **Trusts** that the `/design` side's `check.py` has already linted the slide-core artifact's internal structure; this validation does not redo per-file lint.
+- The corresponding `/design`-side rules are in `plugins/baransu/skills/design/scripts/check.py`'s artifact-internal lint rules.
 
 ## REQ-003 Scenario 2 automated evidence
 
-- Fixture: `scripts/validate-fixtures/swiss-positive.html` — a hand-written swiss-style slide HTML that mirrors the shape `/book` Stage 3 emits under `--format ppt --style swiss`（body 960pt×540pt、`data-layout="content-bullets"` / `quote`、所有 class `swiss-*`、無 hard-fail 違反）。
-- Smoke runner: `scripts/swiss-smoke-test.sh` — Stage 1 跑 `validate-output.ts` 對 fixture（預期全綠，GATE-C/GATE-G 因 viewBox 高度與 project root 無 `slide-cores/` 而 SKIP）；Stage 2 在 `pptxgenjs` + `playwright` 已安裝時跑 `html2pptx.js`，並用 `python3 zipfile` 確認 `.pptx` 是合法 zip 且含 `ppt/presentation.xml` + `[Content_Types].xml`。依賴未裝時 Stage 2 SKIP（`--strict` 改為 FAIL）。
-- 用途：作為 REQ-003 S2「文件可在 PowerPoint 打開」的最小自動化證據起點。要做完整 PowerPoint round-trip 須先 `npx tsx scripts/install-deps.ts --format ppt`。
+- Fixture: `scripts/validate-fixtures/swiss-positive.html` — a hand-written swiss-style slide HTML that mirrors the shape `/book` Stage 3 emits under `--format ppt --style swiss` (body 960pt×540pt, `data-layout="content-bullets"` / `quote`, all classes `swiss-*`, no hard-fail violations).
+- Smoke runner: `scripts/swiss-smoke-test.sh` — Stage 1 runs `validate-output.ts` against the fixture (expected all green; GATE-C/GATE-G SKIP because of the viewBox height and the project root having no `slide-cores/`); Stage 2, when `pptxgenjs` + `playwright` are installed, runs `html2pptx.js`, and uses `python3 zipfile` to confirm the `.pptx` is a valid zip containing `ppt/presentation.xml` + `[Content_Types].xml`. When dependencies are not installed, Stage 2 SKIPs (`--strict` turns it into FAIL).
+- Purpose: serves as the minimal automated-evidence starting point for REQ-003 S2 「文件可在 PowerPoint 打開」. For a full PowerPoint round-trip, run `npx tsx scripts/install-deps.ts --format ppt` first.

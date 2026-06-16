@@ -16,10 +16,10 @@ The body below is English (agent-facing). Wherever this file quotes literal user
 
 ## Outcome Contract
 
-- **Outcome**: 對目標完成一次跨視角獨立再驗證，發現經天平校驗後按四層回應分級，收斂為一份審查報告。
-- **Done when**: 報告含八欄 sign-off receipt，且 hard-stops sweep 結果以 checklist 逐項列出（每項 not hit 或 hit＋一行引註）。
-- **Evidence**: 報告收尾的兩個結構化元素 — hard-stops sweep checklist 與八欄 sign-off receipt fenced block。
-- **Output**: 對話內的繁中審查報告（prose 本體＋結構化收尾），並同步落檔為 HTML 工作日誌 `.claude/review/<slug>.html`（見 HTML work journal 節）。
+- **Outcome**: One cross-perspective independent re-verification of the target; findings are graded into four response tiers after the balance check, converging into a single review report.
+- **Done when**: The report contains the eight-field sign-off receipt, and the hard-stops sweep result is listed item-by-item as a checklist (each item not hit, or hit + a one-line citation).
+- **Evidence**: The two structured tail elements that close the report — the hard-stops sweep checklist and the eight-field sign-off receipt fenced block.
+- **Output**: A Traditional Chinese review report in the conversation (prose body + structured tail), also persisted as an HTML work journal at `.claude/review/<slug>.html` (see the HTML work journal section).
 - **Automation**: ultracode=overlap, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 ## Four perspectives (agent files)

@@ -6,27 +6,27 @@ example: inline
 
 # Quadrant
 
-**Best for**: 優先級排序（Impact × Effort）、定位圖（Reach × Frequency）、portfolio map、2×2 decision frame、scenario planning。
+**Best for**: priority ranking (Impact × Effort), positioning maps (Reach × Frequency), portfolio map, 2×2 decision frame, scenario planning.
 
 ## Layout conventions
 
-- 2×2 grid，axis line 為 1px `--ink` cross 穿過中心；axis arrow tip 收在 viewBox 邊內側 ~60–80px，留呼吸空間給 label。
-- **Axis label Jobs-minimal**：每個 arrow tip 一個 **單字**，不帶 `↑` / `→` 等 glyph、不帶 `(HIGH/LOW)` 括號修飾；`--font-mono` 9px regular weight、tracked `0.18em`、uppercase；側 flanking arrow tip，不可坐在 axis line 上。
-- Item 為 small labeled dot（`r=4`），分布在四象限內；label 距 dot 8–10px，**不可跨 axis line**；item 數量上限 ~12，超過則 cluster 或拆圖。
-- `--brand` 只用在「do first」的單一 item（通常落在右上象限），不可上在多個 item，也不可填色整個象限格。
+- 2×2 grid; the axis line is a 1px `--ink` cross through the center; the axis arrow tip stops ~60–80px inside the viewBox edge, leaving breathing room for the label.
+- **Axis label Jobs-minimal**: one **single word** per arrow tip, with no `↑` / `→` glyphs and no `(HIGH/LOW)` parenthetical modifiers; `--font-mono` 9px regular weight, tracked `0.18em`, uppercase; flanking the arrow tip, never sitting on the axis line.
+- An item is a small labeled dot (`r=4`) distributed within the four quadrants; the label sits 8–10px from the dot and **must not cross the axis line**; cap item count at ~12, otherwise cluster them or split the diagram.
+- `--brand` is reserved for the single "do first" item (usually landing in the top-right quadrant); it must not be applied to multiple items, nor used to fill an entire quadrant cell.
 
 ## Anti-patterns
 
-- 四個象限分別填四種不同色塊。
-  - *Why fails*：quadrant 的資訊承載靠「位置 + label」，色塊只是噪音；多色填底會與單一 `--brand` focal 競爭，且色盲讀者無法分辨象限差異，違反 Kami 三語意色限制。
-- Item 落在 axis line 上（象限歸屬模糊）。
-  - *Why fails*：axis 把平面切成四區的前提是 item 確切在某一區內；落在線上等於宣告「兩個象限都成立」，破壞 2×2 frame 的決策力，讀者無法回答「這個 item 屬於哪一類」。
-- 缺 axis name 或 label 上標 `↑ HIGH IMPACT` 之類的多餘修飾。
-  - *Why fails*：缺 name 時讀者不知 x/y 各代表什麼維度，圖等同沒有座標系；額外的 `↑` glyph 與 `HIGH / LOW` 括號則重複了 arrow 本身已表達的方向資訊，視覺上累贅且違反 Jobs-minimal 原則。
+- Filling each of the four quadrants with a different color block.
+  - *Why fails*: a quadrant carries its information through "position + label"; color blocks are just noise; multi-color fills compete with the single `--brand` focal, and colorblind readers cannot distinguish the quadrants, violating the Kami three-semantic-color limit.
+- An item landing on the axis line (ambiguous quadrant membership).
+  - *Why fails*: the axis splits the plane into four regions on the premise that an item lies definitively within one region; landing on the line declares "both quadrants apply," breaking the decision power of the 2×2 frame, and the reader cannot answer "which category does this item belong to."
+- Missing axis name, or labels carrying redundant modifiers like `↑ HIGH IMPACT`.
+  - *Why fails*: without a name the reader does not know which dimension x/y each represent, so the diagram has effectively no coordinate system; the extra `↑` glyph and `HIGH / LOW` parentheses merely repeat the directional information the arrow already conveys, which is visually redundant and violates the Jobs-minimal principle.
 
 ## Examples
 
-Inline example below — 2×2 Impact × Effort 優先級矩陣，含 4 個象限 label、6 個 data dot、focal = top-left 「Quick Wins」象限。完整 `<defs>` 三 chevron marker、兩層 paper-mask、單一焦點 callout rect 寬白名單 `{128}`（單一檔，符合 ≤ 2 檔規則）、legend strip 與所有 `x/y/width/height/cx/cy` 為 4 的倍數。
+Inline example below — a 2×2 Impact × Effort priority matrix with 4 quadrant labels, 6 data dots, focal = the top-left "Quick Wins" quadrant. Complete `<defs>` with three chevron markers, two paper-mask layers, a single focal callout rect with a width whitelist of `{128}` (a single value, satisfying the ≤ 2-value rule), a legend strip, and all `x/y/width/height/cx/cy` as multiples of 4.
 
 ```html
 <figure class="diagram">
@@ -49,41 +49,41 @@ Inline example below — 2×2 Impact × Effort 優先級矩陣，含 4 個象限
       </marker>
     </defs>
 
-    <!-- Paper-mask layer 1（強制） -->
+    <!-- Paper-mask layer 1 (required) -->
     <rect width="100%" height="100%" fill="#f5f4ed"/>
-    <!-- Paper-mask layer 2（可選 dotted overlay） -->
+    <!-- Paper-mask layer 2 (optional dotted overlay) -->
     <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
 
-    <!-- ===== AXIS CROSS（1px hairline） ===== -->
-    <!-- Y axis (vertical) — with up-tip arrow（accent，落焦點維度；marker-end 落在 y=80 對齊 IMPACT 標籤） -->
+    <!-- ===== AXIS CROSS (1px hairline) ===== -->
+    <!-- Y axis (vertical) — with up-tip arrow (accent, on the focal dimension; marker-end lands at y=80 to align with the IMPACT label) -->
     <line x1="500" y1="480" x2="500" y2="80"
           stroke="#141413" stroke-width="1"
           marker-end="url(#arrow-accent)"/>
-    <!-- X axis (horizontal) — with right-tip arrow（accent） -->
+    <!-- X axis (horizontal) — with right-tip arrow (accent) -->
     <line x1="80" y1="280" x2="920" y2="280"
           stroke="#141413" stroke-width="1"
           marker-end="url(#arrow-accent)"/>
 
-    <!-- ===== AXIS LABELS（Jobs-minimal：單字、無 glyph、無括號） ===== -->
-    <!-- Y top tip：IMPACT（flanking arrow tip，不坐軸線上） -->
+    <!-- ===== AXIS LABELS (Jobs-minimal: single word, no glyph, no parentheses) ===== -->
+    <!-- Y top tip: IMPACT (flanking the arrow tip, not sitting on the axis line) -->
     <text x="476" y="72" fill="#141413" font-size="9"
           font-family="'Geist Mono', ui-monospace, monospace"
           text-anchor="end" letter-spacing="0.18em">IMPACT</text>
-    <!-- X right tip：EFFORT -->
+    <!-- X right tip: EFFORT -->
     <text x="928" y="276" fill="#141413" font-size="9"
           font-family="'Geist Mono', ui-monospace, monospace"
           letter-spacing="0.18em">EFFORT</text>
 
     <!-- ===== QUADRANT LABELS ===== -->
-    <!-- Top-right: BIG BETS（高 impact、高 effort） -->
+    <!-- Top-right: BIG BETS (high impact, high effort) -->
     <text x="720" y="120" fill="#504e49" font-size="9"
           font-family="'Geist Mono', ui-monospace, monospace"
           letter-spacing="0.14em">BIG BETS</text>
-    <!-- Bottom-left: FILL-INS（低 impact、低 effort） -->
+    <!-- Bottom-left: FILL-INS (low impact, low effort) -->
     <text x="180" y="448" fill="#504e49" font-size="9"
           font-family="'Geist Mono', ui-monospace, monospace"
           letter-spacing="0.14em">FILL-INS</text>
-    <!-- Bottom-right: MONEY PIT（低 impact、高 effort） -->
+    <!-- Bottom-right: MONEY PIT (low impact, high effort) -->
     <text x="708" y="448" fill="#504e49" font-size="9"
           font-family="'Geist Mono', ui-monospace, monospace"
           letter-spacing="0.14em">MONEY PIT</text>
@@ -97,7 +97,7 @@ Inline example below — 2×2 Impact × Effort 優先級矩陣，含 4 個象限
           font-family="'Geist Mono', ui-monospace, monospace"
           text-anchor="middle" letter-spacing="0.14em">QUICK WINS</text>
 
-    <!-- ===== DATA POINTS（6 dots，r=4） ===== -->
+    <!-- ===== DATA POINTS (6 dots, r=4) ===== -->
     <!-- A: Caching — Quick Wins quadrant -->
     <circle cx="232" cy="200" r="4" fill="#1B365D"/>
     <text x="244" y="204" fill="#141413" font-size="10"

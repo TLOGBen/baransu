@@ -11,17 +11,17 @@ Long-running orchestration engine for medium-to-large tasks. This body is Englis
 
 - **Outcome**: Every task in the /analyze spec is executed through the Summarize → Impl → Review TDAID loop and the run is fully reported.
 - **Done when**: `.claude/execute/{date}-{slug}/execute/final-report.md` exists, every registered task ended ✅ / blocked / cascade-blocked, and the Step 6 Final-Review coverage result is recorded in it.
-- **Evidence**: final-report.md carries the {N}/{M} REQ 達成率, the Goal-Alignment Filter Metric block, and the blocked list; all session gitworktrees removed.
+- **Evidence**: final-report.md carries the {N}/{M} REQ achievement rate, the Goal-Alignment Filter Metric block, and the blocked list; all session gitworktrees removed.
 - **Output**: Working documents plus `final-report.md` under `.claude/execute/{date}-{slug}/execute/`.
 - **Automation**: ultracode=overlap, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
-## 目標
+## Goal
 
 Read an `/analyze` spec directory. Execute every task through a Summarize → Impl → Review TDAID loop with subagent context isolation. Run E2E tests and Final-Review. Write `final-report.md`. Never stop early — if a task is blocked, escalate and continue unblocked work.
 
 ---
 
-## 核心限制 (Hard Constraints)
+## Hard Constraints
 
 These apply across all steps. The review-agent rule and the spec-read-only rule are the two most commonly violated — they are the first things to re-read at Steps 4, 5, and 6 entry after any auto-compact.
 
@@ -30,7 +30,7 @@ These apply across all steps. The review-agent rule and the spec-read-only rule 
 - **Subagent depth = 1.** Agents in `agents/*.md` are stateless leaf nodes. They do not dispatch further subagents.
 - **All Task Tools created before execution begins.** Register every group × task via TaskCreate in Step 2. No mid-execution task creation.
 - **Working files live under `.claude/execute/`.** Edit and Write are only permitted in the execute working directory.
-- **Goal-Alignment Filter is hard governance.** `failure_count` accounting is affected by the filter (off-goal findings are downgraded to advisory and do not increment the counter), but findings tied to 驗收標準直接失敗 are protected by the hard invariant — they keep their original tier and still increment `failure_count`.
+- **Goal-Alignment Filter is hard governance.** `failure_count` accounting is affected by the filter (off-goal findings are downgraded to advisory and do not increment the counter), but findings tied to an acceptance-criterion direct failure (驗收標準直接失敗) are protected by the hard invariant — they keep their original tier and still increment `failure_count`.
 
 ### Orchestration interface (dual-mode)
 
@@ -50,7 +50,7 @@ sense the mode. TDAID loop logic and non-ultracode semantics are unchanged.
 Before spec validation, check for a DESIGN.md at the project root:
 1. Run `git rev-parse --show-toplevel 2>/dev/null`. If the command fails or returns empty,
    skip silently — no error output.
-2. If `{root}/DESIGN.md` exists, read it into context and output one line in 繁中:
+2. If `{root}/DESIGN.md` exists, read it into context and output one line in Traditional Chinese:
    「已載入 DESIGN.md，視覺規格已參考」
 3. If absent, skip silently. Non-blocking.
 
@@ -119,7 +119,7 @@ Write:
 
 ## Step 4 — TDAID Loop
 
-> **Re-read checkpoint:** Before entering Step 4, re-read §核心限制 and this entire step. Confirm review-agent dispatch is mandatory, `failure_count`/`compile_error_count` semantics (§4b Phase 2–3), cascade-blocked propagation (§4c), and merge retry cap (§4d). These are the rules most vulnerable to drift during long sessions.
+> **Re-read checkpoint:** Before entering Step 4, re-read §Hard Constraints and this entire step. Confirm review-agent dispatch is mandatory, `failure_count`/`compile_error_count` semantics (§4b Phase 2–3), cascade-blocked propagation (§4c), and merge retry cap (§4d). These are the rules most vulnerable to drift during long sessions.
 
 ### 4a. Execution order + worktrees
 
@@ -179,7 +179,7 @@ LOOP:
     if failure_count >= 2:
       compile_error_count += 1
       if compile_error_count >= 3:
-        Mark task BLOCKED (reason: 持續 compile error after smart-friend)
+        Mark task BLOCKED (reason: persistent compile error after smart-friend)
         TaskUpdate: status=blocked
         escalate to user: 「TASK-{group}-NN blocked：smart-friend 後持續 compile error」
         break LOOP
@@ -249,7 +249,7 @@ SWITCH review_tier:
 
 **Goal-Alignment Filter** (applies to: `packaged confirm (correctness)`, `needs judgment`)
 
-Full procedure — applicability gate, finding-level loop, hard invariant (驗收標準直接失敗 finding 不可 downgrade), 語意覆蓋判斷準則, re-tier post-step, and the metric counters feeding Step 7 — lives in `references/goal-alignment-filter.md` and is authoritative for `failure_count` accounting in this sub-step. Follow it; its outcome routes to either task ✅ (all findings downgraded to advisory) or the failure escalation logic below (`failure_count += 1`).
+Full procedure — applicability gate, finding-level loop, hard invariant (an 驗收標準直接失敗 finding must not be downgraded), semantic-coverage decision criterion, re-tier post-step, and the metric counters feeding Step 7 — lives in `references/goal-alignment-filter.md` and is authoritative for `failure_count` accounting in this sub-step. Follow it; its outcome routes to either task ✅ (all findings downgraded to advisory) or the failure escalation logic below (`failure_count += 1`).
 
 **Failure escalation logic** (reached from correctness/judgment cases):
 
@@ -383,7 +383,7 @@ Advisory notes from Coverage Report → record in final-report; do not trigger f
 Write `.claude/execute/{date}-{slug}/execute/final-report.md`. Template: `references/output-formats.md §final-report.md`.
 
 When emitting the report:
-- 將 §4b Phase 3 累加的 `total_findings_count` 與 `downgraded_to_advisory_count` 寫入 `## Goal-Alignment Filter Metric` 段（即 `goal_alignment_filter_metric` block）。若整個 session 內無任何 review-agent 回傳（counters 從未遞增），兩值皆寫 `0`，metric 段仍須輸出（不得省略）。filter 行為與降級判斷準則維持 §4b Phase 3 定義，本步驟僅做序列化，不重新計算。
+- Write the `total_findings_count` and `downgraded_to_advisory_count` accumulated in §4b Phase 3 into the `## Goal-Alignment Filter Metric` section (i.e. the `goal_alignment_filter_metric` block). If no review-agent returned at all during the entire session (the counters never incremented), write `0` for both values; the metric section must still be emitted (it may not be omitted). Filter behavior and the downgrade decision criterion remain as defined in §4b Phase 3 — this step only serializes, it does not recompute.
 - If an upstream work journal exists (`.claude/think/*.html` for the approved plan), read `../_shared/output-journal.md` and append this run's off-spec decisions / forced changes / tradeoffs to its 執行日誌 section per that contract, then SendUserFile the updated journal.
 
 Remove all gitworktrees created this session:
@@ -409,7 +409,7 @@ final-report.md: .claude/execute/{date}-{slug}/execute/final-report.md
 ## Gotchas
 
 - **[review-agent bypass trap]**: Documentation, script, and config tasks feel like they "have nothing to test". The orchestrator rationalizes skipping review-agent because impl-agent reported success. This is the failure mode: review-agent verifies impl-checklist-{group}.md acceptance criteria, not just unit tests. `TaskUpdate status=completed` is only reachable after a review-agent outcome.
-  Solution: Re-read §核心限制 before marking any task ✅.
+  Solution: Re-read §Hard Constraints before marking any task ✅.
 
 - **[compile error vs failure_count]**: After impl-agent returns ❌ with a compile error, `failure_count` must NOT increment. Counting compile errors as failures triggers smart-friend early and wastes the retry budget on syntax issues.
   Solution: Only `failure_count++` on review-agent "packaged confirm (correctness)" or "needs judgment" returns.
@@ -430,7 +430,7 @@ final-report.md: .claude/execute/{date}-{slug}/execute/final-report.md
   Solution: The Step 2 / Step 3 "Done when" gates enforce ordering.
 
 - **[goal-alignment over-filter trap]**: When the Goal-Alignment Filter downgrades all reviewer-initiated off-goal findings to advisory, an acceptance-criteria failure finding can be misclassified as off-goal and silently downgraded too. That collapses back to the [review-agent bypass trap] failure mode — the task marks ✅ while a 驗收標準直接失敗 finding was suppressed.
-  Solution: The hard invariant is the floor — a finding that traces to 驗收標準直接失敗 keeps its original tier and still increments `failure_count`. review-agent 「逐條核對驗收標準」 is the supporting check that keeps the invariant honest; never let the filter run without it.
+  Solution: The hard invariant is the floor — a finding that traces to an 驗收標準直接失敗 keeps its original tier and still increments `failure_count`. review-agent's 「逐條核對驗收標準」 is the supporting check that keeps the invariant honest; never let the filter run without it.
 
 ---
 
@@ -443,7 +443,7 @@ final-report.md: .claude/execute/{date}-{slug}/execute/final-report.md
 - final-fixer-agent is dispatched at most once per session.
 - smart-friend-agent is dispatched at most once per task (when failure_count reaches 2).
 - compile errors do not increment failure_count.
-- failure_count 計算受 Goal-Alignment Filter 影響（off-goal findings 降為 advisory 不計入）；驗收標準失敗 finding 不受 filter 影響（hard invariant）。
+- `failure_count` accounting is affected by the Goal-Alignment Filter (off-goal findings are downgraded to advisory and not counted); an acceptance-criterion failure (驗收標準失敗) finding is unaffected by the filter (hard invariant).
 - All user-visible output is Traditional Chinese (繁體中文).
 - Working files go under `.claude/execute/{date}-{slug}/execute/`.
 

@@ -6,28 +6,28 @@ example: inline
 
 # Sequence
 
-**Best for**: request / response 流程、protocol 交握、多 actor 隨時間的互動、API call trace、事故重建（incident reconstruction）。
+**Best for**: request / response flows、protocol handshakes、multi-actor interactions over time、API call trace、incident reconstruction.
 
 ## Layout conventions
 
-- Layer 3 derived token：`lifeline-color` 由 `--ink @ 0.30` 預計算為 solid hex（v1 ground truth `#b6b5af`），不得出現 alpha-channel CSS 函式形式；計算方式參見 `references/design-token-resolver.md`。
-- Actor 為頂端水平排列的 box；每個 actor 下垂一條 dashed vertical line 作 lifeline，stroke 走上述 `lifeline-color`，stroke-width=1、stroke-dasharray="3,3" 固定。
-- Message 為 lifeline 之間的 horizontal arrow，**時間 top→down**；activation bar 為 lifeline 上窄 rect（`w=8`，`--ink @ 0.06` fill，0.8 hairline stroke），跨越該 actor 持有控制權的區間，巢狀呼叫往內堆疊。
-- Self-message 用 U 型短 loop 回到同一條 lifeline，label 放 loop 右側；return message 用 dashed line，**顏色同發起該 call 的線**。
-- `--brand` 只能用在主要 success response 或 headline message，一條最多兩條，不可每條都上色。
+- Layer 3 derived token: `lifeline-color` is precomputed from `--ink @ 0.30` into a solid hex (v1 ground truth `#b6b5af`) and must not appear in alpha-channel CSS-function form; for the computation see `references/design-token-resolver.md`.
+- Actors are boxes laid out horizontally across the top; each actor drops a dashed vertical line as its lifeline, with the stroke set to the `lifeline-color` above, stroke-width=1 and stroke-dasharray="3,3" fixed.
+- Messages are horizontal arrows between lifelines, **time runs top→down**; an activation bar is a thin rect on a lifeline (`w=8`, `--ink @ 0.06` fill, 0.8 hairline stroke) spanning the interval that actor holds control, with nested calls stacking inward.
+- A self-message uses a short U-shaped loop back to the same lifeline, with the label on the right of the loop; a return message uses a dashed line, **colored the same as the line that initiated that call**.
+- `--brand` may be used only on the main success response or a headline message — at most two in total — never colored on every line.
 
 ## Anti-patterns
 
-- Message arrow 向上指（時間倒流）。
-  - *Why fails*：sequence diagram 唯一的 invariant 就是 y 軸代表單向時間；arrow 向上等於否定 y 軸語意，讀者無法判斷因果順序，整張圖的 grammar 崩壞。
-- Activation bar 沒有 close（懸而未收）。
-  - *Why fails*：activation bar 的語意是「這個 actor 在這個區間持有 control」，未 close 等於宣告 control 從未交還，與實際系統行為不符；同時破壞 nested call 的視覺對稱性。
-- Label 坐在另一條 lifeline 之上。
-  - *Why fails*：lifeline 是視覺骨架，label 壓在上面會讓 lifeline 與文字互相吃光，讀者掃讀時 y 位置就會錯位；應縮短 label 或將 y 移到 lifeline 間隔處。
+- A message arrow points upward (time running backward).
+  - *Why fails*: a sequence diagram's only invariant is that the y axis represents one-way time; an upward arrow negates the y-axis semantics, the reader can't judge causal order, and the entire diagram's grammar collapses.
+- An activation bar with no close (left hanging).
+  - *Why fails*: an activation bar means "this actor holds control during this interval"; leaving it unclosed declares that control was never handed back, which doesn't match the actual system behavior and also breaks the visual symmetry of nested calls.
+- A label sitting on top of another lifeline.
+  - *Why fails*: the lifeline is the visual skeleton; a label pressed on top makes the lifeline and the text consume each other, so the reader's y position drifts while scanning. Shorten the label or move its y into the gap between lifelines.
 
 ## Examples
 
-Inline example below — 3-actor login protocol（Client → Server[focal] → DB），含 dashed lifeline、activation bar、alt branch（password mismatch）、return message（dashed line）、1 個 sidenote box。Server actor 標 `data-role="focal"`，所有 actor/sidenote 寬走 2 檔白名單 `{128, 160}`，alt frame 用 `<path>` 而非 rect 以避開非白名單寬度。
+Inline example below — 3-actor login protocol (Client → Server[focal] → DB), with a dashed lifeline, an activation bar, an alt branch (password mismatch), a return message (dashed line), and 1 sidenote box. The Server actor is marked `data-role="focal"`, all actor/sidenote widths follow the 2-step whitelist `{128, 160}`, and the alt frame uses `<path>` rather than rect to avoid a non-whitelist width.
 
 ```html
 <figure class="diagram">

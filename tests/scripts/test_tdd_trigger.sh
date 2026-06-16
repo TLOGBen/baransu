@@ -59,7 +59,7 @@ if [[ ! -f "$IMPL_AGENT" ]]; then
   fail "$IMPL_AGENT does not exist"
 else
   grep -q "_shared/tdd.md" "$IMPL_AGENT" && pass "tdd.md path cited" || fail "tdd.md path not cited in $IMPL_AGENT"
-  grep -q "撰寫測試之前請閱讀\|測試.*之前.*tdd.md" "$IMPL_AGENT" && pass "passive citation phrasing present" || fail "passive citation phrasing missing in $IMPL_AGENT"
+  grep -qE "[Bb]efore writing tests.*tdd\.md|[Bb]efore the Red gate.*tdd\.md" "$IMPL_AGENT" && pass "passive citation phrasing present" || fail "passive citation phrasing missing in $IMPL_AGENT"
 fi
 
 # ---------------------------------------------------------------------------
@@ -70,7 +70,7 @@ if [[ ! -f "$REVIEW_AGENT" ]]; then
   fail "$REVIEW_AGENT does not exist"
 else
   grep -q "_shared/tdd.md" "$REVIEW_AGENT" && pass "tdd.md path cited" || fail "tdd.md path not cited in $REVIEW_AGENT"
-  grep -q "review.*之前請閱讀\|Review 之前.*tdd.md" "$REVIEW_AGENT" && pass "passive citation phrasing present" || fail "passive citation phrasing missing in $REVIEW_AGENT"
+  grep -qE "[Bb]efore reviewing.*tdd\.md" "$REVIEW_AGENT" && pass "passive citation phrasing present" || fail "passive citation phrasing missing in $REVIEW_AGENT"
   # green_proof schema 4 fields
   grep -q "green_proof" "$REVIEW_AGENT" && pass "green_proof field declared" || fail "green_proof field missing"
   grep -q "test_command" "$REVIEW_AGENT" && pass "test_command field declared" || fail "test_command field missing"

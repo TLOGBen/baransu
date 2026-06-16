@@ -1,61 +1,61 @@
 # Render DESIGN.html — shared spec for gen mode & preset mode
 
-Both gen mode 和 preset mode 跑完 DESIGN.md 後產出 `{project_root}/DESIGN.html` —— **使用該 preset 自家 tokens 自我展示**（不引用 Kami 或外部模板）。
+Both gen mode and preset mode, after running DESIGN.md, produce `{project_root}/DESIGN.html` — **self-demonstrating with that preset's own tokens** (no reference to Kami or external templates).
 
-## 必含 7 個 section
+## Required 7 sections
 
-1. **Sticky sidebar TOC** — 九段連結，色彩用該 preset primary/background tokens
-2. **Color palette section** — 每個 named color 一個 `<div>` swatch + hex label；swatch background 為實際色值
-3. **Typography section** — live text samples 用 spec font stacks（headings / body / captions）；使用 `@font-face` 或 safe web-font fallback，**不**用 CDN link
-4. **Component stylings section** — 視覺描述或 code snippet，保留 DESIGN.md 用語
-5. **Do / Don't section** — 兩欄比較表，用綠/紅 accent 表 pass/fail
-6. **AI Prompt Guide section** — copy-ready `<code>` block 含完整 reproducer prompt
-7. **Remaining sections** — 標準 `<h2>` + prose 呈現
+1. **Sticky sidebar TOC** — nine-section links, colored with that preset's primary/background tokens
+2. **Color palette section** — one `<div>` swatch + hex label per named color; swatch background is the actual color value
+3. **Typography section** — live text samples using the spec font stacks (headings / body / captions); use `@font-face` or a safe web-font fallback, **not** a CDN link
+4. **Component stylings section** — visual description or code snippet, preserving DESIGN.md terminology
+5. **Do / Don't section** — two-column comparison table, using green/red accents for pass/fail
+6. **AI Prompt Guide section** — copy-ready `<code>` block containing the complete reproducer prompt
+7. **Remaining sections** — presented as standard `<h2>` + prose
 
-## 技術需求
+## Technical requirements
 
-- Fully offline（無 external script、無 CDN font）
-- 單檔，無 external asset
-- Valid HTML5 含 `<meta charset="utf-8">` 與 `<meta name="viewport">`
-- 頁面自身 background / text / accent 顏色須對應 DESIGN.md §2 的 token
+- Fully offline (no external script, no CDN font)
+- Single file, no external asset
+- Valid HTML5 including `<meta charset="utf-8">` and `<meta name="viewport">`
+- The page's own background / text / accent colors must correspond to the tokens in DESIGN.md §2
 
-## 可驗品質門檻（render 後自查）
+## Verifiable quality gates (self-check after render)
 
-七段結構齊全只是結構檢查；render 完後逐條核對下列可量測門檻，任一不過即重排，**不准用空話帶過**：
+A complete seven-section structure is only a structural check; after rendering, verify the following measurable gates one by one — re-do the layout if any fails, and **do not paper over it with empty words**:
 
-- 色數 ≤3–4（1 主 + 1 輔 + 1 強調 + 灰階；accent 覆蓋 ≤5% 表面）（理由：色數爆炸是 AI 美學最常見破綻，強調色滿屏即不再是強調）
-- 正文 vs 背景對比 ≥4.5:1（WCAG AA），大字（≥24px 或 bold ≥19px）≥3:1（理由：低於此值在投影 / 強光下不可讀，是世界級產出的硬下限）
-- 留白 ≥40% 總面積（理由：Kami「less but better」的呼吸節奏，欠白即顯廉價密集）
-- body line-height 中文 1.5–1.55；禁 ≥1.6（理由：Kami「印刷比網頁更緊」，≥1.6 是網頁漂浮腔，破壞長文連讀節奏）
-- 閱讀流 `max-width` ≤65ch（理由：超過 65 字元/行回掃疲勞，editorial 排版鐵則）
+- Color count ≤3–4 (1 primary + 1 secondary + 1 accent + grayscale; accent covers ≤5% of the surface) (rationale: color-count explosion is the most common giveaway of AI aesthetics; an accent color filling the screen is no longer an accent)
+- Body vs background contrast ≥4.5:1 (WCAG AA), large text (≥24px or bold ≥19px) ≥3:1 (rationale: below this value it is unreadable under projection / bright light — the hard floor of world-class output)
+- Whitespace ≥40% of total area (rationale: the breathing rhythm of Kami's "less but better"; lacking whitespace looks cheap and dense)
+- body line-height 1.5–1.55 for Chinese; forbid ≥1.6 (rationale: Kami's "print is tighter than web"; ≥1.6 is a floating web tone that breaks the continuous-reading rhythm of long text)
+- reading-flow `max-width` ≤65ch (rationale: beyond 65 characters/line causes return-sweep fatigue — an iron rule of editorial typesetting)
 
-### 編輯級微排版（gen mode 自製 preset 的盲點 — DESIGN.html 編輯級自查清單）
+### Editorial-tier micro-typography (the blind spot of gen-mode self-made presets — DESIGN.html editorial-tier self-check list)
 
-色數 / 對比 / 留白都過、仍可能輸出「AI 通用感」editorial：分水嶺在下列微排版。這四條對標 Kami 編輯級排版（digests/10-kami.md §5），是把產出從「AI 通用感」拉到「編輯級克制」最大的單一槓桿。
+Color count / contrast / whitespace may all pass yet still output an "AI-generic" editorial: the dividing line is the micro-typography below. These four items align with Kami editorial-tier typesetting (digests/10-kami.md §5), and are the single largest lever for pulling output from "AI-generic" up to "editorial-tier restraint".
 
-> 🔴 **誠實聲明**：此層 `editorial-sanity.sh`（只覆蓋 design-cores HTML 的 kami/swiss/google prefix）**尚未覆蓋** DESIGN.html，無腳本可跑，一律手動逐條執行。render 完 DESIGN.html 後**依序**跑 E1–E4，**任一不過即重排**，不准空話帶過。每條 pass 判據已明寫於「預期」欄——做不到量測就視同不過。
+> 🔴 **Honest disclosure**: at this layer `editorial-sanity.sh` (which only covers the kami/swiss/google prefixes of design-cores HTML) **does not yet cover** DESIGN.html — there is no script to run, so execute each item manually one by one. After rendering DESIGN.html, run E1–E4 **in order**, and **re-do the layout if any fails** — no papering over with empty words. Each item's pass criterion is written explicitly in the "Expected" field — if you cannot measure it, treat it as a fail.
 
-- **E1 — 列點用 native `<li>` marker 上 accent 色，禁 `::before` en-dash 假 bullet**（根因：`::before` 破折號 bullet 是 AI 預設輸出一眼可辨，非編輯排版）。
-  - 做法：`li::marker { color: var(--accent) }`，不用 `::before` 造 bullet。
-  - 自查：`grep -nE "li::before|content:\s*['\"][-–—]" DESIGN.html`
-  - 預期 pass：**輸出空（0 行）**。
-- **E2 — CJK 列點旁禁圓點 bullet，改 8px×1.5px 的 `var(--accent)` 短橫條**（根因：圓點配中文讀來幼稚，短橫條才是編輯級節制）。
-  - 做法：含 CJK 的 `<li>` 區段 `list-style: none` + `::before` 畫 `width:8px;height:1.5px;background:var(--accent)` 短橫條。
-  - 自查：`grep -nE "list-style(-type)?:\s*disc" DESIGN.html`（CJK 區段不得有 disc）＋目視確認橫條尺寸＝8px×1.5px。
-  - 預期 pass：**grep disc 輸出空（0 行）；目視橫條尺寸符合**。
-- **E3 — 箭頭一律 `→` 禁 `->`；中文引號用「」禁直引號 `"`；% 前不空格、數字加千分位（`5,000`／`90%`）**（根因：ASCII 箭頭與直引號是未經編輯的機器輸出指紋；與 `editorial-sanity.sh` Check 3 同精神，但此處覆蓋 DESIGN.html 而非 design-core）。
-  - 做法：prose 內 ASCII 箭頭改 `→`、直引號改「」。
-  - 自查：`grep -nE -- "->" DESIGN.html`（ASCII 箭頭）＋目視 prose（非 HTML attribute）內無直引號 `"`。
-  - 預期 pass：**grep `->` 輸出空（0 行）；prose 內直引號計數＝0**。
-- **E4 — 印刷／長文取向的 preset 禁 italic**（唯一例外：screen-only 詩意句；根因：印刷模板用 italic 即露網頁腔；gen mode 自製非 swiss preset 目前無此 gate）。
-  - 做法：強調改 `var(--accent)` 上色或字重，不走 italic。
-  - 自查：`grep -nE "font-style:\s*italic|<i>|<em>" DESIGN.html`
-  - 預期 pass：**輸出空（0 行）；若有命中，逐處確認確為 screen-only 詩意句例外，否則改回上色／字重表達層級**。
+- **E1 — list items use the native `<li>` marker tinted with the accent color; forbid `::before` en-dash fake bullets** (root cause: `::before` em-dash bullets are an instantly recognizable AI default output, not editorial typesetting).
+  - How: `li::marker { color: var(--accent) }`, do not build bullets with `::before`.
+  - Self-check: `grep -nE "li::before|content:\s*['\"][-–—]" DESIGN.html`
+  - Expected pass: **empty output (0 lines)**.
+- **E2 — no round-dot bullet beside CJK list items; replace with an 8px×1.5px `var(--accent)` short bar** (root cause: round dots beside Chinese read as childish; the short bar is editorial-tier restraint).
+  - How: for `<li>` segments containing CJK, use `list-style: none` + `::before` to draw a `width:8px;height:1.5px;background:var(--accent)` short bar.
+  - Self-check: `grep -nE "list-style(-type)?:\s*disc" DESIGN.html` (CJK segments must not have disc) + visually confirm the bar size = 8px×1.5px.
+  - Expected pass: **grep disc output is empty (0 lines); bar size visually conforms**.
+- **E3 — arrows are always `→`, forbid `->`; Chinese quotes use 「」, forbid straight quotes `"`; no space before %, add thousands separators to numbers (`5,000` / `90%`)** (root cause: ASCII arrows and straight quotes are the fingerprint of unedited machine output; same spirit as `editorial-sanity.sh` Check 3, but here covering DESIGN.html rather than a design-core).
+  - How: change ASCII arrows in prose to `→`, straight quotes to 「」.
+  - Self-check: `grep -nE -- "->" DESIGN.html` (ASCII arrows) + visually confirm no straight quotes `"` in prose (not HTML attributes).
+  - Expected pass: **grep `->` output is empty (0 lines); straight-quote count in prose = 0**.
+- **E4 — print- / long-form-oriented presets forbid italic** (sole exception: screen-only poetic lines; root cause: a print template using italic reveals a web tone; gen-mode self-made non-swiss presets currently have no such gate).
+  - How: express emphasis with `var(--accent)` coloring or font weight, not italic.
+  - Self-check: `grep -nE "font-style:\s*italic|<i>|<em>" DESIGN.html`
+  - Expected pass: **empty output (0 lines); if there are hits, confirm each is genuinely a screen-only poetic-line exception, otherwise revert to expressing hierarchy via coloring / font weight**.
 
-## 寫入位置
+## Write location
 
-`{project_root}/DESIGN.html`。已存在則覆寫。
+`{project_root}/DESIGN.html`. Overwrite if it already exists.
 
-## 成功訊息
+## Success message
 
 「✅ 已產出 DESIGN.html（設計系統視覺預覽，可直接用瀏覽器開啟）」

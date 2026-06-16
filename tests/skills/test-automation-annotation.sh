@@ -115,7 +115,7 @@ for skill in ("hunt", "analyze"):
             "sentence in body"
         )
     if not any(
-        "loop" in l.lower() and "預設" in l for l in non_contract
+        "loop" in l.lower() and "default" in l.lower() for l in non_contract
     ):
         failures.append(f"{skill}: missing loop-mode default sentence in body")
 
