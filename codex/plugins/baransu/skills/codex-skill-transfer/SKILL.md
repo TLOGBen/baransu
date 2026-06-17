@@ -48,7 +48,7 @@ Default invocation for any of the three automated modes:
 python3 scripts/transfer.py <claude-source> <codex-output>
 ```
 
-The script refuses if `<codex-output>` overlaps the source — there is a real data-loss path otherwise (rerun would `rmtree` the source). Always pick a separate output directory.
+The script refuses if `<codex-output>` overlaps the source — there is a real data-loss path otherwise (rerun would `rmtree` the source). Always pick a separate output directory. If `transfer.py` exits non-zero because `<codex-output>` overlaps the source, then re-invoke with a sibling output directory outside the source tree (e.g. `codex/` at repo root for baransu) — do NOT delete or move the source to make room.
 
 For single-skill and batch output, install by copying each skill directory into `<repo>/.agents/skills/` (project) or `~/.agents/skills/` (personal) — note `.agents/`, NOT `.codex/` or `.claude/` — then restart Codex to pick it up.
 

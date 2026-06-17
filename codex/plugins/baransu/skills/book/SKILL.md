@@ -220,13 +220,18 @@ Explanation:
 
 ### 1. Classify content type
 
-Do a rough keyword + structure scan over `$RAW_CONTENT` and first guess which category `$CONTENT_TYPE` falls into; if the boundary is unclear (e.g. mixed narrative+technical / a brand-new type / hard to tell multi-source synthesis vs single-piece analysis), **only then read** `references/perception-guide.md` to make the final classification.
+Run a keyword + structure scan over `$RAW_CONTENT`, then resolve `$CONTENT_TYPE` by an explicit threshold rule rather than by judging whether the boundary "feels" clear:
+
+1. Score each of the three candidate categories (`technical` / `narrative` / `research`) by counting the number of **distinct** matched signals (keyword hits, structural cues) for that category in `$RAW_CONTENT`.
+2. Rank the three categories by signal count. Let `top` = highest count, `second` = next-highest count.
+3. **IF** `top ≥ 2` **AND** `top − second ≥ 2` (the leading category clears the minimum signal floor of 2 distinct signals AND leads the runner-up by a margin of ≥ 2 distinct signals) → assign `$CONTENT_TYPE` to the top category directly and **skip the `references/perception-guide.md` read** for classification purposes.
+4. **ELSE** (the lead is within the margin, i.e. `top − second < 2`, **OR** no category reaches the minimum floor, i.e. `top < 2`) → read `references/perception-guide.md` and use its taxonomy to break the tie and assign `$CONTENT_TYPE`.
 
 `perception-guide.md` contains the full taxonomy (Technical / Narrative / Research), each category's visual-treatment strategy, SVG strategy, and synthesis length caps (4–8 sections, ≤1800 words).
 
 ### 2. Decide $CONTENT_TYPE
 
-Based on the perception guide signals, assign `$CONTENT_TYPE` to one of:
+Based on the §1 signal counts (and, when the §1 rule routed to it, the perception guide), assign `$CONTENT_TYPE` to one of:
 - `technical` — code, how-to, architecture, tool guides
 - `narrative` — essays, opinions, threads, stories
 - `research` — analyses, reports, multi-source synthesis
@@ -237,7 +242,7 @@ Output one line: 「內容類型偵測：{$CONTENT_TYPE}」
 
 The Stage 2A selection splits into two layers, **the order must not be reversed**:
 
-- **Layer 1 (content type → HTML layout density)**: the `$CONTENT_TYPE` already produced by §2 (A=`technical` / B=`narrative` / C=`research`) determines the whole HTML's layout style — whether the TOC is expanded, number of cards, density, callout style, etc., all given separately for the A/B/C categories by `references/perception-guide.md`. If §1 did not read `references/perception-guide.md`, read it before applying Layer 1, and take the layout density and visual-treatment rules corresponding to that $CONTENT_TYPE.
+- **Layer 1 (content type → HTML layout density)**: the `$CONTENT_TYPE` already produced by §2 (A=`technical` / B=`narrative` / C=`research`) determines the whole HTML's layout style — whether the TOC is expanded, number of cards, density, callout style, etc., all given separately for the A/B/C categories by `references/perception-guide.md`. Read `references/perception-guide.md` here if §1's threshold rule assigned `$CONTENT_TYPE` directly without reading it, then take the layout density and visual-treatment rules corresponding to that $CONTENT_TYPE.
 - **Layer 2 (13-type selection → per-section diagram structure)**: each section containing a diagram independently looks up the Stage 3 §4 「13 型 selection 表」, picking one diagram type based on that section's data shape (architecture / flowchart / sequence / ...).
 
 The two axes are orthogonal: Layer 1 controls layout, Layer 2 controls each section's SVG structure; do Layer 1 first, then Layer 2, deciding each section independently without inheriting the previous section's choice.

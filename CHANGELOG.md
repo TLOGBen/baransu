@@ -2,6 +2,21 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.5.4 (2026-06-18)
+
+**每日 cron 自動演化 round 2:全 14 skill 結構軸再精修(standing-auth 自動採納)**。plugin version 2.5.3 → 2.5.4。
+
+由 4:07 AM cron(standing authorization)非互動觸發 evolve→codex→ship sweep;全 14 skill 經盲評 **3/3** 自動採納,結構閘 + `make test` 全綠後上 main。
+
+### Changed — 變更
+
+- **全 14 skill 結構軸(dims 1–6)第二輪演化**(blind 3/3):Trigger-Clarity 補 not-for 邊界(analyze/design/execute/hunt/…)、Failure-Mode-Encoding 補 if-then 復原(codex-skill-transfer/think/…)、High-Risk-Action 補 mutation-isolation 不變式(evolve)、Actionable-Specificity 釘死門檻規則(book/…)等,各 1 個單變量改動。
+- codex 鏡像隨之重產同步。
+
+### Notes
+
+- hunt/book/think 首輪 mutate 遇暫時性 API 連線中斷掉出,經單獨 retry workflow 補齊,最終 14/14 全數採納。
+
 ## v2.5.3 (2026-06-17)
 
 **`/evolve` 非互動 standing-authorization 自動採納 + 全 14 skill 結構軸演化精修**。plugin version 2.5.2 → 2.5.3。

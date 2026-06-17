@@ -229,7 +229,7 @@ Exactly one option must be labelled **【推薦】** and should come first. Expl
 - Don't write draft plans or pseudo-options.
 - Don't collapse multiple rounds into one mega-question — the sequential pressure of the three alignment rounds is part of what surfaces hidden assumptions.
 
-If after Round 3 the user's answers still contradict each other, say so in one sentence and offer one more narrowing question before moving on.
+If after Round 3 the user's answers still contradict each other, ask one more narrowing question. If that answer STILL contradicts a prior round, then stop alignment and surface the contradiction as a named Unknown carried into Stage F — do not proceed to Stage B on an unresolved purpose conflict.
 
 ---
 

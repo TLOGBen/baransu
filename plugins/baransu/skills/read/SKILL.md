@@ -294,7 +294,7 @@ Each round always carries the escape option in addition to its result slots.
 ## Gotchas
 
 - **onnxruntime GPU warning**: Non-fatal. Appears on WSL2 with NVIDIA drivers. Use `2>/dev/null` when calling markitdown CLI to suppress.
-- **markitdown accepts file path, not live URL**: After Acquire saves content to `raw/`, always pass the local `raw/{slug}/index.{ext}` path to markitdown — not the original URL. Exception: for PDF URLs, markitdown can accept the URL directly if you prefer; still save to raw/ first.
+- **markitdown accepts file path, not live URL**: After Acquire saves content to `raw/`, always pass the local `raw/{slug}/index.{ext}` path to markitdown — not the original URL. This holds for ALL input types including PDF: pass `raw/{slug}/index.{ext}` after Stage 1's After-Acquire step saves it; never pass the original URL to markitdown.
 - **SPA false positive** (`<div id="root">` in static HTML): upgrading to browser layer will produce richer content. This is acceptable behavior.
 - **Windows environment**: Call `install-deps.bat` not `install-deps.sh`. Platform detection in Stage 0 determines which to call.
 - **Slug collision naming**: Use `_v2`, `_v3` etc. — never `_1`, `_2`. The dedup logic in Stage 3 and index.md use the `_vN` convention consistently.

@@ -174,7 +174,7 @@ The topic string is needed for the brief filename (slug) and YAML frontmatter.
 
 ### 2. Score each source
 
-For each entry in `$SOURCES`, read its `index.md` and evaluate it on three criteria using **visual judgment (1–5)**. There is no quantitative formula in v1; scores are assigned by holistic reading.
+For each entry in `$SOURCES`, read its `index.md` and evaluate it on three criteria. Each criterion is scored independently on a 1–5 scale by reading the source's `index.md`; assign the level whose anchor signal is the highest one observable in the text. The anchor scales below pin each level to an observable signal in `index.md`, converting the judgment into a decision rule applied without further discretion (when a source falls between two anchors, assign the lower of the two).
 
 | Criterion | Meaning |
 |------|------|
@@ -182,7 +182,23 @@ For each entry in `$SOURCES`, read its `index.md` and evaluate it on three crite
 | 預測力 | Does this source offer verifiable predictions or actionable causal inferences? |
 | 通用性 | Are this source's conclusions stable across time and across populations? |
 
-Scale: 1 = very low, 5 = very high. Each criterion is scored independently.
+**Anchor scale — 多情境適用性** (1–5; level = highest observable signal in `index.md`):
+- 1 = applies to a single named case only.
+- 3 = generalizes to one adjacent domain.
+- 5 = states a domain-independent mechanism with ≥2 distinct example domains in the text.
+- (2 and 4 = between the adjacent anchors above.)
+
+**Anchor scale — 預測力** (1–5; level = highest observable signal in `index.md`):
+- 1 = no claims.
+- 3 = qualitative directional claim.
+- 5 = quantified/falsifiable prediction with stated conditions.
+- (2 and 4 = between the adjacent anchors above.)
+
+**Anchor scale — 通用性** (1–5; level = highest observable signal in `index.md`):
+- 1 = single-population snapshot.
+- 3 = holds across one stated boundary.
+- 5 = replicated across time and population in the source.
+- (2 and 4 = between the adjacent anchors above.)
 
 ### 3. Present scoring table for user confirmation
 
@@ -220,7 +236,7 @@ Display the scoring results in a 繁中 table for the user to review.
 | {slug-x1} | {1-5}       | {1-5}  | {1-5}  |
 ```
 
-Each per-lane sub-table caps at the lane's hit count (no further truncation). Scoring is `visual judgment 1-5` per criterion as in §2; for high-volume pools (>20 candidates) the per-cell judgment is necessarily coarser — this is the accepted trade-off for keeping the spec uniform across lanes.
+Each per-lane sub-table caps at the lane's hit count (no further truncation). Scoring uses the per-criterion anchor scales in §2; for high-volume pools (>20 candidates) the per-cell judgment is necessarily coarser — this is the accepted trade-off for keeping the spec uniform across lanes.
 
 **Combined form** (single-lane or non-fan-out inputs):
 
