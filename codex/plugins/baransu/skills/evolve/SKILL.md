@@ -8,9 +8,10 @@ description: Use when the user wants to improve, score, or evolve a SKILL.md. Po
   restored). Dual-axis evaluation (structure + effectiveness — effectiveness via real-exec
   gated by a trust+capability check, else offline replay), held-out validation with
   an independence layer, and a Kami result card. Adoption of any change is an Authorization
-  PAUSE; rollback never touches the git working tree. Trigger on '/evolve', '優化 skill',
-  'skill 評分', '演化 skill', 'optimize skill', 'improve skill quality', 'evolve a skill',
-  '幫我改 skill'. 繁體中文輸出。
+  PAUSE; rollback never touches the git working tree. Not for authoring a brand-new
+  SKILL.md from scratch, or for deciding whether a skill should exist (that is /think
+  Evaluation Mode). Trigger on '/evolve', '優化 skill', 'skill 評分', '演化 skill', 'optimize
+  skill', 'improve skill quality', 'evolve a skill', '幫我改 skill'. 繁體中文輸出。
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex
@@ -28,7 +29,7 @@ The body below is English (agent-facing). All user-visible output is in **Tradit
 - **Done when**: `.claude/evolve/<slug>/` 內有 `report.md`、`results.tsv`、`log.md`、`held-out.md`、收斂曲線與成果卡，且演化版已過結構閘並經使用者於 Authorization PAUSE 採納或全部回滾。
 - **Evidence**: `report.md` 的起訖分數、dry_run 比例、每軸證據來源與 held-out 證據力標籤；`log.md` 的逐輪 keep/restore 記錄。
 - **Output**: `.claude/evolve/<slug>/` 演化包；對話內呈現繁中收斂摘要與成果卡。
-- **Automation**: ultracode=assist, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
+- **Automation**: ultracode=overlap, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 ## When to use / not
 
@@ -47,6 +48,16 @@ Use when a SKILL.md (or any skill-shaped instruction file) should be measurably 
 2. Create `.claude/evolve/<slug>/` with a `snapshot/` subdir.
 3. Read `references/rubric-9dim.md` (the selection environment) and `references/safety-gates.md` (the red lines). Both are loaded once and held constant for the whole run.
 4. Locate or build the benchmark `test-prompts`, split into **train** (drives the loop) and **held-out** (final validation only). If the target has no benchmark, pause and ask the user for 2–3 prompts; the system fills a skeleton for confirmation — never fabricate the pass criteria. **If the user declines or no benchmark is confirmed → then run the loop structure-axis-only: hard-label dims 7–9 as `no-benchmark` (unscored, never assumed) in `report.md`, and skip Stage 7's held-out validation (there is no held-out set). Do not silently proceed as if effectiveness were measured.**
+
+### Orchestration interface (dual-mode)
+
+At Stage 0 (mode pinning) and before each Stage-5 judge panel, read
+`references/orchestration-interface.md`: the isomorphic judge-vote schema,
+Stage 0 mode pinning (ultracode detect → record → no mid-run switch), a
+current parallel-subagent adapter, and a thin Workflow adapter. Both adapters
+return identical `{better, strict_improvement, per_dimension_deltas}` votes —
+the Stage 5 tally and Stage 6 keep/restore never sense the mode; the depth
+invariant is restated per adapter; non-ultracode runs keep current-path semantics.
 
 ## Stage 1 — Snapshot + diagnose
 
@@ -76,7 +87,7 @@ Dispatch **three fresh evolve-judge agents in parallel**. Present the pre- and p
 
 ## Stage 6 — Adoption (Authorization PAUSE) or restore
 
-- If kept: present the diff + score delta and **halt at an Authorization PAUSE** (`references/safety-gates.md` Gate 1). Adoption write-back is never skippable — not under `/loop`, cron, ultracode, or Workflow. Only on explicit user adoption is the change written to the target file; then re-read the target (the baseline changed) and reset the no-progress counter.
+- If kept: adoption is an **Authorization PAUSE** (`references/safety-gates.md` Gate 1), satisfied one of two ways. **(a) Interactive or non-interactive without standing authorization** → present the diff + score delta and halt; write back only on explicit user adoption. **(b) Non-interactive WITH a standing authorization** recorded in the driving context (the loop/cron prompt or approved plan explicitly authorizes adoption / the evolve→ship sweep) → auto-adopt, but only for a change that clears every Gate-1 precondition (structure gate pass, blind-judge bar tightened to **3/3**, snapshot retained, `log.md` audit with `decision: standing-auth auto-adopt`); a change failing any precondition is restored, never written. The end-state check (`make test`) is the final arbiter for downstream steps. After any write-back, re-read the target (the baseline changed) and reset the no-progress counter.
 - If not kept (judges, or structure gate, or restore path): restore the snapshot to the target file. File-level only — never `git reset --hard` / `stash` / `clean` / `checkout`.
 - Append a `log.md` entry either way: round #, dimension, mutation summary, gate result, votes, decision.
 
@@ -94,7 +105,7 @@ The mechanism is concept-aligned with public prior art but re-derived in origina
 
 - Never edit the rubric mid-run; it is the fixed selection environment.
 - One dimension per round; keep only strict improvements; restore otherwise.
-- Adoption write-back is an Authorization PAUSE on every platform.
+- Adoption write-back is an Authorization PAUSE on every platform — satisfied interactively, or by a standing authorization in the driving context under the Gate-1 preconditions (structure gate + 3/3 judges + snapshot + audit). Never by a bare default substitution.
 - Rollback is file-level; never touch the git working tree beyond the single target file.
 - The diagnostician and judges are stateless leaf nodes (subagent depth = 1): they never dispatch further subagents or invoke any `/baransu:*` skill.
 - All user-visible output is Traditional Chinese (繁體中文).

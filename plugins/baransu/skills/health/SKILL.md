@@ -158,6 +158,8 @@ Report in 繁體中文, with this shape:
 
 The 「行動」 (action) must be directly copy-runnable. Do not write 「調查 X」 (investigate X) or 「考慮 Y」 (consider Y). If the fix is unknown, give a diagnostic command.
 
+**Destructive-action gate.** Apply this if-then check to every emitted 「行動」 command before it leaves the report: IF the copy-runnable action mutates git tracking (e.g. `git rm --cached`), deletes files (`rm`), rewrites or discards history (`git reset --hard`, `git rebase`, `git filter-branch`), force-pushes (`git push --force`/`-f`), or touches credential/secret paths, THEN prefix that action line with 「⚠ 破壞性 / 不可逆」 and present it for explicit user confirmation before running — do not auto-run it. Non-destructive diagnostic and read-only commands stay unmarked and need no confirmation.
+
 ### [!] 嚴重 — 立即修
 
 Rules violated, dangerous allowedTools, MCP overhead >12.5%, security findings, leaked credentials.
@@ -167,7 +169,7 @@ Example:
 ```
 - [!] `settings.local.json` 已提交進 git（暴露 MCP tokens）
   原因：外洩的 token 可經由已安裝的 MCP server 達成遠端執行
-  行動：`git rm --cached .claude/settings.local.json && echo '.claude/settings.local.json' >> .gitignore`
+  行動：⚠ 破壞性 / 不可逆（需使用者確認後再執行）`git rm --cached .claude/settings.local.json && echo '.claude/settings.local.json' >> .gitignore`
 ```
 
 ### [~] 結構性 — 儘快修

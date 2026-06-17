@@ -1,7 +1,7 @@
 ---
 name: review
 description: >-
-  Use When the user wants an independent second opinion on a model's output, or after a model declares something done. Do Dispatch isolated architecture / quality / security perspective agents in clean Task contexts, surfacing hallucinations, drift, and over-engineering. Trigger On 「看一下」「看看」「幫我看」「check 一下」「review 一下」, or casual "take a look at X". 繁體中文輸出。
+  Use When the user wants an independent second opinion on a model's output, or after a model declares something done. Do Dispatch isolated architecture / quality / security perspective agents in clean Task contexts, surfacing hallucinations, drift, and over-engineering. Trigger On 「看一下」「看看」「幫我看」「check 一下」「review 一下」, or casual "take a look at X". Not For auditing the user's own project agent-config / AI-maintainability (route to /health), nor verifying baransu's own skill structure (route to scripts/verify-skills.py). 繁體中文輸出。
 ---
 
 # review — cross-perspective re-verification

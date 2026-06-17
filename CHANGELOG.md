@@ -2,6 +2,24 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.5.3 (2026-06-17)
+
+**`/evolve` 非互動 standing-authorization 自動採納 + 全 14 skill 結構軸演化精修**。plugin version 2.5.2 → 2.5.3。
+
+### Added — 新增
+
+1. **standing-authorization 自動採納(Loop/Ultracode 不中途停)**:`/evolve` Stage 6 採納仍是 Authorization PAUSE,但新增與 `/ship` push 一致的 carve-out —— 當 driving context(loop/cron 提示或核准計畫)明確授權採納/整條 evolve→ship 時,非互動執行可自動採納,但僅限通過**全部** Gate-1 前置條件的變更:結構閘通過、盲評門檻收緊為 **3/3**(非互動無人兜底)、保留 file-level snapshot、`log.md` 記 `decision: standing-auth auto-adopt`;任一條件未過即還原、不寫回。`make test` 為下游(/ship)的最終 go/no-go。互動式 session 維持硬停不變;無授權的裸 `/ultracode` 仍硬停 `needs input`。
+2. **loop-contract §2 標準授權語意**:Authorization PAUSE 重述為「不得以預設替代滿足;授權可由互動當下給出,或由 driving context 預先記錄的 standing authorization 給出(僅限該 skill 的 `loop-pauses.md` 標記為 standing-authorizable 者)」。standing authorization 屬「預先的明確人類授權」,非 default substitution。
+
+### Changed — 變更
+
+- **全 14 skill 結構軸(dims 1–6)演化精修**(blind panel 3/3 採納):Trigger Clarity 補 not-for 邊界 ×7(book/evolve/learn/read/review/ship/think)、High-Risk Action Discipline 補 rm/git 破壞性守衛 ×4(design/execute/health/hunt)、Actionable Specificity 把未錨定 hedge 改為釘死規則 ×3(analyze/codex-skill-transfer/write)。
+- `evolve/references/{safety-gates,loop-pauses}.md`、`evolve/SKILL.md` Stage 6 + Constraints:同步 standing-authorization 採納語意。
+
+### Notes
+
+- codex 鏡像待 `/codex-skill-transfer` 重產同步。
+
 ## v2.5.2 (2026-06-17)
 
 **`/evolve` 升級 ultracode 支援:`assist` → `overlap`,並補齊 loop 支援行為**。plugin version 2.5.1 → 2.5.2。

@@ -386,11 +386,21 @@ When emitting the report:
 - Write the `total_findings_count` and `downgraded_to_advisory_count` accumulated in §4b Phase 3 into the `## Goal-Alignment Filter Metric` section (i.e. the `goal_alignment_filter_metric` block). If no review-agent returned at all during the entire session (the counters never incremented), write `0` for both values; the metric section must still be emitted (it may not be omitted). Filter behavior and the downgrade decision criterion remain as defined in §4b Phase 3 — this step only serializes, it does not recompute.
 - If an upstream work journal exists (`.claude/think/*.html` for the approved plan), read `../_shared/output-journal.md` and append this run's off-spec decisions / forced changes / tradeoffs to its 執行日誌 section per that contract, then SendUserFile the updated journal.
 
-Remove all gitworktrees created this session:
+Remove all gitworktrees created this session. The worktree-remove is always safe (it discards a checkout, not committed work). The branch force-delete is **integration-state-gated**: `git branch -D` is irreversible and would silently discard any commits that never reached main, so it runs **only** for a group whose work is confirmed integrated.
+
+For each session group's worktree:
 ```bash
 git worktree remove .git/worktrees/{group} --force
-git branch -D execute/{date}-{slug}/{group}
 ```
+Then decide per group whether to force-delete its branch:
+- **Integrated (force-delete allowed)**: the group reached a merged state — its frontier level's merge-agent returned ✅ in §4d (work landed on main). Only then run:
+  ```bash
+  git branch -D execute/{date}-{slug}/{group}
+  ```
+- **Not integrated (do NOT delete)**: the group ended direct-blocked (§4b), cascade-blocked (§4c), or its frontier level's merge ended ❌ / ⚠️ in §4d (work never integrated into main). Skip the `git branch -D` for that group, keep the branch, and record one line in final-report:
+  「保留未合併分支 execute/{date}-{slug}/{group}（{原因}），未強制刪除」
+
+`-D` (force) is still required — never `-d` — when deletion is allowed: an integrated execute branch was pushed but not PR-merged, so `-d` fails. The integration-state guard above only decides *whether* to delete; it never relaxes `-D` to `-d`.
 
 Output to user (繁體中文):
 ```
@@ -423,8 +433,8 @@ final-report.md: .claude/execute/{date}-{slug}/execute/final-report.md
 - **[Red gate ⚠️ vs impl failure ❌]**: ⚠️ means the test was already passing before impl started — wrong test design. This is not a failure_count increment; it is an immediate BLOCKED with escalation. Do not retry impl.
   Solution: The ⚠️ / ❌ branch in §4b Phase 2 is explicit; re-read before handling impl-agent status.
 
-- **[merge branch deletion]**: Use `git branch -D` (force delete), never `git branch -d`. The execute branch was pushed but not PR-merged, so `-d` fails.
-  Solution: Always `-D` for `execute/{date}-{slug}/{group}` branches.
+- **[merge branch deletion]**: Use `git branch -D` (force delete), never `git branch -d`. The execute branch was pushed but not PR-merged, so `-d` fails. This applies only when the branch is eligible for deletion — see the integration-state guard in Step 7: a branch whose work never reached main (direct-blocked, cascade-blocked, or merge ❌/⚠️) is kept, not deleted.
+  Solution: Always `-D` for `execute/{date}-{slug}/{group}` branches that are integrated; do not delete branches that are not integrated.
 
 - **[task-map.md missing during merge]**: merge-agent needs to know which impl-checklist files exist. If task-map.md was not written in Step 3 before starting Step 4, merge-agent cannot verify coverage. Step 3 must complete fully before Step 4 begins.
   Solution: The Step 2 / Step 3 "Done when" gates enforce ordering.

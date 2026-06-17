@@ -136,7 +136,7 @@ Apply the rule set for the detected language (zh rules or en rules from the embe
 
 Also read `references/writing-principles.md` for the detected language and apply applicable style principles. When a style principle triggers a change, add a style tag to the 修正說明 (e.g., `動詞直用`、`具象優先`、`Cut filler`、`Short words`).
 
-Additionally, read context cues (salutation style, register of existing vocabulary, audience implied by content) to infer appropriate tone (formal / conversational) and adjust word choice where the rule set does not dictate a specific change. Tone adjustment is supplementary — it does not override mechanical rule application.
+Additionally, read context cues (salutation style, register of existing vocabulary, audience implied by content) to derive tone, then adjust word choice where the rule set does not dictate a specific change. Derive tone by applying the **same Signal→Tone mapping as Stage 3's Tone-detection table** (no separate criterion): a 正式／商務／business signal → Formal; a 朋友／輕鬆／casual／口語 signal → Conversational; no signal → leave word choice unchanged and apply the mechanical rules only. Tone adjustment is supplementary — it does not override mechanical rule application.
 
 **Long input handling**: when the input has ≥ 5 paragraphs OR ≥ 800 characters (zh) / ≥ 500 words (en), apply rule changes only to the most-impacted instance per rule, not to every match. Example: if rule 2「『的』克制」 finds three sentences each with ≥ 3 「的」, change only the densest sentence and leave the other two alone. This preserves long-form rhythm and prevents the over-trim ("省詞略字") symptom from rule cascades.
 

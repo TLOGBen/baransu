@@ -54,7 +54,13 @@ external rule dependency):
   AskUserQuestion). Platform modes or `--auto`-style flags may skip it by
   taking the recommended default.
 - **Authorization PAUSE** — a hard stop requiring explicit human authorization
-  (acceptance gates, publishing actions). Never skippable, on any platform.
+  (acceptance gates, publishing actions, self-modifying write-backs). Not
+  satisfiable by a default substitution. The required authorization may be given
+  two ways: interactively at the stop, or as a **standing authorization**
+  recorded up-front in the driving context (the loop/cron prompt or an approved
+  plan that explicitly authorizes the action) — but only where the skill's own
+  `references/loop-pauses.md` marks that PAUSE as standing-authorizable, and only
+  with every safety precondition that table names applied.
 
 Platforms map PAUSE *cost* to their own models (free UX stop on Claude Code
 vs billed request on Copilot / Claude.ai); that axis stays platform-owned.
@@ -64,15 +70,22 @@ of platform:
 
 - **Input PAUSE** — take the recommended default and continue. The final
   report MUST annotate every substituted decision as 「此處採預設：{假設}」.
-- **Authorization PAUSE** — unconditional hard stop. Report `needs input` to
-  the driver; never substitute a default.
+- **Authorization PAUSE** — if the driving context carries a **standing
+  authorization** for this action (per the skill's `references/loop-pauses.md`),
+  proceed under that authorization, applying every safety precondition the table
+  names (e.g. structure gate, blind-judge bar, file-level snapshot, audit log),
+  and record the standing-authorized decision in the run's audit trail.
+  Otherwise it is an unconditional hard stop: report `needs input` to the driver;
+  never substitute a default.
 
 **Override precedence (explicit)**:
 
-> Driving context overrides the platform default; an Authorization PAUSE is never overridable under any circumstance.
+> Driving context overrides the platform default. An Authorization PAUSE is never satisfied by a default substitution — only by explicit human authorization, given interactively at the stop or as a standing authorization recorded in the driving context where the skill's loop-pauses table permits it.
 
-Driving context overrides the platform default mode; an Authorization PAUSE is
-never overridable — not by `--auto`, not by driver flags, not by platform mode.
+An Authorization PAUSE is never satisfied by `--auto`, driver flags, or platform
+mode alone — those are default substitutions, not authorization. A standing
+authorization is explicit human authorization given up-front (not a default), so
+it is the one sanctioned way a non-interactive run may proceed past such a PAUSE.
 
 ---
 
