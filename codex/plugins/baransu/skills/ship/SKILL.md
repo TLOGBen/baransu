@@ -4,7 +4,9 @@ description: Use When wrapping up a session and pushing pending changes. Do Arch
   every baransu working dir under .claude/ except the read/learn/book products into
   .claude/archived/, commit, push (optionally landing the work on a target branch
   via `/ship <branch>`), and tear down the worktree once its work is safely on origin.
-  Trigger On '/ship', '收工', '上傳收尾', '結束這輪'.
+  Trigger On '/ship', '收工', '上傳收尾', '結束這輪'. Not For writing or refining copy (use
+  /write); not for reviewing code or model output (use /review) — /ship only wraps
+  up a session.
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex

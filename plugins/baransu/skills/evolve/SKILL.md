@@ -1,6 +1,6 @@
 ---
 name: evolve
-description: Use when the user wants to improve, score, or evolve a SKILL.md. Point it at any skill and it runs a forward-only ratchet — a fixed 9-dimension rubric is the selection environment; each round an independent judge picks the weakest dimension, one single-variable change is made, and three fresh blind judges vote, keeping the change only on a strict improvement (else the file-level snapshot is restored). Dual-axis evaluation (structure + effectiveness — effectiveness via real-exec gated by a trust+capability check, else offline replay), held-out validation with an independence layer, and a Kami result card. Adoption of any change is an Authorization PAUSE; rollback never touches the git working tree. Trigger on '/evolve', '優化 skill', 'skill 評分', '演化 skill', 'optimize skill', 'improve skill quality', 'evolve a skill', '幫我改 skill'. 繁體中文輸出。
+description: Use when the user wants to improve, score, or evolve a SKILL.md. Point it at any skill and it runs a forward-only ratchet — a fixed 9-dimension rubric is the selection environment; each round an independent judge picks the weakest dimension, one single-variable change is made, and three fresh blind judges vote, keeping the change only on a strict improvement (else the file-level snapshot is restored). Dual-axis evaluation (structure + effectiveness — effectiveness via real-exec gated by a trust+capability check, else offline replay), held-out validation with an independence layer, and a Kami result card. Adoption of any change is an Authorization PAUSE; rollback never touches the git working tree. Not for authoring a brand-new SKILL.md from scratch, or for deciding whether a skill should exist (that is /think Evaluation Mode). Trigger on '/evolve', '優化 skill', 'skill 評分', '演化 skill', 'optimize skill', 'improve skill quality', 'evolve a skill', '幫我改 skill'. 繁體中文輸出。
 ---
 
 # evolve — optimize a SKILL.md like you train a model
@@ -73,7 +73,7 @@ Dispatch **three fresh evolve-judge agents in parallel**. Present the pre- and p
 
 ## Stage 6 — Adoption (Authorization PAUSE) or restore
 
-- If kept: present the diff + score delta and **halt at an Authorization PAUSE** (`references/safety-gates.md` Gate 1). Adoption write-back is never skippable — not under `/loop`, cron, ultracode, or Workflow. Only on explicit user adoption is the change written to the target file; then re-read the target (the baseline changed) and reset the no-progress counter.
+- If kept: adoption is an **Authorization PAUSE** (`references/safety-gates.md` Gate 1), satisfied one of two ways. **(a) Interactive or non-interactive without standing authorization** → present the diff + score delta and halt; write back only on explicit user adoption. **(b) Non-interactive WITH a standing authorization** recorded in the driving context (the loop/cron prompt or approved plan explicitly authorizes adoption / the evolve→ship sweep) → auto-adopt, but only for a change that clears every Gate-1 precondition (structure gate pass, blind-judge bar tightened to **3/3**, snapshot retained, `log.md` audit with `decision: standing-auth auto-adopt`); a change failing any precondition is restored, never written. The end-state check (`make test`) is the final arbiter for downstream steps. After any write-back, re-read the target (the baseline changed) and reset the no-progress counter.
 - If not kept (judges, or structure gate, or restore path): restore the snapshot to the target file. File-level only — never `git reset --hard` / `stash` / `clean` / `checkout`.
 - Append a `log.md` entry either way: round #, dimension, mutation summary, gate result, votes, decision.
 
@@ -91,7 +91,7 @@ The mechanism is concept-aligned with public prior art but re-derived in origina
 
 - Never edit the rubric mid-run; it is the fixed selection environment.
 - One dimension per round; keep only strict improvements; restore otherwise.
-- Adoption write-back is an Authorization PAUSE on every platform.
+- Adoption write-back is an Authorization PAUSE on every platform — satisfied interactively, or by a standing authorization in the driving context under the Gate-1 preconditions (structure gate + 3/3 judges + snapshot + audit). Never by a bare default substitution.
 - Rollback is file-level; never touch the git working tree beyond the single target file.
 - The diagnostician and judges are stateless leaf nodes (subagent depth = 1): they never dispatch further subagents or invoke any `/baransu:*` skill.
 - All user-visible output is Traditional Chinese (繁體中文).

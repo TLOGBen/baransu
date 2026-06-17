@@ -148,7 +148,17 @@ Number sequentially: `REQ-001`, `REQ-002`, … These numbers are referenced by t
 
 ## Stage 3 — Design layer → `design.md`
 
-Produce technical design. Let the task shape which diagrams are needed — include what is informative, skip what adds no new information. Not every task needs every diagram.
+Produce technical design. Apply this include/skip decision rule per diagram — each maps to a concrete trigger condition:
+
+| Diagram | Include when |
+|---------|--------------|
+| 系統架構 | Always include. |
+| 整體操作流程 | Always include. |
+| 畫面關聯 | Only if the task touches ≥2 frontend pages. |
+| API Sequence | Only for tasks with ≥1 new/changed backend endpoint — one diagram per endpoint. |
+| 整體資料流 | Only if the task spans ≥2 layers (e.g., frontend + backend, or service + DB). |
+| 資料模型 | Only if a new entity or schema migration is introduced. |
+| 錯誤處理策略 | Always include. |
 
 ```markdown
 # Design

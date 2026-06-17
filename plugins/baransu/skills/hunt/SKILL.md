@@ -170,6 +170,7 @@ Activate when: "It worked before and now it's broken" or "It broke after an upda
 2. Before starting bisect, define a **pass/fail test command**. The command must be auto-executable and produce a clear exit code. Write it down; reuse the same command at every step.
 3. Execute: `git bisect start` → `git bisect bad` (current) → `git bisect good <tag>`. Let bisect guide — do not skip steps.
 4. When bisect identifies a commit: read only that commit's diff. Do not read surrounding history.
+5. **Cleanup gate**: After bisect identifies the commit → run `git bisect reset` to exit the bisecting state and restore HEAD before touching code or running any other git operation. If a fix or any other git operation is attempted while still bisecting, stop and run `git bisect reset` first. Never leave the repo in a detached-HEAD bisecting state.
 
 ---
 
@@ -201,6 +202,7 @@ If the issue is purely subjective UI taste, route to `/baransu:design` instead. 
 | Visual / render bug | Static analysis first (DevTools layers, stacking context); logging is the second step. |
 | DB investigation test | Transaction must always rollback. Do not modify real data. |
 | Investigation involves file writes / external API calls | Use mocks to prevent real writes; emails and webhooks must not actually send. |
+| git bisect identified the commit | Run `git bisect reset` to exit the bisecting state and restore HEAD before any fix or other git operation. Never leave the repo in a detached-HEAD bisecting state. |
 | Fix plan or current diff touches 6 or more files (without a Scope Blast pattern justification) | Stop **before adding the 6th file**. Check at two points: (i) when drafting the fix plan, (ii) after each edit. If the scope is genuinely a class-of-bug sweep, route through Scope Blast Mode (which is an explicit exception). If it is symptom-patch creep growing into a refactor, narrow back or route to `/baransu:analyze`. |
 | Someone (user or agent) deflects suspicion from a specific area — semantic trigger, not literal string match. Examples: 「那段沒問題」「不是那邊的問題」「先別管那個」「我已經檢查過了」, "that part doesn't matter", "I already checked there" | Treat as a signal. The area being deflected from is often where the bug lives — especially in multi-stage pipelines (CI segments, data pipeline stages, baransu plane handoffs) where one stage is excluded from suspicion. Re-examine that area with one targeted instrument before accepting the deflection. |
 

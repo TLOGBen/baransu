@@ -169,6 +169,8 @@ The v1.2 shared directories `references/cores/` and `references/slide-cores/` ar
 
 **Atomic staging flow** — the 5 artifacts are first written to `.tmp/design-staging/`, then atomic-mv'd to the project root once all succeed:
 
+**Precondition (root-resolution guard, runs before step 1)**: if `{project_root}` resolved from `git rev-parse --show-toplevel` is empty or the command failed (and the cwd fallback is also empty or `/`), STOP with stderr 「無法解析 project root，中止以避免 rm -rf 誤刪」 and exit ≠ 0 — never run any `rm -rf` with an empty or root-level `{project_root}`.
+
 ```
 1. rm -rf {project_root}/.tmp/design-staging/   # 自動清前次失敗殘留
 2. mkdir -p {project_root}/.tmp/design-staging/
@@ -454,4 +456,3 @@ Detailed entries → read `references/error-codes.md`. Common cases:
 - staging IO fail / atomic mv fail → keep staging, leave the project root unchanged
 - gen --slug missing / pattern fail / name collision → reject
 - any lint check fails → list the specific violation + exit 1
-

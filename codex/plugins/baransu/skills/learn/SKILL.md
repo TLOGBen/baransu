@@ -3,7 +3,8 @@ name: learn
 description: 'Use When the user wants a structured learning brief from any content.
   Do Produce a 5-column digest brief per source plus an optional filled outline, from
   URLs / --topic / captured slugs / mixed. Trigger On ''/learn'', ''研究主題'', ''整理筆記'',
-  ''學一下''.
+  ''學一下''. Not for capturing raw offline Markdown only (→ /read) nor producing a browser-ready
+  HTML artifact (→ /book).
 
   '
 compatibility: Designed for Claude Code; ported to Codex.

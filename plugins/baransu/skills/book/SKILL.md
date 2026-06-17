@@ -1,6 +1,6 @@
 ---
 name: book
-description: "Use When the user wants to convert any content source into a beautifully rendered, browser-ready HTML document. Do Run a three-stage pipeline: Acquire (URL / slug / local path / text) → Synthesize (classify content type, extract structure) → Render (Kami-themed HTML + SVG, quality-gated). Trigger On '/book', '轉成 book', '做成 HTML book', '存成 book'."
+description: "Use When the user wants to convert any content source into a beautifully rendered, browser-ready HTML document. Do Run a three-stage pipeline: Acquire (URL / slug / local path / text) → Synthesize (classify content type, extract structure) → Render (Kami-themed HTML + SVG, quality-gated). Trigger On '/book', '轉成 book', '做成 HTML book', '存成 book'. Not for producing an editable Markdown artifact (use /read for offline source capture, /learn for a digested note) — /book only emits rendered browser-ready HTML."
 argument-hint: "<url | slug | path | text>"
 user-invocable: true
 ---

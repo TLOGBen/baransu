@@ -1,6 +1,6 @@
 ---
 name: think
-description: 'Turn rough intent into a validated five-section approved plan — never produces code, scaffolding, or pseudo-code. Use whenever the user proposes a new feature, architecture decision, library choice, refactor, or data-model change, including 「怎麼設計」「哪種方法」 or "I want to build / refactor / migrate X", even without saying "plan first". 繁體中文輸出。'
+description: 'Turn rough intent into a validated five-section approved plan — never produces code, scaffolding, or pseudo-code. Use whenever the user proposes a new feature, architecture decision, library choice, refactor, or data-model change, including 「怎麼設計」「哪種方法」 or "I want to build / refactor / migrate X", even without saying "plan first". 繁體中文輸出。 Not for debugging an existing error/報錯 (use /hunt) nor for writing actual code/scaffolding (/think never does that — hand off to downstream implement or /analyze).'
 ---
 
 # think — deliberate before you build

@@ -1,7 +1,7 @@
 ---
 name: read
 description: >
-  Use When the user wants to archive any content as offline-readable Markdown. Do Capture and convert URL / path / glob / --chrome / --clipboard / --topic / --web / --gh / --x to .claude/read/. Trigger On '/read', '存下來', '抓網頁', '轉成 markdown', '存檔'.
+  Use When the user wants to archive any content as offline-readable Markdown. Do Capture and convert URL / path / glob / --chrome / --clipboard / --topic / --web / --gh / --x to .claude/read/. Trigger On '/read', '存下來', '抓網頁', '轉成 markdown', '存檔'. Not For digesting captured content into notes (use /learn) or producing browser-ready HTML output (use /book) — /read only captures raw offline Markdown.
 argument-hint: "[URL | path | glob | --topic 'keyword' | --web 'keyword' | --gh 'keyword' | --x 'keyword' | --chrome | --clipboard] [--use-proxy]"
 user-invocable: true
 ---
