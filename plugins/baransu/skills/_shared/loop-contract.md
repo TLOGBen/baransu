@@ -98,57 +98,24 @@ Skill-side obligations (all mandatory):
 
 ---
 
-## 4. PAUSE classification table
+## 4. PAUSE classification registry
 
-Enumerated from the live SKILL.md of each skill (read at authoring time, not
-recalled). Re-verify this table when any listed SKILL.md changes its
-interaction points.
+Each loop-classified skill owns its PAUSE classification table under its own
+`references/loop-pauses.md`. Locality is the point: changing a skill's
+interaction points touches only that skill's reference file, never this shared
+contract. This file defines only the cross-cutting parts (§1–§3); the per-skill
+defaults live with the skill. A skill absent from this registry has no PAUSE
+checkpoints beyond the shared semantics — its `loop=` value in the Outcome
+Contract still applies.
 
-### /review
+Each table is enumerated from the live SKILL.md of its skill (read at authoring
+time, not recalled) and re-verified there when that SKILL.md changes.
 
-| Interaction point | Class | Non-interactive default |
-|---|---|---|
-| Stage 7 「Packaged confirm」 — batch diff presented once for confirmation | Input | Do NOT apply the batch; list it in the report as pending-confirm.「此處採預設：不套用，留待人工確認」 |
-| Stage 7 「Needs judgment」 — batched AskUserQuestion for logic / boundary / API / behavior / security findings, including hard-stops-sweep pinned findings | **Authorization** | Hard stop. Return verdict 「需判斷」 to the driver with the findings; never auto-apply behavior changes |
-
-### /execute
-
-/execute has no AskUserQuestion. Its user-touch points are escalation notices;
-by design it never stops early except Step 0.
-
-| Interaction point | Class | Non-interactive default |
-|---|---|---|
-| Step 0 — spec dir missing or spec files incomplete → stop + escalate | **Authorization** | Hard stop. No default can substitute a missing /analyze spec |
-| §4b task BLOCKED escalations (Red gate ⚠️ / persistent compile error / failure_count ≥ 3 / spec contradiction) | Input | Record BLOCKED, continue unblocked work (per skill's never-stop-early rule), annotate in final-report.md |
-| §4d merge escalation (semantic conflict ❌ / Green broken ×3) | Input | Mark downstream groups BLOCKED, continue remaining steps, annotate in final-report.md |
-| Step 5 E2E failure path | — (autonomous) | No interaction point in current SKILL.md: e2e-fix-agents once, one re-run, else record ❌ and proceed to Step 6 |
-
-### /learn
-
-| Interaction point | Class | Non-interactive default |
-|---|---|---|
-| Stage 1 §2 `--topic` — /read paper-selection prompt (surfaced as-is) | Input | Select the top-ranked paper candidate.「此處採預設：取排序最高候選」 |
-| Stage 2 §1 — ask for research topic when invocation lacks `--topic` (「請輸入這批資料的研究主題」) | Input | Derive `$TOPIC` from the input slug / URL keywords; annotate the derived value |
-| Stage 2 §3 — scoring table confirmation | Input | Keep all scored sources; annotate |
-| Stage 3 §2 — outline confirmation before fill-in | Input | Accept the outline as generated; carry any ⚠️ 需補充調查 markers into the report |
-| Stage 4 §3 — gap handling (Stage 2 fallback) asks for additional sources | Input | Skip supplementation; keep the section with its ⚠️ marker; annotate the unfilled gap |
-| Stage 4 §3.4 — retreat cap choice（繼續 / 跳過此節） | Input | Option 2 跳過此節 (continuing requires human-supplied sources); annotate the skipped section |
-
-learn's terminal stops (Stage 0 environment failures, all-lanes-fail in §3.5)
-are error exits, not PAUSEs — the driver receives an explicit failure message.
-
-### /ship
-
-| Interaction point | Class | Non-interactive default |
-|---|---|---|
-| Step 4 push (`git push origin {branch}`) | **Authorization** | Hard stop. Under loop drive, never auto-push unless a standing user authorization is recorded in the driving context (e.g. the loop prompt or approved plan explicitly authorizes push); absent that record, report `needs input` to the driver |
-
-/ship's push step is interaction-free in human-present sessions (Step 4 pushes
-unconditionally), but pushing publishes state beyond the local repo — under a
-non-interactive driver it carries Authorization-PAUSE weight.
-
-### /think
-
-| Skill | Loop-drivable? |
+| Skill | PAUSE classification |
 |---|---|
-| /think | **Not loop-drivable** — its focusing dialogue is the product; no recommended default can substitute it |
+| /review | `../review/references/loop-pauses.md` |
+| /execute | `../execute/references/loop-pauses.md` |
+| /learn | `../learn/references/loop-pauses.md` |
+| /ship | `../ship/references/loop-pauses.md` |
+| /evolve | `../evolve/references/loop-pauses.md` |
+| /think | `../think/references/loop-pauses.md` |

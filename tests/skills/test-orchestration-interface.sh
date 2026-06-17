@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Tests for TASK-automation-02: dual-mode orchestration interface references
-# for review / execute / learn (REQ-004 Scenario 3 / 4).
+# for review / execute / learn / evolve (REQ-004 Scenario 3 / 4).
 #
 # Asserts (structural, behavior-level checks stay with spec review):
 #   T1  references/orchestration-interface.md exists for each of the 3 skills
@@ -33,7 +33,7 @@ fail() {
 # ---------------------------------------------------------------------------
 # T1 + T2 + T3 + T4 per skill
 # ---------------------------------------------------------------------------
-for skill in review execute learn; do
+for skill in review execute learn evolve; do
   REF="$SKILLS_DIR/$skill/references/orchestration-interface.md"
   SKILL_MD="$SKILLS_DIR/$skill/SKILL.md"
 

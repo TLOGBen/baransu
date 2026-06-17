@@ -2,6 +2,25 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.5.2 (2026-06-17)
+
+**`/evolve` 升級 ultracode 支援:`assist` → `overlap`,並補齊 loop 支援行為**。plugin version 2.5.1 → 2.5.2。
+
+### Added — 新增
+
+1. **`/evolve` ultracode=overlap 雙模 orchestration interface**:新增 `evolve/references/orchestration-interface.md`,為 Stage 5 三盲評委定義雙 adapter(現行平行 Task ↔ thin Workflow),回傳同構 `{better, strict_improvement, per_dimension_deltas}` 投票;Stage 5 計票與 Stage 6 keep/restore 不感知模式。depth 不變句逐 adapter 重述(評委與 diagnostician 為 depth-1 leaf,不呼叫 skill、不再派子代)。SKILL.md 新增 ≤10 行 pointer 區塊與 Stage 0 mode pinning 指引。
+2. **`/evolve` loop 支援行為**:新增 `/evolve` 的 PAUSE 分類 —— Stage 0.4 無 benchmark 為 Input PAUSE(預設走 structure-axis-only),Stage 6 採納寫回為 **Authorization PAUSE**(硬停、回報 `needs input`、絕不自動寫回)。評級由 `assist/assisted` 改為 `overlap/drivable`(與 /review 同型:採納硬停與 drivability 並存)。
+
+### Changed — 變更
+
+- **`loop-contract.md §4` 重構為 per-skill registry(locality)**:各 skill 的 PAUSE 分類表自 `_shared/loop-contract.md` 搬到各自的 `references/loop-pauses.md`(review/execute/learn/ship/evolve/think),§4 改為指向各檔的 registry;§1–§3(vocabulary、PAUSE semantics、hard stops)仍共用。改一個 skill 的互動點只動該 skill 的檔,不再動共用檔。
+- `tests/skills/test-automation-annotation.sh`:evolve 重評級為 `overlap/drivable`。
+- `tests/skills/test-orchestration-interface.sh`:測試迴圈加入 evolve(T1–T4 全綠)。
+
+### Notes
+
+- codex 鏡像待 `/codex-skill-transfer` 重產同步(orchestration-interface、loop-contract、SKILL.md 與版本號)。
+
 ## v2.5.1 (2026-06-17)
 
 **`/write` 補 `argument-hint` 參數提示(輸入 `/write` 時顯示可打參數)**。plugin version 2.5.0 → 2.5.1。
