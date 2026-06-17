@@ -1,8 +1,10 @@
 ---
 name: design
-description: Use When generating a UI/UX design spec or linting an existing DESIGN.md.
-  Do Three modes — gen (guided DESIGN.md), lint (structure + Kami invariant check),
-  preset <name>. Trigger On '/design', '生成設計規格', '設計規格'.
+description: 'Use When generating a UI/UX design spec or linting an existing DESIGN.md.
+  Do Four modes — gen (guided DESIGN.md) / lint (structure + Kami invariant check)
+  / preset <name> / export-brief (cross-tool prompt-ready brief). Trigger On ''/design'',
+  ''生成設計規格'', ''設計規格''. Not For: technical-architecture design.md (lowercase, /analyze
+  layer); this skill only ever touches uppercase DESIGN.md (UI visual spec).'
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex

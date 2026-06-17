@@ -28,6 +28,7 @@ Named red-lines, each enforced by the step in parentheses; none is optional. The
 - **INV-3 — Never force-push.** `--force` is forbidden on every push; `--force-with-lease` is used only when the user explicitly asks. (Step 4)
 - **INV-4 — No worktree teardown until the work is on origin.** A worktree is destroyed only after `git merge-base --is-ancestor` confirms the branch is on `$SAFE_REF`. (Step 5)
 - **INV-5 — Branch deletion uses `-D`, not `-d`.** After a merge the branch may read as unmerged locally, so `-d` fails. (Step 5)
+- **INV-6 — `rm -rf` is only run on a validated worktree path.** The third-tier `rm -rf "$WORKTREE_PATH"` fallback runs only after a precondition guard confirms `$WORKTREE_PATH` is non-empty, is not `/`, and carries `.git`/`.git/worktrees` lineage; if the guard fails, `rm -rf` is skipped and the worktree is left intact. (Step 5)
 
 ## Step 0 — Parse target branch
 
@@ -154,14 +155,20 @@ If the output contains `.git/worktrees/`:
    - Non-zero → the work is **not** yet on `$SAFE_REF`. Do **not** destroy it. Output 「分支 {BRANCH} 的工作尚未確認落地到 {SAFE_REF}，保留 worktree 以免遺失；請確認 merge/push 後再清理。」 and skip teardown (leave the worktree intact).
 
    This ancestor check is exact: it never falsely refuses a merged branch (unlike branch-tip heuristics) and never silently discards unmerged work.
-3. **Teardown** — three-tier removal, then delete the branch:
+3. **Teardown** — three-tier removal, then delete the branch. The third tier escalates to `rm -rf`; before that destructive fallback runs, a precondition guard (INV-6) must confirm `$WORKTREE_PATH` is a validated worktree path. Keep the three-tier `||` chain ordering and the `branch -D` intact:
    ```bash
    git -C "$MAIN_REPO" worktree remove "$WORKTREE_PATH" \
      || git -C "$MAIN_REPO" worktree remove --force "$WORKTREE_PATH" \
-     || { rm -rf "$WORKTREE_PATH" && git -C "$MAIN_REPO" worktree prune; }
+     || { if [ -n "$WORKTREE_PATH" ] && [ "$WORKTREE_PATH" != "/" ] && [ -e "$WORKTREE_PATH/.git" ]; then \
+            rm -rf "$WORKTREE_PATH" && git -C "$MAIN_REPO" worktree prune; \
+          else \
+            echo "worktree 路徑無法安全確認，停止強制刪除以免誤刪"; \
+          fi; }
    git -C "$MAIN_REPO" branch -D "$BRANCH"
    ```
    `branch -D` (not `-d`): after a merge the branch may still read as unmerged locally, so `-d` fails — `-D` is required.
+
+   If the guard fails (`$WORKTREE_PATH` empty, `/`, or missing `.git` lineage) → output 「worktree 路徑無法安全確認，停止強制刪除以免誤刪」 and skip teardown, leaving the worktree intact.
 
    Output: 「Worktree 已清理：{WORKTREE_PATH}，分支 {BRANCH} 已刪除。」
 

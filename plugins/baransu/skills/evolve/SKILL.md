@@ -93,5 +93,6 @@ The mechanism is concept-aligned with public prior art but re-derived in origina
 - One dimension per round; keep only strict improvements; restore otherwise.
 - Adoption write-back is an Authorization PAUSE on every platform — satisfied interactively, or by a standing authorization in the driving context under the Gate-1 preconditions (structure gate + 3/3 judges + snapshot + audit). Never by a bare default substitution.
 - Rollback is file-level; never touch the git working tree beyond the single target file.
+- Mutation-isolation invariant — Stage 2 writes ONLY to the scratch copy; the live target SKILL.md is written exactly once, at Stage 6 adoption write-back, and only after the Stage 1 snapshot exists. If no snapshot/<round>.md exists for the current round → then abort the round before any write to the target.
 - The diagnostician and judges are stateless leaf nodes (subagent depth = 1): they never dispatch further subagents or invoke any `/baransu:*` skill.
 - All user-visible output is Traditional Chinese (繁體中文).

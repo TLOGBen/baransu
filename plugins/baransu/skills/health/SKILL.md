@@ -30,6 +30,15 @@ The body below is English (agent-facing). All user-facing output is in **Traditi
 - **Output**: A Traditional Chinese health report in the conversation (graded by tier, two lanes, sorted by severity); not separately persisted to a file.
 - **Automation**: ultracode=assist, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
+## Invariants (hard red-lines)
+
+These hard rules hold across every step, tier, and mode. They are non-negotiable; the per-step mentions below are reminders, not the source of authority.
+
+1. **Secret redaction.** Secrets, tokens, keys, and passwords appear only as `[REDACTED]`. Full keys are never printed — when a key must be touched at all, only `head -c 5` is permitted.
+2. **No raw config values.** Raw config values are never printed; report file:line and the key name instead.
+3. **Subagent depth = 1.** Inspectors never call any `/baransu:` skill and never dispatch further subagents.
+4. **No unconfirmed mutation.** Never auto-apply fixes or auto-run destructive actions without explicit user confirmation.
+
 ## Two lanes share one report
 
 - **Agent config health**: instruction drift across runtimes (Claude / Codex / others), permissions, hooks, MCP, skills, and memory supply chain.
