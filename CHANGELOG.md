@@ -2,6 +2,28 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.5.0 (2026-06-17)
+
+**`/write` 新增 Proofread（校對）模式,並對擴充後的 `/write` 跑 `/evolve` 棘輪(結構軸 84→94,3 輪皆 3/3 盲評採納)**。plugin version 2.4.5 → 2.5.0。
+
+### Added — 新增
+
+1. **`/write` Proofread 模式(第三模式)**:Stage 1 由 Refine/Generate 二分擴為三分(優先序 Proofread > Refine > Generate)。新增 Stage 4 校對路徑 —— 逐頁取得來源(PDF 多視窗以絕對頁碼累積、掃描頁讀不到標「無法擷取」不靜默丟棄)→ 六類作者關注收斂成三個固定 `錯誤類型`(錯別字／用語不妥／語句不通順,含台灣商業用語透鏡)→ 六欄 findings(頁數／段落上下文／原文內容／錯誤類型／建議修正／修改原因)→ 沿用 `/book` 的 Kami 設計 token 自包含渲染成 `.claude/write/錯字修改.html`。frontmatter description / 觸發詞 / Outcome Contract / Constraints 同步擴充。
+
+### Design notes
+
+- **不走 `/book` pipeline**:校對錯字表屬「分析輸出」,違反 `/book`「禁把 Claude 分析寫進 HTML」紅線,且無 SVG 會被 `validate-output.ts` 品質閘擋。故直接渲染、沿用 tokens.css(缺失時用乾淨現代 fallback 調色盤),不跑 SVG 閘。
+- **overwrite 守衛**:`錯字修改.html` 已存在 → 改寫 `-N` 後綴並回報,杜絕覆寫前一份報告。
+
+### `/evolve` dogfood
+
+- 對加完功能的 `/write` 跑棘輪:R1 dim9 Robustness(PDF 多視窗契約 82→88)、R2 dim1 Trigger Clarity(frontmatter not-for 邊界 88→90)、R3 dim3/6 Failure-Mode/High-Risk(overwrite 守衛 90→94),三輪皆 3/3 盲評 strict improvement、0 回滾、結構閘全過。效能軸 dim7–9 因無 benchmark 全程標 advisory／offline,held-out 標 `no-benchmark`(誠實標,非假設)。演化包落於 `.claude/evolve/write/`(report / results.tsv / log / held-out / convergence.svg / card.png)。
+- **Claude Code 官方 doc 複檢**:剔除兩條誤判(description 未超 1,536 上限;`/write` 雙語規則內容受 English-body 豁免);列出可採後續(rule sets / proofread taxonomy 外移 references/、proofread-template 統一 token、`argument-hint`、路徑 fork 約束) —— 本次未做,留待後續。
+
+### Notes
+
+- codex 鏡像本次僅同步版本號(2.5.0),內容未重產(Proofread 模式未反映進 codex 版);如需 codex 端對齊請另跑 `/codex-skill-transfer`。
+
 ## v2.4.5 (2026-06-16)
 
 **`/evolve` dogfood:用 /evolve 演化 /evolve 自己,2 輪盲評棘輪(結構軸 44→48)**。plugin version 2.4.4 → 2.4.5。
