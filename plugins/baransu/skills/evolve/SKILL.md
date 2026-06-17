@@ -15,7 +15,7 @@ The body below is English (agent-facing). All user-visible output is in **Tradit
 - **Done when**: `.claude/evolve/<slug>/` 內有 `report.md`、`results.tsv`、`log.md`、`held-out.md`、收斂曲線與成果卡，且演化版已過結構閘並經使用者於 Authorization PAUSE 採納或全部回滾。
 - **Evidence**: `report.md` 的起訖分數、dry_run 比例、每軸證據來源與 held-out 證據力標籤；`log.md` 的逐輪 keep/restore 記錄。
 - **Output**: `.claude/evolve/<slug>/` 演化包；對話內呈現繁中收斂摘要與成果卡。
-- **Automation**: ultracode=assist, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
+- **Automation**: ultracode=overlap, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 ## When to use / not
 
@@ -34,6 +34,16 @@ Use when a SKILL.md (or any skill-shaped instruction file) should be measurably 
 2. Create `.claude/evolve/<slug>/` with a `snapshot/` subdir.
 3. Read `references/rubric-9dim.md` (the selection environment) and `references/safety-gates.md` (the red lines). Both are loaded once and held constant for the whole run.
 4. Locate or build the benchmark `test-prompts`, split into **train** (drives the loop) and **held-out** (final validation only). If the target has no benchmark, pause and ask the user for 2–3 prompts; the system fills a skeleton for confirmation — never fabricate the pass criteria. **If the user declines or no benchmark is confirmed → then run the loop structure-axis-only: hard-label dims 7–9 as `no-benchmark` (unscored, never assumed) in `report.md`, and skip Stage 7's held-out validation (there is no held-out set). Do not silently proceed as if effectiveness were measured.**
+
+### Orchestration interface (dual-mode)
+
+At Stage 0 (mode pinning) and before each Stage-5 judge panel, read
+`references/orchestration-interface.md`: the isomorphic judge-vote schema,
+Stage 0 mode pinning (ultracode detect → record → no mid-run switch), a
+current parallel-Task adapter, and a thin Workflow adapter. Both adapters
+return identical `{better, strict_improvement, per_dimension_deltas}` votes —
+the Stage 5 tally and Stage 6 keep/restore never sense the mode; the depth
+invariant is restated per adapter; non-ultracode runs keep current-path semantics.
 
 ## Stage 1 — Snapshot + diagnose
 

@@ -25,7 +25,7 @@ expected = {
     "health": ("assist", "assisted"),
     "analyze": ("assist", "assisted"),
     "codex-skill-transfer": ("assist", "assisted"),
-    "evolve": ("assist", "assisted"),
+    "evolve": ("overlap", "drivable"),
     "think": ("neutral", "not-drivable"),
     "ship": ("neutral", "assisted"),
     "write": ("neutral", "drivable"),
