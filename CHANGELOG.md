@@ -2,6 +2,18 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.5.1 (2026-06-17)
+
+**`/write` 補 `argument-hint` 參數提示(輸入 `/write` 時顯示可打參數)**。plugin version 2.5.0 → 2.5.1。
+
+### Added — 新增
+
+1. **`/write` frontmatter 補 `argument-hint` + `user-invocable: true`**:對齊 book/design/read/learn/execute 慣例(可呼叫 skill 成對宣告兩欄位)。hint 把參數直接對應模式以利記憶:`[zh|en] [voice="…"] <text=潤稿 | prompt=生成 | file/path=校對>`。屬官方 doc 複檢列出的 MINOR 後續之一(discoverability)。
+
+### Notes
+
+- codex 鏡像同步重產:`argument-hint` 隨之進 codex 版 `/write`;版本同步 2.5.1。
+
 ## v2.5.0 (2026-06-17)
 
 **`/write` 新增 Proofread（校對）模式,並對擴充後的 `/write` 跑 `/evolve` 棘輪(結構軸 84→94,3 輪皆 3/3 盲評採納)**。plugin version 2.4.5 → 2.5.0。
