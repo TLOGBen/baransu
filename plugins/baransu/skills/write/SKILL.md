@@ -1,6 +1,8 @@
 ---
 name: write
 description: Use When the user wants bilingual zh/en writing help — refine existing text, generate from a prompt, or proofread a document into an error-report HTML. Do Auto-classify input as Refine (Before/After + rule annotations), Generate (finished piece with format/tone note), or Proofread (scan for 錯別字／用語不妥／語句不通順 and emit a book-styled 錯字修改.html table); follow language prefix or auto-detect. Trigger On '/write', '潤稿', '寫一篇', '改寫這段', '校對', '找錯字', '抓錯字', 'proofread'. Not for committing or pushing finished text (use /ship) or digesting source material into notes (use /learn or /read).
+argument-hint: "[zh|en] [voice=\"…\"] <text=潤稿 | prompt=生成 | file/path=校對>"
+user-invocable: true
 ---
 
 # write — bilingual copywriting assistant
