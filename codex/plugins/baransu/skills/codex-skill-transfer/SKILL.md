@@ -38,7 +38,7 @@ Look at the source path the user gave you. Pick the matching mode:
 | `<dir>/SKILL.md` exists at the top level | **Single skill** | One `<output>/<skill-name>/` |
 | `<dir>` has children that each contain `SKILL.md` | **Skills batch** | One subdir per child |
 
-`scripts/transfer.py` auto-detects Plugin / Single skill / Skills batch and dispatches. Plugin mode emits a Layout B marketplace catalog (codex/ self-contained); for monorepos that publish via git URL, the repo root needs a separate Layout A catalog — see [`references/marketplace-mapping.md`](references/marketplace-mapping.md) §8.
+`scripts/transfer.py` auto-detects Plugin / Single skill / Skills batch and dispatches. If `transfer.py` auto-detects a mode whose expected shape does not match the source — e.g. a Plugin source missing `.claude-plugin/plugin.json`, or a Skills-batch dir where one child has no `SKILL.md` — then stop, name the mismatched child/file in the report's 需人工檢視 section, and do NOT dispatch the partial port. Plugin mode emits a Layout B marketplace catalog (codex/ self-contained); for monorepos that publish via git URL, the repo root needs a separate Layout A catalog — see [`references/marketplace-mapping.md`](references/marketplace-mapping.md) §8.
 
 ## Step 2 — Run the transfer
 

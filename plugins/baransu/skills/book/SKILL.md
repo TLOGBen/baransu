@@ -276,6 +276,9 @@ If a collision exists: append `_v2`, `_v3`, etc., and **output one Traditional-C
 Runs only when `$FORMAT` ∈ {`ppt`, `all`}; produces `$STRUCTURE_SLIDES` (6–12 slides, first page fixed as `cover`, last page conditionally `closing`). **The layout is not hard-coded**: dynamically read the YAML front-matter registration decision table of `{project_root}/slide-cores/*.html`, assigning layout_type via first-match + positional override.
 
 **Rule details (10-row decision table / closing condition recognition / graceful degradation / `$STRUCTURE_SLIDES` schema) → read `references/slide-synthesis.md`.**
+
+---
+
 ## Stage 3 — Render
 
 Produces a complete HTML file at `.claude/book/{$SLUG}.html`.

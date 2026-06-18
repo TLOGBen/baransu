@@ -118,7 +118,7 @@ On success → output 「已推送至 origin/{BRANCH}。」 On failure → outpu
 
 Run on the main repo (`$MAIN_REPO`) — the target branch lives there, not in this worktree. **Never use `--force`.**
 
-1. The main repo must be clean enough to switch branches: `git -C "$MAIN_REPO" status --porcelain`. If it carries unrelated pending changes that would block checkout → output 「主 repo 有未提交變更，無法切到 {TARGET}；請先處理後重跑 /ship {TARGET}。」 and stop.
+1. The main repo must be clean before switching branches: run `git -C "$MAIN_REPO" status --porcelain`. If its output is non-empty → output 「主 repo 有未提交變更，無法切到 {TARGET}；請先處理後重跑 /ship {TARGET}。」 and stop; if its output is empty → proceed to the checkout in item 2.
 2. Put the main repo on `$TARGET` (existing local branch, else track origin, else error):
    ```bash
    git -C "$MAIN_REPO" checkout "$TARGET" 2>/dev/null \
