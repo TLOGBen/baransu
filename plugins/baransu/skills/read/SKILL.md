@@ -67,6 +67,8 @@ This is NOT an early exit. Proceed to Stage 1 regardless.
 
 ## Stage 1 — Input Detection & Acquire Routing
 
+**Forward-reference map** — the lanes below jump to two routing targets defined later: URL routing → §9 (defined below in this stage); candidate presentation → the AskUserQuestion 互動規格 section (located after Stage 3).
+
 Parse the argument(s) passed to `/read`. `--use-proxy` is a modifier flag, not a mode: if present, strip it from the argument list before routing and record `$USE_PROXY=true` (default `false`). Route as follows (check in order):
 
 ### 1. `--topic "keyword"`

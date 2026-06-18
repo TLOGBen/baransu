@@ -275,7 +275,11 @@ Using only `$FILTERED_SOURCES`, populate each of the five columns as specified i
 - (a) 核心主張列表
 - (b) 來源矛盾點
 - (c) 缺少資訊/盲點
-- (d) 各來源信度評分 — visual credibility score (1–5) per source; quantitative formula deferred (TBD)
+- (d) 各來源信度評分 — credibility score (1–5) per source, assigned from the observable-signal anchor scale below by reading the source's `index.md` (level = highest observable signal present; when a source falls between two anchors, assign the lower):
+  - 1 = anonymous or no identifiable author and no publication date.
+  - 3 = named author with one corroborating reference cited.
+  - 5 = peer-reviewed, or ≥2 independent corroborating sources cited.
+  - (2 and 4 = between the adjacent anchors above.)
 - (e) 建議 /think 入場角度
 
 **d. Write the output file.**

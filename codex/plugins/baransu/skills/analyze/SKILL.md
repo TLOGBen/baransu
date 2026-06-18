@@ -325,6 +325,10 @@ Required files: `design.md`, `requirement.md`, `goal.md`
 
 Review question: 「design.md 的架構和資料流是否能支撐 requirement.md 的所有情境（Given-When-Then）？requirement.md 的每條需求是否都能追溯到 goal.md 的 Criteria？有沒有 Criteria 在 requirement.md 裡沒有任何需求對應？」
 
+### Subagent-failure path
+
+If any of the 3 review subagents returns empty findings, errors out, or does not complete, then re-dispatch that single agent once. If it fails again, skip that agent's lane and record in the Stage 7 handoff output the line 「Stage 6 第N位審查員未完成，該層交叉審查略過」 (substituting the agent's number for N) — so the Done-when review round is never silently reported as complete.
+
 ### After receiving findings
 
 Auto-correct the spec files to address findings. One round only. Changes allowed: fix broken requirement references, add missing test cases, add missing data flow entries, correct mermaid diagrams that contradict the text.

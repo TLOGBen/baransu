@@ -82,7 +82,7 @@ Derive `{date}-{slug}` from the spec directory name (same date + slug segment). 
 
 When the DAG allows ≥ 2 groups at the same level, run them in parallel — do not serialize L-class groups sequentially. For XL waves with > 4 groups, pick the first 4 by document order; remainder wait for the next wave.
 
-**1d. Pre-scan for file conflicts.** For group pairs in the same frontier level, scan their `步驟` sections for identical file paths. If confident overlap exists: serialize those two groups (move the later one to the next level), record reason in task-map.md.
+**1d. Pre-scan for file conflicts.** For group pairs in the same frontier level, scan their `步驟` sections for identical file paths. Overlap is defined as: the two groups' `步驟` sections name at least one identical normalized file path (exact string match after trimming whitespace and resolving relative-path prefixes against the repo root). When that condition holds: serialize those two groups (move the later one to the next level), record reason in task-map.md.
 
 **1e. Update confirm.md.** Fill `classification` and `DAG 分析` sections.
 

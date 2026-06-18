@@ -134,7 +134,7 @@ Report classification to the user in one line before proceeding:
 
 Apply the rule set for the detected language (zh rules or en rules from the embedded sets above).
 
-Also read `references/writing-principles.md` for the detected language and apply applicable style principles. When a style principle triggers a change, add a style tag to the 修正說明 (e.g., `動詞直用`、`具象優先`、`Cut filler`、`Short words`).
+Also read `references/writing-principles.md` for the detected language and, for each principle listed there, apply it if and only if the input contains at least one matching instance; when a principle matches, it MUST emit a style tag to the 修正說明 (e.g., `動詞直用`、`具象優先`、`Cut filler`、`Short words`) — a principle that matched but produced no tag is a missed application.
 
 Additionally, read context cues (salutation style, register of existing vocabulary, audience implied by content) to derive tone, then adjust word choice where the rule set does not dictate a specific change. Derive tone by applying the **same Signal→Tone mapping as Stage 3's Tone-detection table** (no separate criterion): a 正式／商務／business signal → Formal; a 朋友／輕鬆／casual／口語 signal → Conversational; no signal → leave word choice unchanged and apply the mechanical rules only. Tone adjustment is supplementary — it does not override mechanical rule application.
 

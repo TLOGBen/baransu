@@ -389,9 +389,9 @@ options:
 
 **Option 2 — 批准實作（完全授權）.** You are done with the deliberation phase. Do two things:
 
-1. Identify the downstream path based on task size:
-   - **Small task** (single-file or single-area change that fits one session): implement directly, building a red/green task list under the _shared/tdd.md discipline — the main session implements directly following `plugins/baransu/skills/_shared/tdd.md` §7; no skill handoff.
-   - **Medium-to-large task** (spans ≥2 interdependent modules, context-rot risk): invoke `/baransu:analyze`.
+1. Identify the downstream path using this explicit numeric rule (reusing the Stage E file/service thresholds and the Stage F Key-decisions count — no judgment required):
+   - **Small task** — ALL of: touches ≤ 8 files AND introduces 0 new services/processes AND has ≤ 3 Key decisions: implement directly, building a red/green task list under the _shared/tdd.md discipline — the main session implements directly following `plugins/baransu/skills/_shared/tdd.md` §7; no skill handoff.
+   - **Medium-to-large task** — otherwise (touches > 8 files, OR introduces ≥ 1 new service/process, OR has > 3 Key decisions): invoke `/baransu:analyze`.
    - If no path fits, say so — 「沒有完美接手的 skill，建議直接進入手寫實作」.
 2. Produce a one-paragraph **handoff summary** in 繁體中文: what was approved, the key constraints, the first concrete step of implementation. Immediately continue with this summary as input — invoke `/baransu:analyze` for medium-to-large tasks, or begin the direct implementation for small tasks. Execute autonomously; do not ask the user for further confirmation during implementation unless a destructive or irreversible action arises.
 

@@ -78,7 +78,7 @@ If the dispatcher's first impulse is to skip goal derivation and let reviewers s
 | scale | configuration | adversarial |
 |---|---|---|
 | ≤ 100 LOC | one perspective, selected by the Stage 3 activation rule that matches the target type (executable code → quality; multi-file/contract change → architecture; rendered visual artifact → style); if two activation rules match, pick the one whose criterion the target hits most directly — quick pass | skip* |
-| 100–500 LOC | relevant perspectives (usually 2) | run if change crosses layers |
+| 100–500 LOC | dispatch exactly the perspectives whose Stage 3 activation criterion the target hits; if the count is 0, default to quality; if ≥3, keep all that activate (the tier cap is a ceiling, not a target) | run if change crosses layers |
 | > 500 LOC | assign applicable perspectives by file spread / layer span | one round |
 
 *Any semantic risk signal (auth/session/JWT, data mutation, external API integration, payments) overrides skip and adds an adversarial pass regardless of LOC tier.
