@@ -2,6 +2,18 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.5.6 (2026-06-20)
+
+**每日 cron 自動演化 round 4:收斂護欄首次生效,只採納 5/14**。plugin version 2.5.5 → 2.5.6。
+
+由 4:07 AM cron(standing authorization)非互動觸發。本輪起套用 v2.5.5 新增的收斂護欄(`scripts/nightly-evolve.workflow.js`:margin≥2.0 + body<480 行),14 skill 全評估,僅 5 個達標自動採納,9 個因邊際過小或非全票而保留(收斂)。
+
+### Changed — 變更
+
+- **採納 5 skill(margin≥2.0、blind 3/3)**:codex-skill-transfer(Trigger-Clarity 補 reverse-port not-for)、evolve(Actionable-Specificity 把 3/3 收緊條件釘到 Stage 4 real-exec 標籤)、learn / think / write(各 1 個單變量精修,多為原地改寫)。
+- **保留 9 skill(收斂)**:book(margin 1.5)、execute(1.5)、design/health/hunt/review(1.0)、ship(0.7)邊際過小;analyze、read 非全票(2/3)。皆未採納、未改動。
+- codex 鏡像隨採納重產同步。
+
 ## v2.5.5 (2026-06-19)
 
 **每日 cron 自動演化 round 3:全 14 skill 結構軸再精修(standing-auth 自動採納)**。plugin version 2.5.4 → 2.5.5。

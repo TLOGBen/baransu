@@ -164,7 +164,7 @@ Rules 5 / 7 / 8 (anti-AI 味 floor: 禁對仗句 / 禁排比 / 禁名詞化) are
 請回覆要套用的編號（例：「1 3」），或「全部」。
 ```
 
-After the user replies with their selection, apply only the chosen change points and output the affected fragments (not the full text). This selection step is part of the same Refine pass, not an iterative refinement loop.
+After the user replies with their selection, apply only the chosen change points and output the affected fragments (not the full text). If the reply contains numbers outside the listed change-point range, or no parseable selection (non-numeric / empty), then re-display the numbered change-points list once with the operational notification 「選擇編號無效，請回覆清單內的編號（例：『1 3』）或『全部』」 and apply nothing until a valid selection is received; ignore out-of-range numbers within an otherwise-valid reply rather than aborting. This re-display is a within-same-pass clarification of the selection step, not a new iteration. This selection step is part of the same Refine pass, not an iterative refinement loop.
 
 **Boundary between the two long-form mechanisms**: the input thresholds above (≥ 5 paragraphs OR ≥ 800 characters zh / ≥ 500 words en) govern **per-rule suppression** — how many instances each rule may touch. The ~300-line threshold governs **output form** — whole-block Before/After versus change-points list, measured on the would-be output. They are independent and can co-occur: a 6-paragraph, 80-line text gets per-rule suppression with the inline Before/After format; a 350-line text gets per-rule suppression and the change-points format.
 
