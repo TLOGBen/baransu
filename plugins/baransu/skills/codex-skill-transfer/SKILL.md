@@ -1,6 +1,6 @@
 ---
 name: codex-skill-transfer
-description: "One-way port of Claude Code skills, plugins, or marketplaces to OpenAI Codex format (SKILL.md / batches / plugin → agent-stub TOMLs). Trigger on 「轉成 codex 版」「給 codex 用」「port to codex」, or questions about Claude→Codex field mapping (disable-model-invocation, context fork, ARGUMENTS, plugin.json)."
+description: "One-way port of Claude Code skills, plugins, or marketplaces to OpenAI Codex format (SKILL.md / batches / plugin → agent-stub TOMLs). Trigger on 「轉成 codex 版」「給 codex 用」「port to codex」, or questions about Claude→Codex field mapping (disable-model-invocation, context fork, ARGUMENTS, plugin.json). Not for reverse porting (Codex→Claude) or authoring a brand-new Codex skill from scratch that isn't a port of an existing Claude source."
 license: Apache-2.0
 compatibility: Designed for Claude Code; output targets Codex CLI. Optional `skills-ref` CLI for validation.
 metadata:

@@ -83,7 +83,7 @@ Score the effectiveness dimensions (7–9). Decide real-exec vs offline via the 
 
 Dispatch **three fresh evolve-judge agents in parallel**. Present the pre- and post-mutation versions under neutral labels (alpha / beta); swap which label is "new" on odd vs even rounds to cancel position bias. Each judge returns `{better, strict_improvement, per_dimension_deltas}`. Judges are single-use — never reuse a judge across rounds.
 
-**Keep iff ≥ 2 of 3 judge strict_improvement = true.** Under high real-exec noise, tighten to 3 of 3. If any of the three judges fails to return a well-formed `{better, strict_improvement, per_dimension_deltas}` vote (crash, timeout, or malformed payload) → then treat that vote as `strict_improvement=false` (a non-vote never counts toward keep) and proceed to the tally; if fewer than 3 valid votes remain → restore the snapshot and skip to Stage 6 (this round produced nothing).
+**Keep iff ≥ 2 of 3 judge strict_improvement = true.** When the effectiveness axis ran via real-exec (Stage 4 evidence label `real-exec`, not `offline-同源`), the keep-bar is 3 of 3; otherwise 2 of 3. If any of the three judges fails to return a well-formed `{better, strict_improvement, per_dimension_deltas}` vote (crash, timeout, or malformed payload) → then treat that vote as `strict_improvement=false` (a non-vote never counts toward keep) and proceed to the tally; if fewer than 3 valid votes remain → restore the snapshot and skip to Stage 6 (this round produced nothing).
 
 ## Stage 6 — Adoption (Authorization PAUSE) or restore
 

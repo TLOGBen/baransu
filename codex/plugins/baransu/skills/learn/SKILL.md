@@ -290,7 +290,7 @@ Using only `$FILTERED_SOURCES`, populate each of the five columns as specified i
 
 **d. Write the output file.**
 
-Write to `.claude/learn/briefs/{$BRIEF_SLUG}.md`. If a file with the same slug already exists, overwrite it without prompting.
+Write to `.claude/learn/briefs/{$BRIEF_SLUG}.md`. If a file with the same slug already exists at the target path, first rename it to `{$BRIEF_SLUG}.{existing created_at ISO timestamp}.bak` in the same directory, then write the new file.
 
 File structure (YAML frontmatter followed by the five-column body):
 
@@ -447,7 +447,7 @@ Derive `$DIGEST_SLUG` from `$TOPIC` using the same derivation as `$BRIEF_SLUG` i
 
 Read `references/digest-frontmatter.md` for the authoritative YAML frontmatter schema before writing. Do not deviate from it.
 
-Write to `.claude/learn/digests/{$DIGEST_SLUG}.md`. If a file with the same slug already exists, overwrite it without prompting.
+Write to `.claude/learn/digests/{$DIGEST_SLUG}.md`. If a file with the same slug already exists at the target path, first rename it to `{$DIGEST_SLUG}.{existing created_at ISO timestamp}.bak` in the same directory, then write the new file.
 
 File structure:
 
