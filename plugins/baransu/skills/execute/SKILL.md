@@ -311,10 +311,12 @@ LOOP:
     - failed_tests:    last_failed_tests (null on first dispatch)
 
   CASE merge-agent status == ✅:
+    record integration_status[{group}] = integrated to task-map.md for each group in this level
     proceed to next frontier level
     break
 
   CASE merge-agent status == ❌  (semantic conflict):
+    record integration_status[{group}] = not-integrated to task-map.md for each group in this level
     escalate to user immediately with conflict_details
     mark all pending downstream groups BLOCKED (reason: merge conflict)
     record in final-report blocked list
@@ -324,6 +326,7 @@ LOOP:
     last_failed_tests = merge-agent failed_tests
     merge_retry_count += 1
     if merge_retry_count >= 3:
+      record integration_status[{group}] = not-integrated to task-map.md for each group in this level
       escalate to user: 「Merge 後 Green 仍未通過，已重試 2 次」
       mark all pending downstream groups BLOCKED
       break
@@ -392,12 +395,12 @@ For each session group's worktree:
 ```bash
 git worktree remove .git/worktrees/{group} --force
 ```
-Then decide per group whether to force-delete its branch:
-- **Integrated (force-delete allowed)**: the group reached a merged state — its frontier level's merge-agent returned ✅ in §4d (work landed on main). Only then run:
+Then decide per group whether to force-delete its branch by reading the `integration_status[{group}]` field recorded in task-map.md by §4d:
+- **Integrated (force-delete allowed)**: task-map.md records `integration_status[{group}] = integrated` (work landed on main). Only then run:
   ```bash
   git branch -D execute/{date}-{slug}/{group}
   ```
-- **Not integrated (do NOT delete)**: the group ended direct-blocked (§4b), cascade-blocked (§4c), or its frontier level's merge ended ❌ / ⚠️ in §4d (work never integrated into main). Skip the `git branch -D` for that group, keep the branch, and record one line in final-report:
+- **Not integrated (do NOT delete)**: the group ended direct-blocked (§4b), cascade-blocked (§4c), or task-map.md records `integration_status[{group}] = not-integrated` (work never integrated into main). Skip the `git branch -D` for that group, keep the branch, and record one line in final-report:
   「保留未合併分支 execute/{date}-{slug}/{group}（{原因}），未強制刪除」
 
 `-D` (force) is still required — never `-d` — when deletion is allowed: an integrated execute branch was pushed but not PR-merged, so `-d` fails. The integration-state guard above only decides *whether* to delete; it never relaxes `-D` to `-d`.

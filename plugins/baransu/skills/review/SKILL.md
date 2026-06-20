@@ -22,6 +22,16 @@ The body below is English (agent-facing). Wherever this file quotes literal user
 - **Output**: A Traditional Chinese review report in the conversation (prose body + structured tail), also persisted as an HTML work journal at `.claude/review/<slug>.html` (see the HTML work journal section).
 - **Automation**: ultracode=overlap, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
+## Invariants
+
+These named rules are load-bearing red lines restated here from where they appear inline in the stages below. Each stage points back to its invariant by name; do not weaken any of them.
+
+- **INV-depth**: this dispatch is the only Task depth /review uses — /review never invokes /review, and reviewers never review each other.
+- **INV-no-recursion**: if the dispatcher's impulse is to nest another /review (or let a reviewer spawn its own reviewers), then stop — there is exactly one dispatch layer.
+- **INV-adversarial-once**: Stage 5 is exactly one round — if it has already run, do not run it again.
+- **INV-no-manufacture**: a zero-finding report that states which surfaces were examined is valid; fabricating findings to justify the invocation is forbidden.
+- **INV-consent**: never change behavior without user consent.
+
 ## Four perspectives (agent files)
 
 `plugins/baransu/agents/architecture-reviewer.md` / `quality-reviewer.md` / `security-reviewer.md` / `style-reviewer.md`.
@@ -93,7 +103,7 @@ Launch one **parallel Task** per activated perspective, each in a clean context.
 
 Findings return in natural language (not YAML). Each must include: citation (file:line or section), which claim it contradicts (or "none — observation"), the observation itself, the surgical fix, and a balance note (see Stage 6). Any non-obvious claim inside a finding carries a source annotation — `(verified: <how>)` when the reviewer actually checked, or `(inferred: 未實查)` when it rests on reasoning alone.
 
-No recursion: this dispatch is the only depth /review uses. /review does not invoke /review, adversarial (Stage 5) is exactly one round, and reviewers do not review each other.
+No recursion (**INV-no-recursion**): this dispatch is the only depth /review uses (**INV-depth**) — /review does not invoke /review, adversarial (Stage 5) is exactly one round (**INV-adversarial-once**), and reviewers do not review each other.
 
 ### Orchestration interface (dual-mode)
 
@@ -119,7 +129,7 @@ Run after all Stage 4 Tasks have returned (not in parallel with Stage 4). Receiv
 
 For plan-type targets, translate into plan vocabulary: ambiguous premises, internally inconsistent sections, decision chains, reader-misreading, cause/effect inversion, surface-completeness as hallucination.
 
-Adversarial augments reviewer findings; it does not override.
+This stage runs exactly once (**INV-adversarial-once**). Adversarial augments reviewer findings; it does not override.
 
 ---
 
@@ -138,7 +148,7 @@ Before any finding enters consolidation, it passes four quality questions. This 
 
 HIGH / CRITICAL findings additionally require **three pieces of evidence** (e.g. citation + triggering input + contradicted claim or reproduction record). A finding that fails any question downgrades one tier or drops entirely — nothing passes through "just in case".
 
-「乾淨的 review 是有效的 review — 零發現配上明說的審查面就是完整輸出」。A zero-finding report that states exactly which surfaces were examined is a complete, valid deliverable. Manufacturing findings to justify the invocation is prohibited.
+「乾淨的 review 是有效的 review — 零發現配上明說的審查面就是完整輸出」。A zero-finding report that states exactly which surfaces were examined is a complete, valid deliverable. Manufacturing findings to justify the invocation is prohibited (**INV-no-manufacture**).
 
 **Deduplicate**: collapse findings with the same citation + same observation, attributing to the narrowest-scope perspective.
 
@@ -189,7 +199,7 @@ This list deliberately does **not** include release-artifact missing, generated-
 | **Needs judgment** | logic / boundary / API / behavior / security findings with concrete fixes. Batch-ask via AskUserQuestion — group by theme, not by target question count. |
 | **Advisory** | balance-downgraded, off-goal, or no concrete fix. In the report, not in the user's face. |
 
-Do not change behavior without user consent. Do not ask one question per finding.
+Per **INV-consent**, never change behavior without user consent. Do not ask one question per finding.
 
 ---
 
