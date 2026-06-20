@@ -68,6 +68,20 @@ All spec files share one directory:
 
 Use today's date from the `currentDate` context. Confirm the path to the user in one line before writing.
 
+Then resolve the directory-existence failure path explicitly — never silently overwrite. If `.claude/analyze/{date}-{slug}/` already exists (the same-day, same-goal-slug rerun case), then call `authorization PAUSE` once to pick among three branches before any file is written; otherwise (directory absent) create it and continue:
+
+```
+question: "目錄 .claude/analyze/{date}-{slug}/ 已存在，怎麼處理？"
+header:   "目錄衝突"
+options:
+  1. label: "resume 既有 spec"
+     description: "沿用現有目錄與已寫檔案，只補齊或更新缺漏的層，不刪除既有內容。"
+  2. label: "覆寫重建"
+     description: "刪除現有目錄全部內容後從 Stage 1 重新生成五層 spec。"
+  3. label: "改用 -2 後綴另建目錄"
+     description: "改寫到 .claude/analyze/{date}-{slug}-2/，保留原目錄不動（已存在 -2 則續加 -3、-4…）。"
+```
+
 ---
 
 ## Stage 1 — Goal layer → `goal.md`
@@ -378,6 +392,7 @@ options:
 - Do not write production code, scaffolding, or config files during Stages 1-6. The only output is the five spec documents.
 - Do not call `/review` from within Stages 1-6. Cross-layer subagents answer alignment questions ("are these two layers consistent?"), not per-layer quality questions ("what's wrong with this layer?"). These are different questions. Stage 7 may offer /review as a handoff option — that is a post-spec quality check, not an in-spec alignment check.
 - Auto-correction is one round. No silent looping.
+- On a same-day same-slug directory collision (Stage 0.C), never silently overwrite: branch via the ask the user directly, record the authorization decision, and stop until the user answers among resume / overwrite-rebuild / new -N-suffixed directory before writing any spec file.
 - `goal.md` and `requirement.md` are user-intent layers. Do not modify their semantics during auto-correct. Only design / test / task layers are auto-correctable.
 - Never invent requirement numbers. Every `REQ-XXX` reference in task files must have a matching entry in `requirement.md`.
 - All user-visible output is Traditional Chinese (繁體中文). English appears only in this SKILL.md body, in code identifiers, file paths, and diagram labels the task itself uses.

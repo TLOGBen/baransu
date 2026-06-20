@@ -77,7 +77,7 @@ Run `python3 scripts/verify-skills.py` (no argument — repo mode) over the repo
 Score the effectiveness dimensions (7–9). Decide real-exec vs offline via the **trust + capability dual gate** (`references/safety-gates.md` Gate 3):
 - **Capability gate** — interactive/approval-gated skills (think, review, analyze, …) cannot run unattended → offline.
 - **Trust gate** — only user-owned-path skills with no destructive-pattern hit run for real; unknown/third-party/pattern-hit → offline.
-- When real-exec runs, mark it untrusted in the report and advise memory rotation. When offline, the effectiveness output is same-source as the structure axis → label it `offline-同源` and treat its evidence as single-axis.
+- **Destructive-pattern red line (`real-exec-destructive-forbid`)** — if the real-exec trust gate hits ANY destructive pattern (`rm` / writing files outside the target directory / network writes / secret access) → then force-downgrade to offline and NEVER execute that skill. This is a hard if-then prohibition with the same rigidity as the git-tree red line, not advice: actually executing an untrusted skill is the genuinely irreversible destructive surface, so it is forbidden, not merely flagged. When real-exec does run (no destructive pattern, trust + capability both clear), mark it untrusted in the report and rotate memory after the run. When offline, the effectiveness output is same-source as the structure axis → label it `offline-同源` and treat its evidence as single-axis.
 
 ## Stage 5 — Blind judge panel
 
@@ -106,6 +106,7 @@ The mechanism is concept-aligned with public prior art but re-derived in origina
 - Never edit the rubric mid-run; it is the fixed selection environment.
 - One dimension per round; keep only strict improvements; restore otherwise.
 - Adoption write-back is an Authorization PAUSE on every platform — satisfied interactively, or by a standing authorization in the driving context under the Gate-1 preconditions (structure gate + 3/3 judges + snapshot + audit). Never by a bare default substitution.
+- `real-exec-destructive-forbid` — if the Stage 4 real-exec trust gate hits any destructive pattern (`rm` / writing outside the target dir / network writes / secret access) → then force-downgrade to offline and never execute that skill. Actually executing an untrusted skill is irreversible; this prohibition carries the same gated/forbidden rigidity as the `git reset --hard` / `stash` / `clean` / `checkout` red line below.
 - Rollback is file-level; never touch the git working tree beyond the single target file.
 - Mutation-isolation invariant — Stage 2 writes ONLY to the scratch copy; the live target SKILL.md is written exactly once, at Stage 6 adoption write-back, and only after the Stage 1 snapshot exists. If no snapshot/<round>.md exists for the current round → then abort the round before any write to the target.
 - The diagnostician and judges are stateless leaf nodes (subagent depth = 1): they never dispatch further subagents or invoke any `/baransu:*` skill.

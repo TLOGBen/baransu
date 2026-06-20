@@ -99,7 +99,7 @@ For automated runs the script prints the report. For inline runs you write it. U
 - ...
 ```
 
-The report is the point of friction-resolution: **every dropped / manual-review entry is a clue for a future optimization**. Encourage the user to track these.
+After emitting the report body, you MUST append a final `### Next-port follow-ups` section that lists, one line per item, every entry you put under 已捨棄 (dropped) and 需人工檢視 (manual review) above. For each line, name the item and tag it with exactly one disposition action: `refresh-mapping` (the loss is fixable by updating a Step 3 reference mapping), `file-issue` (track upstream/外部 limitation), or `accept-as-lossy` (no Codex target exists; the gap is permanent and intentional). If there are zero dropped and zero manual-review items, write the single line `- none`.
 
 ## Boundaries
 
