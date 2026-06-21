@@ -349,7 +349,7 @@ Auto-correct the spec files to address findings. One round only. Changes allowed
 
 Changes not allowed during auto-correct: modify `goal.md` or `requirement.md` semantics (those represent user intent; changing them requires user confirmation).
 
-If after auto-correction findings are still substantial (not just wording), pause with:
+After the single auto-correct round, classify each still-open finding as either wording-only or structural, where structural means any of: a broken REQ reference, a task-produced feature with no test-coverage anchor in test.md, or a cross-layer contradiction. Pause for user confirmation if-and-only-if at least one structural finding remains:
 
 「spec 驗收後仍有未解問題，需要你確認：
 [摘要問題，條列]
