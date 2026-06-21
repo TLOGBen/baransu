@@ -2,6 +2,18 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.5.8 (2026-06-22)
+
+**每日 cron 自動演化 round 6:收斂明顯,僅採納 2/14**。plugin version 2.5.7 → 2.5.8。
+
+由 4:07 AM cron(standing authorization)非互動觸發,收斂護欄(margin≥2.0 + body<480)。14 skill 全評估,僅 2 個達標採納,12 個保留(收斂)。採納曲線 14→14→14→5→6→2,趨近收斂。
+
+### Changed — 變更
+
+- **採納 2 skill(margin≥2.0、blind 3/3)**:analyze(Actionable-Specificity 把 Stage 6「findings 仍 substantial」hedge 釘成 wording/structural 二分判準)、hunt(單變量精修)。
+- **保留 12 skill(收斂)**:book/codex-skill-transfer/design/evolve/execute/health/review/write margin 1、think 1.5;learn/read/ship 非全票。皆未改動。
+- codex 鏡像隨採納重產同步。
+
 ## v2.5.7 (2026-06-21)
 
 **每日 cron 自動演化 round 5:護欄下採納 6/14**。plugin version 2.5.6 → 2.5.7。
