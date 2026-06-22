@@ -9,9 +9,14 @@
 .claude/dev/
 .claude/think/
 
-# /read raw captures — bulky offline page snapshots; converted output under
-# .claude/read/material/ stays tracked.
-.claude/read/raw/
+# baransu working data — local dogfooding artifacts, regenerated per session.
+# Useless to plugin installers (they re-initialize their own). Only the shared
+# .claude/settings.json stays tracked.
+.claude/read/
+.claude/learn/
+.claude/wiki/
+.claude/loop-state.json
+.claude/loop-final-report.md
 
 # self-healing harness telemetry — local only
 # Directory persists by virtue of telemetry being written into it; no .gitkeep needed.
@@ -19,6 +24,16 @@
 
 # Skill eval / optimization workspaces (transient, local only).
 eval-workspace/
+
+# Root-level design artifacts — dogfooding output of /design (preset/gen).
+# Not part of the distributed plugin; installers re-run /design if they want them.
+# Leading slash anchors to repo root so the plugin's own design references under
+# plugins/baransu/skills/design/references/ (tokens.css, slide-cores, …) stay tracked.
+/DESIGN.md
+/DESIGN.html
+/tokens.css
+/design-cores/
+/slide-cores/
 
 # Session telemetry written by the everything-cli harness.
 # knowledge/solutions/ and other curated content under knowledge/ stays tracked.
