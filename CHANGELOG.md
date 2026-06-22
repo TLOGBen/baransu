@@ -2,6 +2,19 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.5.11 (2026-06-22)
+
+**README 精簡 + 移除 LICENSE**。plugin version 2.5.10 → 2.5.11。
+
+### Changed — 變更
+
+- README 改寫為極簡版：核心理念錨點表 + 14 skill 用途簡表 + 安裝；安裝 URL 改為 GitHub 新家。
+- `/book` 介紹移除「Kami」字樣。
+
+### Removed — 移除
+
+- 移除 `LICENSE` 檔與 `plugin.json` / codex 鏡像的 `"license"` 欄位（repo 移至公開 GitHub 後不再標註授權）。
+
 ## v2.5.10 (2026-06-22)
 
 **reference ToC sweep + book 可達性修補**。plugin version 2.5.9 → 2.5.10。
