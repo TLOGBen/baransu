@@ -34,6 +34,8 @@ eval-workspace/
 /tokens.css
 /design-cores/
 /slide-cores/
+# 紙-sanity.sh copied to repo root when the 紙 preset is applied (per design/SKILL.md).
+/紙-sanity.sh
 
 # Session telemetry written by the everything-cli harness.
 # knowledge/solutions/ and other curated content under knowledge/ stays tracked.
