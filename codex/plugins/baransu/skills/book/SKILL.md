@@ -354,7 +354,7 @@ For each section from `$STRUCTURE`:
 
 Takes effect only when the long-form HTML contains `<figure class="diagram">`. The spec includes: color tokens (canonical names + Kami hex defaults), the required `<defs>` / marker / two-layer paper-mask, type tag, legend strip, 4px alignment and the 3-step node-width whitelist (128/144/160), embedded-font correction, the 14-type diagram first-match decision tree, and the 13-type selection table (including `status: complete | ref-only`).
 
-**Full rules → read `references/svg-rendering-rules.md`.** SVG fill / stroke **must not use `rgba()`**; node width is limited to 3 steps (128/144/160); focal nodes are marked via `data-role="focal"`, capped at 2 per SVG.
+**Full rules → read `references/svg-rendering-rules.md`.** SVG fill / stroke **must not use `rgba()`**; node width is limited to 3 steps (128/144/160); focal nodes are marked via `data-role="focal"`, capped at 2 per SVG. Per-type SVG specs live in `references/diagram-types/type-*.md`, selected via that file's §4.10 routing table (its ToC lists §4.9/§4.10 up top).
 
 ### 5. Core Asset Protocol (image acquisition)
 

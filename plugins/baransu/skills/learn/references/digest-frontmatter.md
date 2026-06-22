@@ -1,3 +1,8 @@
+## Contents
+
+- Fields
+- Complete Example
+
 # Digest Frontmatter Spec
 
 This document defines the YAML frontmatter schema for digest output files produced by

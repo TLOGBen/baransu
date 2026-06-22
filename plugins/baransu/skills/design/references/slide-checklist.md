@@ -1,3 +1,25 @@
+## Contents
+
+- P0 sub-prefix legend
+- P0-S-01：swiss prose must not use italics
+- P0-S-02：swiss CSS attributes must not hardcode `oklch()`
+- P0-A-01：chevron marker must use `<polygon>`, not a `<path>` simulation
+- P0-A-02：top-level node `<rect>` width must be ∈ {128, 144, 160}
+- P0-A-03：at most 2 focal nodes per SVG
+- P0-A-04：large type must use the dual-constraint height cap `font-size: min(Xvw, Yvh)` with Y ≥ X × 1.6
+- P0-B-01：plugin.json `version` must be bumped on every release
+- P1-01：dropcap `font-size` must be ∈ [4.0em, 5.0em]
+- P1-02：prose straight quotes `"` / `'` must be curled
+- P1-03：lead paragraph missing `text-wrap: pretty`
+- P1-04：portrait `<img>` missing `object-position: center 35%`
+- P2-01：top-level node coordinates violate multiple-of-4
+- P2-02：chevron marker `<defs>` duplicated across the 13 diagram-types
+- P2-03：slide-core layout name not in the 22-lock-list
+- P2-04：en variant HTML contains a CJK font stack
+- P3-01：SKILL.md contains a fractional heading
+- P3-02：chevron marker `fill` takes a value other than `"none"` or `"currentColor"`
+- future-trigger observation items
+
 # slide-checklist.md
 
 > Lint rules for `/design` slide + long-form output. Each entry uses a three-column structure: **Symptom → Root cause → Fix**, with a `source:` metadata line. Audience: `check.py` lint source, slide-core authors, and preset reviewers.

@@ -1,3 +1,10 @@
+## Contents
+
+- §confirm.md
+- §task-map.md
+- §impl-checklist
+- §final-report.md
+
 # Execute Output Formats
 
 Templates for all files written by /baransu:execute. Section anchors (§) are referenced from SKILL.md.

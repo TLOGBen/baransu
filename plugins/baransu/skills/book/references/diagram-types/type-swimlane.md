@@ -4,6 +4,12 @@ status: complete
 example: inline
 ---
 
+## Contents
+
+- Layout conventions
+- Anti-patterns
+- Examples
+
 # Swimlane
 
 **Best for**: cross-functional processes, RACI-style flow, vendor handoff, multi-team shipping workflow, visualizing cross-team ownership boundaries.

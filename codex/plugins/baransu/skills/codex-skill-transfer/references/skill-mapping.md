@@ -1,3 +1,10 @@
+## Contents
+
+- Quick lookup
+- Rules in detail
+- See also
+- Cross-tool implications
+
 # Frontmatter Mapping Reference
 
 Authoritative translation table from Claude Code SKILL.md frontmatter to Codex skill format. Each row carries the rationale so future ambiguous cases can be judged rather than guessed.

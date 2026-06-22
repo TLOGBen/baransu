@@ -4,6 +4,12 @@ status: complete
 example: inline
 ---
 
+## Contents
+
+- Layout conventions
+- Anti-patterns
+- Examples
+
 # Layer Stack
 
 **Best for**: OSI model, CSS cascade, context hierarchy, tech stack, abstraction layer, memory hierarchy.

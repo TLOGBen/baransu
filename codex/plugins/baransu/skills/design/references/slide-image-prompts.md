@@ -1,3 +1,20 @@
+## Contents
+
+- 1. Scope Declaration
+- 2. User Image Handling Rules
+- 2b. Slide Type-Size and Density Hard Thresholds (machine-verifiable value table)
+- 3. Prompt Templates for External AI Image-Generation Tools
+- Layout: cover
+- Layout: section
+- Layout: content-bullets
+- Layout: content-2col
+- Layout: data
+- Layout: kpi-grid
+- Layout: compare
+- Layout: quote
+- Layout: closing
+- 4. Shared Negative Tail
+
 # slide-image-prompts.md
 
 > **Scope: PPT only.** This document governs image handling and external AI image-generation prompt templates for `/design` PPT outputs (slide-cores). It does **not** apply to long-form output (`--format longform`). The `/book` skill's image-generation capability is out of scope here — this file regulates user-supplied image placement and prompt templates only; it never calls an external image API.

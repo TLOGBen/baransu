@@ -4,6 +4,12 @@ status: complete
 example: inline
 ---
 
+## Contents
+
+- Layout conventions
+- Anti-patterns
+- Examples
+
 # Sequence
 
 **Best for**: request / response flows、protocol handshakes、multi-actor interactions over time、API call trace、incident reconstruction.

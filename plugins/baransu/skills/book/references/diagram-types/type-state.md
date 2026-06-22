@@ -4,6 +4,12 @@ status: complete
 example: inline
 ---
 
+## Contents
+
+- Layout conventions
+- Anti-patterns
+- Examples
+
 # State Machine
 
 **Best for**: finite-state logic — order status、auth state、connection lifecycle、form wizard、job queue status.

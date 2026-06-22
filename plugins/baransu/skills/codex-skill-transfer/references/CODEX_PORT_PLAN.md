@@ -1,3 +1,14 @@
+## Contents
+
+- General Rule: Relocate the Tooth, Don't Degrade It
+- Tier 0 — Strong Inertia × UI Hard-Stop: Must Relocate the Tooth, Cannot Degrade to a Hint
+- Tier 1 — Good Cases Where the Tooth Doesn't Rely on UI: low port cost, don't over-engineer
+- Tier 2 — Mechanism Convergence: collect scattered degradations into one table
+- Tier 3 — Low Value: degradation is harmless, do it last
+- Two Boundaries Running Through the Whole Table (preconditions written into every Codex work item)
+- Priority Overview
+- Mechanism Placement (grounding basis)
+
 # Codex Port Construction Plan: Rebuilding the Teeth of Anti-Inertia Ballast
 
 > **Positioning**: This is not a "feature mapping checklist", it is a "behavioral-ballast survival checklist".

@@ -8,6 +8,15 @@ purpose: |
   example, validate, per-type refs) MUST honour.
 ---
 
+## Contents
+
+- Resolution flow (overview)
+- Layer 1: root DESIGN.md (soft read)
+- Layer 2: Built-in presets (Kami / Swiss / Google-design)
+- Layer 3: per-type derived rules
+- Error handling (excerpt — token resolver scope)
+- Quick-ref
+
 # Design Token Resolver
 
 This document is the v1.3+ ground truth for token resolution in `/book`.

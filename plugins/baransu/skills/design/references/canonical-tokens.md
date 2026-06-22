@@ -1,3 +1,20 @@
+## Contents
+
+- Surface (5)
+- Accent (2)
+- Text hierarchy (5)
+- Border (2)
+- Font (3)
+- Modular Scale — Perfect Fourth (`r = 1.333`)
+- Shadow (2)
+- Spacing — 4pt grid (7)
+- Radius (7)
+- Layout (3)
+- Semantic (2)
+- tokens.css first line is the preset identifier comment
+- v1.2 → v1.3 banned naming list
+- Slide Layout Registry
+
 # Canonical Token Schema (v1.3)
 
 The baransu design system uses a fixed vocabulary of CSS custom-property names that **every** preset's `tokens.css` must define. HTML skeletons (design-cores/, slide-cores/) consume tokens by these canonical names only — preset-specific token names (e.g. Material `--md-*`, v1.2 `--brand`/`--parchment`) MUST be wrapped as internal aliases that resolve to canonical names.

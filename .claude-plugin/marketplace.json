@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "バランス — a Claude Code plugin marketplace",
-    "version": "2.5.9"
+    "version": "2.5.10"
   },
   "plugins": [
     {

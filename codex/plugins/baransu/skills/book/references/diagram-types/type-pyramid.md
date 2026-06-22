@@ -4,6 +4,12 @@ status: complete
 example: inline
 ---
 
+## Contents
+
+- Layout conventions
+- Anti-patterns
+- Examples
+
 # Pyramid / Funnel
 
 **Best for**: hierarchy of needs, prioritization rank, value pyramid, conversion funnel, content importance stack.

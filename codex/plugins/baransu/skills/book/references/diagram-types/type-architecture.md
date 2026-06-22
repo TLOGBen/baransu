@@ -4,6 +4,12 @@ status: complete
 example: inline
 ---
 
+## Contents
+
+- Layout conventions
+- Anti-patterns
+- Examples
+
 # Architecture
 
 **Best for**: system overview、data-flow diagrams、integration map、infra topology（infrastructure topology）、components & connections.

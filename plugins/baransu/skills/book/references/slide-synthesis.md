@@ -1,3 +1,12 @@
+## Contents
+
+- Reading project root slide-cores
+- Decision logic (first-match + positional override)
+- Graceful degradation on missing files / parse failure
+- $STRUCTURE_SLIDES schema
+- Count and structure constraints
+- Hard rules for slide font sizing and height limits (PPT output quality)
+
 # Stage 2B — Slide synthesis (PPT mode only)
 
 Run only when `$FORMAT` is `ppt` or `all`. Use the same `$RAW_CONTENT` as Stage 2A; `$SLUG` is inherited from Stage 2A.

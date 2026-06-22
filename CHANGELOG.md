@@ -2,6 +2,19 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.5.10 (2026-06-22)
+
+**reference ToC sweep + book 可達性修補**。plugin version 2.5.9 → 2.5.10。
+
+依官方最佳實踐(/learn 摘要 + 並行稽核)落實 reference hygiene:官方規則要求 >100 行的 reference 檔須有目錄(ToC)。
+
+### Changed — 變更
+
+- **33 個 >100 行 reference 檔補上「章節層級(`##`)」ToC**(9 個 skill:book/codex-skill-transfer/design/execute/learn/read/write)。採只列 `##` 章節,避免如 slide-checklist 把 70 個小標題全列成雜訊(只列 19 章節)。
+- **book diagram-types 可達性修補**:`svg-rendering-rules.md` 的 diagram 查表(§4.9/§4.10)原落在第 167 行、超過 `head -100` 範圍;新增的頂端 ToC 已把 §4.9/§4.10 列在前 12 行內,並在 book SKILL.md 補一行指標直指 `references/diagram-types/`。保留巢狀(just-in-time disclosure),不搬檔。
+- **排除 3 個 preset `DESIGN.md` 範本檔**(google-design/swiss/紙):它們會被原封不動複製到使用者專案,加 ToC 會污染產出。
+- codex 鏡像隨之重產同步。
+
 ## v2.5.9 (2026-06-23)
 
 **每日 cron 自動演化 round 7:護欄下 7 達標、gate 後採納 6/14**。plugin version 2.5.8 → 2.5.9。

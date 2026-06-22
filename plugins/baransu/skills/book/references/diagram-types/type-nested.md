@@ -4,6 +4,12 @@ status: complete
 example: inline
 ---
 
+## Contents
+
+- Layout conventions
+- Anti-patterns
+- Examples
+
 # Nested Containment
 
 **Best for**: expressing hierarchy through containment — scope boundary, CLAUDE.md cascade, trust zone, folder nesting, blast radius. Outer = broad, inner = specific.
