@@ -2,6 +2,20 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.5.9 (2026-06-23)
+
+**每日 cron 自動演化 round 7:護欄下 7 達標、gate 後採納 6/14**。plugin version 2.5.8 → 2.5.9。
+
+由 4:07 AM cron(standing authorization)非互動觸發,收斂護欄(margin≥2.0 + body<480)。14 skill 全評估,7 個過 blind margin 門檻,其中 learn 在 `make test` 結構 gate 被擋下(mutation 在 Outcome Contract 前插入 Invariants H2,違反「Outcome Contract 必為首個 H2」紅線),依「gate 為仲裁」原則退回 base,最終採納 6 個。採納曲線 14→14→14→5→6→2→6。
+
+### Changed — 變更
+
+- **採納 6 skill(margin≥2.0、blind 3/3、過 make test)**:analyze(Dim 6 把覆寫重建的刪除範圍釘成單一計算路徑 + path-scope guard)、book(Dim 4 把元件選用改成 data-shape→component 確定判準)、design(Dim 2 把 Gen Step 1.5 移到 Step 1 後消除前向引用)、hunt、read、write。
+- **gate 退回 1 skill**:learn(blind 過關但破壞首個-H2 結構紅線,退回 base)。
+- **保留 7 skill(收斂)**:codex-skill-transfer(非全票)、evolve/execute/health/review/think margin 1、ship margin 0.9。皆未改動。
+- codex 鏡像隨採納重產同步。
+- 本輪後每日 cron 轉為每週 /schedule 雲端例行。
+
 ## v2.5.8 (2026-06-22)
 
 **每日 cron 自動演化 round 6:收斂明顯,僅採納 2/14**。plugin version 2.5.7 → 2.5.8。

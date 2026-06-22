@@ -77,10 +77,12 @@ options:
   1. label: "resume 既有 spec"
      description: "沿用現有目錄與已寫檔案，只補齊或更新缺漏的層，不刪除既有內容。"
   2. label: "覆寫重建"
-     description: "刪除現有目錄全部內容後從 Stage 1 重新生成五層 spec。"
+     description: "僅刪除計算出的 spec 目錄 .claude/analyze/{date}-{slug}/ 內容後從 Stage 1 重新生成五層 spec；刪除範圍嚴格限定在這唯一一個路徑。"
   3. label: "改用 -2 後綴另建目錄"
      description: "改寫到 .claude/analyze/{date}-{slug}-2/，保留原目錄不動（已存在 -2 則續加 -3、-4…）。"
 ```
+
+If the user picks option 2 (覆寫重建), apply a scoped path-guard before deleting anything: resolve the intended delete target and compute the canonical spec dir as `{repo_root}/.claude/analyze/{date}-{slug}/`, where `{repo_root}` comes from `git rev-parse --show-toplevel`. **If** the resolved delete target is not exactly that computed spec dir — i.e. the resolved path does not string-equal the computed spec dir, OR it contains any `..` segment, OR it does not lie under `{repo_root}` — **then** abort the overwrite entirely and fall back to the option-3 `-N`-suffixed branch (write to `.claude/analyze/{date}-{slug}-2/`, then `-3`, `-4`… ) instead of deleting. Only when the resolved target string-equals the computed spec dir may the directory contents be deleted. This pins the only irreversible deletion to one verifiable path so a single dropdown click can never remove anything outside the computed spec subdirectory.
 
 ---
 
@@ -392,7 +394,7 @@ options:
 - Do not write production code, scaffolding, or config files during Stages 1-6. The only output is the five spec documents.
 - Do not call `/review` from within Stages 1-6. Cross-layer subagents answer alignment questions ("are these two layers consistent?"), not per-layer quality questions ("what's wrong with this layer?"). These are different questions. Stage 7 may offer /review as a handoff option — that is a post-spec quality check, not an in-spec alignment check.
 - Auto-correction is one round. No silent looping.
-- On a same-day same-slug directory collision (Stage 0.C), never silently overwrite: branch via the ask the user directly, record the authorization decision, and stop until the user answers among resume / overwrite-rebuild / new -N-suffixed directory before writing any spec file.
+- On a same-day same-slug directory collision (Stage 0.C), never silently overwrite: branch via the ask the user directly, record the authorization decision, and stop until the user answers among resume / overwrite-rebuild / new -N-suffixed directory before writing any spec file. The overwrite-rebuild branch may delete only the computed spec dir `{repo_root}/.claude/analyze/{date}-{slug}/`; if the resolved delete target does not string-equal that path (or contains `..`, or falls outside `{repo_root}` from `git rev-parse --show-toplevel`), abort the deletion and fall back to the `-N`-suffixed branch instead.
 - `goal.md` and `requirement.md` are user-intent layers. Do not modify their semantics during auto-correct. Only design / test / task layers are auto-correctable.
 - Never invent requirement numbers. Every `REQ-XXX` reference in task files must have a matching entry in `requirement.md`.
 - All user-visible output is Traditional Chinese (繁體中文). English appears only in this SKILL.md body, in code identifiers, file paths, and diagram labels the task itself uses.

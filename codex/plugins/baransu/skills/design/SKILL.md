@@ -214,6 +214,20 @@ Once the slug passes, it is used for: the tokens.css first-line preset header (`
 
 The rest of the gen-mode flow (interview → derive tokens → atomic staging → mv) shares the same pipeline as Preset Mode. The only difference is the source-of-truth: preset copies the whole set from `references/<name>-preset/`; gen does not author its 5 artifacts from thin air but instead **clones the closest existing preset as the donor skeleton** and rewrites it.
 
+### Step 1 — Ask direction questions
+
+🔴 **CHECKPOINT — wait for the user's answers before continuing.** Do not draft DESIGN.md until the ask the user directly with numbered options, then stop for the user's reply replies are in hand.
+
+Use ask the user directly with numbered options, then stop for the user's reply to ask 3–5 design direction questions. Suggested questions (adapt based on what the user already provided):
+
+1. **Atmosphere & style** — 「這個介面的整體氛圍是什麼？（例如：溫潤手感紙張、現代冷調、活潑色彩、極簡留白）」
+2. **Color direction** — 「主色調的方向是什麼？有沒有需要傳達的品牌色或情感色？」
+3. **Component expression** — 「按鈕、卡片、輸入框的視覺個性偏向哪種風格？（例如：有框線、無框填色、柔化陰影、扁平）」
+4. **Typography personality** — 「文字排版偏向哪種感覺？（例如：宋體古典、無襯線現代、等寬工程、混搭）」
+5. **Use scenario** — 「這個介面主要在什麼情境下使用？（例如：桌機閱讀、行動操作、資訊密集後台、展示型落地頁）」
+
+Skip questions that were already answered in the user's initial input.
+
 #### Gen Mode Step 1.5 — Donor-clone the 21+21 skeletons (closed step)
 
 The 21 `design-cores/` + 21 `slide-cores/` skeletons are NEVER authored from scratch by the LLM. They are derived from a donor preset so the gen output inherits the SSOT skeleton structure (DOM / slot / object-position) rather than improvising HTML.
@@ -235,20 +249,6 @@ When the answer straddles two, prefer `swiss` (most preset-agnostic skeleton).
 - (c) Keep the donor's DOM structure / `data-slot` / `object-position` / object-fit untouched — these are SSOT-tuned, not gen-time decisions.
 
 Output of this step feeds Step 3's atomic staging (`Copy staging/design-cores/` + `slide-cores/`) exactly as the preset path does. No new skeleton source is invented — gen only re-skins an existing donor.
-
-### Step 1 — Ask direction questions
-
-🔴 **CHECKPOINT — wait for the user's answers before continuing.** Do not draft DESIGN.md until the ask the user directly with numbered options, then stop for the user's reply replies are in hand.
-
-Use ask the user directly with numbered options, then stop for the user's reply to ask 3–5 design direction questions. Suggested questions (adapt based on what the user already provided):
-
-1. **Atmosphere & style** — 「這個介面的整體氛圍是什麼？（例如：溫潤手感紙張、現代冷調、活潑色彩、極簡留白）」
-2. **Color direction** — 「主色調的方向是什麼？有沒有需要傳達的品牌色或情感色？」
-3. **Component expression** — 「按鈕、卡片、輸入框的視覺個性偏向哪種風格？（例如：有框線、無框填色、柔化陰影、扁平）」
-4. **Typography personality** — 「文字排版偏向哪種感覺？（例如：宋體古典、無襯線現代、等寬工程、混搭）」
-5. **Use scenario** — 「這個介面主要在什麼情境下使用？（例如：桌機閱讀、行動操作、資訊密集後台、展示型落地頁）」
-
-Skip questions that were already answered in the user's initial input.
 
 ### Step 2 — Generate DESIGN.md
 
