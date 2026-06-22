@@ -4,6 +4,12 @@ status: complete
 example: inline
 ---
 
+## Contents
+
+- Layout conventions
+- Anti-patterns
+- Examples
+
 # Tree / Hierarchy
 
 **Best for**: org chart, dependency tree, taxonomy, file tree, decision breakdown, skill tree.

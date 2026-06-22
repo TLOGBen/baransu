@@ -1,3 +1,15 @@
+## Contents
+
+- Empty Keyword Fail-Fast
+- Search Command
+- Output Format
+- Display to User
+- User Selection
+- No Results
+- PDF URL Available Path
+- DOI-Only Path
+- Frontmatter
+
 # Academic Paper Search Acquisition
 
 ## Empty Keyword Fail-Fast

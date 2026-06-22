@@ -1,3 +1,10 @@
+## Contents
+
+- Installation
+- CLI Basic Usage
+- Supported Input Formats
+- Known Issues
+
 # markitdown Guide
 
 ## Installation

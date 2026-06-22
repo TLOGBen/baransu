@@ -11,6 +11,16 @@ note: |
   此 preset 補「他自己怎麼寫」這正向那一面。
 ---
 
+## Contents
+
+- 風格摘要
+- 可執行寫法規則
+- 神韻 sample 段落（從〈聽聽那冷雨〉擷取）
+- 詞彙線索
+- 反面（套此 voice 時同步守 anti-AI floor）
+- 來源
+- 後續可擴
+
 # 余光中 散文 voice profile（初版）
 
 ## 風格摘要

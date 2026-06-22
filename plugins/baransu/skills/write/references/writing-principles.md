@@ -1,3 +1,8 @@
+## Contents
+
+- zh principles — 中文
+- en principles — English
+
 # Writing Principles — Claude Default Deviations
 
 These principles correct Claude's observed defaults in Chinese and English prose. Each entry names the default pattern to avoid and shows a concrete before/after correction. Apply during composition — not as a post-generation checklist.

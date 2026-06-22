@@ -1,3 +1,11 @@
+## Contents
+
+- 1. The three Codex paths
+- 2. SKILL.md frontmatter mapping (Path 1 specifics)
+- 3. Body rewrite for Path 1
+- 4. Agent stub generation (`agents/*.md` → `.codex-agents-templates/*.toml`)
+- 5. Naming-collision pitfall
+
 # Agent Mapping (Claude `context: fork` → Codex Subagents)
 
 This file owns the `Claude agent → Codex subagent` translation in full. It covers two layers that earlier versions of this skill split awkwardly:

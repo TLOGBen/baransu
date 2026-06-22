@@ -1,3 +1,10 @@
+## Contents
+
+- Local-First Fetch (default)
+- Proxy Cascade (`--use-proxy` opt-in only)
+- GitHub URL Routing
+- PDF URL Routing
+
 # Web — Static Content Acquisition
 
 ## Local-First Fetch (default)

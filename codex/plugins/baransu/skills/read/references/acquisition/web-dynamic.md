@@ -1,3 +1,10 @@
+## Contents
+
+- SPA Detection Criteria
+- WSL2 Path (platform == WSL2)
+- Non-WSL2 CDP Proxy Path
+- After Browser Extraction
+
 # Web — Dynamic Content Acquisition (SPA / JS-Rendered)
 
 ## SPA Detection Criteria

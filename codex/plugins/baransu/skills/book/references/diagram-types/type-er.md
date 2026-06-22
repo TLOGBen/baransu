@@ -4,6 +4,12 @@ status: complete
 example: inline
 ---
 
+## Contents
+
+- Layout conventions
+- Anti-patterns
+- Examples
+
 # ER / Data Model
 
 **Best for**: database schema, API resource relationships, domain model, aggregate boundary, cross-service data ownership map.

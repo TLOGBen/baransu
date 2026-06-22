@@ -1,3 +1,14 @@
+## Contents
+
+- 1. Marketplace location
+- 2. Top-level shape
+- 3. Per-plugin entry shape
+- 4. Required structural change: plugin tree must sit under `plugins/<name>/`
+- 5. Concrete conversion example
+- 6. Template asset
+- 7. Verification
+- 8. End-user install (the part you must document)
+
 # Marketplace Mapping (`.claude-plugin/marketplace.json` → `.agents/plugins/marketplace.json`)
 
 ⚠️ **Not script-automated.** Marketplace publication is a deliberate act and the converted catalog should be reviewed by hand. The schema below comes from the official Codex plugin build docs ([developers.openai.com/codex/plugins/build](https://developers.openai.com/codex/plugins/build), primary) and the Codex `plugin-creator` system skill (`~/.codex/skills/.system/plugin-creator/references/plugin-json-spec.md`, secondary), not guesswork.

@@ -4,6 +4,12 @@ status: complete
 example: inline
 ---
 
+## Contents
+
+- Layout conventions
+- Anti-patterns
+- Examples
+
 # Venn / Set Overlap
 
 **Best for**: concept / domain intersections, shared attributes across categories, "where A meets B", ikigai-style frame (desirable × feasible × viable), locating a sweet spot.

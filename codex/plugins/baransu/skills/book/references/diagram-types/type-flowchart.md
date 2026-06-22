@@ -4,6 +4,12 @@ status: complete
 example: inline
 ---
 
+## Contents
+
+- Layout conventions
+- Anti-patterns
+- Examples
+
 # Flowchart
 
 **Best for**: decision logic, algorithm steps (algorithms), user-facing branching flows ("Should I…?"), onboarding routing, support-triage routing trees.

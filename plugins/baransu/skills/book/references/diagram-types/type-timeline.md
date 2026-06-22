@@ -4,6 +4,12 @@ status: complete
 example: inline
 ---
 
+## Contents
+
+- Layout conventions
+- Anti-patterns
+- Examples
+
 # Timeline
 
 **Best for**: release history, project milestones, incident timelines, roadmap, changelog visualization.

@@ -4,6 +4,12 @@ status: complete
 example: inline
 ---
 
+## Contents
+
+- Layout conventions
+- Anti-patterns
+- Examples
+
 # Quadrant
 
 **Best for**: priority ranking (Impact × Effort), positioning maps (Reach × Frequency), portfolio map, 2×2 decision frame, scenario planning.

@@ -1,3 +1,16 @@
+## Contents
+
+- §4.1 Color tokens (SVG roles)
+- §4.2 Required `<defs>` fragment (prepend to every SVG)
+- §4.3 Marker defs (arrows use a chevron `<path>`, three fixed ids)
+- §4.4 Two-layer paper-mask (node background and canvas base)
+- §4.5 Type tag (top-left of node, 7px Geist Mono uppercase)
+- §4.6 Legend strip (~60px at the bottom of the viewBox)
+- §4.7 Anti-slop precision constraints
+- §4.8 Embedded font calibration (scale ≈ 0.47 after embedding in A4)
+- §4.9 14-type chart routing decision tree (first-match)
+- §4.10 13-type selection table (v1 ref skeleton + status disclosure)
+
 # SVG Rendering Rules — Stage 3 §4
 
 Read this file only when the long-form HTML contains a `<figure class="diagram">` block (a Stage 2A flagged section).

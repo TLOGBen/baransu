@@ -1,3 +1,9 @@
+## Contents
+
+- YAML Frontmatter Specification
+- Five-Column Markdown Template
+- Constraints
+
 # brief-format.md — --brief 五欄格式合約
 
 This file is the **format contract** for `/baransu:learn --brief` output.

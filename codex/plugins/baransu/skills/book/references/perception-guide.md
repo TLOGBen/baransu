@@ -1,3 +1,12 @@
+## Contents
+
+- Content Type Taxonomy
+- Visual Treatment Constants (all types)
+- Quantified Type Scale (do not improvise typography)
+- Output Anti-Slop Blacklist (editorial typography discipline)
+- SVG Strategy by Type
+- Synthesis Length Limits
+
 # Perception Guide — Content Type Classification
 
 This file is the authoritative reference for `book`'s content-type perception layer.
