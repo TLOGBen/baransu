@@ -324,7 +324,7 @@ For each section from `$STRUCTURE`:
 - Open with `<h2><span class="sec-num">0N</span>{Section Title}</h2>`
 - Write 1–3 paragraphs expanding the key claims using language from `$RAW_CONTENT`
 - Immediately follow with a `<figure class="diagram">` block containing an SVG if the section was flagged for it
-- Use `.callout`, `.card-grid`, `table.cmp`, or `.tradeoff-row` components from the template where they improve readability
+- Select a component by the section's data shape, not by feel: a warning/caveat/aside → `.callout`; 3+ parallel sibling items of equal weight → `.card-grid`; a head-to-head of 2+ options across shared dimensions → `table.cmp`; an explicit cost/benefit pair → `.tradeoff-row`; otherwise use plain `<p>`.
 
 **Section rhythm standing instruction (render-time hard rule, not vibes)**: when applying the components above, resolve every "generous" / "tight" / "airy" treatment to a number in `references/perception-guide.md` Quantified Type Scale, never to vibes. Three highest-leverage values are binding at render time — each constrains how existing `long-form.html` template classes / tokens are *used* (no new CSS, no new token):
 
