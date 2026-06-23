@@ -416,7 +416,7 @@ SVG 圖解：{N} 張
 
 ## Constraints
 
-- **Token source = project root**: all visual elements consume tokens from `{project_root}/tokens.css` (written by `/baransu:design preset <style>` or `/baransu:design gen --slug <slug>`) plus the component patterns in `{project_root}/design-cores/long-form.html` (SSOT) or `references/golden-template.html` (fallback). No inline hex colours; use named CSS variables (canonical 36 names).
+- **Token source = project root**: all visual elements consume tokens from `{project_root}/tokens.css` (written by `/baransu:design preset <style>` or `/baransu:design gen --slug <slug>`) plus the component patterns in `{project_root}/design-cores/long-form.html` (SSOT) or `references/golden-template.html` (fallback). No inline hex colours; use named CSS variables (canonical 38 names).
 - **No new CSS patterns**: every class in the output HTML must exist in the active SSOT template or fallback. Extend within the active preset; don't invent outside it.
 - **SVG required**: a document with 0 SVG diagrams fails the quality gate and must be fixed before completion.
 - **Length cap**: final HTML body ≤ 1800 words. Excess goes into a 延伸閱讀 link block.
@@ -429,7 +429,7 @@ Scan the forbidden zone via the 🛑 visual marker, not by reading through prose
 
 | 🛑 Anti-pattern | Why it's compromised (rationale anchor) | Correct approach (authoritative reference) |
 |----------|---------------------|--------------------------|
-| 🛑 Inventing a new CSS class / using inline hex colors | Breaks out of the active SSOT template's set membership, compromising the GATE-F class-prefix and the 36-token list, regressing to generic AI feel | class must exist in the active template; use canonical-name variables for color (§3.3, Constraints; perception-guide Anti-Slop Blacklist #7) |
+| 🛑 Inventing a new CSS class / using inline hex colors | Breaks out of the active SSOT template's set membership, compromising the GATE-F class-prefix and the 38-token list, regressing to generic AI feel | class must exist in the active template; use canonical-name variables for color (§3.3, Constraints; perception-guide Anti-Slop Blacklist #7) |
 | 🛑 Using `rgba()` for SVG fill / stroke | WeasyPrint composites the alpha into a double-rectangle ghost-border, distorting the PDF | SVG fill/stroke must always be a solid hex token (§3.4, svg-rendering-rules §4.1) |
 | 🛑 Free-styling node widths outside the 3-step whitelist | Mixing more than 3 steps is an anti-slop fail and breaks the diagram rhythm | node width limited to {128/144/160}, at most 2 steps per diagram (svg-rendering-rules §4.7) |
 | 🛑 Silently producing an empty page / skeleton when Acquire fails | Disguises failure as a successful output, leaving the user with an empty shell | report each failure clearly, do not produce an empty shell (Gotchas SPA, Constraints Partial failure) |

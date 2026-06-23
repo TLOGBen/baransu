@@ -42,7 +42,7 @@
   --shadow-ring:    0 0 0 1px var(--border);
   --shadow-whisper: 0 4px 24px rgba(0, 0, 0, 0.05);
 
-  /* ── Spacing (4pt baseline + Kami spec) ── */
+  /* ── Spacing (Kami print scale — not a strict 4pt grid; the 3/5/10 steps are intentional hand-tuned values) ── */
   --space-xs:  3px;
   --space-sm:  5px;
   --space-md: 10px;

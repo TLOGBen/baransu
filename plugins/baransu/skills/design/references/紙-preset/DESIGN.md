@@ -44,7 +44,7 @@ Kami 十不變量（來自 CHEATSHEET.md canonical invariants；upstream tw93/Ka
 | `accent-tint-strong` | `#E4ECF5` | Tag 背景標準版（solid hex，0.18 rgba equivalent） |
 
 
-> 上游 tw93/Kami 原名對應（hex 不變）：paper←parchment、surface←ivory、surface-strong←warm-sand、accent←brand、text-primary←near-black、text-secondary←dark-warm、text-muted←olive、text-faint←stone、font-*←serif/sans/mono；accent-light、charcoal、accent-tint(-strong) 為文件列（不進 canonical 36、不寫入 tokens.css，骨架以字面 hex 使用）。
+> 上游 tw93/Kami 原名對應（hex 不變）：paper←parchment、surface←ivory、surface-strong←warm-sand、accent←brand、text-primary←near-black、text-secondary←dark-warm、text-muted←olive、text-faint←stone、font-*←serif/sans/mono；accent-light、charcoal、accent-tint(-strong) 為文件列（不進 canonical 38、不寫入 tokens.css，骨架以字面 hex 使用）。
 
 **用色原則**：
 - 背景層次：`--paper` → `--surface`（卡片浮在底色上）
@@ -53,7 +53,7 @@ Kami 十不變量（來自 CHEATSHEET.md canonical invariants；upstream tw93/Ka
 - 主色 `--accent` 用於 accent、CTA、section left bar，佔比控制在 ≤5% 表面
 - 禁用純白 `#ffffff`；禁用純黑 `#000000`
 
-**Sanctioned exception — semantic warm accent（唯一豁免）**：changelog 類產物的 `.tag.breaking` 專用 `--breaking-bg: #f0e0d8` / `--breaking-fg: #8b4513`（皆暖調 R>G>B；已註冊於上游 tokens.json，為 off-palette lint 的唯一豁免）。文件列待遇（同 `charcoal`）：不進 36-name canonical vocabulary，不寫入 tokens.css。僅 changelog 類產物可用；不得新增第二個 semantic accent。
+**Sanctioned exception — semantic warm accent（唯一豁免）**：changelog 類產物的 `.tag.breaking` 專用 `--breaking-bg: #f0e0d8` / `--breaking-fg: #8b4513`（皆暖調 R>G>B；已註冊於上游 tokens.json，為 off-palette lint 的唯一豁免）。文件列待遇（同 `charcoal`）：不進 38-name canonical vocabulary，不寫入 tokens.css。僅 changelog 類產物可用；不得新增第二個 semantic accent。
 
 **RGBA → Solid hex 換算**（WeasyPrint 相容，以羊皮紙底 + 墨藍為基底）：
 

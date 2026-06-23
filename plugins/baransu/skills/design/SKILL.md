@@ -31,7 +31,7 @@ Before mode dispatch, proactively ensure that CLAUDE.md, AGENT.md, and INSTRUCTI
    a. Read the first 30 lines of the file.
    b. Locate the current baransu design-system block. Two markers identify a block as current-version (v1.3):
       - contains `- slide-cores/` (added in v1.3; the v1.2 inject does not have this line)
-      - contains `canonical 36-name vocabulary` (v1.3 schema marker)
+      - contains `canonical 38-name vocabulary` (v1.3 schema marker)
    c. Decide the action:
       - **No block found** (normal case — never injected before) → insert the canonical v1.3 block at line 2 (or after the YAML frontmatter / after the first heading — take the earliest reasonable position)
       - **Stale block found** (contains `DESIGN.md` but lacks the v1.3 markers — e.g. leftover v1.2 inject) → **replace** the stale block with the canonical v1.3 block; leave the rest of the file untouched
@@ -41,7 +41,7 @@ Before mode dispatch, proactively ensure that CLAUDE.md, AGENT.md, and INSTRUCTI
       ```
       When working on any UI/UX content, read the design system at the project root and follow it:
       - DESIGN.md — visual spec (nine-section design system)
-      - tokens.css — CSS variables (canonical 36-name vocabulary; first line `/* preset: <slug> */`)
+      - tokens.css — CSS variables (canonical 38-name vocabulary; first line `/* preset: <slug> */`)
       - design-cores/ — component skeletons consuming the tokens (long-form / gallery / dashboard / 6 elements)
       - slide-cores/ — slide layouts (4 cover variants + 8 non-cover layouts)
       ```
@@ -60,7 +60,7 @@ This stage is non-blocking and does not affect mode dispatch.
 
 ## Canonical Token Schema (v1.3)
 
-v1.3 fixed vocabulary: the 36 canonical token names are **required** in every preset's `tokens.css`; HTML skeletons reference tokens only through these names, and preset-specific names (Material `--md-*` / v1.2 `--brand`) are mapped as aliases. Full schema (surface 5 / accent 2 / text 5 / border 2 / font 3 / shadow 2 / space 7 / radius 7 / layout 3 / semantic 2) + the v1.2 banned-name list → **read `references/canonical-tokens.md`**.
+v1.3 fixed vocabulary: the 38 canonical token names are **required** in every preset's `tokens.css`; HTML skeletons reference tokens only through these names, and preset-specific names (Material `--md-*` / v1.2 `--brand`) are mapped as aliases. Full schema (surface 5 / accent 2 / text 5 / border 2 / font 3 / shadow 2 / space 7 / radius 7 / layout 3 / semantic 2) + the v1.2 banned-name list → **read `references/canonical-tokens.md`**.
 
 The first line of `tokens.css`, `/* preset: <slug> */`, identifies the preset; it is parsed by `scripts/check.py` and `/baransu:book` GATE-F.
 
@@ -118,7 +118,7 @@ Presets are folders at: `{skill_dir}/references/{name}-preset/`
 
 Each preset directory contains (the v1.3 full artifact set):
 - `DESIGN.md` — the design specification (required)
-- `tokens.css` — canonical 36-name CSS variables; first line `/* preset: <slug> */`
+- `tokens.css` — canonical 38-name CSS variables; first line `/* preset: <slug> */`
 - `design-cores/` — 21 component skeletons (long-form / gallery / dashboard + document-type letter / resume / one-pager / portfolio / equity-report / changelog, each with an -en bilingual variant + card / metric / quote-callout / data-table / section-title / tag-button), class prefix `<slug>-*`
 - `slide-cores/` — 21 layouts (4 cover variants: cover / cover-data / cover-quote / cover-section + 17 non-cover), class prefix `<slug>-*`
 - `<slug>-sanity.sh` — preset-private sanity script (紙 preset only; v1.3 moved the Kami ten invariants here)
@@ -162,7 +162,7 @@ If the first line of `tokens.css` matches the regex → treat it as a v1.3 heade
 | `google-design` | `{skill_dir}/references/google-design-preset/` | `/* preset: google-design */` |
 | `swiss` | `{skill_dir}/references/swiss-preset/` | `/* preset: swiss */` |
 
-The v1.2 shared directories `references/cores/` and `references/slide-cores/` are removed/deprecated (they live inside swiss-preset). All presets share the canonical 36-token list (see §Canonical Token Schema); the HTML skeletons distinguish their class prefixes with `kami-*` / `google-*` / `swiss-*` but the token references are identical.
+The v1.2 shared directories `references/cores/` and `references/slide-cores/` are removed/deprecated (they live inside swiss-preset). All presets share the canonical 38-token list (see §Canonical Token Schema); the HTML skeletons distinguish their class prefixes with `kami-*` / `google-*` / `swiss-*` but the token references are identical.
 
 **Atomic staging flow** — the 5 artifacts are first written to `.tmp/design-staging/`, then atomic-mv'd to the project root once all succeed:
 
@@ -240,7 +240,7 @@ When the answer straddles two, prefer `swiss` (most preset-agnostic skeleton).
 **Per-file transform** (input = donor dir's `design-cores/` + `slide-cores/`; output = 42 files staged):
 
 - (a) Replace every class prefix `<donor>-*` (`kami-*` / `swiss-*` / `google-*`) with `<slug>-*` across the whole file.
-- (b) Replace the donor `tokens.css` literal values with the values derived from the Step 1 interview; keep the canonical 36 token NAMES unchanged (only the values change).
+- (b) Replace the donor `tokens.css` literal values with the values derived from the Step 1 interview; keep the canonical 38 token NAMES unchanged (only the values change).
 - (c) Keep the donor's DOM structure / `data-slot` / `object-position` / object-fit untouched — these are SSOT-tuned, not gen-time decisions.
 
 Output of this step feeds Step 3's atomic staging (`Copy staging/design-cores/` + `slide-cores/`) exactly as the preset path does. No new skeleton source is invented — gen only re-skins an existing donor.
@@ -325,7 +325,7 @@ Call `python3 {skill_dir}/scripts/check.py [project_root]` (uses cwd when no arg
 | Check | Rule | Fail condition |
 |-------|------|----------|
 | **A. 5 artifacts complete** | tokens.css / DESIGN.md / DESIGN.html / design-cores/ / slide-cores/ all five present | any one missing → fail; on Check A fail, terminate and do not run B-F |
-| **B. tokens.css contains the full canonical set** | all 36 canonical names present (see §Canonical Token Schema) | missing any canonical name, or containing a v1.2 banned token (`--brand` / `--parchment` etc.) → fail |
+| **B. tokens.css contains the full canonical set** | all 38 canonical names present (see §Canonical Token Schema) | missing any canonical name, or containing a v1.2 banned token (`--brand` / `--parchment` etc.) → fail |
 | **C. cross-artifact prefix consistency** | class prefixes inside design-cores/ + slide-cores/ all equal the preset slug on the first line of tokens.css | a single file mixing prefixes, or a prefix not matching the tokens header → fail |
 | **D. DESIGN.md nine sections + canonical references** | all nine section headings present (canonical list lives in `scripts/check.py` Check D), and the body contains no v1.2 token naming | a missing section, reversed order, or v1.2 naming in the body → fail |
 | **E. long-form.html slot unique** | `design-cores/long-form.html` contains exactly one `<section data-slot="long-form-body">` | more than one or zero → fail |
@@ -424,8 +424,8 @@ Exit codes: 0 = clean, 1 = violations, 2 = structural error.
 
 ## Validator division of labor (v1.3)
 
-- `scripts/check.py` (project-root mode): A 5 artifacts complete / B full 36 canonical + v1.2 banned detection / C cross-artifact prefix consistency / D DESIGN.md nine sections + canonical references / E long-form slot unique / F dashboard purely static
-- `scripts/check.py` (legacy per-file mode): called by `/book` validate-output.ts on the GATE-F path; used by the sanity script to verify the Kami ten invariants
+- `scripts/check.py` (project-root mode): A 5 artifacts complete / B full 38 canonical + v1.2 banned detection / C cross-artifact prefix consistency / D DESIGN.md nine sections + canonical references / E long-form slot unique / F dashboard purely static
+- `scripts/check.py` (legacy per-file mode): used by the 紙 preset sanity script to verify the Kami ten invariants. (`/book`'s `validate-output.ts` implements its own GATE-F prefix check and does NOT call check.py; it trusts that check.py has already linted the slide-core artifacts.)
 - On the `/book` side, `validate-output.ts` GATE-F (class prefix allowlist dynamically expanded to `{kami, google, swiss}` + first-line slug of tokens.css) + GATE-G (filesystem dynamic read)
 
 ### Slide-core image handling (PPT only)

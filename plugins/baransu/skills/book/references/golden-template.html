@@ -1,13 +1,30 @@
 <!DOCTYPE html>
 <html lang="{{LANG}}">
 <!--
-  golden-template.html — book skill reference template (v1)
+  golden-template.html — book skill reference template (v2 — v1.3 canonical)
   Design system: Kami (see references/design-token-resolver.md Layer 2)
   Purpose: Show-by-example the structure, tokens, and SVG style that
            every book output must follow. Agent reads this before generating.
 
+  v2 changes (aligns the fallback template with the /design v1.3 canonical
+  schema and the skills' own typographic invariants):
+    - :root now uses the canonical token names (--paper / --surface /
+      --accent / --text-primary…) instead of the retired v1.2 / upstream
+      names (--parchment / --ivory / --brand…). Hex values are unchanged,
+      so an injected canonical tokens.css drives colour cleanly.
+    - Heading weight locked at 500 (Kami invariant #5) — was 700.
+    - h1 restored to the modular-scale hero size 2.375rem/38px — was 28px.
+    - Reading line-height 1.65 (CJK-relaxed cap) — was 1.75, which the
+      book §3 render rule bans (≥1.70 reads as floating web-prose).
+    - figcaption set roman (Kami invariant #10 — no italics) — was italic.
+    - Chrome labels (kicker / sec-num / meta / toc / badge / caption /
+      footer) use var(--font-mono), the Kami print idiom — were bare
+      `sans-serif` / `'Helvetica Neue', Arial` (generic-AI slop in a
+      distinctive serif preset).
+    - prefers-reduced-motion guard added (scroll-behavior + transitions).
+
   Token source: project root DESIGN.md (Layer 1) →
-                design-token-resolver.md Layer 2 (Kami preset, 16 tokens) →
+                design-token-resolver.md Layer 2 (Kami preset) →
                 per-type derived rules (Layer 3, for sequence/state/swimlane/er).
   All token values rendered to SVG/CSS MUST be solid hex (`^#[0-9a-fA-F]{3,8}$`);
   `rgba(` MUST NOT appear in any rendered output (Kami invariant #8).
@@ -31,46 +48,44 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{TITLE}}</title>
 <style>
-  /* ── Kami design tokens (Layer 2 — 16 tokens, all solid hex) ──
-     Source of truth: references/design-token-resolver.md §Layer 2.
-     If project root DESIGN.md exists and its §Color Palette table
-     defines the same names with valid hex values, those override
-     these defaults (per-token soft override). */
+  /* ── Kami design tokens (v1.3 canonical names, all solid hex) ──
+     Source of truth: project root tokens.css (injected at render) and
+     references/design-token-resolver.md §Layer 2. If the project root
+     DESIGN.md / tokens.css define these canonical names, those values
+     override the defaults below (per-token soft override).
+     --accent-bg / --warm-bg / --warn-border are template-local helpers
+     (pre-flattened solid hex for tinted callouts); they are intentionally
+     outside the canonical 38-name vocabulary. */
   :root {
-    --parchment:         #f5f4ed;  /* primary background */
-    --ivory:             #faf9f5;  /* card / panel surface */
-    --warm-sand:         #e8e6dc;  /* button / interactive surface */
-    --dark-surface:      #30302e;  /* dark container */
-    --deep-dark:         #141413;  /* dark page background */
-    --brand:             #1B365D;  /* accent / focal stroke */
-    --brand-light:       #2D5A8A;  /* link on dark surface */
-    --near-black:        #141413;  /* primary text */
-    --dark-warm:         #3d3d3a;  /* secondary text */
-    --olive:             #504e49;  /* subtext / muted ink */
-    --stone:             #6b6a64;  /* tertiary text / metadata */
-    --charcoal:          #4d4c48;  /* dark muted text */
-    --border:            #e8e6dc;  /* primary border */
-    --border-soft:       #e5e3d8;  /* secondary border */
-    --brand-tint:        #EEF2F7;  /* tag background, lightest */
-    --brand-tint-strong: #E4ECF5;  /* tag background, standard */
-    /* Aliases for legacy class hooks (do NOT use in SVG attributes;
-       SVG attributes must reference solid hex via the resolver). */
-    --line:              #e5e3d8;
-    --hover:             #e8e6dc;
-    --accent-bg:         #EEF2F7;  /* solid-hex equivalent of brand@7%-on-paper */
-    --warm-bg:           #f1ece4;  /* solid-hex equivalent of warm@8%-on-paper */
-    --warn-border:       #b05c28;
+    --paper:          #f5f4ed;  /* page background — warm parchment */
+    --surface:        #faf9f5;  /* card / panel surface — ivory */
+    --surface-strong: #e8e6dc;  /* button / interactive / table head */
+    --accent:         #1B365D;  /* sole chromatic accent — deep ink-blue */
+    --accent-light:   #2D5A8A;  /* link-blue, external-flow marker only */
+    --text-primary:   #141413;  /* primary text */
+    --text-secondary: #3d3d3a;  /* secondary text */
+    --text-muted:     #504e49;  /* muted ink / internal-flow marker */
+    --text-faint:     #6b6a64;  /* tertiary text / metadata */
+    --border:         #e8e6dc;  /* primary border */
+    --border-soft:    #e5e3d8;  /* secondary border / hairline rule */
+    /* Typography tokens (Kami: serif body, mono labels — no sans) */
+    --font-serif: 'TsangerJinKai02','Noto Serif TC','Source Han Serif TC',
+                  Charter, Georgia, 'Palatino Linotype', serif;
+    --font-mono:  'JetBrains Mono','SF Mono','Fira Code',Consolas,Monaco,monospace;
+    /* Template-local tinted-surface helpers (not canonical) */
+    --accent-bg:   #EEF2F7;  /* solid-hex equivalent of accent@7%-on-paper */
+    --warm-bg:     #f1ece4;  /* solid-hex equivalent of warm@8%-on-paper */
+    --warn-border: #b05c28;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
 
   body {
-    background: var(--parchment);
-    font-family: 'TsangerJinKai02','Noto Serif TC','Source Han Serif TC',
-                 Charter, Georgia, 'Palatino Linotype', serif;
-    color: var(--near-black);
-    line-height: 1.75;
+    background: var(--paper);
+    font-family: var(--font-serif);
+    color: var(--text-primary);
+    line-height: 1.65;
     font-size: 16px;
     text-wrap: pretty;
   }
@@ -82,7 +97,7 @@
        3. paper-stack   — offset + negative spread, fakes a 2nd sheet
                           underneath (Kami "印刷品堆疊" tactile cue) */
   .paper {
-    background: var(--ivory);
+    background: var(--surface);
     max-width: 760px;
     margin: 40px auto 80px;
     padding: 64px 72px;
@@ -113,40 +128,41 @@
   @media (min-width: 1160px) { .toc-wrap { display: block; } }
   .toc-wrap h3 {
     font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
-    color: var(--stone); margin-bottom: 10px; font-family: sans-serif;
+    color: var(--text-faint); margin-bottom: 10px; font-family: var(--font-mono);
+    font-weight: 500;
   }
   .toc-wrap a {
     display: block; padding: 3px 0 3px 8px;
     font-size: 12.5px; line-height: 1.55;
-    font-family: sans-serif; text-decoration: none;
-    color: var(--olive);
+    font-family: var(--font-mono); text-decoration: none;
+    color: var(--text-muted);
     border-left: 2px solid transparent;
     transition: color .15s, border-color .15s;
   }
   .toc-wrap a:hover, .toc-wrap a.active {
-    color: var(--brand); border-left-color: var(--brand);
+    color: var(--accent); border-left-color: var(--accent);
   }
 
   /* ── Header ── */
   .kicker {
     font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
-    color: var(--brand); margin-bottom: 14px;
-    font-family: 'Helvetica Neue', Arial, sans-serif;
+    color: var(--accent); margin-bottom: 14px;
+    font-family: var(--font-mono); font-weight: 500;
   }
   h1 {
-    font-size: 28px; font-weight: 700; line-height: 1.25;
-    letter-spacing: -.01em; margin-bottom: 12px;
+    font-size: 2.375rem; font-weight: 500; line-height: 1.15;
+    letter-spacing: -.01em; margin-bottom: 16px;
     text-wrap: pretty;
   }
   .subtitle {
-    font-size: 15.5px; color: var(--dark-warm);
+    font-size: 15.5px; color: var(--text-secondary);
     margin-bottom: 32px; padding-bottom: 32px;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid var(--border-soft);
   }
   .meta {
     display: block; margin-top: 6px;
-    font-size: 12px; color: var(--stone);
-    font-family: sans-serif;
+    font-size: 12px; color: var(--text-faint);
+    font-family: var(--font-mono);
   }
 
   /* ── Sections ── */
@@ -154,16 +170,16 @@
   section:last-of-type { margin-bottom: 0; }
 
   h2 {
-    font-size: 18px; font-weight: 700;
+    font-size: 18px; font-weight: 500;
     margin-bottom: 16px; padding-bottom: 8px;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid var(--border-soft);
     display: flex; align-items: center; gap: 10px;
     text-wrap: pretty;
   }
   .sec-num {
-    font-size: 10px; font-weight: 600; letter-spacing: .08em;
-    font-family: sans-serif;
-    color: var(--brand); background: var(--accent-bg);
+    font-size: 10px; font-weight: 500; letter-spacing: .08em;
+    font-family: var(--font-mono);
+    color: var(--accent); background: var(--accent-bg);
     padding: 2px 8px; border-radius: 20px; flex-shrink: 0;
   }
 
@@ -174,7 +190,7 @@
   /* ── Callout variants ── */
   .callout {
     background: var(--accent-bg);
-    border-left: 3px solid var(--brand);
+    border-left: 3px solid var(--accent);
     padding: 14px 18px; margin: 20px 0;
     font-size: 14.5px;
     border-radius: 0 4px 4px 0;
@@ -189,9 +205,9 @@
     margin: 28px 0; text-align: center;
   }
   figure.diagram figcaption {
-    font-size: 12px; color: var(--stone);
-    margin-top: 8px; font-style: italic;
-    font-family: sans-serif;
+    font-size: 12px; color: var(--text-faint);
+    margin-top: 8px; font-style: normal;
+    font-family: var(--font-mono);
   }
   svg { display: block; margin: 0 auto; max-width: 100%; }
 
@@ -203,29 +219,29 @@
   table.cmp th {
     padding: 8px 14px; text-align: left;
     font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
-    font-family: sans-serif;
-    background: var(--hover); color: var(--olive);
+    font-family: var(--font-mono); font-weight: 500;
+    background: var(--surface-strong); color: var(--text-muted);
   }
   table.cmp td {
     padding: 10px 14px;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid var(--border-soft);
     vertical-align: top;
   }
   table.cmp tr:last-child td { border-bottom: none; }
   .badge {
     display: inline-block; font-size: 10px; letter-spacing: .04em;
     padding: 1px 7px; border-radius: 3px; vertical-align: middle; margin-left: 4px;
-    font-family: sans-serif;
+    font-family: var(--font-mono);
   }
-  .badge.yes { background: var(--accent-bg); color: var(--brand); }
-  .badge.no  { background: var(--hover); color: var(--stone); }
+  .badge.yes { background: var(--accent-bg); color: var(--accent); }
+  .badge.no  { background: var(--surface-strong); color: var(--text-faint); }
 
   /* ── Card grid ── */
   .card-grid {
     display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 20px 0;
   }
   .card {
-    border: 1px solid var(--line); border-radius: 6px;
+    border: 1px solid var(--border-soft); border-radius: 6px;
     padding: 16px 18px;
     transition: box-shadow .15s, transform .15s;
   }
@@ -234,23 +250,23 @@
     transform: translateY(-1px);
   }
   .card h3 {
-    font-size: 13px; font-weight: 700; margin-bottom: 8px;
+    font-size: 13px; font-weight: 500; margin-bottom: 8px;
     display: flex; align-items: center; gap: 7px;
   }
-  .card p { font-size: 13px; color: var(--dark-warm); margin: 0; }
+  .card p { font-size: 13px; color: var(--text-secondary); margin: 0; }
   .card .icon {
     width: 22px; height: 22px; border-radius: 5px;
     display: flex; align-items: center; justify-content: center;
     font-size: 13px; flex-shrink: 0;
-    background: var(--accent-bg); color: var(--brand);
+    background: var(--accent-bg); color: var(--accent);
   }
 
   /* ── Footer ── */
   footer {
     margin-top: 52px; padding-top: 24px;
-    border-top: 1px solid var(--line);
-    font-size: 12px; color: var(--stone);
-    font-family: sans-serif;
+    border-top: 1px solid var(--border-soft);
+    font-size: 12px; color: var(--text-faint);
+    font-family: var(--font-mono);
     display: flex; justify-content: space-between; align-items: center;
   }
 
@@ -259,6 +275,12 @@
     .paper { padding: 40px 28px; margin: 0; border-radius: 0; }
     .paper::before { left: 20px; }
     .card-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── Motion safety — honor the OS reduce-motion preference ── */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { transition: none !important; }
   }
 </style>
 </head>
@@ -312,18 +334,18 @@
              and matches the Kami visual signature (diagrams.md §L86).
              Three variants:
                #arrow         — default / generic / internal (muted ink)
-               #arrow-accent  — focal / primary flow (brand)
-               #arrow-link    — external / HTTP / API (brand-light) -->
+               #arrow-accent  — focal / primary flow (accent)
+               #arrow-link    — external / HTTP / API (accent-light) -->
         <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
-          <path d="M2 1 L8 5 L2 9" fill="none" stroke="var(--olive)"
+          <path d="M2 1 L8 5 L2 9" fill="none" stroke="var(--text-muted)"
                 stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </marker>
         <marker id="arrow-accent" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
-          <path d="M2 1 L8 5 L2 9" fill="none" stroke="var(--brand)"
+          <path d="M2 1 L8 5 L2 9" fill="none" stroke="var(--accent)"
                 stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </marker>
         <marker id="arrow-link" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
-          <path d="M2 1 L8 5 L2 9" fill="none" stroke="var(--brand-light)"
+          <path d="M2 1 L8 5 L2 9" fill="none" stroke="var(--accent-light)"
                 stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </marker>
 
@@ -333,7 +355,7 @@
            USE:     Always render Layer 1 as the FIRST visual child of the SVG
                     (after <defs>). Layer 2 is optional; default OFF.
            Layer 1: full-bleed rect, fill = resolved paper-token (solid hex).
-                    Hex here mirrors --parchment (#f5f4ed) — token resolver
+                    Hex here mirrors --paper (#f5f4ed) — token resolver
                     pre-flattens to solid hex so GATE-B / EC-12b stay green. -->
       <rect width="100%" height="100%" fill="#f5f4ed"/>
       <!-- Layer 2 (dotted overlay) — disabled by default; uncomment to enable
@@ -486,7 +508,7 @@
       <!-- Above SVG passes validate-output.ts GATE-A through GATE-E.
            Copy as template; replace nodes/edges with your content. -->
     </svg>
-    <figcaption>圖：SVG primitives 範例（marker / 兩層 paper-mask / type tag / legend strip）。如 Kami 所言：“紙的留白，是版式的呼吸。”</figcaption>
+    <figcaption>圖：SVG primitives 範例（marker / 兩層 paper-mask / type tag / legend strip）。如 Kami 所言：「紙的留白，是版式的呼吸。」</figcaption>
   </figure>
 
   <footer>

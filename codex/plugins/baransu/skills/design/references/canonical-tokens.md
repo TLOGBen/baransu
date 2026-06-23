@@ -19,7 +19,7 @@
 
 The baransu design system uses a fixed vocabulary of CSS custom-property names that **every** preset's `tokens.css` must define. HTML skeletons (design-cores/, slide-cores/) consume tokens by these canonical names only — preset-specific token names (e.g. Material `--md-*`, v1.2 `--brand`/`--parchment`) MUST be wrapped as internal aliases that resolve to canonical names.
 
-`scripts/check.py` enforces this schema; gen mode derives values for these 36 names from the interview answers.
+`scripts/check.py` enforces this schema; gen mode derives values for these 38 names from the interview answers.
 
 ## Surface (5)
 `--paper` page background • `--surface` card • `--surface-strong` interactive surface • `--dark-surface` dark container • `--deep-dark` dark page

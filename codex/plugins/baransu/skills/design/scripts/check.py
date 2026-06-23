@@ -11,7 +11,7 @@ Modes:
 Project-root v1.3 checks (per design.md §跨層 Invariant 補充):
   A. 5 份 artifact 齊全 — tokens.css / DESIGN.md / DESIGN.html / design-cores/ / slide-cores/
      (fail-fast: A 失敗即終止後續 B-F)
-  B. tokens.css 含全套 baransu canonical 19+ names (參考 CANONICAL_TOKENS)
+  B. tokens.css 含全套 baransu canonical 38 names (參考 CANONICAL_TOKENS)
   C. 同 preset cross-artifact prefix 一致 — design-cores/, slide-cores/ class
      prefix 全部與 tokens.css 第一行 preset header slug 一致
   D. DESIGN.md 九段完整 + 內文不含 v1.2 token 命名（--brand / --parchment 等）
@@ -37,7 +37,7 @@ import sys
 from pathlib import Path
 
 
-# ── v1.3 Canonical Token Schema (19+ names; mirrors design.md "Canonical Token Schema") ──
+# ── v1.3 Canonical Token Schema (38 names; mirrors design.md "Canonical Token Schema") ──
 
 CANONICAL_TOKENS = [
     # Surface (5)

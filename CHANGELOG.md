@@ -2,6 +2,23 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.5.12 (2026-06-23)
+
+**`/design` + `/book` 美學與正確性修正**。plugin version 2.5.11 → 2.5.12。雙樹（plugins/ + codex/）同步。
+
+### Fixed — 修正
+
+- **`/book` Kami fallback golden-template 重寫**：從 v1.2 上游 token 名（`--parchment` / `--brand`…）改用 v1.3 canonical 名（`--paper` / `--accent`…，hex 不變），讓注入的 canonical `tokens.css` 能真正驅動配色。
+- 同步修好該模板違反 skill 自身規範的三處：標題字重 700 → 500（Kami 不變量 #5）、h1 字級 28px → 38px（模組級數 hero）、正文行高 1.75 → 1.65（`/book` §3 禁用 ≥1.70）、figcaption 斜體移除（Kami 不變量 #10）。
+- chrome 標籤（kicker / 編號 pill / meta / TOC / footer）從裸 `sans-serif` + `Arial` 改用 `var(--font-mono)` 印刷標籤調，去除襯線 preset 中的 generic-sans slop。A/B Playwright 截圖 + `validate-output.ts` GATE PASS 驗證。
+- **canonical token 數量四處不一致修正**：全倉 `36` → `38`（以 `check.py` 的 `CANONICAL_TOKENS` 實際長度為準），同步修 `check.py` 註解的「19+ names」；Stage 0 inject 版本標記與 root `CLAUDE.md` 一併對齊。
+- **`/design` SKILL.md 過時交叉引用修正**：移除「`check.py` legacy mode 被 `/book` validate-output.ts 在 GATE-F 呼叫」的不實描述（validator 自行實作 GATE-F prefix 檢查）。
+
+### Changed — 變更
+
+- 三支 `/book` golden-template（kami / swiss / gd）補上 `prefers-reduced-motion` 守門（既有 `scroll-behavior: smooth` + transitions 的無障礙缺口）。
+- Kami `tokens.css` 間距註解不再宣稱嚴格「4pt grid」（3/5/10 為刻意手調步階）。
+
 ## v2.5.11 (2026-06-22)
 
 **README 精簡 + 移除 LICENSE**。plugin version 2.5.10 → 2.5.11。
