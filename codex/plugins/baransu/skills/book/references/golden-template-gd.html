@@ -254,6 +254,11 @@
     .paper { padding: 40px 28px; margin: 0; border-radius: 0; }
     .card-grid { grid-template-columns: 1fr; }
   }
+  /* ── Motion safety — honor the OS reduce-motion preference ── */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { transition: none !important; }
+  }
 </style>
 </head>
 <body>

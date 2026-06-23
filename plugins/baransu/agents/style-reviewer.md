@@ -21,7 +21,7 @@ This is a **subjective** lens complementing the technical gates (GATE-F prefix, 
 Findings produced must fall into one of these categories only:
 
 1. **Typography drift** — output uses a font role inconsistent with DESIGN.md §3 (e.g., Kami preset output rendering body in sans when DESIGN.md mandates serif; Swiss preset output containing italics when invariant #10 bans them; missing CJK font stack when content contains Chinese).
-2. **Color palette violation** — output uses a color outside the canonical 36-token vocabulary, or accent color usage exceeds the "≤5% surface" guideline in §2, or pure white (`#ffffff`) appears as a primary background when DESIGN.md banned it.
+2. **Color palette violation** — output uses a color outside the canonical 38-token vocabulary, or accent color usage exceeds the "≤5% surface" guideline in §2, or pure white (`#ffffff`) appears as a primary background when DESIGN.md banned it.
 3. **Do / Don't breach** — output performs a specific item listed under §8 Don't (Kami: hard shadows, all-caps headings, pure-white backgrounds; Swiss: italics, second accent color, center-aligned defaults; google-design: ignored Material elevation system).
 4. **Token name mismatch** — output references a token name not present in `{project_root}/tokens.css` (e.g., v1.2 `--brand` after preset has been v1.3-migrated; or a Material `--md-*` raw token leaked into HTML class when canonical alias was expected).
 5. **Reproducibility gap** — DESIGN.md §9 AI Prompt Guide describes a key visual property (e.g., "3px accent left bar for section titles") that is conspicuously absent in the rendered output. The prompt would not regenerate the current output; either the output is wrong or §9 is.
