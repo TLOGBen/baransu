@@ -1,4 +1,4 @@
-/* preset: swiss */
+/* preset: swiss; schema: 43 */
 /* Swiss (IKB) Preset — CSS Design Tokens
    Drop this into any project or @import it in your main stylesheet.
    All values match references/swiss-preset/DESIGN.md exactly.
@@ -63,6 +63,13 @@
   /* ── Semantic (metric.html consumer) ── */
   --delta-up:   #1f5f3d;  /* dark green, IKB-compatible */
   --delta-down: #8b1f1f;  /* dark red */
+
+  /* ── Capability (gen-power; Swiss's committed extreme is flat precision — drama is a tint, never a dark drop) ── */
+  --ease:         cubic-bezier(0.2, 0, 0, 1);     /* crisp decelerate */
+  --duration:     160ms;                          /* fast, exact */
+  --stagger-step: 30ms;                           /* tight sequential rhythm */
+  --font-display: var(--font-sans);               /* display = the grotesk voice */
+  --shadow-drama: 0 8px 28px var(--surface-strong);/* drama as a flat tonal shift, no dark shadow */
 }
 
 /* ── Base reset (minimal, Swiss-safe) ─────────────────────── */

@@ -2,7 +2,7 @@
 
 When working on any UI/UX content, read the design system at the project root and follow it:
 - DESIGN.md — visual spec (nine-section design system)
-- tokens.css — CSS variables (canonical 38-name vocabulary; first line `/* preset: <slug> */`)
+- tokens.css — CSS variables (canonical 38-name vocabulary (+5 capability for schema:43); first line `/* preset: <slug> */`)
 - design-cores/ — component skeletons consuming the tokens (long-form / gallery / dashboard / 6 elements)
 - slide-cores/ — slide layouts (4 cover variants + 8 non-cover layouts)
 

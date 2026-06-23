@@ -29,7 +29,7 @@ Runs before all other Stage 0 steps. Follows the same soft-read pattern as /desi
 
 1. Resolve project root: `git rev-parse --show-toplevel 2>/dev/null`; on failure use cwd.
 2. Attempt to read the following files (all best-effort, **failing all of them does not abort Stage 0**, only a stderr warning):
-   - `{project_root}/DESIGN.md`: the current preset's nine-section design spec. Read into context for later Stage 2A typography selection / Stage 3 SVG token decisions reference.
+   - `{project_root}/DESIGN.md`: the current preset's nine-section design spec, **including §9's expression-range fields** (承諾的極端 / 空間原則 / 不對稱·重疊允許度 / 欄寬上限 / 強調色紀律) when present. Read into context for later Stage 2A typography selection and as the soft-range input the Stage 3 §3 render generates layout within.
    - `{project_root}/tokens.css` first line: parse the preset slug (e.g. `/* preset: kami */` → `kami`), store as the `$STYLE` prepared value (later overridden if the user explicitly passes `--style`, otherwise this value is kept).
 3. If `DESIGN.md` exists → stderr `已載入 DESIGN.md，視覺規格已參考（preset=$STYLE）`.
 4. If `DESIGN.md` does not exist → stderr `未找到 DESIGN.md；建議先跑 /baransu:design preset <name>。本次 /book 將使用 fallback 模板，視覺風格可能與 preset 不一致`, then continue.
@@ -294,7 +294,7 @@ Before generating any HTML:
    - File **exists but fails to read** (malformed / chmod 000 / 0 bytes) → **hard fail**, no silent fallback; stderr 「long-form.html 讀取失敗：{原因}」, abort Stage 3.
    - File **does not exist** → fall back to `references/golden-template.html` (the v1.2 Kami-style built-in template); stderr warning 「current preset 為 {style} 但 fallback 到 Kami template，class prefix 可能不一致；建議先跑 /baransu:design preset {style}」; continue producing output (GATE-F will detect the class-prefix inconsistency, which is expected behavior).
 
-The long-form.html slot is a show-by-example contract — the slot demonstrates 6+ section types (heading / paragraph / quote / code / SVG / list). Token values are provided by `{project_root}/tokens.css`; the template only references canonical names (var(--paper) / var(--accent) etc.). Do not invent new CSS patterns.
+The long-form.html slot is a show-by-example contract — the slot demonstrates 6+ section types (heading / paragraph / quote / code / SVG / list), and serves as a *reference exemplar* for generation, **not a fixed class whitelist that the output is limited to**. Token values are provided by `{project_root}/tokens.css`; the template references canonical names (var(--paper) / var(--accent) etc.), and any layout the render generates must likewise route every color through those canonical tokens — no bare hex (this is the unchanged hard safety floor; see §3).
 
 🔴 GATE — before starting to produce HTML, regardless of whether Stage 2A §1 already read it, you MUST read the 「Output Anti-Slop Blacklist」 and 「Quantified Type Scale」 sections of `references/perception-guide.md` as a render-time standing instruction (to prevent a clean-classification run from regressing to generic-AI-feel output when the typography / anti-slop rules were never loaded).
 
@@ -332,7 +332,11 @@ For each section from `$STRUCTURE`:
 2. **Reading-body line-height locked 1.50–1.55** (CJK on screen may relax to 1.55–1.65); **`≥ 1.70` is banned** (reads as floating web-prose, not print).
 3. **Reading column capped 680px / max body width 760px** — wider than this is a slop signal, not "generous".
 
-**No improvisation**: every component class must exist in the SSOT template (`{project_root}/design-cores/long-form.html`) or fallback `references/golden-template.html`. If a component isn't in either source, use plain `<p>` — do not add new CSS.
+**Soft generation within bounds (replaces the old fixed-class-whitelist rule)**: the render reads three inputs — `{project_root}/tokens.css`, the current preset's `DESIGN.md` **§9 expression range** (loaded in Stage 0 §1), and the **current article context** (`$STRUCTURE` + `$RAW_CONTENT` + the Stage 0b interview brief) — and **GENERATES** the layout for each section inside the hard safety floor. The output is **NOT limited to a fixed class whitelist that must pre-exist in the SSOT template**; the SSOT template and `references/golden-template.html` are reference exemplars, not the closed set of permissible classes. Within the §9 expression range (its 不對稱/重疊允許度 soft cap, 空間原則 symmetry/grid basis, 欄寬上限) the render may compose section layout to fit the article context (e.g. an asymmetric or break-grid arrangement when §9 permits it), so two different articles under the same preset can differ in layout while staying stylistically consistent.
+
+**§9-missing conservative fallback**: when the preset's §9 lacks the expression-range fields (an older preset not yet upgraded), the render does **not** improvise without a range — it falls back to a **conservative symmetric layout** (symmetric spatial basis, the default single-column reading rhythm), generating nothing beyond what the conservative baseline requires.
+
+**Hard floor (unchanged safety boundary the soft generation lives inside)**: regardless of how the layout is generated, **all colors go through canonical tokens (the canonical 38 base names; +5 capability for schema:43) — no bare hex** anywhere in the output. The generated layout is bounded by, never exempt from, this floor; validate-output.ts guards it (GATE-F class prefix / token membership) and style-reviewer judges the soft §9 range. If a needed component truly has no token-backed expression, prefer plain `<p>` over inventing a bare-hex color.
 
 🔴 GATE — pre-render visual self-check (pre-write checklist): **before** writing the HTML to file in Stage 3 §7, go through the following six-line binary checklist item by item (each restates an existing reference rule, not a new rule). Any ✗ → fix it then Write, do not write to disk directly; only enter §7 when all six are ✓.
 
@@ -416,8 +420,8 @@ SVG 圖解：{N} 張
 
 ## Constraints
 
-- **Token source = project root**: all visual elements consume tokens from `{project_root}/tokens.css` (written by `/baransu:design preset <style>` or `/baransu:design gen --slug <slug>`) plus the component patterns in `{project_root}/design-cores/long-form.html` (SSOT) or `references/golden-template.html` (fallback). No inline hex colours; use named CSS variables (canonical 38 names).
-- **No new CSS patterns**: every class in the output HTML must exist in the active SSOT template or fallback. Extend within the active preset; don't invent outside it.
+- **Token source = project root**: all visual elements consume tokens from `{project_root}/tokens.css` (written by `/baransu:design preset <style>` or `/baransu:design gen --slug <slug>`) plus the component patterns in `{project_root}/design-cores/long-form.html` (SSOT) or `references/golden-template.html` (fallback). No inline hex colours; use named CSS variables (canonical 38 base names; +5 capability for schema:43).
+- **Soft generation inside the hard floor**: the render generates layout within the preset's §9 expression range (Stage 3 §3), using the SSOT template / fallback as reference exemplars rather than a closed class whitelist. The non-negotiable floor is the token boundary — every color routes through the canonical token (38 base names; +5 capability for schema:43), no bare hex — which validate-output.ts (GATE-F) guards; the soft §9 range is judged by style-reviewer.
 - **SVG required**: a document with 0 SVG diagrams fails the quality gate and must be fixed before completion.
 - **Length cap**: final HTML body ≤ 1800 words. Excess goes into a 延伸閱讀 link block.
 - **No LLM-generated commentary**: the rendered HTML contains the source content, structured and styled — not Claude's own analysis. The Synthesize stage extracts; the Render stage presents.
@@ -429,7 +433,7 @@ Scan the forbidden zone via the 🛑 visual marker, not by reading through prose
 
 | 🛑 Anti-pattern | Why it's compromised (rationale anchor) | Correct approach (authoritative reference) |
 |----------|---------------------|--------------------------|
-| 🛑 Inventing a new CSS class / using inline hex colors | Breaks out of the active SSOT template's set membership, compromising the GATE-F class-prefix and the 38-token list, regressing to generic AI feel | class must exist in the active template; use canonical-name variables for color (§3.3, Constraints; perception-guide Anti-Slop Blacklist #7) |
+| 🛑 Using inline / bare hex colors instead of canonical tokens | Breaks the GATE-F canonical-token list (38 base names; +5 capability for schema:43) — the hard safety floor the soft generation lives inside — regressing to generic AI feel | every color routes through a canonical-name variable; the layout may be generated within the §9 range but never with bare hex (§3.3, Constraints; perception-guide Anti-Slop Blacklist #7) |
 | 🛑 Using `rgba()` for SVG fill / stroke | WeasyPrint composites the alpha into a double-rectangle ghost-border, distorting the PDF | SVG fill/stroke must always be a solid hex token (§3.4, svg-rendering-rules §4.1) |
 | 🛑 Free-styling node widths outside the 3-step whitelist | Mixing more than 3 steps is an anti-slop fail and breaks the diagram rhythm | node width limited to {128/144/160}, at most 2 steps per diagram (svg-rendering-rules §4.7) |
 | 🛑 Silently producing an empty page / skeleton when Acquire fails | Disguises failure as a successful output, leaving the user with an empty shell | report each failure clearly, do not produce an empty shell (Gotchas SPA, Constraints Partial failure) |
@@ -445,6 +449,29 @@ Scan the forbidden zone via the 🛑 visual marker, not by reading through prose
 - **Missing project-root tokens**: if `{project_root}/tokens.css` is absent, Stage 3 aborts with 「請先跑 `/baransu:design preset <style>`（kami / google-design / swiss）或 `/baransu:design gen --slug <slug>`」 — **do not** fall back to `find` or sibling-skill paths. Fallback to `references/golden-template.html` is allowed only when long-form.html is absent (see §3.1).
 
 ## Validator division of labor
+
+Verification splits into two tiers with opposite authority: a **hard floor** (mechanical, blocking) and a **soft range** (judgment, advisory). The division is deliberate — **the hard floor blocks; the soft range advises**. Soft generation (Stage 3 §3) lives *inside* the hard floor and is *judged against* the soft range; a soft-range objection never blocks a soft-generated layout, but a hard-floor violation always does.
+
+### Hard floor — blocking mechanical gate (`scripts/validate-output.ts`)
+
+The hard floor is the non-negotiable safety boundary: **token-only / no-rgba (in SVG) / accent ≤5% / PDF-safe**. It is enforced mechanically by `scripts/validate-output.ts`; **any violation = GATE FAIL (blocking)** — Stage 4 §1 does not enter the completion report until exit 0 (the three-stage fallback runs first). This tier is pure mechanism, no judgment.
+
+Mapping each hard-floor item to the existing gate that enforces it (confirmed against the current `validate-output.ts`):
+
+| Hard-floor item | Enforcing gate in `validate-output.ts` | Coverage |
+|-----------------|----------------------------------------|----------|
+| token-only (class prefix routed through canonical preset) | GATE-F class-prefix (F-a prefix-in-whitelist / F-b single-prefix / F-c tokens.css tie-break) | covered for class tokens; bare-hex *color values* are **not** scanned by any gate — see follow-up note |
+| no-rgba (SVG fill / stroke) | — | **not covered** by an existing gate — see follow-up note |
+| accent ≤5% (single chromatic accent, painted area) | — | **not covered** by an existing gate (area share is unmeasured) — see follow-up note |
+| PDF-safe (no WeasyPrint ghost-border / unsafe layout) | GATE-K chevron-strict (forbids `<polygon>` markers that ghost-border in PDF) + html2pptx pre-checks rule2_gradient / rule3_bg_on_text / rule4_div_bg_image (all `hard_fail`, PPT mode) | partially covered: chevron / gradient / bg-image ghosting is gated; the `rgba()` alpha-composite ghost-border is not (it overlaps the no-rgba gap above) |
+
+**Follow-up note (not added this batch — do not introduce a large new validator check now):** three hard-floor items lack a dedicated mechanical gate today — (a) **bare-hex color values** anywhere in output (GATE-F only checks class-name prefixes, not `#rrggbb` literals), (b) **`rgba()` in SVG fill / stroke**, and (c) **accent-painted area ≤5%**. Until a gate is added, (a) and (b) are caught only by the render-time pre-write checklist (Stage 3 §3) and the soft-range bare-hex heuristic below; (c) lives entirely in the render-time self-check + style-reviewer. Track these as a follow-up to extend `validate-output.ts` (a no-rgba SVG scan and a bare-hex literal scan are the cheapest two to add).
+
+### Soft range — non-blocking opinion (style-reviewer + heuristics)
+
+The soft range judges whether a hard-floor-passing output is *stylistically within the preset's §9 expression range*. It is **NON-blocking opinion**: produced by `style-reviewer` plus a few mechanical heuristics, recorded in the review, and **never blocks output**. The heuristics are: **bare hex** (a `#rrggbb` literal that slipped past the canonical-token convention), a **second accent** (a second chromatic accent beyond the single `var(--accent)`), and **column width** exceeding the §9 欄寬上限 ceiling. A soft-range finding ("not quite within §9 style") is advice in the report, not a gate — keeping judgment-type checks out of the blocking path (per the ctx error_handling split: 軟範圍是意見非阻斷).
+
+### Gate-internal trust boundary
 
 - `scripts/validate-output.ts`: responsible for the output layer's (output HTML) set membership and prefix consistency, including GATE A-E (existing SVG rules) / GATE-F (class prefix `kami-*` / `swiss-*` not mixed + tokens.css preset tie-break) / GATE-G (`data-layout` must correspond to a real file under `{project_root}/slide-cores/`) / GATE-J node-width whitelist / GATE-K chevron-strict / GATE-L viewBox containment (rect/line/circle/ellipse/text all fall within the viewBox, 0.5px tolerance; skips defs/marker/pattern/clipPath/mask/symbol and transformed groups). **Trusts** that the `/design` side's `check.py` has already linted the slide-core artifact's internal structure; this validation does not redo per-file lint.
 - The corresponding `/design`-side rules are in `plugins/baransu/skills/design/scripts/check.py`'s artifact-internal lint rules.

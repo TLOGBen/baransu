@@ -2,6 +2,29 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.5.14 (2026-06-23)
+
+evolve 打磨 /design SKILL.md — gen 極端承諾軸補 extreme→value lookup table（dim4）+ 新增 named Design Invariants I1–I5 區塊（dim5）；雙樹同步。
+
+## v2.5.13 (2026-06-23)
+
+**`/design` Gen Mode 表現力升級 + `/book` 軟生成**。plugin version 2.5.12 → 2.5.13。雙樹（plugins/ + codex/）同步。
+
+### Added — 新增
+
+- **capability tokens（+5）併入 canonical，版本閘控**：`check.py` 拆 `BASE_TOKENS`(38) + `CAPABILITY_TOKENS`(5)（`--ease` / `--duration` / `--stagger-step` / `--font-display` / `--shadow-drama`）；Check B 改版本感知——無 `schema:` → 38 base、`schema: 43` → 38 base +5 capability。count 字串述為 `38(+5)`，version-pinned test 對 38 與 43 各斷言一次。
+- **`/design` Gen Mode extreme-commitment 軸**：以單一「極端承諾」prompt（記憶點 + 承諾哪一個極端）取代中性強度滑桿；`極簡 minimal` 為平等極端而非預設安全值。所選極端同時驅動兩條衍生線——capability-token 值衍生 + DESIGN.md §9 expression-range 撰寫。
+- **DESIGN.md §9 expression-range**：承諾的極端 / 空間原則 / 不對稱·重疊允許度 / 欄寬上限 / 強調色紀律，作為 `/book` 軟生成的軟範圍輸入。
+
+### Changed — 變更
+
+- **`/book` 軟生成 + validator 分層**：Stage 3 §3 由「固定 class 白名單」改為在 §9 表現範圍內**生成** section layout（§9 缺欄位則保守對稱 fallback）；硬地板（canonical token / no bare hex）不變，由 `validate-output.ts` 阻斷，軟範圍由 style-reviewer 評但不阻斷。Validator division of labor 明列 hard floor（阻斷）/ soft range（意見）兩層。
+
+### Synced — 同步
+
+- 雙樹（plugins/ + codex/）同步：8 個 canonical/asset 鏡像檔位元組一致；design / book SKILL.md 重放語意變更（保留 codex port marker：0.1.0-codex / AGENTS.md / ask-directly）。
+- bump 四發行面 + version-pinned 硬編斷言（plugin.json ×2 + marketplace.json + CHANGELOG + test_codex_skill_transfer）。
+
 ## v2.5.12 (2026-06-23)
 
 **`/design` + `/book` 美學與正確性修正**。plugin version 2.5.11 → 2.5.12。雙樹（plugins/ + codex/）同步。
