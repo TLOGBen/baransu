@@ -1,4 +1,4 @@
-/* preset: kami */
+/* preset: kami; schema: 43 */
 /* 紙 (Kami) Preset — v1.3 baransu canonical token schema
    ────────────────────────────────────────────────────────
    Visual language: warm parchment background, deep ink-blue accent, serif typography.
@@ -68,6 +68,13 @@
   /* ── Semantic (metric.html consumer) ── */
   --delta-up:   #2a6c45;  /* warm dark green */
   --delta-down: #7a2e2e;  /* warm dark red */
+
+  /* ── Capability (gen-power; Kami's committed extreme is restrained — drama stays low-key) ── */
+  --ease:         cubic-bezier(0.4, 0, 0.2, 1);  /* gentle standard ease */
+  --duration:     200ms;                          /* unhurried, print-calm */
+  --stagger-step: 40ms;                           /* slow sequential reveal */
+  --font-display: var(--font-serif);              /* display = the serif voice */
+  --shadow-drama: 0 12px 40px rgba(0, 0, 0, 0.08);/* even "drama" is a whisper */
 }
 
 /* ── Base reset (minimal, Kami-safe) ─────────────────────── */

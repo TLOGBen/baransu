@@ -1,4 +1,4 @@
-/* preset: google-design */
+/* preset: google-design; schema: 43 */
 /* Google Material 3 Preset — v1.3 baransu canonical token schema
    ────────────────────────────────────────────────────────────────
    Implementation strategy: keep full Material M3 --md-* namespace as internal
@@ -154,6 +154,13 @@
   /* Semantic */
   --delta-up:   #2a6c45;
   --delta-down: var(--md-error);
+
+  /* ── Capability (gen-power; Material's committed extreme is real elevation — alias the raw --md-* motion/elevation) ── */
+  --ease:         var(--md-easing-emphasized);  /* M3 emphasized easing */
+  --duration:     300ms;                         /* M3 medium duration */
+  --stagger-step: 50ms;                          /* M3 staggered list reveal */
+  --font-display: var(--md-font-brand);          /* display = Google Sans brand voice */
+  --shadow-drama: var(--md-elevation-3);         /* real Material elevation, not a flat tint */
 }
 
 /* ──────────────────────────────────────────────

@@ -289,6 +289,14 @@ line-height: 1.55;
 
 > Design a UI using the Kami paper design system. Background: warm parchment `#f5f4ed`; card surfaces: `#faf9f5`; interactive surfaces: `#e8e6dc`. Primary accent: ink-blue `#1B365D` (≤5% surface area). Text hierarchy: near-black `#141413` → warm dark `#3d3d3a` → olive `#504e49` → stone `#6b6a64`. Borders: `--border: #e8e6dc` (primary), `--border-soft: #e5e3d8` (secondary). Typography: Charter/Georgia for English, TsangerJinKai02/Noto Serif SC for Chinese — all weights locked at 500 for headings (no bold), 400 for body. `--font-sans` aliases `--font-serif`. Line-height: headlines 1.1–1.3, body 1.5–1.55. Shadows: ring only (`0 0 0 1px var(--border)`) for static; whisper (`0 4px 24px rgba(0,0,0,0.05)`) for hover. No hard drop shadows. Tags use solid hex `#E4ECF5` (standard) or `#EEF2F7` (lightest), never rgba. Section titles use a 2.5pt brand left bar. No italics anywhere. The aesthetic is warm printed paper — ink on parchment, craft over chrome.
 
+### 表現範圍規格（Expression Range — /book 動態生成的軟邊界）
+
+- **承諾的極端**：極簡（minimal）。這是一個 **被選中的極端**——克制是主動承諾的方向，**不是 default / 預設安全值**。系統把「極簡」當成與 maximal / brutalist / editorial 平等的一個極端來書寫，而非「不敢用力時的退路」。一旦選定，整個版面就向克制收斂到底。
+- **空間原則**：對稱基調、單欄長文流、中心對齊封面。節奏靠留白與分節 left-bar，不靠多欄錯位。
+- **不對稱/重疊允許度**：低。不追求自由重疊或破格錯位；元素貼齊單欄基線，重疊僅限 ring/whisper 深度層次，不做浮層堆疊。
+- **欄寬上限**：~720px（單欄舒適行長）。超過即傷襯線長文的閱讀節奏，視為違反表現範圍。
+- **強調色紀律**：單一 ink-blue `#1B365D` ≤5% 表面積（硬底線重述）。全頁只有一個彩色，次焦點以中性灰階重量承擔，不得引入第二彩色。
+
 ### (a) 焦點節點上限
 
 每一頁、每一張投影片，焦點節點上限為 **1–2 個**：

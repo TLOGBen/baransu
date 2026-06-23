@@ -261,6 +261,14 @@ line-height: 1.55;
 
 > Design a UI using the Swiss IKB design system. Background: neutral off-white `var(--paper)` (token; hex `#fafaf8`); card surfaces: `var(--surface)`; interactive surfaces: `var(--surface-strong)`. Primary accent: International Klein Blue `var(--accent)` (token; hex `#002FA7`) — the only chromatic color, ≤5% surface area, paired with `var(--accent-on)` for foreground on filled regions. Text hierarchy: `var(--text-primary)` → `var(--text-secondary)` → `var(--text-muted)` → `var(--text-faint)`. Typography: `'Inter', 'Helvetica Neue', 'Noto Sans TC', sans-serif` — sans-serif only, no serif anywhere. Heading weight 500, body weight 400, headings tracked −0.01em, captions +0.04em. Line-height: headlines 1.10–1.30, body 1.50–1.55. Shadows: ring (`0 0 0 1px var(--border)`) for static; whisper (`0 4px 24px var(--surface-strong)`) for hover — solid tokens only, no rgba. Tags use solid hex via `var(--surface-strong)`. Section titles use a 3px accent left bar. All alignment flush-left to a 12-column baseline grid. No italics, no decoration, no second accent. The aesthetic is Swiss International Style — Müller-Brockmann grids, IKB ultramarine, function over ornament.
 
+### 表現範圍規格（Expression Range — /book 動態生成的軟邊界）
+
+- **承諾的極端**：flat-precision。承諾 grid 權威與 negative space 張力——以網格的數學精確與大面積留白構成張力，而非裝飾或深度。這是一個被選中的極端方向，與 maximal / brutalist 平等。
+- **空間原則**：12 欄 baseline grid、flush-left、模組化但全程網格對齊。所有元素左對齊到 12-column grid，欄與間距皆為 grid 模數。
+- **不對稱/重疊允許度**：中（grid 內非對稱允許，不破網格，無自由重疊）。可在網格內做不對稱配置以製造張力，但不得跨越網格邊界，也不做自由浮層重疊。
+- **欄寬上限**：~1100px。超過則網格張力鬆散、留白失去結構意義，視為違反表現範圍。
+- **強調色紀律**：單一 IKB `#002FA7` ≤5% 表面積（硬底線重述）。IKB 為唯一彩色，不引入第二彩色。
+
 ### (a) 焦點節點上限
 
 每一頁、每一張投影片，焦點節點上限為 **1–2 個**：

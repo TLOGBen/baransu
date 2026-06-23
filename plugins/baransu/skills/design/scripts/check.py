@@ -37,9 +37,10 @@ import sys
 from pathlib import Path
 
 
-# ── v1.3 Canonical Token Schema (38 names; mirrors design.md "Canonical Token Schema") ──
+# ── v1.3 Canonical Token Schema (38 (+5 capability) = 43; mirrors design.md "Canonical Token Schema") ──
 
-CANONICAL_TOKENS = [
+# BASE_TOKENS — the 38 always-required canonical names.
+BASE_TOKENS = [
     # Surface (5)
     "--paper", "--surface", "--surface-strong", "--dark-surface", "--deep-dark",
     # Accent (2)
@@ -63,6 +64,15 @@ CANONICAL_TOKENS = [
     # Semantic (2)
     "--delta-up", "--delta-down",
 ]
+
+# CAPABILITY_TOKENS — the 5 generation-power tokens (grain-opacity intentionally
+# excluded: PDF render risk unverified, not in the required set this batch).
+CAPABILITY_TOKENS = [
+    "--ease", "--duration", "--stagger-step", "--font-display", "--shadow-drama",
+]
+
+# Combined canonical set, kept for back-compat: 38 (+5 capability) = 43.
+CANONICAL_TOKENS = BASE_TOKENS + CAPABILITY_TOKENS
 
 # v1.2 banned token names (Check D + Check B)
 V12_BANNED_TOKENS = [
@@ -88,7 +98,12 @@ DESIGN_MD_NINE_SECTIONS = [
 # Static prefix whitelist (Inv-4 in design.md)
 STATIC_PREFIXES = {"kami", "google", "swiss"}
 
-PRESET_HEADER_RE = re.compile(r"^\s*/\*\s*preset:\s*([a-z][a-z0-9-]{1,15})\s*\*/")
+# Slug capture tolerates an optional `; schema: <N>` field (and trailing junk)
+# before `*/`. The `[^*]*` technique stops before the closing `*/`.
+PRESET_HEADER_RE = re.compile(r"^\s*/\*\s*preset:\s*([a-z][a-z0-9-]{1,15})[^*]*\*/")
+# Extracts an integer schema version from a `; schema: <N>` field. Malformed
+# fields (e.g. `schema: abc`, `schema: 4x3`) do NOT match → treated as no version.
+SCHEMA_FIELD_RE = re.compile(r";\s*schema:\s*(\d+)\s*(?:\*/|;|$)")
 
 
 # ── Default rule set (used in legacy per-file mode for Kami warm-serif design) ──
@@ -197,13 +212,16 @@ def check_project_root(root: Path) -> list[dict]:
         # Fail-fast: skip B-F
         return findings
 
-    # Check B: tokens.css 含全套 canonical
+    # Resolve preset slug (+ optional schema version) from tokens.css first
+    # non-empty line. The schema version drives the version-aware Check B below.
     tokens_path = root / "tokens.css"
     tokens_text = tokens_path.read_text(encoding='utf-8', errors='replace')
-    findings.extend(_check_tokens_canonical_completeness(tokens_path, tokens_text))
+    preset_slug, preset_version = _parse_preset_header(tokens_text)
 
-    # Resolve preset slug from tokens.css first non-empty line
-    preset_slug = _parse_preset_header(tokens_text)
+    # Check B: tokens.css 含必備 canonical（依 schema 版本要求 38 或 43）
+    findings.extend(_check_tokens_canonical_completeness(
+        tokens_path, tokens_text, preset_version))
+
     if preset_slug is None:
         findings.append(_make_finding(
             tokens_path, 2, 'check-B-preset-header',
@@ -225,28 +243,61 @@ def check_project_root(root: Path) -> list[dict]:
     return findings
 
 
-def _parse_preset_header(tokens_text: str) -> str | None:
-    """Find first non-empty line and extract preset slug."""
+def _parse_preset_header(tokens_text: str) -> tuple[str | None, int | None]:
+    """Find first non-empty line; extract (slug, version|None).
+
+    version comes from an optional `; schema: <N>` field. Malformed schema
+    fields fall back to None (no error) to protect legacy-file migration.
+    """
     for line in tokens_text.splitlines():
         if line.strip():
             m = PRESET_HEADER_RE.match(line)
-            return m.group(1) if m else None
-    return None
+            if not m:
+                return (None, None)
+            sm = SCHEMA_FIELD_RE.search(line)
+            version = int(sm.group(1)) if sm else None
+            return (m.group(1), version)
+    return (None, None)
 
 
-def _check_tokens_canonical_completeness(path: Path, text: str) -> list[dict]:
-    """Check B — every canonical name present; no v1.2 banned name as primary def."""
+def _required_tokens_for_version(version: int | None) -> list[str]:
+    """Map a parsed schema version to the required canonical token set.
+
+    PINNED design.md decision (do not deviate):
+      - None or 38 → BASE_TOKENS (legacy default; protects migration)
+      - 43         → BASE_TOKENS + CAPABILITY_TOKENS (full canonical)
+      - any other known-format integer (e.g. 99) → BASE_TOKENS, plus a stderr
+        warning. NEVER fails (conservative: rather under-require than break files).
+    """
+    if version is None or version == 38:
+        return BASE_TOKENS
+    if version == 43:
+        return BASE_TOKENS + CAPABILITY_TOKENS
+    print(f'warning: 未知 schema 版本 {version} — fallback 到 BASE(38)，不 fail',
+          file=sys.stderr)
+    return BASE_TOKENS
+
+
+def _check_tokens_canonical_completeness(
+        path: Path, text: str, version: int | None = None) -> list[dict]:
+    """Check B — required canonical names present; no v1.2 banned name as primary def.
+
+    The required set is version-aware (see _required_tokens_for_version): schema:43
+    requires the full 43, absent/legacy versions require only BASE(38).
+    """
     findings: list[dict] = []
+    required = _required_tokens_for_version(version)
     # Find all `--xxx:` definitions (LHS only, not var() references)
     define_re = re.compile(r'^\s*(--[a-z][a-z0-9-]*)\s*:', re.M)
     defined = set(define_re.findall(text))
 
-    missing = [t for t in CANONICAL_TOKENS if t not in defined]
+    missing = [t for t in required if t not in defined]
     if missing:
+        suffix = '（schema:43 需要完整 43）' if version == 43 else ''
         findings.append(_make_finding(
             path, 2, 'check-B-canonical-missing',
             f'tokens.css 缺 canonical names ({len(missing)} 個): {", ".join(missing[:8])}'
-            + ('…' if len(missing) > 8 else ''),
+            + ('…' if len(missing) > 8 else '') + suffix,
             1, ''))
 
     banned_found = [t for t in V12_BANNED_TOKENS if t in defined]
@@ -397,7 +448,8 @@ def _check_swiss_tokens_css(path: Path, text: str) -> list[dict]:
             1, ''))
     else:
         first = lines[first_nonempty_idx]
-        if '/* preset: swiss */' not in first:
+        m = PRESET_HEADER_RE.match(first)
+        if not m or m.group(1) != 'swiss':
             findings.append(_make_finding(
                 path, 20, 'swiss-preset-comment',
                 'swiss preset 缺首行 `/* preset: swiss */` 識別註解',

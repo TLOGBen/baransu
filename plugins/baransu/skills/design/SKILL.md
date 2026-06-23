@@ -15,6 +15,16 @@ UI/UX design specification skill. This body is English (agent-facing). All user-
 - **Output**: Project-root design artifacts, a lint report, or a prompt-ready brief markdown file.
 - **Automation**: ultracode=neutral, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
+## Design Invariants
+
+Hard rules referenced by number throughout this skill (restated, not abstracted — the numeric thresholds at each use-site remain authoritative):
+
+- **I1 — Token-name immutability**: canonical token NAMES never change; only derived VALUES move. The set is version-gated: **38 base canonical names** always, **+5 capability tokens** when the preset header declares `schema: 43` (38 base +5 capability = 43; legacy presets without a `schema:` field stay at 38 base).
+- **I2 — Accent ≤5% fixed**: the single-accent ≤5% surface budget is fixed for **every** extreme (極簡 / 極繁 / brutalist / editorial) — it does not move with the extreme→value table.
+- **I3 — Token-only / PDF-safe**: all values stay token-only and PDF-safe; CSS animation is progressive-enhancement only — PDF/PPT render the static final state.
+- **I4 — Uppercase-only DESIGN.md**: this skill only ever reads/writes uppercase `DESIGN.md` (UI visual spec) at project root; never lowercase `design.md` (the `/analyze` technical layer).
+- **I5 — Atomic staged-then-mv write**: the 5 artifacts are first written to `.tmp/design-staging/`, then atomic-mv'd to project root only after all 5 succeed; never write straight to project root.
+
 ## Stage 0 — Inject DESIGN.md reference into context files
 
 Before mode dispatch, proactively ensure that CLAUDE.md, AGENT.md, and INSTRUCTION.md (any that exist at the project root) carry a top-of-file reminder to read DESIGN.md when handling UI/UX work.
@@ -41,7 +51,7 @@ Before mode dispatch, proactively ensure that CLAUDE.md, AGENT.md, and INSTRUCTI
       ```
       When working on any UI/UX content, read the design system at the project root and follow it:
       - DESIGN.md — visual spec (nine-section design system)
-      - tokens.css — CSS variables (canonical 38-name vocabulary; first line `/* preset: <slug> */`)
+      - tokens.css — CSS variables (canonical 38-name vocabulary (+5 capability for schema:43); first line `/* preset: <slug> */`)
       - design-cores/ — component skeletons consuming the tokens (long-form / gallery / dashboard / 6 elements)
       - slide-cores/ — slide layouts (4 cover variants + 8 non-cover layouts)
       ```
@@ -60,7 +70,7 @@ This stage is non-blocking and does not affect mode dispatch.
 
 ## Canonical Token Schema (v1.3)
 
-v1.3 fixed vocabulary: the 38 canonical token names are **required** in every preset's `tokens.css`; HTML skeletons reference tokens only through these names, and preset-specific names (Material `--md-*` / v1.2 `--brand`) are mapped as aliases. Full schema (surface 5 / accent 2 / text 5 / border 2 / font 3 / shadow 2 / space 7 / radius 7 / layout 3 / semantic 2) + the v1.2 banned-name list → **read `references/canonical-tokens.md`**.
+v1.3 fixed vocabulary: the 38 base canonical token names are **required** in every preset's `tokens.css`; HTML skeletons reference tokens only through these names, and preset-specific names (Material `--md-*` / v1.2 `--brand`) are mapped as aliases. The canonical set is version-gated — **38 base canonical names** always, **+5 capability tokens** when the preset header declares `schema: 43` (38 base +5 capability = 43; schema-gated). Single source of truth: check.py's two constants `BASE_TOKENS` (38) + `CAPABILITY_TOKENS` (5); legacy presets without a `schema:` field stay at 38 base. Full schema (surface 5 / accent 2 / text 5 / border 2 / font 3 / shadow 2 / space 7 / radius 7 / layout 3 / semantic 2 / capability 5) + the v1.2 banned-name list → **read `references/canonical-tokens.md`**.
 
 The first line of `tokens.css`, `/* preset: <slug> */`, identifies the preset; it is parsed by `scripts/check.py` and `/baransu:book` GATE-F.
 
@@ -118,7 +128,7 @@ Presets are folders at: `{skill_dir}/references/{name}-preset/`
 
 Each preset directory contains (the v1.3 full artifact set):
 - `DESIGN.md` — the design specification (required)
-- `tokens.css` — canonical 38-name CSS variables; first line `/* preset: <slug> */`
+- `tokens.css` — canonical CSS variables (38 base +5 capability for schema:43); first line `/* preset: <slug> */`
 - `design-cores/` — 21 component skeletons (long-form / gallery / dashboard + document-type letter / resume / one-pager / portfolio / equity-report / changelog, each with an -en bilingual variant + card / metric / quote-callout / data-table / section-title / tag-button), class prefix `<slug>-*`
 - `slide-cores/` — 21 layouts (4 cover variants: cover / cover-data / cover-quote / cover-section + 17 non-cover), class prefix `<slug>-*`
 - `<slug>-sanity.sh` — preset-private sanity script (紙 preset only; v1.3 moved the Kami ten invariants here)
@@ -162,9 +172,9 @@ If the first line of `tokens.css` matches the regex → treat it as a v1.3 heade
 | `google-design` | `{skill_dir}/references/google-design-preset/` | `/* preset: google-design */` |
 | `swiss` | `{skill_dir}/references/swiss-preset/` | `/* preset: swiss */` |
 
-The v1.2 shared directories `references/cores/` and `references/slide-cores/` are removed/deprecated (they live inside swiss-preset). All presets share the canonical 38-token list (see §Canonical Token Schema); the HTML skeletons distinguish their class prefixes with `kami-*` / `google-*` / `swiss-*` but the token references are identical.
+The v1.2 shared directories `references/cores/` and `references/slide-cores/` are removed/deprecated (they live inside swiss-preset). All presets share the canonical token list (38 base +5 capability for schema:43; see §Canonical Token Schema); the HTML skeletons distinguish their class prefixes with `kami-*` / `google-*` / `swiss-*` but the token references are identical.
 
-**Atomic staging flow** — the 5 artifacts are first written to `.tmp/design-staging/`, then atomic-mv'd to the project root once all succeed:
+**Atomic staging flow** (per I5) — the 5 artifacts are first written to `.tmp/design-staging/`, then atomic-mv'd to the project root once all succeed:
 
 **Precondition (root-resolution guard, runs before step 1)**: if `{project_root}` resolved from `git rev-parse --show-toplevel` is empty or the command failed (and the cwd fallback is also empty or `/`), STOP with stderr 「無法解析 project root，中止以避免 rm -rf 誤刪」 and exit ≠ 0 — never run any `rm -rf` with an empty or root-level `{project_root}`. **Additionally (target-suffix pin, runs after the root check, before any rm -rf below)**: for each `rm -rf` command in this flow (steps 1, 9, 10), assemble its full target path and assert it equals exactly `{project_root}/.tmp/design-staging` or `{project_root}/.tmp/design-old`, with the `.tmp/...` literal segment non-empty — i.e. if the assembled `rm -rf` path does not end in the literal `/.tmp/design-staging` or `/.tmp/design-old`, STOP with stderr 「rm -rf 目標路徑非預期，中止」 and exit ≠ 0. This closes the gap where the root-only check validates `{project_root}` non-emptiness but never the appended `.tmp` subpath, so a malformed or empty suffix can never let `rm -rf` strike `{project_root}` itself.
 
@@ -223,6 +233,33 @@ Use AskUserQuestion to ask 3–5 design direction questions. Suggested questions
 
 Skip questions that were already answered in the user's initial input.
 
+#### The extreme-commitment axis (記憶點 + which extreme)
+
+Replace any neutral intensity / boldness slider with a single **extreme-commitment** prompt. The interface must commit to one clear extreme rather than hedge toward a middle-ground "safe" look. This prompt carries **two** interaction points and both must be asked:
+
+- **記憶點 (memorable hook)** — 「這個設計的記憶點是什麼？一句話講出讓人記住它的那個鉤子。」 (the one detail a viewer remembers).
+- **Which extreme** — 「你要承諾哪一個極端？（極簡 minimal / 極繁 maximal / brutalist / editorial / …）」 (commit to one clear extreme).
+
+`極簡 minimal` is a **chosen extreme** — an equal peer to maximal / brutalist / editorial, NOT a default safe value. Treat 「平等極端」: restraint is a deliberate commitment a user picks, not the fallback the system reaches for when no extreme is named. Do not pre-select minimal; the user must name their extreme just as they would name maximal.
+
+**The chosen extreme drives BOTH derivation lines** — record it and propagate it through both:
+
+- **(a) Capability-token VALUE derivation** — the chosen extreme sets the VALUES (not the names) of `--ease` / `--duration` / `--stagger-step` / `--font-display` / `--shadow-drama`, read off the lookup table below. The canonical token NAMES (38 base +5 capability for schema:43) never change — only the derived values move (per I1; Step 1.5 (b) consumes these values).
+- **(b) §9 expression-range authoring** — the same chosen extreme drives the DESIGN.md §9 expression-range spec (表現範圍), read off the same table: the asymmetry/overlap tolerance, the column-width ceiling, and the single-accent ≤5% discipline (the ≤5% accent budget is fixed for every extreme; per I2).
+
+**Extreme → value lookup** (read each column off the chosen extreme; values are starting anchors, tune ±1 step to the 記憶點 — never invent new token names):
+
+| chosen extreme | `--duration` | `--stagger-step` | `--ease` | `--shadow-drama` | §9 asymmetry / overlap | §9 column ceiling |
+|----------------|-----------|----------------|--------|----------------|------------------------|-------------------|
+| 極簡 minimal | 160–220ms | 30–40ms | calm `cubic-bezier(.4,0,.2,1)` | soft, alpha ≤0.10 | low / overlap ≤5% | ≤66ch |
+| 極繁 maximal | 320–480ms | 60–90ms | emphasized `cubic-bezier(.2,0,0,1)` | deep, alpha 0.18–0.30 | high / overlap 20–40% | ≤90ch |
+| brutalist | 0–140ms | 0–20ms | linear / step | hard offset, 0-blur alpha ≥0.4 | high, grid-broken / overlap ≤50% | full-bleed |
+| editorial | 240–360ms | 50–70ms | decelerate `cubic-bezier(0,0,.2,1)` | medium, alpha 0.10–0.16 | mid / overlap 10–20% | 60–72ch |
+
+All values stay token-only / PDF-safe (per I3): CSS animation is progressive-enhancement only; PDF/PPT render the static final state.
+
+Both lines derive from the one extreme answer — never let token values and §9 drift onto separate decisions.
+
 #### Gen Mode Step 1.5 — Donor-clone the 21+21 skeletons (closed step)
 
 The 21 `design-cores/` + 21 `slide-cores/` skeletons are NEVER authored from scratch by the LLM. They are derived from a donor preset so the gen output inherits the SSOT skeleton structure (DOM / slot / object-position) rather than improvising HTML.
@@ -240,7 +277,7 @@ When the answer straddles two, prefer `swiss` (most preset-agnostic skeleton).
 **Per-file transform** (input = donor dir's `design-cores/` + `slide-cores/`; output = 42 files staged):
 
 - (a) Replace every class prefix `<donor>-*` (`kami-*` / `swiss-*` / `google-*`) with `<slug>-*` across the whole file.
-- (b) Replace the donor `tokens.css` literal values with the values derived from the Step 1 interview; keep the canonical 38 token NAMES unchanged (only the values change).
+- (b) Replace the donor `tokens.css` literal values with the values derived from the Step 1 interview; keep the canonical token NAMES (38 base +5 capability for schema:43) unchanged (only the values change).
 - (c) Keep the donor's DOM structure / `data-slot` / `object-position` / object-fit untouched — these are SSOT-tuned, not gen-time decisions.
 
 Output of this step feeds Step 3's atomic staging (`Copy staging/design-cores/` + `slide-cores/`) exactly as the preset path does. No new skeleton source is invented — gen only re-skins an existing donor.
@@ -325,7 +362,7 @@ Call `python3 {skill_dir}/scripts/check.py [project_root]` (uses cwd when no arg
 | Check | Rule | Fail condition |
 |-------|------|----------|
 | **A. 5 artifacts complete** | tokens.css / DESIGN.md / DESIGN.html / design-cores/ / slide-cores/ all five present | any one missing → fail; on Check A fail, terminate and do not run B-F |
-| **B. tokens.css contains the full canonical set** | all 38 canonical names present (see §Canonical Token Schema) | missing any canonical name, or containing a v1.2 banned token (`--brand` / `--parchment` etc.) → fail |
+| **B. tokens.css contains the version-gated canonical set** | version-gated by the `tokens.css` header — no `schema:` field → BASE 38 canonical names present; `schema: 43` → BASE 38 +5 capability tokens present (see §Canonical Token Schema) | missing any required canonical name for the declared schema, or containing a v1.2 banned token (`--brand` / `--parchment` etc.) → fail |
 | **C. cross-artifact prefix consistency** | class prefixes inside design-cores/ + slide-cores/ all equal the preset slug on the first line of tokens.css | a single file mixing prefixes, or a prefix not matching the tokens header → fail |
 | **D. DESIGN.md nine sections + canonical references** | all nine section headings present (canonical list lives in `scripts/check.py` Check D), and the body contains no v1.2 token naming | a missing section, reversed order, or v1.2 naming in the body → fail |
 | **E. long-form.html slot unique** | `design-cores/long-form.html` contains exactly one `<section data-slot="long-form-body">` | more than one or zero → fail |
@@ -424,7 +461,7 @@ Exit codes: 0 = clean, 1 = violations, 2 = structural error.
 
 ## Validator division of labor (v1.3)
 
-- `scripts/check.py` (project-root mode): A 5 artifacts complete / B full 38 canonical + v1.2 banned detection / C cross-artifact prefix consistency / D DESIGN.md nine sections + canonical references / E long-form slot unique / F dashboard purely static
+- `scripts/check.py` (project-root mode): A 5 artifacts complete / B version-gated canonical (38 base +5 capability for schema:43) + v1.2 banned detection / C cross-artifact prefix consistency / D DESIGN.md nine sections + canonical references / E long-form slot unique / F dashboard purely static
 - `scripts/check.py` (legacy per-file mode): used by the 紙 preset sanity script to verify the Kami ten invariants. (`/book`'s `validate-output.ts` implements its own GATE-F prefix check and does NOT call check.py; it trusts that check.py has already linted the slide-core artifacts.)
 - On the `/book` side, `validate-output.ts` GATE-F (class prefix allowlist dynamically expanded to `{kami, google, swiss}` + first-line slug of tokens.css) + GATE-G (filesystem dynamic read)
 

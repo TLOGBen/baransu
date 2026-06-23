@@ -385,6 +385,14 @@ Selected → `background: var(--md-secondary-container); color: var(--md-on-seco
 
 > Design a UI using Material 3 (Material You). Use role-based color tokens, not hex values: primary `#6750A4`, on-primary `#FFFFFF`, primary-container `#EADDFF`, secondary `#625B71`, tertiary `#7D5260`, surface `#FEF7FF`, on-surface `#1D1B20`, surface-variant `#E7E0EC`, outline `#79747E`. Typography uses Roboto Flex with the M3 baseline type scale (Display 57/45/36px, Headline 32/28/24px, Title 22/16/14px, Body 16/14/12px, Label 14/12/11px) — Title and Label use weight 500, others 400, with per-role letter-spacing (Body Medium +0.25px, Label Medium +0.5px). Elevation is conveyed with both a soft two-layer shadow AND a primary-tinted overlay on the surface (5% at level 1, scaling up to 14% at level 5). Shape scale: extra-small 4dp, small 8dp, medium 12dp (cards), large 16dp (FAB), extra-large 28dp, full 9999dp (buttons). Button styles: Filled (primary bg + on-primary text + full radius), Tonal (secondary-container bg), Outlined (1px outline border), Text (transparent), Elevated (surface + elevation 1). State layers add opacity overlays — hover 8%, focus 12%, pressed 12%, dragged 16%. Use Material Symbols for icons, picking one style (outlined / rounded / sharp) globally, 24dp default. Layout adapts via Window Size Classes (Compact <600dp → Navigation Bar, Medium 600-839 → Rail, Expanded 840-1199 → Rail+Detail, Large 1200+ → Drawer). Motion uses emphasized easing `cubic-bezier(0.2, 0, 0, 1)` with M3 duration tokens (short 50-200ms, medium 250-400ms, long 450-700ms). Light and dark schemes are symmetric — every token swaps. The aesthetic is expressive, accessible, dynamic — Material You principles applied throughout.
 
+### 表現範圍規格（Expression Range — /book 動態生成的軟邊界）
+
+- **承諾的極端**：expressive Material。承諾真實 elevation（real elevation）、emphasized motion 與 tonal 擴張——以分層深度、動態強調與 tonal 色彩擴張展現表現力。這是一個被選中的極端方向，與 minimal / flat-precision 平等。
+- **空間原則**：Window Size Class 自適應、card-based、light/dark 對稱。版面依 Compact / Medium / Expanded / Large 切換導覽與欄位；內容以 card 承載；light 與 dark scheme 每個 token 對稱對換。
+- **不對稱/重疊允許度**：中–高（FAB 浮層、card 重疊、elevation 分層允許）。允許 FAB 浮於內容之上、card 之間以 elevation 分層重疊，營造 Material 的層次感。
+- **欄寬上限**：~1200px。超過則進入 Large window class 的 drawer 佈局；單一內容欄不宜超此寬，否則行長失控。
+- **強調色紀律**：primary + secondary + tertiary 三 role 上限，primary `#6750A4` ≤5% 為主焦點（硬底線重述）。三個 tonal role 可同台，但主焦點 primary 仍受 ≤5% 限制，secondary / tertiary 為支援角色不搶主焦點。
+
 ### (a) 焦點節點上限
 
 每一頁、每一張投影片，焦點節點上限為 **1–2 個**：

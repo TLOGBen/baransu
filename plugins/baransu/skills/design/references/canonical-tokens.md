@@ -11,6 +11,7 @@
 - Radius (7)
 - Layout (3)
 - Semantic (2)
+- Capability (5)
 - tokens.css first line is the preset identifier comment
 - v1.2 → v1.3 banned naming list
 - Slide Layout Registry
@@ -19,7 +20,7 @@
 
 The baransu design system uses a fixed vocabulary of CSS custom-property names that **every** preset's `tokens.css` must define. HTML skeletons (design-cores/, slide-cores/) consume tokens by these canonical names only — preset-specific token names (e.g. Material `--md-*`, v1.2 `--brand`/`--parchment`) MUST be wrapped as internal aliases that resolve to canonical names.
 
-`scripts/check.py` enforces this schema; gen mode derives values for these 38 names from the interview answers.
+`scripts/check.py` enforces this schema; gen mode derives values for these names from the interview answers. The canonical set is version-gated: **38 base canonical names** are always required; presets whose `tokens.css` header declares `schema: 43` additionally require the **5 capability tokens** (38 base +5 capability = 43; schema-gated). The single source of truth is check.py's two constants `BASE_TOKENS` (38) + `CAPABILITY_TOKENS` (5) — these numbers are a derived view, not an independent absolute. Legacy presets without a `schema:` header field stay at 38 base.
 
 ## Surface (5)
 `--paper` page background • `--surface` card • `--surface-strong` interactive surface • `--dark-surface` dark container • `--deep-dark` dark page
@@ -74,6 +75,12 @@ re-derive from their own anchor — never copy raw numbers across presets.
 
 ## Semantic (2)
 `--delta-up` (metric positive) • `--delta-down` (metric negative)
+
+## Capability (5)
+
+Required only for presets declaring `schema: 43` in the `tokens.css` header (38 base +5 capability = 43; schema-gated). Legacy presets without a `schema:` field stay at 38 base and need not define these.
+
+`--ease` (motion easing curve) • `--duration` (motion duration) • `--stagger-step` (sequential-reveal interval) • `--font-display` (oversized display face) • `--shadow-drama` (dramatic elevation shadow)
 
 ## tokens.css first line is the preset identifier comment
 

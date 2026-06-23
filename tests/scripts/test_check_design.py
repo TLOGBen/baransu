@@ -12,6 +12,7 @@ Regression invariants (既有規則 100% 保留):
 
 from __future__ import annotations
 
+import importlib.util
 import shutil
 import subprocess
 import sys
@@ -289,6 +290,47 @@ class TestSlideCoresHtmlLint(unittest.TestCase):
                              f"kami-only prefix must PASS\n{result.stdout}")
 
 
+def _load_check_module():
+    """Import check.py as a module to access its constants directly."""
+    spec = importlib.util.spec_from_file_location("check_design_under_test", CHECK_PY)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+class TestCanonicalTokenSplit(unittest.TestCase):
+    """TASK-gate-01 — canonical truth source splits into BASE + CAPABILITY constants.
+
+    REQ-005 Scenario 1: count 機制版本化——BASE_TOKENS(38) + CAPABILITY_TOKENS(5),
+    combined CANONICAL_TOKENS == 43. grain-opacity intentionally excluded.
+    """
+
+    EXPECTED_CAPABILITY = [
+        "--ease", "--duration", "--stagger-step", "--font-display", "--shadow-drama",
+    ]
+
+    def setUp(self):
+        self.mod = _load_check_module()
+
+    def test_base_tokens_has_38(self):
+        self.assertEqual(len(self.mod.BASE_TOKENS), 38)
+
+    def test_capability_tokens_exact_five(self):
+        self.assertEqual(self.mod.CAPABILITY_TOKENS, self.EXPECTED_CAPABILITY)
+        self.assertEqual(len(self.mod.CAPABILITY_TOKENS), 5)
+
+    def test_canonical_tokens_is_combined_43(self):
+        self.assertEqual(len(self.mod.CANONICAL_TOKENS), 43)
+        self.assertEqual(
+            self.mod.CANONICAL_TOKENS,
+            self.mod.BASE_TOKENS + self.mod.CAPABILITY_TOKENS,
+        )
+
+    def test_grain_opacity_excluded(self):
+        self.assertNotIn("--grain-opacity", self.mod.CANONICAL_TOKENS)
+        self.assertNotIn("--grain-opacity", self.mod.CAPABILITY_TOKENS)
+
+
 class TestExistingRulesRegression(unittest.TestCase):
     """Constraint: 既有 nine-section + Kami invariant lint 完全保留.
 
@@ -325,6 +367,121 @@ class TestExistingRulesRegression(unittest.TestCase):
         self.assertEqual(warm_tone_hits, self.EXPECTED_KAMI_WARM_TONES_HITS,
                          f"cool-gray hit count regression on 紙-preset: "
                          f"baseline={self.EXPECTED_KAMI_WARM_TONES_HITS}, now={warm_tone_hits}")
+
+
+class TestParsePresetHeader(unittest.TestCase):
+    """TASK-gate-02 — PRESET_HEADER_RE tolerates optional `; schema: <N>`;
+    _parse_preset_header returns (slug, version|None)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.mod = _load_check_module()
+
+    def test_legacy_header_no_schema(self):
+        """/* preset: kami */ → (kami, None)."""
+        self.assertEqual(
+            self.mod._parse_preset_header("/* preset: kami */\n"),
+            ("kami", None))
+
+    def test_header_with_schema_version(self):
+        """/* preset: bold-x; schema: 43 */ → (bold-x, 43)."""
+        self.assertEqual(
+            self.mod._parse_preset_header("/* preset: bold-x; schema: 43 */\n"),
+            ("bold-x", 43))
+
+    def test_malformed_schema_treated_as_no_version(self):
+        """Malformed schema field → version None, slug still captured, no error."""
+        self.assertEqual(
+            self.mod._parse_preset_header("/* preset: bold-x; schema: abc */\n"),
+            ("bold-x", None))
+
+
+class TestCheckBVersionAware(unittest.TestCase):
+    """TASK-gate-03 — Check B canonical-completeness is version-aware.
+
+    _check_tokens_canonical_completeness accepts a schema version (default None):
+      - version None / 38  → require BASE_TOKENS only (legacy 38-token file passes)
+      - version 43         → require BASE + CAPABILITY; missing capability → finding
+      - unknown int (99)   → require BASE only + stderr warn, NEVER a finding
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.mod = _load_check_module()
+
+    def _css(self, tokens: list[str]) -> str:
+        """Synthetic tokens.css body defining each name as `--x: 0;`."""
+        body = "\n".join(f"  {t}: 0;" for t in tokens)
+        return ":root {\n" + body + "\n}\n"
+
+    def _findings(self, version, tokens):
+        css = self._css(tokens)
+        return self.mod._check_tokens_canonical_completeness(
+            Path("tokens.css"), css, version)
+
+    def test_legacy_38_no_version_passes(self):
+        """version None + only 38 BASE tokens → no findings (legacy file not broken)."""
+        self.assertEqual(self._findings(None, self.mod.BASE_TOKENS), [])
+
+    def test_version_38_only_base_required(self):
+        """version 38 + only 38 BASE tokens → no findings."""
+        self.assertEqual(self._findings(38, self.mod.BASE_TOKENS), [])
+
+    def test_version_43_missing_capability_fails(self):
+        """version 43 + only 38 BASE tokens → finding listing missing capability name."""
+        findings = self._findings(43, self.mod.BASE_TOKENS)
+        self.assertTrue(findings, "schema:43 with only 38 tokens must produce a finding")
+        msg = " ".join(f["msg"] for f in findings)
+        self.assertIn("--ease", msg)
+
+    def test_version_43_full_43_passes(self):
+        """version 43 + all 43 tokens → no findings."""
+        self.assertEqual(
+            self._findings(43, self.mod.BASE_TOKENS + self.mod.CAPABILITY_TOKENS), [])
+
+    def test_unknown_version_99_never_fails(self):
+        """version 99 + only 38 BASE tokens → no findings (BASE required, warn only)."""
+        self.assertEqual(self._findings(99, self.mod.BASE_TOKENS), [])
+
+
+class TestRealPresetsCarry43(unittest.TestCase):
+    """TASK-assets-01 — the three real preset tokens.css carry the full 43.
+
+    For each shipped preset: the first-line header must parse to (slug, 43),
+    and _check_tokens_canonical_completeness against version 43 must yield
+    ZERO findings (all 38 BASE + 5 CAPABILITY tokens defined).
+    """
+
+    REFS = MAIN_ROOT / "plugins/baransu/skills/design/references"
+    PRESETS = [
+        (REFS / "紙-preset/tokens.css", "kami"),
+        (REFS / "swiss-preset/tokens.css", "swiss"),
+        (REFS / "google-design-preset/tokens.css", "google-design"),
+    ]
+
+    @classmethod
+    def setUpClass(cls):
+        cls.mod = _load_check_module()
+
+    def test_each_preset_header_is_slug_and_43(self):
+        for path, slug in self.PRESETS:
+            with self.subTest(preset=slug):
+                self.assertTrue(path.exists(), f"missing preset: {path}")
+                text = path.read_text(encoding="utf-8")
+                self.assertEqual(
+                    self.mod._parse_preset_header(text), (slug, 43),
+                    f"{slug} tokens.css header must parse to ({slug!r}, 43)")
+
+    def test_each_preset_canonical_completeness_zero_findings(self):
+        for path, slug in self.PRESETS:
+            with self.subTest(preset=slug):
+                text = path.read_text(encoding="utf-8")
+                findings = self.mod._check_tokens_canonical_completeness(
+                    path, text, 43)
+                self.assertEqual(
+                    findings, [],
+                    f"{slug} tokens.css must define all 43 canonical tokens "
+                    f"under schema:43 but got findings: {findings}")
 
 
 if __name__ == "__main__":
