@@ -2,6 +2,10 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.5.15 (2026-06-25)
+
+「機制必要性」原則 + loaded-context 自審慣性 gotchas。`/think` Stage E 與 `/review` Stage 6 新增「Mechanism necessity」段：新增機制前必須證明它在解決問題／推進目標，而非只留一個「我這裡失敗了」的 log；失敗路徑能跳過的規則不算預防。`/analyze` 新增 Gotchas 段（Option 2 同 session 交接違反 never-share-context）、`/execute` 新增 [loaded-orchestrator self-review trap] gotcha（驗證職能必須 fresh-context 隔離，orchestrator 不得自任）。雙樹同步。
+
 ## v2.5.14 (2026-06-23)
 
 evolve 打磨 /design SKILL.md — gen 極端承諾軸補 extreme→value lookup table（dim4）+ 新增 named Design Invariants I1–I5 區塊（dim5）；雙樹同步。

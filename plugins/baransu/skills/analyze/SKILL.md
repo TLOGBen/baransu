@@ -381,6 +381,12 @@ options:
 
 ---
 
+## Gotchas
+
+- **[Option 2 same-session handoff contradicts never-share-context]**: Stage 7 Option 2 (「直接交接 execute（完全授權）」) reads as "invoke execute inline, in the current session". But this skill's own premise — definition and execution "should never share the same context", "hand the spec to a fresh execution session" — requires execution to begin in a fresh context. An inline same-session invocation plants the loaded-context condition that makes the downstream execute orchestrator rationalize self-reviewing (absorbing verifier roles in its polluted context) instead of dispatching isolated subagents. Adding a warning line is not a fix — it only logs the contradiction; preventing it means the handoff stops and tells the user to run /execute in a fresh session, or a gate enforces freshness outside the model's cognition (see /think Stage E "Mechanism necessity": a rule the failing path can skip is not prevention). Solution: treat Option 2's autonomous inline invocation as the trigger to scrutinize — when the spec must run with true isolation, prefer handing off to a fresh session over continuing in the current loaded context.
+
+---
+
 ## Constraints
 
 - Do not write production code, scaffolding, or config files during Stages 1-6. The only output is the five spec documents.
