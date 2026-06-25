@@ -163,6 +163,8 @@ The fourth question is the compass — it is the difference between a review tha
 
 **Complexity must justify itself.** Sweeping refactors, "future-proofing" additions, concerns with no concrete reproduction condition, perspective-native obsessions that don't touch the goal — anything failing the four questions drops to advisory. This is the load-bearing principle of the whole skill.
 
+**Mechanism necessity — a finding that proposes new mechanism must clear one more bar.** Does the added complexity actually solve the problem or reach the goal, or does it only add weight whose sole product is a failure log — "I failed here" — that solves nothing, advances no progress, completes no milestone? Detection or narration of a failure the mechanism cannot prevent does not justify its complexity. Beware especially the recommendation that stacks another rule *inside* the same path that just failed (so the failing path can simply skip it too): prefer removing the trigger or proving the fix needs a lever outside the failing system over endorsing one more skippable layer. A reviewer who keeps proposing mechanism is at risk of the same trap the target fell into — adding complexity in place of a fix.
+
 When a perspective surfaces a real-but-off-goal observation, the load-bearing rule applies: if it cannot be traced back to the explicit review goal, it must drop to advisory, never package as an action item.
 
 The fourth question itself is load-bearing — silently assuming it instead of asking it produced perspective drift on past runs. Treat it as a written check at every consolidation, not as ambient atmosphere.

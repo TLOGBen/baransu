@@ -320,6 +320,12 @@ The final plan must not contain any of:
 
 If you genuinely don't know something, it goes in **Unknowns** with a reason and an owner — not hidden inside an otherwise-confident plan. Vague phrases are where over-promising and under-delivering both come from.
 
+### Mechanism necessity — adding a rule is not the same as solving the problem
+
+Before the plan proposes any new mechanism — a rule, a check, a step, a layer, a constraint — it must answer one question: does this added complexity actually solve the problem or move toward the goal, or does it merely add weight whose only product is a failure log — a record that says "I failed here" while solving nothing, advancing no progress, completing no milestone?
+
+A mechanism that can only detect or narrate a failure it cannot prevent has not earned its complexity. The sharpest tell: the proposed mechanism sits *inside* the same failing path it is meant to govern, so that path can simply skip it (this is how a fourth prose rule joins three already-bypassed ones and changes nothing). When that is the case, prefer removing the trigger, or proving the fix structurally impossible without a lever outside the failing system, over stacking another skippable layer. Complexity that only buys a nicer obituary for the failure is not a fix — name it as such in **Approach** rather than dressing it as a solution.
+
 ---
 
 ## Stage F — The final plan (five-section schema)
