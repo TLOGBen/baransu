@@ -114,6 +114,29 @@
           "check": "python3 -c \"import re; c=open('output.html').read(); local=[s for s in re.findall(r'src=\\\"([^\\\"]+)\\\"', c) if not s.startswith(('http','data')); import os; missing=[s for s in local if not os.path.exists(s)]; assert not missing, f'missing assets: {missing}'\""
         }
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "/book --text \"Linear MCP v3.4.7 released 2025-09-15 with a rewritten sync engine and new agent-mode APIs.\"",
+      "expected_output": "The Stage 2A §0 fact gate triggers on the fabricated version string before §1 classification: WebSearch returns 0 results and the run surfaces the Fact-verify-pending AskUserQuestion instead of silently rendering the fabricated fact",
+      "files": [],
+      "assertions": [
+        {
+          "id": "fact_verify_regex_triggers",
+          "description": "The fabricated string 'Linear MCP v3.4.7' matches the Stage 2A §0 trigger regex and forces a WebSearch verification before §1 classification",
+          "check": "transcript shows a WebSearch call for the sanitized hit (release notes / announcement query template) before any classification output"
+        },
+        {
+          "id": "ask_flow_surfaces_on_zero_results",
+          "description": "With 0 WebSearch results the run stops at the Fact-verify-pending AskUserQuestion (強制繼續 / 改用 --text 餵已驗證版本 / 中止本次 /book) and waits for the user's choice",
+          "check": "transcript shows the 「Fact-verify pending」 AskUserQuestion block before any Render output"
+        },
+        {
+          "id": "no_silent_render_of_fabricated_fact",
+          "description": "The run must not silently continue: 'Linear MCP v3.4.7 released 2025-09-15' is never rendered into output.html as established fact without an explicit user 強制繼續 choice",
+          "check": "if output.html exists, the transcript documents the explicit user choice that allowed rendering; otherwise the run stopped at the ask flow"
+        }
+      ]
     }
   ]
 }
