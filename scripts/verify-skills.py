@@ -5,7 +5,9 @@
 Repo mode（無參數）執行全部檢查：
   1. plugins/baransu/skills/ 技能目錄數 = 14（_shared/ 除外，且每目錄有 SKILL.md）
   2. SKILL.md frontmatter 可解析（think 極簡式 / read-learn 完整式皆容納）
-     ＋官方細目：name ≤64 字元小寫連字符、description 非空 ≤1024、第三人稱啟發式
+     ＋官方細目：name ≤64 字元小寫連字符、name == 目錄名、name 無保留字
+     （anthropic/claude）、description 非空 ≤1024、第三人稱啟發式、
+     description/when_to_use 無 XML tags、兩者合計 ≤1536 字元（listing 預算）
   3. SKILL.md 引用的 references/ 檔存在，且 references/ 內不得再巢狀 references/
   4. 被裁名稱（grade/triage/bridge/dev）word-boundary 零功能殘留
      （掃描面與排除規則內嵌於本腳本，見 RESIDUE_* 常數；git 歷史不掃）
@@ -13,13 +15,19 @@ Repo mode（無參數）執行全部檢查：
   6. Outcome Contract 四行（Outcome / Done when / Evidence / Output）齊備且值非空
   7. 契約區塊第五行 Automation 標注存在且值非空
   8. README「核心理念」理念表逐條錨點存在（條款綁機制）
+  9. plugins/baransu/agents/*.md frontmatter 不得含被靜默忽略欄位
+     （hooks / mcpServers / permissionMode — plugin agent 官方忽略，寫了即
+     silent no-op）
 
 Advisory（不影響 exit code）：SKILL.md 本文 >500 行清單（官方上限；
-execute 為既有超限戶）。
+execute 為既有超限戶）；repo mode 另印 14 skill description+when_to_use
+總量，超過 LISTING_TOTAL_ADVISORY 時印警示行（見 LISTING_* 常數註記）。
 
 Skills-root mode（一個位置參數 = 含技能目錄的根目錄）：只跑 per-skill 檢查
 （2/3/6/7）。供負向 fixture 測試證明可證偽性
 （tests/scripts/test_verify_skills.py）。
+
+Agents mode（--agents <目錄>）：只跑檢查 9。同樣供負向 fixture 測試。
 
 Exit 語義（沿用倉內 gate 慣例）：
   0 = pass
@@ -38,6 +46,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILLS_DIR = REPO_ROOT / "plugins" / "baransu" / "skills"
+AGENTS_DIR = REPO_ROOT / "plugins" / "baransu" / "agents"
 PLUGIN_MANIFEST = REPO_ROOT / "plugins" / "baransu" / ".claude-plugin" / "plugin.json"
 MARKETPLACE_MANIFEST = REPO_ROOT / ".claude-plugin" / "marketplace.json"
 CODEX_MANIFEST = REPO_ROOT / "codex" / "plugins" / "baransu" / ".codex-plugin" / "plugin.json"
@@ -49,6 +58,18 @@ BODY_LINE_ADVISORY_LIMIT = 500
 NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 NAME_MAX = 64
 DESCRIPTION_MAX = 1024
+# name 保留字與 description/when_to_use XML tag：官方驗證直接拒收
+NAME_RESERVED_WORDS = ("anthropic", "claude")
+XML_TAG_RE = re.compile(r"<[^>]+>")
+# listing 預算（來源版本 v2.1.x，兩數皆 settings 可調、非絕對真理：per-skill
+# 上限為 skillListingMaxDescChars 預設 1536；總量門檻取 200k context 預設 1%
+# listing 預算 ≈2,000 tokens ≈7,000 字元）。動工基線總量 7,198 字元
+# （2026-07-02；B1 角括號修復後實測 7,190）——總量警示立即觸發屬刻意設計，
+# advisory 不影響 exit code。
+LISTING_COMBINED_MAX = 1536
+LISTING_TOTAL_ADVISORY = 7000
+# plugin agent frontmatter 被官方靜默忽略的欄位（出現即 silent no-op 回歸）
+AGENT_IGNORED_KEYS = ("hooks", "mcpServers", "permissionMode")
 # 第三人稱啟發式：description 不得以第一人稱開頭（引文中的 "I want to build X"
 # 屬觸發例句，不算）。
 FIRST_PERSON_RE = re.compile(r"^(?:I|I'm|I've|My|We|We're|Our)\b")
@@ -171,6 +192,7 @@ def check_frontmatter(skill: Path, fm: dict) -> list[str]:
     v = []
     name = fm.get("name", "")
     desc = fm.get("description", "")
+    wtu = fm.get("when_to_use", "")
     if not name:
         v.append(f"{skill.name}: frontmatter 缺 name")
     else:
@@ -178,6 +200,13 @@ def check_frontmatter(skill: Path, fm: dict) -> list[str]:
             v.append(f"{skill.name}: name 超過 {NAME_MAX} 字元（{len(name)}）")
         if not NAME_RE.match(name):
             v.append(f"{skill.name}: name 非小寫連字符格式：{name!r}")
+        if name != skill.name:
+            v.append(
+                f"{skill.name}: frontmatter name ≠ 目錄名：{name!r} ≠ {skill.name!r}"
+            )
+        for word in NAME_RESERVED_WORDS:
+            if word in name.lower():
+                v.append(f"{skill.name}: name 含保留字 {word!r}（官方驗證拒收）")
     if not desc:
         v.append(f"{skill.name}: description 空白或缺漏")
     else:
@@ -187,6 +216,18 @@ def check_frontmatter(skill: Path, fm: dict) -> list[str]:
             )
         if FIRST_PERSON_RE.match(desc):
             v.append(f"{skill.name}: description 以第一人稱開頭（須第三人稱）")
+    for field, value in (("description", desc), ("when_to_use", wtu)):
+        m = XML_TAG_RE.search(value)
+        if m:
+            v.append(
+                f"{skill.name}: {field} 含 XML tag：{m.group(0)!r}（官方驗證拒收）"
+            )
+    combined = len(desc) + len(wtu)
+    if combined > LISTING_COMBINED_MAX:
+        v.append(
+            f"{skill.name}: description+when_to_use 合計 {combined} 字元 > "
+            f"{LISTING_COMBINED_MAX}（listing 預算硬上限，v2.1.x 預設）"
+        )
     return v
 
 
@@ -245,16 +286,17 @@ def check_contract(skill: Path, body: list[str]) -> list[str]:
 
 
 def check_skill(skill: Path):
-    """回傳 (violations, body_line_count)。"""
+    """回傳 (violations, body_line_count, listing_chars)。"""
     skill_md = skill / "SKILL.md"
     if not skill_md.is_file():
-        return [f"{skill.name}: 缺 SKILL.md"], 0
+        return [f"{skill.name}: 缺 SKILL.md"], 0, 0
     fm, body = parse_skill_md(skill_md)
     v = []
     v += check_frontmatter(skill, fm)
     v += check_references(skill, body)
     v += check_contract(skill, body)
-    return v, len(body)
+    listing = len(fm.get("description", "")) + len(fm.get("when_to_use", ""))
+    return v, len(body), listing
 
 
 # ---------------------------------------------------------------------------
@@ -353,6 +395,26 @@ def check_manifest_versions():
     return [], versions["plugin.json"]
 
 
+def check_agents(agents_dir: Path) -> list[str]:
+    """agents/*.md frontmatter 不得含被靜默忽略欄位（檢查 9）。
+
+    hooks / mcpServers / permissionMode 對 plugin agent 為官方忽略欄位——
+    寫了不生效也不報錯，屬 silent no-op 回歸，故在此擋下。
+    """
+    if not agents_dir.is_dir():
+        raise Structural(f"{agents_dir}: agents 目錄不存在")
+    v = []
+    for path in sorted(agents_dir.glob("*.md")):
+        fm, _ = parse_skill_md(path)
+        for key in AGENT_IGNORED_KEYS:
+            if key in fm:
+                v.append(
+                    f"{path.name}: agent frontmatter 含被靜默忽略欄位 {key!r}"
+                    "（plugin agent 官方忽略 hooks/mcpServers/permissionMode）"
+                )
+    return v
+
+
 # ---------------------------------------------------------------------------
 # main
 # ---------------------------------------------------------------------------
@@ -413,14 +475,16 @@ def discover_skills(root: Path) -> list[Path]:
 
 
 def main(argv: list[str]) -> int:
+    agents_mode = len(argv) >= 3 and argv[1] == "--agents"
     repo_mode = len(argv) < 2
     skills_root = SKILLS_DIR if repo_mode else Path(argv[1]).resolve()
 
     violations: list[str] = []
     oversize: list[tuple[str, int]] = []
+    listing_total = 0
 
     try:
-        skills = discover_skills(skills_root)
+        skills = [] if agents_mode else discover_skills(skills_root)
 
         if repo_mode and len(skills) != EXPECTED_SKILL_COUNT:
             violations.append(
@@ -429,13 +493,17 @@ def main(argv: list[str]) -> int:
             )
 
         for skill in skills:
-            sv, body_count = check_skill(skill)
+            sv, body_count, listing_chars = check_skill(skill)
+            listing_total += listing_chars
             if sv:
                 violations += sv
             else:
                 print(f"✅ {skill.name} — frontmatter / references / 契約四行＋Automation 通過")
             if body_count > BODY_LINE_ADVISORY_LIMIT:
                 oversize.append((skill.name, body_count))
+
+        if agents_mode:
+            violations += check_agents(Path(argv[2]).resolve())
 
         if repo_mode:
             rv, excluded = check_residue()
@@ -454,6 +522,13 @@ def main(argv: list[str]) -> int:
             violations += pv
             if not pv:
                 print("✅ README 理念段逐條錨點存在（條款綁機制）")
+            av = check_agents(AGENTS_DIR)
+            violations += av
+            if not av:
+                print(
+                    "✅ agents frontmatter 無被靜默忽略欄位"
+                    "（hooks/mcpServers/permissionMode）"
+                )
             if len(skills) == EXPECTED_SKILL_COUNT:
                 print(f"✅ 技能目錄數 = {EXPECTED_SKILL_COUNT}")
 
@@ -466,6 +541,18 @@ def main(argv: list[str]) -> int:
             f"⚠️ ADVISORY（不影響 exit code）：{name}/SKILL.md 本文 "
             f"{count} 行 > {BODY_LINE_ADVISORY_LIMIT}（官方上限，列入瘦身清單）"
         )
+
+    if repo_mode:
+        print(
+            f"listing 總量：description+when_to_use 合計 {listing_total} 字元"
+            f"（警示門檻 {LISTING_TOTAL_ADVISORY}）"
+        )
+        if listing_total > LISTING_TOTAL_ADVISORY:
+            print(
+                f"⚠️ listing 預算警示（不影響 exit code）：總量 {listing_total} 字元 > "
+                f"{LISTING_TOTAL_ADVISORY}（200k context 預設 1% ≈2,000 tokens；"
+                "v2.1.x settings 可調）"
+            )
 
     if violations:
         print(f"\n❌ 共 {len(violations)} 項違規：")
