@@ -20,17 +20,27 @@ verify_green_proof(review_result):
     return FAIL, reason="green_proof key missing"
 
   # Step 2 — tier-specific value check.
-  IF review_result.tier == "direct fix":
-    # direct-fix tier allows the 4 values to be "n/a"/0/""/"n/a"; value contents are no longer verified
+  IF review_result.tier == "direct fix"
+     AND the review report names a cosmetic subtype
+     AND the diff shows every modified file is non-executable text (markdown / comment / formatting-only):
+    # conditional waiver: the 4 values may be "n/a"/0/""/"n/a"; value contents are not verified.
+    # "no behavior change" is the editor's claim — the waiver is earned by the edit's observable
+    # surface (checked from the diff), not by the tier classification alone.
     return PASS
   ELSE:
-    # advisory / packaged confirm (quality|correctness) / needs judgment must supply a real test
+    # every other case — including a direct fix that touches executable text — must supply a real test
     REQUIRE green_proof.test_command          non-empty AND != "n/a"
     REQUIRE green_proof.tests_correspondence  non-empty AND != "n/a"
     REQUIRE green_proof.exit_code == 0        # else Green failed, not a passed review
     REQUIRE green_proof.output_tail           non-empty
+    # Evidence must resolve against ground truth — both REQUIREs below are executed via Bash
+    # (grep/ls exit code), not judged by the model:
+    REQUIRE the test path/name fragment cited in tests_correspondence resolves against the repo/worktree
+            # Bash: `grep -rq "<fragment>" <worktree>/tests/ || ls <cited path>` exits 0
+    REQUIRE the test file(s) named in test_command exist on disk
+            # Bash: `ls <file path extracted from test_command>` exits 0
     IF any REQUIRE fails:
-      return FAIL, reason="green_proof incomplete or exit_code != 0"
+      return FAIL, reason="green_proof incomplete, exit_code != 0, or cited evidence does not resolve against the repo"
     return PASS
 ```
 

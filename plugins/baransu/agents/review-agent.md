@@ -27,7 +27,7 @@ Directly apply /baransu:review's four-tier semantic framework to review the impl
 
    | Tier | Judgment criteria | Main skill action |
    |------|---------|-------------|
-   | `direct fix` | Formatting, import ordering, obvious typos, and other issues that do not affect behavior | Authorize direct fix, no failure counted |
+   | `direct fix` | Formatting, import ordering, obvious typos — only issues within the cosmetic categories of General Principle 3 | Authorize direct fix, no failure counted |
    | `advisory` | No correctness issue; observable improvement opportunity that does not affect task acceptance | ✅ Mark complete, record in notes |
    | `packaged confirm (quality)` | Tests pass, but there are structural or maintainability issues | L/XL dispatch Refactor (no failure counted); M go straight to advisory |
    | `packaged confirm (correctness)` | Some acceptance criteria unmet, but with a specific actionable fix direction | Count one failure, re-dispatch Impl |
@@ -50,7 +50,7 @@ Before reviewing, read `plugins/baransu/skills/_shared/tdd.md` and check test qu
      test_command: {the actual test command string executed, e.g.: `pytest tests/test_foo.py`; direct fix tier and cosmetic-only path allow "n/a"}
      exit_code: {integer; for non-direct-fix tiers it must be 0 for the review to pass}
      output_tail: {string; last 30 lines of output verbatim, must not be rewritten; direct fix tier and cosmetic-only path allow ""}
-     tests_correspondence: {string; the reviewer must declare 「以下 test 對應 TASK-NN 的 AC-MM」 and cite a test path or name fragment that already exists in design.md / the task spec, which the main skill can grep to compare; direct fix tier and cosmetic-only path allow "n/a"}
+     tests_correspondence: {string; the reviewer must declare 「以下 test 對應 TASK-NN 的 AC-MM」 and cite a test path or name fragment that already exists in design.md / the task spec; direct fix tier and cosmetic-only path allow "n/a"}
    ```
    `refactor_signal` is true only when `packaged confirm (quality)` and the task is L/XL; otherwise false.
 
@@ -58,7 +58,7 @@ Before reviewing, read `plugins/baransu/skills/_shared/tdd.md` and check test qu
 
    | tier | test_command | tests_correspondence | exit_code | output_tail |
    |------|---|---|---|---|
-   | `direct fix` | allows "n/a" (inline fix does not change behavior) | allows "n/a" | must be an integer; value not checked | allows "" |
+   | `direct fix` | "n/a" only for cosmetic-category fixes (comment edits, pure formatting — non-executable text); otherwise real test required | "n/a" under the same cosmetic condition; otherwise required | must be an integer; value not checked | "" under the same cosmetic condition; otherwise required |
    | `advisory` | real test required | required | must be 0 | required |
    | `packaged confirm (quality)` | real test required | required | must be 0 | required |
    | `packaged confirm (correctness)` | real test required | required | must be 0 | required |
@@ -68,7 +68,7 @@ Before reviewing, read `plugins/baransu/skills/_shared/tdd.md` and check test qu
 
    **failure_count exclusion declaration**: `green_proof.exit_code != 0` does not directly increment `failure_count`; maintain the existing `/baransu:execute` Phase 2/3 compile-error exclusion rule (compile errors go through the `compile_error_count` channel and do not count toward `failure_count`). Only test runner failures increment `failure_count`.
 
-   **cosmetic-only path exception**: the cosmetic path covers four categories (aligned with `plugins/baransu/skills/_shared/tdd.md` §7.1) — comment edits, dead import removal, identifier rename with no behavior change, pure formatting (markdown-only changes count as pure formatting). These do not run tests: `green_proof.test_command = "n/a"`, `exit_code = 0`, `output_tail = ""`, `tests_correspondence = "n/a"`, and note the cosmetic subtype in the review report.
+   **cosmetic-only path exception**: the cosmetic path covers two categories (aligned with `plugins/baransu/skills/_shared/tdd.md` §7.1) — comment edits, pure formatting (markdown-only changes count as pure formatting). These two categories do not run tests: `green_proof.test_command = "n/a"`, `exit_code = 0`, `output_tail = ""`, `tests_correspondence = "n/a"`, and note the cosmetic subtype in the review report. Identifier renames and dead-import removals touch executable text and take the real-test path.
 
 4. **Spec contradiction escalation**: if during review you find two REQ-XXX that cannot coexist under the current design, fill in an explanation in the `spec_contradiction` field and mark the tier as `needs judgment`. When the main skill reads a non-false `spec_contradiction`, it marks this task as blocked (reason: spec contradiction) and stops re-dispatching Impl.
 

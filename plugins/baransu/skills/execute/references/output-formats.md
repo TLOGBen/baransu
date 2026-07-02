@@ -125,7 +125,15 @@ Requirements 達成率：N/M（N 個 REQ-XXX 有對應綠燈測試）
 
 ## E2E 測試結果
 
-{✅ 通過 | ❌ 失敗：{reason} | ⏭️ 跳過：test.md 未提供啟動命令}
+{✅ 通過（必附下方 e2e_evidence 塊）| ❌ 失敗：{reason} | ⏭️ 跳過：test.md 未提供啟動命令}
+
+e2e_evidence:（僅 ✅ 時必填；exit 0 但 collected 為 0 或計數不可解析 = ❌）
+  command: {實際執行的 E2E 命令}
+  exit_code: {0}
+  collected: {N}
+  passed: {N}
+  output_tail: |
+    {輸出最後數行，逐字}
 
 ## Final-Review 結論
 

@@ -345,7 +345,7 @@ Read `test.md` for the E2E startup command (typically in the E2E 測試策略 se
 
 If no command found → record 「E2E 跳過：test.md 未提供啟動命令」in final-report; proceed to Step 6.
 
-If E2E passes → record ✅ in final-report.
+If E2E passes → record ✅ in final-report together with an `e2e_evidence` block: the exact command run, its exit_code, the collected/passed test counts parsed from the output, and a verbatim output tail. A ✅ without this block is a claim, not a confirmation. Exit 0 with 0 tests collected, or counts that cannot be parsed from the output, is NOT a pass — record ❌ and enter the failure path below.
 
 If E2E fails:
 1. Group independent failure clusters (one per failing feature area; if boundaries unclear, one cluster per failing test)
