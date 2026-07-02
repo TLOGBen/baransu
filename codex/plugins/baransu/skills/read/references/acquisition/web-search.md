@@ -34,7 +34,7 @@ The candidate list is held in-memory only; not persisted.
 
 ## Display to User
 
-See `SKILL.md §AskUserQuestion 互動規格` for capacity, escape, multi-round, and termination semantics. This lane uses the spec as-is — do not redefine.
+See `references/acquisition/candidate-selection.md` for capacity, escape, multi-round, and termination semantics. This lane uses the spec as-is — do not redefine.
 
 The candidate's `title` populates the AskUserQuestion `label`; `description` populates the option `description`; `url` is the value carried forward.
 
@@ -47,7 +47,7 @@ The candidate's `title` populates the AskUserQuestion `label`; `description` pop
 | Empty keyword (`/read --web ""`) | Output 「請提供關鍵字」 and stop. Do not invoke WebSearch. |
 | WebSearch returns 0 results | Output 「web 搜尋無結果，建議改關鍵字」 and stop. Do not invoke AskUserQuestion. Do not write `raw/` or `material/`. |
 | WebSearch throws (API error / rate limit / geo-restriction / key missing) | Output 「web 搜尋呼叫失敗：{原因}」 and stop. Wording must be distinguishable from the 0-results message above. |
-| 1 ≤ N ≤ 9 results | Apply SKILL.md round mapping (N≤3 → 1 round; 4-6 → 2; 7-9 → 3). Do not 3-round-pad small N. |
+| 1 ≤ N ≤ 9 results | Apply the `candidate-selection.md` round mapping (N≤3 → 1 round; 4-6 → 2; 7-9 → 3). Do not 3-round-pad small N. |
 | N ≥ 10 results | Truncate to first 9 by WebSearch's native order (no re-ranking — preserve "搬運不審判"). 3 rounds. |
 
 Do not fall back to other lanes. Do not silent-retry.

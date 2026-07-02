@@ -1,6 +1,6 @@
 ---
 name: codex-skill-transfer
-description: One-way port of Claude Code skills, plugins, or marketplaces to OpenAI
+description: Ports Claude Code skills, plugins, or marketplaces one-way to OpenAI
   Codex format (SKILL.md / batches / plugin → agent-stub TOMLs). Trigger on 「轉成 codex
   版」「給 codex 用」「port to codex」, or questions about Claude→Codex field mapping (disable-model-invocation,
   context fork, ARGUMENTS, plugin.json). Not for reverse porting (Codex→Claude) or
@@ -60,7 +60,7 @@ For inline (in-conversation) execution without the script — when the user want
 
 ## Step 3 — Follow the rules in the right reference
 
-The transformation is layered; each reference owns one layer. Read the matching one for the work in front of you, not all three:
+The transformation is layered; each reference owns one layer. Read the matching one for the work in front of you, not all of them:
 
 When changing the mapping rules themselves, refresh the current OpenAI Codex docs first and compare against the relevant official sections: Agent Skills, Build plugins, Subagents, MCP, Hooks, and sandbox/approval behavior. The docs can drift faster than this skill; do not preserve an old mapping just because the transfer script already emits it.
 
@@ -117,20 +117,4 @@ After emitting the report body, you MUST append a final `### Next-port follow-up
 
 ## Repository layout this skill expects
 
-```
-codex-skill-transfer/
-├── SKILL.md                              # this file
-├── references/
-│   ├── CODEX_PORT_PLAN.md                # behavior-weight / model-inertia port plan
-│   ├── skill-mapping.md                  # per-skill frontmatter + body rewrites
-│   ├── plugin-mapping.md                 # plugin manifest
-│   ├── agent-mapping.md                  # context: fork → Codex Subagents (both layers)
-│   └── marketplace-mapping.md            # marketplace catalog (Layout A manual, Layout B emitted by script)
-├── assets/
-│   ├── codex-plugin.template.json        # canonical .codex-plugin/plugin.json shape
-│   └── codex-marketplace.template.json   # starter for repo-root Layout A catalog (Layout B is inlined in transfer.py)
-└── scripts/
-    └── transfer.py                       # CLI entry; auto-detects mode
-```
-
-Single Python file by design — baransu's other tooling scripts (`design/scripts/check.py`, `read/scripts/search-papers.py`) follow the same single-file convention. Output *shapes* live in `assets/` for the plugin manifest layer; the safety-critical outputs (openai.yaml, agent-stub TOML) are built via standard library serializers (`yaml.safe_dump`, `json.dumps`) so escape correctness doesn't depend on template discipline.
+`scripts/transfer.py` is a single Python file by design — baransu's other tooling scripts (`design/scripts/check.py`, `read/scripts/search-papers.py`) follow the same single-file convention.

@@ -1,10 +1,11 @@
 ---
 name: read
-description: 'Use When the user wants to archive any content as offline-readable Markdown.
-  Do Capture and convert URL / path / glob / --chrome / --clipboard / --topic / --web
-  / --gh / --x to .claude/read/. Trigger On ''/read'', ''存下來'', ''抓網頁'', ''轉成 markdown'',
-  ''存檔''. Not For digesting captured content into notes (use /learn) or producing
-  browser-ready HTML output (use /book) — /read only captures raw offline Markdown.
+description: 'Captures and converts any content source — URL / path / glob / --chrome
+  / --clipboard / --topic / --web / --gh / --x — to offline-readable Markdown under
+  .claude/read/. Use when the user wants to archive content for offline reading. Trigger
+  On ''/read'', ''存下來'', ''抓網頁'', ''轉成 markdown'', ''存檔''. Not For digesting captured
+  content into notes (use /learn) or producing browser-ready HTML output (use /book)
+  — /read only captures raw offline Markdown.
 
   '
 compatibility: Designed for Claude Code; ported to Codex.
@@ -73,7 +74,7 @@ This is NOT an early exit. Proceed to Stage 1 regardless.
 
 ## Stage 1 — Input Detection & Acquire Routing
 
-**Forward-reference map** — the lanes below jump to two routing targets defined later: URL routing → §9 (defined below in this stage); candidate presentation → the ask the user directly with numbered options, then stop for the user's reply 互動規格 section (located after Stage 3).
+**Forward-reference map** — the lanes below jump to two routing targets: URL routing → §9 (defined below in this stage); candidate presentation → `references/acquisition/candidate-selection.md` (read it before the first ask the user directly with numbered options, then stop for the user's reply round).
 
 Parse the argument(s) passed to `/read`. `--use-proxy` is a modifier flag, not a mode: if present, strip it from the argument list before routing and record `$USE_PROXY=true` (default `false`). Route as follows (check in order):
 
@@ -81,13 +82,13 @@ Parse the argument(s) passed to `/read`. `--use-proxy` is a modifier flag, not a
 
 Read `references/acquisition/academic-search.md`.
 
-Display paper list and wait for user selection. After selection, continue with the selected paper's PDF URL or DOI URL as described in that reference.
+Display paper list and wait for user selection. After selection, continue with the selected paper's PDF URL or DOI URL as described in that reference. PDF/DOI handoff uses `references/acquisition/web-static.md` (PDF URL Routing / Proxy Cascade sections).
 
 ### 2. `--web "keyword"`
 
 Read `references/acquisition/web-search.md`.
 
-Use the search the web tool to fetch candidate URLs, present them via ask the user directly with numbered options, then stop for the user's reply (per `§numbered-options question 互動規格`), then route the selected URL through `/read`'s existing URL routing (§9).
+Use the search the web tool to fetch candidate URLs, present them via ask the user directly with numbered options, then stop for the user's reply (per `references/acquisition/candidate-selection.md`), then route the selected URL through `/read`'s existing URL routing (§9).
 
 ### 3. `--gh "keyword"`
 
@@ -99,7 +100,7 @@ Run `gh search repos` to fetch candidate repos, present them via ask the user di
 
 If `$CHROME_AVAILABLE=false`: output 「Chrome 未連線，--x 模式無法使用」 and stop.
 
-Otherwise: Read `references/acquisition/x-search.md`. The lane delegates to `web-dynamic.md` WSL2 path for Chrome MCP navigation, runs schema-level health check, extracts tweet URLs via regex, presents them via ask the user directly with numbered options, then stop for the user's reply, then routes the selected tweet URL through existing URL routing.
+Otherwise: Read `references/acquisition/x-search.md` and `references/acquisition/web-dynamic.md` (the lane follows web-dynamic's WSL2 Path Steps 1–4 for Chrome MCP navigation). The lane runs schema-level health check, extracts tweet URLs via regex, presents them via ask the user directly with numbered options, then stop for the user's reply, then routes the selected tweet URL through existing URL routing.
 
 ### 5. `--chrome`
 
@@ -129,7 +130,7 @@ Starts with `http://` or `https://`. Apply URL pattern routing:
 
 - `github.com` or `raw.githubusercontent.com` in hostname → Read `references/acquisition/web-static.md` (GitHub section)
 - URL ends with `.pdf` OR HEAD request `curl -sI "{url}" | grep -i "content-type: application/pdf"` matches → Read `references/acquisition/web-static.md` (PDF URL section)
-- Other URLs → local-first fetch (Read `references/acquisition/web-static.md`, Local-First Fetch section): fetch the URL directly and extract locally — by default the URL is never sent to a third-party service. Only when `$USE_PROXY=true` may the proxy cascade (defuddle.md / r.jina.ai) be used as fallback, and authenticated or internal URLs must NEVER be fed to a proxy even then (hard rule in web-static.md). After the fetch completes, check if result is < 500 bytes or contains SPA feature strings (`<app-root`, `<div id="root"`, `__NEXT_DATA__`, `window.__NUXT__`); if SPA detected → Read `references/acquisition/web-dynamic.md`
+- Other URLs → local-first fetch per Constraints bullet 1 and `references/acquisition/web-static.md` (Local-First Fetch section). After the fetch completes, check if result is < 500 bytes or contains SPA feature strings (`<app-root`, `<div id="root"`, `__NEXT_DATA__`, `window.__NUXT__`); if SPA detected → Read `references/acquisition/web-dynamic.md`
 
 ### 10. Unrecognized input
 
@@ -253,42 +254,7 @@ Append row: `| {source_url} | {final-slug} | {title} | {captured_at} |`
 
 For glob batches of 10+ items, compress to: `成功 N 筆，失敗 M 筆` without listing each path.
 
-## ask the user directly with numbered options, then stop for the user's reply 互動規格
-
-This section is the single source of truth for keyword-search lanes that present candidates via ask the user directly with numbered options, then stop for the user's reply. The four lanes — `--web`, `--gh`, `--x`, and the upgraded `--topic` — share this spec; their reference files (`web-search.md`, `gh-search.md`, `x-search.md`, `academic-search.md`) reference this section instead of redefining its rules.
-
-### Capacity
-
-- ask the user directly with numbered options, then stop for the user's reply's hard ceiling is **4 options per round**.
-- Every round reserves **1 slot for an escape option** (label: `「以上都不選」`). The remaining 3 slots are usable for results.
-- Maximum result slots across the worst case = 3 rounds × 3 result slots = **9**.
-
-### Result-count to round mapping
-
-| Result count `N` | Rounds | Per-round result slots |
-|------------------|--------|------------------------|
-| `N ≤ 3` | 1 | `N` (each result slot fills, plus escape) |
-| `4 ≤ N ≤ 6` | 2 | 3, then `N - 3` |
-| `7 ≤ N ≤ 9` | 3 | 3, 3, then `N - 6` |
-| `N ≥ 10` | 3 | 3, 3, 3 (truncated to first 9 by lane's native sort order; no local re-ranking) |
-
-Each round always carries the escape option in addition to its result slots.
-
-### Multi-round semantics
-
-- The user picks a single result. Selection in any round **terminates the sequence** (single-pick semantics) — the orchestrator does not advance to subsequent rounds for that lane invocation.
-- The `acquire` phase processes only the single picked candidate.
-
-### Escape behaviour
-
-- Selecting `「以上都不選」` in any round terminates the lane immediately.
-- No `material/{slug}/` is produced; no `raw/{slug}/` is retained for the search-page intermediate.
-- The orchestrator outputs `「使用者放棄選擇」` and stops.
-
-### Cross-lane invariant
-
-- Lanes do **not** apply 1-5 scoring or re-rank candidates locally.
-- Lane-side schema-level health checks (e.g. `--x` substring guards) are acquire-stage failures — not candidate scoring — and apply before this section's flow runs.
+Keyword-search lanes present candidates per `references/acquisition/candidate-selection.md` — read it before the first ask the user directly with numbered options, then stop for the user's reply round.
 
 ## Constraints
 
@@ -304,7 +270,7 @@ Each round always carries the escape option in addition to its result slots.
 ## Gotchas
 
 - **onnxruntime GPU warning**: Non-fatal. Appears on WSL2 with NVIDIA drivers. Use `2>/dev/null` when calling markitdown CLI to suppress.
-- **markitdown accepts file path, not live URL**: After Acquire saves content to `raw/`, always pass the local `raw/{slug}/index.{ext}` path to markitdown — not the original URL. This holds for ALL input types including PDF: pass `raw/{slug}/index.{ext}` after Stage 1's After-Acquire step saves it; never pass the original URL to markitdown.
+- **markitdown accepts file path, not live URL**: After Acquire, always pass `raw/{slug}/index.{ext}` to markitdown — never pass the original URL; applies to ALL input types including PDF.
 - **SPA false positive** (`<div id="root">` in static HTML): upgrading to browser layer will produce richer content. This is acceptable behavior.
 - **Windows environment**: Call `install-deps.bat` not `install-deps.sh`. Platform detection in Stage 0 determines which to call.
 - **Slug collision naming**: Use `_v2`, `_v3` etc. — never `_1`, `_2`. The dedup logic in Stage 3 and index.md use the `_vN` convention consistently.

@@ -1,17 +1,17 @@
 ---
 name: evolve
-description: Use when the user wants to improve, score, or evolve a SKILL.md. Point
-  it at any skill and it runs a forward-only ratchet — a fixed 9-dimension rubric
-  is the selection environment; each round an independent judge picks the weakest
-  dimension, one single-variable change is made, and three fresh blind judges vote,
-  keeping the change only on a strict improvement (else the file-level snapshot is
-  restored). Dual-axis evaluation (structure + effectiveness — effectiveness via real-exec
-  gated by a trust+capability check, else offline replay), held-out validation with
-  an independence layer, and a Kami result card. Adoption of any change is an Authorization
-  PAUSE; rollback never touches the git working tree. Not for authoring a brand-new
-  SKILL.md from scratch, or for deciding whether a skill should exist (that is /think
-  Evaluation Mode). Trigger on '/evolve', '優化 skill', 'skill 評分', '演化 skill', 'optimize
-  skill', 'improve skill quality', 'evolve a skill', '幫我改 skill'. 繁體中文輸出。
+description: Improves, scores, or evolves a SKILL.md. Pointed at any skill, it runs
+  a forward-only ratchet — a fixed 9-dimension rubric is the selection environment;
+  each round an independent judge picks the weakest dimension, one single-variable
+  change is made, and three fresh blind judges vote, keeping the change only on a
+  strict improvement (else the file-level snapshot is restored). Dual-axis evaluation
+  (structure + effectiveness — effectiveness via real-exec gated by a trust+capability
+  check, else offline replay), held-out validation with an independence layer, and
+  a Kami result card. Adoption of any change is an Authorization PAUSE; restore never
+  touches the git working tree. Not for authoring a brand-new SKILL.md from scratch,
+  or for deciding whether a skill should exist (that is /think Evaluation Mode). Trigger
+  on '/evolve', '優化 skill', 'skill 評分', '演化 skill', 'optimize skill', 'improve skill
+  quality', 'evolve a skill', '幫我改 skill'. 繁體中文輸出。
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex
@@ -30,6 +30,7 @@ The body below is English (agent-facing). All user-visible output is in **Tradit
 - **Evidence**: `report.md` 的起訖分數、dry_run 比例、每軸證據來源與 held-out 證據力標籤；`log.md` 的逐輪 keep/restore 記錄。
 - **Output**: `.claude/evolve/<slug>/` 演化包；對話內呈現繁中收斂摘要與成果卡。
 - **Automation**: ultracode=overlap, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
+  In the same non-interactive pass, read `references/loop-pauses.md` for this skill's own PAUSE classification.
 
 ## When to use / not
 
