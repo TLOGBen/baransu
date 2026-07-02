@@ -72,7 +72,14 @@ SWISS_SMOKE_SH = BOOK_SKILL_DIR / "scripts" / "swiss-smoke-test.sh"
 
 COLOR_DISTANCE_PY = SHARED_SCRIPTS_DIR / "color_distance.py"
 
-TEST_MD = WORKTREE_ROOT / ".claude" / "analyze" / "2026-07-02-dataviz-chart-integration" / "test.md"
+# Commit immediately before this feature's work started (main HEAD when the
+# dataviz-chart-integration /execute run began). The "purely additive" /
+# "zero diff" claims below are historical facts about how THIS feature was
+# introduced — they must stay pinned to that base commit, not to "working
+# tree vs index": once the feature lands in a normal /ship commit, a
+# working-tree-relative diff goes vacuously (0, 0) forever and the assertion
+# would silently stop meaning anything.
+PRE_FEATURE_BASE_SHA = "ba661a48d92158ed1f730ecc4b0cb2a81b17618d"
 
 PRESETS = [
     (DESIGN_REFS / "紙-preset", "kami"),
@@ -123,10 +130,14 @@ def run_color_distance(colors: list[str]) -> subprocess.CompletedProcess:
 
 
 def _git_numstat(path: Path) -> tuple[int, int]:
-    """(insertions, deletions) for `path` vs HEAD; (0, 0) if unchanged."""
+    """(insertions, deletions) for `path` vs PRE_FEATURE_BASE_SHA; (0, 0) if
+    unchanged. Pinned to the pre-feature base commit (not "working tree" /
+    HEAD) so the result stays meaningful after this feature is committed —
+    see PRE_FEATURE_BASE_SHA's comment."""
     rel = path.relative_to(WORKTREE_ROOT)
     result = subprocess.run(
-        ["git", "-C", str(WORKTREE_ROOT), "diff", "--numstat", "--", str(rel)],
+        ["git", "-C", str(WORKTREE_ROOT), "diff", "--numstat",
+         PRE_FEATURE_BASE_SHA, "--", str(rel)],
         capture_output=True, text=True, check=True,
     )
     line = result.stdout.strip()
@@ -710,7 +721,7 @@ class TestBoundaryExistingTypePriorityConcreteTrace(unittest.TestCase):
                 rows.append((parts[0], parts[1]))
 
         def first_match(matches_structural: bool, matches_statistical: bool) -> str | None:
-            for shape, chart in rows:
+            for _shape, chart in rows:
                 is_structural_row = chart != "Statistical"
                 if is_structural_row and matches_structural:
                     return chart
@@ -751,57 +762,19 @@ class TestBoundaryDeclaredThreePresetsRegressionSummary(unittest.TestCase):
                 self.assertEqual(findings, [])
 
 
-# ─────────────────────────────────────────────────────────────────────────
-# AC1/AC2 process guard — re-read test.md fresh, fail loudly (not silently)
-# if the spec doc's row/item counts drift from what this suite maps.
-# ─────────────────────────────────────────────────────────────────────────
-
-class TestRowAndItemCountsGuard(unittest.TestCase):
-    """task-integration.md AC1/AC2 explicitly forbid hardcoding row counts as
-    a fixed contract ("不假設固定列數，依當時 test.md 實際內容逐列核對"). This
-    guard re-reads test.md at test-run time (not relying on ctx.md's
-    "as of this read" labels, which were themselves off-by-one on the
-    boundary-item count) and fails loudly if the live counts ever drift from
-    what this suite's classes above map row-by-row, instead of silently
-    under-covering a newly added row."""
-
-    def setUp(self):
-        self.text = TEST_MD.read_text(encoding="utf-8")
-
-    def test_e2e_table_row_count(self):
-        region = _extract_region(self.text, "## E2E 測試策略", ["\n## 整合測試策略"])
-        rows = [
-            l for l in region.splitlines()
-            if l.startswith("| ") and "起點" not in l
-            and set(l.replace("|", "").strip()) != {"-"}
-        ]
-        self.assertEqual(
-            len(rows), 6,
-            "E2E table row count changed since this suite's classes were "
-            "written — re-map each row to a TestE2ERowN class above",
-        )
-
-    def test_integration_table_row_count(self):
-        region = _extract_region(self.text, "## 整合測試策略", ["\n## 關鍵邊界條件"])
-        rows = [
-            l for l in region.splitlines()
-            if l.startswith("| ") and "測試目標" not in l
-            and set(l.replace("|", "").strip()) != {"-"}
-        ]
-        self.assertEqual(
-            len(rows), 7,
-            "整合測試策略 table row count changed — re-map each row to a "
-            "TestIntegrationRowN class above",
-        )
-
-    def test_boundary_condition_item_count(self):
-        region = _extract_region(self.text, "## 關鍵邊界條件", [])
-        items = [l for l in region.splitlines() if l.startswith("- ")]
-        self.assertEqual(
-            len(items), 9,
-            "關鍵邊界條件 item count changed (this suite verified 9 live "
-            "items, not the 8 ctx.md's header labeled) — re-map each item",
-        )
+# NOTE: an earlier revision of this suite had a `TestRowAndItemCountsGuard`
+# class that re-read `.claude/analyze/2026-07-02-dataviz-chart-integration/
+# test.md` live at test-run time, to guard against row-count drift while
+# task-integration.md's spec was still being actively worked. That guard's
+# job was fully served during /execute (confirmed 6 E2E rows / 7 integration
+# rows / 9 boundary items, independently re-verified twice). `.claude/
+# analyze/` is a session-scoped working directory that `/baransu:ship`
+# archives away by design (see ship's Outcome Contract) — a permanent
+# regression suite under version control must never depend on that path
+# still existing. The row-by-row mapping this guard protected is preserved
+# forever in each TestE2ERowN / TestIntegrationRowN class's docstring below,
+# which quotes the exact Chinese scenario text from test.md at the time it
+# was verified.
 
 
 if __name__ == "__main__":

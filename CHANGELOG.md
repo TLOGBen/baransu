@@ -2,6 +2,24 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.5.16 (2026-07-02)
+
+**`/design` + `/book` 吸收 dataviz 色彩推理層，新增統計圖表類型**。plugin version 2.5.15 → 2.5.16。
+
+### Added — 新增
+
+- **`/book` 第 14 型「統計圖表」**：`svg-rendering-rules.md` §4.9/§4.10 由 13 型擴充為 14 型；同時修好一個既有、與本次無關的懸空引用（§4.9 原有 7 條指向 Candlestick／Waterfall／Donut／Bar／Line／Grouped Bar 等資料形狀的列從未接上任何 §4.10 參考檔），統一導向新的統計圖表類型。既有 13 型的判斷順序、視覺規格皆不受影響（既有型態優先）。
+- **色彩距離驗證工具**：新增 `plugins/baransu/skills/_shared/scripts/color_distance.py`，獨立實作 Machado-Oliveira-Fernandes(2009) 色盲模擬 + CIE76 ΔE 計算，回傳建議而非阻斷判定；被 `/design`（設計期烘焙）與 `/book`（執行期驗證子集）共用。
+- **`/design` 圖表分類色能力宣告**：`check.py` 新增獨立於 `schema:43` 的 `CHART_CAPABILITY` 版本層級（`--chart-cat-1`～`--chart-cat-6`）；preset/gen 流程新增宣告入口，宣告後 `tokens.css` 產出對應規範命名，未宣告時行為與現有完全一致。
+- **色彩推理參考文件**：新增 `references/color-reasoning.md`，體例仿 `/write` 的 `writing-principles.md`（模型預設會犯的錯／為什麼錯／正確做法），涵蓋雙軸圖表、彩虹漸層、身份色無圖例等反面教材，僅統計圖表類型生成時讀取。
+- **`perception-guide.md` 宣告感知單一 accent 例外**：Anti-Slop #8 新增容器範圍例外——已宣告能力的風格，統計圖表容器內的多色被放行，容器外仍受單一 accent 規則約束；未宣告或 `tokens.css` 缺失／格式錯誤時一律 fail-closed。
+
+### Notes
+
+- 紙／swiss／google-design 三個既有 preset 均未宣告此能力，回歸驗證確認行為零改變（`check.py` Check A-F、`validate-output.ts` GATE 結果皆 byte-for-byte 一致）。
+- 測試從 83 條成長到 220 條（79 subtests），`make test` 全綠。
+- **codex/ 樹本次僅同步版本號**（4 處：`plugin.json` ×2 + `marketplace.json` + `test_codex_skill_transfer.py` 硬編斷言），`/design`／`/book` SKILL.md 的內容尚未透過 `/codex-skill-transfer` 重新轉譯——下次動到 codex port 時需補跑。
+
 ## v2.5.15 (2026-06-25)
 
 「機制必要性」原則 + loaded-context 自審慣性 gotchas。`/think` Stage E 與 `/review` Stage 6 新增「Mechanism necessity」段：新增機制前必須證明它在解決問題／推進目標，而非只留一個「我這裡失敗了」的 log；失敗路徑能跳過的規則不算預防。`/analyze` 新增 Gotchas 段（Option 2 同 session 交接違反 never-share-context）、`/execute` 新增 [loaded-orchestrator self-review trap] gotcha（驗證職能必須 fresh-context 隔離，orchestrator 不得自任）。雙樹同步。
