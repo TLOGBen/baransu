@@ -11,7 +11,7 @@ Long-running orchestration engine for medium-to-large tasks. This body is Englis
 
 - **Outcome**: Every task in the /analyze spec is executed through the Summarize → Impl → Review TDAID loop and the run is fully reported.
 - **Done when**: `.claude/execute/{date}-{slug}/execute/final-report.md` exists, every registered task ended ✅ / blocked / cascade-blocked, and the Step 6 Final-Review coverage result is recorded in it.
-- **Evidence**: final-report.md carries the {N}/{M} REQ achievement rate, the Goal-Alignment Filter Metric block, and the blocked list; all session gitworktrees removed.
+- **Evidence**: final-report.md carries the {N}/{M} REQ achievement rate, the Goal-Alignment Filter Metric block, and the blocked list; all session worktrees removed.
 - **Output**: Working documents plus `final-report.md` under `.claude/execute/{date}-{slug}/execute/`.
 - **Automation**: ultracode=overlap, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
   In the same non-interactive pass, read `references/loop-pauses.md` for this skill's own PAUSE classification.
@@ -27,11 +27,15 @@ Read an `/analyze` spec directory. Execute every task through a Summarize → Im
 These apply across all steps. The review-agent rule and the spec-read-only rule are the two most commonly violated — they are the first things to re-read at Steps 4, 5, and 6 entry after any auto-compact.
 
 - **review-agent is never optional.** Every task — documentation, scripts, config, code — goes through review-agent after each impl-agent attempt. `TaskUpdate status=completed` is only reachable as the result of a review-agent outcome for the current impl attempt. Marking a task ✅ without dispatching review-agent first is a constraint violation.
-- **Analyze spec directory is read-only.** Never Edit or Write any file under `.claude/analyze/`. Any execution path that attempts this must stop immediately and escalate as a structural blocker.
+- **Analyze spec directory is read-only.** Never Edit or Write any file under `.claude/analyze/`; hooks intercept any write attempts. Any execution path that attempts this must stop immediately and escalate as a structural blocker.
 - **Subagent depth = 1.** Agents in `agents/*.md` are stateless leaf nodes. They do not dispatch further subagents.
 - **All Task Tools created before execution begins.** Register every group × task via TaskCreate in Step 2. No mid-execution task creation.
 - **Working files live under `.claude/execute/`.** Edit and Write are only permitted in the execute working directory.
 - **Goal-Alignment Filter is hard governance.** `failure_count` accounting is affected by the filter (off-goal findings are downgraded to advisory and do not increment the counter), but findings tied to an acceptance-criterion direct failure (驗收標準直接失敗) are protected by the hard invariant — they keep their original tier and still increment `failure_count`.
+- **Worktree lifecycle.** Worktrees are created for any parallel execution (L/XL); removed in Step 7 after final-report.md is written.
+- **final-fixer-agent is dispatched at most once per session.**
+- **smart-friend-agent is dispatched at most once per task** (when failure_count reaches 2).
+- **Error Reference.** When any step hits an error condition not covered by an inline Fallback, read `references/error-reference.md` and apply the matching condition → action row (condition / detection point / action lookup table, all steps).
 
 ### Orchestration interface (dual-mode)
 
@@ -77,8 +81,8 @@ Derive `{date}-{slug}` from the spec directory name (same date + slug segment). 
 
 | Max width | Class | Parallel workflows | Worktrees |
 |-----------|-------|--------------------|-----------|
-| ≥ 4 | XL | 4 (serialize excess per wave) | 4 gitworktrees |
-| 2–3 | L | width count | gitworktree per group |
+| ≥ 4 | XL | 4 (serialize excess per wave) | 4 worktrees |
+| 2–3 | L | width count | worktree per group |
 | 1 | M | 1 | none (main branch) |
 
 When the DAG allows ≥ 2 groups at the same level, run them in parallel — do not serialize L-class groups sequentially. For XL waves with > 4 groups, pick the first 4 by document order; remainder wait for the next wave.
@@ -128,7 +132,7 @@ Process groups by frontier level (topological order). Groups at the same level r
 
 For **M**: single workflow, main branch. No worktrees.
 
-For **L/XL**: create one gitworktree per group in the current wave before dispatching any impl-agent for that wave:
+For **L/XL**: create one worktree per group in the current wave before dispatching any impl-agent for that wave:
 ```bash
 git worktree add .git/worktrees/{group} -b execute/{date}-{slug}/{group}
 ```
@@ -390,7 +394,7 @@ When emitting the report:
 - Write the `total_findings_count` and `downgraded_to_advisory_count` accumulated in §4b Phase 3 into the `## Goal-Alignment Filter Metric` section (i.e. the `goal_alignment_filter_metric` block). If no review-agent returned at all during the entire session (the counters never incremented), write `0` for both values; the metric section must still be emitted (it may not be omitted). Filter behavior and the downgrade decision criterion remain as defined in §4b Phase 3 — this step only serializes, it does not recompute.
 - If an upstream work journal exists (`.claude/think/*.html` for the approved plan), read `../_shared/output-journal.md` and append this run's off-spec decisions / forced changes / tradeoffs to its 執行日誌 section per that contract, then SendUserFile the updated journal.
 
-Remove all gitworktrees created this session. The worktree-remove is always safe (it discards a checkout, not committed work). The branch force-delete is **integration-state-gated**: `git branch -D` is irreversible and would silently discard any commits that never reached main, so it runs **only** for a group whose work is confirmed integrated.
+Remove all worktrees created this session. The worktree-remove is always safe (it discards a checkout, not committed work). The branch force-delete is **integration-state-gated**: `git branch -D` is irreversible and would silently discard any commits that never reached main, so it runs **only** for a group whose work is confirmed integrated.
 
 For each session group's worktree:
 ```bash
@@ -425,8 +429,8 @@ final-report.md: .claude/execute/{date}-{slug}/execute/final-report.md
 - **[review-agent bypass trap]**: Documentation, script, and config tasks feel like they "have nothing to test". The orchestrator rationalizes skipping review-agent because impl-agent reported success. This is the failure mode: review-agent verifies impl-checklist-{group}.md acceptance criteria, not just unit tests. `TaskUpdate status=completed` is only reachable after a review-agent outcome.
   Solution: Re-read §Hard Constraints before marking any task ✅.
 
-- **[loaded-orchestrator self-review trap]**: When execute is invoked in a context already holding the spec — e.g. inline at the tail of a think→analyze chain in the same session — the orchestrator rationalizes absorbing subagent roles: it writes the code and reviews it in its own polluted context because the Summarize/Review ceremony "feels redundant when I already understand the task". The fuller the context, the stronger the pull, and the more essential the isolation: a verifier's value is precisely a context the orchestrator does not have. "I already understand this" is the trigger of the trap, not an exemption from it. This is the general case of which [review-agent bypass trap] is one instance. Honest boundary (see /think Stage E "Mechanism necessity"): this gotcha is prose inside the same path that fails, so it can be skipped like any other — it raises the cost and names the move, it does not mechanically prevent it; real prevention removes the trigger (do not invoke execute inline; hand off to a fresh session) or gates verifier dispatch outside the orchestrator's cognition.
-  Solution: Any subagent bearing a verification function — checking acceptance criteria, judging Green, tracing REQ coverage — must run in a fresh-context subagent; the orchestrator may never substitute itself, no matter how loaded its own context is. Context-loading roles (summarize) may be absorbed only by still producing their artifact for the isolated downstream agents to read.
+- **[loaded-orchestrator self-review trap]**: When execute runs in a context already holding the spec (e.g. inline after a think→analyze chain), the orchestrator rationalizes absorbing subagent roles — writing and reviewing in its own polluted context because the ceremony "feels redundant when I already understand the task". Honest boundary (see /think Stage E "Mechanism necessity"): this gotcha is prose inside the same path that fails, so it can be skipped like any other — it raises the cost and names the move, it does not mechanically prevent it; real prevention removes the trigger (do not invoke execute inline; hand off to a fresh session) or gates verifier dispatch outside the orchestrator's cognition.
+  Solution: Any subagent bearing a verification function must run in a fresh-context subagent; the orchestrator may never substitute itself. Context-loading roles (summarize) may be absorbed only by still producing their artifact for downstream agents to read.
 
 - **[compile error vs failure_count]**: After impl-agent returns ❌ with a compile error, `failure_count` must NOT increment. Counting compile errors as failures triggers smart-friend early and wastes the retry budget on syntax issues.
   Solution: Only `failure_count++` on review-agent "packaged confirm (correctness)" or "needs judgment" returns.
@@ -448,24 +452,3 @@ final-report.md: .claude/execute/{date}-{slug}/execute/final-report.md
 
 - **[goal-alignment over-filter trap]**: When the Goal-Alignment Filter downgrades all reviewer-initiated off-goal findings to advisory, an acceptance-criteria failure finding can be misclassified as off-goal and silently downgraded too. That collapses back to the [review-agent bypass trap] failure mode — the task marks ✅ while a 驗收標準直接失敗 finding was suppressed.
   Solution: The hard invariant is the floor — a finding that traces to an 驗收標準直接失敗 keeps its original tier and still increments `failure_count`. review-agent's 「逐條核對驗收標準」 is the supporting check that keeps the invariant honest; never let the filter run without it.
-
----
-
-## Constraints
-
-- Analyze spec directory is read-only across all steps; hooks intercept any write attempts.
-- All Task Tools are created in Step 2 before any implementation starts.
-- Each task passes through review-agent for every impl attempt.
-- Gitworktrees are created for any parallel execution (L/XL); removed in Step 7 after final-report.md is written.
-- final-fixer-agent is dispatched at most once per session.
-- smart-friend-agent is dispatched at most once per task (when failure_count reaches 2).
-- compile errors do not increment failure_count.
-- `failure_count` accounting is affected by the Goal-Alignment Filter (off-goal findings are downgraded to advisory and not counted); an acceptance-criterion failure (驗收標準失敗) finding is unaffected by the filter (hard invariant).
-- All user-visible output is Traditional Chinese (繁體中文).
-- Working files go under `.claude/execute/{date}-{slug}/execute/`.
-
----
-
-## Error Reference
-
-When any step hits an error condition not covered by an inline Fallback, read `references/error-reference.md` and apply the matching condition → action row (condition / detection point / action lookup table, all steps).
