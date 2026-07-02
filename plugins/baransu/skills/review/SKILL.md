@@ -46,7 +46,7 @@ Two things, in order, both passed to every dispatched reviewer.
 
 ### The claim checklist
 
-Write down — in 繁中 — what the target says it did, decided, explicitly did not do, and left open. This is the reviewer's anchor against drifting into free-form critique. If no source exists for a claim (no commit message, no docstring, no plan section), write **「no explicit claim for <area>」** rather than inventing one.
+Materialize the target from disk first (`git diff --stat` + content for code, Read for files/plans), then write down — in 繁中 — what the target claims it did, decided, explicitly did not do, and left open, against that artifact — conversation memory and commit messages are claims about it, not sources. This is the reviewer's anchor against drifting into free-form critique. If no source exists for a claim (no commit message, no docstring, no plan section), write **「no explicit claim for <area>」** rather than inventing one.
 
 Target can be any shape:
 - git diff, file set, directory, uncommitted changes
@@ -169,6 +169,8 @@ When a perspective surfaces a real-but-off-goal observation, the load-bearing ru
 
 The fourth question itself is load-bearing — silently assuming it instead of asking it produced perspective drift on past runs. Treat it as a written check at every consolidation, not as ambient atmosphere.
 
+**Dispatcher == author.** When this session performed Edit/Write on the target files, or the target artifact was produced in this conversation, a finding that contradicts an authoring decision made in this session may not be balance-downgraded to advisory by this session alone — it routes to the needs-judgment tier instead.
+
 **Hard-stop ordering.** After balance check completes (findings have been filtered into the action pile and the advisory pile), run the Hard stops sweep below as an aggregate gate over the surviving findings. The sweep does **not** re-do per-finding balance judgment; it checks the report as a whole. Any hit forces the report verdict to 「需判斷」 or 「未完成」 and pins the relevant findings to needs-judgment — they may no longer be balance-downgraded to advisory.
 
 ---
@@ -184,7 +186,7 @@ Run after Stage 6 consolidation, per the hard-stop ordering paragraph above. Eac
 - **Unknown identifier in target** — any function / variable / type / module referenced in the target that does not exist in the codebase (verify by Read / Grep, not by memory). Pin to needs-judgment.
 - **Dependency changes** — additions, version bumps, or removals in package.json / Cargo.toml / go.mod / requirements.txt / lockfiles not obviously required by the target's stated goal. Pin to needs-judgment.
 
-**Optional (1)** — list only when `security-reviewer` was not dispatched in Stage 4; otherwise omit, since the perspective already enforces this and listing it here would duplicate the gate:
+**Optional (1)** — list unless `security-reviewer` returned usable findings in Stage 4; when it did, omit, since the perspective already enforces this and listing it here would duplicate the gate:
 
 - **Injection / hardcoded secret** — SQL / command / path injection at system entry points; credentials hardcoded, logged, committed, or copied into public docs. Pin to needs-judgment.
 
@@ -196,7 +198,7 @@ This list deliberately does **not** include release-artifact missing, generated-
 
 | tier | action |
 |---|---|
-| **Direct fix** | formatter, import order, unused import, obvious typo, dead import. Nothing that touches behavior. Apply via Edit. |
+| **Direct fix** | formatter, import order, unused import, obvious typo, dead import. Apply via Edit only when behavior-freedom is verifiable from the artifact (e.g. Grep confirms no side-effect import); any doubt demotes the item to packaged confirm with the skip noted. After applying, re-run the narrowest in-session verification covering the touched files. |
 | **Packaged confirm** | non-semantic but beyond direct fix (rename, delete dead code, semantic typo). Present the batch diff once. |
 | **Needs judgment** | logic / boundary / API / behavior / security findings with concrete fixes. Batch-ask via AskUserQuestion — group by theme, not by target question count. |
 | **Advisory** | balance-downgraded, off-goal, or no concrete fix. In the report, not in the user's face. |
@@ -207,7 +209,7 @@ Per **INV-consent**, never change behavior without user consent. Do not ask one 
 
 ## E2E hard requirement
 
-If the target contains executable code, confirm e2e has been run. If no green-run evidence exists in-session, the report says 「未完成，等 e2e」 rather than calling the target done.
+If the target contains executable code, confirm e2e has been run. E2e evidence means the changed flow was exercised at its real surface — a CLI invocation, an HTTP request/response, a rendered page, or a driven UI; a green unit-test or typecheck run is a proxy and does not qualify. If no such evidence exists in-session, the report says 「未完成，等 e2e」 rather than calling the target done, and `e2e_status` derives from this definition.
 
 For plan / claim / pure-documentation targets, e2e does not apply — note as n/a with one-line reason.
 
@@ -221,7 +223,7 @@ Traditional Chinese, natural prose, this shape:
 - Target and scope
 - Claim checklist
 - Review goal
-- Who was dispatched and why
+- Who was dispatched and why; when dispatcher == author (this session edited the target or produced it), disclose that here
 - Findings by tier — 已修 / 待確認 / 需判斷 / 僅供參考. Themes hit by a Hard stops sweep item must be fully described in the prose; the hard-stops checklist below is a machine-readable companion, never a substitute — do not skip a topic in prose because it will appear in the checklist.
 - E2E status
 
@@ -229,7 +231,7 @@ Throughout the report, non-obvious claims carry a source annotation — `(verifi
 
 After the prose above, two structured-tail elements (additive — the prose is the body, these are the receipt):
 
-**Hard-stops sweep result** — checklist form. List every Required item from the Hard stops sweep section with its outcome; include the Optional item only when `security-reviewer` was not dispatched. Each line is one of: `□ <item>: not hit` or `☒ <item>: hit — <one-line citation>`.
+**Hard-stops sweep result** — checklist form. List every Required item from the Hard stops sweep section with its outcome; include the Optional item unless `security-reviewer` returned usable findings. Each line is one of: `□ <item>: not hit` or `☒ <item>: hit — <one-line citation>`.
 
 **Sign-off receipt** — fenced code block, key-value aligned, exactly these eight fields:
 
@@ -246,10 +248,10 @@ e2e_status:    完成 | 未完成等 e2e | n/a
 
 Field semantics (single source of truth for each):
 
-- `files`: Stage 2's LOC / file-count classification. Plan-type targets: `N/A`.
+- `files`: Stage 2's LOC / file-count classification, measured via `git diff --stat` / `wc -l` at Stage 2 — never estimated. Plan-type targets: `N/A`.
 - `scope`: scope drift vs claim checklist. Vocabulary: `on target` / `drift: [one-phrase summary]` / `incomplete`.
 - `depth`: Stage 2's three-tier classification (`quick` / `standard` / `deep`).
-- `perspectives`: the Stage 4 dispatched set, with `+ adversarial: yes|no` from Stage 5. Not Waza's pooled-specialists semantics — quick-pass targets still list ≥1 perspective.
+- `perspectives`: the Stage 4 returned set — a dispatched-but-failed perspective is listed as `<name>: dispatch failed` and its coverage may not be claimed — with `+ adversarial: yes|no` from Stage 5. Not Waza's pooled-specialists semantics — quick-pass targets still list ≥1 perspective.
 - `hard_stops`: the source of truth for hits. The checklist above is a derived view; if `hard_stops: none` here, all checklist lines must read `□ ... not hit`.
 - `new_tests`: pure count. Does **not** carry Waza's "regression-first" semantics — that fidelity is intentionally not inherited; regression-first verification belongs to 「/baransu:execute 或依 tdd.md 的直接實作」, not /review.
 - `doc_debt`: invariants the reviewer noticed are missing from project docs (AGENTS / CLAUDE / `.claude/rules`). `none` when nothing surfaced.
