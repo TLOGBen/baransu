@@ -70,10 +70,9 @@ This stage is non-blocking and does not affect mode dispatch.
 
 ## Canonical Token Schema (v1.3)
 
-v1.3 fixed vocabulary: the 38 base canonical token names are **required** in every preset's `tokens.css`; HTML skeletons reference tokens only through these names, and preset-specific names (Material `--md-*` / v1.2 `--brand`) are mapped as aliases. The canonical set is version-gated — **38 base canonical names** always, **+5 capability tokens** when the preset header declares `schema: 43` (38 base +5 capability = 43; schema-gated). Single source of truth: check.py's two constants `BASE_TOKENS` (38) + `CAPABILITY_TOKENS` (5); legacy presets without a `schema:` field stay at 38 base. Full schema (surface 5 / accent 2 / text 5 / border 2 / font 3 / shadow 2 / space 7 / radius 7 / layout 3 / semantic 2 / capability 5) + the v1.2 banned-name list → **read `references/canonical-tokens.md`**.
+v1.3 fixed vocabulary: the 38 base canonical token names are **required** in every preset's `tokens.css`; HTML skeletons reference tokens only through these names, and preset-specific names (Material `--md-*` / v1.2 `--brand`) are mapped as aliases. The canonical set is version-gated — **38 base canonical names** always, **+5 capability tokens** when the preset header declares `schema: 43`; legacy presets without a `schema:` field stay at 38 base. Single source of truth: check.py's two constants `BASE_TOKENS` (38) + `CAPABILITY_TOKENS` (5). Full schema (surface 5 / accent 2 / text 5 / border 2 / font 3 / shadow 2 / space 7 / radius 7 / layout 3 / semantic 2 / capability 5) + the v1.2 banned-name list → **read `references/canonical-tokens.md`**.
 
 The first line of `tokens.css`, `/* preset: <slug> */`, identifies the preset; it is parsed by `scripts/check.py` and `/baransu:book` GATE-F.
-
 
 ## Mode Dispatch (v1.3, v1.4 export-brief)
 
@@ -152,7 +151,7 @@ If no presets exist: 「目前無可用 preset。」
 
 Use `git rev-parse --show-toplevel` to find the project root.
 
-**Chart-capability declaration entry point (`--chart-capability` CLI flag)**: Preset Mode has no interview loop (Step 1-2 just parse a name and locate a fixed source directory), so its declaration entry point for 圖表分類色能力 (chart-category color capability) is a lightweight CLI flag on the invocation: `/design preset <name> --chart-capability`. Flag present → declared this run; flag absent (the default, matching every existing invocation unchanged) → undeclared. This is a deliberately different interaction *form* from Gen Mode's AskUserQuestion-based entry point (see Gen Mode Step 1 「Chart-capability declaration」) — Preset Mode has no interview to attach a question to, so a flag is its lighter-weight equivalent. Both entry points funnel into the same declared/undeclared boolean and the same Step 3 numbered atomic-staging bake+emit contract below, so behavior stays **consistent** across the two entry surfaces even though the interaction form differs.
+**Chart-capability declaration entry point (`--chart-capability` CLI flag)**: Preset Mode's declaration entry point for 圖表分類色能力 (chart-category color capability) is a CLI flag on the invocation: `/design preset <name> --chart-capability`. Flag present → declared this run; flag absent (the default, matching every existing invocation unchanged) → undeclared. For the shared dual-entry rationale, see Gen Mode Step 1 「Chart-capability declaration」.
 
 **v1.2 residue detection** (before the atomic write):
 
@@ -181,15 +180,15 @@ The v1.2 shared directories `references/cores/` and `references/slide-cores/` ar
 **Precondition (root-resolution guard, runs before step 1)**: if `{project_root}` resolved from `git rev-parse --show-toplevel` is empty or the command failed (and the cwd fallback is also empty or `/`), STOP with stderr 「無法解析 project root，中止以避免 rm -rf 誤刪」 and exit ≠ 0 — never run any `rm -rf` with an empty or root-level `{project_root}`. **Additionally (target-suffix pin, runs after the root check, before any rm -rf below)**: for each `rm -rf` command in this flow (steps 1, 9, 10), assemble its full target path and assert it equals exactly `{project_root}/.tmp/design-staging` or `{project_root}/.tmp/design-old`, with the `.tmp/...` literal segment non-empty — i.e. if the assembled `rm -rf` path does not end in the literal `/.tmp/design-staging` or `/.tmp/design-old`, STOP with stderr 「rm -rf 目標路徑非預期，中止」 and exit ≠ 0. This closes the gap where the root-only check validates `{project_root}` non-emptiness but never the appended `.tmp` subpath, so a malformed or empty suffix can never let `rm -rf` strike `{project_root}` itself.
 
 ```
-1. rm -rf {project_root}/.tmp/design-staging/   # 自動清前次失敗殘留
+1. rm -rf {project_root}/.tmp/design-staging/   # auto-clean residue from a previous failed run
 2. mkdir -p {project_root}/.tmp/design-staging/
-3. Write staging/tokens.css (從 source tokens.css 完整 copy，第一行已含 preset header)。**若圖表分類色能力宣告成立**（Preset Mode: `--chart-capability` flag 存在；Gen Mode: Step 1 的 chart-capability AskUserQuestion 選了「宣告」）：呼叫 `python3 {skill_dir}/../_shared/scripts/color_distance.py "#hex1,#hex2,#hex3,#hex4,#hex5,#hex6"` 驗證候選六色分類色組（advisory-only，不阻斷生成流程），將驗證後的六色寫入 staging/tokens.css，規範命名固定為 `--chart-cat-1` `--chart-cat-2` `--chart-cat-3` `--chart-cat-4` `--chart-cat-5` `--chart-cat-6`（沿用 check.py 的 `CHART_CAPABILITY_TOKENS` 清單，不多不少、不改名），並在第一行 preset header 追加一個獨立於 `schema: 43` 的欄位 `; chart-capability: 1`（版本號與 CAPABILITY 層 `schema: 43` 不同、互不影響）。**若未宣告**：此步驟完全跳過——不呼叫 color_distance.py，tokens.css 內容與 header 與現行行為位元組相同，不含 chart-capability 欄位。因為 atomic staging 對 tokens.css 是整份重新產出（見 I5），每次執行都依「這次」的宣告狀態決定是否寫入該欄位，故已宣告→未宣告的重新生成會自然清除先前烘焙的圖表規範命名，不會殘留造成 `/book` 端誤判仍是已宣告狀態。
+3. Write staging/tokens.css (full copy from the source tokens.css; the first line already carries the preset header). **If the 圖表分類色 capability is declared** (Preset Mode: `--chart-capability` flag present; Gen Mode: Step 1's chart-capability AskUserQuestion answered 「宣告」): call `python3 {skill_dir}/../_shared/scripts/color_distance.py "#hex1,#hex2,#hex3,#hex4,#hex5,#hex6"` to validate the candidate six-color categorical palette (advisory-only, never blocks generation), write the validated six colors into staging/tokens.css under the fixed canonical names `--chart-cat-1` `--chart-cat-2` `--chart-cat-3` `--chart-cat-4` `--chart-cat-5` `--chart-cat-6` (reuse check.py's `CHART_CAPABILITY_TOKENS` list — no more, no fewer, no renames), and append to the first-line preset header a field independent of `schema: 43`: `; chart-capability: 1` (its version number is separate from the CAPABILITY tier's `schema: 43`; the two do not affect each other). **If undeclared**: skip this step entirely（不呼叫 color_distance.py）— tokens.css content and header stay byte-identical to current behavior, with no chart-capability field. Because atomic staging regenerates tokens.css wholesale (per I5), every run decides whether to write the field from this run's declaration state, so a declared→undeclared regeneration naturally clears（自然清除）the previously baked chart token names — nothing stale survives for `/book` to misread as still-declared.
 4. Write staging/DESIGN.md
-5. Render staging/DESIGN.html (從 DESIGN.md + tokens.css 產出視覺預覽)
-6. Copy staging/design-cores/ (21 檔: long-form + gallery + dashboard + 6 文件型雙語骨架 + 6 通用元件)
-7. Copy staging/slide-cores/ (21 檔: 4 cover variants + 17 非 cover 既有 layout)
+5. Render staging/DESIGN.html (produce the visual preview from DESIGN.md + tokens.css)
+6. Copy staging/design-cores/ (21 files: long-form + gallery + dashboard + 6 document-type bilingual skeletons + 6 universal components)
+7. Copy staging/slide-cores/ (21 files: 4 cover variants + 17 existing non-cover layouts)
 8. (紙 preset only) Copy staging/紙-sanity.sh
-9. Atomic move: mv project_root 既有 v1.3 artifact 到 .tmp/design-old/ → mv staging/* 到 project root → rm -rf .tmp/design-old/
+9. Atomic move: mv the project root's existing v1.3 artifacts to .tmp/design-old/ → mv staging/* to project root → rm -rf .tmp/design-old/
 10. rm -rf .tmp/design-staging/
 ```
 
@@ -264,7 +263,7 @@ Both lines derive from the one extreme answer — never let token values and §9
 
 #### Chart-capability declaration (圖表分類色能力)
 
-Alongside the extreme-commitment axis, ask one more AskUserQuestion in the same Step 1 interview — Gen Mode's declaration entry point for 圖表分類色能力 (chart-category color capability): 「這個風格需不需要圖表分類色能力？（供統計圖表使用多個可辨識分類色，而非單一 accent）」, options 「宣告」(Step 3 atomic staging then calls the color-distance tool and bakes six chart tokens into tokens.css) / 「不宣告」(default when skipped, matching every existing gen invocation unchanged — keeps the current single-accent rule, no new token). This is a deliberately different interaction *form* from Preset Mode's `--chart-capability` CLI flag (see Preset Mode Step 3) — gen already runs an interview loop here, preset does not — but both entry points feed the same declared/undeclared boolean and the same Step 3 numbered atomic-staging bake+emit contract, keeping behavior **consistent** across the two entry surfaces.
+Alongside the extreme-commitment axis, ask one more AskUserQuestion in the same Step 1 interview — Gen Mode's declaration entry point for 圖表分類色能力 (chart-category color capability): 「這個風格需不需要圖表分類色能力？（供統計圖表使用多個可辨識分類色，而非單一 accent）」, options 「宣告」(Step 3 atomic staging then calls the color-distance tool and bakes six chart tokens into tokens.css) / 「不宣告」(default when skipped, matching every existing gen invocation unchanged — keeps the current single-accent rule, no new token). This AskUserQuestion and Preset Mode's `--chart-capability` flag (see Preset Mode Step 3) both funnel into the same Step 3 contract — one declared/undeclared boolean, one atomic-staging bake+emit flow.
 
 #### Gen Mode Step 1.5 — Donor-clone the 21+21 skeletons (closed step)
 
@@ -479,13 +478,13 @@ When a slide-core carries an `<img>` / `background-image`, set the per-layout `o
 
 ## Anti-patterns (skill-operation blacklist)
 
-🔴 Operator red lines for this skill — each entry is `❌ don't do X → because Y (failure consequence) → ✅ do Z instead`. Honoring the GATEs/CHECKPOINTs in §Decision checkpoint map is mandatory; the entries below name the specific traps that bypass them.
+🔴 Operator red lines for this skill — each entry is `❌ don't do X → ✅ do Z instead`, citing its authoritative section; a `→ because Y` clause stays only where that section does not already state the failure consequence. Honoring the GATEs/CHECKPOINTs in §Decision checkpoint map is mandatory; the entries below name the specific traps that bypass them.
 
-- ❌ Don't write to project root while the 🔴 GATE — destructive overwrite is firing (v1.2 residue detected, no `--force`) → because it destroys the user's existing artifacts (tokens.css / DESIGN.md / design-cores/ / slide-cores/) with no backup, irreversibly → ✅ honor the GATE: only write when `--force` is present or no residue exists (Preset Mode Step 3).
-- ❌ Don't leave placeholder hex or invent color values in DESIGN.md §2 → because it breaks lint Check B/D (canonical reference) and export-brief's dynamic hex resolution, which reads each named color from the live `tokens.css` → ✅ give every named color a real hex; never hard-code Kami `#1B365D` into a non-Kami preset's output.
-- ❌ Don't write the 5 artifacts straight to project root, skipping atomic staging → because an IO interrupt (SIGTERM/SIGINT) mid-write leaves a half-applied artifact set with no rollback → ✅ always stage to `.tmp/design-staging/` first, then atomic-mv only after all 5 succeed (Preset/Gen Mode Step 3).
-- ❌ Don't treat `lint` / `Lint` / `LINT` as synonyms → because Mode Dispatch is case-sensitive: only lowercase `lint` enters lint mode, and the others silently fall through to gen mode → ✅ match `lint` (lowercase exact) before dispatching.
-- ❌ Don't confuse `DESIGN.md` (uppercase, UI visual spec, this skill) with `design.md` (lowercase, `/analyze` technical layer) → because writing to the wrong one corrupts an unrelated artifact and the lint Check D nine-section gate will not catch it → ✅ this skill only ever reads/writes uppercase `DESIGN.md` at project root.
+- ❌ Don't write to project root while the 🔴 GATE — destructive overwrite is firing (v1.2 residue detected, no `--force`) → ✅ honor the GATE: only write when `--force` is present or no residue exists (Preset Mode Step 3).
+- ❌ Don't leave placeholder hex or invent color values in DESIGN.md §2 → ✅ give every named color a real hex; never hard-code Kami `#1B365D` into a non-Kami preset's output (lint Check B/D; §Export-brief Mode B20 boundary).
+- ❌ Don't write the 5 artifacts straight to project root, skipping atomic staging → because an IO interrupt mid-write leaves a half-applied artifact set with no rollback → ✅ stage to `.tmp/design-staging/` first, then atomic-mv (per I5; Preset/Gen Mode Step 3).
+- ❌ Don't treat `lint` / `Lint` / `LINT` as synonyms → ✅ match `lint` (lowercase exact) before dispatching (§Mode Dispatch).
+- ❌ Don't confuse `DESIGN.md` (uppercase, UI visual spec, this skill) with `design.md` (lowercase, `/analyze` technical layer) → because writing to the wrong one corrupts an unrelated artifact and no lint gate catches it → ✅ only ever read/write uppercase `DESIGN.md` at project root (per I4).
 
 ---
 
