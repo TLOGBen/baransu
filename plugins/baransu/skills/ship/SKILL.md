@@ -1,6 +1,6 @@
 ---
 name: ship
-description: Use When wrapping up a session and pushing pending changes. Do Archive every baransu working dir under .claude/ except the read/learn/book products into .claude/archived/, commit, push (optionally landing the work on a target branch via `/ship BRANCH`), and tear down the worktree once its work is safely on origin. Trigger On '/ship', '收工', '上傳收尾', '結束這輪'. Not For writing or refining copy (use /write); not for reviewing code or model output (use /review) — /ship only wraps up a session.
+description: "Wraps up a session: archives every baransu working dir under .claude/ except the read/learn/book products into .claude/archived/, commits, pushes (optionally landing the work on a target branch via `/ship BRANCH`), and tears down the worktree once its work is safely on origin. Trigger On '/ship', '收工', '上傳收尾', '結束這輪'. Not For writing or refining copy (use /write); not for reviewing code or model output (use /review) — /ship only wraps up a session."
 ---
 
 # /baransu:ship — session cleanup

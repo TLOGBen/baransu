@@ -1,6 +1,6 @@
 ---
 name: analyze
-description: "Use When task scope spans ≥2 interdependent modules and context rot is real. Do Build a goal→requirement→design→test→task spec under .claude/analyze/, then hand off to /execute. Trigger On '/analyze', '分析需求', '展開規格'. Not for single-file or single-layer changes with no cross-module dependency (use /think or implement directly); not for deciding whether a task is worth doing (/think Evaluation Mode). 繁體中文輸出。"
+description: "Builds a goal→requirement→design→test→task spec under .claude/analyze/, then hands off to /execute. Use when task scope spans ≥2 interdependent modules and context rot is real. Trigger On '/analyze', '分析需求', '展開規格'. Not for single-file or single-layer changes with no cross-module dependency (use /think or implement directly); not for deciding whether a task is worth doing (/think Evaluation Mode). 繁體中文輸出。"
 ---
 
 # analyze — define done before execution

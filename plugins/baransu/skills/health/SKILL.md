@@ -1,8 +1,8 @@
 ---
 name: health
 description: >
-  Use When the user wants to audit a project's agent configuration or AI-coding maintainability — instruction drift, hooks/MCP, verifier surfaces, code-rot signals. Do Run a budget-aware five-layer audit (agent config → instruction surfaces → tools/runtime → verifiers → maintainability): classify the project tier, collect data via scripts, escalate to inspector subagents only for deep audits. Trigger On '/health', '健康檢查', '配置體檢', '檢查配置', 'AI 可維護性', 'agents ignoring instructions'. 繁體中文輸出。
-when_to_use: "健康檢查, 配置體檢, 檢查配置, 檢查 claude, 檢查 codex, 配置對不對, 健康度, AI coding 腐化, 程式碼變爛, 可維護性, 上下文混亂, 驗證缺失, hooks 沒生效, MCP 壞了, AGENTS.md, agent instructions, Claude ignoring instructions, check config, audit config, health check, config drift"
+  Audits a project's agent configuration and AI-coding maintainability — instruction drift, hooks/MCP, verifier surfaces, code-rot signals. Runs a budget-aware five-layer audit (agent config → instruction surfaces → tools/runtime → verifiers → maintainability): classifies the project tier, collects data via scripts, escalates to inspector subagents only for deep audits. Trigger On '/health', '健康檢查', '配置體檢', '檢查配置', 'AI 可維護性', 'agents ignoring instructions'. 繁體中文輸出。
+when_to_use: "檢查 claude, 檢查 codex, 配置對不對, 健康度, AI coding 腐化, 程式碼變爛, 上下文混亂, 驗證缺失, hooks 沒生效, MCP 壞了, AGENTS.md, agent instructions, check config, audit config, health check, config drift"
 metadata:
   version: "1.0.0"
   scope: user-project-agent-config-and-maintainability

@@ -1,6 +1,6 @@
 ---
 name: execute
-description: "Use When implementing a medium-to-large /analyze spec end-to-end. Do TDAID orchestrator: reads the spec, drives Summarize→Impl→Review loops via subagents, runs E2E + Final-Review, writes final-report.md. Trigger On '/execute', '開始執行', '跑 execute', '依照 analyze 執行'. Not for: tasks with no /analyze spec (implement directly) or worth/value judgments (use /think)."
+description: "Implements a medium-to-large /analyze spec end-to-end — TDAID orchestrator: reads the spec, drives Summarize→Impl→Review loops via subagents, runs E2E + Final-Review, writes final-report.md. Use when a completed /analyze spec exists. Trigger On '/execute', '開始執行', '跑 execute', '依照 analyze 執行'. Not for: tasks with no /analyze spec (implement directly) or worth/value judgments (use /think)."
 argument-hint: "<spec-dir-path>"
 user-invocable: true
 ---
