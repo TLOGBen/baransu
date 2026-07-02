@@ -72,6 +72,22 @@ SWISS_SMOKE_SH = BOOK_SKILL_DIR / "scripts" / "swiss-smoke-test.sh"
 
 COLOR_DISTANCE_PY = SHARED_SCRIPTS_DIR / "color_distance.py"
 
+# ── Ambient-environment guards ────────────────────────────────────────────
+# Two fixtures below depend on artifacts that are .gitignored by design and
+# exist only in a working tree where they have been generated:
+#   * the repo-root /design artifacts (DESIGN.md / tokens.css / design-cores /
+#     slide-cores) — regenerable via `/design preset 紙`;
+#   * the book scripts' node_modules (cheerio) — regenerable via `npm install`
+#     in plugins/baransu/skills/book/scripts/.
+# In a fresh clone/worktree those tests cannot run meaningfully; they skip
+# with an actionable reason instead of failing, and every other class in
+# this suite stays fully runnable there.
+AMBIENT_ROOT_ARTIFACTS_PRESENT = all(
+    (WORKTREE_ROOT / name).exists()
+    for name in ("DESIGN.md", "tokens.css", "design-cores", "slide-cores")
+)
+CHEERIO_PRESENT = (BOOK_SKILL_DIR / "scripts" / "node_modules" / "cheerio").exists()
+
 # Commit immediately before this feature's work started (main HEAD when the
 # dataviz-chart-integration /execute run began). The "purely additive" /
 # "zero diff" claims below are historical facts about how THIS feature was
@@ -260,6 +276,11 @@ class TestAC3CheckPyRegressionRealPresetsAndRepoRoot(unittest.TestCase):
                     "appear for these fixtures",
                 )
 
+    @unittest.skipUnless(
+        AMBIENT_ROOT_ARTIFACTS_PRESENT,
+        "repo-root /design artifacts absent (gitignored; fresh clone/worktree)"
+        " — regenerate via `/design preset 紙` to run this check",
+    )
     def test_repo_root_passes_clean(self):
         result = run_check(WORKTREE_ROOT)
         self.assertEqual(result.returncode, 0, msg=result.stdout)
@@ -272,6 +293,13 @@ class TestAC3CheckPyRegressionRealPresetsAndRepoRoot(unittest.TestCase):
 # here we re-run its actual fixture-based regression mechanism)
 # ─────────────────────────────────────────────────────────────────────────
 
+@unittest.skipUnless(
+    CHEERIO_PRESENT,
+    "book scripts node_modules/cheerio absent (gitignored; fresh clone/worktree)"
+    " — run `npm install` in plugins/baransu/skills/book/scripts/ to run this"
+    " check (without it the smoke script bails after its first line and the"
+    " class's other assertions would pass vacuously)",
+)
 class TestAC4ValidateOutputSmokeTestRegression(unittest.TestCase):
     """AC4 — re-run `swiss-smoke-test.sh` (the existing fixture-based
     regression mechanism for validate-output.ts) and confirm every gate's

@@ -47,10 +47,10 @@ Before reviewing, read `plugins/baransu/skills/_shared/tdd.md` and check test qu
    refactor_signal: [true | false]
    spec_contradiction: [false | "REQ-XXX 與 REQ-YYY 在現有設計下無法共存：{原因}"]
    green_proof:
-     test_command: {the actual test command string executed, e.g.: `pytest tests/test_foo.py`; direct fix tier and cosmetic-only path allow "n/a"}
+     test_command: {the actual test command string executed, e.g.: `pytest tests/test_foo.py`; the cosmetic-only path allows "n/a"}
      exit_code: {integer; for non-direct-fix tiers it must be 0 for the review to pass}
-     output_tail: {string; last 30 lines of output verbatim, must not be rewritten; direct fix tier and cosmetic-only path allow ""}
-     tests_correspondence: {string; the reviewer must declare 「以下 test 對應 TASK-NN 的 AC-MM」 and cite a test path or name fragment that already exists in design.md / the task spec; direct fix tier and cosmetic-only path allow "n/a"}
+     output_tail: {string; last 30 lines of output verbatim, must not be rewritten; the cosmetic-only path allows ""}
+     tests_correspondence: {string; the reviewer must declare 「以下 test 對應 TASK-NN 的 AC-MM」 and cite a test path or name fragment that already exists in design.md / the task spec; the cosmetic-only path allows "n/a"}
    ```
    `refactor_signal` is true only when `packaged confirm (quality)` and the task is L/XL; otherwise false.
 
