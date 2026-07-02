@@ -68,7 +68,7 @@ Each candidate is normalized to the shared shape:
 
 ## Display to User
 
-See `SKILL.md §AskUserQuestion 互動規格` for capacity, escape, multi-round, termination. This lane uses the spec as-is.
+See `references/acquisition/candidate-selection.md` for capacity, escape, multi-round, termination. This lane uses the spec as-is.
 
 ---
 

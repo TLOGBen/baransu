@@ -69,7 +69,7 @@ Normalize each paper entry to the shared candidate shape:
 }
 ```
 
-Then present candidates via AskUserQuestion per `SKILL.md §AskUserQuestion 互動規格` — capacity, escape, multi-round, and termination semantics are defined there. This lane uses the spec as-is.
+Then present candidates via AskUserQuestion per `references/acquisition/candidate-selection.md` — capacity, escape, multi-round, and termination semantics are defined there. This lane uses the spec as-is.
 
 `title` populates the AskUserQuestion `label`; `description` populates the option `description`; `url` is the value carried forward.
 
@@ -79,7 +79,7 @@ Then present candidates via AskUserQuestion per `SKILL.md §AskUserQuestion 互�
 
 User selection happens via AskUserQuestion (single-pick semantics; selection terminates the round sequence). The selected paper proceeds through the Acquire → Convert → Organize pipeline; if the user picks the escape option (`「以上都不選」`), terminate with no material output.
 
-For `N = 10` candidates from `search-papers.py` (default), the round mapping in `SKILL.md §AskUserQuestion 互動規格` truncates to the first 9 by `search-papers.py`'s native ranking and presents 3 rounds (3 + 3 + 3 result slots, plus escape per round).
+For `N = 10` candidates from `search-papers.py` (default), the round mapping in `references/acquisition/candidate-selection.md` truncates to the first 9 by `search-papers.py`'s native ranking and presents 3 rounds (3 + 3 + 3 result slots, plus escape per round).
 
 Single-pick replaces the prior multi-select (`1 3 5`) workflow; multi-paper sessions are achieved by re-invoking `/read --topic "keyword"` after each paper finishes.
 
