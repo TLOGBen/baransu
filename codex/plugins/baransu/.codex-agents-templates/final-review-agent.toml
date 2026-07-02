@@ -21,17 +21,17 @@ Produce a Coverage Report identifying any REQ-XXX not covered by tests.
 
 1. **Acceptance method**: read the REQ-XXX list in requirement.md one by one; for each requirement:
    a. Search the test directory for a test referencing this REQ-XXX (or the key behaviors of its scenarios)
-   b. Confirm the test passed (green) on its most recent run
+   b. Run the covering tests now, on the current merged tree, and confirm green (a single whole-suite run may be reused across REQs); a historical green run is a claim, not a confirmation
    c. If no corresponding green test is found, mark ❌ in the Coverage Report
 
 2. **Coverage Report format**:
    ```
    # Coverage Report
 
-   | REQ | 狀態 | 測試位置 |
-   |-----|------|---------|
-   | REQ-001 | ✅ | tests/req001.test.ts:42 |
-   | REQ-002 | ❌ | 未找到對應綠燈測試 |
+   | REQ | 狀態 | 測試位置 | 證據（command＋exit code＋run 時戳）|
+   |-----|------|---------|-------------------------------------|
+   | REQ-001 | ✅ | tests/req001.test.ts:42 | `npm test` → exit 0 @ 2026-07-02T10:12:00+08:00 |
+   | REQ-002 | ❌ | 未找到對應綠燈測試 | — |
 
    needs_fixer: [true | false]
    advisory_notes: {若有，記錄非覆蓋問題的觀察}

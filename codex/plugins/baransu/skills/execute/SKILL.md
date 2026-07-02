@@ -356,7 +356,7 @@ Read `test.md` for the E2E startup command (typically in the E2E 測試策略 se
 
 If no command found → record 「E2E 跳過：test.md 未提供啟動命令」in final-report; proceed to Step 6.
 
-If E2E passes → record ✅ in final-report.
+If E2E passes → record ✅ in final-report together with an `e2e_evidence` block: the exact command run, its exit_code, the collected/passed test counts parsed from the output, and a verbatim output tail. A ✅ without this block is a claim, not a confirmation. Exit 0 with 0 tests collected, or counts that cannot be parsed from the output, is NOT a pass — record ❌ and enter the failure path below.
 
 If E2E fails:
 1. Group independent failure clusters (one per failing feature area; if boundaries unclear, one cluster per failing test)
@@ -434,6 +434,9 @@ final-report.md: .claude/execute/{date}-{slug}/execute/final-report.md
 
 - **[review-agent bypass trap]**: Documentation, script, and config tasks feel like they "have nothing to test". The orchestrator rationalizes skipping review-agent because impl-agent reported success. This is the failure mode: review-agent verifies impl-checklist-{group}.md acceptance criteria, not just unit tests. `update task-map.md task state status=completed` is only reachable after a review-agent outcome.
   Solution: Re-read §Hard Constraints before marking any task ✅.
+
+- **[loaded-orchestrator self-review trap]**: When execute is invoked in a context already holding the spec — e.g. inline at the tail of a think→analyze chain in the same session — the orchestrator rationalizes absorbing subagent roles: it writes the code and reviews it in its own polluted context because the Summarize/Review ceremony "feels redundant when I already understand the task". The fuller the context, the stronger the pull, and the more essential the isolation: a verifier's value is precisely a context the orchestrator does not have. "I already understand this" is the trigger of the trap, not an exemption from it. This is the general case of which [review-agent bypass trap] is one instance. Honest boundary (see /think Stage E "Mechanism necessity"): this gotcha is prose inside the same path that fails, so it can be skipped like any other — it raises the cost and names the move, it does not mechanically prevent it; real prevention removes the trigger (do not invoke execute inline; hand off to a fresh session) or gates verifier dispatch outside the orchestrator's cognition.
+  Solution: Any subagent bearing a verification function — checking acceptance criteria, judging Green, tracing REQ coverage — must run in a fresh-context subagent; the orchestrator may never substitute itself, no matter how loaded its own context is. Context-loading roles (summarize) may be absorbed only by still producing their artifact for the isolated downstream agents to read.
 
 - **[compile error vs failure_count]**: After impl-agent returns ❌ with a compile error, `failure_count` must NOT increment. Counting compile errors as failures triggers smart-friend early and wastes the retry budget on syntax issues.
   Solution: Only `failure_count++` on review-agent "packaged confirm (correctness)" or "needs judgment" returns.

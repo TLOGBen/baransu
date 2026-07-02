@@ -157,6 +157,8 @@ If no presets exist: 「目前無可用 preset。」
 
 Use `git rev-parse --show-toplevel` to find the project root.
 
+**Chart-capability declaration entry point (`--chart-capability` CLI flag)**: Preset Mode has no interview loop (Step 1-2 just parse a name and locate a fixed source directory), so its declaration entry point for 圖表分類色能力 (chart-category color capability) is a lightweight CLI flag on the invocation: `/design preset <name> --chart-capability`. Flag present → declared this run; flag absent (the default, matching every existing invocation unchanged) → undeclared. This is a deliberately different interaction *form* from Gen Mode's ask the user directly with numbered options, then stop for the user's reply-based entry point (see Gen Mode Step 1 「Chart-capability declaration」) — Preset Mode has no interview to attach a question to, so a flag is its lighter-weight equivalent. Both entry points funnel into the same declared/undeclared boolean and the same Step 3 numbered atomic-staging bake+emit contract below, so behavior stays **consistent** across the two entry surfaces even though the interaction form differs.
+
 **v1.2 residue detection** (before the atomic write):
 
 Either condition counts as v1.2 residue:
@@ -186,7 +188,7 @@ The v1.2 shared directories `references/cores/` and `references/slide-cores/` ar
 ```
 1. rm -rf {project_root}/.tmp/design-staging/   # 自動清前次失敗殘留
 2. mkdir -p {project_root}/.tmp/design-staging/
-3. Write staging/tokens.css (從 source tokens.css 完整 copy，第一行已含 preset header)
+3. Write staging/tokens.css (從 source tokens.css 完整 copy，第一行已含 preset header)。**若圖表分類色能力宣告成立**（Preset Mode: `--chart-capability` flag 存在；Gen Mode: Step 1 的 chart-capability numbered-options question 選了「宣告」）：呼叫 `python3 {skill_dir}/../_shared/scripts/color_distance.py "#hex1,#hex2,#hex3,#hex4,#hex5,#hex6"` 驗證候選六色分類色組（advisory-only，不阻斷生成流程），將驗證後的六色寫入 staging/tokens.css，規範命名固定為 `--chart-cat-1` `--chart-cat-2` `--chart-cat-3` `--chart-cat-4` `--chart-cat-5` `--chart-cat-6`（沿用 check.py 的 `CHART_CAPABILITY_TOKENS` 清單，不多不少、不改名），並在第一行 preset header 追加一個獨立於 `schema: 43` 的欄位 `; chart-capability: 1`（版本號與 CAPABILITY 層 `schema: 43` 不同、互不影響）。**若未宣告**：此步驟完全跳過——不呼叫 color_distance.py，tokens.css 內容與 header 與現行行為位元組相同，不含 chart-capability 欄位。因為 atomic staging 對 tokens.css 是整份重新產出（見 I5），每次執行都依「這次」的宣告狀態決定是否寫入該欄位，故已宣告→未宣告的重新生成會自然清除先前烘焙的圖表規範命名，不會殘留造成 `/book` 端誤判仍是已宣告狀態。
 4. Write staging/DESIGN.md
 5. Render staging/DESIGN.html (從 DESIGN.md + tokens.css 產出視覺預覽)
 6. Copy staging/design-cores/ (21 檔: long-form + gallery + dashboard + 6 文件型雙語骨架 + 6 通用元件)
@@ -264,6 +266,10 @@ Replace any neutral intensity / boldness slider with a single **extreme-commitme
 All values stay token-only / PDF-safe (per I3): CSS animation is progressive-enhancement only; PDF/PPT render the static final state.
 
 Both lines derive from the one extreme answer — never let token values and §9 drift onto separate decisions.
+
+#### Chart-capability declaration (圖表分類色能力)
+
+Alongside the extreme-commitment axis, ask one more ask the user directly with numbered options, then stop for the user's reply in the same Step 1 interview — Gen Mode's declaration entry point for 圖表分類色能力 (chart-category color capability): 「這個風格需不需要圖表分類色能力？（供統計圖表使用多個可辨識分類色，而非單一 accent）」, options 「宣告」(Step 3 atomic staging then calls the color-distance tool and bakes six chart tokens into tokens.css) / 「不宣告」(default when skipped, matching every existing gen invocation unchanged — keeps the current single-accent rule, no new token). This is a deliberately different interaction *form* from Preset Mode's `--chart-capability` CLI flag (see Preset Mode Step 3) — gen already runs an interview loop here, preset does not — but both entry points feed the same declared/undeclared boolean and the same Step 3 numbered atomic-staging bake+emit contract, keeping behavior **consistent** across the two entry surfaces.
 
 #### Gen Mode Step 1.5 — Donor-clone the 21+21 skeletons (closed step)
 
