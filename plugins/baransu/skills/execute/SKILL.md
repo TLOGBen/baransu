@@ -14,6 +14,7 @@ Long-running orchestration engine for medium-to-large tasks. This body is Englis
 - **Evidence**: final-report.md carries the {N}/{M} REQ achievement rate, the Goal-Alignment Filter Metric block, and the blocked list; all session gitworktrees removed.
 - **Output**: Working documents plus `final-report.md` under `.claude/execute/{date}-{slug}/execute/`.
 - **Automation**: ultracode=overlap, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
+  In the same non-interactive pass, read `references/loop-pauses.md` for this skill's own PAUSE classification.
 
 ## Goal
 

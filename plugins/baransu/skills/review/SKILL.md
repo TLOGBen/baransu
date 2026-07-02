@@ -205,6 +205,8 @@ This list deliberately does **not** include release-artifact missing, generated-
 
 Per **INV-consent**, never change behavior without user consent. Do not ask one question per finding.
 
+PAUSE classification for non-interactive drivers: `references/loop-pauses.md` — read it when driven by /loop, cron, or Workflow.
+
 ---
 
 ## E2E hard requirement

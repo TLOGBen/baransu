@@ -21,6 +21,8 @@ If you find yourself thinking "I could just write this quickly" — that's exact
 - **Output**: The 繁中 five-section plan presented in the conversation (or the verdict + three reasons); after approval, persist `.claude/think/<slug>.md` (the plan verbatim) and `.claude/think/<slug>.html` (HTML work journal, containing an 「執行日誌」 section, per the `_shared/output-journal.md` contract), and send them via SendUserFile; then hand off to /analyze or implement directly per _shared/tdd.md.
 - **Automation**: ultracode=neutral, loop=not-drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
+PAUSE classification for non-interactive drivers: `references/loop-pauses.md` — read it alongside `../_shared/loop-contract.md` when driven by /loop, cron, or Workflow (this skill is not loop-drivable).
+
 ## The iron rule
 
 Until the user has explicitly approved the final proposal through `AskUserQuestion` (Stage G), do **not** produce:
