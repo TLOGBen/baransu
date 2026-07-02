@@ -1,6 +1,6 @@
 ---
 name: think
-description: Turn rough intent into a validated five-section approved plan — never
+description: Turns rough intent into a validated five-section approved plan — never
   produces code, scaffolding, or pseudo-code. Use whenever the user proposes a new
   feature, architecture decision, library choice, refactor, or data-model change,
   including 「怎麼設計」「哪種方法」 or "I want to build / refactor / migrate X", even without
@@ -35,10 +35,12 @@ If you find yourself thinking "I could just write this quickly" — that's exact
 ## Outcome Contract
 
 - **Outcome**: Converge a vague intent into a five-section plan explicitly approved by the user (or, in Evaluation mode, a single-line Kill / Keep / Pivot verdict), producing no code at any point.
-- **Done when**: The user approves the final proposal at the Stage G four-option gate (ask the user directly, record the authorization decision, and stop until the user answers), or explicitly abandons this round's plan; a free-text approval must be closed and recorded with 「收到，把這當成批准實作」.
+- **Done when**: The user approves the final proposal at the Stage G four-option gate (ask the user directly, record the authorization decision, and stop until the user answers), or explicitly abandons this round's plan; a free-text approval must be closed and recorded with 「收到，把這當成批准實作」; in Evaluation mode, the verdict is confirmed with 「同意」 or closed after at most one re-verdict (see Verdict closure).
 - **Evidence**: The Stage G ask the user directly, record the authorization decision, and stop until the user answers interaction result — one of the four options selected, or the closing sentence of a free-text approval has been emitted.
 - **Output**: The 繁中 five-section plan presented in the conversation (or the verdict + three reasons); after approval, persist `.claude/think/<slug>.md` (the plan verbatim) and `.claude/think/<slug>.html` (HTML work journal, containing an 「執行日誌」 section, per the `_shared/output-journal.md` contract), and send them via write the artifact to disk and list its absolute path; then hand off to /analyze or implement directly per _shared/tdd.md.
 - **Automation**: ultracode=neutral, loop=not-drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
+
+PAUSE classification for non-interactive drivers: `references/loop-pauses.md` — read it alongside `../_shared/loop-contract.md` when driven by /loop, cron, or Workflow (this skill is not loop-drivable).
 
 ## The iron rule
 
@@ -52,7 +54,7 @@ Until the user has explicitly approved the final proposal through `authorization
 
 You *may* reference existing file paths when citing what you found, and you *may* draw ASCII diagrams of component relationships (Stage E). ASCII diagrams must show logical component, service, or data-flow relationships only — no directory names, file paths, or module paths. Everything else is code, and code is forbidden.
 
-Why so strict: the whole point is that a premature code artefact anchors the user — once they see a draft, they argue about its wording rather than its architecture. The value of `/think` is the conversation *before* code, not a head start on code.
+Why so strict: a premature code artefact anchors the user — they argue about its wording instead of its architecture.
 
 ---
 
@@ -70,10 +72,8 @@ Mode selection has two layers. The first picks the **kind** of output (Plan vs E
 
 Before mode selection, check for a DESIGN.md at the project root:
 1. Run `git rev-parse --show-toplevel 2>/dev/null`. If empty / fails, skip silently.
-2. If `{root}/DESIGN.md` exists, read it into context and output one line in 繁中: 「已載入 DESIGN.md，視覺規格已參考」
+2. If `{root}/DESIGN.md` exists, read it into context — so Stage A alignment isn't blind to the existing design language — and output one line in 繁中: 「已載入 DESIGN.md，視覺規格已參考」
 3. If absent, skip silently. Non-blocking.
-
-Rationale: /think frequently discusses UI / design choices; loading DESIGN.md into context early avoids being blind to the "existing design language" during Stage A alignment.
 
 ### First layer — Plan vs Evaluation (kind divergence)
 
@@ -83,9 +83,9 @@ Decide the kind of output the user wants:
 - **Evaluation** — a value judgment about whether something should exist, be kept, or be removed. Produces a single-line verdict (Kill / Keep / Pivot) plus three reasons.
 
 Pick **Evaluation** when the user's intent matches one of these triggers and the user is NOT in the middle of debugging an error:
-「判断一下」, 「值不值得」, 「有没有必要」, 「我不想做」, 「商业前景」, "should we keep this", "is this worth it".
+「判斷一下」, 「值不值得」, 「有沒有必要」, 「我不想做」, 「商業前景」, "should we keep this", "is this worth it".
 
-**Disambiguation — Evaluation vs `/hunt`**: when the trigger is paired with an error / bug context (「判断一下这个报错」, 「判断这个错误」, 「这个报错值不值得修」, etc.), route to `/hunt` instead. Evaluation Mode is strictly for value / existence judgments, not debugging.
+**Disambiguation — Evaluation vs `/hunt`**: when the trigger is paired with an error / bug context (「判斷一下這個報錯」, 「判斷這個錯誤」, 「這個報錯值不值得修」, etc.), route to `/hunt` instead. Evaluation Mode is strictly for value / existence judgments, not debugging.
 
 If Plan is picked, continue to the second layer. If Evaluation is picked, skip the depth layer and jump to **Evaluation Mode** (below).
 
@@ -108,7 +108,7 @@ Typical phrasings: "fix the bug where…", "this throws when…", "this should r
 
 ### Escalation from Lightweight to Full (inside the Plan branch only)
 
-If in Step 1 of Lightweight mode you find **3 or more substantively different fixes** (not the-same-fix-at-different-intensities), that's a disguised design decision. Tell the user plainly: "this looks like a bug fix, but there are three fundamentally different ways to fix it with real trade-offs — switching to full `/think`", and jump to Stage A.
+If while drafting the Lightweight recommendation you find **3 or more substantively different fixes** (not the-same-fix-at-different-intensities), that's a disguised design decision. Tell the user plainly: "this looks like a bug fix, but there are three fundamentally different ways to fix it with real trade-offs — switching to full `/think`", and jump to Stage A.
 
 This rule is scoped to **Lightweight → Full inside Plan**. There is no automatic escalation between Plan and Evaluation, nor demotion between Full and Lightweight when started from Evaluation. If mid-flow you discover the outer layer was wrong (e.g. realised the user wants a Plan instead of an Evaluation), stop and tell them to restart `/think` — mode switching mid-stream is not supported.
 
@@ -150,6 +150,10 @@ If the user instead asks to broaden Lightweight into Full ("actually let's plan 
 
 Total output: ~10 lines in Traditional Chinese, then wait. This mode is for value / existence judgment — "should X exist, be kept, or removed". It is not for "how to build X" (that's Plan) and it is not for debugging (that's `/hunt`; see the Step 0 disambiguation rule).
 
+### Constraint elicitation gate
+
+The three reasons below must be grounded in the user's actual constraints. If the conversation does not already reveal them (time budget, motivation, maintenance cost, business model), ask exactly ONE ask the user directly with numbered options, then stop; classify whether this is an authorization PAUSE before continuing round in 繁體中文 to elicit the missing ones BEFORE emitting the verdict — never fabricate constraints, never substitute generic trade-offs. If the user declines to answer, state that in the output and ground the reasons in what is observable from the repo instead.
+
 ### Output format (Kill / Keep / Pivot)
 
 Line 1 is exactly one of **Kill** / **Keep** / **Pivot** as the verdict. No preamble, no hedging.
@@ -186,6 +190,15 @@ Do not present options for the user to pick between. Do not use Plan's five-sect
 
 Then stop. Wait for one round of user confirmation. Do not proceed to Plan's stages (A-G) — Evaluation produces a verdict, not a plan.
 
+### Impact-block evidence rule
+
+Before emitting a Kill or major-rework verdict, verify the impact block against the live repo — list the actual 涉及檔案, grep for 依賴者, derive 遷移成本 from what the search shows. Annotate each field per the claim-cite-first convention (`verified: <how>` or `inferred: 未實查`); this extends claim-cite-first, elsewhere scoped to Stage D/F, to the Evaluation path. A Kill verdict whose impact block is entirely `inferred` must say so above the confirmation line.
+
+### Verdict closure
+
+- If the user replies 「同意」: the verdict is final and the skill ends here. Persist nothing beyond the conversation — Evaluation produces a verdict, not a plan file; the work-journal contract does not apply to a bare verdict.
+- If the user replies 「不同意，因為…」: re-ground exactly once — produce ONE revised verdict treating the stated reason as a new constraint, then stop again. A second 「不同意」 ends the skill with the disagreement standing; do not loop.
+
 ---
 
 ## Full mode — overview
@@ -202,13 +215,13 @@ F. Final plan            — the five-section schema
 G. Approval              — authorization PAUSE with four options; downstream is direct implementation per _shared/tdd.md (small) or /analyze (medium-large)
 ```
 
-Do **not** read any files, run any shell commands, or fetch any URLs before Stage A completes. The whole point of Stage A is to close the gap between Claude's understanding and the user's intent. Touching the codebase first anchors you to what's already there instead of what the user actually wants.
+Do **not** read any files, run any shell commands, or fetch any URLs before Stage A completes. The one sanctioned exception is the Step 0 DESIGN.md soft-read (git rev-parse + the DESIGN.md Read), which by design runs before mode selection and therefore before this rule attaches. The whole point of Stage A is to close the gap between Claude's understanding and the user's intent. Touching the codebase first anchors you to what's already there instead of what the user actually wants.
 
 ---
 
 ## Stage A — Alignment (對焦)
 
-The single most common failure of `/think` is: Claude reads the user's first sentence, decides it understands, produces a beautifully structured plan for the *wrong problem*. Worse — users themselves often don't know exactly what they want until pushed to pick between concrete options.
+The most common failure of `/think`: planning the *wrong problem* off the user's first sentence — and users often don't know what they want until pushed to pick between concrete options.
 
 Round 1: **目的 (purpose)** — what problem is actually being solved; what's in or out of scope-of-problem.
 Round 2: **約束 (constraints)** — what can't change; what's the budget of time, files, dependencies, risk tolerance; what boundaries the solution must respect.
@@ -237,7 +250,7 @@ If after Round 3 the user's answers still contradict each other, ask one more na
 
 Claude's default under uncertainty is hedging: "there are several ways to think about this", "it depends on your priorities", "both approaches are valid". This is the single most common failure mode of Claude as a technical advisor. It's polite and it's useless.
 
-After Stage A, you have enough signal to have an opinion. State it.
+After Stage A, you have enough signal to have an opinion. State it. Never skip this stage — even if the right answer feels obvious, naming the stance and naming what would overturn it is the point.
 
 ### What stance-taking looks like
 
@@ -273,9 +286,7 @@ Before proposing any custom implementation, confirm there isn't a built-in or of
 
 If an official solution exists, it **must be Option 1** in the proposal.
 
-If you're still recommending a custom solution over the official one, you owe the user a one-line explanation of why the official solution doesn't fit *this* situation (not a generic objection). "The official middleware doesn't let us inject per-request context without monkey-patching" is acceptable; "it's not flexible enough" is not.
-
-Skipping this check and proposing a hand-rolled solution that the framework already offers is one of the most demoralising mistakes a design doc can make — the user spends a day building it, then discovers a stdlib function. Don't do that to them.
+If you're still recommending a custom solution over the official one, you owe the user a one-line explanation of why the official solution doesn't fit *this* situation (not a generic objection). "The official middleware doesn't let us inject per-request context without monkey-patching" is acceptable; "it's not flexible enough" is not — hand-rolling what the framework already offers costs the user a day of building before they discover the stdlib call.
 
 ---
 
@@ -315,9 +326,7 @@ Before writing the final five-section plan, stress-test your own proposal.
 
 Ask: "in what situation does this proposal break?" List 2-4 concrete failure scenarios. For each:
 - If there's a fix, fold the fix into the proposal and say you did so.
-- If the failure mode is fundamental, state it plainly in the **Approach** section so the user knows the boundary they're buying.
-
-This is not a theatre of pessimism — it's calibration. A proposal whose author can't name where it breaks has almost certainly not been thought through.
+- If the failure mode is fundamental, state it plainly in the **Approach** section so the user knows the boundary they're buying — this is calibration, not pessimism; an author who can't name where the proposal breaks hasn't thought it through.
 
 ### Complexity grading — be loud about scope
 
@@ -468,15 +477,4 @@ One Gotcha keeps its long-form prose because its value is in the multi-layer res
 | Files moved to `~/project`, but the repo actually lives at `~/www/project` | Run `pwd` (and `git rev-parse --show-toplevel`) before the first filesystem operation in Stage D. Never assume which checkout the user has in mind |
 | Planned an MCP workflow without checking whether the MCP server was loaded | Verify tool / server availability before handoff, not mid-implementation. Mid-flow "missing server" pauses cost more than the upfront check |
 | Slid a second language or runtime into a single-stack project ("just a small Rust helper for the Node app") | Never add a new language or runtime without explicit approval. Surface the stack expansion as a Key decision, not an implementation detail |
-| User said 「判断一下这个报错」 and got routed into Evaluation Mode | 「判断一下」 + error / bug context = debugging, route to `/hunt`. Evaluation Mode is strictly for value / existence judgments |
-
----
-
-## Constraints
-
-- Never produce code, scaffolding, file trees, pseudo-code, or config snippets before Stage G approval.
-- Never run file-reading or web-fetching tools during Stage A.
-- Never rename, add, or reorder the five final sections (Building / Not building / Approach / Key decisions / Unknowns).
-- Never skip the stance-taking step (Stage B). Even if the right answer feels obvious, naming it and naming what would overturn it is the point.
-- Never silently propose a custom solution without first doing the Stage C official-first check.
-- All output shown to the user is in Traditional Chinese (繁體中文). English appears only inside this SKILL.md and in code identifiers / file paths the user themselves wrote.
+| User said 「判斷一下這個報錯」 and got routed into Evaluation Mode | 「判斷一下」 + error / bug context = debugging, route to `/hunt`. Evaluation Mode is strictly for value / existence judgments |

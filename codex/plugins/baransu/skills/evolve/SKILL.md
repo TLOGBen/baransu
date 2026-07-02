@@ -1,17 +1,17 @@
 ---
 name: evolve
-description: Use when the user wants to improve, score, or evolve a SKILL.md. Point
-  it at any skill and it runs a forward-only ratchet — a fixed 9-dimension rubric
-  is the selection environment; each round an independent judge picks the weakest
-  dimension, one single-variable change is made, and three fresh blind judges vote,
-  keeping the change only on a strict improvement (else the file-level snapshot is
-  restored). Dual-axis evaluation (structure + effectiveness — effectiveness via real-exec
-  gated by a trust+capability check, else offline replay), held-out validation with
-  an independence layer, and a Kami result card. Adoption of any change is an Authorization
-  PAUSE; rollback never touches the git working tree. Not for authoring a brand-new
-  SKILL.md from scratch, or for deciding whether a skill should exist (that is /think
-  Evaluation Mode). Trigger on '/evolve', '優化 skill', 'skill 評分', '演化 skill', 'optimize
-  skill', 'improve skill quality', 'evolve a skill', '幫我改 skill'. 繁體中文輸出。
+description: Improves, scores, or evolves a SKILL.md. Pointed at any skill, it runs
+  a forward-only ratchet — a fixed 9-dimension rubric is the selection environment;
+  each round an independent judge picks the weakest dimension, one single-variable
+  change is made, and three fresh blind judges vote, keeping the change only on a
+  strict improvement (else the file-level snapshot is restored). Dual-axis evaluation
+  (structure + effectiveness — effectiveness via real-exec gated by a trust+capability
+  check, else offline replay), held-out validation with an independence layer, and
+  a Kami result card. Adoption of any change is an Authorization PAUSE; restore never
+  touches the git working tree. Not for authoring a brand-new SKILL.md from scratch,
+  or for deciding whether a skill should exist (that is /think Evaluation Mode). Trigger
+  on '/evolve', '優化 skill', 'skill 評分', '演化 skill', 'optimize skill', 'improve skill
+  quality', 'evolve a skill', '幫我改 skill'. 繁體中文輸出。
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex
@@ -30,6 +30,7 @@ The body below is English (agent-facing). All user-visible output is in **Tradit
 - **Evidence**: `report.md` 的起訖分數、dry_run 比例、每軸證據來源與 held-out 證據力標籤；`log.md` 的逐輪 keep/restore 記錄。
 - **Output**: `.claude/evolve/<slug>/` 演化包；對話內呈現繁中收斂摘要與成果卡。
 - **Automation**: ultracode=overlap, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
+  In the same non-interactive pass, read `references/loop-pauses.md` for this skill's own PAUSE classification.
 
 ## When to use / not
 
@@ -107,7 +108,7 @@ The mechanism is concept-aligned with public prior art but re-derived in origina
 - One dimension per round; keep only strict improvements; restore otherwise.
 - Adoption write-back is an Authorization PAUSE on every platform — satisfied interactively, or by a standing authorization in the driving context under the Gate-1 preconditions (structure gate + 3/3 judges + snapshot + audit). Never by a bare default substitution.
 - `real-exec-destructive-forbid` — if the Stage 4 real-exec trust gate hits any destructive pattern (`rm` / writing outside the target dir / network writes / secret access) → then force-downgrade to offline and never execute that skill. Actually executing an untrusted skill is irreversible; this prohibition carries the same gated/forbidden rigidity as the `git reset --hard` / `stash` / `clean` / `checkout` red line below.
-- Rollback is file-level; never touch the git working tree beyond the single target file.
+- Restore is file-level; never touch the git working tree beyond the single target file.
 - Mutation-isolation invariant — Stage 2 writes ONLY to the scratch copy; the live target SKILL.md is written exactly once, at Stage 6 adoption write-back, and only after the Stage 1 snapshot exists. If no snapshot/<round>.md exists for the current round → then abort the round before any write to the target.
 - The diagnostician and judges are stateless leaf nodes (subagent depth = 1): they never dispatch further subagents or invoke any `/baransu:*` skill.
 - All user-visible output is Traditional Chinese (繁體中文).

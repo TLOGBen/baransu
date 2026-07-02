@@ -1,10 +1,10 @@
 ---
 name: review
-description: Use When the user wants an independent second opinion on a model's output,
-  or after a model declares something done. Do Spawn isolated architecture / quality
-  / security perspective agents in clean Codex subagent contexts, surfacing hallucinations,
-  drift, and over-engineering. Trigger On 「看一下」「看看」「幫我看」「check 一下」「review 一下」, or
-  casual "take a look at X". Not For auditing the user's own project agent-config
+description: Dispatches isolated architecture / quality / security / style perspective
+  agents in clean Codex subagent contexts, surfacing hallucinations, drift, and over-engineering.
+  Use when the user wants an independent second opinion on a model's output, or after
+  a model declares something done. Trigger On 「看一下」「看看」「幫我看」「check 一下」「review 一下」,
+  or casual "take a look at X". Not For auditing the user's own project agent-config
   / AI-maintainability (route to /health), nor verifying baransu's own skill structure
   (route to scripts/verify-skills.py). 繁體中文輸出。
 compatibility: Designed for Claude Code; ported to Codex.
@@ -24,8 +24,6 @@ Do not simulate independent review by asking the same conversation context sever
 Models drift. After a model claims "done" — especially after a long-running or multi-turn session — it is the wrong one to audit itself: inertia and context pollution make it confirm its own assumptions. `/review` is the counter-move. Spawn isolated perspectives in clean Codex subagent contexts and let them re-read the target with fresh eyes — but with a surgeon's mindset: find only what matters to the user's actual concern, don't over-correct.
 
 This skill is not a monolithic reviewer. It is a **task analyst + dispatcher**: it lifts a claim checklist out of the target, derives the review's goal, decides who to dispatch, lets them think independently, weighs returned findings on a balance scale (complexity must justify itself), and applies findings in four response tiers.
-
-The body below is English (agent-facing). Wherever this file quotes literal user-facing copy in **Traditional Chinese (繁體中文)**, that text is output-as-shown; everything else is instruction for the agent running the skill.
 
 ---
 
@@ -57,6 +55,10 @@ Each agent file defines `Perspective / Mission / Principles / Lane-keeping` — 
 
 ## Stage 1 — Claim checklist AND review goal
 
+### Pre-dispatch off-ramp
+
+Before materializing anything: if the invocation matches a frontmatter Not-For boundary (own-project agent-config audit → /health; baransu structure verification → scripts/verify-skills.py), name the correct route and stop — dispatch nothing. The same name-the-route-and-stop semantics apply to two adjacent confusion surfaces: a symptom/error-debugging ask (e.g. 「看一下為什麼報錯」) → /hunt; a capture-to-offline intent (e.g. 「幫我存下來」) → /read. If no target can be materialized from disk (no diff, no file, no named artifact), ask exactly ONE ask the user directly, record the authorization decision, and stop until the user answers to pin the target; if the user cannot name one, stop without dispatching — never review from conversation memory.
+
 Two things, in order, both passed to every dispatched reviewer.
 
 ### The claim checklist
@@ -75,9 +77,9 @@ One sentence, in 繁中. Why does the user want this reviewed? Derived from the 
 - 「看 /think 的 plan 裡有沒有自我矛盾或偽裝成 unknown 的已決定事項」
 - 「驗證 `increment()` 是否真的 thread-safe；如果不是，最小必要修法」
 
-**The goal is the single most important input to reviewer dispatch.** It is what keeps each perspective from drifting into its own bias. Without a goal, an architecture reviewer will find architecture problems regardless of whether they matter to the user's actual concern; a security reviewer will surface every theoretical attack surface regardless of blast radius. With a goal, every perspective has a compass: findings outside the goal's orbit — even when they're correct observations — downgrade to advisory instead of packaging as action items.
+**The goal is the single most important input to reviewer dispatch.** It is what keeps each perspective from drifting into its own bias.
 
-This is the mechanism that lets well-meaning perspectives coexist without their individual zeal producing a collectively over-engineered review. It is the fix the skill's own experience taught us (`/review` v0.3.0 drifted because it had no goal mechanism).
+This is the mechanism that lets well-meaning perspectives coexist without their individual zeal producing a collectively over-engineered review.
 
 If the dispatcher's first impulse is to skip goal derivation and let reviewers self-anchor, treat that as the load-bearing trap in live-review form. "Implicit goal" is never a destination — every dispatched reviewer must receive a written goal sentence.
 
@@ -122,9 +124,9 @@ No recursion (**INV-no-recursion**): this dispatch is the only depth /review use
 
 ### Orchestration interface (dual-mode)
 
-Before dispatching Stage 4 (and at Stage 0 when pinning the run mode), read
-`references/orchestration-interface.md` and apply its finding schema and adapter contract:
-isomorphic finding schema, Stage 0 mode pinning (ultracode detect → record → no mid-run switch),
+Before dispatching Stage 4 — and once before Stage 1 begins, when the run mode is pinned per
+`references/orchestration-interface.md` §2 — read that file and apply its finding schema and adapter contract:
+isomorphic finding schema, pre-Stage-1 mode pinning (ultracode detect → record → no mid-run switch),
 the current parallel-subagent adapter, and a thin Workflow adapter. Both adapters return identical
 finding shapes — Stages 5–7 never sense the mode; the depth invariant is restated per adapter.
 Non-ultracode runs keep current-path semantics unchanged.
@@ -220,6 +222,8 @@ This list deliberately does **not** include release-artifact missing, generated-
 
 Per **INV-consent**, never change behavior without user consent. Do not ask one question per finding.
 
+PAUSE classification for non-interactive drivers: `references/loop-pauses.md` — read it when driven by /loop, cron, or Workflow.
+
 ---
 
 ## E2E hard requirement
@@ -266,9 +270,9 @@ Field semantics (single source of truth for each):
 - `files`: Stage 2's LOC / file-count classification, measured via `git diff --stat` / `wc -l` at Stage 2 — never estimated. Plan-type targets: `N/A`.
 - `scope`: scope drift vs claim checklist. Vocabulary: `on target` / `drift: [one-phrase summary]` / `incomplete`.
 - `depth`: Stage 2's three-tier classification (`quick` / `standard` / `deep`).
-- `perspectives`: the Stage 4 returned set — a dispatched-but-failed perspective is listed as `<name>: dispatch failed` and its coverage may not be claimed — with `+ adversarial: yes|no` from Stage 5. Not Waza's pooled-specialists semantics — quick-pass targets still list ≥1 perspective.
+- `perspectives`: the Stage 4 returned set — a dispatched-but-failed perspective is listed as `<name>: dispatch failed` and its coverage may not be claimed — with `+ adversarial: yes|no` from Stage 5. Quick-pass targets still list ≥1 perspective.
 - `hard_stops`: the source of truth for hits. The checklist above is a derived view; if `hard_stops: none` here, all checklist lines must read `□ ... not hit`.
-- `new_tests`: pure count. Does **not** carry Waza's "regression-first" semantics — that fidelity is intentionally not inherited; regression-first verification belongs to 「/baransu:execute 或依 tdd.md 的直接實作」, not /review.
+- `new_tests`: pure count. Regression-first verification belongs to 「/baransu:execute 或依 tdd.md 的直接實作」, not /review.
 - `doc_debt`: invariants the reviewer noticed are missing from project docs (AGENTS / CLAUDE / `.claude/rules`). `none` when nothing surfaced.
 - `e2e_status`: three states from the E2E hard requirement section above. The hard-stop checklist's e2e-related line, if any, is **derived** from this field — do not judge e2e independently in the checklist.
 

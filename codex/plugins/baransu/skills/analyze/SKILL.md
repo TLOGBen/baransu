@@ -1,8 +1,8 @@
 ---
 name: analyze
-description: Use When task scope spans ≥2 interdependent modules and context rot is
-  real. Do Build a goal→requirement→design→test→task spec under .claude/analyze/,
-  then hand off to /execute. Trigger On '/analyze', '分析需求', '展開規格'. Not for single-file
+description: Builds a goal→requirement→design→test→task spec under .claude/analyze/,
+  then hands off to /execute. Use when task scope spans ≥2 interdependent modules
+  and context rot is real. Trigger On '/analyze', '分析需求', '展開規格'. Not for single-file
   or single-layer changes with no cross-module dependency (use /think or implement
   directly); not for deciding whether a task is worth doing (/think Evaluation Mode).
   繁體中文輸出。
@@ -13,11 +13,10 @@ metadata:
 
 # analyze — define done before execution
 
-The canonical failure mode of large-task execution is context rot: the model generates while it plans, loses the original intent across auto-compacts and session resets, and produces a system that matches neither the goal nor the requirements. The fix is to define completion first — write goal, requirements, design, tests, and tasks in that order, each layer anchored to the one above — then hand the spec to a fresh execution session.
-
-This skill does not execute code. It produces five spec documents that an execute skill (or a fresh session) consumes. The separation matters: definition and execution carry different failure modes and should never share the same context.
-
-The body below is English (agent-facing). All user-visible output is in **Traditional Chinese (繁體中文)**.
+- Define completion first: write goal, requirements, design, tests, and tasks in that order, each layer anchored to the one above, then hand the spec to a fresh execution session.
+- This skill produces the five spec documents only — it never executes code.
+- Definition and execution should never share the same context.
+- The body below is English (agent-facing); all user-visible output is in **Traditional Chinese (繁體中文)**.
 
 ---
 
@@ -28,6 +27,16 @@ The body below is English (agent-facing). All user-visible output is in **Tradit
 - **Evidence**: The `ls` output of the spec dir captured in the Stage 7 declaring turn, plus a clean template-placeholder scan; Stage 6 findings and the auto-corrections applied to the design / test / task layers.
 - **Output**: Spec directory `.claude/analyze/{YYYY-MM-DD}-{slug}/` holding the five spec documents.
 - **Automation**: ultracode=assist, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
+
+## Constraints
+
+- Do not write production code, scaffolding, or config files during Stages 1-6. The only output is the five spec documents.
+- Do not call `/review` from within Stages 1-6. Cross-layer subagents answer alignment questions ("are these two layers consistent?"), not per-layer quality questions ("what's wrong with this layer?"). These are different questions. Stage 7 may offer /review as a handoff option — that is a post-spec quality check, not an in-spec alignment check.
+- Auto-correction is one round. No silent looping.
+- On a same-day same-slug directory collision (Stage 0.C), never silently overwrite: branch via the ask the user directly, record the authorization decision, and stop until the user answers among resume / overwrite-rebuild / new -N-suffixed directory before writing any spec file. The overwrite-rebuild branch may delete only the computed spec dir `{repo_root}/.claude/analyze/{date}-{slug}/`; if the resolved delete target does not string-equal that path (or contains `..`, or falls outside `{repo_root}` from `git rev-parse --show-toplevel`), abort the deletion and fall back to the `-N`-suffixed branch instead.
+- `goal.md` and `requirement.md` are user-intent layers. Do not modify their semantics during auto-correct. Only design / test / task layers are auto-correctable.
+- Never invent requirement numbers. Every `REQ-XXX` reference in task files must have a matching entry in `requirement.md`.
+- All user-visible output is Traditional Chinese (繁體中文). English appears only in this SKILL.md body, in code identifiers, file paths, and diagram labels the task itself uses.
 
 ## Stage 0 — Lightweight alignment + scope gate
 
@@ -394,16 +403,4 @@ options:
 
 ## Gotchas
 
-- **[Option 2 same-session handoff contradicts never-share-context]**: Stage 7 Option 2 (「直接交接 execute（完全授權）」) reads as "invoke execute inline, in the current session". But this skill's own premise — definition and execution "should never share the same context", "hand the spec to a fresh execution session" — requires execution to begin in a fresh context. An inline same-session invocation plants the loaded-context condition that makes the downstream execute orchestrator rationalize self-reviewing (absorbing verifier roles in its polluted context) instead of dispatching isolated subagents. Adding a warning line is not a fix — it only logs the contradiction; preventing it means the handoff stops and tells the user to run /execute in a fresh session, or a gate enforces freshness outside the model's cognition (see /think Stage E "Mechanism necessity": a rule the failing path can skip is not prevention). Solution: treat Option 2's autonomous inline invocation as the trigger to scrutinize — when the spec must run with true isolation, prefer handing off to a fresh session over continuing in the current loaded context.
-
----
-
-## Constraints
-
-- Do not write production code, scaffolding, or config files during Stages 1-6. The only output is the five spec documents.
-- Do not call `/review` from within Stages 1-6. Cross-layer subagents answer alignment questions ("are these two layers consistent?"), not per-layer quality questions ("what's wrong with this layer?"). These are different questions. Stage 7 may offer /review as a handoff option — that is a post-spec quality check, not an in-spec alignment check.
-- Auto-correction is one round. No silent looping.
-- On a same-day same-slug directory collision (Stage 0.C), never silently overwrite: branch via the ask the user directly, record the authorization decision, and stop until the user answers among resume / overwrite-rebuild / new -N-suffixed directory before writing any spec file. The overwrite-rebuild branch may delete only the computed spec dir `{repo_root}/.claude/analyze/{date}-{slug}/`; if the resolved delete target does not string-equal that path (or contains `..`, or falls outside `{repo_root}` from `git rev-parse --show-toplevel`), abort the deletion and fall back to the `-N`-suffixed branch instead.
-- `goal.md` and `requirement.md` are user-intent layers. Do not modify their semantics during auto-correct. Only design / test / task layers are auto-correctable.
-- Never invent requirement numbers. Every `REQ-XXX` reference in task files must have a matching entry in `requirement.md`.
-- All user-visible output is Traditional Chinese (繁體中文). English appears only in this SKILL.md body, in code identifiers, file paths, and diagram labels the task itself uses.
+- **[Option 2 same-session handoff contradicts never-share-context]**: Stage 7 Option 2 (inline same-session execute) contradicts this skill's never-share-context premise. When the spec needs true isolation, stop at the handoff and tell the user to run /execute in a fresh session instead of continuing in the loaded context (see /think Stage E, Mechanism necessity).

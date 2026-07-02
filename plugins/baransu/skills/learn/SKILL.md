@@ -1,7 +1,7 @@
 ---
 name: learn
 description: >
-  Use When the user wants a structured learning brief from any content. Do Produce a 5-column digest brief per source plus an optional filled outline, from URLs / --topic / captured slugs / mixed. Trigger On '/learn', '研究主題', '整理筆記', '學一下'. Not for capturing raw offline Markdown only (→ /read) nor producing a browser-ready HTML artifact (→ /book).
+  Produces a structured learning brief from any content: a 5-column digest brief per source plus an optional filled outline, from URLs / --topic / captured slugs / mixed. Use when the user wants sources digested into a learning note. Trigger On '/learn', '研究主題', '整理筆記', '學一下'. Not for capturing raw offline Markdown only (→ /read) nor producing a browser-ready HTML artifact (→ /book).
 argument-hint: "[URL... | --topic 'keyword' | slug... | mixed]"
 user-invocable: true
 ---
@@ -17,6 +17,7 @@ This skill takes any content source and produces structured learning output via 
 - **Evidence**: The 繁中 completion notice naming the written file path; the file's frontmatter lists every surviving `$FILTERED_SOURCES` entry (and, for digests, `phases_completed`).
 - **Output**: A brief under `.claude/learn/briefs/` or a digest under `.claude/learn/digests/`.
 - **Automation**: ultracode=overlap, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
+  In the same non-interactive pass, read `references/loop-pauses.md` for this skill's own PAUSE classification.
 
 ## Stage 0 — Environment Self-Check
 
@@ -101,8 +102,8 @@ Triggered when §3 matches the syntactic shape of a slug but `.claude/read/mater
 |------|-----------------|------------------|----------------------|
 | `academic` | `../read/scripts/search-papers.py` | Thin (invoke + normalize) | — |
 | `web` | WebSearch tool | Thin (invoke + normalize) | — |
-| `gh` | `gh search repos` | **Thick** — before running the gh lane, read `../read/references/acquisition/gh-search.md` §Search Command and apply the Step 1 escape rule to `{topic}`. Must reuse its escape rule (lines specifying single-quote form + `'\''` escape) by **anchor cite**, never fork the literal text. The bare `{topic}` from §3.5 invocation IS the user-supplied keyword for §Search Command Step 1; apply Step 1 escape verbatim before substitution. | `../read/references/acquisition/gh-search.md §Search Command`, §Failure Modes |
-| `x` | Chrome MCP via `../read/references/acquisition/web-dynamic.md` WSL2 path | **Thick** — before running the x lane, read both `../read/references/acquisition/x-search.md` and `../read/references/acquisition/web-dynamic.md`, and apply §Schema-level Health Check and §Candidate Extraction verbatim. Must reuse the 5-rule schema-level health check from x-search.md §Schema-level Health Check and the candidate regex from §Candidate Extraction by **anchor cite**, never fork. | `../read/references/acquisition/x-search.md §Search Phase`, §Schema-level Health Check, §Candidate Extraction |
+| `gh` | `gh search repos` | **Thick** — before running the gh lane, read `../read/references/acquisition/gh-search.md` §Search Command; reuse its escape rule (single-quote form + `'\''` escape) by **anchor cite**, never fork the literal text. The bare `{topic}` from §3.5 invocation IS the user-supplied keyword for §Search Command Step 1; apply Step 1 escape verbatim before substitution. | `../read/references/acquisition/gh-search.md §Search Command`, §Failure Modes |
+| `x` | Chrome MCP via `../read/references/acquisition/web-dynamic.md` WSL2 path | **Thick** — before running the x lane, read both `../read/references/acquisition/x-search.md` and `../read/references/acquisition/web-dynamic.md`; reuse the 5-rule schema-level health check from x-search.md §Schema-level Health Check and the candidate regex from §Candidate Extraction by **anchor cite**, never fork. | `../read/references/acquisition/x-search.md §Search Phase`, §Schema-level Health Check, §Candidate Extraction |
 
 **Lane fail-mode mapping (Theme A)**: All four lanes invoke their underlying tools directly (not via `/read --{lane}`); each ref's Failure Modes / Health Check / No Results sections are reused as **lane-status mapping rules**, not as `/learn`-level stops. Specifically: any condition that the ref says "stop" maps to `{lane}: failed (...)` or `{lane}: 0 hits (no results)` per the three-state surface below; `/learn` never propagates the lane's stop verb.
 
@@ -121,14 +122,12 @@ Triggered when §3 matches the syntactic shape of a slug but `.claude/read/mater
 - Any single lane failure (timeout / API error / 0 results / schema-check fail / Chrome unavailable) does NOT stop the other lanes.
 - At least 1 lane returning ≥1 candidate is sufficient to continue to Stage 2.
 - All four lanes failing → first emit the per-lane status surface (the three-state lines below) so the user sees which lanes were `0 hits (no results)` vs `failed (timeout|api_error|...)`, then output 「所有 lane 均無結果，請嘗試其他關鍵字或手動跑 /read」 and stop. The aggregate message MUST NOT replace the per-lane breakdown — both appear, in that order.
-- This invariant differs from `/read --web|--gh|--x` (which stops on any failure) by design: `/read` is interactive single-source, `/learn` is automated multi-source.
+- (intentional divergence from `/read`, which stops on any failure)
 
 **Lane status surface** (one line per lane, three states):
 - `{lane}: N hits` (success with N candidates)
 - `{lane}: 0 hits (no results)` (lane ran successfully but returned empty)
 - `{lane}: failed (timeout|api_error|chrome_unavailable|schema_check_fail|cli_missing)` (transient or environmental failure)
-
-The three-state form ensures the user can distinguish a real zero-result from a transient failure that may warrant a manual retry.
 
 **Candidate pool merging**:
 - Each lane's candidates are written into `$SOURCES` as `{path, lane}` tuples (the `lane` field carries `academic|web|gh|x`; for inputs from §1/§2/§3, the `lane` field is `null`).
@@ -168,7 +167,7 @@ The topic string is needed for the brief filename (slug) and YAML frontmatter.
 
 ### 2. Score each source
 
-For each entry in `$SOURCES`, read its `index.md` and evaluate it on three criteria. Each criterion is scored independently on a 1–5 scale by reading the source's `index.md`; assign the level whose anchor signal is the highest one observable in the text. The anchor scales below pin each level to an observable signal in `index.md`, converting the judgment into a decision rule applied without further discretion (when a source falls between two anchors, assign the lower of the two).
+For each entry in `$SOURCES`, read its `index.md` and evaluate it on three criteria. Each criterion is scored independently on a 1–5 scale by reading the source's `index.md`; assign the level whose anchor signal is the highest one observable in the text (when a source falls between two anchors, assign the lower of the two).
 
 | Criterion | Meaning |
 |------|------|
@@ -202,48 +201,9 @@ Display the scoring results in a 繁中 table for the user to review.
 - 0 distinct (all sources have `lane=null`, i.e. URL/slug-only inputs from §1/§2/§3): combined form, no lane attribution needed.
 - ≥1 distinct (any source has non-null `lane`, even if only one lane survived a fan-out): **lane-grouped form**. Each non-null lane gets its own sub-table; sources with `lane=null` group under a `## direct` heading. This preserves fan-out provenance even when the user-facing pool is small.
 
-**Lane-grouped form** (when fan-out was triggered):
+You MUST read `references/scoring-tables.md` before rendering the table and render the chosen template exactly as written there: use the lane-grouped form when fan-out was triggered, the combined form otherwise (the two forms are mutually exclusive per run).
 
-```
-## 消化評分結果
-
-請確認以下評分，並回覆要保留哪些來源。若所有來源均可接受，請回覆「全部保留」。
-
-## academic
-| 來源 slug | 多情境適用性 | 預測力 | 通用性 |
-|-----------|-------------|--------|--------|
-| {slug-a1} | {1-5}       | {1-5}  | {1-5}  |
-
-## web
-| 來源 slug | 多情境適用性 | 預測力 | 通用性 |
-|-----------|-------------|--------|--------|
-| {slug-w1} | {1-5}       | {1-5}  | {1-5}  |
-
-## gh
-| 來源 slug | 多情境適用性 | 預測力 | 通用性 |
-|-----------|-------------|--------|--------|
-| {slug-g1} | {1-5}       | {1-5}  | {1-5}  |
-
-## x
-| 來源 slug | 多情境適用性 | 預測力 | 通用性 |
-|-----------|-------------|--------|--------|
-| {slug-x1} | {1-5}       | {1-5}  | {1-5}  |
-```
-
-Each per-lane sub-table caps at the lane's hit count (no further truncation). Scoring uses the per-criterion anchor scales in §2; for high-volume pools (>20 candidates) the per-cell judgment is necessarily coarser — this is the accepted trade-off for keeping the spec uniform across lanes.
-
-**Combined form** (single-lane or non-fan-out inputs):
-
-```
-## 消化評分結果
-
-請確認以下評分，並回覆要保留哪些來源。若所有來源均可接受，請回覆「全部保留」。
-
-| 來源 slug | 多情境適用性 | 預測力 | 通用性 |
-|-----------|-------------|--------|--------|
-| {slug-1}  | {1-5}       | {1-5}  | {1-5}  |
-| {slug-2}  | {1-5}       | {1-5}  | {1-5}  |
-```
+Each per-lane sub-table caps at the lane's hit count (no further truncation). Scoring uses the per-criterion anchor scales in §2.
 
 Wait for the user's reply. Build `$FILTERED_SOURCES` from the sources the user confirms to keep.
 

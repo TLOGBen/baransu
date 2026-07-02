@@ -1,0 +1,48 @@
+{
+  "skill_name": "hunt",
+  "note": "Data-only trigger-routing fixtures (plugin-wide-6 / batch C4). There is no built-in eval runner; these cases are the fresh-session A/B baseline corpus recorded BEFORE the C1 description POV batch. Post-run user-verification artifact, not a merge gate.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "排查一下，登入一直失敗",
+      "should_trigger": true,
+      "expected_skill": "hunt",
+      "expected_behavior": "Symptom-to-root-cause investigation: pick the right observability tool, bisect, confirm hypotheses before touching code."
+    },
+    {
+      "id": 2,
+      "prompt": "The export button is not working — what's wrong?",
+      "should_trigger": true,
+      "expected_skill": "hunt",
+      "expected_behavior": "'not working' / \"what's wrong\" symptom report triggers the observability-first diagnosis flow."
+    },
+    {
+      "id": 3,
+      "prompt": "為什麼這個 API 回 500？幫我追問題",
+      "should_trigger": true,
+      "expected_skill": "hunt",
+      "expected_behavior": "追問題 on a concrete failure: locate the root cause before any fix."
+    },
+    {
+      "id": 4,
+      "prompt": "這個 bug 值不值得修？",
+      "should_trigger": false,
+      "expected_skill": "think",
+      "expected_behavior": "Worth-fixing value call routes to /think Evaluation Mode."
+    },
+    {
+      "id": 5,
+      "prompt": "看一下這個 PR 的品質",
+      "should_trigger": false,
+      "expected_skill": "review",
+      "expected_behavior": "Quality second-opinion on model output routes to /review."
+    },
+    {
+      "id": 6,
+      "prompt": "這個按鈕顏色好醜，幫我看看怎麼配",
+      "should_trigger": false,
+      "expected_skill": "design",
+      "expected_behavior": "Subjective UI taste routes to /design, not bug hunting."
+    }
+  ]
+}

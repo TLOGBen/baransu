@@ -1,0 +1,48 @@
+{
+  "skill_name": "review",
+  "note": "Data-only trigger-routing fixtures (plugin-wide-6 / batch C4). There is no built-in eval runner; these cases are the fresh-session A/B baseline corpus recorded BEFORE the C1 description POV batch. Post-run user-verification artifact, not a merge gate.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "看一下這個 PR",
+      "should_trigger": true,
+      "expected_skill": "review",
+      "expected_behavior": "Colloquial second-opinion ask: dispatch isolated perspective agents over the PR diff."
+    },
+    {
+      "id": 2,
+      "prompt": "Take a look at this plan the model produced",
+      "should_trigger": true,
+      "expected_skill": "review",
+      "expected_behavior": "Casual 'take a look at X' on model output triggers independent re-verification."
+    },
+    {
+      "id": 3,
+      "prompt": "模型說已經完成了，幫我 check 一下是不是真的",
+      "should_trigger": true,
+      "expected_skill": "review",
+      "expected_behavior": "Post-'done' declaration: verify the completion claim independently, surfacing hallucinations and drift."
+    },
+    {
+      "id": 4,
+      "prompt": "幫我存下來",
+      "should_trigger": false,
+      "expected_skill": "read",
+      "expected_behavior": "Capture-to-offline-Markdown intent routes to /read."
+    },
+    {
+      "id": 5,
+      "prompt": "看一下為什麼報錯",
+      "should_trigger": false,
+      "expected_skill": "hunt",
+      "expected_behavior": "看一下 + an existing error is symptom-to-root-cause debugging — routes to /hunt."
+    },
+    {
+      "id": 6,
+      "prompt": "看一下我的 claude 配置對不對",
+      "should_trigger": false,
+      "expected_skill": "health",
+      "expected_behavior": "Auditing the user's own agent configuration routes to /health, not /review."
+    }
+  ]
+}

@@ -2,6 +2,16 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.5.18 (2026-07-03)
+
+**官方文件對標的全 skill 優化 rollup**。plugin version 2.5.17 → 2.5.18。以 2026 最新官方文件（code.claude.com skills／sub-agents／hooks／settings／plugins、docs.claude.com authoring best-practices、anthropics/skills spec v1.1、engineering blog）為基準，先展開 13 份官方來源的雙 brief（`.claude/learn/briefs/`），再經 `/think` 差距分析＋`/review` 三 perspective 審計（19 findings 全採納）產出 83 項優化計畫，逐批落地：
+
+- **集合層（B1–B6 批次）**：14 條 description 全面第三人稱化（保觸發詞 byte-identical，總量 7,198→7,176 字元）；`verify-skills.py` 新增 5 項機制檢查（name==目錄名／無 XML tags／無保留字／per-skill desc+when_to_use ≤1536 硬檢查＋總量 advisory／plugin agents 禁 hooks·mcpServers·permissionMode），各附負向 fixture；`_shared/loop-contract.md` 補置頂 TOC；13 skill 補 `evals/` 觸發 routing fixture＋跨 skill routing 套件；6 skill 補 `references/loop-pauses.md` 一跳指標。
+- **逐 skill 外科手術（14 commits）**：compaction-window 前移 load-bearing 段落、degrees-of-freedom 分級、引用深度攤平、referencing 檔案 TOC、術語一致化；`/ship` worktree 拆除鏈腳本化（`cleanup-worktree.sh`，argc/realpath/GUARD_REFUSED 防護＋fixture-repo shell test）；`/health` 三 inspector plugin-scoped 識別碼＋checker scripts 首獲 pytest 覆蓋；`/hunt` `hunt-search.py` 移入 `scripts/`＋pytest 釘現行行為。
+- **`/evolve` 棘輪（think／review／execute）**：think 4 輪採納（89→~93.5，Evaluation 約束抽取閘＋裁決收束＋影響區塊證據紀律＋Step 0 soft-read 豁免）、review 3 輪（85→~90，pre-dispatch off-ramp＋/hunt·/read 路由＋mode-pin 重錨）、execute 5 輪（93→~94，error-miss fallback＋target_branch 釘定＋blocked-group merge 排除＋WIP-commit 閘＋TaskUpdate status 對映）；全部 3/3 盲評＋structure gate＋held-out 獨立層驗證，evolve 包落於 `.claude/evolve/`。
+- codex/ 鏡像經 `transfer.py` 重產（think／review／execute／evolve 四支同步演化後內容）。
+- **未竟**：11 支 skill 已過 Phase 5 優化但未進 evolve 棘輪（Fable 5 額度耗盡，execute r5 判評＋held-out 改於 Opus 完成）；13 項 behavior-semantic 變更與全面 description 格式重構延後為 `pending_findings`（見 `.claude/impl/`）。
+
 ## v2.5.17 (2026-07-02)
 
 **Evidence-discipline transplant**。plugin version 2.5.16 → 2.5.17。從三個內建 skill（`/simplify`、`/verify`、`/code-review`）萃取反慣性紀律，就地改寫 16 處——`/review`（7 項：目標先落盤具體化、dispatcher==author 揭露、returned-set 收據、real-surface E2E 定義、direct-fix 條件式豁免）、`/analyze`（5 項：per-question verdicts、finding 錨點確認、修正後 clean-context 覆驗、`ls` 實測交付宣告、requirement↔test 覆蓋線）、`/execute`（4 項＋tdd.md §7.1 cosmetic 收斂為兩類：green_proof 落地 REQUIRE、條件式 direct-fix waiver、final-review 即跑證據、e2e_evidence 塊、off-goal 降級書面構造）。無新 stage／tier／工件，淨增趨近零。

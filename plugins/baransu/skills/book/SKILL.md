@@ -1,6 +1,6 @@
 ---
 name: book
-description: "Use When the user wants to convert any content source into a beautifully rendered, browser-ready HTML document. Do Run a three-stage pipeline: Acquire (URL / slug / local path / text) → Synthesize (classify content type, extract structure) → Render (Kami-themed HTML + SVG, quality-gated). Trigger On '/book', '轉成 book', '做成 HTML book', '存成 book'. Not for producing an editable Markdown artifact (use /read for offline source capture, /learn for a digested note) — /book only emits rendered browser-ready HTML."
+description: "Converts any content source into a beautifully rendered, browser-ready HTML document. Runs a three-stage pipeline: Acquire (URL / slug / local path / text) → Synthesize (classify content type, extract structure) → Render (Kami-themed HTML + SVG, quality-gated). Trigger On '/book', '轉成 book', '做成 HTML book', '存成 book'. Not for producing an editable Markdown artifact (use /read for offline source capture, /learn for a digested note) — /book only emits rendered browser-ready HTML."
 argument-hint: "<url | slug | path | text>"
 user-invocable: true
 ---
@@ -18,6 +18,29 @@ Converts any content into a Kami-themed, browser-ready HTML book saved to `.clau
 - **Evidence**: The execution result of validate-output.ts (GATE A-E / F / G / J / K / L all green or a legitimate SKIP).
 - **Output**: `.claude/book/{slug}.html`; per `--format` additionally includes `.pdf` / `.pptx`.
 - **Automation**: ultracode=neutral, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
+
+## Constraints
+
+- **Token source = project root**: all visual elements consume tokens from `{project_root}/tokens.css` (written by `/baransu:design preset <style>` or `/baransu:design gen --slug <slug>`) plus the component patterns in `{project_root}/design-cores/long-form.html` (SSOT) or `references/golden-template.html` (fallback). No inline hex colours; use named CSS variables (canonical 38 base names; +5 capability for schema:43).
+- **Soft generation inside the hard floor**: the render generates layout within the preset's §9 expression range (Stage 3 §3), using the SSOT template / fallback as reference exemplars rather than a closed class whitelist. The non-negotiable floor is the token boundary — every color routes through the canonical token (38 base names; +5 capability for schema:43), no bare hex — which validate-output.ts (GATE-F) guards; the soft §9 range is judged by style-reviewer.
+- **SVG required**: a document with 0 SVG diagrams fails the quality gate and must be fixed before completion.
+- **Length cap**: final HTML body ≤ 1800 words. Excess goes into a 延伸閱讀 link block.
+- **No LLM-generated commentary**: the rendered HTML contains the source content, structured and styled — not Claude's own analysis. The Synthesize stage extracts; the Render stage presents.
+- **Partial failure**: if Acquire fails for one of multiple inputs, report the failure per-input and continue with the rest.
+
+## Red Lines (what not to do)
+
+Scan the forbidden zone via the 🛑 visual marker, not by reading through prose. Each item below restates an existing rule; violating it = that output is compromised; each row carries a "why compromised" rationale anchor and the correct approach.
+
+| 🛑 Anti-pattern | Why it's compromised (rationale anchor) | Correct approach (authoritative reference) |
+|----------|---------------------|--------------------------|
+| 🛑 Using inline / bare hex colors instead of canonical tokens | Breaks the GATE-F canonical-token list (38 base names; +5 capability for schema:43) — the hard safety floor the soft generation lives inside — regressing to generic AI feel | every color routes through a canonical-name variable; the layout may be generated within the §9 range but never with bare hex (§3.3, Constraints; perception-guide Anti-Slop Blacklist #7) |
+| 🛑 Using `rgba()` for SVG fill / stroke | WeasyPrint composites the alpha into a double-rectangle ghost-border, distorting the PDF | SVG fill/stroke must always be a solid hex token (§3.4, svg-rendering-rules §4.1) |
+| 🛑 Free-styling node widths outside the 3-step whitelist | Mixing more than 3 steps is an anti-slop fail and breaks the diagram rhythm | node width limited to {128/144/160}, at most 2 steps per diagram (svg-rendering-rules §4.7) |
+| 🛑 Silently producing an empty page / skeleton when Acquire fails | Disguises failure as a successful output, leaving the user with an empty shell | report each failure clearly, do not produce an empty shell (Gotchas SPA, Constraints Partial failure) |
+| 🛑 Falling back to `find` / sibling-skill paths when `tokens.css` is missing | Violates the invariant that the sole token source = project root | tokens.css missing → abort and prompt to run `/baransu:design preset` first (Gotchas Missing project-root tokens, §3.1) |
+| 🛑 Skipping a Core Asset step (freezing before verifying) | The 4-step protocol's ordering guarantees "freeze only when there's no AI slop"; skipping bypasses quality confirmation | Ask → Generate/Search → Verify → Freeze strictly in order (§3.5) |
+| 🛑 Writing Claude's self-assessment / commentary / analysis into the HTML | The output should be structured source content, not the model's own argumentation | Synthesize extracts, Render presents; do not smuggle in LLM commentary (Constraints No LLM-generated commentary) |
 
 ## Stage 0 — Environment Self-Check
 
@@ -188,7 +211,7 @@ Receives `$RAW_CONTENT`. Produces `$STRUCTURE` (a JSON-like outline) and `$CONTE
 
 ### 0. Fact-Verification Principle #0
 
-**Purpose**: run a fact gate before long-form synthesis enters §1 classification, preventing hallucinated concrete specs (fabricated version numbers, fabricated person titles) from being written into the final HTML. Corresponds to REQ-006 Scenario 1 / Criteria C6. Historical case: 「Linear MCP v3.4.7 released 2025-09-15」 is fabricated, but if not verified it would be rendered into the book as established fact.
+**Purpose**: run a fact gate before long-form synthesis enters §1 classification, preventing hallucinated concrete specs (fabricated version numbers, fabricated person titles) from being written into the final HTML.
 
 **Trigger regex** (soft-match against the full `$RAW_CONTENT`; not all hits are required and a miss is not an error — it only serves as a signal to trigger WebSearch):
 
@@ -300,7 +323,7 @@ The long-form.html slot is a show-by-example contract — the slot demonstrates 
 
 ### 2. Generate HTML structure
 
-Produce the full HTML document using the SSOT template loaded in step 2:
+Produce the full HTML document using the SSOT template loaded in §1 step 2:
 
 ```
 <head> with linked tokens.css (use {project_root}/tokens.css; fill {{TITLE}})
@@ -352,6 +375,7 @@ For each section from `$STRUCTURE`:
 Takes effect only when the long-form HTML contains `<figure class="diagram">`. The spec includes: color tokens (canonical names + Kami hex defaults), the required `<defs>` / marker / two-layer paper-mask, type tag, legend strip, 4px alignment and the 3-step node-width whitelist (128/144/160), embedded-font correction, the 14-type diagram first-match decision tree, and the 14-type selection table (including `status: complete | ref-only`).
 
 **Full rules → read `references/svg-rendering-rules.md`.** SVG fill / stroke **must not use `rgba()`**; node width is limited to 3 steps (128/144/160); focal nodes are marked via `data-role="focal"`, capped at 2 per SVG. Per-type SVG specs live in `references/diagram-types/type-*.md`, selected via that file's §4.10 routing table (its ToC lists §4.9/§4.10 up top).
+Token hex resolution (three-layer fallback: root DESIGN.md → built-in presets → per-type derived) → read `references/design-token-resolver.md` before resolving any SVG/CSS hex.
 
 **Statistical-type color-capability degrade (undeclared-style fallback)**: when Layer 2 resolves a section to the `statistical` type (§4.9/§4.10), before writing that section's SVG, Render checks `{project_root}/tokens.css` line 1's header for the `; chart-capability: <N>` field written by `/baransu:design` (declared vs undeclared per `design/scripts/check.py`'s `_parse_chart_capability_header` contract):
 
@@ -425,29 +449,6 @@ SVG 圖解：{N} 張
 
 ---
 
-## Constraints
-
-- **Token source = project root**: all visual elements consume tokens from `{project_root}/tokens.css` (written by `/baransu:design preset <style>` or `/baransu:design gen --slug <slug>`) plus the component patterns in `{project_root}/design-cores/long-form.html` (SSOT) or `references/golden-template.html` (fallback). No inline hex colours; use named CSS variables (canonical 38 base names; +5 capability for schema:43).
-- **Soft generation inside the hard floor**: the render generates layout within the preset's §9 expression range (Stage 3 §3), using the SSOT template / fallback as reference exemplars rather than a closed class whitelist. The non-negotiable floor is the token boundary — every color routes through the canonical token (38 base names; +5 capability for schema:43), no bare hex — which validate-output.ts (GATE-F) guards; the soft §9 range is judged by style-reviewer.
-- **SVG required**: a document with 0 SVG diagrams fails the quality gate and must be fixed before completion.
-- **Length cap**: final HTML body ≤ 1800 words. Excess goes into a 延伸閱讀 link block.
-- **No LLM-generated commentary**: the rendered HTML contains the source content, structured and styled — not Claude's own analysis. The Synthesize stage extracts; the Render stage presents.
-- **Partial failure**: if Acquire fails for one of multiple inputs, report the failure per-input and continue with the rest.
-
-## Red Lines (what not to do)
-
-Scan the forbidden zone via the 🛑 visual marker, not by reading through prose. Each item below restates an existing rule; violating it = that output is compromised; each row carries a "why compromised" rationale anchor and the correct approach.
-
-| 🛑 Anti-pattern | Why it's compromised (rationale anchor) | Correct approach (authoritative reference) |
-|----------|---------------------|--------------------------|
-| 🛑 Using inline / bare hex colors instead of canonical tokens | Breaks the GATE-F canonical-token list (38 base names; +5 capability for schema:43) — the hard safety floor the soft generation lives inside — regressing to generic AI feel | every color routes through a canonical-name variable; the layout may be generated within the §9 range but never with bare hex (§3.3, Constraints; perception-guide Anti-Slop Blacklist #7) |
-| 🛑 Using `rgba()` for SVG fill / stroke | WeasyPrint composites the alpha into a double-rectangle ghost-border, distorting the PDF | SVG fill/stroke must always be a solid hex token (§3.4, svg-rendering-rules §4.1) |
-| 🛑 Free-styling node widths outside the 3-step whitelist | Mixing more than 3 steps is an anti-slop fail and breaks the diagram rhythm | node width limited to {128/144/160}, at most 2 steps per diagram (svg-rendering-rules §4.7) |
-| 🛑 Silently producing an empty page / skeleton when Acquire fails | Disguises failure as a successful output, leaving the user with an empty shell | report each failure clearly, do not produce an empty shell (Gotchas SPA, Constraints Partial failure) |
-| 🛑 Falling back to `find` / sibling-skill paths when `tokens.css` is missing | Violates the invariant that the sole token source = project root | tokens.css missing → abort and prompt to run `/baransu:design preset` first (Gotchas Missing project-root tokens, §3.1) |
-| 🛑 Skipping a Core Asset step (freezing before verifying) | The 4-step protocol's ordering guarantees "freeze only when there's no AI slop"; skipping bypasses quality confirmation | Ask → Generate/Search → Verify → Freeze strictly in order (§3.5) |
-| 🛑 Writing Claude's self-assessment / commentary / analysis into the HTML | The output should be structured source content, not the model's own argumentation | Synthesize extracts, Render presents; do not smuggle in LLM commentary (Constraints No LLM-generated commentary) |
-
 ## Gotchas
 
 - **SPA / login walls**: X.com, LinkedIn, paywalled pages often fail the proxy cascade. Report the failure clearly; don't silently produce an empty or skeleton page.
@@ -457,34 +458,8 @@ Scan the forbidden zone via the 🛑 visual marker, not by reading through prose
 
 ## Validator division of labor
 
-Verification splits into two tiers with opposite authority: a **hard floor** (mechanical, blocking) and a **soft range** (judgment, advisory). The division is deliberate — **the hard floor blocks; the soft range advises**. Soft generation (Stage 3 §3) lives *inside* the hard floor and is *judged against* the soft range; a soft-range objection never blocks a soft-generated layout, but a hard-floor violation always does.
+Verification splits into two tiers with opposite authority — **the hard floor blocks; the soft range advises**. Soft generation (Stage 3 §3) lives *inside* the hard floor and is *judged against* the soft range; a soft-range objection never blocks, a hard-floor violation always does.
 
-### Hard floor — blocking mechanical gate (`scripts/validate-output.ts`)
-
-The hard floor is the non-negotiable safety boundary: **token-only / no-rgba (in SVG) / accent ≤5% / PDF-safe**. It is enforced mechanically by `scripts/validate-output.ts`; **any violation = GATE FAIL (blocking)** — Stage 4 §1 does not enter the completion report until exit 0 (the three-stage fallback runs first). This tier is pure mechanism, no judgment.
-
-Mapping each hard-floor item to the existing gate that enforces it (confirmed against the current `validate-output.ts`):
-
-| Hard-floor item | Enforcing gate in `validate-output.ts` | Coverage |
-|-----------------|----------------------------------------|----------|
-| token-only (class prefix routed through canonical preset) | GATE-F class-prefix (F-a prefix-in-whitelist / F-b single-prefix / F-c tokens.css tie-break) | covered for class tokens; bare-hex *color values* are **not** scanned by any gate — see follow-up note |
-| no-rgba (SVG fill / stroke) | — | **not covered** by an existing gate — see follow-up note |
-| accent ≤5% (single chromatic accent, painted area) | — | **not covered** by an existing gate (area share is unmeasured) — see follow-up note |
-| PDF-safe (no WeasyPrint ghost-border / unsafe layout) | GATE-K chevron-strict (forbids `<polygon>` markers that ghost-border in PDF) + html2pptx pre-checks rule2_gradient / rule3_bg_on_text / rule4_div_bg_image (all `hard_fail`, PPT mode) | partially covered: chevron / gradient / bg-image ghosting is gated; the `rgba()` alpha-composite ghost-border is not (it overlaps the no-rgba gap above) |
-
-**Follow-up note (not added this batch — do not introduce a large new validator check now):** three hard-floor items lack a dedicated mechanical gate today — (a) **bare-hex color values** anywhere in output (GATE-F only checks class-name prefixes, not `#rrggbb` literals), (b) **`rgba()` in SVG fill / stroke**, and (c) **accent-painted area ≤5%**. Until a gate is added, (a) and (b) are caught only by the render-time pre-write checklist (Stage 3 §3) and the soft-range bare-hex heuristic below; (c) lives entirely in the render-time self-check + style-reviewer. Track these as a follow-up to extend `validate-output.ts` (a no-rgba SVG scan and a bare-hex literal scan are the cheapest two to add).
-
-### Soft range — non-blocking opinion (style-reviewer + heuristics)
-
-The soft range judges whether a hard-floor-passing output is *stylistically within the preset's §9 expression range*. It is **NON-blocking opinion**: produced by `style-reviewer` plus a few mechanical heuristics, recorded in the review, and **never blocks output**. The heuristics are: **bare hex** (a `#rrggbb` literal that slipped past the canonical-token convention), a **second accent** (a second chromatic accent beyond the single `var(--accent)`), and **column width** exceeding the §9 欄寬上限 ceiling. A soft-range finding ("not quite within §9 style") is advice in the report, not a gate — keeping judgment-type checks out of the blocking path (per the ctx error_handling split: 軟範圍是意見非阻斷).
-
-### Gate-internal trust boundary
-
-- `scripts/validate-output.ts`: responsible for the output layer's (output HTML) set membership and prefix consistency, including GATE A-E (existing SVG rules) / GATE-F (class prefix `kami-*` / `swiss-*` not mixed + tokens.css preset tie-break) / GATE-G (`data-layout` must correspond to a real file under `{project_root}/slide-cores/`) / GATE-J node-width whitelist / GATE-K chevron-strict / GATE-L viewBox containment (rect/line/circle/ellipse/text all fall within the viewBox, 0.5px tolerance; skips defs/marker/pattern/clipPath/mask/symbol and transformed groups). **Trusts** that the `/design` side's `check.py` has already linted the slide-core artifact's internal structure; this validation does not redo per-file lint.
-- The corresponding `/design`-side rules are in `plugins/baransu/skills/design/scripts/check.py`'s artifact-internal lint rules.
-
-## REQ-003 Scenario 2 automated evidence
-
-- Fixture: `scripts/validate-fixtures/swiss-positive.html` — a hand-written swiss-style slide HTML that mirrors the shape `/book` Stage 3 emits under `--format ppt --style swiss` (body 960pt×540pt, `data-layout="content-bullets"` / `quote`, all classes `swiss-*`, no hard-fail violations).
-- Smoke runner: `scripts/swiss-smoke-test.sh` — Stage 1 runs `validate-output.ts` against the fixture (expected all green; GATE-C/GATE-G SKIP because of the viewBox height and the project root having no `slide-cores/`); Stage 2, when `pptxgenjs` + `playwright` are installed, runs `html2pptx.js`, and uses `python3 zipfile` to confirm the `.pptx` is a valid zip containing `ppt/presentation.xml` + `[Content_Types].xml`. When dependencies are not installed, Stage 2 SKIPs (`--strict` turns it into FAIL).
-- Purpose: serves as the minimal automated-evidence starting point for REQ-003 S2 「文件可在 PowerPoint 打開」. For a full PowerPoint round-trip, run `npx tsx scripts/install-deps.ts --format ppt` first.
+- **Hard floor — blocking mechanical gate**: `scripts/validate-output.ts` mechanically enforces **token-only / no-rgba (in SVG) / accent ≤5% / PDF-safe**; any violation = GATE FAIL (blocking). Pure mechanism, no judgment.
+- **Soft range — non-blocking opinion**: `style-reviewer` plus mechanical heuristics (**bare hex**, a **second accent**, **column width** past the §9 欄寬上限 ceiling) — advisory, recorded in the review, never blocks output.
+- Full detail (hard-floor→gate coverage mapping, follow-up note, gate-internal trust boundary, REQ-003 Scenario 2 automated evidence) → read `references/validation.md`.

@@ -1,8 +1,8 @@
 ---
 name: hunt
-description: 'Use When tracking a bug from symptom to root cause before any fix. Do
-  Pick the right observability tool (playwright / MCP db / LSP / logs / static analysis),
-  bisect, confirm or discard hypotheses before touching code. Trigger On 「排查」「查 bug」「追問題」「為什麼失敗」,
+description: 'Tracks a bug from symptom to root cause before any fix: picks the right
+  observability tool (playwright / MCP db / LSP / logs / static analysis), bisects,
+  confirms or discards hypotheses before touching code. Trigger On 「排查」「查 bug」「追問題」「為什麼失敗」,
   ''debug'', "what''s wrong", ''not working''. Not For: subjective UI taste (→ /baransu:design);
   worth-fixing value calls / 值不值得修 (→ /baransu:think Evaluation Mode).
 
@@ -35,6 +35,17 @@ The body below is English (agent-facing). All user-facing output is in **Traditi
 - **Evidence**: The report's 確認方式 line cites the instrument or test that confirmed the root cause; all 🎯HUNT-id tagged instruments removed after confirmation (`grep "🎯HUNT-"` finds none).
 - **Output**: The 繁中 success or handoff report plus the `.claude/hunt-report/HUNT-YYYY-NNN.md` case file.
 - **Automation**: ultracode=assist, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
+
+## Core constraints
+
+- Do not touch code before stating the root cause in one sentence.
+- Locate step (four questions) must complete before adding the first instrument.
+- Before You Fix (impact analysis + test matrix) is mandatory before any fix.
+- All instruments must carry a HUNT-id tag; remove all after root cause is confirmed.
+- Confirm or Discard: one instrument at a time; contradicted hypotheses are discarded completely, not patched.
+- Three failed hypotheses triggers Handoff format, not another guess.
+- DB-connected investigation tests must use transactions that always rollback.
+- File writes and external API calls in investigation tests must use mocks.
 
 ## Rationalization Watch
 
@@ -90,21 +101,21 @@ After selecting a tool in Tool Scan, answer these four questions before adding a
 3. **Dirty data characteristics**: How does the dirty data differ from normal? (which field, which value, which condition)
 4. **Environment**: Can the bug be reproduced in a test environment, or only in production?
 
-These four questions determine where the first observation point goes. Adding a log before answering these questions = setting traps in a forest without knowing where the prey is.
+These four questions determine where the first instrument goes. Adding a log before answering these questions = setting traps in a forest without knowing where the prey is.
 
-Before instrumenting, run `python3 "./references/hunt-search.py" --keyword "<symptom term>"` to check whether a similar case in `.claude/hunt-report/` was already solved; cite any hit in the report.
+Before instrumenting, run `python3 "./scripts/hunt-search.py" --keyword "<symptom term>"` to check whether a similar case in `.claude/hunt-report/` was already solved; cite any hit in the report.
 
 ---
 
 ## Instrumentation — 🎯 HUNT-id Tagging
 
-All diagnostic tools (log lines, failing assertions, test probes) **must carry a HUNT-id tag**.
+All instruments (log lines, failing assertions, minimal test cases) **must carry a HUNT-id tag**.
 
 - Tag format: see `references/hunt-case-template.md`
-- `grep "🎯HUNT-[id]"` finds all diagnostic tools at once
-- After root cause is confirmed, **remove all tagged tools in one sweep** and verify the build still passes
+- `grep "🎯HUNT-[id]"` finds all instruments at once
+- After root cause is confirmed, **remove all tagged instruments in one sweep** and verify the build still passes
 
-Log bisection: add only 2–3 observation points per round, not 20.
+Log bisection: add only 2–3 instruments per round, not 20.
 ```
 Round 1: one point each at suspect entry / middle / exit → determine which segment contains the problem
 Round 2: 2–3 more points inside the problematic segment → narrow further
@@ -141,7 +152,7 @@ Build the matrix before entering any fix. A fix without a test matrix is a sympt
 Add only **one** minimal instrument at a time (one log line, one failing assertion, or one minimal test case).
 
 After executing:
-- Evidence **supports the hypothesis** → find one independent cross-confirmation, then proceed to fix. Independent means the cross-confirmation MUST come from a different observable layer than the one that produced the first evidence (per the Tool Scan layers — UI/render, data state, call-chain structure, runtime intermediate values, static structure): if first evidence came from layer L, the cross-confirmation must come from a layer ≠ L. Concretely, if a log line at the runtime layer confirmed it, the second check must be a DB query, a failing test, or a UI/render observation — not a second log at the same layer.
+- Evidence **supports the hypothesis** → find one independent cross-confirmation, then proceed to fix. Independent means the cross-confirmation MUST come from a different observable layer than the one that produced the first evidence (per the Tool Scan layers — UI/render, data state, call-chain structure, runtime intermediate values, static structure). Concretely, if a log line at the runtime layer confirmed it, the second check must be a DB query, a failing test, or a UI/render observation — not a second log at the same layer.
 - Evidence **contradicts the hypothesis** → **discard the hypothesis completely**. Not patch, not explain. Reorient using what was just learned.
 
 A preserved-but-contradicted hypothesis produces a new bug. Discard completely.
@@ -208,8 +219,8 @@ If the issue is purely subjective UI taste, route to `/baransu:design` instead. 
 | Visual / render bug | Static analysis first (DevTools layers, stacking context); logging is the second step. |
 | DB investigation test | Transaction must always rollback. Do not modify real data. |
 | Investigation involves file writes / external API calls | Use mocks to prevent real writes; emails and webhooks must not actually send. |
-| Working tree dirty (`git status --porcelain` non-empty) when bisect is about to start | Stop. `git stash` (or commit) the in-progress changes, then re-run `git status --porcelain`. IF it is still non-empty after the stash (stash conflict or untracked-file residue) THEN do NOT run `git bisect start` — stop and report; bisect would otherwise check out arbitrary commits over a tree that was never truly clean and clobber the residue. Only start bisect once the post-stash status is empty. |
-| git bisect identified the commit | Run `git bisect reset` to exit the bisecting state and restore HEAD before any fix or other git operation. Never leave the repo in a detached-HEAD bisecting state. |
+| Working tree dirty (`git status --porcelain` non-empty) when bisect is about to start | Stop — apply Bisect Mode step 3 gate before `git bisect start`. |
+| git bisect identified the commit | Run `git bisect reset` per Bisect Mode step 6 before any other git operation. |
 | Fix plan or current diff touches 6 or more files (without a Scope Blast pattern justification) | Stop **before adding the 6th file**. Check at two points: (i) when drafting the fix plan, (ii) after each edit. If the scope is genuinely a class-of-bug sweep, route through Scope Blast Mode (which is an explicit exception). If it is symptom-patch creep growing into a refactor, narrow back or route to `/baransu:analyze`. |
 | Someone (user or agent) deflects suspicion from a specific area — semantic trigger, not literal string match. Examples: 「那段沒問題」「不是那邊的問題」「先別管那個」「我已經檢查過了」, "that part doesn't matter", "I already checked there" | Treat as a signal. The area being deflected from is often where the bug lives — especially in multi-stage pipelines (CI segments, data pipeline stages, baransu plane handoffs) where one stage is excluded from suspicion. Re-examine that area with one targeted instrument before accepting the deflection. |
 
@@ -231,8 +242,6 @@ If the issue is purely subjective UI taste, route to `/baransu:design` instead. 
 ---
 
 ## Output
-
-All user-facing output is in Traditional Chinese (繁體中文).
 
 ### Success format
 
@@ -272,17 +281,4 @@ After confirming root cause, route the fix by task scope:
 
 ---
 
-After completing the hunt, create a case file at `.claude/hunt-report/HUNT-YYYY-NNN.md` (format: `references/hunt-case-template.md`) to record the root cause and fix for future reference. Past cases are searchable via `references/hunt-search.py` — invoked at the Locate stage.
-
----
-
-## Core constraints
-
-- Do not touch code before stating the root cause in one sentence.
-- Locate step (four questions) must complete before adding the first instrument.
-- Before You Fix (impact analysis + test matrix) is mandatory before any fix.
-- All diagnostic instrumentation must carry a HUNT-id tag; remove all after root cause is confirmed.
-- Confirm or Discard: one instrument at a time; contradicted hypotheses are discarded completely, not patched.
-- Three failed hypotheses triggers Handoff format, not another guess.
-- DB-connected investigation tests must use transactions that always rollback.
-- File writes and external API calls in investigation tests must use mocks.
+After completing the hunt, create a case file at `.claude/hunt-report/HUNT-YYYY-NNN.md` (format: `references/hunt-case-template.md`) to record the root cause and fix for future reference. Past cases are searchable via `scripts/hunt-search.py` — invoked at the Locate stage.

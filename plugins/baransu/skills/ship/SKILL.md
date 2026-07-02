@@ -1,6 +1,6 @@
 ---
 name: ship
-description: Use When wrapping up a session and pushing pending changes. Do Archive every baransu working dir under .claude/ except the read/learn/book products into .claude/archived/, commit, push (optionally landing the work on a target branch via `/ship <branch>`), and tear down the worktree once its work is safely on origin. Trigger On '/ship', '收工', '上傳收尾', '結束這輪'. Not For writing or refining copy (use /write); not for reviewing code or model output (use /review) — /ship only wraps up a session.
+description: "Wraps up a session: archives every baransu working dir under .claude/ except the read/learn/book products into .claude/archived/, commits, pushes (optionally landing the work on a target branch via `/ship BRANCH`), and tears down the worktree once its work is safely on origin. Trigger On '/ship', '收工', '上傳收尾', '結束這輪'. Not For writing or refining copy (use /write); not for reviewing code or model output (use /review) — /ship only wraps up a session."
 ---
 
 # /baransu:ship — session cleanup
@@ -18,6 +18,7 @@ No user confirmation required. The steps below run automatically.
 - **Evidence**: The session end output reporting the archived item count, the commit message (or 「跳過」), the push target (`origin/{branch}` or `{branch} → {target}`), and the worktree cleanup status.
 - **Output**: Archived directories under `.claude/archived/`, a pushed git commit, and the 繁中 session end report.
 - **Automation**: ultracode=neutral, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
+  In the same non-interactive pass, read `references/loop-pauses.md` for this skill's own PAUSE classification.
 
 ## Invariants
 
@@ -141,36 +142,18 @@ git rev-parse --git-dir
 
 If the output contains `.git/worktrees/`:
 
-1. Capture variables before any removal:
+1. Capture variables before any removal, and pick the ref the work should now live on: `SAFE_REF="origin/$TARGET"` in Mode B, else `SAFE_REF="origin/$BRANCH"`.
    ```bash
    WORKTREE_PATH=$(pwd)
    BRANCH=$(git rev-parse --abbrev-ref HEAD)
    MAIN_REPO=$(dirname "$(git rev-parse --git-common-dir)")
    ```
-2. **Safety gate — confirm the work is on origin before destroying the worktree.** Pick the ref the work should now live on: `SAFE_REF="origin/$TARGET"` in Mode B, else `SAFE_REF="origin/$BRANCH"`.
-   ```bash
-   git -C "$MAIN_REPO" merge-base --is-ancestor "$BRANCH" "$SAFE_REF"
-   ```
-   - Exit 0 (ancestor) → the branch's commits are safely on `$SAFE_REF` → proceed to teardown.
-   - Non-zero → the work is **not** yet on `$SAFE_REF`. Do **not** destroy it. Output 「分支 {BRANCH} 的工作尚未確認落地到 {SAFE_REF}，保留 worktree 以免遺失；請確認 merge/push 後再清理。」 and skip teardown (leave the worktree intact).
-
-   This ancestor check is exact: it never falsely refuses a merged branch (unlike branch-tip heuristics) and never silently discards unmerged work.
-3. **Teardown** — three-tier removal, then delete the branch. The third tier escalates to `rm -rf`; before that destructive fallback runs, a precondition guard (INV-6) must confirm `$WORKTREE_PATH` is a validated worktree path. Keep the three-tier `||` chain ordering and the `branch -D` intact:
-   ```bash
-   git -C "$MAIN_REPO" worktree remove "$WORKTREE_PATH" \
-     || git -C "$MAIN_REPO" worktree remove --force "$WORKTREE_PATH" \
-     || { if [ -n "$WORKTREE_PATH" ] && [ "$WORKTREE_PATH" != "/" ] && [ -e "$WORKTREE_PATH/.git" ]; then \
-            rm -rf "$WORKTREE_PATH" && git -C "$MAIN_REPO" worktree prune; \
-          else \
-            echo "worktree 路徑無法安全確認，停止強制刪除以免誤刪"; \
-          fi; }
-   git -C "$MAIN_REPO" branch -D "$BRANCH"
-   ```
-   `branch -D` (not `-d`): after a merge the branch may still read as unmerged locally, so `-d` fails — `-D` is required.
-
-   If the guard fails (`$WORKTREE_PATH` empty, `/`, or missing `.git` lineage) → output 「worktree 路徑無法安全確認，停止強制刪除以免誤刪」 and skip teardown, leaving the worktree intact.
-
-   Output: 「Worktree 已清理：{WORKTREE_PATH}，分支 {BRANCH} 已刪除。」
+2. **Teardown** — Run `bash "${CLAUDE_SKILL_DIR}/scripts/cleanup-worktree.sh" "$WORKTREE_PATH" "$BRANCH" "$SAFE_REF" "$MAIN_REPO"` — execute it; do not read it as a reference. The script encapsulates the whole chain: the merge-base safety gate (INV-4; the ancestor check is exact — it never falsely refuses a merged branch and never silently discards unmerged work), the three-tier removal chain whose `rm -rf` fallback runs only behind the INV-6 guard plus a worktree-registry check, and the `branch -D` deletion (INV-5). It prints one machine-readable status line.
+3. Render the status line as the user-facing 繁中 message:
+   - `GATE_FAIL …` → the work is **not** yet on `$SAFE_REF`; nothing was destroyed. Output 「分支 {BRANCH} 的工作尚未確認落地到 {SAFE_REF}，保留 worktree 以免遺失；請確認 merge/push 後再清理。」
+   - `GUARD_REFUSED …` → the destructive fallback was refused and the worktree is left intact. Output 「worktree 路徑無法安全確認，停止強制刪除以免誤刪」
+   - `REMOVED …` → output 「Worktree 已清理：{WORKTREE_PATH}，分支 {BRANCH} 已刪除。」
+   - Any other non-zero exit → report the raw status line in the session end output's Worktree field.
 
 If not in a worktree → skip silently.
 

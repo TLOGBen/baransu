@@ -1,0 +1,76 @@
+{
+  "skill_name": "learn",
+  "note": "Data-only trigger-routing fixtures (plugin-wide-6 / batch C4). There is no built-in eval runner; these cases are the fresh-session A/B baseline corpus recorded BEFORE the C1 description POV batch. Post-run user-verification artifact, not a merge gate.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/learn react （slug 檔已存在）",
+      "should_trigger": true,
+      "expected_skill": "learn",
+      "expected_behavior": "§3: single slug-shaped arg whose slug-file exists → read the existing captured material."
+    },
+    {
+      "id": 2,
+      "prompt": "/learn react （slug 檔不存在）",
+      "should_trigger": true,
+      "expected_skill": "learn",
+      "expected_behavior": "§3 falls through to §3.5 fan-out on topic \"react\"."
+    },
+    {
+      "id": 3,
+      "prompt": "/learn react hooks",
+      "should_trigger": true,
+      "expected_skill": "learn",
+      "expected_behavior": "§4 mixed-input rule: each argument routed individually (react → §3/fan-out; hooks → §3/fan-out). Multi-word bare input is NOT auto-joined; use --topic \"react hooks\" for one query."
+    },
+    {
+      "id": 4,
+      "prompt": "/learn ./typo.md",
+      "should_trigger": true,
+      "expected_skill": "learn",
+      "expected_behavior": "Explicit path prefix fails §3: output 「未識別輸入：./typo.md」 and stop. Do NOT fall through to §3.5 fan-out."
+    },
+    {
+      "id": 5,
+      "prompt": "/learn",
+      "should_trigger": true,
+      "expected_skill": "learn",
+      "expected_behavior": "No argument: output 「請提供 URL、--topic 「關鍵字」或 slug」 and stop. Do NOT enter fan-out with an empty topic."
+    },
+    {
+      "id": 6,
+      "prompt": "/learn --brief slug-not-found",
+      "should_trigger": true,
+      "expected_skill": "learn",
+      "expected_behavior": "§3 falls through to §3.5 fan-out using the slug as topic; --brief is honored at Stage 2's stop path."
+    },
+    {
+      "id": 7,
+      "prompt": "/learn --brief",
+      "should_trigger": true,
+      "expected_skill": "learn",
+      "expected_behavior": "Flag only, no topic: output 「請提供 URL、--topic 「關鍵字」或 slug」 and stop (same as the no-argument case)."
+    },
+    {
+      "id": 8,
+      "prompt": "只要把原文存下來就好，不用整理",
+      "should_trigger": false,
+      "expected_skill": "read",
+      "expected_behavior": "Raw offline capture without digestion routes to /read."
+    },
+    {
+      "id": 9,
+      "prompt": "把這份研究做成瀏覽器可看的 HTML",
+      "should_trigger": false,
+      "expected_skill": "book",
+      "expected_behavior": "Browser-ready HTML artifact routes to /book."
+    },
+    {
+      "id": 10,
+      "prompt": "幫我寫一篇介紹這個主題的文章",
+      "should_trigger": false,
+      "expected_skill": "write",
+      "expected_behavior": "Producing new copy routes to /write, not the research pipeline."
+    }
+  ]
+}

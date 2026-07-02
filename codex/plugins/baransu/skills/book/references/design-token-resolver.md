@@ -3,7 +3,7 @@ name: design-token-resolver
 purpose: |
   Single source of truth for how /book resolves design tokens
   (colors, surfaces, ink levels) when rendering SVG/CSS for the
-  13 diagram types. Defines a three-layer fallback chain plus a
+  14 diagram types. Defines a three-layer fallback chain plus a
   hex shape contract that all downstream consumers (template,
   example, validate, per-type refs) MUST honour.
 ---
@@ -20,7 +20,7 @@ purpose: |
 # Design Token Resolver
 
 This document is the v1.3+ ground truth for token resolution in `/book`.
-All template / example / validate code paths and the 13 per-type
+All template / example / validate code paths and the 14 per-type
 reference files reference this file rather than re-deriving rules.
 
 > **v1.4 ack note**: this file was upgraded in v1.4 cross-tool group
@@ -187,7 +187,7 @@ Aliases used in the derivation rules below:
 
 ## Layer 3: per-type derived rules
 
-Some of the 13 diagram types need tokens that are NOT in the
+Some of the 14 diagram types need tokens that are NOT in the
 basic paper / ink / accent palette. For those, Layer 3 derives
 the value from an ink-on-paper opacity ramp and **pre-flattens
 the result to a solid hex** so that the rendered SVG/CSS never
