@@ -208,12 +208,13 @@ section per the `output-journal.md` contract.
 
 ### 7.1 Classify first: TDD or cosmetic
 
-cosmetic = the change has no semantic impact on runtime behavior, limited to four kinds:
+cosmetic = the change has no semantic impact on runtime behavior, limited to two kinds:
 
 - comment edits (comment modifications)
-- dead import removal (removing dead imports)
-- identifier rename with no behavior change (identifier rename with no behavior change)
 - pure formatting (pure formatting adjustments)
+
+Dead-import removal and identifier rename touch executable text: they take the TDD path
+(§7.2), not the cosmetic path.
 
 When unsure, always take the TDD path. Once made, the classification is final; do not
 re-classify mid-execution. The cosmetic path implements directly and writes no tests; the

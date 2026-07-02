@@ -25,7 +25,7 @@ The body below is English (agent-facing). All user-visible output is in **Tradit
 
 - **Outcome**: A five-layer spec (goal → requirement → design → test → task) exists for the stated goal, ready for /execute handoff.
 - **Done when**: `.claude/analyze/{date}-{slug}/` contains `goal.md`, `requirement.md`, `design.md`, `test.md`, and at least one `task-{group}.md`, and the Stage 6 cross-layer review round (3 subagents + one auto-correct round) has completed.
-- **Evidence**: The generated file list shown at Stage 7 handoff with full paths; Stage 6 findings and the auto-corrections applied to the design / test / task layers.
+- **Evidence**: The `ls` output of the spec dir captured in the Stage 7 declaring turn, plus a clean template-placeholder scan; Stage 6 findings and the auto-corrections applied to the design / test / task layers.
 - **Output**: Spec directory `.claude/analyze/{YYYY-MM-DD}-{slug}/` holding the five spec documents.
 - **Automation**: ultracode=assist, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
@@ -318,16 +318,16 @@ Every task must have at least one requirement reference (`REQ-XXX`). Do not inve
 
 ## Stage 6 — Cross-layer subagent review
 
-Spawn 3 Codex subagents in parallel, each in a clean context. Pass each agent: the spec_dir path, its required file list (below), and its specific review question. Each agent reads its required files independently via Read tool — do not pass all spec content inline.
+Spawn 3 Codex subagents in parallel, each in a clean context. Pass each agent: the spec_dir path, its required file list (below), and its specific review question. Each agent reads its required files independently via Read tool — do not pass all spec content inline. Each agent must return a verdict per review question from 「對齊 / 未對齊 / 未檢查」, and each finding as {file, section anchor, one-line claim, quoted evidence}. An empty finding list under explicit 「對齊」 verdicts is a legal, completed return — do not invent findings to fill the list.
 
 > In an ultracode session, this stage's 3-way review may be dispatched to Workflow parallel-research primitives instead; the returned data shape is unchanged.
 > When loop-driven, the loop-mode default is assisted: if unresolved findings remain after auto-correct, report back to the driver rather than adjudicating on your own.
 
 **Agent 1 — task ↔ test alignment**
 
-Required files: `task-*.md`, `test.md`
+Required files: `task-*.md`, `test.md`, `requirement.md`
 
-Review question: 「task-*.md 的每個 task 是否都有 test.md 裡對應的測試覆蓋錨點？task 產生的邊界條件（例如空值、並發、超時）是否在 test.md 的邊界條件清單中被覆蓋？有沒有 task 產出了一個功能，但 test.md 裡找不到驗證它的策略？」
+Review question: 「task-*.md 的每個 task 是否都有 test.md 裡對應的測試覆蓋錨點？task 產生的邊界條件（例如空值、並發、超時）是否在 test.md 的邊界條件清單中被覆蓋？有沒有 task 產出了一個功能，但 test.md 裡找不到驗證它的策略？requirement.md 的每個 Given-When-Then 情境，是否都能在 test.md 找到對應的覆蓋錨點（E2E 列、整合測試列、或邊界條件項）？沒有錨點的情境即為 finding。」
 
 **Agent 2 — test ↔ design alignment**
 
@@ -343,15 +343,18 @@ Review question: 「design.md 的架構和資料流是否能支撐 requirement.m
 
 ### Subagent-failure path
 
-If any of the 3 review subagents returns empty findings, errors out, or does not complete, then re-dispatch that single agent once. If it fails again, skip that agent's lane and record in the Stage 7 handoff output the line 「Stage 6 第N位審查員未完成，該層交叉審查略過」 (substituting the agent's number for N) — so the Done-when review round is never silently reported as complete.
+If any of the 3 review subagents returns without per-question verdicts, errors out, or does not complete, then re-dispatch that single agent once. If it fails again, skip that agent's lane and record in the Stage 7 handoff output the line 「Stage 6 第N位審查員未完成，該層交叉審查略過」 (substituting the agent's number for N) — so the Done-when review round is never silently reported as complete.
 
 ### After receiving findings
 
-Auto-correct the spec files to address findings. One round only. Changes allowed: fix broken requirement references, add missing test cases, add missing data flow entries, correct mermaid diagrams that contradict the text.
+A finding is a claim, not a mandate: before editing for a finding, Read the file at its cited anchor and confirm the claim matches the current spec state; if it does not, skip that finding and log it — never force-apply. Auto-correct the spec files to address the confirmed findings. One round only. Changes allowed: fix broken requirement references, add missing test cases, add missing data flow entries, correct mermaid diagrams that contradict the text.
+Report skipped findings in the Stage 7 handoff output with the line 「已略過 N 項與 spec 現況不符的發現：[清單]」 (omit when N = 0).
 
 Changes not allowed during auto-correct: modify `goal.md` or `requirement.md` semantics (those represent user intent; changing them requires user confirmation).
 
-After the single auto-correct round, classify each still-open finding as either wording-only or structural, where structural means any of: a broken REQ reference, a task-produced feature with no test-coverage anchor in test.md, or a cross-layer contradiction. Pause for user confirmation if-and-only-if at least one structural finding remains:
+After the single auto-correct round, the author session does not certify its own corrections as resolved. For each lane whose findings were corrected, re-dispatch that lane's agent once in a clean context (same dispatch protocol as above), passing the corrected files, the original finding, and one question: 「此發現是否已解決？」. Only a verifier-returned resolved counts; a failed re-dispatch or an ambiguous answer leaves the finding open — an unverifiable resolution counts as unresolved.
+
+Classify each still-open finding as either wording-only or structural, where structural means any of: a broken REQ reference, a task-produced feature with no test-coverage anchor in test.md, or a cross-layer contradiction. Pause for user confirmation if-and-only-if at least one structural finding remains:
 
 「spec 驗收後仍有未解問題，需要你確認：
 [摘要問題，條列]
@@ -361,7 +364,7 @@ After the single auto-correct round, classify each still-open finding as either 
 
 ## Stage 7 — Handoff
 
-List all generated files with their paths. Then call `authorization PAUSE`:
+Run `ls` on the spec dir in this turn and list the generated files exactly as that output returns them — never from memory. Confirm the five layers are present and grep the spec files for leftover template braces (e.g. `{criterion`, `{item}`), repairing any miss before declaring. Then call `authorization PAUSE`:
 
 ```
 question: "spec 完成。接下來怎麼做？"
@@ -386,6 +389,12 @@ options:
 下一步選擇：
 1. 在新 session 中開始依 task-*.md 逐一執行（建議：每個 task 獨立 session）
 2. 呼叫你的 execute skill 並以上述路徑作為輸入」
+
+---
+
+## Gotchas
+
+- **[Option 2 same-session handoff contradicts never-share-context]**: Stage 7 Option 2 (「直接交接 execute（完全授權）」) reads as "invoke execute inline, in the current session". But this skill's own premise — definition and execution "should never share the same context", "hand the spec to a fresh execution session" — requires execution to begin in a fresh context. An inline same-session invocation plants the loaded-context condition that makes the downstream execute orchestrator rationalize self-reviewing (absorbing verifier roles in its polluted context) instead of dispatching isolated subagents. Adding a warning line is not a fix — it only logs the contradiction; preventing it means the handoff stops and tells the user to run /execute in a fresh session, or a gate enforces freshness outside the model's cognition (see /think Stage E "Mechanism necessity": a rule the failing path can skip is not prevention). Solution: treat Option 2's autonomous inline invocation as the trigger to scrutinize — when the spec must run with true isolation, prefer handing off to a fresh session over continuing in the current loaded context.
 
 ---
 

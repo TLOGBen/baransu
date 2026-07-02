@@ -2,6 +2,14 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.5.17 (2026-07-02)
+
+**Evidence-discipline transplant**。plugin version 2.5.16 → 2.5.17。從三個內建 skill（`/simplify`、`/verify`、`/code-review`）萃取反慣性紀律，就地改寫 16 處——`/review`（7 項：目標先落盤具體化、dispatcher==author 揭露、returned-set 收據、real-surface E2E 定義、direct-fix 條件式豁免）、`/analyze`（5 項：per-question verdicts、finding 錨點確認、修正後 clean-context 覆驗、`ls` 實測交付宣告、requirement↔test 覆蓋線）、`/execute`（4 項＋tdd.md §7.1 cosmetic 收斂為兩類：green_proof 落地 REQUIRE、條件式 direct-fix waiver、final-review 即跑證據、e2e_evidence 塊、off-goal 降級書面構造）。無新 stage／tier／工件，淨增趨近零。
+
+### Notes
+
+- codex/ 鏡像經 `transfer.py` 重產，補齊 v2.5.16 遞延的 `/design`／`/book` 內容轉譯與 v2.5.15 的 mechanism-necessity 段落（前次僅同步版本號）。
+
 ## v2.5.16 (2026-07-02)
 
 **`/design` + `/book` 吸收 dataviz 色彩推理層，新增統計圖表類型**。plugin version 2.5.15 → 2.5.16。

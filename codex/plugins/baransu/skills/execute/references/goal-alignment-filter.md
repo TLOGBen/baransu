@@ -39,7 +39,10 @@ FOR each finding F in review.findings:
     # On-goal but not acceptance-bound: keep original tier.
     F.downgraded_to_advisory = false
   ELSE:
-    # Off-goal observation. Downgrade to advisory.
+    # Off-goal observation. Downgrading requires a written construction —
+    # {quoted 驗收標準 entries examined, one-line non-coverage reason} —
+    # appended to the task's impl-checklist 備註; if it cannot be constructed
+    # from quoted text (coverage uncertain), set is_acceptance_failure = true.
     F.downgraded_to_advisory = true
     downgraded_to_advisory_count += 1
 END FOR
@@ -50,17 +53,15 @@ Any finding whose observation corresponds to a 驗收標準直接失敗
 (`is_acceptance_failure == true`) **must not** be downgraded to advisory by
 the goal-alignment logic; that finding keeps its original tier and still
 counts toward `failure_count` per the original logic. The invariant is R2's
-lower bound, not a suggestion.
+lower bound, not a suggestion. Tie-break: unsure = protected — when semantic
+coverage is uncertain, the written construction fails and the finding is
+treated as an acceptance failure, never downgraded.
 
 Filter decision criterion: judge by the semantic coverage of the acceptance
 criteria, not by literal reference numbers. If a finding's observation
 describes some failure condition and the semantics of any entry in
 `Task.驗收標準` cover that condition, it is treated as "corresponds to an
-acceptance-criterion direct failure" and is protected by the invariant —
-even when the finding text does more than literally cite an acceptance-criterion
-number (for example, a finding stating "authentication middleware not mounted"
-against an acceptance criterion stating "endpoint must require authorization"
-constitutes semantic coverage).
+acceptance-criterion direct failure" and is protected by the invariant.
 
 Post-step — review-level tier recomputation (re-tier):
 
