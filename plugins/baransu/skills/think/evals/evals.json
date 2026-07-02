@@ -1,0 +1,48 @@
+{
+  "skill_name": "think",
+  "note": "Data-only trigger-routing fixtures (plugin-wide-6 / batch C4). There is no built-in eval runner; these cases are the fresh-session A/B baseline corpus recorded BEFORE the C1 description POV batch. Post-run user-verification artifact, not a merge gate.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我想幫 App 加上離線同步，怎麼設計比較好？",
+      "should_trigger": true,
+      "expected_skill": "think",
+      "expected_behavior": "Plan mode: Stage A alignment questions first, then a five-section approved plan. Never produces code, scaffolding, or pseudo-code."
+    },
+    {
+      "id": 2,
+      "prompt": "這個模組值不值得留？",
+      "should_trigger": true,
+      "expected_skill": "think",
+      "expected_behavior": "Evaluation Mode: single-line Kill/Keep/Pivot verdict with rationale. No five-section plan is produced."
+    },
+    {
+      "id": 3,
+      "prompt": "I want to build a rate limiter for our API — which approach should I take?",
+      "should_trigger": true,
+      "expected_skill": "think",
+      "expected_behavior": "Plan mode: approach comparison inside the five-section plan; hands off to implementation or /analyze, writes no code."
+    },
+    {
+      "id": 4,
+      "prompt": "判斷一下這個報錯",
+      "should_trigger": false,
+      "expected_skill": "hunt",
+      "expected_behavior": "Judgment request paired with an existing error/報錯 is debugging — routes to /hunt, not /think Evaluation Mode."
+    },
+    {
+      "id": 5,
+      "prompt": "幫我分析需求，這個功能橫跨前端、API 和資料庫三層",
+      "should_trigger": false,
+      "expected_skill": "analyze",
+      "expected_behavior": "Cross-module (≥2 interdependent modules) spec expansion routes to /analyze, not /think."
+    },
+    {
+      "id": 6,
+      "prompt": "直接幫我把離線同步的 scaffolding 寫出來",
+      "should_trigger": false,
+      "expected_skill": null,
+      "expected_behavior": "Writing actual code/scaffolding is downstream implementation — /think never does that."
+    }
+  ]
+}

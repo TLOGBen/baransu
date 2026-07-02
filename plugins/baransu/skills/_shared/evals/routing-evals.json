@@ -1,0 +1,119 @@
+{
+  "suite_name": "cross-skill-routing",
+  "note": "Data-only trigger-routing fixtures (plugin-wide-6 / batch C4). There is no built-in eval runner; these cases are the fresh-session A/B baseline corpus recorded BEFORE the C1 description POV batch. Post-run user-verification artifact, not a merge gate. Each case names the expected-winning skill and the confusable skills that must NOT win.",
+  "evals": [
+    {
+      "id": 1,
+      "pair": "think/analyze",
+      "prompt": "新功能怎麼設計比較好？",
+      "expected_skill": "think",
+      "should_not_trigger": [
+        "analyze"
+      ],
+      "expected_behavior": "Fresh design question needs a validated plan first."
+    },
+    {
+      "id": 2,
+      "pair": "think/analyze",
+      "prompt": "分析需求：這個功能跨前端、API、資料庫三個模組",
+      "expected_skill": "analyze",
+      "should_not_trigger": [
+        "think"
+      ],
+      "expected_behavior": "Cross-module spec expansion belongs to /analyze."
+    },
+    {
+      "id": 3,
+      "pair": "read/learn/book",
+      "prompt": "把這個網址存下來離線看",
+      "expected_skill": "read",
+      "should_not_trigger": [
+        "learn",
+        "book"
+      ],
+      "expected_behavior": "Raw offline Markdown capture only."
+    },
+    {
+      "id": 4,
+      "pair": "read/learn/book",
+      "prompt": "研究主題：RAG 評估方法，幫我整理筆記",
+      "expected_skill": "learn",
+      "should_not_trigger": [
+        "read",
+        "book"
+      ],
+      "expected_behavior": "Digest into a structured learning brief."
+    },
+    {
+      "id": 5,
+      "pair": "read/learn/book",
+      "prompt": "把這篇轉成 book，瀏覽器直接看",
+      "expected_skill": "book",
+      "should_not_trigger": [
+        "read",
+        "learn"
+      ],
+      "expected_behavior": "Browser-ready Kami-themed HTML artifact."
+    },
+    {
+      "id": 6,
+      "pair": "review/health",
+      "prompt": "幫我看一下剛剛模型改的這段 code",
+      "expected_skill": "review",
+      "should_not_trigger": [
+        "health"
+      ],
+      "expected_behavior": "Single model output → independent re-verification."
+    },
+    {
+      "id": 7,
+      "pair": "review/health",
+      "prompt": "配置體檢：為什麼 agent 一直不聽 CLAUDE.md？",
+      "expected_skill": "health",
+      "should_not_trigger": [
+        "review"
+      ],
+      "expected_behavior": "Project-level agent-config / instruction-drift audit."
+    },
+    {
+      "id": 8,
+      "pair": "hunt/review",
+      "prompt": "查一下為什麼測試一直紅",
+      "expected_skill": "hunt",
+      "should_not_trigger": [
+        "review"
+      ],
+      "expected_behavior": "Failure symptom → root-cause investigation."
+    },
+    {
+      "id": 9,
+      "pair": "hunt/review",
+      "prompt": "模型說修好了，check 一下是真的嗎",
+      "expected_skill": "review",
+      "should_not_trigger": [
+        "hunt"
+      ],
+      "expected_behavior": "Completion-claim verification, not debugging."
+    },
+    {
+      "id": 10,
+      "pair": "write/ship",
+      "prompt": "潤稿這段 release note",
+      "expected_skill": "write",
+      "should_not_trigger": [
+        "ship"
+      ],
+      "expected_behavior": "Copy refinement."
+    },
+    {
+      "id": 11,
+      "pair": "write/ship",
+      "prompt": "都改完了，收工 push",
+      "expected_skill": "ship",
+      "should_not_trigger": [
+        "write"
+      ],
+      "expected_behavior": "Session wrap-up: archive, commit, push."
+    }
+  ]
+}

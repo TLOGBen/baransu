@@ -1,0 +1,48 @@
+{
+  "skill_name": "design",
+  "note": "Data-only trigger-routing fixtures (plugin-wide-6 / batch C4). There is no built-in eval runner; these cases are the fresh-session A/B baseline corpus recorded BEFORE the C1 description POV batch. Post-run user-verification artifact, not a merge gate.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "生成設計規格",
+      "should_trigger": true,
+      "expected_skill": "design",
+      "expected_behavior": "gen mode: guided DESIGN.md (uppercase, UI visual spec) generation."
+    },
+    {
+      "id": 2,
+      "prompt": "/design lint",
+      "should_trigger": true,
+      "expected_skill": "design",
+      "expected_behavior": "lint mode: structure + Kami invariant check over the existing DESIGN.md."
+    },
+    {
+      "id": 3,
+      "prompt": "用 preset 幫這個專案產一套 tokens.css 跟 DESIGN.md",
+      "should_trigger": true,
+      "expected_skill": "design",
+      "expected_behavior": "preset NAME mode: emits DESIGN.md, DESIGN.html, tokens.css, design-cores/."
+    },
+    {
+      "id": 4,
+      "prompt": "/analyze 產出的 design.md（技術架構層）要更新",
+      "should_trigger": false,
+      "expected_skill": "analyze",
+      "expected_behavior": "Lowercase design.md under .claude/analyze/ is the technical-architecture layer — /analyze territory; /design only touches uppercase DESIGN.md."
+    },
+    {
+      "id": 5,
+      "prompt": "按鈕點了沒反應，幫我查一下",
+      "should_trigger": false,
+      "expected_skill": "hunt",
+      "expected_behavior": "Functional UI bug routes to /hunt."
+    },
+    {
+      "id": 6,
+      "prompt": "把這個頁面轉成好看的 HTML book",
+      "should_trigger": false,
+      "expected_skill": "book",
+      "expected_behavior": "Rendered HTML artifact routes to /book."
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "skill_name": "health",
+  "note": "Data-only trigger-routing fixtures (plugin-wide-6 / batch C4). There is no built-in eval runner; these cases are the fresh-session A/B baseline corpus recorded BEFORE the C1 description POV batch. Post-run user-verification artifact, not a merge gate.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "健康檢查我的專案配置",
+      "should_trigger": true,
+      "expected_skill": "health",
+      "expected_behavior": "Budget-aware five-layer audit of the project's agent configuration."
+    },
+    {
+      "id": 2,
+      "prompt": "Claude keeps ignoring instructions in this repo — audit the config",
+      "should_trigger": true,
+      "expected_skill": "health",
+      "expected_behavior": "Instruction-drift complaint: classify project tier, collect data via scripts, escalate to inspectors only for deep audits."
+    },
+    {
+      "id": 3,
+      "prompt": "檢查一下這個專案的 AI 可維護性",
+      "should_trigger": true,
+      "expected_skill": "health",
+      "expected_behavior": "AI-maintainability audit: instruction surfaces, tools/runtime, verifier surfaces, rot signals."
+    },
+    {
+      "id": 4,
+      "prompt": "看一下模型剛剛的輸出對不對",
+      "should_trigger": false,
+      "expected_skill": "review",
+      "expected_behavior": "Verifying a single model output routes to /review."
+    },
+    {
+      "id": 5,
+      "prompt": "驗證 baransu 自己的 skill 結構有沒有壞",
+      "should_trigger": false,
+      "expected_skill": null,
+      "expected_behavior": "baransu self-structure verification is scripts/verify-skills.py, not /health."
+    },
+    {
+      "id": 6,
+      "prompt": "程式一直報錯，幫我查一下",
+      "should_trigger": false,
+      "expected_skill": "hunt",
+      "expected_behavior": "Runtime error diagnosis routes to /hunt."
+    }
+  ]
+}

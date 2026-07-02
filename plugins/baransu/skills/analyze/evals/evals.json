@@ -1,0 +1,48 @@
+{
+  "skill_name": "analyze",
+  "note": "Data-only trigger-routing fixtures (plugin-wide-6 / batch C4). There is no built-in eval runner; these cases are the fresh-session A/B baseline corpus recorded BEFORE the C1 description POV batch. Post-run user-verification artifact, not a merge gate.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "分析需求：訂單匯出功能要動到 API、佇列 worker 和前端下載頁",
+      "should_trigger": true,
+      "expected_skill": "analyze",
+      "expected_behavior": "Cross-module feature (≥2 interdependent modules): build the goal→requirement→design→test→task spec under .claude/analyze/."
+    },
+    {
+      "id": 2,
+      "prompt": "展開規格，這個通知系統橫跨排程器、推播服務和使用者偏好設定",
+      "should_trigger": true,
+      "expected_skill": "analyze",
+      "expected_behavior": "展開規格 on a multi-module task: full spec expansion, then hand off to /execute."
+    },
+    {
+      "id": 3,
+      "prompt": "這個改動會碰到 parser 跟它下游的 renderer，要不要展開規格我不確定",
+      "should_trigger": true,
+      "expected_skill": "analyze",
+      "expected_behavior": "Borderline two-layer case: per the Stage 0.B scope gate, err toward running /analyze and proceed with the spec."
+    },
+    {
+      "id": 4,
+      "prompt": "這個函式改個回傳型別就好",
+      "should_trigger": false,
+      "expected_skill": null,
+      "expected_behavior": "Single-file change with no cross-module dependency: implement directly (or /think if a design choice remains)."
+    },
+    {
+      "id": 5,
+      "prompt": "這個功能值不值得做？",
+      "should_trigger": false,
+      "expected_skill": "think",
+      "expected_behavior": "Worth-doing judgment is /think Evaluation Mode, not spec expansion."
+    },
+    {
+      "id": 6,
+      "prompt": "新的快取層怎麼設計比較好？",
+      "should_trigger": false,
+      "expected_skill": "think",
+      "expected_behavior": "怎麼設計 on a fresh idea needs a validated plan first — /think, not /analyze."
+    }
+  ]
+}

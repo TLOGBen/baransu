@@ -1,0 +1,62 @@
+{
+  "skill_name": "write",
+  "note": "Data-only trigger-routing fixtures (plugin-wide-6 / batch C4). There is no built-in eval runner; these cases are the fresh-session A/B baseline corpus recorded BEFORE the C1 description POV batch. Post-run user-verification artifact, not a merge gate.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "幫我校對這份文件，找出錯字",
+      "should_trigger": true,
+      "expected_skill": "write",
+      "expected_behavior": "Proofread mode: proofread keyword beats the refine reading (Proofread > Refine > Generate); emits the 錯字修改.html findings table."
+    },
+    {
+      "id": 2,
+      "prompt": "幫我潤稿這段，語氣順一點：「本系統目前已經可以支援多人同時進行編輯的功能」",
+      "should_trigger": true,
+      "expected_skill": "write",
+      "expected_behavior": "Refine mode: request tone + refine keyword + attached body → Before/After with per-rule 修正說明."
+    },
+    {
+      "id": 3,
+      "prompt": "en 寫一篇 product update announcement for the new offline sync feature",
+      "should_trigger": true,
+      "expected_skill": "write",
+      "expected_behavior": "Generate mode: finished English piece with a format/tone note, per the en prefix."
+    },
+    {
+      "id": 4,
+      "prompt": "改寫這段：「我們的產品在市場上有著非常大的競爭力以及影響力」",
+      "should_trigger": true,
+      "expected_skill": "write",
+      "expected_behavior": "Refine mode: 改寫這段 + attached text → rule-driven rewrite with Before/After."
+    },
+    {
+      "id": 5,
+      "prompt": "en 潤稿：這段全部都是中文內容，請幫我修得更通順一些。",
+      "should_trigger": true,
+      "expected_skill": "write",
+      "expected_behavior": "Prefix–content mismatch: refuse with 「前綴語言與內容語言不一致，規則集無法套用。請重新呼叫並指定正確前綴，或移除前綴改用自動偵測。」"
+    },
+    {
+      "id": 6,
+      "prompt": "幫我把這幾篇文章整理成筆記",
+      "should_trigger": false,
+      "expected_skill": "learn",
+      "expected_behavior": "Digesting source material into notes routes to /learn."
+    },
+    {
+      "id": 7,
+      "prompt": "把這個網頁存下來",
+      "should_trigger": false,
+      "expected_skill": "read",
+      "expected_behavior": "Offline capture routes to /read; /write never captures sources."
+    },
+    {
+      "id": 8,
+      "prompt": "文章寫完了，收工 commit push",
+      "should_trigger": false,
+      "expected_skill": "ship",
+      "expected_behavior": "Committing/pushing finished text is session wrap-up — /ship."
+    }
+  ]
+}

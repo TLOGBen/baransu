@@ -1,0 +1,48 @@
+{
+  "skill_name": "ship",
+  "note": "Data-only trigger-routing fixtures (plugin-wide-6 / batch C4). There is no built-in eval runner; these cases are the fresh-session A/B baseline corpus recorded BEFORE the C1 description POV batch. Post-run user-verification artifact, not a merge gate.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "收工",
+      "should_trigger": true,
+      "expected_skill": "ship",
+      "expected_behavior": "Session wrap-up: archive .claude/ working dirs, commit, push."
+    },
+    {
+      "id": 2,
+      "prompt": "結束這輪，上傳收尾",
+      "should_trigger": true,
+      "expected_skill": "ship",
+      "expected_behavior": "Wrap up the session and push pending changes."
+    },
+    {
+      "id": 3,
+      "prompt": "/ship main",
+      "should_trigger": true,
+      "expected_skill": "ship",
+      "expected_behavior": "Wrap up and land the work on the target branch main, then tear down the worktree once safely on origin."
+    },
+    {
+      "id": 4,
+      "prompt": "幫我潤稿這段公告",
+      "should_trigger": false,
+      "expected_skill": "write",
+      "expected_behavior": "Copy refinement routes to /write; /ship only wraps up."
+    },
+    {
+      "id": 5,
+      "prompt": "看一下這段 code 寫得對不對",
+      "should_trigger": false,
+      "expected_skill": "review",
+      "expected_behavior": "Reviewing code/model output routes to /review."
+    },
+    {
+      "id": 6,
+      "prompt": "幫我把這篇存下來",
+      "should_trigger": false,
+      "expected_skill": "read",
+      "expected_behavior": "Offline capture routes to /read."
+    }
+  ]
+}

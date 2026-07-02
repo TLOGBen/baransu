@@ -1,0 +1,48 @@
+{
+  "skill_name": "codex-skill-transfer",
+  "note": "Data-only trigger-routing fixtures (plugin-wide-6 / batch C4). There is no built-in eval runner; these cases are the fresh-session A/B baseline corpus recorded BEFORE the C1 description POV batch. Post-run user-verification artifact, not a merge gate.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "把 /think 轉成 codex 版",
+      "should_trigger": true,
+      "expected_skill": "codex-skill-transfer",
+      "expected_behavior": "Single-skill mode: one-way port of the Claude Code skill to Codex format."
+    },
+    {
+      "id": 2,
+      "prompt": "Port this plugin to codex so my teammate can use it",
+      "should_trigger": true,
+      "expected_skill": "codex-skill-transfer",
+      "expected_behavior": "Plugin mode: plugin → agent-stub TOMLs."
+    },
+    {
+      "id": 3,
+      "prompt": "porting 到 Codex 時 disable-model-invocation 要怎麼對應？",
+      "should_trigger": true,
+      "expected_skill": "codex-skill-transfer",
+      "expected_behavior": "Field-mapping question (disable-model-invocation / context fork / ARGUMENTS / plugin.json) is in scope."
+    },
+    {
+      "id": 4,
+      "prompt": "把這個 Codex prompt 轉回 Claude skill",
+      "should_trigger": false,
+      "expected_skill": null,
+      "expected_behavior": "Reverse porting (Codex→Claude) is out of scope — the skill is one-way."
+    },
+    {
+      "id": 5,
+      "prompt": "從零幫我寫一個全新的 Codex skill",
+      "should_trigger": false,
+      "expected_skill": null,
+      "expected_behavior": "Authoring a brand-new Codex skill that isn't a port of an existing Claude source is out of scope."
+    },
+    {
+      "id": 6,
+      "prompt": "優化這個 skill 的 SKILL.md",
+      "should_trigger": false,
+      "expected_skill": "evolve",
+      "expected_behavior": "Improving an existing SKILL.md routes to /evolve."
+    }
+  ]
+}

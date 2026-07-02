@@ -1,0 +1,48 @@
+{
+  "skill_name": "execute",
+  "note": "Data-only trigger-routing fixtures (plugin-wide-6 / batch C4). There is no built-in eval runner; these cases are the fresh-session A/B baseline corpus recorded BEFORE the C1 description POV batch. Post-run user-verification artifact, not a merge gate.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "開始執行",
+      "should_trigger": true,
+      "expected_skill": "execute",
+      "expected_behavior": "With an /analyze spec present under .claude/analyze/: TDAID orchestration — Summarize→Impl→Review loops, E2E + Final-Review, final-report.md."
+    },
+    {
+      "id": 2,
+      "prompt": "依照 analyze 執行",
+      "should_trigger": true,
+      "expected_skill": "execute",
+      "expected_behavior": "Reads the /analyze spec and drives the TDAID loop end-to-end."
+    },
+    {
+      "id": 3,
+      "prompt": "跑 execute，把 .claude/analyze/ 的規格做完",
+      "should_trigger": true,
+      "expected_skill": "execute",
+      "expected_behavior": "Spec-driven execution of the prepared /analyze artifacts."
+    },
+    {
+      "id": 4,
+      "prompt": "幫我加一個小的字串工具函式",
+      "should_trigger": false,
+      "expected_skill": null,
+      "expected_behavior": "No /analyze spec and trivially scoped: implement directly under _shared/tdd.md §7 discipline."
+    },
+    {
+      "id": 5,
+      "prompt": "這個任務值不值得做？",
+      "should_trigger": false,
+      "expected_skill": "think",
+      "expected_behavior": "Worth/value judgment routes to /think Evaluation Mode."
+    },
+    {
+      "id": 6,
+      "prompt": "分析需求：這個功能要跨三個模組",
+      "should_trigger": false,
+      "expected_skill": "analyze",
+      "expected_behavior": "Spec does not exist yet — build it with /analyze before /execute."
+    }
+  ]
+}
