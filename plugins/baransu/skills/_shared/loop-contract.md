@@ -4,6 +4,14 @@
 > official standard**（本慣例非官方標準）. Official Claude Code documentation
 > does not cover headless / cron driving scenarios (checked 2026-06-10).
 
+## Contents
+
+- Scope
+- 1. Automation field vocabulary
+- 2. PAUSE semantics
+- 3. Three hard stops — responsibility boundary
+- 4. PAUSE classification registry
+
 ## Scope
 
 Applies whenever a baransu skill is driven by a non-interactive context:
