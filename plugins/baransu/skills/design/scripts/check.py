@@ -74,6 +74,18 @@ CAPABILITY_TOKENS = [
 # Combined canonical set, kept for back-compat: 38 (+5 capability) = 43.
 CANONICAL_TOKENS = BASE_TOKENS + CAPABILITY_TOKENS
 
+# CHART_CAPABILITY_TOKENS — TASK-design-01 concrete decision (design.md deliberately
+# left this list undefined; REQ-003 Scenario 1 only requires "a batch of chart-specific
+# canonical color names" to exist once declared). Six categorical color slots — sized
+# for typical small-multiple / legend chart use. This is an orthogonal, independently
+# declared tier: it does NOT fold into `schema:43` / CAPABILITY_TOKENS / CANONICAL_TOKENS.
+# Downstream TASK-design-02 (tokens.css emission) and TASK-book-03 (chart rendering
+# consumption) must use this exact name list.
+CHART_CAPABILITY_TOKENS = [
+    "--chart-cat-1", "--chart-cat-2", "--chart-cat-3",
+    "--chart-cat-4", "--chart-cat-5", "--chart-cat-6",
+]
+
 # v1.2 banned token names (Check D + Check B)
 V12_BANNED_TOKENS = [
     "--brand", "--brand-light", "--brand-tint", "--brand-tint-strong",
@@ -104,6 +116,15 @@ PRESET_HEADER_RE = re.compile(r"^\s*/\*\s*preset:\s*([a-z][a-z0-9-]{1,15})[^*]*\
 # Extracts an integer schema version from a `; schema: <N>` field. Malformed
 # fields (e.g. `schema: abc`, `schema: 4x3`) do NOT match → treated as no version.
 SCHEMA_FIELD_RE = re.compile(r";\s*schema:\s*(\d+)\s*(?:\*/|;|$)")
+
+# CHART_CAPABILITY version-tier field — orthogonal to SCHEMA_FIELD_RE / `schema:`.
+# `; chart-capability: <N>` declares the tier; the specific N is not currently
+# version-graded (no sub-tiers exist yet), it only distinguishes declared-vs-not.
+CHART_CAPABILITY_FIELD_RE = re.compile(r";\s*chart-capability:\s*(\d+)\s*(?:\*/|;|$)")
+# Detects that the field key is present even when its value fails to parse as an
+# integer (e.g. `chart-capability: abc`) — lets the caller distinguish "absent"
+# from "present but malformed" for the fault-tolerance classification.
+CHART_CAPABILITY_FIELD_PRESENT_RE = re.compile(r";\s*chart-capability:\s*")
 
 
 # ── Default rule set (used in legacy per-file mode for Kami warm-serif design) ──
@@ -228,6 +249,13 @@ def check_project_root(root: Path) -> list[dict]:
             'tokens.css 第一行不符 `/* preset: <slug> */` 格式',
             1, tokens_text.splitlines()[0] if tokens_text.splitlines() else ''))
 
+    # CHART_CAPABILITY tier — orthogonal to schema:43 (Check B); independent of
+    # `_required_tokens_for_version`. See `_parse_chart_capability_header` /
+    # `_check_chart_capability_completeness`.
+    chart_status, _ = _parse_chart_capability_header(tokens_text)
+    findings.extend(_check_chart_capability_completeness(
+        tokens_path, tokens_text, chart_status))
+
     # Check C: cross-artifact prefix 一致
     findings.extend(_check_cross_artifact_prefix(root, preset_slug))
 
@@ -258,6 +286,29 @@ def _parse_preset_header(tokens_text: str) -> tuple[str | None, int | None]:
             version = int(sm.group(1)) if sm else None
             return (m.group(1), version)
     return (None, None)
+
+
+def _parse_chart_capability_header(tokens_text: str) -> tuple[str, int | None]:
+    """Parse the first non-empty line of tokens.css for the independent
+    `; chart-capability: <N>` field. Fully orthogonal to `_parse_preset_header` /
+    `SCHEMA_FIELD_RE` — does not read or depend on the `schema:` field's value.
+
+    Returns (status, version):
+      - ("undeclared", None) — field entirely absent (fault-tolerant default: no
+        requirement, mirrors the existing "no schema field → BASE fallback" pattern)
+      - ("declared", N)      — field present and parses to an int N
+      - ("malformed", None)  — field present but its value is not a plain integer
+        (caller warns to stderr, never fails — mirrors the unknown-schema-version path)
+    """
+    for line in tokens_text.splitlines():
+        if line.strip():
+            m = CHART_CAPABILITY_FIELD_RE.search(line)
+            if m:
+                return ("declared", int(m.group(1)))
+            if CHART_CAPABILITY_FIELD_PRESENT_RE.search(line):
+                return ("malformed", None)
+            return ("undeclared", None)
+    return ("undeclared", None)
 
 
 def _required_tokens_for_version(version: int | None) -> list[str]:
@@ -308,6 +359,36 @@ def _check_tokens_canonical_completeness(
             1, ''))
 
     return findings
+
+
+def _check_chart_capability_completeness(path: Path, text: str, status: str) -> list[dict]:
+    """CHART_CAPABILITY tier completeness — sibling of Check B
+    (`_check_tokens_canonical_completeness`), orthogonal to `schema:43` /
+    `_required_tokens_for_version`. Does not modify either of those.
+
+    status comes from `_parse_chart_capability_header`:
+      - "undeclared" → require nothing (fault-tolerant default)
+      - "malformed"  → require nothing, warn to stderr, never fail
+      - "declared"   → require every name in CHART_CAPABILITY_TOKENS; missing
+        names produce one explicit violation finding (Check-A-F reporting style)
+    """
+    if status == 'malformed':
+        print('warning: 無法辨識 chart-capability 版本欄位 — fallback 為未宣告'
+              '（不要求任何圖表分類色規範命名），不 fail', file=sys.stderr)
+        return []
+    if status != 'declared':
+        return []
+
+    define_re = re.compile(r'^\s*(--[a-z][a-z0-9-]*)\s*:', re.M)
+    defined = set(define_re.findall(text))
+    missing = [t for t in CHART_CAPABILITY_TOKENS if t not in defined]
+    if not missing:
+        return []
+    return [_make_finding(
+        path, 2, 'check-B-chart-capability-missing',
+        f'tokens.css 已宣告 chart-capability 但缺圖表分類色規範命名 '
+        f'({len(missing)} 個): {", ".join(missing)}',
+        1, '')]
 
 
 def _check_cross_artifact_prefix(root: Path, expected_slug: str | None) -> list[dict]:

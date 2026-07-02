@@ -188,6 +188,25 @@ legitimate exception**, plus a grep-able self-check. Scan before declaring Stage
      (`R≤G≤B`) and pure neutral (`R=G=B`) are banned.
    - Only legitimate exception: pre-existing warm warning tokens (e.g. changelog breaking
      badge `--breaking-bg`/`--breaking-fg`, both warm `R>G>B`). No exception for body accents.
+   - **Declared-statistical-chart container exception** — additional to (does not replace or
+     loosen) the warm-warning-token exception above, gated on the SAME check, not a second,
+     separate declaration check: inside a section whose `statistical` chart type (§4.9/§4.10)
+     resolved to the **Declared** branch — i.e. `{project_root}/tokens.css` line 1's
+     `; chart-capability: <N>` header check SKILL.md:356-357 already performs, via `check.py`'s
+     `_parse_chart_capability_header` contract — the chart's computed multi-color palette
+     (SKILL.md's Declared branch: `references/color-reasoning.md` guidance +
+     `color_distance.py`-validated) is exempt from the "one chromatic accent only" count, but
+     **only** for colors used inside that section's own `<figure class="diagram">` / SVG
+     boundary.
+     - **No exception outside the container.** The section's own surrounding prose and
+       `<figcaption>` outside the `<figure>` boundary, every other section in the document,
+       every other diagram type (all 13 non-statistical types), and an undeclared-capability
+       style's statistical chart (which stays on the existing L1/L2 degrade) all remain bound
+       by the "one chromatic accent only" rule above with no exception.
+     - **Fail-closed, same check.** Missing `tokens.css`, or a `chart-capability` field that
+       fails to parse, resolves to `"undeclared"` / `"malformed"` per
+       `_parse_chart_capability_header` — never silently treated as declared. An undeclared
+       style gets zero multi-color pass-through; the single-accent rule stays fully in force.
    - Fix: demote extra accents to weight/size/spacing hierarchy; map any cold gray to the
      warm four-step text scale (`--near-black > --dark-warm > --olive > --stone`).
    Check: `grep -cE "var\(--accent\)"` (count vs total body elements — over-count = over-paint);

@@ -9,7 +9,7 @@
 - §4.7 Anti-slop precision constraints
 - §4.8 Embedded font calibration (scale ≈ 0.47 after embedding in A4)
 - §4.9 14-type chart routing decision tree (first-match)
-- §4.10 13-type selection table (v1 ref skeleton + status disclosure)
+- §4.10 14-type selection table (v1 ref skeleton + status disclosure)
 
 # SVG Rendering Rules — Stage 3 §4
 
@@ -154,17 +154,10 @@ All SVG fill / stroke **must not use `rgba()`** — always use a solid hex token
 
 ## §4.9 14-type chart routing decision tree (first-match)
 
-Find the first matching item top-to-bottom by data shape:
+Find the first matching item top-to-bottom by data shape. **Ordering rule**: the 7 pre-existing structural rows are listed first, ahead of the 7 statistical rows, so that content matching both a structural data shape and a statistical one (e.g. an architecture diagram that happens to carry an axis) always resolves to the structural type first — first-match top-to-bottom means row position *is* priority, so this ordering is what implements design.md's 既有型態優先 (existing-type-priority) tie-break rule, not just a stated intention.
 
 | Data shape | Chosen chart |
 |---------|---------|
-| OHLC / per-day price | Candlestick |
-| +/- contributions summing | Waterfall |
-| One series, sums to ~100%, items ≤ 6 | Donut |
-| One series, sums to ~100%, items ≥ 7 | Horizontal Bar |
-| Two or more time series | Line |
-| One time series, dominated by large changes | Bar |
-| Multi-category snapshot at one time, 2+ series | Grouped Bar |
 | 2×2 strategic positioning | Quadrant |
 | Hierarchical data depth ≥ 2 | Tree |
 | Process with decision branches | Flowchart |
@@ -172,12 +165,21 @@ Find the first matching item top-to-bottom by data shape:
 | 2-3 cluster sets overlapping | Venn |
 | System components + connections | Architecture |
 | Timeline + milestones | Timeline |
+| OHLC / per-day price | Statistical |
+| +/- contributions summing | Statistical |
+| One series, sums to ~100%, items ≤ 6 | Statistical |
+| One series, sums to ~100%, items ≥ 7 | Statistical |
+| Two or more time series | Statistical |
+| One time series, dominated by large changes | Statistical |
+| Multi-category snapshot at one time, 2+ series | Statistical |
+
+> **Statistical wiring**: all 7 rows below the structural block resolve to the same **Statistical** type (§4.10 `statistical` row, `references/diagram-types/type-statistical.md`). The original per-shape hint (Candlestick / Waterfall / Donut / Horizontal Bar / Line / Bar / Grouped Bar) stays in the Data shape column for human/generation context — it does not change which reference file loads; `type-statistical.md`'s axis/legend/data-point conventions cover all 7 shapes.
 
 > When nothing matches → fall back to **Architecture** (the general-purpose type).
 
-## §4.10 13-type selection table (v1 ref skeleton + status disclosure)
+## §4.10 14-type selection table (v1 ref skeleton + status disclosure)
 
-Each section containing a diagram looks up the corresponding ref from this table per Layer 2. The Status column always aligns with each ref's frontmatter (fact-synced, binary-verifiable via `grep '^status:' references/diagram-types/type-*.md`): `complete` means the ref contains directly reusable SVG example HTML marked `example: inline` and the renderer should reuse that skeleton; `ref-only` means only the ref spec exists and the example HTML is still pending (the renderer falls back to generic SVG primitives). All 13 types currently have frontmatter that is **entirely `status: complete` + `example: inline`**, and this table aligns with that; the `ref-only` row only carries reserved semantics for future new types not yet shipping an example.
+Each section containing a diagram looks up the corresponding ref from this table per Layer 2. The Status column always aligns with each ref's frontmatter (fact-synced, binary-verifiable via `grep '^status:' references/diagram-types/type-*.md`): `complete` means the ref contains directly reusable SVG example HTML marked `example: inline` and the renderer should reuse that skeleton; `ref-only` means only the ref spec exists and the example HTML is still pending (the renderer falls back to generic SVG primitives). All 14 types currently have frontmatter that is **entirely `status: complete` + `example: inline`**, and this table aligns with that; the `ref-only` row only carries reserved semantics for future new types not yet shipping an example.
 
 | Type | Best for | Reference | Status |
 |------|----------|-----------|--------|
@@ -194,7 +196,8 @@ Each section containing a diagram looks up the corresponding ref from this table
 | layers | OSI model / CSS cascade / context hierarchy / tech stack / abstraction layer / memory hierarchy | `references/diagram-types/type-layers.md` | `status: complete` |
 | venn | concept intersection / shared attributes across categories / ikigai-style frame / positioning sweet spot | `references/diagram-types/type-venn.md` | `status: complete` |
 | pyramid | hierarchy of needs / prioritization rank / value pyramid / conversion funnel / content importance | `references/diagram-types/type-pyramid.md` | `status: complete` |
+| statistical | time-series trend / candlestick / waterfall / donut / horizontal-bar ranking / bar / grouped-bar comparison — any section with an axis, a legend, and multiple data points | `references/diagram-types/type-statistical.md` | `status: complete` |
 
-> **Fallback (triggered by ref-only types only)**: if and only if some type's frontmatter is still `status: ref-only` (none of the 13 types are currently in this state, so no type takes this path right now), the renderer falls back to generic SVG primitives (the marker / paper-mask / type tag / legend strip specs still apply) and flags `degraded-type: <type-name>` in the final-report to signal that example HTML needs to be added. A `status: complete` type always reuses that ref's `example: inline` SVG skeleton and must not be downgraded to generic primitives.
+> **Fallback (triggered by ref-only types only)**: if and only if some type's frontmatter is still `status: ref-only` (none of the 14 types are currently in this state, so no type takes this path right now), the renderer falls back to generic SVG primitives (the marker / paper-mask / type tag / legend strip specs still apply) and flags `degraded-type: <type-name>` in the final-report to signal that example HTML needs to be added. A `status: complete` type always reuses that ref's `example: inline` SVG skeleton and must not be downgraded to generic primitives.
 
 > **Forward note**: when v2-N adds a dark/full variant or a new SVG primitive, it must follow the hex shape contract in `design-token-resolver.md` (`^#[0-9a-fA-F]{3,8}$`) and must not open a separate sink.

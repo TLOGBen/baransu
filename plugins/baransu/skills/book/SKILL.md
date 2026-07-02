@@ -236,7 +236,7 @@ Output one line: 「內容類型偵測：{$CONTENT_TYPE}」
 The Stage 2A selection splits into two layers, **the order must not be reversed**:
 
 - **Layer 1 (content type → HTML layout density)**: the `$CONTENT_TYPE` already produced by §2 (A=`technical` / B=`narrative` / C=`research`) determines the whole HTML's layout style — whether the TOC is expanded, number of cards, density, callout style, etc., all given separately for the A/B/C categories by `references/perception-guide.md`. Read `references/perception-guide.md` here if §1's threshold rule assigned `$CONTENT_TYPE` directly without reading it, then take the layout density and visual-treatment rules corresponding to that $CONTENT_TYPE.
-- **Layer 2 (13-type selection → per-section diagram structure)**: each section containing a diagram independently looks up the Stage 3 §4 「13 型 selection 表」, picking one diagram type based on that section's data shape (architecture / flowchart / sequence / ...).
+- **Layer 2 (14-type selection → per-section diagram structure)**: each section containing a diagram independently looks up the Stage 3 §4 「14 型 selection 表」, picking one diagram type based on that section's data shape (architecture / flowchart / sequence / ... / statistical).
 
 The two axes are orthogonal: Layer 1 controls layout, Layer 2 controls each section's SVG structure; do Layer 1 first, then Layer 2, deciding each section independently without inheriting the previous section's choice.
 
@@ -343,15 +343,22 @@ For each section from `$STRUCTURE`:
 1. **Inter-section spacing** — is each pair of adjacent `<section>` driven by the 3xl spacing token (80–120pt), not browser-default margin? (§3 render-time hard rule #1)
 2. **Reading line-height** — is body line-height ∈ [1.50, 1.55] (CJK screens may relax to 1.65), with no `≥ 1.70` anywhere in the text? (§3 render-time hard rule #2)
 3. **Reading column width** — is the reading column ≤ 680px and max body width ≤ 760px? (§3 render-time hard rule #3)
-4. **Single accent** — only one chromatic accent (`var(--accent)`) used, accent-painted area ≤ 5% of body, and emphasis is "color OR weight, not both"? (perception-guide Anti-Slop #8)
+4. **Single accent** — only one chromatic accent (`var(--accent)`) used, accent-painted area ≤ 5% of body, and emphasis is "color OR weight, not both" — with the narrowly-scoped **declared-statistical-chart container exception**: inside a section whose `statistical` chart resolved to the Declared branch of the chart-capability check documented in this file's §4 SVG generation spec below, the chart's own `<figure>`/SVG container may use its multi-color palette without counting against this check; every other element — including that same section's own prose/caption outside the `<figure>` boundary — still must pass unmodified? (perception-guide Anti-Slop #8)
 5. **SVG focal + alignment** — each SVG has ≤ 2 `data-role="focal"`, and all coordinates / widths / spacing are multiples of 4? (svg-rendering-rules §4.7)
 6. **figcaption** — does each `<figcaption>` pass the perception-guide Anti-Slop #5 pass test (carrying one of: trade-off / next step / a dimension the figure doesn't directly show), rather than merely restating the title or node name? (perception-guide Anti-Slop #5)
 
 ### 4. SVG generation spec
 
-Takes effect only when the long-form HTML contains `<figure class="diagram">`. The spec includes: color tokens (canonical names + Kami hex defaults), the required `<defs>` / marker / two-layer paper-mask, type tag, legend strip, 4px alignment and the 3-step node-width whitelist (128/144/160), embedded-font correction, the 14-type diagram first-match decision tree, and the 13-type selection table (including `status: complete | ref-only`).
+Takes effect only when the long-form HTML contains `<figure class="diagram">`. The spec includes: color tokens (canonical names + Kami hex defaults), the required `<defs>` / marker / two-layer paper-mask, type tag, legend strip, 4px alignment and the 3-step node-width whitelist (128/144/160), embedded-font correction, the 14-type diagram first-match decision tree, and the 14-type selection table (including `status: complete | ref-only`).
 
 **Full rules → read `references/svg-rendering-rules.md`.** SVG fill / stroke **must not use `rgba()`**; node width is limited to 3 steps (128/144/160); focal nodes are marked via `data-role="focal"`, capped at 2 per SVG. Per-type SVG specs live in `references/diagram-types/type-*.md`, selected via that file's §4.10 routing table (its ToC lists §4.9/§4.10 up top).
+
+**Statistical-type color-capability degrade (undeclared-style fallback)**: when Layer 2 resolves a section to the `statistical` type (§4.9/§4.10), before writing that section's SVG, Render checks `{project_root}/tokens.css` line 1's header for the `; chart-capability: <N>` field written by `/baransu:design` (declared vs undeclared per `design/scripts/check.py`'s `_parse_chart_capability_header` contract):
+
+- **Declared** (field present) → before writing the section's SVG, Render reads `references/color-reasoning.md` (the categorical / ordinal / sequential / diverging / status color-job distinction, plus the dual-axis / rainbow-gradient / identity-color-without-legend anti-patterns) and applies its guidance when choosing the section's palette, then validates the chosen colors via `color_distance.py`'s CVD-separation check (TASK-shared-01, already wired).
+- **Undeclared** (the default; no field present — matching every invocation that never ran `--chart-capability`) → apply this degrade so the section never emits an undeclared multi-color palette. Pick **exactly one** of the two branches below per section — they are mutually exclusive, never mixed, never guessed past the content shape, and together cover every case with no silent gap between them (不開豁免):
+  - Content expressible as a single trend / single data series (exactly one line, one bar family, depth conveyed by shade alone) → **L1**: fall back to the existing single-hue `--accent` ramp already used by every other diagram type — no new token, no new color.
+  - Content that must distinguish 2 or more mutually-unrelated identities (independent series — including exactly 2 — that do not share a common trend/comparison axis and cannot be told apart by shade depth alone) → **L2**: degrade to small-multiples (render N separate single-accent diagrams, one per series, laid out side by side) or a `table.cmp` comparison table, whichever the section's existing §3 component-selection rule already picks for that content shape. This threshold starts at 2, not 3 — an exactly-2-series undeclared section is never left unrouted between L1 and L2.
 
 ### 5. Core Asset Protocol (image acquisition)
 

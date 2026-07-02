@@ -12,7 +12,9 @@ Regression invariants (既有規則 100% 保留):
 
 from __future__ import annotations
 
+import contextlib
 import importlib.util
+import io
 import shutil
 import subprocess
 import sys
@@ -482,6 +484,223 @@ class TestRealPresetsCarry43(unittest.TestCase):
                     findings, [],
                     f"{slug} tokens.css must define all 43 canonical tokens "
                     f"under schema:43 but got findings: {findings}")
+
+
+class TestChartCapabilityHeaderParsing(unittest.TestCase):
+    """TASK-design-01 — `_parse_chart_capability_header` classifies the
+    CHART_CAPABILITY tier's declared/undeclared/malformed state, fully
+    independent of `_parse_preset_header` / `SCHEMA_FIELD_RE`.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.mod = _load_check_module()
+
+    def test_undeclared_no_field(self):
+        """No `chart-capability:` field at all → ("undeclared", None)."""
+        self.assertEqual(
+            self.mod._parse_chart_capability_header("/* preset: kami; schema: 43 */\n"),
+            ("undeclared", None))
+
+    def test_declared_with_version(self):
+        """`chart-capability: 1` present and parseable → ("declared", 1)."""
+        self.assertEqual(
+            self.mod._parse_chart_capability_header(
+                "/* preset: kami; schema: 43; chart-capability: 1 */\n"),
+            ("declared", 1))
+
+    def test_malformed_version_never_raises(self):
+        """`chart-capability: abc` (unparseable) → ("malformed", None), no exception."""
+        self.assertEqual(
+            self.mod._parse_chart_capability_header(
+                "/* preset: kami; schema: 43; chart-capability: abc */\n"),
+            ("malformed", None))
+
+    def test_declared_independent_of_schema_field_absence(self):
+        """chart-capability can be declared even when `schema:` is entirely absent —
+        the two fields are parsed independently of one another."""
+        self.assertEqual(
+            self.mod._parse_chart_capability_header(
+                "/* preset: kami; chart-capability: 2 */\n"),
+            ("declared", 2))
+
+
+class TestChartCapabilityCompleteness(unittest.TestCase):
+    """TASK-design-01 — `_check_chart_capability_completeness`: the CHART_CAPABILITY
+    tier's canonical-completeness check, sibling to Check B but orthogonal to
+    `_required_tokens_for_version` / `_check_tokens_canonical_completeness`
+    (neither existing function's branch conditions are touched by this task).
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.mod = _load_check_module()
+
+    def _css(self, tokens: list[str]) -> str:
+        body = "\n".join(f"  {t}: 0;" for t in tokens)
+        return ":root {\n" + body + "\n}\n"
+
+    def test_undeclared_status_requires_nothing(self):
+        """status='undeclared' → [] even when zero chart tokens are defined."""
+        findings = self.mod._check_chart_capability_completeness(
+            Path("tokens.css"), self._css(self.mod.BASE_TOKENS), "undeclared")
+        self.assertEqual(findings, [])
+
+    def test_malformed_status_never_fails(self):
+        """status='malformed' → [] (warn only, mirrors the schema fallback — never a finding)."""
+        findings = self.mod._check_chart_capability_completeness(
+            Path("tokens.css"), self._css(self.mod.BASE_TOKENS), "malformed")
+        self.assertEqual(findings, [])
+
+    def test_malformed_status_warns_to_stderr(self):
+        """status='malformed' prints a stderr warning, mirroring `_required_tokens_for_version`'s
+        unknown-schema-version warning path."""
+        stderr_buf = io.StringIO()
+        with contextlib.redirect_stderr(stderr_buf):
+            self.mod._check_chart_capability_completeness(
+                Path("tokens.css"), self._css(self.mod.BASE_TOKENS), "malformed")
+        self.assertTrue(stderr_buf.getvalue().strip(),
+                        "malformed status must emit a stderr warning")
+
+    def test_declared_with_all_chart_tokens_passes(self):
+        """status='declared' + all CHART_CAPABILITY_TOKENS defined → []."""
+        findings = self.mod._check_chart_capability_completeness(
+            Path("tokens.css"),
+            self._css(self.mod.BASE_TOKENS + self.mod.CHART_CAPABILITY_TOKENS),
+            "declared")
+        self.assertEqual(findings, [])
+
+    def test_declared_missing_names_reports_explicit_violation(self):
+        """status='declared' + no chart tokens defined → a finding naming every
+        missing CHART_CAPABILITY canonical name (reporting style parallels Check B)."""
+        findings = self.mod._check_chart_capability_completeness(
+            Path("tokens.css"), self._css(self.mod.BASE_TOKENS), "declared")
+        self.assertTrue(findings, "declared-but-missing chart tokens must produce a finding")
+        msg = " ".join(f["msg"] for f in findings)
+        for t in self.mod.CHART_CAPABILITY_TOKENS:
+            self.assertIn(t, msg, f"violation message must name missing token {t}")
+        # Same finding-record shape as existing Check A-F findings.
+        for f in findings:
+            self.assertEqual(set(f.keys()), {"file", "line", "inv", "name", "msg", "snippet"})
+
+
+class TestChartCapabilityProjectRootIntegration(unittest.TestCase):
+    """TASK-design-01 — end-to-end via `check_project_root`: undeclared presets are
+    unaffected (REQ-003 Scenario 2), declared-but-missing produces a violation, and
+    the tier stays orthogonal to the existing schema:43 branch when both are
+    declared together on the same preset header.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.mod = _load_check_module()
+
+    def _build_project(self, root: Path, header_extra: str, include_chart_tokens: bool) -> None:
+        all_tokens = self.mod.BASE_TOKENS + self.mod.CAPABILITY_TOKENS
+        if include_chart_tokens:
+            all_tokens = all_tokens + self.mod.CHART_CAPABILITY_TOKENS
+        body = "\n".join(f"  {t}: 0;" for t in all_tokens)
+        (root / "tokens.css").write_text(
+            f"/* preset: testslug; schema: 43{header_extra} */\n:root {{\n{body}\n}}\n")
+        (root / "DESIGN.md").write_text("\n".join(self.mod.DESIGN_MD_NINE_SECTIONS) + "\n")
+        (root / "DESIGN.html").write_text("<html></html>\n")
+        cores = root / "design-cores"
+        cores.mkdir()
+        (cores / "long-form.html").write_text(
+            '<section data-slot="long-form-body"></section>\n')
+        (cores / "dashboard.html").write_text("<div>ok</div>\n")
+        (root / "slide-cores").mkdir()
+
+    def test_undeclared_preset_zero_impact(self):
+        """Scenario 2 — no chart-capability field declared → identical (empty)
+        findings to pre-change behavior on an otherwise-clean fixture."""
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._build_project(root, header_extra="", include_chart_tokens=False)
+            findings = self.mod.check_project_root(root)
+            self.assertEqual(findings, [])
+
+    def test_declared_but_missing_chart_tokens_reports_violation(self):
+        """Declared but tokens.css lacks the canonical chart names → explicit finding."""
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._build_project(
+                root, header_extra="; chart-capability: 1", include_chart_tokens=False)
+            findings = self.mod.check_project_root(root)
+            chart_findings = [f for f in findings if "chart-capability" in f["name"]]
+            self.assertTrue(chart_findings, f"expected a chart-capability finding: {findings}")
+
+    def test_declared_with_full_chart_tokens_passes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._build_project(
+                root, header_extra="; chart-capability: 1", include_chart_tokens=True)
+            findings = self.mod.check_project_root(root)
+            self.assertEqual(findings, [])
+
+    def test_schema43_and_chart_capability_independently_unioned(self):
+        """Both tiers declared simultaneously, only chart tokens missing: Check B
+        (schema:43) stays clean; only the chart-capability finding appears — proves
+        the two required-token sets are unioned independently, not conflated."""
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._build_project(
+                root, header_extra="; chart-capability: 1", include_chart_tokens=False)
+            findings = self.mod.check_project_root(root)
+            names = [f["name"] for f in findings]
+            self.assertNotIn(
+                "check-B-canonical-missing", names,
+                "schema:43 branch must not be affected by chart-capability declaration")
+            self.assertTrue(any("chart-capability" in n for n in names))
+
+
+class TestChartCapabilityRealPresetsRegression(unittest.TestCase):
+    """TASK-design-01 — none of the three shipped presets declare chart-capability;
+    the new tier must be a complete no-op for them (REQ-003 Scenario 2 / task-design.md
+    acceptance criterion 1)."""
+
+    REFS = MAIN_ROOT / "plugins/baransu/skills/design/references"
+    PRESETS = [
+        (REFS / "紙-preset/tokens.css", "kami"),
+        (REFS / "swiss-preset/tokens.css", "swiss"),
+        (REFS / "google-design-preset/tokens.css", "google-design"),
+    ]
+
+    @classmethod
+    def setUpClass(cls):
+        cls.mod = _load_check_module()
+
+    def test_each_preset_chart_capability_undeclared(self):
+        for path, slug in self.PRESETS:
+            with self.subTest(preset=slug):
+                self.assertTrue(path.exists(), f"missing preset: {path}")
+                text = path.read_text(encoding="utf-8")
+                status_version = self.mod._parse_chart_capability_header(text)
+                self.assertEqual(status_version, ("undeclared", None),
+                                 f"{slug} must not (yet) declare chart-capability")
+
+    def test_each_preset_chart_capability_zero_findings(self):
+        for path, slug in self.PRESETS:
+            with self.subTest(preset=slug):
+                text = path.read_text(encoding="utf-8")
+                status, _ = self.mod._parse_chart_capability_header(text)
+                findings = self.mod._check_chart_capability_completeness(path, text, status)
+                self.assertEqual(findings, [],
+                                 f"{slug} must have zero chart-capability findings (undeclared)")
+
+    def test_project_root_directories_regress_cleanly(self):
+        """Subprocess-level regression: preset dirs still short-circuit at Check A
+        with exactly the same 1-violation baseline (missing DESIGN.html) — the new
+        tier introduces no new findings/behavior for these directories."""
+        for name in ("紙-preset", "swiss-preset", "google-design-preset"):
+            with self.subTest(preset=name):
+                preset_dir = self.REFS / name
+                result = run_check(preset_dir)
+                self.assertEqual(result.returncode, 1)
+                self.assertEqual(
+                    result.stdout.count("[#1 check-A-artifact-completeness]"), 1,
+                    f"{name} baseline violation count changed:\n{result.stdout}")
+                self.assertNotIn("chart-capability", result.stdout.lower())
 
 
 if __name__ == "__main__":
