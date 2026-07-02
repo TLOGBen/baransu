@@ -55,6 +55,10 @@ Each agent file defines `Perspective / Mission / Principles / Lane-keeping` — 
 
 ## Stage 1 — Claim checklist AND review goal
 
+### Pre-dispatch off-ramp
+
+Before materializing anything: if the invocation matches a frontmatter Not-For boundary (own-project agent-config audit → /health; baransu structure verification → scripts/verify-skills.py), name the correct route and stop — dispatch nothing. The same name-the-route-and-stop semantics apply to two adjacent confusion surfaces: a symptom/error-debugging ask (e.g. 「看一下為什麼報錯」) → /hunt; a capture-to-offline intent (e.g. 「幫我存下來」) → /read. If no target can be materialized from disk (no diff, no file, no named artifact), ask exactly ONE ask the user directly, record the authorization decision, and stop until the user answers to pin the target; if the user cannot name one, stop without dispatching — never review from conversation memory.
+
 Two things, in order, both passed to every dispatched reviewer.
 
 ### The claim checklist
@@ -120,9 +124,9 @@ No recursion (**INV-no-recursion**): this dispatch is the only depth /review use
 
 ### Orchestration interface (dual-mode)
 
-Before dispatching Stage 4 (and at Stage 0 when pinning the run mode), read
-`references/orchestration-interface.md` and apply its finding schema and adapter contract:
-isomorphic finding schema, Stage 0 mode pinning (ultracode detect → record → no mid-run switch),
+Before dispatching Stage 4 — and once before Stage 1 begins, when the run mode is pinned per
+`references/orchestration-interface.md` §2 — read that file and apply its finding schema and adapter contract:
+isomorphic finding schema, pre-Stage-1 mode pinning (ultracode detect → record → no mid-run switch),
 the current parallel-subagent adapter, and a thin Workflow adapter. Both adapters return identical
 finding shapes — Stages 5–7 never sense the mode; the depth invariant is restated per adapter.
 Non-ultracode runs keep current-path semantics unchanged.

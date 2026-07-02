@@ -46,7 +46,7 @@ These apply across all steps. The review-agent rule and the spec-read-only rule 
 - **Worktree lifecycle.** Worktrees are created for any parallel execution (L/XL); removed in Step 7 after final-report.md is written.
 - **final-fixer-agent is dispatched at most once per session.**
 - **smart-friend-agent is dispatched at most once per task** (when failure_count reaches 2).
-- **Error Reference.** When any step hits an error condition not covered by an inline Fallback, read `references/error-reference.md` and apply the matching condition → action row (condition / detection point / action lookup table, all steps).
+- **Error Reference.** When any step hits an error condition not covered by an inline Fallback, read `references/error-reference.md` and apply the matching condition → action row (condition / detection point / action lookup table, all steps). If no row matches, do not improvise: mark the affected task blocked with the verbatim error, escalate 「未涵蓋的錯誤：{condition}，該任務已標記 blocked」, and continue unblocked work per the Goal line.
 
 ### Orchestration interface (dual-mode)
 
@@ -137,13 +137,15 @@ Write:
 
 > **Re-read checkpoint:** Before entering Step 4, re-read §Hard Constraints and this entire step. Confirm review-agent dispatch is mandatory, `failure_count`/`compile_error_count` semantics (§4b Phase 2–3), cascade-blocked propagation (§4c), and merge retry cap (§4d). These are the rules most vulnerable to drift during long sessions.
 
+> **Status-mapping rule:** The Codex subagent status enum has no blocked state. Every `update task-map.md task state: status=blocked|cascade-blocked` below means: keep `status=in_progress` and set metadata `{state: blocked|cascade-blocked, reason}`; task-map.md and final-report.md remain the authoritative blocked record. Do not create new tasks for blockers (Hard Constraint: no mid-execution create a `task-map.md` record).
+
 ### 4a. Execution order + worktrees
 
 Process groups by frontier level (topological order). Groups at the same level run in parallel.
 
 For **M**: single workflow, main branch. No worktrees.
 
-For **L/XL**: create one worktree per group in the current wave before dispatching any impl-agent for that wave:
+For **L/XL**: before creating the first worktree, record `target_branch = $(git branch --show-current)` (fallback `main` if empty/detached) into confirm.md — every later merge targets this recorded value, never a hardcoded name. Then create one worktree per group in the current wave before dispatching any impl-agent for that wave:
 ```bash
 git worktree add .git/worktrees/{group} -b execute/{date}-{slug}/{group}
 ```
@@ -321,8 +323,8 @@ last_failed_tests = null
 
 LOOP:
   Spawn a merge-agent subagent with:
-    - worktree_paths:  list of worktree paths for this level
-    - target_branch:   main
+    - worktree_paths:  list of worktree paths for this level — ONLY groups whose tasks are all ✅; direct-blocked and cascade-blocked groups' worktrees are excluded from the dispatch and recorded integration_status[{group}] = not-integrated (branches kept per Step 7's guard), so expected-red partial work cannot poison the level merge
+    - target_branch:   the recorded target_branch from confirm.md (see §4a)
     - test_command:    from test.md
     - failed_tests:    last_failed_tests (null on first dispatch)
 
@@ -405,14 +407,14 @@ When emitting the report:
 - Write the `total_findings_count` and `downgraded_to_advisory_count` accumulated in §4b Phase 3 into the `## Goal-Alignment Filter Metric` section (i.e. the `goal_alignment_filter_metric` block). If no review-agent returned at all during the entire session (the counters never incremented), write `0` for both values; the metric section must still be emitted (it may not be omitted). Filter behavior and the downgrade decision criterion remain as defined in §4b Phase 3 — this step only serializes, it does not recompute.
 - If an upstream work journal exists (`.claude/think/*.html` for the approved plan), read `../_shared/output-journal.md` and append this run's off-spec decisions / forced changes / tradeoffs to its 執行日誌 section per that contract, then write the artifact to disk and list its absolute path the updated journal.
 
-Remove all worktrees created this session. The worktree-remove is always safe (it discards a checkout, not committed work). The branch force-delete is **integration-state-gated**: `git branch -D` is irreversible and would silently discard any commits that never reached main, so it runs **only** for a group whose work is confirmed integrated.
+Remove all worktrees created this session. The worktree-remove is safe only because dirty not-integrated worktrees are WIP-committed first (below) — after that it discards a checkout, not committed work. The branch force-delete is **integration-state-gated**: `git branch -D` is irreversible and would silently discard any commits that never reached main, so it runs **only** for a group whose work is confirmed integrated.
 
-For each session group's worktree:
+For each session group's worktree — if the group's `integration_status` is not `integrated`, first run `git -C .git/worktrees/{group} status --porcelain`; if dirty, commit the WIP onto the group's kept branch (`git -C .git/worktrees/{group} add -A && git -C .git/worktrees/{group} commit -m "WIP: blocked partial work"`) so the retained branch actually preserves it — then:
 ```bash
 git worktree remove .git/worktrees/{group} --force
 ```
 Then decide per group whether to force-delete its branch by reading the `integration_status[{group}]` field recorded in task-map.md by §4d:
-- **Integrated (force-delete allowed)**: task-map.md records `integration_status[{group}] = integrated` (work landed on main). Only then run:
+- **Integrated (force-delete allowed)**: task-map.md records `integration_status[{group}] = integrated` (work landed on the recorded target_branch). Only then run:
   ```bash
   git branch -D execute/{date}-{slug}/{group}
   ```

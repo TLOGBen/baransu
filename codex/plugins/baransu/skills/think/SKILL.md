@@ -35,7 +35,7 @@ If you find yourself thinking "I could just write this quickly" — that's exact
 ## Outcome Contract
 
 - **Outcome**: Converge a vague intent into a five-section plan explicitly approved by the user (or, in Evaluation mode, a single-line Kill / Keep / Pivot verdict), producing no code at any point.
-- **Done when**: The user approves the final proposal at the Stage G four-option gate (ask the user directly, record the authorization decision, and stop until the user answers), or explicitly abandons this round's plan; a free-text approval must be closed and recorded with 「收到，把這當成批准實作」.
+- **Done when**: The user approves the final proposal at the Stage G four-option gate (ask the user directly, record the authorization decision, and stop until the user answers), or explicitly abandons this round's plan; a free-text approval must be closed and recorded with 「收到，把這當成批准實作」; in Evaluation mode, the verdict is confirmed with 「同意」 or closed after at most one re-verdict (see Verdict closure).
 - **Evidence**: The Stage G ask the user directly, record the authorization decision, and stop until the user answers interaction result — one of the four options selected, or the closing sentence of a free-text approval has been emitted.
 - **Output**: The 繁中 five-section plan presented in the conversation (or the verdict + three reasons); after approval, persist `.claude/think/<slug>.md` (the plan verbatim) and `.claude/think/<slug>.html` (HTML work journal, containing an 「執行日誌」 section, per the `_shared/output-journal.md` contract), and send them via write the artifact to disk and list its absolute path; then hand off to /analyze or implement directly per _shared/tdd.md.
 - **Automation**: ultracode=neutral, loop=not-drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
@@ -150,6 +150,10 @@ If the user instead asks to broaden Lightweight into Full ("actually let's plan 
 
 Total output: ~10 lines in Traditional Chinese, then wait. This mode is for value / existence judgment — "should X exist, be kept, or removed". It is not for "how to build X" (that's Plan) and it is not for debugging (that's `/hunt`; see the Step 0 disambiguation rule).
 
+### Constraint elicitation gate
+
+The three reasons below must be grounded in the user's actual constraints. If the conversation does not already reveal them (time budget, motivation, maintenance cost, business model), ask exactly ONE ask the user directly with numbered options, then stop; classify whether this is an authorization PAUSE before continuing round in 繁體中文 to elicit the missing ones BEFORE emitting the verdict — never fabricate constraints, never substitute generic trade-offs. If the user declines to answer, state that in the output and ground the reasons in what is observable from the repo instead.
+
 ### Output format (Kill / Keep / Pivot)
 
 Line 1 is exactly one of **Kill** / **Keep** / **Pivot** as the verdict. No preamble, no hedging.
@@ -186,6 +190,15 @@ Do not present options for the user to pick between. Do not use Plan's five-sect
 
 Then stop. Wait for one round of user confirmation. Do not proceed to Plan's stages (A-G) — Evaluation produces a verdict, not a plan.
 
+### Impact-block evidence rule
+
+Before emitting a Kill or major-rework verdict, verify the impact block against the live repo — list the actual 涉及檔案, grep for 依賴者, derive 遷移成本 from what the search shows. Annotate each field per the claim-cite-first convention (`verified: <how>` or `inferred: 未實查`); this extends claim-cite-first, elsewhere scoped to Stage D/F, to the Evaluation path. A Kill verdict whose impact block is entirely `inferred` must say so above the confirmation line.
+
+### Verdict closure
+
+- If the user replies 「同意」: the verdict is final and the skill ends here. Persist nothing beyond the conversation — Evaluation produces a verdict, not a plan file; the work-journal contract does not apply to a bare verdict.
+- If the user replies 「不同意，因為…」: re-ground exactly once — produce ONE revised verdict treating the stated reason as a new constraint, then stop again. A second 「不同意」 ends the skill with the disagreement standing; do not loop.
+
 ---
 
 ## Full mode — overview
@@ -202,7 +215,7 @@ F. Final plan            — the five-section schema
 G. Approval              — authorization PAUSE with four options; downstream is direct implementation per _shared/tdd.md (small) or /analyze (medium-large)
 ```
 
-Do **not** read any files, run any shell commands, or fetch any URLs before Stage A completes. The whole point of Stage A is to close the gap between Claude's understanding and the user's intent. Touching the codebase first anchors you to what's already there instead of what the user actually wants.
+Do **not** read any files, run any shell commands, or fetch any URLs before Stage A completes. The one sanctioned exception is the Step 0 DESIGN.md soft-read (git rev-parse + the DESIGN.md Read), which by design runs before mode selection and therefore before this rule attaches. The whole point of Stage A is to close the gap between Claude's understanding and the user's intent. Touching the codebase first anchors you to what's already there instead of what the user actually wants.
 
 ---
 
