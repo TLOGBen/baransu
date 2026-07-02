@@ -10,8 +10,6 @@ Models drift. After a model claims "done" — especially after a long-running or
 
 This skill is not a monolithic reviewer. It is a **task analyst + dispatcher**: it lifts a claim checklist out of the target, derives the review's goal, decides who to dispatch, lets them think independently, weighs returned findings on a balance scale (complexity must justify itself), and applies findings in four response tiers.
 
-The body below is English (agent-facing). Wherever this file quotes literal user-facing copy in **Traditional Chinese (繁體中文)**, that text is output-as-shown; everything else is instruction for the agent running the skill.
-
 ---
 
 ## Outcome Contract
@@ -60,9 +58,9 @@ One sentence, in 繁中. Why does the user want this reviewed? Derived from the 
 - 「看 /think 的 plan 裡有沒有自我矛盾或偽裝成 unknown 的已決定事項」
 - 「驗證 `increment()` 是否真的 thread-safe；如果不是，最小必要修法」
 
-**The goal is the single most important input to reviewer dispatch.** It is what keeps each perspective from drifting into its own bias. Without a goal, an architecture reviewer will find architecture problems regardless of whether they matter to the user's actual concern; a security reviewer will surface every theoretical attack surface regardless of blast radius. With a goal, every perspective has a compass: findings outside the goal's orbit — even when they're correct observations — downgrade to advisory instead of packaging as action items.
+**The goal is the single most important input to reviewer dispatch.** It is what keeps each perspective from drifting into its own bias.
 
-This is the mechanism that lets well-meaning perspectives coexist without their individual zeal producing a collectively over-engineered review. It is the fix the skill's own experience taught us (`/review` v0.3.0 drifted because it had no goal mechanism).
+This is the mechanism that lets well-meaning perspectives coexist without their individual zeal producing a collectively over-engineered review.
 
 If the dispatcher's first impulse is to skip goal derivation and let reviewers self-anchor, treat that as the load-bearing trap in live-review form. "Implicit goal" is never a destination — every dispatched reviewer must receive a written goal sentence.
 
@@ -253,9 +251,9 @@ Field semantics (single source of truth for each):
 - `files`: Stage 2's LOC / file-count classification, measured via `git diff --stat` / `wc -l` at Stage 2 — never estimated. Plan-type targets: `N/A`.
 - `scope`: scope drift vs claim checklist. Vocabulary: `on target` / `drift: [one-phrase summary]` / `incomplete`.
 - `depth`: Stage 2's three-tier classification (`quick` / `standard` / `deep`).
-- `perspectives`: the Stage 4 returned set — a dispatched-but-failed perspective is listed as `<name>: dispatch failed` and its coverage may not be claimed — with `+ adversarial: yes|no` from Stage 5. Not Waza's pooled-specialists semantics — quick-pass targets still list ≥1 perspective.
+- `perspectives`: the Stage 4 returned set — a dispatched-but-failed perspective is listed as `<name>: dispatch failed` and its coverage may not be claimed — with `+ adversarial: yes|no` from Stage 5. Quick-pass targets still list ≥1 perspective.
 - `hard_stops`: the source of truth for hits. The checklist above is a derived view; if `hard_stops: none` here, all checklist lines must read `□ ... not hit`.
-- `new_tests`: pure count. Does **not** carry Waza's "regression-first" semantics — that fidelity is intentionally not inherited; regression-first verification belongs to 「/baransu:execute 或依 tdd.md 的直接實作」, not /review.
+- `new_tests`: pure count. Regression-first verification belongs to 「/baransu:execute 或依 tdd.md 的直接實作」, not /review.
 - `doc_debt`: invariants the reviewer noticed are missing from project docs (AGENTS / CLAUDE / `.claude/rules`). `none` when nothing surfaced.
 - `e2e_status`: three states from the E2E hard requirement section above. The hard-stop checklist's e2e-related line, if any, is **derived** from this field — do not judge e2e independently in the checklist.
 
