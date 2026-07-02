@@ -8,6 +8,12 @@
 # Transient baransu workspace dirs — local only, archived by /ship into .claude/archived/.
 .claude/dev/
 .claude/think/
+.claude/evolve/
+.claude/review/
+.claude/analyze/
+.claude/execute/
+.claude/hunt-report/
+.claude/impl/
 
 # baransu working data — local dogfooding artifacts, regenerated per session.
 # Useless to plugin installers (they re-initialize their own). Only the shared
