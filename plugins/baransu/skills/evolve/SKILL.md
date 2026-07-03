@@ -75,7 +75,7 @@ Dispatch **three fresh evolve-judge agents in parallel**. Present the pre- and p
 ## Stage 6 — Adoption (Authorization PAUSE) or restore
 
 - If kept: adoption is an **Authorization PAUSE** (`references/safety-gates.md` Gate 1), satisfied one of two ways. **(a) Interactive or non-interactive without standing authorization** → present the diff + score delta and halt; write back only on explicit user adoption. **(b) Non-interactive WITH a standing authorization** recorded in the driving context (the loop/cron prompt or approved plan explicitly authorizes adoption / the evolve→ship sweep) → auto-adopt, but only for a change that clears every Gate-1 precondition (structure gate pass, blind-judge bar tightened to **3/3**, snapshot retained, `log.md` audit with `decision: standing-auth auto-adopt`); a change failing any precondition is restored, never written. The end-state check (`make test`) is the final arbiter for downstream steps. After any write-back, re-read the target (the baseline changed) and reset the no-progress counter.
-- If not kept (judges, or structure gate, or restore path): restore the snapshot to the target file. File-level only — never `git reset --hard` / `stash` / `clean` / `checkout`.
+- If not kept (judges, or structure gate, or restore path): restore the snapshot to the target file, then increment the no-progress counter (the only site it advances — Stage 7 converges at N=3 consecutive). File-level only — never `git reset --hard` / `stash` / `clean` / `checkout`.
 - Append a `log.md` entry either way: round #, dimension, mutation summary, gate result, votes, decision.
 
 ## Stage 7 — Convergence + held-out + package
