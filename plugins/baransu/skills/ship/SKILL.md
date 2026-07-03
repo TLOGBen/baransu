@@ -153,6 +153,7 @@ If the output contains `.git/worktrees/`:
    - `GATE_FAIL …` → the work is **not** yet on `$SAFE_REF`; nothing was destroyed. Output 「分支 {BRANCH} 的工作尚未確認落地到 {SAFE_REF}，保留 worktree 以免遺失；請確認 merge/push 後再清理。」
    - `GUARD_REFUSED …` → the destructive fallback was refused and the worktree is left intact. Output 「worktree 路徑無法安全確認，停止強制刪除以免誤刪」
    - `REMOVED …` → output 「Worktree 已清理：{WORKTREE_PATH}，分支 {BRANCH} 已刪除。」
+   - `BRANCH_DELETE_FAILED …` → the worktree was removed but its branch could not be deleted; the worktree is gone, the branch remains. Output 「Worktree 已清理：{WORKTREE_PATH}，但分支 {BRANCH} 刪除失敗，請手動執行 `git branch -D {BRANCH}` 清除。」
    - Any other non-zero exit → report the raw status line in the session end output's Worktree field.
 
 If not in a worktree → skip silently.

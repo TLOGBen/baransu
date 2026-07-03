@@ -43,7 +43,7 @@ Before mode dispatch, proactively ensure that CLAUDE.md, AGENT.md, and INSTRUCTI
       - contains `- slide-cores/` (added in v1.3; the v1.2 inject does not have this line)
       - contains `canonical 38-name vocabulary` (v1.3 schema marker)
    c. Decide the action:
-      - **No block found** (normal case — never injected before) → insert the canonical v1.3 block at line 2 (or after the YAML frontmatter / after the first heading — take the earliest reasonable position)
+      - **No block found** (normal case — never injected before) → insert the canonical v1.3 block at the first valid position in this priority: immediately after the YAML frontmatter if present, else immediately after the first heading if present, else at line 2
       - **Stale block found** (contains `DESIGN.md` but lacks the v1.3 markers — e.g. leftover v1.2 inject) → **replace** the stale block with the canonical v1.3 block; leave the rest of the file untouched
       - **Current block found** (v1.3 markers all present) → skip silently (idempotent)
    d. Canonical v1.3 block text:

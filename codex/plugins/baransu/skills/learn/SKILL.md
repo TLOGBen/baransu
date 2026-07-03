@@ -394,6 +394,8 @@ Call `/write {$LANG}` passing `$DRAFT` as the input. The explicit language prefi
 
 From `/write`'s output, extract only the content between `**After:**` and the next `**修正說明：**` heading. Discard the `**Before:**` section and the `**修正說明：**` section entirely. The extracted text is the final digest body; store it as `$REFINED_BODY`.
 
+If `/write`'s output contains no `**After:**` marker (e.g. it classified `$DRAFT` as Generate/Proofread rather than Refine, or returned an unexpected shape): do NOT write an empty or truncated digest. Set `$REFINED_BODY = $DRAFT` verbatim and continue.
+
 ### 4. Derive digest slug
 
 Derive `$DIGEST_SLUG` from `$TOPIC` using the same derivation as `$BRIEF_SLUG` in Stage 2:
