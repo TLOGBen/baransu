@@ -369,6 +369,8 @@ Classify each still-open finding as either wording-only or structural, where str
 [摘要問題，條列]
 請說明如何處理，或直接修改對應的 spec 檔案。」
 
+If no structural finding remains but one or more wording-only findings are still open, do not pause; record them in the Stage 7 handoff output with the line 「spec 驗收後仍有 N 項純措辭層級未解發現（不阻擋交接）：[清單]」, so no still-open finding is silently dropped.
+
 ---
 
 ## Stage 7 — Handoff

@@ -2,6 +2,24 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.5.19 (2026-07-03)
+
+**全 skill 並行 evolve 一輪 sweep**。plugin version 2.5.18 → 2.5.19。承 v2.5.18 已完整棘輪的 think／review／execute，對其餘 11 支各跑一輪 `/evolve`（並行：14 mutator＋盲評，Opus）——每支經 structure gate＋**3/3 盲評全票**＋整體 make test 綠三重驗證後採納。全部為真缺陷修復而非文字打磨：
+
+- **read**（d2）：圖片本地化誤用 initial slug 複製造成孤兒，搬到 Stage 3 用 final-slug，`./assets` 連結才解得開。
+- **evolve**（d2）：Stage 6 not-kept 路徑補「遞增 no-progress 計數器」，補齊 Stage 7 N=3 收斂所依賴的計數生命週期。
+- **book**（d5）：Red Lines 第 3 列理由與其正確做法欄自相矛盾（"超過 3 步" vs 上限 2 步/圖），對齊 SSOT。
+- **learn**（d3）：`/write` 輸出缺 `**After:**` 標記時 fallback 為原文，不寫出空 digest。
+- **write**（d3）：無關鍵詞的文件路徑路由到 Proofread（對齊 argument-hint），不再默默落回 Generate。
+- **ship**（d3）：Step 5 補 `BRANCH_DELETE_FAILED` 明確狀態行＋手動復原指令。
+- **health**（d3）：Step 1b MCP 探測本身跑不動時記 `live=unknown`，不誤報 server down。
+- **codex-skill-transfer**（d3）：Step 1 補 no-match/marketplace-root 分支（transfer.py exit 2 不寫檔）。
+- **analyze**（d3）：Stage 6 純措辭層未解發現記入 Stage 7 交接行，不靜默丟棄。
+- **hunt**（d4）：Scope-Blast 閘「locking test」→「regression test」，四類 bug 都指對 artifact。
+- **design**（d4）：Stage 0 插入位置由 hedge 改為確定性優先序。
+
+think／review／execute 本輪 diagnostician 一致回報 **MARGINAL**（已收斂，殘餘為量測噪音或凍結欄位缺陷），正確 no-op。codex/ 鏡像經 `transfer.py` 重產（11 支同步）。
+
 ## v2.5.18 (2026-07-03)
 
 **官方文件對標的全 skill 優化 rollup**。plugin version 2.5.17 → 2.5.18。以 2026 最新官方文件（code.claude.com skills／sub-agents／hooks／settings／plugins、docs.claude.com authoring best-practices、anthropics/skills spec v1.1、engineering blog）為基準，先展開 13 份官方來源的雙 brief（`.claude/learn/briefs/`），再經 `/think` 差距分析＋`/review` 三 perspective 審計（19 findings 全採納）產出 83 項優化計畫，逐批落地：

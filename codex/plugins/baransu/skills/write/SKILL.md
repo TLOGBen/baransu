@@ -135,7 +135,7 @@ Classify the input as **Refine**, **Generate**, or **Proofread**.
 - A proofread keyword paired with a document → **Proofread**, even if a refine keyword is also present (proofreading "report the errors" is a stronger intent signal than "polish this"). Example: 「幫我校對這份文件，找出錯字」→ Proofread.
 - Request-tone phrasing AND a refine keyword paired with an existing text body → **Refine wins** over Generate. The presence of a refine keyword plus existing content signals user intent more reliably than surface grammatical tone. Example: 「幫我潤色這段：[paragraph]」→ Refine.
 
-When genuinely uncertain (no explicit keyword, no clear existing body) → default to **Generate**. The cost of generating something new is lower than silently discarding user content.
+When genuinely uncertain (no explicit keyword, no clear existing body) → default to **Generate**. Exception: if the sole input is a document file path with no accompanying keyword → **Proofread** (matching the argument-hint `file/path=校對`), never Generate — a file handed to `/write` is a document to check, not a prompt to generate from. The cost of generating something new is lower than silently discarding user content.
 
 Report classification to the user in one line before proceeding:
 - 「偵測到潤色模式（zh／en）」

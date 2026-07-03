@@ -182,7 +182,7 @@ For each image URL:
   ```
 - On failure: record `[image download failed: {img_url}]` as a note; do NOT stop
 
-Copy successfully downloaded images to `.claude/read/material/{slug}/assets/` (create directory first).
+Leave the downloaded images in `raw/{slug}/assets/`; they are copied into `material/{final-slug}/assets/` in Stage 3, once the final slug is known ({slug} here is the initial slug and differs from the final slug).
 
 In the converted markdown, replace each original image URL reference with `./assets/{filename}`.
 
@@ -208,11 +208,14 @@ Read `.claude/read/index.md` (if it exists):
 - If found: find the highest existing `_vN` suffix for that source_url → use `_v{N+1}` as new slug suffix
 - If a different URL produces the same title-slug: also append `_v2`
 
-### 5. Create directories
+### 5. Create directories and localize images
 
 ```bash
 mkdir -p ".claude/read/material/{final-slug}/assets"
+cp -r ".claude/read/raw/{slug}/assets/." ".claude/read/material/{final-slug}/assets/" 2>/dev/null
 ```
+
+The `cp` copies every successfully downloaded image from the immutable `raw/{slug}/assets/` into the final material directory, so the `./assets/{filename}` links written in Stage 2 resolve. If no images were downloaded, `raw/{slug}/assets/` may be absent — the `2>/dev/null` makes that non-fatal.
 
 ### 6. Write `material/{final-slug}/index.md`
 

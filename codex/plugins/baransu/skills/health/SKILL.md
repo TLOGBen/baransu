@@ -113,7 +113,7 @@ The collector includes both runtime-specific and agent-agnostic surfaces:
 
 ## Step 1b: MCP live check
 
-Test every MCP server: call one harmless tool per server. Record `live=yes/no` with error detail. Respect `enabled: false` (skip without flagging). For API keys, only check if the env var is set (`echo $VAR | head -c 5`), never print full keys.
+Test every MCP server: call one harmless tool per server. Record `live=yes/no` with error detail. If the probe itself cannot run (the tool is not exposed in this harness, or it errors for a reason unrelated to the server), record `live=unknown` and treat it as insufficient data, not a finding — do not flag the server as down. Respect `enabled: false` (skip without flagging). For API keys, only check if the env var is set (`echo $VAR | head -c 5`), never print full keys.
 
 ## Step 1c: Safety and security checks
 
