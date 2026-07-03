@@ -2,6 +2,14 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.5.20 (2026-07-03)
+
+**health 新增「baseline working-principles coverage」檢查 + 通用理念改為 user scope**。plugin version 2.5.19 → 2.5.20；health skill 1.0.0 → 1.1.0。
+
+- **health**：新增 `references/baseline-principles.md`（六條通用工作理念範本＋以「語意涵蓋」判定的檢查清單）。Structural lane 增設一段：比對 user scope（`~/.claude/CLAUDE.md` + rules）與專案 scope（`CLAUDE.md`/`AGENTS.md`）是否涵蓋這些理念，缺項按 tier 報 WARN／informational，經確認（INV-4）後從範本補上——通用原則寫 user scope、專案特定寫專案。定位為 advisory baseline，不會硬性 FAIL 或自動套用。
+- **CLAUDE.md／AGENTS.md**：通用理念與風格（Think Before Coding／Simplicity First／Surgical Changes／Goal-Driven Execution／First Principles／Adversarial Review）自專案根 `CLAUDE.md` 上移至 user scope `~/.claude/CLAUDE.md`；專案端只留 バランス 身分理念（plugin-specific）。AGENTS.md 同步移除通用理念並修正 single-source 指向。
+- codex mirror 同步 regen（含新 reference 與 SKILL.md 檢查段）。
+
 ## v2.5.19 (2026-07-03)
 
 **全 skill 並行 evolve 一輪 sweep**。plugin version 2.5.18 → 2.5.19。承 v2.5.18 已完整棘輪的 think／review／execute，對其餘 11 支各跑一輪 `/evolve`（並行：14 mutator＋盲評，Opus）——每支經 structure gate＋**3/3 盲評全票**＋整體 make test 綠三重驗證後採納。全部為真缺陷修復而非文字打磨：

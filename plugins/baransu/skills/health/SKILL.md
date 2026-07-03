@@ -4,7 +4,7 @@ description: >
   Audits a project's agent configuration and AI-coding maintainability — instruction drift, hooks/MCP, verifier surfaces, code-rot signals. Runs a budget-aware five-layer audit (agent config → instruction surfaces → tools/runtime → verifiers → maintainability): classifies the project tier, collects data via scripts, escalates to inspector subagents only for deep audits. Trigger On '/health', '健康檢查', '配置體檢', '檢查配置', 'AI 可維護性', 'agents ignoring instructions'. 繁體中文輸出。
 when_to_use: "檢查 claude, 檢查 codex, 配置對不對, 健康度, AI coding 腐化, 程式碼變爛, 上下文混亂, 驗證缺失, hooks 沒生效, MCP 壞了, AGENTS.md, agent instructions, check config, audit config, health check, config drift"
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   scope: user-project-agent-config-and-maintainability
 ---
 
@@ -183,6 +183,8 @@ Quick check from the project root:
 ```bash
 bash "$HEALTH_SCRIPTS_DIR/check-agent-context.sh" . summary
 ```
+
+**Baseline working-principles coverage.** Read the user-scope instruction surface (`~/.claude/CLAUDE.md` and any loaded `~/.claude/rules/*.md`) and the project-scope surface (`CLAUDE.md` / `AGENTS.md`), then test them against the coverage checklist in `references/baseline-principles.md`. Judge by substance, not exact wording — a theme paraphrased still counts as covered. Report a Structural `WARN` naming the missing principle themes, calibrated by Step 0 tier: Simple → informational; Standard / Complex → `WARN`. **Placement rule:** general, plugin-agnostic principles belong at **user scope** (they apply to every project); only project-specific rules belong in the project files — never recommend duplicating a principle already covered at user scope down into a project file. **Action (a mutation → gated by INV-4, offer never auto-apply):** ask 「是否將缺少的原則從 baseline 範本補上？（通用原則寫入 user scope `~/.claude/CLAUDE.md`，專案特定寫入專案 `CLAUDE.md`/`AGENTS.md`）」. On confirmation, append only the missing sections' canonical text from `references/baseline-principles.md` to the appropriate scope. Appending is additive (non-destructive), so it needs no 破壞性 marker, but confirmation is still required.
 
 **AI-maintainability gaps.** Use `AI MAINTAINABILITY SUMMARY` in summary mode and `AI MAINTAINABILITY DETAIL` in a deep audit. Report `FAIL` when the project has no executable verification command, no agent instruction surface for a non-trivial repo, or broken doc references. Report `WARN` when instructions exist but lack a project map, verification guidance, boundary/non-goal language, when TODO/HACK markers are concentrated, when large source hotspots lack ownership/boundary and verification guidance, or when durable docs contain raw one-off review reports, scorecards, dated line references, or diagnostic dumps instead of stable invariants. For missing `docs/`, `specs/`, `.specify/`, `HANDOFF.md`, `CHANGELOG`, issue templates, and PR templates, set the flag by Step 0's tier ladder without judgment: Simple tier → always informational; Standard tier → `WARN` only if active handoff is present (multi-contributor or CI detected), else informational; Complex tier → `FAIL` when absent. The action for stale reports is to extract stable rules into public instructions, rules, references, or verifier scripts, then remove or archive the transient report.
 
