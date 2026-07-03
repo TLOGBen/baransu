@@ -8,6 +8,12 @@ When working on any UI/UX content, read the design system at the project root an
 
 `baransu` is a Claude Code plugin distributing fourteen governance skills. Theme: バランス — deliberate before executing, verify after.
 
+## Philosophy — バランス (Balance)
+
+**Origin.** The market is full of skills, but they all feel wrong to use. Either they govern nothing — the model just runs on its own reading of the request — or the ceremony is so heavy that a one-line change needs five forms filled before any work starts. The first attempt was a home-grown `everything-cli`. Finishing it revealed the opposite extreme: it burned tokens fast, and every small task had to clear seven gates before touching the code. Useful, but too heavy. `baransu` is the second attempt.
+
+**Core principle.** Balance is not compromise — the point is knowing *when* to go light and when lightness is not allowed. A small task doesn't need three rounds of alignment; an important decision can't skip thinking. Tools fit the shape of the task: a small task takes the lightweight path, a large one takes the full spec — never the reverse, forcing the task to bend to the tool's process. Every skill carries a clear trigger boundary — what may be skipped, what must always happen. Since v2.1.0 this line is written down as five acceptance-testable principles. Each binds to an in-repo mechanism — a clause with no anchor is not admitted, and whether the anchor exists is enforced by the structure verifier.
+
 ## Working Principles
 
 ### 1. Think Before Coding
@@ -64,6 +70,22 @@ For multi-step tasks, state a brief plan:
 ```
 
 Strong success criteria let the loop run independently. Weak criteria ("make it work") require constant clarification.
+
+### 5. First Principles
+
+Return to the root before acting. Don't copy convention.
+
+- Ask what problem the task actually solves — don't inherit "how everyone does it."
+- Decompose the problem into the smallest verifiable units and solve them one at a time.
+- Every decision must justify its "why," not just its "how."
+
+### 6. Adversarial Review (mandatory before delivery)
+
+When the work is done, switch into the most critical reviewer and attack your own output.
+
+- Attack from three angles: logical holes, factual correctness, whether a simpler approach exists.
+- Proactively list the 3–5 points most likely to break, fix them, then deliver.
+- Don't accept "looks fine" — produce verified evidence.
 
 ### Read-before-write
 
