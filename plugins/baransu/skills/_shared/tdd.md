@@ -12,6 +12,8 @@
 >
 > **License**: Original is MIT License (Copyright © 2026 Matt Pocock). This file is a
 > derivative work, retaining the MIT license; original attribution preserved.
+> §7.3's beyond-the-gates note and §7.5 are baransu-original additions (2026-07-06),
+> not derived from the upstream skill.
 >
 > **Trigger points**: before `impl-agent.md` General Principle §1, before `review-agent.md`
 > General Principle §3, and the small-task reroute sentences of `/think`／`/hunt`
@@ -253,6 +255,15 @@ The order is fixed: do not enter implementation before red is confirmed; do not 
 
 In `/execute`'s TDAID pipeline, the authoritative counting rules for compile error and `failure_count` are in `plugins/baransu/skills/execute/SKILL.md`; this file only references them, it does not duplicate the rule text.
 
+**Beyond the two gates — surprises are new reds.** The tables above govern the two
+gate checks only. Any *other* result that contradicts what the plan assumed — a tool
+output that looks wrong, a test passing that you expected to be unrelated, behavior
+that differs from the premise the fix was built on — is treated like an unexpected
+red: stop and explain it before building on top of it. One clean re-run after a
+surprise is not an explanation (an intermittent flake "fixed" by rerunning is the
+canonical trap). The reason this step exists: a surprise is the cheapest moment to
+catch a wrong premise — every step taken past it converts the surprise into rework.
+
 ### 7.4 Per-cycle self-check list
 
 At the end of each RED→GREEN round, ask yourself:
@@ -264,6 +275,22 @@ At the end of each RED→GREEN round, ask yourself:
 [ ] Code 是 minimal、夠通過此 test 而已
 [ ] 沒添加未被任何 test 要求的功能
 ```
+
+### 7.5 Before declaring done: evidence audit + fresh-eyes pass
+
+Two steps run after the final green and before the completion report. They exist
+because the strongest models audit their own claims and re-check their own work
+unprompted — these steps make that thinking part of the flow on every model.
+
+1. **Evidence audit.** Audit each claim in the completion report against a tool
+   result from this session. Only report work you can point to evidence for; if
+   something is not yet verified, say so explicitly. Report outcomes faithfully:
+   if tests fail, say so with the output; if a step was skipped, say that; when
+   something is done and verified, state it plainly without hedging.
+2. **Fresh-eyes pass.** Re-read the full diff once as if reviewing a stranger's
+   change (fresh-context verification outperforms self-critique; this is its
+   zero-cost approximation), then re-run the narrowest verification covering the
+   touched files. A claim that survives both is ready to report.
 
 ---
 

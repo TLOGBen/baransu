@@ -50,6 +50,16 @@ browser-ready HTML file; no external assets.
 3. **處置表**（optional disposition table）— when the run tracked a list of
    candidate items, a table of 項目 / 處置（implemented / declined＋理由 /
    已存在）/ 出處.
+4. **學習記錄**（conditional learnings section）— written only when the run
+   actually produced a lesson: a correction, a confirmed approach, or a
+   non-obvious fact a future session will need. When nothing was learned, omit
+   the section entirely — an empty or padded 學習記錄 is worse than none. Each
+   entry is one lesson: a one-line summary plus why it mattered; record
+   corrections and confirmed approaches alike. Don't record what the repo,
+   CLAUDE.md, or this journal's 執行日誌 already states; update an existing
+   entry rather than duplicating it. The reason this section exists: models
+   work measurably better when they can write learnings to a durable surface
+   that future sessions read — for skill runs, the journal is that surface.
 
 Entry format for 執行日誌 (newest first):
 

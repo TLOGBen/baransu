@@ -116,12 +116,18 @@ Requirements 達成率：N/M（N 個 REQ-XXX 有對應綠燈測試）
 
 ## Task 完成狀態
 
-| Group | Task | 狀態 | 備註 |
-|-------|------|------|------|
-| {group} | TASK-{group}-01 | ✅ | |
-| {group} | TASK-{group}-02 | ❌ blocked | 連續失敗 3 次；smart-friend 診斷：{...} |
-| {group} | TASK-{group}-03 | ❌ cascade-blocked | 前置群組 {group} blocked |
-| {group} | TASK-{group}-04 | ❌ blocked | spec 矛盾：REQ-001 與 REQ-003 衝突 |
+| Group | Task | 狀態 | 證據 | 備註 |
+|-------|------|------|------|------|
+| {group} | TASK-{group}-01 | ✅ | green_proof: `{run_command}` exit {exit_code}，{passed}/{collected} | |
+| {group} | TASK-{group}-02 | ❌ blocked | — | 連續失敗 3 次；smart-friend 診斷：{...} |
+| {group} | TASK-{group}-03 | ❌ cascade-blocked | — | 前置群組 {group} blocked |
+| {group} | TASK-{group}-04 | ❌ blocked | — | spec 矛盾：REQ-001 與 REQ-003 衝突 |
+
+Every ✅ row must fill the 證據 column by citing that task's Pre-SWITCH green_proof
+fields (run_command / exit_code / passed / collected) — the report carries the
+evidence reference; the gate itself stays at Pre-SWITCH (this step still only
+serializes, it does not recompute). A ✅ row with an empty 證據 column is a claim,
+not a confirmation.
 
 ## E2E 測試結果
 

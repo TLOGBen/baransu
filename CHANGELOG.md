@@ -2,6 +2,16 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.5.21 (2026-07-06)
+
+**Fable-parity 真空點填補**。plugin version 2.5.20 → 2.5.21。把 Fable 5 的四個流程型思考模式編碼成步驟（非條款），讓 Sonnet/Opus 跑 baransu 時獲得接近 Fable 的行為紀律；步驟語言逐字改編官方遷移指南片段，intent-first 措辭（Fable 上無害重述、其他模型上是補強）。經 /think 五段計畫＋/review 雙視角（architecture＋quality）＋對抗輪複審後實作：
+
+- **`_shared/tdd.md`**：§7.3 新增「gate 外的意外＝新 red」泛化段（含 §7.3 carve-out：gate 內結果依原表處理；一次 clean re-run 不算解釋）；新增 §7.5「宣告完成前：證據審計＋fresh-eyes 複核」（每個 claim 對到本 session tool-result；以陌生人視角重讀 diff＋重跑最窄驗證）；attribution 標注 §7.3 泛化段與 §7.5 為 baransu 原創、非上游衍生。
+- **`_shared/output-journal.md`**：Required sections 新增第 4 項「學習記錄」——條件式（有 lesson 才寫、禁空段），格式 one lesson＋why it mattered，不記 repo/CLAUDE.md 已載明者。
+- **`execute/references/output-formats.md`**：final-report Task 表新增「證據」欄，✅ 列必引 Pre-SWITCH green_proof 欄位（報告帶證據引用；守門仍在 Pre-SWITCH，Step 7 僅序列化）。
+- review 修正折入：落點縮窄（execute SKILL.md 守門一字未動）、fable-patterns.md 不發行（對映表＋官方片段逐字引文留 `.claude/think/fable-parity-gaps.md` 附錄）、「對映表＝人工驗收 checklist、make test＝迴歸守護」術語校正。
+- codex mirror 同步 regen。
+
 ## v2.5.20 (2026-07-03)
 
 **health 新增「baseline working-principles coverage」檢查 + 通用理念改為 user scope**。plugin version 2.5.19 → 2.5.20；health skill 1.0.0 → 1.1.0。
