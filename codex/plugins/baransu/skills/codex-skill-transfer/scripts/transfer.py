@@ -459,7 +459,7 @@ ASK_USER_REWRITE_BY_CAPABILITY: dict[str, str] = {
         "stop, then require `alignment.md` before planning"
     ),
     "AskUserQuestion:authorization": (
-        "ask the user directly, record the authorization decision, and stop until the user answers"
+        "direct user question (record the authorization decision; stop until the user answers)"
     ),
     "AskUserQuestion:input-gate": (
         "ask the user directly with numbered input options, then stop for the user's reply"

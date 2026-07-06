@@ -2,6 +2,16 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.7.0 (2026-07-06)
+
+**/review 取得 domain 驗證能力**。plugin version 2.6.0 → 2.7.0（新視角屬功能新增，minor bump）。對「聲稱業務行為」的 target（測案集、業務 spec、聲稱狀態機行為的變更），/review 具備業務狀態可達性驗證：
+
+- **review SKILL.md Stage 1.5 — Domain grounding**：target 聲稱業務行為時，dispatch 前先物化「狀態 × 事件 × 前置條件」轉移表；來源權威排序固定為 spec／上游狀態產生流程 **高於** 被測代碼；每列標注 `(verified: <source>)` 或 `(inferred: 未實查)`；來源不足時最多一輪 AskUserQuestion，仍不足則不派 domain-reviewer 且報告不得聲稱 domain 覆蓋（Hard stops 強制）。
+- **第五視角 `agents/domain-reviewer.md`**：僅產出兩類 findings——F1 非自然情境點名（初始狀態無合法路徑可達，去留由人決定、不建議逕行刪除）、F2 覆蓋缺口清單（合法組合枚舉對照案例集）；雙重引用義務（轉移表列＋案例位置）、缺一自棄；與 quality-reviewer 的 dead-code reachability 明確分道。
+- **Domain exception**：domain 激活不受 LOC tier 壓縮——≤100 LOC quick-pass 上限不會擠掉它，在 tier 選擇之外加派。
+- **發行面同步**：CLAUDE.md agents 註解清單（Perspective 行）加入 domain-reviewer.md；版本 touchpoints 四處（plugin.json／marketplace.json／codex mirror manifest／codex-transfer 測試斷言）同步；新增 `tests/fixtures/domain-dryrun/` 迷你乾跑 fixture（一頁狀態機 spec＋7 測案含 2 個蓄意非法初始狀態＋乾跑結果）。
+- codex mirror 同步 regen。
+
 ## v2.6.0 (2026-07-06)
 
 **バランス 全面審計＋28 項修復掃除**。plugin version 2.5.21 → 2.6.0。36-agent ultracode 審計（18 審計員＋18 對抗驗證員）以「複雜度必須證明價值」為準繩檢視全部 14 skills＋agents＋_shared＋驗證基建，28 項 act 級發現由 15 個檔案所有權互斥的修復代理一次落地（net −264 行）：

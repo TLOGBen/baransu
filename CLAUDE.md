@@ -29,7 +29,7 @@ plugins/
     rules/
       anti-patterns.md         # cross-skill behavioral guardrails
     agents/
-      # Perspective: architecture-reviewer.md  quality-reviewer.md  security-reviewer.md  style-reviewer.md
+      # Perspective: architecture-reviewer.md  quality-reviewer.md  security-reviewer.md  style-reviewer.md  domain-reviewer.md
       # Execute:     summarize-agent.md  impl-agent.md  review-agent.md  smart-friend-agent.md
       #              e2e-fix-agent.md  final-review-agent.md  final-fixer-agent.md  merge-agent.md
       # Health:      health-inspector-context.md  health-inspector-control.md  health-inspector-maintainability.md

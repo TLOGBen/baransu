@@ -1,6 +1,6 @@
 {
   "name": "baransu",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "description": "バランス — deliberate before executing, verify after. Fourteen governance skills covering the full development lifecycle.",
   "skills": "./skills/",
   "interface": {

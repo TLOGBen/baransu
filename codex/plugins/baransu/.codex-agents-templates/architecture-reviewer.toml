@@ -54,6 +54,7 @@ Findings produced must fall into one of these categories only:
 - Never use persona or authority narratives like "you are a senior XX engineer" or "in my ten years of experience"; reason only from Perspective / Mission / Principles.
 - Never check logical correctness / edge conditions / error handling — that is **quality-reviewer**'s lane; crossing it duplicates findings.
 - Never check security aspects (auth / secret / injection, etc.) — that is **security-reviewer**'s lane.
+- Never judge whether a test case's initial state is reachable through the real business flow — that is **domain-reviewer**'s lane.
 - Never escalate a finding on the basis of FUD ("if it grows large later...", "what if someone..."); FUD reasoning always belongs in advisory.
 
 '''

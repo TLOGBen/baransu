@@ -1,12 +1,12 @@
 ---
 name: review
-description: Dispatches isolated architecture / quality / security / style perspective
-  agents in clean Codex subagent contexts, surfacing hallucinations, drift, and over-engineering.
-  Use when the user wants an independent second opinion on a model's output, or after
-  a model declares something done. Trigger On 「看一下」「看看」「幫我看」「check 一下」「review 一下」,
-  or casual "take a look at X". Not For auditing the user's own project agent-config
-  / AI-maintainability (route to /health), nor verifying baransu's own skill structure
-  (route to scripts/verify-skills.py). 繁體中文輸出。
+description: Dispatches isolated architecture / quality / security / style / domain
+  perspective agents in clean Codex subagent contexts, surfacing hallucinations, drift,
+  and over-engineering. Use when the user wants an independent second opinion on a
+  model's output, or after a model declares something done. Trigger On 「看一下」「看看」「幫我看」「check
+  一下」「review 一下」, or casual "take a look at X". Not For auditing the user's own project
+  agent-config / AI-maintainability (route to /health), nor verifying baransu's own
+  skill structure (route to scripts/verify-skills.py). 繁體中文輸出。
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex
@@ -45,9 +45,9 @@ These named rules are load-bearing red lines restated here from where they appea
 - **INV-no-manufacture**: a zero-finding report that states which surfaces were examined is valid; fabricating findings to justify the invocation is forbidden.
 - **INV-consent**: never change behavior without user consent.
 
-## Four perspectives (agent files)
+## Five perspectives (agent files)
 
-`plugins/baransu/agents/architecture-reviewer.md` / `quality-reviewer.md` / `security-reviewer.md` / `style-reviewer.md`.
+`plugins/baransu/agents/architecture-reviewer.md` / `quality-reviewer.md` / `security-reviewer.md` / `style-reviewer.md` / `domain-reviewer.md`.
 
 Each agent file defines `Perspective / Mission / Principles / Lane-keeping` — no persona, no character voice. Role-play descriptions ("you are a senior X engineer") induce hallucination; we want an angle from which to read the target, not an actor playing a role.
 
@@ -66,7 +66,7 @@ means the current (parallel-subagent) adapter.
 
 ### Pre-dispatch off-ramp
 
-Before materializing anything: if the invocation matches a frontmatter Not-For boundary (own-project agent-config audit → /health; baransu structure verification → scripts/verify-skills.py), name the correct route and stop — dispatch nothing. The same name-the-route-and-stop semantics apply to two adjacent confusion surfaces: a symptom/error-debugging ask (e.g. 「看一下為什麼報錯」) → /hunt; a capture-to-offline intent (e.g. 「幫我存下來」) → /read. If no target can be materialized from disk (no diff, no file, no named artifact), ask exactly ONE ask the user directly, record the authorization decision, and stop until the user answers to pin the target; if the user cannot name one, stop without dispatching — never review from conversation memory.
+Before materializing anything: if the invocation matches a frontmatter Not-For boundary (own-project agent-config audit → /health; baransu structure verification → scripts/verify-skills.py), name the correct route and stop — dispatch nothing. The same name-the-route-and-stop semantics apply to two adjacent confusion surfaces: a symptom/error-debugging ask (e.g. 「看一下為什麼報錯」) → /hunt; a capture-to-offline intent (e.g. 「幫我存下來」) → /read. If no target can be materialized from disk (no diff, no file, no named artifact), ask exactly ONE direct user question (record the authorization decision; stop until the user answers) to pin the target; if the user cannot name one, stop without dispatching — never review from conversation memory.
 
 Two things, in order, both passed to every dispatched reviewer.
 
@@ -94,6 +94,18 @@ If the dispatcher's first impulse is to skip goal derivation and let reviewers s
 
 ---
 
+## Stage 1.5 — Domain grounding (business-behavior targets)
+
+Runs only when the target **claims business behavior** — a test-case set, a business spec, or any artifact asserting states / transitions / preconditions of a business flow. The judgment is about what the target *does*, never about which keywords appear in the invocation text — a non-business target must not trigger this stage, so no false positives are manufactured. All other targets skip straight to Stage 2 unchanged.
+
+When it triggers, the dispatcher materializes a **state × event × precondition transition table** for the claimed business flow, BEFORE Stage 4 dispatch. Authority ranking for table sources is fixed: spec / requirement documents plus upstream state-producing flows **outrank** the code under test. Rationale in one line: a test case that needs manual DB setup to reach its initial state is itself evidence that the code under test does not guard that state — the code's acceptance defines nothing about reachability. The code under test may corroborate a transition's *effect*, never which states are legal or reachable; a state combination the code accepts but no spec or upstream flow can produce is marked unreachable (or inferred), not legalized.
+
+Every table row carries a source annotation: `(verified: <source>)` or `(inferred: 未實查)`.
+
+If sources are insufficient (no spec found, upstream flow code unavailable): in interactive sessions, ask exactly ONE direct user question (record the authorization decision; stop until the user answers) round to obtain sources. If sources remain insufficient after that round, do not dispatch domain-reviewer, and the report must not claim domain coverage — the Hard stops sweep enforces this outcome.
+
+---
+
 ## Stage 2 — Grade scope
 
 | scale | configuration | adversarial |
@@ -103,6 +115,8 @@ If the dispatcher's first impulse is to skip goal derivation and let reviewers s
 | > 500 LOC | assign applicable perspectives by file spread / layer span | one round |
 
 *Any semantic risk signal (auth/session/JWT, data mutation, external API integration, payments) overrides skip and adds an adversarial pass regardless of LOC tier.
+
+**Domain exception**: when the target claims business behavior (Stage 1.5 / Stage 3 Domain criterion), domain activation is not compressed by the LOC tier — the ≤ 100 LOC single-perspective quick-pass cap does not squeeze it out; domain dispatches in addition to the tier's selection.
 
 On borderline cases, round up. For plan-type targets, use "independent decision points × section count" as the LOC analog.
 
@@ -116,6 +130,7 @@ Whether a perspective activates depends on what the target actually **does**, no
 - **Architecture**: target spans files, introduces a new module boundary, changes a contract; or a plan whose sections depend on each other.
 - **Security**: target's behavior touches external input, auth/authz decisions, secret handling, or cross-trust-boundary data flow — not the mere mention of those words.
 - **Style**: target is a rendered visual artifact (HTML / PPT / SVG) produced under a baransu design preset (`{project_root}/tokens.css` exists with `/* preset: <slug> */` header). Checks design-fidelity against `{project_root}/DESIGN.md` — typography rules, color palette discipline, Do / Don't items, AI Prompt Guide reproducibility intent. Activates only for visual outputs, not for plain code / plan / data.
+- **Domain**: target claims business behavior — it asserts states / transitions / preconditions of a business flow (test-case sets, business specs, changes claiming state-machine behavior). Judged by what the target does, never by invocation keywords, per the same criterion as Stage 1.5. A plain code diff, doc, or plan with no business-state claim does not activate it — non-business targets take the existing paths above unchanged, and no false positives are manufactured.
 
 Plan- or claim-type targets default to architecture + quality; security activates only when the plan materially describes one of the behaviors above; style activates only when target is rendered visual output with a project-root preset present.
 
@@ -125,7 +140,7 @@ If Stage 2's tier cap disagrees with activation count (e.g. a 100-LOC target tri
 
 ## Stage 4 — Parallel dispatch
 
-Launch one **parallel Codex subagent** per activated perspective, each in a clean context. Pass each reviewer three things: target content, the **claim checklist** (Stage 1), and the **review goal** (Stage 1). Reviewers do not know about each other and do not coordinate.
+Launch one **parallel Codex subagent** per activated perspective, each in a clean context. Pass each reviewer three things: target content, the **claim checklist** (Stage 1), and the **review goal** (Stage 1). Reviewers do not know about each other and do not coordinate. The domain transition table (Stage 1.5) is added to the dispatch input of domain-reviewer only — a fourth input for that one perspective; the other four perspectives keep receiving exactly the three things above.
 
 Findings return in natural language (not YAML). Each must include: citation (file:line or section), which claim it contradicts (or "none — observation"), the observation itself, the surgical fix, and a balance note (see Stage 6). Any non-obvious claim inside a finding carries a source annotation — `(verified: <how>)` when the reviewer actually checked, or `(inferred: 未實查)` when it rests on reasoning alone.
 
@@ -196,12 +211,13 @@ The fourth question itself is load-bearing — silently assuming it instead of a
 
 Run after Stage 6 consolidation, per the hard-stop ordering paragraph above. Each item is binary: does the report, taken as a whole, contain evidence of this failure mode? Any hit forces report verdict to 「需判斷」 or 「未完成」; pinned findings cannot be balance-downgraded to advisory. Conditions are observable from target + claim checklist + findings — no inference, no "looks risky".
 
-**Required (4)**:
+**Required (5)**:
 
 - **Unverified claims** — the target asserts something was done / verified / tested without in-session evidence (no shell output, no green-run record, no commit pointing to a real fix). Pin the relevant claim-vs-implementation finding to needs-judgment.
 - **Destructive auto-execution** — the target marks any operation that modifies user-visible state (history files, config, preferences, installed software, remote state) as "safe" or "auto-run" without explicit confirmation gating. Pin to needs-judgment.
 - **Unknown identifier in target** — any function / variable / type / module referenced in the target that does not exist in the codebase (verify by Read / Grep, not by memory). Pin to needs-judgment.
 - **Dependency changes** — additions, version bumps, or removals in package.json / Cargo.toml / go.mod / requirements.txt / lockfiles not obviously required by the target's stated goal. Pin to needs-judgment.
+- **Domain grounding missing** — the target claims business behavior (per the Stage 1.5 / Stage 3 Domain criteria) but the report carries no domain transition table (never built, or sources still insufficient after the one-question round); a hit forces the verdict to 需判斷 or 未完成 and the report may not claim domain coverage, while non-business targets (no business-state claim) never hit this entry. Pin the relevant findings to needs-judgment — not balance-downgradable.
 
 **Optional (1)** — list unless `security-reviewer` returned usable findings in Stage 4; when it did, omit, since the perspective already enforces this and listing it here would duplicate the gate:
 
@@ -217,7 +233,7 @@ This list deliberately does **not** include release-artifact missing, generated-
 |---|---|
 | **Direct fix** | formatter, import order, unused import, obvious typo, dead import. Apply via Edit only when behavior-freedom is verifiable from the artifact (e.g. Grep confirms no side-effect import); any doubt demotes the item to packaged confirm with the skip noted. After applying, re-run the narrowest in-session verification covering the touched files. |
 | **Packaged confirm** | non-semantic but beyond direct fix (rename, delete dead code, semantic typo). Present the batch diff once. |
-| **Needs judgment** | logic / boundary / API / behavior / security findings with concrete fixes. Batch-ask via ask the user directly, record the authorization decision, and stop until the user answers — group by theme, not by target question count. |
+| **Needs judgment** | logic / boundary / API / behavior / security findings with concrete fixes. Batch-ask via direct user question (record the authorization decision; stop until the user answers) — group by theme, not by target question count. |
 | **Advisory** | balance-downgraded, off-goal, or no concrete fix. In the report, not in the user's face. |
 
 Per **INV-consent**, never change behavior without user consent. Do not ask one question per finding.
@@ -258,7 +274,7 @@ After the prose above, two structured-tail elements (additive — the prose is t
 files:         N (+X -Y) | N/A for plan-type
 scope:         on target | drift: [what] | incomplete
 depth:         quick | standard | deep
-perspectives:  [arch, quality, security, style] + adversarial: yes | no
+perspectives:  [arch, quality, security, style, domain] + adversarial: yes | no
 hard_stops:    N hit ([item, item, ...]) | none
 new_tests:     N
 doc_debt:      none | <invariant>: <where to record>
@@ -278,7 +294,7 @@ Field semantics (single source of truth for each):
 
 No verdict enum. No YAML schema. No skeleton template — write the kind of review a real engineer would read as a review.
 
-For **needs-judgment** items, batch-ask via ask the user directly, record the authorization decision, and stop until the user answers. Let the question count follow the natural theme grouping; don't split to hit a number, don't merge to shrink one.
+For **needs-judgment** items, batch-ask via direct user question (record the authorization decision; stop until the user answers). Let the question count follow the natural theme grouping; don't split to hit a number, don't merge to shrink one.
 
 ---
 

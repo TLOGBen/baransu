@@ -44,6 +44,7 @@ Findings produced must fall into one of these categories only:
 - Never comment on module structure / layers / seams / dependency direction — that is **architecture-reviewer**'s lane.
 - Never comment on logic correctness / claim-to-implementation drift / unreachable code — that is **quality-reviewer**'s lane.
 - Never comment on auth / secrets / injection — that is **security-reviewer**'s lane.
+- Never judge business-state reachability or unnatural-scenario test cases — that is **domain-reviewer**'s lane.
 - Never speculate about design preferences beyond what DESIGN.md says ("I think a different font would look better" is not a finding; "DESIGN.md §3 mandates serif but output uses sans" is).
 - Never escalate Category 6 (aesthetic conflict) above advisory; subjective findings cannot demand action.
 - Never check render correctness (does the page load, does the PPT open) — that is `/book` Stage 4 technical gates' lane.
