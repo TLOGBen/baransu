@@ -75,7 +75,7 @@ This is NOT an early exit. Proceed to Stage 1 regardless.
 
 ## Stage 1 — Input Detection & Acquire Routing
 
-**Forward-reference map** — the lanes below jump to two routing targets: URL routing → §9 (defined below in this stage); candidate presentation → `references/acquisition/candidate-selection.md` (read it before the first ask the user directly with numbered options, then stop for the user's reply round).
+**Forward-reference map** — the lanes below jump to two routing targets: URL routing → §9 (defined below in this stage); candidate presentation → `references/acquisition/candidate-selection.md` (read it before the first a direct user question with numbered options (stop for the user's reply) round).
 
 Parse the argument(s) passed to `/read`. `--use-proxy` is a modifier flag, not a mode: if present, strip it from the argument list before routing and record `$USE_PROXY=true` (default `false`). Route as follows (check in order):
 
@@ -89,19 +89,19 @@ Display paper list and wait for user selection. After selection, continue with t
 
 Read `references/acquisition/web-search.md`.
 
-Use the search the web tool to fetch candidate URLs, present them via ask the user directly with numbered options, then stop for the user's reply (per `references/acquisition/candidate-selection.md`), then route the selected URL through `/read`'s existing URL routing (§9).
+Use the search the web tool to fetch candidate URLs, present them via a direct user question with numbered options (stop for the user's reply) (per `references/acquisition/candidate-selection.md`), then route the selected URL through `/read`'s existing URL routing (§9).
 
 ### 3. `--gh "keyword"`
 
 Read `references/acquisition/gh-search.md`.
 
-Run `gh search repos` to fetch candidate repos, present them via ask the user directly with numbered options, then stop for the user's reply, then route the selected GitHub URL through web-static.md GitHub section.
+Run `gh search repos` to fetch candidate repos, present them via a direct user question with numbered options (stop for the user's reply), then route the selected GitHub URL through web-static.md GitHub section.
 
 ### 4. `--x "keyword"`
 
 If `$CHROME_AVAILABLE=false`: output 「Chrome 未連線，--x 模式無法使用」 and stop.
 
-Otherwise: Read `references/acquisition/x-search.md` and `references/acquisition/web-dynamic.md` (the lane follows web-dynamic's Chrome MCP Path Steps 1–4 for Chrome MCP navigation). The lane runs schema-level health check, extracts tweet URLs via regex, presents them via ask the user directly with numbered options, then stop for the user's reply, then routes the selected tweet URL through existing URL routing.
+Otherwise: Read `references/acquisition/x-search.md` and `references/acquisition/web-dynamic.md` (the lane follows web-dynamic's Chrome MCP Path Steps 1–4 for Chrome MCP navigation). The lane runs schema-level health check, extracts tweet URLs via regex, presents them via a direct user question with numbered options (stop for the user's reply), then routes the selected tweet URL through existing URL routing.
 
 ### 5. `--chrome`
 
@@ -250,7 +250,7 @@ Append row: `| {source_url} | {final-slug} | {title} | {captured_at} |`
 
 For glob batches of 10+ items, compress to: `成功 N 筆，失敗 M 筆` without listing each path.
 
-Keyword-search lanes present candidates per `references/acquisition/candidate-selection.md` — read it before the first ask the user directly with numbered options, then stop for the user's reply round.
+Keyword-search lanes present candidates per `references/acquisition/candidate-selection.md` — read it before the first a direct user question with numbered options (stop for the user's reply) round.
 
 ## Constraints
 

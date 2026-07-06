@@ -455,20 +455,20 @@ ASK_USER_CAPABILITY_BY_SKILL: dict[str, str] = {
 
 ASK_USER_REWRITE_BY_CAPABILITY: dict[str, str] = {
     "AskUserQuestion:think": (
-        "run the Codex alignment gate: output numbered alignment questions, "
-        "stop, then require `alignment.md` before planning"
+        "the Codex alignment gate (output numbered alignment questions; stop; "
+        "then require `alignment.md` before planning)"
     ),
     "AskUserQuestion:authorization": (
         "direct user question (record the authorization decision; stop until the user answers)"
     ),
     "AskUserQuestion:input-gate": (
-        "ask the user directly with numbered input options, then stop for the user's reply"
+        "a direct user question with numbered input options (stop for the user's reply)"
     ),
     "AskUserQuestion:cosmetic": (
-        "ask the user directly with numbered options, then stop for the user's reply"
+        "a direct user question with numbered options (stop for the user's reply)"
     ),
     "AskUserQuestion:unclassified": (
-        "ask the user directly with numbered options, then stop; classify whether this is an authorization PAUSE before continuing"
+        "a direct user question with numbered options (stop; classify whether this is an authorization PAUSE before continuing)"
     ),
 }
 
