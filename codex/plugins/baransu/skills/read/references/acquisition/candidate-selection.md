@@ -24,6 +24,11 @@ Each round always carries the escape option in addition to its result slots.
 - The user picks a single result. Selection in any round **terminates the sequence** (single-pick semantics) — the orchestrator does not advance to subsequent rounds for that lane invocation.
 - The `acquire` phase processes only the single picked candidate.
 
+## Recommended default
+
+- The **top-ranked candidate** (round 1, first result slot, under the lane's native sort order — no local re-ranking) is the deterministic recommended default for every lane. Label its option `「【推薦】」`.
+- Under a non-interactive driver, the selection is an **Input PAUSE** per `../../_shared/loop-contract.md` §2: take the recommended default and continue — do not run further rounds — and annotate 「此處採預設：取第 1 名」 in the completion report. See `../loop-pauses.md` for the full classification.
+
 ## Escape behaviour
 
 - Selecting `「以上都不選」` in any round terminates the lane immediately.

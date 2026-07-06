@@ -92,7 +92,7 @@ Store the result as `$STRUCTURE_SLIDES`.
 
 ## Hard rules for slide font sizing and height limits (PPT output quality)
 
-Render-time standing instruction: when the Stage 3 PPTX path (render-pipelines.md step one「生成 slide HTML」) applies large type to each slide, it **must** obey the following binary-decidable hard rules. Violating any one → mark fail in the final-report self-check, and fix the copy or split the page before rendering. The slide container is 16:9 (the PPTX path is fixed at `960×540px`, so `100vw=960px`, `100vh=540px`, aspect ratio 960/540≈1.778).
+Render-time standing instruction: when the Stage 3 PPTX path (render-pipelines.md step one「生成 slide HTML」) applies large type to each slide, it **must** obey the following binary-decidable hard rules. Violating any one → mark fail in the pre-render self-check, and fix the copy or split the page before rendering. The slide container is 16:9 (the PPTX path is fixed at `960×540px`, so `100vw=960px`, `100vh=540px`, aspect ratio 960/540≈1.778).
 
 ### 1. Large-type dual constraint `font-size: min(Xvw, Yvh)`, and `Y ≥ X × 1.6`
 

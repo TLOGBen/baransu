@@ -1,13 +1,8 @@
 # Baseline Working Principles — recommended agent-instruction floor
 
-Advisory baseline for a project's or a user's agent-instruction surface (`CLAUDE.md` / `AGENTS.md` / rules). These are broadly-applicable engineering-discipline principles, not baransu-specific. The health audit checks whether the instruction surface *covers* these themes and, when one is missing, offers to append the canonical text below.
+## Coverage checklist (read ONLY this section on every audit)
 
-Two hard framing rules:
-
-- **Advisory, not mandatory.** Missing coverage is a `WARN` (Standard/Complex tier) or informational (Simple tier) — never a hard `FAIL`, never auto-applied.
-- **Mutation is gated (INV-4).** Appending happens only after explicit user confirmation. General, plugin-agnostic principles go to **user scope** (`~/.claude/CLAUDE.md`); only project-specific rules go to project scope. Never recommend duplicating a principle already covered at user scope into a project file.
-
-## Coverage checklist (what the audit tests)
+<!-- COMMON PATH — the audit needs nothing below the END marker. -->
 
 Judge by substance — a theme counts as covered whether it appears verbatim or paraphrased.
 
@@ -21,6 +16,17 @@ Judge by substance — a theme counts as covered whether it appears verbatim or 
 | Adversarial Review | before delivery, self-review from logic / fact / simpler-approach angles; list likely-break points; require evidence over "looks fine" |
 
 Read-before-write (re-read a file before editing it in the same turn) is a related floor; treat it as covered if either the instruction surface or a loaded rule states it.
+
+<!-- END COMMON PATH — read the rest of this file only after the user explicitly confirms the append (INV-4). -->
+
+## Append flow (confirmed-append path only)
+
+Advisory baseline for a project's or a user's agent-instruction surface (`CLAUDE.md` / `AGENTS.md` / rules). These are broadly-applicable engineering-discipline principles, not baransu-specific. The health audit checks whether the instruction surface *covers* the themes above and, when one is missing, offers to append the canonical text below.
+
+Two hard framing rules:
+
+- **Advisory, not mandatory.** Missing coverage is a `WARN` (Standard/Complex tier) or informational (Simple tier) — never a hard `FAIL`, never auto-applied.
+- **Mutation is gated (INV-4).** Appending happens only after explicit user confirmation. General, plugin-agnostic principles go to **user scope** (`~/.claude/CLAUDE.md`); only project-specific rules go to project scope. Never recommend duplicating a principle already covered at user scope into a project file.
 
 ## Canonical template (append the missing sections only)
 

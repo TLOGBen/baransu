@@ -40,6 +40,7 @@ captured_at: "2026-04-25T22:00:00+08:00"
 conversion_tool: "markitdown 0.x.x"
 slug: "page-title"
 platform: "WSL2"
+acquire_via: "url"
 ---
 ```
 
@@ -50,6 +51,7 @@ Field notes:
 - `conversion_tool`: include the actual version number from `python3 -m markitdown --version`.
 - `slug`: the slug used for this capture's directory name.
 - `platform`: detected platform string (`WSL2`, `Linux`, `macOS`, `Windows`).
+- `acquire_via`: the acquisition lane (`search:web` | `search:gh` | `search:x` | `topic` | `chrome` | `clipboard` | `url` | `local`).
 
 ---
 

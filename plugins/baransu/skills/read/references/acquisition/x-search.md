@@ -10,7 +10,7 @@ Build the search URL by URL-encoding the keyword:
 target_url = "https://x.com/search?q={url-encoded-keyword}"
 ```
 
-Then **follow `references/acquisition/web-dynamic.md` WSL2 Path Steps 1–4** (`tabs_create_mcp` → `navigate` → wait for load → `get_page_text`) using `target_url` as the navigation target.
+Then **follow `references/acquisition/web-dynamic.md` Chrome MCP Path Steps 1–4** (`tabs_create_mcp` → `navigate` → wait for load → `get_page_text`) using `target_url` as the navigation target.
 
 The returned page text is held **in process memory only** for health check + candidate extraction. **Do not write it to `raw/`** at this stage. The search page never becomes a `material/{slug}/index.md`; only the user-selected tweet URL does (that happens at the Collect Phase via `web-dynamic.md`'s own raw-write).
 

@@ -30,20 +30,9 @@ python3 -m pip install markitdown
 
 ## Chrome Setup
 
-### Option A — Chrome + Claude-in-Chrome Extension
-
 1. Install Google Chrome for Linux.
 2. Install the "Claude in Chrome" extension.
 3. The extension connects via a local port. Test: run `mcp__claude-in-chrome__tabs_context_mcp`.
-
-### Option B — CDP Proxy (no Chrome extension)
-
-Install a headless Chrome CDP wrapper on port 3456. Any wrapper that exposes:
-
-- `GET /new?url={url}` → opens a tab, returns `{"id": "..."}` 
-- `POST /eval?target={id}` with body = JS expression → evaluates and returns result
-
-See `references/acquisition/web-dynamic.md` for the full API usage.
 
 ## Clipboard Support
 

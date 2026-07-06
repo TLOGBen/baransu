@@ -2,6 +2,22 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.6.0 (2026-07-06)
+
+**バランス 全面審計＋28 項修復掃除**。plugin version 2.5.21 → 2.6.0。36-agent ultracode 審計（18 審計員＋18 對抗驗證員）以「複雜度必須證明價值」為準繩檢視全部 14 skills＋agents＋_shared＋驗證基建，28 項 act 級發現由 15 個檔案所有權互斥的修復代理一次落地（net −264 行）：
+
+- **移除 log-only 機制**：execute 的 Goal-Alignment Filter Metric 遙測（計數器穿四檔、無消費者）全數移除；book token-resolver 不再寫入不存在的 final-report.md；design Gen Mode Step 4 死 checkpoint（Stage 0 已注入、答案必被丟棄）整段刪除。
+- **修復漂移矛盾**：learn brief-format.md（覆寫 vs .bak、TBD 公式）以 SKILL.md 為準單源化（132→54 行）；evolve safety-gates Gate 4 改為 Stage 3 唯一許可的 repo-mode 呼叫形式（原列損壞形式，可能假 gate 還原好變異）；book 文內驗證器聲明改為與 validate-output.ts 實際覆蓋一致（no-rgba／accent≤5% 非機械 gate）。
+- **條件化 orchestration-interface 讀取**（review／execute／evolve／learn 四 skill 鏡像同一句式）：僅在 Workflow 驅動或 system-reminder 確認 ultracode 時讀取；預設互動路徑跳過、不寫 mode record。
+- **強制 reference 讀取降級**：read 的 markitdown-guide／storage-protocol、learn 的 digest-frontmatter、health 的 baseline-principles 全文讀取改為 checklist-only＋失敗路徑指引;health Step 3 不再重跑 collect-data.sh 已執行的兩個腳本。
+- **loop/harness 補洞**：write／book／read 新增 references/loop-pauses.md（含無頭預設）；review loop-pauses 補 Stage 1 target-pinning 列；analyze Stage 0.C resume 選項加【推薦】；loop-contract §1 評級理由裁剪＋§3 新增機器可查的 `LOOP_OUTCOME: ok | blocked | no-progress` 終行義務（取代 rc 信任——6/29 假綠的直接對策）＋§4 registry 與實存 loop-pauses 檔案同步（9 列）；全部 loop-pauses 前言統一為單行指回 §2。
+- **hunt 記憶迴圈修復**：hunt-search.py 預設同時搜 `.claude/hunt-report/` 與 `.claude/archived/`（/ship 歸檔後案例仍可檢索），glob 涵蓋 /ship 撞名改名產生的 `*.md-{ts}`。
+- **ship Step 1 detect 重寫**：python3/pathlib 單行取代裸 `find`＋unquoted word-splitting——在 zsh harness（不分詞、空 glob 中止整塊、find 可被劫持）下原寫法必然回空。
+- **agents 瘦身**：architecture-reviewer §Language 53→9 行；impl-agent／review-agent 的 tdd.md 全文強制讀改為 `${CLAUDE_PLUGIN_ROOT}` 解析＋節選讀取（安裝版插件原路徑根本不存在）。
+- **發行衛生**：刪除三個 *-workspace 評測殘骸（71 檔、~1.3M）及繞行它們的 skip 分支；transfer.py copy_aux 排除 node_modules（每週 regen 少拷 ~9.5M／1200 檔，鏡像瘦 73%）＋新增排除測試。
+- **read**：Non-WSL2 CDP 死分支（依賴不存在的 port-3456 wrapper）刪除；四條搜尋 lane 候選選擇補【推薦】預設。
+- 對照審計報告：`.claude/review/baransu-balance-audit-20260706.md`（28 act／65 advisory／8 dropped／91 keep）。
+
 ## v2.5.21 (2026-07-06)
 
 **Fable-parity 真空點填補**。plugin version 2.5.20 → 2.5.21。把 Fable 5 的四個流程型思考模式編碼成步驟（非條款），讓 Sonnet/Opus 跑 baransu 時獲得接近 Fable 的行為紀律；步驟語言逐字改編官方遷移指南片段，intent-first 措辭（Fable 上無害重述、其他模型上是補強）。經 /think 五段計畫＋/review 雙視角（architecture＋quality）＋對抗輪複審後實作：

@@ -22,7 +22,7 @@ Long-running orchestration engine for medium-to-large tasks. This body is Englis
 
 - **Outcome**: Every task in the /analyze spec is executed through the Summarize → Impl → Review TDAID loop and the run is fully reported.
 - **Done when**: `.claude/execute/{date}-{slug}/execute/final-report.md` exists, every registered task ended ✅ / blocked / cascade-blocked, and the Step 6 Final-Review coverage result is recorded in it.
-- **Evidence**: final-report.md carries the {N}/{M} REQ achievement rate, the Goal-Alignment Filter Metric block, and the blocked list; all session worktrees removed.
+- **Evidence**: final-report.md carries the {N}/{M} REQ achievement rate and the blocked list; all session worktrees removed.
 - **Output**: Working documents plus `final-report.md` under `.claude/execute/{date}-{slug}/execute/`.
 - **Automation**: ultracode=overlap, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
   In the same non-interactive pass, read `references/loop-pauses.md` for this skill's own PAUSE classification.
@@ -50,12 +50,13 @@ These apply across all steps. The review-agent rule and the spec-read-only rule 
 
 ### Orchestration interface (dual-mode)
 
-At Step 0 entry, read `references/orchestration-interface.md`; apply its mode pinning
-during Step 0 (ultracode detect → record in confirm.md → no mid-run switch); re-apply
-its dispatch contract at Step 4 entry. The contract covers: the review-agent return shape consumed
-by the Goal-Alignment Filter, Step 0 mode pinning, and a thin Workflow adapter.
-Both adapters return identical shapes — Phase 3 routing and `failure_count` accounting never
-sense the mode. TDAID loop logic and non-ultracode semantics are unchanged.
+When — and only when — the run is Workflow-driven or a system-reminder confirms
+ultracode, read `references/orchestration-interface.md` before Step 0 and apply
+its adapter contract; on the default interactive path, skip the read and write
+no mode record — the absence of a mode record means the current (subagent-loop)
+adapter. Detection is explicit system-reminder confirmation only, never inferred.
+On the Workflow path, pin the mode into confirm.md at Step 0, never switch
+adapters mid-run, and re-apply the dispatch contract at Step 4 entry.
 
 ---
 
@@ -267,7 +268,7 @@ SWITCH review_tier:
 
 **Goal-Alignment Filter** (applies to: `packaged confirm (correctness)`, `needs judgment`)
 
-Full procedure — applicability gate, finding-level loop, hard invariant (an 驗收標準直接失敗 finding must not be downgraded), semantic-coverage decision criterion, re-tier post-step, and the metric counters feeding Step 7 — lives in `references/goal-alignment-filter.md` and is authoritative for `failure_count` accounting in this sub-step. Follow it; its outcome routes to either task ✅ (all findings downgraded to advisory) or the failure escalation logic below (`failure_count += 1`).
+Full procedure — applicability gate, finding-level loop, hard invariant (an 驗收標準直接失敗 finding must not be downgraded), semantic-coverage decision criterion, and re-tier post-step — lives in `references/goal-alignment-filter.md` and is authoritative for `failure_count` accounting in this sub-step. Follow it; its outcome routes to either task ✅ (all findings downgraded to advisory) or the failure escalation logic below (`failure_count += 1`).
 
 **Failure escalation logic** (reached from correctness/judgment cases):
 
@@ -404,7 +405,6 @@ Advisory notes from Coverage Report → record in final-report; do not trigger f
 Write `.claude/execute/{date}-{slug}/execute/final-report.md`. Template: `references/output-formats.md §final-report.md`.
 
 When emitting the report:
-- Write the `total_findings_count` and `downgraded_to_advisory_count` accumulated in §4b Phase 3 into the `## Goal-Alignment Filter Metric` section (i.e. the `goal_alignment_filter_metric` block). If no review-agent returned at all during the entire session (the counters never incremented), write `0` for both values; the metric section must still be emitted (it may not be omitted). Filter behavior and the downgrade decision criterion remain as defined in §4b Phase 3 — this step only serializes, it does not recompute.
 - If an upstream work journal exists (`.claude/think/*.html` for the approved plan), read `../_shared/output-journal.md` and append this run's off-spec decisions / forced changes / tradeoffs to its 執行日誌 section per that contract, then write the artifact to disk and list its absolute path the updated journal.
 
 Remove all worktrees created this session. The worktree-remove is safe only because dirty not-integrated worktrees are WIP-committed first (below) — after that it discards a checkout, not committed work. The branch force-delete is **integration-state-gated**: `git branch -D` is irreversible and would silently discard any commits that never reached main, so it runs **only** for a group whose work is confirmed integrated.

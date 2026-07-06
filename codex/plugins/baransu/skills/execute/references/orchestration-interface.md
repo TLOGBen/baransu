@@ -24,12 +24,11 @@ Business rules — `failure_count` / `compile_error_count` accounting, smart-fri
 
 ## 2. Stage 0 mode pinning
 
-At Step 0 (alongside spec validation):
+This file is read only when the run is Workflow-driven or a system-reminder explicitly confirms a Workflow-capable (ultracode) environment — never inferred. At Step 0 (alongside spec validation):
 
-1. Detect ultracode via system-reminder confirmation — the session context must explicitly confirm a Workflow-capable environment. Do not infer it.
-2. Record the chosen mode (`current` or `workflow`) into `confirm.md` before Step 1 begins.
-3. The mode is pinned for the entire run. Never switch adapters mid-run — not between frontier levels, not after a blocked task.
-4. Degraded path: if detection is unreliable or ambiguous, use the Workflow adapter only when the user explicitly declares it. The default is always the current adapter (non-ultracode behavior identical to 1.5.0).
+1. Record `mode: workflow` into `confirm.md` before Step 1 begins. On the default interactive path this file is not read and no mode record is written — the absence of a mode record means the current adapter.
+2. The mode is pinned for the entire run. Never switch adapters mid-run — not between frontier levels, not after a blocked task.
+3. Degraded path: if the confirmation is unreliable or ambiguous, use the Workflow adapter only when the user explicitly declares it. The default is always the current adapter (non-ultracode behavior identical to 1.5.0).
 
 ## 3. Current adapter — subagent loop
 

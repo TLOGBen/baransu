@@ -126,6 +126,7 @@ mkdir -p ".claude/book"
 ### Skip conditions (the whole section is skipped if any one holds)
 
 - The `--auto` or `--no-interview` flag is present
+- The run is driven non-interactively (/loop, cron, Workflow) — same default as `--auto`; see `references/loop-pauses.md`
 - The input is a `/read` slug / `/learn` digest slug (audience + purpose are already implicit in the original capture metadata)
 - The input is `--text "…"` with word count < 200 (an extremely short inline is not worth asking about)
 
@@ -227,7 +228,7 @@ Explanation:
 
 1. **Sanitize `{hit}` before query**: first strip all `"` (`U+0022`) characters inside `{hit}` (the regex captures legitimate identifier/version strings, which normally contain no quote; if present it is noise or adversarial input). The sanitized `{hit_clean}` is then passed to the next step.
 2. Run `WebSearch`, query template: `"{hit_clean}" release notes` or `"{hit_clean}" announcement` (for person-name hits use `"{hit_clean}" announcement` / `"{hit_clean}" interview` instead).
-3. If WebSearch returns **0 results** → 🛑 STOP — Fact-verify pending: via `AskUserQuestion` show: 「Fact-verify pending: '{hit_clean}' 在 WebSearch 0 結果。選擇：強制繼續 / 改用 `--text` 餵已驗證版本 / 中止本次 /book」. Wait for the user's choice before deciding whether to enter §1.
+3. If WebSearch returns **0 results** → 🛑 STOP — Fact-verify pending: via `AskUserQuestion` show: 「Fact-verify pending: '{hit_clean}' 在 WebSearch 0 結果。選擇：強制繼續 / 改用 `--text` 餵已驗證版本 / 中止本次 /book」. Wait for the user's choice before deciding whether to enter §1. This is an **Input PAUSE** (classification: `references/loop-pauses.md`): under a non-interactive driver, take 強制繼續 and annotate the unverified hit in the completion report.
 4. If WebSearch returns **≥ 1 result** → treat as fact-verifiable, continue, but still add the hit to the 「Sources」 list at the end of `$STRUCTURE` (handled together in the Stage 2A §4 extract phase).
 
 **Flow on no hit**: enter §1 classification directly.
@@ -236,18 +237,16 @@ Explanation:
 
 ### 1. Classify content type
 
-Run a keyword + structure scan over `$RAW_CONTENT`, then resolve `$CONTENT_TYPE` by an explicit threshold rule rather than by judging whether the boundary "feels" clear:
+Read `references/perception-guide.md` once here — it contains the full taxonomy (Technical / Narrative / Research), each category's visual-treatment strategy, SVG strategy, and synthesis length caps (4–8 sections, ≤1800 words). Then run a keyword + structure scan over `$RAW_CONTENT` and resolve `$CONTENT_TYPE` by an explicit threshold rule rather than by judging whether the boundary "feels" clear:
 
 1. Score each of the three candidate categories (`technical` / `narrative` / `research`) by counting the number of **distinct** matched signals (keyword hits, structural cues) for that category in `$RAW_CONTENT`.
 2. Rank the three categories by signal count. Let `top` = highest count, `second` = next-highest count.
-3. **IF** `top ≥ 2` **AND** `top − second ≥ 2` (the leading category clears the minimum signal floor of 2 distinct signals AND leads the runner-up by a margin of ≥ 2 distinct signals) → assign `$CONTENT_TYPE` to the top category directly and **skip the `references/perception-guide.md` read** for classification purposes.
-4. **ELSE** (the lead is within the margin, i.e. `top − second < 2`, **OR** no category reaches the minimum floor, i.e. `top < 2`) → read `references/perception-guide.md` and use its taxonomy to break the tie and assign `$CONTENT_TYPE`.
-
-`perception-guide.md` contains the full taxonomy (Technical / Narrative / Research), each category's visual-treatment strategy, SVG strategy, and synthesis length caps (4–8 sections, ≤1800 words).
+3. **IF** `top ≥ 2` **AND** `top − second ≥ 2` (the leading category clears the minimum signal floor of 2 distinct signals AND leads the runner-up by a margin of ≥ 2 distinct signals) → assign `$CONTENT_TYPE` to the top category directly.
+4. **ELSE** (the lead is within the margin, i.e. `top − second < 2`, **OR** no category reaches the minimum floor, i.e. `top < 2`) → use the perception-guide taxonomy to break the tie and assign `$CONTENT_TYPE`.
 
 ### 2. Decide $CONTENT_TYPE
 
-Based on the §1 signal counts (and, when the §1 rule routed to it, the perception guide), assign `$CONTENT_TYPE` to one of:
+Based on the §1 signal counts (and, on the tie-break branch, the perception-guide taxonomy), assign `$CONTENT_TYPE` to one of:
 - `technical` — code, how-to, architecture, tool guides
 - `narrative` — essays, opinions, threads, stories
 - `research` — analyses, reports, multi-source synthesis
@@ -258,7 +257,7 @@ Output one line: 「內容類型偵測：{$CONTENT_TYPE}」
 
 The Stage 2A selection splits into two layers, **the order must not be reversed**:
 
-- **Layer 1 (content type → HTML layout density)**: the `$CONTENT_TYPE` already produced by §2 (A=`technical` / B=`narrative` / C=`research`) determines the whole HTML's layout style — whether the TOC is expanded, number of cards, density, callout style, etc., all given separately for the A/B/C categories by `references/perception-guide.md`. Read `references/perception-guide.md` here if §1's threshold rule assigned `$CONTENT_TYPE` directly without reading it, then take the layout density and visual-treatment rules corresponding to that $CONTENT_TYPE.
+- **Layer 1 (content type → HTML layout density)**: the `$CONTENT_TYPE` already produced by §2 (A=`technical` / B=`narrative` / C=`research`) determines the whole HTML's layout style — whether the TOC is expanded, number of cards, density, callout style, etc., all given separately for the A/B/C categories by `references/perception-guide.md` (already read in §1). Take the layout density and visual-treatment rules corresponding to that $CONTENT_TYPE.
 - **Layer 2 (14-type selection → per-section diagram structure)**: each section containing a diagram independently looks up the Stage 3 §4 「14 型 selection 表」, picking one diagram type based on that section's data shape (architecture / flowchart / sequence / ... / statistical).
 
 The two axes are orthogonal: Layer 1 controls layout, Layer 2 controls each section's SVG structure; do Layer 1 first, then Layer 2, deciding each section independently without inheriting the previous section's choice.
@@ -319,7 +318,7 @@ Before generating any HTML:
 
 The long-form.html slot is a show-by-example contract — the slot demonstrates 6+ section types (heading / paragraph / quote / code / SVG / list), and serves as a *reference exemplar* for generation, **not a fixed class whitelist that the output is limited to**. Token values are provided by `{project_root}/tokens.css`; the template references canonical names (var(--paper) / var(--accent) etc.), and any layout the render generates must likewise route every color through those canonical tokens — no bare hex (this is the unchanged hard safety floor; see §3).
 
-🔴 GATE — before starting to produce HTML, regardless of whether Stage 2A §1 already read it, you MUST read the 「Output Anti-Slop Blacklist」 and 「Quantified Type Scale」 sections of `references/perception-guide.md` as a render-time standing instruction (to prevent a clean-classification run from regressing to generic-AI-feel output when the typography / anti-slop rules were never loaded).
+🔴 GATE — before starting to produce HTML, you MUST re-read the 「Output Anti-Slop Blacklist」 and 「Quantified Type Scale」 sections of `references/perception-guide.md` as a render-time standing instruction (Stage 2A §1 read the file early; by render time those rules sit far back in context — refreshing the two render-critical sections immediately before HTML production prevents regressing to generic-AI-feel output).
 
 ### 2. Generate HTML structure
 
@@ -375,7 +374,7 @@ For each section from `$STRUCTURE`:
 Takes effect only when the long-form HTML contains `<figure class="diagram">`. The spec includes: color tokens (canonical names + Kami hex defaults), the required `<defs>` / marker / two-layer paper-mask, type tag, legend strip, 4px alignment and the 3-step node-width whitelist (128/144/160), embedded-font correction, the 14-type diagram first-match decision tree, and the 14-type selection table (including `status: complete | ref-only`).
 
 **Full rules → read `references/svg-rendering-rules.md`.** SVG fill / stroke **must not use `rgba()`**; node width is limited to 3 steps (128/144/160); focal nodes are marked via `data-role="focal"`, capped at 2 per SVG. Per-type SVG specs live in `references/diagram-types/type-*.md`, selected via that file's §4.10 routing table (its ToC lists §4.9/§4.10 up top).
-Token hex resolution (three-layer fallback: root DESIGN.md → built-in presets → per-type derived) → read `references/design-token-resolver.md` before resolving any SVG/CSS hex.
+Token hex resolution (three-layer fallback: project-root tokens.css → built-in presets → per-type derived) → read `references/design-token-resolver.md` before resolving any SVG/CSS hex.
 
 **Statistical-type color-capability degrade (undeclared-style fallback)**: when Layer 2 resolves a section to the `statistical` type (§4.9/§4.10), before writing that section's SVG, Render checks `{project_root}/tokens.css` line 1's header for the `; chart-capability: <N>` field written by `/baransu:design` (declared vs undeclared per `design/scripts/check.py`'s `_parse_chart_capability_header` contract):
 
@@ -386,7 +385,7 @@ Token hex resolution (three-layer fallback: root DESIGN.md → built-in presets 
 
 ### 5. Core Asset Protocol (image acquisition)
 
-Whenever any stage needs to fetch a raster / photographic / logo / UI mockup image, follow the 4 steps below **strictly in order**. **Steps must run in order; skipping = fail and abort.** (Skipping a step is treated as a fail and aborts; e.g. freezing before verifying.)
+Whenever any stage needs to fetch a raster / photographic / logo / UI mockup image, follow the 4 steps below **strictly in order**. **Steps must run in order; skipping = fail and abort.** (Skipping a step is treated as a fail and aborts; e.g. freezing before verifying.) The protocol is **interactive-only**: under a non-interactive driver (/loop, cron, Workflow) no default can substitute the step-1 confirmation or the step-3 visual confirm — do not enter the protocol at all; skip raster image acquisition entirely and emit SVG-only output (the SVG-required Constraint already guarantees diagrams). See `references/loop-pauses.md`.
 
 1. **Ask** — 🔴 CHECKPOINT — image-purpose confirmation (may not advance to step 2 without confirmation): confirm with the user the image's purpose, composition, required elements, and forbidden elements (avoid AI slop: six fingers, distorted text, watermark, page chrome). May not enter step 2 before confirmation is obtained.
 2. **Generate OR Search** — pick one:
@@ -460,6 +459,6 @@ SVG 圖解：{N} 張
 
 Verification splits into two tiers with opposite authority — **the hard floor blocks; the soft range advises**. Soft generation (Stage 3 §3) lives *inside* the hard floor and is *judged against* the soft range; a soft-range objection never blocks, a hard-floor violation always does.
 
-- **Hard floor — blocking mechanical gate**: `scripts/validate-output.ts` mechanically enforces **token-only / no-rgba (in SVG) / accent ≤5% / PDF-safe**; any violation = GATE FAIL (blocking). Pure mechanism, no judgment.
+- **Hard floor — blocking boundary**: **token-only / no-rgba (in SVG) / accent ≤5% / PDF-safe**. `scripts/validate-output.ts` mechanically enforces the gated subset — token-only via GATE-F class-prefix, PDF-safe via GATE-K + the html2pptx pre-checks; any gate violation = GATE FAIL (blocking). **No gate scans no-rgba, accent ≤5%, or bare-hex color literals today** — those hard-floor items are caught only by the Stage 3 §3 pre-write checklist, so self-check them before writing (coverage table: `references/validation.md`).
 - **Soft range — non-blocking opinion**: `style-reviewer` plus mechanical heuristics (**bare hex**, a **second accent**, **column width** past the §9 欄寬上限 ceiling) — advisory, recorded in the review, never blocks output.
 - Full detail (hard-floor→gate coverage mapping, follow-up note, gate-internal trust boundary, REQ-003 Scenario 2 automated evidence) → read `references/validation.md`.

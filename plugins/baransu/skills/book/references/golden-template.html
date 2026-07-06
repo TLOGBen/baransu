@@ -356,7 +356,8 @@
                     (after <defs>). Layer 2 is optional; default OFF.
            Layer 1: full-bleed rect, fill = resolved paper-token (solid hex).
                     Hex here mirrors --paper (#f5f4ed) — token resolver
-                    pre-flattens to solid hex so GATE-B / EC-12b stay green. -->
+                    pre-flattens to solid hex so GATE-B stays green and
+                    no rgba( reaches the SVG. -->
       <rect width="100%" height="100%" fill="#f5f4ed"/>
       <!-- Layer 2 (dotted overlay) — disabled by default; uncomment to enable
            together with the <pattern id="dots"> above.

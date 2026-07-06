@@ -1,10 +1,6 @@
 # loop-pauses — /evolve PAUSE classification
 
-Per-skill PAUSE classification for non-interactive drivers. The cross-cutting
-vocabulary and semantics live in `../../_shared/loop-contract.md` (§1 vocabulary,
-§2 PAUSE semantics, §3 hard stops); this file enumerates only /evolve's own
-interaction points. Re-verify when this skill's SKILL.md changes its interaction
-points.
+PAUSE classification for non-interactive drivers; semantics in `../../_shared/loop-contract.md` §2.
 
 | Interaction point | Class | Non-interactive default |
 |---|---|---|

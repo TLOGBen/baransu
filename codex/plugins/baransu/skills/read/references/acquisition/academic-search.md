@@ -117,4 +117,4 @@ The resulting `material/{slug}/index.md` frontmatter must include:
 acquire_via: "topic"
 ```
 
-(See `SKILL.md` Stage 3 §6 for the full schema.)
+(See `SKILL.md` Stage 3 §5 for the full schema.)

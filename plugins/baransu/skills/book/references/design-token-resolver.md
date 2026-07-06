@@ -11,7 +11,7 @@ purpose: |
 ## Contents
 
 - Resolution flow (overview)
-- Layer 1: root DESIGN.md (soft read)
+- Layer 1: project-root tokens.css
 - Layer 2: Built-in presets (Kami / Swiss / Google-design)
 - Layer 3: per-type derived rules
 - Error handling (excerpt — token resolver scope)
@@ -36,7 +36,7 @@ reference files reference this file rather than re-deriving rules.
 
 ```
 START [Need token X for SVG/CSS]
-  → Layer 1 {root DESIGN.md has X?}
+  → Layer 1 {project-root tokens.css has X?}
       yes → shape-contract {value matches ^#[0-9a-fA-F]{3,8}$ ?}
               yes → USE Layer 1 value
               no  → reject + warn → Layer 2
@@ -48,47 +48,43 @@ START [Need token X for SVG/CSS]
               no  → FAIL: no token for X
 ```
 
-Stage position inside `/book`:
-
-```
-Stage 0 (env+deps)
-  → Stage 0.5 (token resolver: this file)
-  → Stage 1 (Acquire)
-  → Stage 2 (Synthesize)
-  → Stage 3 (Render)
-  → Stage 4 (validate-output.ts)
-```
+The resolver runs inside Stage 3 (Render), at the moment a hex value
+is needed for SVG/CSS; Stage 4's `validate-output.ts` gates the result.
 
 Relationship to `/design` skill is one-way:
 
 ```
-/design  → writes →  {git-root}/DESIGN.md  → read by →  /book
+/design  → writes →  {project_root}/tokens.css  → read by →  /book
 ```
 
-`/book` never writes back to DESIGN.md and never tells `/design`
+`/book` never writes back to tokens.css and never tells `/design`
 which tokens it consumes.
 
 ---
 
-## Layer 1: root DESIGN.md (soft read)
+## Layer 1: project-root tokens.css
+
+The sole token source (SKILL.md Constraints): `{project_root}/tokens.css`,
+written by `/baransu:design preset <style>` or `/baransu:design gen`.
+Stage 3 §1 has already aborted before the resolver runs if the file is
+absent, so Layer 1 always has a file to read.
 
 Rule:
 
-1. Resolve project root with `git rev-parse --show-toplevel`.
-2. Check `{root}/DESIGN.md`. If absent → silently skip Layer 1
-   (this is NOT an error; proceed to Layer 2).
-3. If present, parse the `§ Color Palette & Roles` markdown table
-   and extract rows of the shape
-   `| --token-name | #hex | <role> |`.
-4. For every extracted hex value, run the **hex shape contract**
-   (see below). Values that fail are rejected — that single token
-   falls back to Layer 2 (per-token fallback, not whole-table
-   fallback), and a warning is appended to `final-report.md`.
-5. Values that pass become the active value for that token.
+1. Resolve project root with `git rev-parse --show-toplevel`
+   (on failure use cwd).
+2. Look up the custom property for the needed token in
+   `{project_root}/tokens.css`. If the token is not defined there →
+   proceed to Layer 2 (per-token fallback, NOT an error).
+3. For every value read, run the **hex shape contract** (see below).
+   Values that fail are rejected — that single token falls back to
+   Layer 2 (per-token fallback, not whole-file fallback), and a
+   `[design-token]` warning line is emitted to stderr and surfaced
+   in the Stage 4 completion report.
+4. Values that pass become the active value for that token.
 
-Behaviour summary: Layer 1 is a *soft override*. Missing file,
-malformed table, or rejected tokens never abort `/book` — they
-quietly degrade to Layer 2 / Layer 3.
+Behaviour summary: missing tokens or rejected values never abort
+`/book` — they quietly degrade to Layer 2 / Layer 3.
 
 ### Hex shape contract
 
@@ -107,13 +103,13 @@ alpha channel byte). Explicitly **not accepted**:
 - JavaScript / template expressions
 - Injection-shaped payloads such as `red;}</style><script>…`
   (treated as plain non-hex → rejected; this is **security
-  critical** — never inline an unvalidated DESIGN.md value into
+  critical** — never inline an unvalidated tokens.css value into
   an SVG attribute or `<style>` block.)
 
-Non-hex outcome: reject this token, log a `[design-token]
-warning: token --X rejected ("...")` line into `final-report.md`,
-and fallback to Layer 2 for that single token. **Do not abort
-`/book`.**
+Non-hex outcome: reject this token, emit a `[design-token]
+warning: token --X rejected ("...")` line to stderr and surface it
+in the Stage 4 completion report, and fallback to Layer 2 for that
+single token. **Do not abort `/book`.**
 
 ---
 
@@ -121,9 +117,10 @@ and fallback to Layer 2 for that single token. **Do not abort
 
 If a token is not present (or was rejected) in Layer 1, use the
 **active preset** bundled with baransu. v1.3 shipped Kami only;
-v1.4 broadens Layer 2 to the three-preset set declared in root
-DESIGN.md §2 (TASK-shared-02). Resolution picks the preset
-referenced by `DESIGN.md` (or defaults to Kami when absent).
+v1.4 broadens Layer 2 to the three-preset set (TASK-shared-02).
+Resolution picks the preset identified by the `$STYLE` value parsed
+in Stage 0 from tokens.css line 1 (`/* preset: <slug> */`; defaults
+to Kami when no preset is identifiable).
 
 ### Three-preset `--paper` / `--accent` hex table
 
@@ -149,8 +146,7 @@ golden-template variants):
 ### Kami preset reference table (v1.3+ ground truth)
 
 For backward compatibility and as the default fallback, the Kami
-preset mirrors the Color Palette table in baransu root DESIGN.md
-(16 tokens, all solid hex):
+preset's Color Palette table (16 tokens, all solid hex):
 
 | Token                 | Value     | Role                                                  |
 |-----------------------|-----------|-------------------------------------------------------|
@@ -180,8 +176,9 @@ Aliases used in the derivation rules below:
 
 > Note: the blend reference values used in the v1 ground truth
 > hex table below are `ink = #141413` and `paper = #faf9f5`
-> (i.e. `--ivory` as the lightest neutral). If runtime DESIGN.md
-> overrides `ink`/`paper`, recompute with the same formula.
+> (i.e. `--ivory` as the lightest neutral). If the active
+> tokens.css overrides `ink`/`paper`, recompute with the same
+> formula.
 
 ---
 
@@ -194,7 +191,7 @@ the result to a solid hex** so that the rendered SVG/CSS never
 contains an `rgba(` call. (Kami invariant #8: tag backgrounds —
 and by extension all chromatic surfaces — must be solid hex.)
 
-These rules are hard-coded here and do NOT depend on DESIGN.md.
+These rules are hard-coded here and are NOT read from tokens.css.
 
 ### Derivation formulas
 
@@ -235,12 +232,13 @@ Inputs: `ink = #141413`, `paper = #faf9f5`, `brand = #1B365D`,
 | er       | `entity-key`     | `brand-tint` (direct)                         | `#EEF2F7`        |
 | er       | `entity-attr`    | `paper` (direct)                              | `#faf9f5`        |
 
-This table is the v1 ground truth. `validate-output.ts` EC-12b
-verifies (a) no `rgba(` appears in the rendered SVG, and (b) at
-least one occurrence of the corresponding hex appears in any SVG
-of that type.
+This table is the v1 ground truth. No mechanical gate scans for
+`rgba(` today (see `validation.md`'s hard-floor coverage table);
+keeping every derived value pre-flattened to solid hex — checked
+by the Stage 3 §3 pre-write checklist — is what keeps `rgba(` out
+of the rendered SVG.
 
-If a runtime DESIGN.md sets a different `ink` or `paper`, the
+If the active tokens.css sets a different `ink` or `paper`, the
 resolver re-runs the same `solid-blend` formula on the new
 inputs; the table above is recomputed but the rules are
 unchanged.
@@ -256,16 +254,15 @@ invariant #8 (no `rgba(`) intact.*
 
 | Scenario                                                                  | Layer          | Action                                                                                       |
 |---------------------------------------------------------------------------|----------------|----------------------------------------------------------------------------------------------|
-| `DESIGN.md` not present at git root                                       | token resolver | Silently skip Layer 1, proceed to Layer 2 (NOT an error)                                     |
-| `DESIGN.md` token value fails `^#[0-9a-fA-F]{3,8}$`                       | token resolver | Reject that single token, log warning to `final-report.md`, fallback Layer 2                 |
+| `tokens.css` not present at project root                                  | Stage 3 §1     | Abort before the resolver runs (「請先跑 `/baransu:design preset <style>`」); the resolver is never reached |
+| `tokens.css` token value fails `^#[0-9a-fA-F]{3,8}$`                      | token resolver | Reject that single token, emit `[design-token]` stderr warning (surfaced in the Stage 4 completion report), fallback Layer 2 |
 | Injection-shaped value (e.g. `red;}</style><script>…`)                    | token resolver | Treated as plain non-hex → same as above. **Security critical** — never inline raw           |
 | Token absent from both Layer 1 and Layer 2 but type ∈ {sequence/state/swimlane/er} | token resolver | Apply Layer 3 derived rule (no warning)                                                      |
-| Token absent everywhere and no Layer 3 rule applies                       | token resolver | Hard error — `/book` reports missing token and stops Stage 0.5                               |
+| Token absent everywhere and no Layer 3 rule applies                       | token resolver | Hard error — `/book` reports the missing token and stops before writing that SVG (Stage 3)   |
 
-The warning-then-fallback path is deliberate: malformed
-DESIGN.md must not be able to block `/book` — neither by
-crashing it nor by injecting unsanitised content into the
-rendered SVG/HTML.
+The warning-then-fallback path is deliberate: a malformed token
+value must not be able to block `/book` — neither by crashing it
+nor by injecting unsanitised content into the rendered SVG/HTML.
 
 ---
 
@@ -273,9 +270,9 @@ rendered SVG/HTML.
 
 When you need a token:
 
-1. **Layer 1** — try `{git-root}/DESIGN.md`; accept only values
-   matching `^#[0-9a-fA-F]{3,8}$`. Reject + warn + continue on
-   anything else.
+1. **Layer 1** — try `{project_root}/tokens.css` (the sole token
+   source); accept only values matching `^#[0-9a-fA-F]{3,8}$`.
+   Reject + warn + continue on anything else.
 2. **Layer 2** — fall back to the active preset (Kami / Swiss /
    Google-design; 16 tokens each, all solid hex; covers paper /
    ink / accent / borders / tints). Kami is the default when no

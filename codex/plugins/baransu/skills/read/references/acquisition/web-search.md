@@ -70,6 +70,6 @@ The `material/{slug}/index.md` frontmatter must include:
 acquire_via: "search:web"
 ```
 
-(See SKILL.md Stage 3 §6 for the full frontmatter schema; this lane only adds the `acquire_via` value.)
+(See SKILL.md Stage 3 §5 for the full frontmatter schema; this lane only adds the `acquire_via` value.)
 
 If the user picks the escape option ("以上都不選"), terminate without writing anything.

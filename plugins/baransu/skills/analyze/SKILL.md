@@ -75,7 +75,7 @@ Then resolve the directory-existence failure path explicitly — never silently 
 question: "目錄 .claude/analyze/{date}-{slug}/ 已存在，怎麼處理？"
 header:   "目錄衝突"
 options:
-  1. label: "resume 既有 spec"
+  1. label: "resume 既有 spec 【推薦】"
      description: "沿用現有目錄與已寫檔案，只補齊或更新缺漏的層，不刪除既有內容。"
   2. label: "覆寫重建"
      description: "僅刪除計算出的 spec 目錄 .claude/analyze/{date}-{slug}/ 內容後從 Stage 1 重新生成五層 spec；刪除範圍嚴格限定在這唯一一個路徑。"

@@ -56,7 +56,7 @@ Verification splits into two tiers with opposite authority: a **hard floor** (me
 
 ### Hard floor — blocking mechanical gate (`scripts/validate-output.ts`)
 
-The hard floor is the non-negotiable safety boundary: **token-only / no-rgba (in SVG) / accent ≤5% / PDF-safe**. It is enforced mechanically by `scripts/validate-output.ts`; **any violation = GATE FAIL (blocking)** — Stage 4 §1 does not enter the completion report until exit 0 (the three-stage fallback runs first). This tier is pure mechanism, no judgment.
+The hard floor is the non-negotiable safety boundary: **token-only / no-rgba (in SVG) / accent ≤5% / PDF-safe**. `scripts/validate-output.ts` mechanically enforces the gated subset of it (per the mapping table below); **any gate violation = GATE FAIL (blocking)** — Stage 4 §1 does not enter the completion report until exit 0 (the three-stage fallback runs first). The gated subset is pure mechanism, no judgment; items the table marks as **not covered** are guarded by the Stage 3 §3 pre-write checklist, not by a gate.
 
 Mapping each hard-floor item to the existing gate that enforces it (confirmed against the current `validate-output.ts`):
 

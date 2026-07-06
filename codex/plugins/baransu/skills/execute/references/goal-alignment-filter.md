@@ -23,9 +23,6 @@ and do not contribute to `failure_count`.
 Finding-level loop:
 
 ```
-# Initial counter accumulation: every finding observed feeds the metric.
-total_findings_count += len(findings)
-
 FOR each finding F in review.findings:
   # Step 1 — does F correspond to a 驗收標準 failure (semantic coverage)?
   is_acceptance_failure = semantic_match(F.observation, ctx.Task.驗收標準)
@@ -44,7 +41,6 @@ FOR each finding F in review.findings:
     # appended to the task's impl-checklist 備註; if it cannot be constructed
     # from quoted text (coverage uncertain), set is_acceptance_failure = true.
     F.downgraded_to_advisory = true
-    downgraded_to_advisory_count += 1
 END FOR
 ```
 
@@ -83,8 +79,3 @@ ELSE:
   failure_count += 1
   → go to failure escalation logic below
 ```
-
-`total_findings_count` and `downgraded_to_advisory_count` are the source
-of truth for the matching `goal_alignment_filter_metric` block in Step 7's
-`final-report.md`; both counters live across the task's full TDAID loop
-and are emitted at report time.

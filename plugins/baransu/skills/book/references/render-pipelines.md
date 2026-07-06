@@ -48,7 +48,7 @@ Output spec for each slide:
 - Each slide is wrapped in `<div class="slide" data-layout="{layout_type}">`
 - Text content is rendered with `<h1>`/`<h2>` and `<ul><li>`
 - If `has_svg` is true, insert the corresponding inline SVG
-- **Large type size and minimum font size**: apply the three hard rules from `slide-synthesis.md` §「投影片字級與限高硬規則」 (large-type dual constraint `min(Xvw,Yvh)` with `Y≥X×1.6`, the Chinese-title tier table, and the 18/16/14px minimum font-size floors); violating any one is marked fail in the final-report self-check — fix the copy or split the page before rendering.
+- **Large type size and minimum font size**: apply the three hard rules from `slide-synthesis.md` §「投影片字級與限高硬規則」 (large-type dual constraint `min(Xvw,Yvh)` with `Y≥X×1.6`, the Chinese-title tier table, and the 18/16/14px minimum font-size floors); violating any one is marked fail in the pre-render self-check — fix the copy or split the page before rendering.
 
 **Step 2: Validate the slide HTML**
 

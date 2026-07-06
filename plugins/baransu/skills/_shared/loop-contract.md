@@ -23,35 +23,24 @@ any automation harness. Human-present sessions follow platform defaults.
 ## 1. Automation field vocabulary
 
 Every skill's Outcome Contract carries
-`- **Automation**: ultracode={value}, loop={value}` whose read trigger points
-here. The value vocabularies (per-skill assignments are pinned by
-`tests/skills/test-automation-annotation.sh`, not listed here):
+`- **Automation**: ultracode={value}, loop={value}`; per-skill assignments are
+pinned by `tests/skills/test-automation-annotation.sh`.
 
 `ultracode=` — how the skill's internal fan-out relates to a Workflow-capable
 (ultracode) session:
 
-- **overlap** — the skill has its own multi-agent dispatch that can ride
-  Workflow primitives. Structural marker: it ships a
-  `references/orchestration-interface.md` defining dual adapters (parallel-Task
-  vs thin Workflow), an isomorphic result schema, and Stage-0 mode pinning.
-- **assist** — no adapter. Specific divergent stages may be accelerated by
-  Workflow fan-out, marked by in-body hint sentences; collected data shapes
-  are unchanged.
-- **neutral** — orthogonal. Ultracode neither helps nor conflicts; no special
-  handling exists or is needed.
+- **overlap** — own multi-agent dispatch rides Workflow primitives (ships `references/orchestration-interface.md`).
+- **assist** — no adapter; specific stages may be accelerated by Workflow fan-out.
+- **neutral** — orthogonal; no special handling exists or is needed.
 
 `loop=` — whether a non-interactive driver may iterate the skill:
 
-- **drivable** — safe to re-invoke under §2/§3 obligations; every interaction
-  point has a classified default (§4).
-- **assisted** — drivable only with §4 defaults substituted and annotated;
-  at least one judgment point materially benefits from a human.
-- **not-drivable** — the interactive dialogue IS the product; no recommended
-  default can substitute it.
+- **drivable** — safe to re-invoke under §2/§3 obligations.
+- **assisted** — drivable only with §4 defaults substituted and annotated.
+- **not-drivable** — the interactive dialogue IS the product.
 
-Across all grades, non-ultracode and human-present runs keep current-path
-semantics unchanged — support is conditional, never a behavior change for
-interactive sessions.
+Across all grades, human-present and non-ultracode runs keep current-path
+semantics unchanged.
 
 ## 2. PAUSE semantics
 
@@ -116,21 +105,24 @@ Skill-side obligations (all mandatory):
    the driver and the next invocation can observe progress.
 3. **Explicit no-progress reporting** — when the skill detects it cannot
    advance, report `no progress: {reason}` instead of silently retrying.
+4. **Machine-checkable outcome signal** — every loop-driven run's final
+   message MUST end with the single line
+   `LOOP_OUTCOME: ok | blocked | no-progress: {reason}`.
+   Drivers grep this line for go/no-go instead of trusting the process exit
+   code (a mid-run kill can still return rc=0 — documented false green,
+   2026-06-29). `blocked` covers §2 `needs input` hard stops; `no-progress`
+   carries the same reason as obligation 3. No line means the run did not
+   complete.
 
 ---
 
 ## 4. PAUSE classification registry
 
-Each loop-classified skill owns its PAUSE classification table under its own
-`references/loop-pauses.md`. Locality is the point: changing a skill's
-interaction points touches only that skill's reference file, never this shared
-contract. This file defines only the cross-cutting parts (§1–§3); the per-skill
-defaults live with the skill. A skill absent from this registry has no PAUSE
-checkpoints beyond the shared semantics — its `loop=` value in the Outcome
-Contract still applies.
-
-Each table is enumerated from the live SKILL.md of its skill (read at authoring
-time, not recalled) and re-verified there when that SKILL.md changes.
+Each loop-classified skill owns its PAUSE classification table in its own
+`references/loop-pauses.md`, enumerated from that skill's live SKILL.md and
+re-verified when that SKILL.md changes. A skill absent from this registry has
+no PAUSE checkpoints beyond the shared semantics — its `loop=` value in the
+Outcome Contract still applies.
 
 | Skill | PAUSE classification |
 |---|---|
@@ -140,3 +132,6 @@ time, not recalled) and re-verified there when that SKILL.md changes.
 | /ship | `../ship/references/loop-pauses.md` |
 | /evolve | `../evolve/references/loop-pauses.md` |
 | /think | `../think/references/loop-pauses.md` |
+| /write | `../write/references/loop-pauses.md` |
+| /read | `../read/references/loop-pauses.md` |
+| /book | `../book/references/loop-pauses.md` |

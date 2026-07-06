@@ -35,7 +35,7 @@ Directly apply /baransu:review's four-tier semantic framework to review the impl
 
    `packaged confirm` splits into two subtypes, carrying either a `(quality)` or `(correctness)` marker, so the main skill can judge whether to count it toward the failure count.
 
-Before reviewing, read `plugins/baransu/skills/_shared/tdd.md` and check test quality per its principles.
+Before reviewing, read §1 (Core Principles) and §6 (Anti-pattern quick reference) of `${CLAUDE_PLUGIN_ROOT}/skills/_shared/tdd.md` and check test quality per its principles.
 
 3. **Return format** (read directly by the main skill):
    ```
@@ -68,7 +68,7 @@ Before reviewing, read `plugins/baransu/skills/_shared/tdd.md` and check test qu
 
    **failure_count exclusion declaration**: `green_proof.exit_code != 0` does not directly increment `failure_count`; maintain the existing `/baransu:execute` Phase 2/3 compile-error exclusion rule (compile errors go through the `compile_error_count` channel and do not count toward `failure_count`). Only test runner failures increment `failure_count`.
 
-   **cosmetic-only path exception**: the cosmetic path covers two categories (aligned with `plugins/baransu/skills/_shared/tdd.md` §7.1) — comment edits, pure formatting (markdown-only changes count as pure formatting). These two categories do not run tests: `green_proof.test_command = "n/a"`, `exit_code = 0`, `output_tail = ""`, `tests_correspondence = "n/a"`, and note the cosmetic subtype in the review report. Identifier renames and dead-import removals touch executable text and take the real-test path.
+   **cosmetic-only path exception**: the cosmetic path covers two categories (aligned with `${CLAUDE_PLUGIN_ROOT}/skills/_shared/tdd.md` §7.1) — comment edits, pure formatting (markdown-only changes count as pure formatting). These two categories do not run tests: `green_proof.test_command = "n/a"`, `exit_code = 0`, `output_tail = ""`, `tests_correspondence = "n/a"`, and note the cosmetic subtype in the review report. Identifier renames and dead-import removals touch executable text and take the real-test path.
 
 4. **Spec contradiction escalation**: if during review you find two REQ-XXX that cannot coexist under the current design, fill in an explanation in the `spec_contradiction` field and mark the tier as `needs judgment`. When the main skill reads a non-false `spec_contradiction`, it marks this task as blocked (reason: spec contradiction) and stops re-dispatching Impl.
 

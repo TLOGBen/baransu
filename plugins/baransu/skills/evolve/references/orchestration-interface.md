@@ -25,14 +25,16 @@ The keep rule — **keep iff ≥ 2 of 3 `strict_improvement` = true** (tightened
 
 Business rules — single-variable mutation, the structure gate (Gate 4), file-level rollback (Gate 2), and the adoption Authorization PAUSE (Gate 1) — live only in SKILL.md Stages 2–6 and `references/safety-gates.md`. This document cites them and never copies them.
 
-## 2. Stage 0 mode pinning
+## 2. Stage 0 mode pinning (ultracode-confirmed runs only)
 
-Before Stage 1 begins:
+This file is read only when the run is Workflow-driven or a system-reminder confirms ultracode (see the SKILL.md pointer) — once, at Stage 0, never re-read before a judge round. On the default interactive path this file is never read and no mode record exists — the absence of a mode record means the current (parallel-Task) adapter.
+
+When the read does happen, before Stage 1 begins:
 
 1. Detect ultracode via system-reminder confirmation — the session context must explicitly confirm a Workflow-capable environment. Do not infer it from tool names or vibes.
-2. Record the chosen mode (`current` or `workflow`) to disk under `.claude/evolve/<slug>/` before any dispatch.
+2. Record the pinned mode (`workflow`) to disk under `.claude/evolve/<slug>/` before any dispatch.
 3. The mode is pinned for the entire run. Never switch adapters mid-run, even after a partial dispatch failure.
-4. Degraded path: if detection is unreliable or ambiguous, use the Workflow adapter only when the user explicitly declares it. The default is always the current adapter (non-ultracode behavior unchanged).
+4. Degraded path: if detection is unreliable or ambiguous, use the Workflow adapter only when the user explicitly declares it; otherwise fall back to the current adapter and write no mode record (non-ultracode behavior unchanged).
 
 ## 3. Current adapter — parallel Tasks
 

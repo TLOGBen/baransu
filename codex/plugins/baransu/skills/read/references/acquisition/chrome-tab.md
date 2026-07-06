@@ -47,7 +47,7 @@ where `slug` is derived from the tab's `title` using the standard slug rules.
 ```
 mcp__claude-in-chrome__javascript_tool
   tabId: {tab_id}
-  code: "document.querySelectorAll('img').map(i=>i.src).join('\\n')"
+  code: "[...document.querySelectorAll('img')].map(i=>i.src).join('\\n')"
 ```
 
 Use the returned URL list to download relevant images into `raw/{slug}/assets/` if needed.

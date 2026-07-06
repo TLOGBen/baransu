@@ -1,10 +1,6 @@
 # loop-pauses — /ship PAUSE classification
 
-Per-skill PAUSE classification for non-interactive drivers. The cross-cutting
-vocabulary and semantics live in `../../_shared/loop-contract.md` (§1 vocabulary,
-§2 PAUSE semantics, §3 hard stops); this file enumerates only /ship's own
-interaction points. Re-verify when this skill's SKILL.md changes its interaction
-points.
+PAUSE vocabulary and semantics: `../../_shared/loop-contract.md` §2. This file enumerates only /ship's own interaction points.
 
 | Interaction point | Class | Non-interactive default |
 |---|---|---|

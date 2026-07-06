@@ -111,7 +111,7 @@ This skill has three hard-stops — honor each before crossing it:
 | Checkpoint | Type | Where | Pass condition |
 |------------|------|-------|----------------|
 | destructive overwrite | 🔴 GATE | Preset Mode Step 3 (v1.2 residue detection) | `--force` present, or no v1.2 residue → else STOP (exit ≠ 0) |
-| gen direction Q / AGENTS.md write | 🔴 CHECKPOINT | Gen Mode Step 1 + Step 4 | user has answered the ask the user directly with numbered options, then stop for the user's reply |
+| gen direction Q | 🔴 CHECKPOINT | Gen Mode Step 1 | user has answered the ask the user directly with numbered options, then stop for the user's reply |
 | lint verdict | 🔴 GATE | Lint Mode | `check.py` exit 0 → continue; exit 1 → report violations + stop |
 
 ---
@@ -334,29 +334,6 @@ Each section must be substantive — no placeholder text. Base content on the us
 
 **Spec → read `references/render-design-html.md`** (includes the 7-section structure + technical requirements + write location + success message).
 
-
-### Step 4 — Offer AGENTS.md injection (optional)
-
-🔴 **CHECKPOINT — wait for the user's answer before writing to AGENTS.md.** This step mutates the project's AGENTS.md; do not append the line until the user chooses 「寫入 AGENTS.md」.
-
-After writing DESIGN.md and DESIGN.html, ask the user:
-
-```
-numbered-options question:
-  question: "是否將設計語境寫入專案 AGENTS.md？"
-  header: "DESIGN.md 已完成"
-  options:
-    1. label: "寫入 AGENTS.md"
-       description: "在專案 AGENTS.md 追加一行，標注 DESIGN.md 的設計語境，讓非 baransu session 也能繼承。"
-    2. label: "不需要"
-       description: "只保留 DESIGN.md，不修改 AGENTS.md。"
-```
-
-If user chooses to write:
-1. Run `grep -q "DESIGN.md" {project_root}/AGENTS.md 2>/dev/null`
-2. If the string already exists → skip (idempotent), output 「AGENTS.md 已包含 DESIGN.md 引用，跳過。」
-3. If not found → append one line to AGENTS.md:
-   `> 設計語境：參見 DESIGN.md（根目錄，UI 視覺規格）`
 
 ---
 

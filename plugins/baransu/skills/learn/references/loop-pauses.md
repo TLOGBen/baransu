@@ -1,10 +1,6 @@
 # loop-pauses — /learn PAUSE classification
 
-Per-skill PAUSE classification for non-interactive drivers. The cross-cutting
-vocabulary and semantics live in `../../_shared/loop-contract.md` (§1 vocabulary,
-§2 PAUSE semantics, §3 hard stops); this file enumerates only /learn's own
-interaction points. Re-verify when this skill's SKILL.md changes its interaction
-points.
+PAUSE classification for non-interactive drivers; semantics in `../../_shared/loop-contract.md` §2.
 
 | Interaction point | Class | Non-interactive default |
 |---|---|---|
@@ -15,5 +11,6 @@ points.
 | Stage 4 §3 — gap handling (Stage 2 fallback) asks for additional sources | Input | Skip supplementation; keep the section with its ⚠️ marker; annotate the unfilled gap |
 | Stage 4 §3.4 — retreat cap choice（繼續 / 跳過此節） | Input | Option 2 跳過此節 (continuing requires human-supplied sources); annotate the skipped section |
 
-learn's terminal stops (Stage 0 environment failures, all-lanes-fail in §3.5)
-are error exits, not PAUSEs — the driver receives an explicit failure message.
+learn's terminal stops (all-lanes-fail in §3.5; environment failures surfaced by
+/read's own Stage 0 on the delegated URL / --topic routes) are error exits, not
+PAUSEs — the driver receives an explicit failure message.

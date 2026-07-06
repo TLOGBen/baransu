@@ -24,6 +24,7 @@ This skill captures any content source and converts it to clean, offline-readabl
 - **Evidence**: The 繁中 completion report listing the saved path, image success/failure counts, and the markitdown version used.
 - **Output**: `material/{final-slug}/index.md` (+ `assets/`), an updated `.claude/read/index.md` row, and the immutable original under `raw/{slug}/`.
 - **Automation**: ultracode=neutral, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
+  In the same non-interactive pass, read `references/loop-pauses.md` for this skill's own PAUSE classification.
 
 ## Stage 0 — Environment Self-Check
 
@@ -100,7 +101,7 @@ Run `gh search repos` to fetch candidate repos, present them via ask the user di
 
 If `$CHROME_AVAILABLE=false`: output 「Chrome 未連線，--x 模式無法使用」 and stop.
 
-Otherwise: Read `references/acquisition/x-search.md` and `references/acquisition/web-dynamic.md` (the lane follows web-dynamic's WSL2 Path Steps 1–4 for Chrome MCP navigation). The lane runs schema-level health check, extracts tweet URLs via regex, presents them via ask the user directly with numbered options, then stop for the user's reply, then routes the selected tweet URL through existing URL routing.
+Otherwise: Read `references/acquisition/x-search.md` and `references/acquisition/web-dynamic.md` (the lane follows web-dynamic's Chrome MCP Path Steps 1–4 for Chrome MCP navigation). The lane runs schema-level health check, extracts tweet URLs via regex, presents them via ask the user directly with numbered options, then stop for the user's reply, then routes the selected tweet URL through existing URL routing.
 
 ### 5. `--chrome`
 
@@ -146,11 +147,7 @@ Generate an initial slug from the URL path's last segment or filename stem using
 
 ## Stage 2 — Convert
 
-### 1. Confirm CLI syntax
-
-Read `references/conversion/markitdown-guide.md` to confirm CLI syntax.
-
-### 2. Run markitdown
+### 1. Run markitdown
 
 ```bash
 markitdown ".claude/read/raw/{slug}/index.{ext}" -o "/tmp/{slug}-convert.md" 2>/dev/null
@@ -158,11 +155,11 @@ markitdown ".claude/read/raw/{slug}/index.{ext}" -o "/tmp/{slug}-convert.md" 2>/
 
 Always use quoted paths. Suppress onnxruntime warnings with `2>/dev/null`.
 
-### 3. Check output
+### 2. Check output
 
-If `/tmp/{slug}-convert.md` is empty (0 bytes) or missing: record 「{slug}: markitdown 轉換失敗，raw/ 已保留」; skip to report; do NOT create a `material/` entry for this item.
+If `/tmp/{slug}-convert.md` is empty (0 bytes) or missing: consult `references/conversion/markitdown-guide.md` (supported formats, OCR/audio extras, `--keep-data-uris` flag) before giving up; if still failing, record 「{slug}: markitdown 轉換失敗，raw/ 已保留」; skip to report; do NOT create a `material/` entry for this item. Non-empty output whose inline data-URI images come out truncated also counts as a failure here — rerun with `--keep-data-uris` per the same guide.
 
-### 4. Image handling
+### 3. Image handling
 
 Extract image URLs from the converted markdown:
 
@@ -188,19 +185,15 @@ In the converted markdown, replace each original image URL reference with `./ass
 
 ## Stage 3 — Organize
 
-### 1. Read storage protocol
-
-Read `references/storage-protocol.md` for slug rules and frontmatter format.
-
-### 2. Extract title
+### 1. Extract title
 
 Find the first `# ` heading in `/tmp/{slug}-convert.md`. If none, use the URL path's last segment or filename stem.
 
-### 3. Generate final slug
+### 2. Generate final slug
 
-Apply slug rules to the title: lowercase, ASCII, hyphens, max 60 chars.
+Apply slug rules to the title: lowercase, ASCII, hyphens, max 60 chars; collapse consecutive hyphens into one and strip leading/trailing hyphens. For worked examples and directory-layout rationale, consult `references/storage-protocol.md` when an edge case is unclear.
 
-### 4. Dedup check
+### 3. Dedup check
 
 Read `.claude/read/index.md` (if it exists):
 
@@ -208,7 +201,7 @@ Read `.claude/read/index.md` (if it exists):
 - If found: find the highest existing `_vN` suffix for that source_url → use `_v{N+1}` as new slug suffix
 - If a different URL produces the same title-slug: also append `_v2`
 
-### 5. Create directories and localize images
+### 4. Create directories and localize images
 
 ```bash
 mkdir -p ".claude/read/material/{final-slug}/assets"
@@ -217,7 +210,7 @@ cp -r ".claude/read/raw/{slug}/assets/." ".claude/read/material/{final-slug}/ass
 
 The `cp` copies every successfully downloaded image from the immutable `raw/{slug}/assets/` into the final material directory, so the `./assets/{filename}` links written in Stage 2 resolve. If no images were downloaded, `raw/{slug}/assets/` may be absent — the `2>/dev/null` makes that non-fatal.
 
-### 6. Write `material/{final-slug}/index.md`
+### 5. Write `material/{final-slug}/index.md`
 
 Write with frontmatter followed by the full converted markdown content (with image paths already replaced in Stage 2):
 
@@ -233,7 +226,7 @@ acquire_via: "{search:web|search:gh|search:x|topic|chrome|clipboard|url|local}"
 ---
 ```
 
-### 7. Update `.claude/read/index.md`
+### 6. Update `.claude/read/index.md`
 
 If the file does not exist, create it with header:
 
@@ -246,7 +239,7 @@ If the file does not exist, create it with header:
 
 Append row: `| {source_url} | {final-slug} | {title} | {captured_at} |`
 
-### 8. Completion report (繁體中文)
+### 7. Completion report (繁體中文)
 
 ```
 ✅ 已儲存：.claude/read/material/{final-slug}/index.md

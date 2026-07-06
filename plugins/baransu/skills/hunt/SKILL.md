@@ -98,7 +98,7 @@ After selecting a tool in Tool Scan, answer these four questions before adding a
 
 These four questions determine where the first instrument goes. Adding a log before answering these questions = setting traps in a forest without knowing where the prey is.
 
-Before instrumenting, run `python3 "$CLAUDE_SKILL_DIR/scripts/hunt-search.py" --keyword "<symptom term>"` to check whether a similar case in `.claude/hunt-report/` was already solved; cite any hit in the report.
+Before instrumenting, run `python3 "$CLAUDE_SKILL_DIR/scripts/hunt-search.py" --keyword "<symptom term>"` to check whether a similar case was already solved; the search covers `.claude/hunt-report/` plus `/ship`-archived cases in `.claude/archived/`. Cite any hit in the report.
 
 ---
 

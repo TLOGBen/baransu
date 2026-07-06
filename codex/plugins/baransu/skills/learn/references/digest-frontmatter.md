@@ -5,11 +5,11 @@
 
 # Digest Frontmatter Spec
 
-This document defines the YAML frontmatter schema for digest output files produced by
-`/baransu:learn`. Every file written to `.claude/learn/digests/{slug}.md` MUST begin
-with a frontmatter block that conforms to this spec. The frontmatter acts as a
-machine-readable contract: SKILL.md reads this spec to determine the exact output
-format; do not add or remove fields without updating the skill.
+This document adds per-field prose and a complete example for the YAML frontmatter
+of digest output files produced by `/baransu:learn` (`.claude/learn/digests/{slug}.md`).
+The authoritative schema is the inline frontmatter block in SKILL.md Stage 5 §5 —
+consult this file only when a field's meaning is in doubt. If this file and SKILL.md
+ever disagree, SKILL.md wins; keep this file in sync when the skill changes.
 
 ---
 
@@ -55,9 +55,9 @@ produced; enables chronological sorting and cache invalidation.
 **Type:** `"zh"` or `"en"`
 **Required:** yes
 
-The output language of the digest body, determined by `/baransu:learn` from the
-predominant language of the draft content after the Fill-in phase. Exactly one of the
-two allowed values must appear.
+The output language of the digest body, determined by `/baransu:learn` at Stage 5 §1:
+a single CJK character anywhere in the draft sets `"zh"`; otherwise `"en"`. Exactly
+one of the two allowed values must appear.
 
 ---
 
@@ -76,8 +76,7 @@ The list of phases that have been completed for this digest. Valid values (in or
 | `fill_in`  | Fill-in — write the full draft from the outline |
 | `refine`   | Refine — language polish via `/write` |
 
-A fully completed digest contains all five values. A partially completed digest (e.g.
-interrupted mid-flow) lists only the phases that finished.
+A digest written by the normal Stage 5 flow contains all five values.
 
 ---
 

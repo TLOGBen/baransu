@@ -124,12 +124,10 @@ No recursion (**INV-no-recursion**): this dispatch is the only depth /review use
 
 ### Orchestration interface (dual-mode)
 
-Before dispatching Stage 4 — and once before Stage 1 begins, when the run mode is pinned per
-`references/orchestration-interface.md` §2 — read that file and apply its finding schema and adapter contract:
-isomorphic finding schema, pre-Stage-1 mode pinning (ultracode detect → record → no mid-run switch),
-the current parallel-subagent adapter, and a thin Workflow adapter. Both adapters return identical
-finding shapes — Stages 5–7 never sense the mode; the depth invariant is restated per adapter.
-Non-ultracode runs keep current-path semantics unchanged.
+When — and only when — the run is Workflow-driven or a system-reminder confirms ultracode, read
+`references/orchestration-interface.md` before Stage 1 and apply its adapter contract; on the
+default interactive path, skip the read and write no mode record — the absence of a mode record
+means the current (parallel-subagent) adapter.
 
 ---
 

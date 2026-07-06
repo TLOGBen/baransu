@@ -19,7 +19,7 @@ This skill takes any content source and produces structured learning output via 
 ## Outcome Contract
 
 - **Outcome**: Collected sources are scored, filtered, and turned into a structured learning output for the topic.
-- **Done when**: `--brief` path — `.claude/learn/briefs/{$BRIEF_SLUG}.md` exists with the five-column body per `references/brief-format.md`; full path — `.claude/learn/digests/{$DIGEST_SLUG}.md` exists with the `references/digest-frontmatter.md` schema and the refined body.
+- **Done when**: `--brief` path — `.claude/learn/briefs/{$BRIEF_SLUG}.md` exists with the five-column body per Stage 2 §4; full path — `.claude/learn/digests/{$DIGEST_SLUG}.md` exists with the Stage 5 §5 frontmatter schema and the refined body.
 - **Evidence**: The 繁中 completion notice naming the written file path; the file's frontmatter lists every surviving `$FILTERED_SOURCES` entry (and, for digests, `phases_completed`).
 - **Output**: A brief under `.claude/learn/briefs/` or a digest under `.claude/learn/digests/`.
 - **Automation**: ultracode=overlap, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
@@ -27,50 +27,18 @@ This skill takes any content source and produces structured learning output via 
 
 ## Stage 0 — Environment Self-Check
 
-### 1. Python check
-
-Run:
-
-```bash
-python3 --version 2>/dev/null
-```
-
-If the command fails (exit code non-zero or no output): output 「Python 3.8+ 未安裝，無法繼續。請先安裝 Python: https://python.org」 and stop.
-
-### 2. Platform detection
-
-Run the following checks in order to detect the current platform. Record the result as `$PLATFORM` for use in later stages.
-
-- **WSL2**: `grep -qi microsoft /proc/version 2>/dev/null && echo wsl2` → if prints `wsl2`, set `$PLATFORM=WSL2`
-- **macOS**: `uname -s 2>/dev/null | grep -qi darwin && echo macos` → if prints `macos`, set `$PLATFORM=macOS`
-- **Windows (PowerShell)**: `[System.Environment]::OSVersion.Platform` returns `Win32NT` → set `$PLATFORM=Windows`
-- **Otherwise**: set `$PLATFORM=Linux`
-
-### 3. markitdown check
-
-Run:
-
-```bash
-python3 -m markitdown --version 2>/dev/null
-```
-
-If this fails (markitdown not installed):
-
-- On Windows: run `"./../read/scripts/install-deps.bat"`
-- On Linux/macOS/WSL2: run `bash "./../read/scripts/install-deps.sh"`
-
-If installation succeeds: continue.
-
-If installation fails: output 「markitdown 安裝失敗。請手動執行：pip install markitdown」 and stop.
+`/learn` never invokes markitdown itself, so it runs no python/markitdown probe here. Environment checks are conditional on the route: URL and `--topic` inputs go through `/read`, whose own Stage 0 performs the python3 + markitdown check and dependency install — do not duplicate that check in this skill. The only python script `/learn` runs directly is the §3.5 academic lane's `search-papers.py`, which is guarded by the lane-local python3 precondition in Stage 1 §3.5.
 
 ### Orchestration interface (dual-mode)
 
-At Stage 0, read `references/orchestration-interface.md` and pin the dispatch mode
-(ultracode detect → record → no mid-run switch); re-apply its adapter contract whenever §3.5
-fan-out is triggered. The contract covers: the candidate-pool `{path, lane}` shape, Stage 0
-mode pinning, the current four-lane fan-out adapter, and a thin Workflow adapter. Both adapters return the identical
-pool shape — Stage 2 scoring never senses the mode; the depth invariant is restated per adapter.
-Non-ultracode runs keep current-path semantics unchanged.
+When — and only when — the run is Workflow-driven or a system-reminder confirms
+ultracode, read `references/orchestration-interface.md` at Stage 0 and apply its
+adapter contract; on the default interactive path, skip the read and write no
+mode record — no record means the current (four-lane fan-out) adapter. Detection
+is explicit system-reminder confirmation only, never inferred. On the Workflow
+path, pin the mode at Stage 0, never switch adapters mid-run, and re-apply the
+contract whenever §3.5 fan-out fires. Both adapters return the identical
+candidate-pool `{path, lane}` shape; the depth invariant is restated per adapter.
 
 ## Stage 1 — Collect
 
@@ -110,6 +78,8 @@ Triggered when §3 matches the syntactic shape of a slug but `.claude/read/mater
 | `web` | search the web tool | Thin (invoke + normalize) | — |
 | `gh` | `gh search repos` | **Thick** — before running the gh lane, read `../read/references/acquisition/gh-search.md` §Search Command; reuse its escape rule (single-quote form + `'\''` escape) by **anchor cite**, never fork the literal text. The bare `{topic}` from §3.5 invocation IS the user-supplied keyword for §Search Command Step 1; apply Step 1 escape verbatim before substitution. | `../read/references/acquisition/gh-search.md §Search Command`, §Failure Modes |
 | `x` | Chrome MCP via `../read/references/acquisition/web-dynamic.md` WSL2 path | **Thick** — before running the x lane, read both `../read/references/acquisition/x-search.md` and `../read/references/acquisition/web-dynamic.md`; reuse the 5-rule schema-level health check from x-search.md §Schema-level Health Check and the candidate regex from §Candidate Extraction by **anchor cite**, never fork. | `../read/references/acquisition/x-search.md §Search Phase`, §Schema-level Health Check, §Candidate Extraction |
+
+**Academic lane precondition**: before invoking `search-papers.py`, run `python3 --version 2>/dev/null`. If it fails, map the lane to `academic: failed (cli_missing)` and continue — the soft-failure invariant below applies; do not stop the run.
 
 **Lane fail-mode mapping (Theme A)**: All four lanes invoke their underlying tools directly (not via `/read --{lane}`); each ref's Failure Modes / Health Check / No Results sections are reused as **lane-status mapping rules**, not as `/learn`-level stops. Specifically: any condition that the ref says "stop" maps to `{lane}: failed (...)` or `{lane}: 0 hits (no results)` per the three-state surface below; `/learn` never propagates the lane's stop verb.
 
@@ -220,9 +190,9 @@ Output 「所有來源評分過低，建議補充高品質來源」 and stop.
 
 If the original invocation included the `--brief` flag:
 
-**a. Read the format contract.**
+**a. Format authority.**
 
-Read `references/brief-format.md` before writing any output. That file is the authoritative format contract — five-column structure, YAML frontmatter fields, column order, and constraints. Do not deviate from it.
+The authoritative format contract is inline in this section: the five-column structure, order, and names (step c), the column (d) credibility anchor scale (step c), the YAML frontmatter fields (step d), and the same-slug `.bak` rule (step d). Do not deviate from it. `references/brief-format.md` holds worked example placeholders for each column — consult it only when an example is needed.
 
 **b. Generate slug for output filename.**
 
@@ -237,7 +207,7 @@ Example: `$TOPIC = "小樣本場景的泛化策略"` → `$BRIEF_SLUG = "xiao-ya
 
 **c. Produce the five-column brief body.**
 
-Using only `$FILTERED_SOURCES`, populate each of the five columns as specified in `references/brief-format.md`:
+Using only `$FILTERED_SOURCES`, populate each of the five columns:
 - (a) 核心主張列表
 - (b) 來源矛盾點
 - (c) 缺少資訊/盲點
@@ -265,7 +235,7 @@ type: "brief"
 ---
 ```
 
-Followed by the five-column Markdown body per `references/brief-format.md`.
+Followed by the five-column Markdown body defined in step c.
 
 **e. Print completion message and stop.**
 
@@ -407,7 +377,7 @@ Derive `$DIGEST_SLUG` from `$TOPIC` using the same derivation as `$BRIEF_SLUG` i
 
 ### 5. Write digest file
 
-Read `references/digest-frontmatter.md` for the authoritative YAML frontmatter schema before writing. Do not deviate from it.
+The frontmatter block below is the authoritative YAML schema — do not deviate from it. `references/digest-frontmatter.md` carries per-field prose and a complete example; consult it only if a field's meaning is in doubt.
 
 Write to `.claude/learn/digests/{$DIGEST_SLUG}.md`. If a file with the same slug already exists at the target path, first rename it to `{$DIGEST_SLUG}.{existing created_at ISO timestamp}.bak` in the same directory, then write the new file.
 
@@ -432,7 +402,7 @@ phases_completed:
 
 Followed by `$REFINED_BODY` as the Markdown body.
 
-The `sources` array must list every source in `$FILTERED_SOURCES` (the sources that survived Stage 2 scoring). The `language` field must be exactly `"zh"` or `"en"` — the value of `$LANG`.
+The `sources` array must list every source in `$FILTERED_SOURCES` (the sources that survived Stage 2 scoring). For sources acquired from local files, the `url` value takes the form `local:{path}`. The `language` field must be exactly `"zh"` or `"en"` — the value of `$LANG`.
 
 ### 6. Completion notice
 

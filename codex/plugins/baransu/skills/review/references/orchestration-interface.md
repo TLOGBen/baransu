@@ -14,28 +14,22 @@ Inputs per dispatched perspective — identical in both modes (SKILL.md Stage 4)
 - the claim checklist (Stage 1)
 - the review goal (Stage 1)
 
-Each returned finding is natural language (not YAML) and carries exactly the fields Stage 4 already mandates:
-
-| Field | Meaning |
-|-------|---------|
-| citation | `file:line` or section reference |
-| contradicted claim | which checklist claim it contradicts, or `none — observation` |
-| observation | the finding itself |
-| surgical fix | the minimal fix proposal |
-| balance note | input to Stage 6's four balance questions |
+Each returned finding is natural language (not YAML) and carries exactly the fields SKILL.md Stage 4 mandates — that list is the single source; this document cites it and never copies it.
 
 Tier vocabulary is fixed by Stage 7 and applied downstream only: `direct fix` / `packaged confirm` / `needs judgment` / `advisory`. Adapters never assign tiers.
 
 Business rules — perspective lane-keeping (agent files), the balance check, the hard-stops sweep, and four-tier routing — live only in SKILL.md Stages 5–7 and `plugins/baransu/agents/*-reviewer.md`. This document cites them and never copies them.
 
-## 2. Stage 0 mode pinning
+## 2. Pre-Stage-1 mode pinning (ultracode-confirmed runs only)
 
-Before Stage 1 begins:
+This file is read only when the run is Workflow-driven or a system-reminder confirms ultracode (see the SKILL.md pointer). On the default interactive path this file is never read and no mode record exists — the absence of a mode record means the current (parallel-Task) adapter.
+
+When the read does happen, before Stage 1 begins:
 
 1. Detect ultracode via system-reminder confirmation — the session context must explicitly confirm a Workflow-capable environment. Do not infer it from tool names or vibes.
-2. Record the chosen mode (`current` or `workflow`) to disk in the session's working notes before any dispatch.
+2. Record the pinned mode (`workflow`) to disk in the session's working notes before any dispatch.
 3. The mode is pinned for the entire run. Never switch adapters mid-run, even after a partial dispatch failure.
-4. Degraded path: if detection is unreliable or ambiguous, use the Workflow adapter only when the user explicitly declares it. The default is always the current adapter (non-ultracode behavior identical to 1.5.0).
+4. Degraded path: if detection is unreliable or ambiguous, use the Workflow adapter only when the user explicitly declares it; otherwise fall back to the current adapter and write no mode record (non-ultracode behavior identical to 1.5.0).
 
 ## 3. Current adapter — parallel Tasks
 
@@ -45,7 +39,7 @@ Depth invariant (restated for this adapter): dispatched perspective agents must 
 
 ## 4. Workflow thin adapter — pinned-workflow mode only
 
-When Stage 0 pinned `workflow`, dispatch the same activated perspectives via Workflow `parallel` primitives instead of hand-rolled parallel Tasks. The adapter does exactly two things:
+When mode pinning (§2) pinned `workflow`, dispatch the same activated perspectives via Workflow `parallel` primitives instead of hand-rolled parallel Tasks. The adapter does exactly two things:
 
 1. **Dispatch**: one parallel branch per activated perspective, passing the same three inputs as §1.
 2. **Collect**: gather findings in the §1 shape and hand them to Stage 5/6 unchanged.

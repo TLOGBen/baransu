@@ -52,13 +52,13 @@ Use when a SKILL.md (or any skill-shaped instruction file) should be measurably 
 
 ### Orchestration interface (dual-mode)
 
-At Stage 0 (mode pinning) and before each Stage-5 judge panel, read
-`references/orchestration-interface.md`: the isomorphic judge-vote schema,
-Stage 0 mode pinning (ultracode detect → record → no mid-run switch), a
-current parallel-subagent adapter, and a thin Workflow adapter. Both adapters
-return identical `{better, strict_improvement, per_dimension_deltas}` votes —
-the Stage 5 tally and Stage 6 keep/restore never sense the mode; the depth
-invariant is restated per adapter; non-ultracode runs keep current-path semantics.
+When — and only when — the run is Workflow-driven or a system-reminder confirms
+ultracode, read `references/orchestration-interface.md` before Stage 1 and apply
+its adapter contract; on the default interactive path, skip the read and write no
+mode record — the absence of a mode record means the current (parallel-subagent)
+adapter. On the Workflow path, pin the mode at Stage 0 (record to disk, no mid-run
+switch); the read happens once — never re-read before a Stage-5 judge panel. Both
+adapters return identical votes; the Stage 5 tally never senses the mode.
 
 ## Stage 1 — Snapshot + diagnose
 

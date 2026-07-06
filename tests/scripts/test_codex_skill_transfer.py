@@ -405,6 +405,30 @@ Call SendUserFile with the report.
         self.assertIn("Dispatch **agent**", manual)
 
 
+class TestCopyAuxExclusions(unittest.TestCase):
+    def test_copy_aux_excludes_node_modules_and_pycache(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "source"
+            target = root / "target"
+            scripts = source / "scripts"
+            (scripts / "node_modules" / "pkg").mkdir(parents=True)
+            (scripts / "node_modules" / "pkg" / "index.js").write_text(
+                "module.exports = {};\n", encoding="utf-8"
+            )
+            (scripts / "__pycache__").mkdir()
+            (scripts / "__pycache__" / "mod.cpython-312.pyc").write_bytes(b"\x00")
+            (scripts / "run.sh").write_text("echo ok\n", encoding="utf-8")
+            target.mkdir()
+            rpt = report()
+
+            transfer.copy_aux(source, target, rpt)
+
+            self.assertTrue((target / "scripts" / "run.sh").is_file())
+            self.assertFalse((target / "scripts" / "node_modules").exists())
+            self.assertFalse((target / "scripts" / "__pycache__").exists())
+
+
 class TestPluginModeGeneration(unittest.TestCase):
     def test_baransu_plugin_generation_includes_inertia_adapters(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -418,7 +442,7 @@ class TestPluginModeGeneration(unittest.TestCase):
             manifest = json.loads(
                 (plugin_out / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
             )
-            self.assertEqual("2.5.21", manifest["version"])
+            self.assertEqual("2.6.0", manifest["version"])
 
             codex_transfer = plugin_out / "skills" / "codex-skill-transfer"
             self.assertTrue((codex_transfer / "references" / "CODEX_PORT_PLAN.md").is_file())
@@ -464,9 +488,9 @@ class TestPluginModeGeneration(unittest.TestCase):
             self.assertIn("update `task-map.md` task state", execute)
             self.assertNotIn("create a task-tracking record", execute)
 
-            learn = (plugin_out / "skills" / "learn" / "SKILL.md").read_text(encoding="utf-8")
-            self.assertIn('bash "./../read/scripts/install-deps.sh"', learn)
-            self.assertNotIn("the skill's root directory/../read", learn)
+            read_skill = (plugin_out / "skills" / "read" / "SKILL.md").read_text(encoding="utf-8")
+            self.assertIn('bash "./scripts/install-deps.sh"', read_skill)
+            self.assertNotIn("the skill's root directory/scripts", read_skill)
 
 
 if __name__ == "__main__":

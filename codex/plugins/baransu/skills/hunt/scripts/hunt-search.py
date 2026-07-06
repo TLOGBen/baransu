@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 """
-hunt-search.py — search hunt cases under .claude/hunt-report/
+hunt-search.py — search hunt cases under .claude/hunt-report/ and .claude/archived/
+
+/ship archives case files flat into .claude/archived/, so by default both
+locations are searched to keep the cross-session memory loop alive.
 
 Usage:
   python hunt-search.py                          # list all
   python hunt-search.py --status fixed           # filter by status
   python hunt-search.py --keyword "cache"        # keyword search across target / root_cause
   python hunt-search.py --id HUNT-2024-001       # exact ID lookup
-  python hunt-search.py --dir /path/to/reports   # specify directory (default .claude/hunt-report/)
+  python hunt-search.py --dir /path/to/reports   # search only this directory
+                                                 # (default: .claude/hunt-report/ + .claude/archived/)
 """
 
 import argparse
@@ -31,12 +35,19 @@ def parse_frontmatter(text: str) -> dict:
     return fm
 
 
-def load_cases(report_dir: Path) -> list[tuple[Path, dict]]:
+DEFAULT_DIRS = [".claude/hunt-report", ".claude/archived"]
+
+
+def load_cases(report_dirs: list[Path]) -> list[tuple[Path, dict]]:
     cases = []
-    for path in sorted(report_dir.glob("*.md")):
-        fm = parse_frontmatter(path.read_text(encoding="utf-8"))
-        if fm.get("hunt_id"):
-            cases.append((path, fm))
+    for report_dir in report_dirs:
+        # "*.md-*" catches /ship's collision rename ({item_name}-{unix_timestamp}),
+        # which drops the .md suffix; the hunt_id frontmatter check stays the gate.
+        candidates = set(report_dir.glob("*.md")) | set(report_dir.glob("*.md-*"))
+        for path in sorted(candidates):
+            fm = parse_frontmatter(path.read_text(encoding="utf-8"))
+            if fm.get("hunt_id"):
+                cases.append((path, fm))
     return cases
 
 
@@ -71,18 +82,19 @@ def print_catalog(cases: list[tuple[Path, dict]]) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Search the hunt-report catalog")
-    parser.add_argument("--dir",     default=".claude/hunt-report", help="report directory")
+    parser.add_argument("--dir",     default=None, help="search only this directory (default: .claude/hunt-report/ + .claude/archived/)")
     parser.add_argument("--status",  help="filter by status (scoping|investigating|root_caused|fixed|closed)")
     parser.add_argument("--keyword", help="search keyword across target and root_cause (case-insensitive)")
     parser.add_argument("--id",      help="exact hunt_id lookup")
     args = parser.parse_args()
 
-    report_dir = Path(args.dir)
-    if not report_dir.exists():
+    report_dirs = [Path(args.dir)] if args.dir else [Path(d) for d in DEFAULT_DIRS]
+    report_dirs = [d for d in report_dirs if d.exists()]
+    if not report_dirs:
         print("（尚無狩獵報告）")
         sys.exit(0)
 
-    cases = load_cases(report_dir)
+    cases = load_cases(report_dirs)
 
     if args.id:
         cases = [(p, fm) for p, fm in cases if fm.get("hunt_id") == args.id]

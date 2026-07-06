@@ -1006,11 +1006,18 @@ SKILL_DIR_ENV = re.compile(r"\$\{CLAUDE_SKILL_DIR\}|\$CLAUDE_SKILL_DIR\b")
 
 
 def copy_aux(source: Path, target: Path, report: TransferReport) -> None:
-    # Standard auxiliary dirs.
+    # Standard auxiliary dirs. node_modules / __pycache__ are runtime-
+    # regenerated install artifacts (never distributed); copying them bloats
+    # the mirror by thousands of files for no consumer.
     for sub in ("scripts", "references", "assets"):
         src = source / sub
         if src.is_dir():
-            shutil.copytree(src, target / sub, dirs_exist_ok=True)
+            shutil.copytree(
+                src,
+                target / sub,
+                dirs_exist_ok=True,
+                ignore=shutil.ignore_patterns("node_modules", "__pycache__"),
+            )
 
     # Skill-root orphan files (e.g. grade/CRON.md). These get silently dropped
     # otherwise; surface them so SKILL.md cross-references don't dangle.
@@ -1528,12 +1535,6 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
                 continue
             if (child / "SKILL.md").is_file():
                 skill_reports.append(transfer_one(child, out_skills))
-            elif child.name.endswith("-workspace"):
-                # *-workspace/ dirs are harness optim scratch (run_loop_sub
-                # logs, eval outputs, optim/* state) — only self-referenced
-                # by their own contents, never consumed by SKILL.md bodies.
-                # Skip from the Codex distribution to keep the port lean.
-                continue
             else:
                 # Non-skill sibling dirs under skills/ (e.g. _shared/) carry
                 # cross-skill content referenced by SKILL.md bodies (e.g.

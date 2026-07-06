@@ -1,10 +1,6 @@
 # loop-pauses — /execute PAUSE classification
 
-Per-skill PAUSE classification for non-interactive drivers. The cross-cutting
-vocabulary and semantics live in `../../_shared/loop-contract.md` (§1 vocabulary,
-§2 PAUSE semantics, §3 hard stops); this file enumerates only /execute's own
-interaction points. Re-verify when this skill's SKILL.md changes its interaction
-points.
+PAUSE classification for non-interactive drivers; semantics in `../../_shared/loop-contract.md` §2.
 
 /execute has no AskUserQuestion. Its user-touch points are escalation notices;
 by design it never stops early except Step 0.

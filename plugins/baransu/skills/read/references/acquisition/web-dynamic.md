@@ -1,8 +1,7 @@
 ## Contents
 
 - SPA Detection Criteria
-- WSL2 Path (platform == WSL2)
-- Non-WSL2 CDP Proxy Path
+- Chrome MCP Path (any platform, requires $CHROME_AVAILABLE)
 - After Browser Extraction
 
 # Web — Dynamic Content Acquisition (SPA / JS-Rendered)
@@ -23,9 +22,9 @@ Check static fetch result before invoking browser tools. Do not trigger the brow
 
 ---
 
-## WSL2 Path (platform == WSL2)
+## Chrome MCP Path (any platform, requires $CHROME_AVAILABLE)
 
-Use the Claude-in-Chrome MCP tools.
+Use the Claude-in-Chrome MCP tools. This path works on every platform with the Claude-in-Chrome extension connected (`$CHROME_AVAILABLE=true`).
 
 ### Step 1 — Create a new tab
 
@@ -56,53 +55,10 @@ Save the returned text to `raw/{slug}/index.html`.
 
 ```
 mcp__claude-in-chrome__javascript_tool
-  code: "document.querySelectorAll('img').map(i=>i.src).join('\\n')"
+  code: "[...document.querySelectorAll('img')].map(i=>i.src).join('\\n')"
 ```
 
 Use the returned list to download relevant images into `raw/{slug}/assets/` if needed.
-
----
-
-## Non-WSL2 CDP Proxy Path
-
-Use a local headless Chrome CDP wrapper running on port 3456.
-
-### Step 1 — Open new tab
-
-```bash
-curl -s "http://localhost:3456/new?url={encoded_url}"
-```
-
-Returns: `{"id": "target_id"}`
-
-Encode the URL before inserting it into the query string.
-
-### Step 2 — Wait for page load
-
-```bash
-curl -s "http://localhost:3456/eval?target={id}" \
-  -d 'document.readyState'
-```
-
-Repeat until the value is `"complete"`.
-
-### Step 3 — Extract page text
-
-```bash
-curl -X POST "http://localhost:3456/eval?target={id}" \
-  -d 'document.body.innerText'
-```
-
-Save the result to `raw/{slug}/index.html`.
-
-### Step 4 — Extract image URLs (optional)
-
-```bash
-curl -X POST "http://localhost:3456/eval?target={id}" \
-  -d "document.querySelectorAll('img').map(i=>i.src).join('\\n')"
-```
-
-Use the returned list to download images into `raw/{slug}/assets/` if needed.
 
 ---
 

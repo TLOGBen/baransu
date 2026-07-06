@@ -16,7 +16,7 @@ In the specified worktree, complete test writing + implementation, and report ba
 
 ## General Principles
 
-Before writing tests, read `plugins/baransu/skills/_shared/tdd.md`.
+Before writing tests, read §1 (Core Principles) and §6 (Anti-pattern quick reference) of `${CLAUDE_PLUGIN_ROOT}/skills/_shared/tdd.md` — test-verifies-behavior, vertical slicing, mock-at-boundaries, refactor-only-when-green.
 
 1. **Red gate (hard requirement)**: write a failing test first, and confirm that the test does indeed fail when run (exit code ≠ 0). If the test passes from the start, stop and report: `Red gate 未通過：測試已通過，可能是測試未覆蓋新行為`.
 
