@@ -50,7 +50,7 @@ Scan the forbidden zone via the 🛑 visual marker, not by reading through prose
 
 ## Stage 0 — Environment Self-Check
 
-> This SKILL.md adopts Fact-Verification Principle #0 (see the Stage 2A §0 "Fact-Verification Principle #0" section below): before synthesizing long-form text, whenever a concrete product / version / person-name + title pattern is detected, search the web verification is forced; 0 results triggers an a direct user question with numbered options (stop for the user's reply) block.
+> This SKILL.md adopts Fact-Verification Principle #0 (see the Stage 2A §0 "Fact-Verification Principle #0" section below): before synthesizing long-form text, whenever a concrete product / version / person-name + title pattern is detected, search the web verification is forced; 0 results triggers an direct user question with numbered options (stop for the user's reply) block.
 
 ### 1. Design context soft-read
 
@@ -127,7 +127,7 @@ mkdir -p ".claude/book"
 
 ## Stage 0b — 🔴 CHECKPOINT — Pre-interview Gate (audience / hard-constraint front-loading)
 
-**Before** Stage 1 acquires `$RAW_CONTENT`, first suppress 50% of the uncertainty. Pattern aligned with /design Gen Mode Step 1: use a **single a direct user question with numbered options (stop for the user's reply) batch** (4 questions presented together, not blocking question-by-question) to align audience, purpose, style leaning, and hard constraints.
+**Before** Stage 1 acquires `$RAW_CONTENT`, first suppress 50% of the uncertainty. Pattern aligned with /design Gen Mode Step 1: use a **single direct user question with numbered options (stop for the user's reply) batch** (4 questions presented together, not blocking question-by-question) to align audience, purpose, style leaning, and hard constraints.
 
 ### Skip conditions (the whole section is skipped if any one holds)
 

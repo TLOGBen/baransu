@@ -125,7 +125,7 @@ After the plan is presented, call `AskUserQuestion` with four options.
         out = transfer.rewrite_body("Call AskUserQuestion to choose a mode.", rpt)
 
         self.assertIn(
-            "a direct user question with numbered options (stop for the user's reply)",
+            "direct user question with numbered options (stop for the user's reply)",
             out,
         )
         self.assertIn("AskUserQuestion:cosmetic", rpt.capability_risks)

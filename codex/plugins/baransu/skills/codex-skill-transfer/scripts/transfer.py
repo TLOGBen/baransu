@@ -462,13 +462,13 @@ ASK_USER_REWRITE_BY_CAPABILITY: dict[str, str] = {
         "direct user question (record the authorization decision; stop until the user answers)"
     ),
     "AskUserQuestion:input-gate": (
-        "a direct user question with numbered input options (stop for the user's reply)"
+        "direct user question with numbered input options (stop for the user's reply)"
     ),
     "AskUserQuestion:cosmetic": (
-        "a direct user question with numbered options (stop for the user's reply)"
+        "direct user question with numbered options (stop for the user's reply)"
     ),
     "AskUserQuestion:unclassified": (
-        "a direct user question with numbered options (stop; classify whether this is an authorization PAUSE before continuing)"
+        "direct user question with numbered options (stop; classify whether this is an authorization PAUSE before continuing)"
     ),
 }
 

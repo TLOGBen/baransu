@@ -111,7 +111,7 @@ This skill has three hard-stops — honor each before crossing it:
 | Checkpoint | Type | Where | Pass condition |
 |------------|------|-------|----------------|
 | destructive overwrite | 🔴 GATE | Preset Mode Step 3 (v1.2 residue detection) | `--force` present, or no v1.2 residue → else STOP (exit ≠ 0) |
-| gen direction Q | 🔴 CHECKPOINT | Gen Mode Step 1 | user has answered the a direct user question with numbered options (stop for the user's reply) |
+| gen direction Q | 🔴 CHECKPOINT | Gen Mode Step 1 | user has answered the direct user question with numbered options (stop for the user's reply) |
 | lint verdict | 🔴 GATE | Lint Mode | `check.py` exit 0 → continue; exit 1 → report violations + stop |
 
 ---
@@ -228,9 +228,9 @@ The rest of the gen-mode flow (interview → derive tokens → atomic staging �
 
 ### Step 1 — Ask direction questions
 
-🔴 **CHECKPOINT — wait for the user's answers before continuing.** Do not draft DESIGN.md until the a direct user question with numbered options (stop for the user's reply) replies are in hand.
+🔴 **CHECKPOINT — wait for the user's answers before continuing.** Do not draft DESIGN.md until the direct user question with numbered options (stop for the user's reply) replies are in hand.
 
-Use a direct user question with numbered options (stop for the user's reply) to ask 3–5 design direction questions. Suggested questions (adapt based on what the user already provided):
+Use direct user question with numbered options (stop for the user's reply) to ask 3–5 design direction questions. Suggested questions (adapt based on what the user already provided):
 
 1. **Atmosphere & style** — 「這個介面的整體氛圍是什麼？（例如：溫潤手感紙張、現代冷調、活潑色彩、極簡留白）」
 2. **Color direction** — 「主色調的方向是什麼？有沒有需要傳達的品牌色或情感色？」
@@ -269,7 +269,7 @@ Both lines derive from the one extreme answer — never let token values and §9
 
 #### Chart-capability declaration (圖表分類色能力)
 
-Alongside the extreme-commitment axis, ask one more a direct user question with numbered options (stop for the user's reply) in the same Step 1 interview — Gen Mode's declaration entry point for 圖表分類色能力 (chart-category color capability): 「這個風格需不需要圖表分類色能力？（供統計圖表使用多個可辨識分類色，而非單一 accent）」, options 「宣告」(Step 3 atomic staging then calls the color-distance tool and bakes six chart tokens into tokens.css) / 「不宣告」(default when skipped, matching every existing gen invocation unchanged — keeps the current single-accent rule, no new token). This a direct user question with numbered options (stop for the user's reply) and Preset Mode's `--chart-capability` flag (see Preset Mode Step 3) both funnel into the same Step 3 contract — one declared/undeclared boolean, one atomic-staging bake+emit flow.
+Alongside the extreme-commitment axis, ask one more direct user question with numbered options (stop for the user's reply) in the same Step 1 interview — Gen Mode's declaration entry point for 圖表分類色能力 (chart-category color capability): 「這個風格需不需要圖表分類色能力？（供統計圖表使用多個可辨識分類色，而非單一 accent）」, options 「宣告」(Step 3 atomic staging then calls the color-distance tool and bakes six chart tokens into tokens.css) / 「不宣告」(default when skipped, matching every existing gen invocation unchanged — keeps the current single-accent rule, no new token). This direct user question with numbered options (stop for the user's reply) and Preset Mode's `--chart-capability` flag (see Preset Mode Step 3) both funnel into the same Step 3 contract — one declared/undeclared boolean, one atomic-staging bake+emit flow.
 
 #### Gen Mode Step 1.5 — Donor-clone the 21+21 skeletons (closed step)
 
