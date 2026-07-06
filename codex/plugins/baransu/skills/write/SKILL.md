@@ -245,6 +245,6 @@ Proofread does not rewrite the document — it **reports** errors as a reviewabl
 - Every finding carries exactly one of the three fixed 錯誤類型 labels: 錯別字 ／ 用語不妥 ／ 語句不通順.
 - Report, don't rewrite: emit the findings table, never a corrected document.
 - Never invent a page number — when a finding's page cannot be determined with confidence, write 「—」.
-- Write target: `.claude/write/錯字修改.html` (create `.claude/write/` if absent; never silently clobber an existing report).
+- Write target: `.claude/write/錯字修改.html` (create `.claude/write/` if absent); if `.claude/write/錯字修改.html` already exists, write to `錯字修改-<YYYYMMDD-HHMMSS>.html` in the same directory instead, and report the actual path written in the completion notification.
 
 **When Proofread mode is detected, read `references/proofread.md` before executing Stage 4.** It holds the full procedure: source acquisition with page tracking, the error taxonomy with Taiwan-usage anchors, the six-field record spec, the HTML render spec, and the completion-report templates.

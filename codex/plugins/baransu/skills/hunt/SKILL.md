@@ -126,6 +126,18 @@ Round 3: usually locates within 5–10 lines
 
 ---
 
+## Confirm or Discard
+
+Add only **one** minimal instrument at a time (one log line, one failing assertion, or one minimal test case).
+
+After executing:
+- Evidence **supports the hypothesis** → find one independent cross-confirmation, then proceed to Before You Fix (next section). Independent means the cross-confirmation MUST come from a different observable layer than the one that produced the first evidence (per the Tool Scan layers — UI/render, data state, call-chain structure, runtime intermediate values, static structure). Concretely, if a log line at the runtime layer confirmed it, the second check must be a DB query, a failing test, or a UI/render observation — not a second log at the same layer.
+- Evidence **contradicts the hypothesis** → **discard the hypothesis completely**. Not patch, not explain. Reorient using what was just learned.
+
+A preserved-but-contradicted hypothesis produces a new bug. Discard completely.
+
+---
+
 ## Before You Fix
 
 Both must be complete before any fix. Neither is optional.
@@ -144,18 +156,6 @@ For the logic being modified, enumerate dimension × boundary value combinations
 - **Multi-X scenarios are the most error-prone** (multi-org, multi-tenant, multi-item)
 
 Build the matrix before entering any fix. A fix without a test matrix is a symptom patch.
-
----
-
-## Confirm or Discard
-
-Add only **one** minimal instrument at a time (one log line, one failing assertion, or one minimal test case).
-
-After executing:
-- Evidence **supports the hypothesis** → find one independent cross-confirmation, then proceed to fix. Independent means the cross-confirmation MUST come from a different observable layer than the one that produced the first evidence (per the Tool Scan layers — UI/render, data state, call-chain structure, runtime intermediate values, static structure). Concretely, if a log line at the runtime layer confirmed it, the second check must be a DB query, a failing test, or a UI/render observation — not a second log at the same layer.
-- Evidence **contradicts the hypothesis** → **discard the hypothesis completely**. Not patch, not explain. Reorient using what was just learned.
-
-A preserved-but-contradicted hypothesis produces a new bug. Discard completely.
 
 ---
 

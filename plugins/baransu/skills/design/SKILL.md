@@ -287,6 +287,14 @@ When the answer straddles two, prefer `swiss` (most preset-agnostic skeleton).
 
 Output of this step feeds Step 3's atomic staging (`Copy staging/design-cores/` + `slide-cores/`) exactly as the preset path does. No new skeleton source is invented — gen only re-skins an existing donor.
 
+**Staged verification anchor**: immediately after the 42 files are staged — before the shared atomic mv — run `python3 {skill_dir}/scripts/check.py` against the staged output so Check C (prefix consistency) and Check B (canonical tokens) fire at this point in the gen pipeline. This staged run is the verification event the failure branch below refers to; gen mode never defers it to a Lint-Mode invocation it does not schedule.
+
+**Gen-mode donor-clone failure branch** (three-tiered — resilience specific to the gen output path; the preset path's atomic/lint fallback does not cover this newly-generated path):
+
+- **Trigger condition**: the staged Check C run above fails — some staged `design-cores/` / `slide-cores/` file's class prefix still mixes in a donor prefix (`kami-*` / `swiss-*` / `google-*`).
+- **First-line fix**: run a full `sed` over that staged file replacing the leftover donor prefix → `<slug>-` (patching the gap from (a) above), then re-run the staged Check C to confirm it passes.
+- **Still-fails fallback** (the donor skeleton itself lacks some canonical token alias; the prefix is clean but the staged Check B still fails): fall back to preset mode applying that donor preset, and tell the user plainly 「gen slug `<slug>` 已降級為 `<donor>` preset」. 🔴 **Do not silently produce a half artifact set** — better to downgrade and report than to write out an incomplete skeleton that fails lint.
+
 ### Step 2 — Generate DESIGN.md
 
 If `{project_root}/DESIGN.md` already exists, overwrite it without prompting.
@@ -317,12 +325,6 @@ Each section must be substantive — no placeholder text. Base content on the us
 - §5 Layout: whitespace ≥40% of total area; spacing follows a 4pt grid (multiples).
 
 → For the source of the numeric thresholds and the post-render self-check method, see `references/render-design-html.md §可驗品質門檻`; for the type-scale formula and tolerances, see `references/canonical-tokens.md §Modular Scale` (not re-transcribing the full table here — keeping the body lean).
-
-**Gen-mode donor-clone failure branch** (three-tiered — resilience specific to the gen output path; the preset path's atomic/lint fallback does not cover this newly-generated path):
-
-- **Trigger condition**: after the donor-clone, some `design-cores/` / `slide-cores/` file's class prefix still mixes in a donor prefix (`kami-*` / `swiss-*` / `google-*`), so lint Check C (cross-artifact prefix consistency) will fail.
-- **First-line fix**: run a full `sed` over that file replacing the leftover donor prefix → `<slug>-` (patching the gap from Step 1.5 (a)), then re-run Check C to confirm it passes.
-- **Still-fails fallback** (the donor skeleton itself lacks some canonical token alias; the prefix is clean but Check B still fails): fall back to preset mode applying that donor preset, and tell the user plainly 「gen slug `<slug>` 已降級為 `<donor>` preset」. 🔴 **Do not silently produce a half artifact set** — better to downgrade and report than to write out an incomplete skeleton that fails lint.
 
 ### Step 3 — Render DESIGN.html
 

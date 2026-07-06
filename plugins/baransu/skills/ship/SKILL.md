@@ -130,7 +130,7 @@ Run on the main repo (`$MAIN_REPO`) — the target branch lives there, not in th
      || { git -C "$MAIN_REPO" pull --no-rebase --no-edit origin "$TARGET" \
           && git -C "$MAIN_REPO" push origin "$TARGET"; }
    ```
-   If it still fails → output 「Push {TARGET} 失敗：{error}」 and stop. Never `--force` (use `--force-with-lease` only if the user explicitly asks).
+   If the `pull --no-rebase` itself hits a merge conflict → `git -C "$MAIN_REPO" merge --abort`, output 「整合 origin/{TARGET} 有衝突，已中止；主 repo 保持乾淨，請手動整合後再 ship。」 and stop — the main repo is never left mid-merge (which would poison the next /ship's item-1 cleanliness check). If the push still fails for any other reason → output 「Push {TARGET} 失敗：{error}」 and stop. Never `--force` (use `--force-with-lease` only if the user explicitly asks).
 
 On success → output 「已合併 {BRANCH} → {TARGET} 並推送至 origin/{TARGET}。」 (The main repo is left on `$TARGET`.)
 

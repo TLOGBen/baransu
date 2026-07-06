@@ -192,12 +192,13 @@ The authoritative format contract is inline in this section: the five-column str
 
 Derive `$BRIEF_SLUG` from `$TOPIC`:
 - Lowercase all characters
-- Convert to ASCII (transliterate or drop non-ASCII)
+- Drop all non-ASCII characters (never transliterate — transliteration is nondeterministic across runs, and the Done-when path plus the step d same-slug `.bak` rule both key on the exact filename, so a re-run would fork a second file instead of versioning the first)
 - Replace spaces and special characters with hyphens
 - Strip leading/trailing hyphens
 - Truncate to 60 characters
+- If the result is empty, ask the user once — 「請提供英文檔名 slug：」 — and apply this same derivation to the reply.
 
-Example: `$TOPIC = "小樣本場景的泛化策略"` → `$BRIEF_SLUG = "xiao-yang-ben-chang-jing-de-fan-hua-ce-lue"` (or an ASCII approximation).
+Example: `$TOPIC = "小樣本場景的泛化策略"` → dropping non-ASCII leaves an empty string → ask the user; reply `few-shot generalization` → `$BRIEF_SLUG = "few-shot-generalization"`.
 
 **c. Produce the five-column brief body.**
 
@@ -362,12 +363,7 @@ If `/write`'s output contains no `**After:**` marker (e.g. it classified `$DRAFT
 
 ### 4. Derive digest slug
 
-Derive `$DIGEST_SLUG` from `$TOPIC` using the same derivation as `$BRIEF_SLUG` in Stage 2:
-- Lowercase all characters
-- Convert to ASCII (transliterate or drop non-ASCII)
-- Replace spaces and special characters with hyphens
-- Strip leading/trailing hyphens
-- Truncate to 60 characters
+Derive `$DIGEST_SLUG` from `$TOPIC` by applying the `$BRIEF_SLUG` derivation in Stage 2 §4b exactly — same steps, including the empty-result fallback ask 「請提供英文檔名 slug：」. Identical topics must yield identical slugs on both paths.
 
 ### 5. Write digest file
 

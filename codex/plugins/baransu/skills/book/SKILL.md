@@ -366,7 +366,7 @@ For each section from `$STRUCTURE`:
 
 **Hard floor (unchanged safety boundary the soft generation lives inside)**: regardless of how the layout is generated, **all colors go through canonical tokens (the canonical 38 base names; +5 capability for schema:43) — no bare hex** anywhere in the output. The generated layout is bounded by, never exempt from, this floor; validate-output.ts guards it (GATE-F class prefix / token membership) and style-reviewer judges the soft §9 range. If a needed component truly has no token-backed expression, prefer plain `<p>` over inventing a bare-hex color.
 
-🔴 GATE — pre-render visual self-check (pre-write checklist): **before** writing the HTML to file in Stage 3 §7, go through the following six-line binary checklist item by item (each restates an existing reference rule, not a new rule). Any ✗ → fix it then Write, do not write to disk directly; only enter §7 when all six are ✓.
+🔴 GATE — pre-render visual self-check (pre-write checklist): **before** writing the HTML to file in Stage 3 §7, go through the following seven-line binary checklist item by item (each restates an existing reference rule, not a new rule). Any ✗ → fix it then Write, do not write to disk directly; only enter §7 when all seven are ✓.
 
 1. **Inter-section spacing** — is each pair of adjacent `<section>` driven by the 3xl spacing token (80–120pt), not browser-default margin? (§3 render-time hard rule #1)
 2. **Reading line-height** — is body line-height ∈ [1.50, 1.55] (CJK screens may relax to 1.65), with no `≥ 1.70` anywhere in the text? (§3 render-time hard rule #2)
@@ -374,6 +374,7 @@ For each section from `$STRUCTURE`:
 4. **Single accent** — only one chromatic accent (`var(--accent)`) used, accent-painted area ≤ 5% of body, and emphasis is "color OR weight, not both" — with the narrowly-scoped **declared-statistical-chart container exception**: inside a section whose `statistical` chart resolved to the Declared branch of the chart-capability check documented in this file's §4 SVG generation spec below, the chart's own `<figure>`/SVG container may use its multi-color palette without counting against this check; every other element — including that same section's own prose/caption outside the `<figure>` boundary — still must pass unmodified? (perception-guide Anti-Slop #8)
 5. **SVG focal + alignment** — each SVG has ≤ 2 `data-role="focal"`, and all coordinates / widths / spacing are multiples of 4? (svg-rendering-rules §4.7)
 6. **figcaption** — does each `<figcaption>` pass the perception-guide Anti-Slop #5 pass test (carrying one of: trade-off / next step / a dimension the figure doesn't directly show), rather than merely restating the title or node name? (perception-guide Anti-Slop #5)
+7. **Hard-floor color scan** — scanning the generated HTML: zero matches for the bare-hex pattern `#[0-9a-fA-F]{3,8}` outside `<svg>…</svg>` blocks (every non-SVG color routes through a `var(--…)` canonical token; hex inside `<svg>` is legal only when resolved via `references/design-token-resolver.md`), and zero occurrences of `rgba(` inside any `<svg>` block? Any hit → fix before Write. (§3 hard floor; svg-rendering-rules §4.1)
 
 ### 4. SVG generation spec
 

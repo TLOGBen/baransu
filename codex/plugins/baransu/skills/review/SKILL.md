@@ -53,6 +53,15 @@ Each agent file defines `Perspective / Mission / Principles / Lane-keeping` — 
 
 ---
 
+## Orchestration interface (dual-mode)
+
+When — and only when — the run is Workflow-driven or a system-reminder confirms ultracode, read
+`references/orchestration-interface.md` before Stage 1 and apply its adapter contract; on the
+default interactive path, skip the read and write no mode record — the absence of a mode record
+means the current (parallel-subagent) adapter.
+
+---
+
 ## Stage 1 — Claim checklist AND review goal
 
 ### Pre-dispatch off-ramp
@@ -121,13 +130,6 @@ Launch one **parallel Codex subagent** per activated perspective, each in a clea
 Findings return in natural language (not YAML). Each must include: citation (file:line or section), which claim it contradicts (or "none — observation"), the observation itself, the surgical fix, and a balance note (see Stage 6). Any non-obvious claim inside a finding carries a source annotation — `(verified: <how>)` when the reviewer actually checked, or `(inferred: 未實查)` when it rests on reasoning alone.
 
 No recursion (**INV-no-recursion**): this dispatch is the only depth /review uses (**INV-depth**) — /review does not invoke /review, adversarial (Stage 5) is exactly one round (**INV-adversarial-once**), and reviewers do not review each other.
-
-### Orchestration interface (dual-mode)
-
-When — and only when — the run is Workflow-driven or a system-reminder confirms ultracode, read
-`references/orchestration-interface.md` before Stage 1 and apply its adapter contract; on the
-default interactive path, skip the read and write no mode record — the absence of a mode record
-means the current (parallel-subagent) adapter.
 
 ---
 

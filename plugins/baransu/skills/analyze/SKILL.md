@@ -383,7 +383,7 @@ options:
 
 **Option 1 — 送 /review 再決定.** Invoke `/baransu:review` on the generated spec files. Review goal: 「確認五層 spec 的品質與一致性，找出任何可能影響執行的遺漏或矛盾」. After review, the user naturally loops back to this gate.
 
-**Option 2 — 直接交接 execute（完全授權）.** Find the execute skill and pass the spec directory path. Execute autonomously without asking the user for further confirmation.
+**Option 2 — 直接交接 execute（完全授權）.** Inline same-session execution contradicts this skill's never-share-context premise, so gate it on spec size: **if** the spec dir contains ≥2 `task-*.md` group files or a `wave.md`, **then** stop at the handoff and tell the user to run /execute in a fresh session instead of continuing in the loaded context (see /think Stage E, Mechanism necessity), outputting: 「spec 規模跨多個 task 群組，請在新 session 執行：/baransu:execute .claude/analyze/{date}-{slug}/」. Only a single-group spec — exactly one `task-*.md` and no `wave.md` — may continue inline: find the execute skill and pass the spec directory path, executing autonomously without asking the user for further confirmation.
 
 **Option 3 — 手動決定.**
 
@@ -392,9 +392,3 @@ options:
 下一步選擇：
 1. 在新 session 中開始依 task-*.md 逐一執行（建議：每個 task 獨立 session）
 2. 呼叫你的 execute skill 並以上述路徑作為輸入」
-
----
-
-## Gotchas
-
-- **[Option 2 same-session handoff contradicts never-share-context]**: Stage 7 Option 2 (inline same-session execute) contradicts this skill's never-share-context premise. When the spec needs true isolation, stop at the handoff and tell the user to run /execute in a fresh session instead of continuing in the loaded context (see /think Stage E, Mechanism necessity).
