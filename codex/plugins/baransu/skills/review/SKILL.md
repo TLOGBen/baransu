@@ -100,7 +100,7 @@ Runs only when the target **claims business behavior** — a test-case set, a bu
 
 When it triggers, the dispatcher materializes a **state × event × precondition transition table** for the claimed business flow, BEFORE Stage 4 dispatch. Authority ranking for table sources is fixed: spec / requirement documents plus upstream state-producing flows **outrank** the code under test. Rationale in one line: a test case that needs manual DB setup to reach its initial state is itself evidence that the code under test does not guard that state — the code's acceptance defines nothing about reachability. The code under test may corroborate a transition's *effect*, never which states are legal or reachable; a state combination the code accepts but no spec or upstream flow can produce is marked unreachable (or inferred), not legalized.
 
-Every table row carries a source annotation: `(verified: <source>)` or `(inferred: 未實查)`.
+Every table row carries a source annotation at section granularity: `(verified: <doc §section / file:line>)` or `(inferred: 未實查)`.
 
 If sources are insufficient (no spec found, upstream flow code unavailable): in interactive sessions, ask exactly ONE direct user question (record the authorization decision; stop until the user answers) round to obtain sources. If sources remain insufficient after that round, do not dispatch domain-reviewer, and the report must not claim domain coverage — the Hard stops sweep enforces this outcome.
 
