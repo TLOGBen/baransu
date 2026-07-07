@@ -2,6 +2,13 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.7.7 (2026-07-07)
+
+**review-agent rationale 對齊——收束 v2.7.6 的 leaf doc-debt**。plugin version 2.7.6 → 2.7.7。v2.7.6 因 C7「leaf worker 檔零改動」硬驗收，未一併對齊 `agents/review-agent.md` 的自我禁令理由，留下一筆跨檔不一致的 doc-debt（`review-agent.md:81` 仍寫「subagent depth = 1, cannot dispatch parallel Tasks」，而 `CLAUDE.md:81` 已改「AskUserQuestion 硬缺席」）。本版本以獨立微任務收束。
+
+- **`agents/review-agent.md:81`**：Prohibition 理由由「depth = 1／cannot dispatch parallel Tasks」改為與 `CLAUDE.md:81` 一致的模型判斷式——「call 前自判 /review 非 subagent-safe：其路徑上有不可降級的 AskUserQuestion 點（target-pin），在 subagent 內硬缺席，故會 strand 該點，而非 depth 上限違規」。**行為結論不變**（不呼叫 /review、直接實作四層語意）。
+- 版本 2.7.6→2.7.7（4 觸點）、codex mirror regen、`make test` 全綠。
+
 ## v2.7.6 (2026-07-07)
 
 **Subagent 巢狀 fan-out——被托管 dispatcher 照常派 worker**。plugin version 2.7.5 → 2.7.6。四個會派 subagent 的 dispatcher skill（review/execute/evolve/health）原先隱含「自己被當 subagent 托管時不得再 fan-out」的 dispatcher-level depth=1 假設；探針（run a928109）實測 `Agent` 工具在 subagent 內恆在、`AskUserQuestion` 則硬缺席，故該假設事實錯誤。本版本移除之，並把「工具缺席」的互動降級收編進 loop-contract。經 /analyze→/execute 五組 TDAID 實作、/review 複審。

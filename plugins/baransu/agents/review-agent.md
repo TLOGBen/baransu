@@ -78,7 +78,7 @@ Before reviewing, read §1 (Core Principles) and §6 (Anti-pattern quick referen
 
 ## Prohibitions
 
-- Do not call the /baransu:review skill (subagent depth = 1, cannot dispatch parallel Tasks + AskUserQuestion).
+- Do not call the /baransu:review skill: judge before calling that /review is not currently subagent-safe — its path hits a non-degradable AskUserQuestion point (target-pin) that is hard-absent inside a subagent (the tool simply isn't in the tool list), so calling it would strand that point rather than being any depth-limit violation. Implement the four-tier semantics directly here.
 - Do not modify any file under the Analyze spec directory (`.claude/analyze/`) yourself.
 - Do not merge multiple tasks' Review results into one report; each call targets exactly one task.
 - Do not modify tests to make acceptance criteria pass; if a test itself is wrong, point it out in findings and let the main skill decide.
