@@ -2,6 +2,53 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.7.5 (2026-07-07)
+
+**覆蓋錯置防護——第 8 條通用行為內核**。plugin version 2.7.4 → 2.7.5。多生態系盲測中唯一一致 partial 的缺陷（被引測試 mock 掉它宣稱要覆蓋的那一層 → 對該層覆蓋率其實為零）補上通用行為提示後升級為 full catch。
+
+- **`_shared/fact-check.md` 新增「Coverage claims」節**：覆蓋宣稱（「已被測試／安全網充足／可安全重構」）不因測試「提到」被改單元就成立——須確認測試驅動**真實**實作並斷言其**實際**行為。符號出現在 mock／stub／spy／fake 建構裡是**反覆蓋**：證明測試刻意把該碼換成替身、一行都沒跑。計數某層覆蓋時排除所有落在 mock 建構內的引用；一支以其名為名卻 mock 掉該層的 spec，對它的覆蓋率是零。跨生態系（`vi.mock`／`jest.mock`／`Mock<>`／`patch`／`Mockito.mock` 皆示意）。
+- **think Stage D test-safety-net inventory 同步 mock-awareness 應用點**：層級覆蓋 grep 排除落在 mock/stub/fake 內的 entry-point 引用（「0 unmocked invocations」）。
+- **驗證**：Vue/JS 盲測重驗 FD3 3/3 partial→caught、surfaced_vimock 全 true、其餘三缺陷零退步。
+- codex mirror 同步 regen。
+
+## v2.7.4 (2026-07-07)
+
+**De-overfit——移除 .NET 專用機器，蒸餾為 7 條跨生態系行為紀律**。plugin version 2.7.3 → 2.7.4。2.7.1–2.7.3 的 review 強化路線偏向了「造一台只會數某個 .NET 專案的機器」；本版本把它拉回通用型模型行為調教。3-agent 平行審計三 skill（think 6 general-keep／8 overfit-generalize、analyze 2／3、review 1 keep／9 generalize／2 remove）找出 41 個硬編生態系標記。
+
+- **移除**：`skills/review/scripts/fact-count.sh` 與 `tests/skills/test-fact-count.sh`（.NET-only：`*.cs`／`*.csproj`／`[TestMethod]`／`class \w+Impl`／dot-prefixed 全寫死；於 2.7.3 引入，本版本移除）。
+- **`_shared/fact-check.md` 改寫**：五條 .NET 指令模板 → 生態系無關的計數名詞／驗證原則（語法只當「例如 C 家族／Python／Node…」示意，非必要機器）。
+- **think／analyze／review／quality-reviewer 共 11 處 de-.NET 編輯**：還原 `[(Test|TestMethod|Fact)]` 同步補丁、`bin/obj/node_modules` 三元組改為「本 stack 的建置／依賴目錄」、`*.csproj` 枚舉改為「本 stack 的專案／manifest／測試檔標記」、Facade-sign／簽核 domain 詞改為中性示意、修一處懸空 `category` 引用。
+- **蒸餾出 7 條通用行為內核**：立場前提先重推導／repo-root 枚舉優先／覆蓋量在被改層／計數名詞紀律／claim-cite＋字面數字＋獨立重驗／分支盤點式測試設計／發出前掃描 fail-closed。
+- **多生態系盲測**（不再只用 .NET）：對 Vue/JS 前端造植入四缺陷的計畫盲審——3/3 generality proven。關鍵發現：**移除過擬合腳本後，.NET 回歸反而更強**——腳本版漏掉的框架誤標與 facade 灌水，通用版全抓（模型改用推理推導正確 pattern，而非依賴會被誤用的腳本）。think／analyze 亦以同法補驗，各 3/3 proven。
+- codex mirror 同步 regen（含移除的兩檔）。
+
+## v2.7.3 (2026-07-07)
+
+**review 計數名詞紀律機械化——fact-count.sh 執行器**（於 2.7.4 移除，見上）。plugin version 2.7.2 → 2.7.3。針對 review 重驗時「重跑目標自己的指令＝可重現但名詞可能錯」的失敗模式，把五類計數模板做成可執行檔。
+
+- **`skills/review/scripts/fact-count.sh`**：五子指令（檔案／類別／呼叫點／測試案例／框架指紋），前導點硬編、逐專案指紋、排除建置目錄。
+- **`_shared/fact-check.md` Executor 節＋SKILL template-authority 規則**：事實表列須由模板／腳本填、重跑目標指令永不算 ✔、偏離模板者標 `✘ (template-deviation)`。
+- **後記（誠實）**：此路線被 2.7.4 判定為專案過擬合並移除；其一般性內核（一名詞一指令、獨立重跑、永不重跑目標指令）以純原則形式保留於改寫後的 fact-check.md。
+
+## v2.7.2 (2026-07-07)
+
+**review 事實查核紀律——量化宣稱 ✔/✘ 處置帳本**。plugin version 2.7.1 → 2.7.2。基準盲測顯示弱模型會「背書假前提」（把目標的計數宣稱列為逐條實查為真而未重驗），本版本強制逐條處置。
+
+- **Stage 1 量化宣稱處置帳本**：目標的每個承重計數／存在／覆蓋宣稱進 claim checklist 帶 `✔`/`✘` 處置，嚴禁裸複述；輸出形狀改為含「實查結果」欄的表。
+- **Unverified-claims hard-stop 擴充**：目標自寫的 `(verified:)` 標籤不算 in-session 證據；承重宣稱未被獨立重跑、或重跑出不同數字／名詞即命中，釘進需判斷層不可降 advisory。
+- **quality-reviewer 重跑令**：計數宣稱須自 repo root 重跑其指令。
+- **Stage 1.5 正向觸發**：計畫只要斷言任何狀態轉換／審批路徑即屬 business behavior（即使自稱「純結構重構」），強制建轉移表並對上游流查核。
+- codex mirror 同步 regen。
+
+## v2.7.1 (2026-07-07)
+
+**think／analyze 行為紀律強化——讓 Opus 逼近 Fable**。plugin version 2.7.0 → 2.7.1。以 headless A/B 盲測（skill 快照當作業指令、匿名甲乙輪換盲評）診斷弱模型（Opus）跑 baransu 時相對強模型（Fable）的行為缺口，將缺口釘到 SKILL.md 指令縫並修補。
+
+- **think（11 處）**：Stage D 頂層 ls 枚舉＋repo-root 搜尋紀律（缺席／計數宣稱不得來自子目錄搜尋）、立場前提重推導（Stage B 依賴的存在／計數前提於 Stage D 逐條以指令重推導、被推翻即改立場）、測試安全網盤點（覆蓋量在被改層而非下游 callee）、`(verified:)` 標籤須帶指令＋輸出引文且 prose 數字＝引文數字、計數名詞紀律（檔案／類別／呼叫點／測試案例各綁 pattern）、發出前掃描（五段每個數字重檢名詞是否仍符）。
+- **analyze（5 處）**：goal Criteria 編號化（C1/C2…可機械追溯）、E2E 表每列一具名分支＋經 file:line 驗證的入口點、整合斷言禁同義反覆（「全綠／有回應」無具名值即拒）、邊界條件綁「製造該風險的 task」＋冗餘掃描、Stage 6 Agent 1 審查擴充為查可達性／業務語意／主流程完整（非僅錨點存在）。
+- **成效**：think Opus 對 Fable 由懸殊差距收斂至同版對決近平手（探索完整性 2→8、決策密度反超）；analyze 測試質量六維全面提升。
+- codex mirror 同步 regen。
+
 ## v2.7.0 (2026-07-06)
 
 **/review 取得 domain 驗證能力**。plugin version 2.6.0 → 2.7.0（新視角屬功能新增，minor bump）。對「聲稱業務行為」的 target（測案集、業務 spec、聲稱狀態機行為的變更），/review 具備業務狀態可達性驗證：
