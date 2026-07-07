@@ -332,7 +332,7 @@ Dispatch 3 subagents in parallel Tasks, each in a clean context. Pass each agent
 
 Required files: `task-*.md`, `test.md`, `requirement.md`
 
-Review question: 「task-*.md 的每個 task 是否都有 test.md 裡對應的測試覆蓋錨點？task 產生的邊界條件（例如空值、並發、超時）是否在 test.md 的邊界條件清單中被覆蓋，且每條邊界條件都回指到產生該風險的 task？有沒有 task 產出了一個功能，但 test.md 裡找不到驗證它的策略？requirement.md 的每個 Given-When-Then 情境，是否都能在 test.md 找到對應的覆蓋錨點（E2E 列、整合測試列、或邊界條件項）？沒有錨點的情境即為 finding。再檢查測試品質三點，任一不過即為 finding：(1) 可達性與情境合理性——每條 E2E 列的真實入口（端點或方法）是否經 grep/read 驗證存在，且業務語意正確（同意／決行／會簽／駁回／批次不得張冠李戴）；主路徑分支盤點是否完整（單簽、會簽、決行的最後一關 vs 非最後一關兩側、批次各佔一列，未折疊）——缺任一分支即為 finding；(2) 斷言有效性——關鍵驗證點是否為具名可斷言值（具名 ReturnCode／狀態轉換／回調觸發或不觸發），凡「有回應／回傳成功／全綠」這類同義反覆即為 finding；(3) 冗餘與首要交付——是否有重複或不對應任何 task 風險的多餘測試，且本次首要交付物是否有一條測試把『達成』釘死。」
+Review question: 「task-*.md 的每個 task 是否都有 test.md 裡對應的測試覆蓋錨點？task 產生的邊界條件（例如空值、並發、超時）是否在 test.md 的邊界條件清單中被覆蓋，且每條邊界條件都回指到產生該風險的 task？有沒有 task 產出了一個功能，但 test.md 裡找不到驗證它的策略？requirement.md 的每個 Given-When-Then 情境，是否都能在 test.md 找到對應的覆蓋錨點（E2E 列、整合測試列、或邊界條件項）？沒有錨點的情境即為 finding。再檢查測試品質三點，任一不過即為 finding：(1) 可達性與語意正確性——每條 E2E 列的真實入口（端點或方法）是否經 grep/read 驗證存在，且斷言指向該操作自身的真實結果、未張冠李戴到另一個互斥操作上；主路徑分支盤點是否完整——每個互斥的主路徑情境各佔一列、未被折疊，凡同一條件在兩側產生不同結果者兩側各算一列——缺任一分支或誤標即為 finding；(2) 斷言有效性——關鍵驗證點是否為具名可斷言值（具名 ReturnCode／狀態轉換／回調觸發或不觸發），凡「有回應／回傳成功／全綠」這類同義反覆即為 finding；(3) 冗餘與首要交付——是否有重複或不對應任何 task 風險的多餘測試，且本次首要交付物是否有一條測試把『達成』釘死。」
 
 **Agent 2 — test ↔ design alignment**
 

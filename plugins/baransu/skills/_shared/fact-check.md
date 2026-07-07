@@ -1,95 +1,113 @@
 # fact-check — counting-noun discipline for quantitative claims
 
-> **Scope**: the canonical source for the counting-noun discipline shared by baransu
-> skills that re-verify a target's quantitative claims. `/think` inlines this same rule
-> set as of its v4 Stage D claim-cite-first (the four-noun taxonomy + literal-number
-> rule); `/review`'s dispatcher fact-table step references this file. The two are kept
-> in sync by hand — **do not edit `/think` when changing this file**. The fifth category
-> (framework fingerprint) lives here only.
+> **Scope**: the canonical statement of the counting-noun discipline shared by baransu
+> skills that re-verify a target's quantitative claims. `/think` inlines the same rule
+> set in its Stage D claim-cite-first (the counting-noun taxonomy + literal-number rule);
+> `/review`'s dispatcher references this file at Stage 1.6. The two are kept in sync by
+> hand — **do not edit `/think` when changing this file**. What follows is a set of
+> ecosystem-agnostic *principles*, not a runnable script: every command shown is a
+> clearly-marked illustration of one stack, never required machinery.
 
 ## Purpose
 
 A quantitative claim is only as trustworthy as the command that produced it. A count
 labelled with the wrong noun — files where the claim needs classes, call sites where it
-needs test cases — reads as verified yet proves nothing. This file fixes one canonical
-command TEMPLATE per countable noun so a re-run is reproducible and a mislabel is
-mechanically visible. A count may be labelled ONLY with the noun whose template produced
-it. All templates are `REPO_ROOT`-scoped and exclude the ecosystem's generated /
-build-output dirs — `bin/` and `obj/` in .NET, and the equivalent elsewhere
-(`node_modules/`, `dist/`, `target/`, `__pycache__/`).
+needs test cases — reads as verified yet proves nothing. The discipline: fix ONE command
+per counted noun so a re-run is reproducible and a mislabel is mechanically visible, and
+label a count ONLY with the noun that command actually enumerated. A reproducible number
+produced under the wrong pattern is not evidence — it is exactly how a call-site count
+masquerades as a test-case count.
 
-## The five categories
+Two rules bracket every count:
 
-Each entry: the noun the count may back · the canonical command template · the failure
-it prevents.
+- **Scope from the repository root**, excluding this ecosystem's generated / build-output
+  and vendored-dependency directories — whatever they are for the stack (e.g. `bin/` `obj/`
+  in .NET, `node_modules/` `dist/` in Node, `target/` in Rust/Java, `__pycache__/` `.venv/`
+  in Python). A search rooted in a subdirectory licenses no claim about the whole repo.
+- **Anchor the prose number to the literal output.** The number written in prose MUST be
+  the literal number in the pasted fragment of the same command.
+
+## The counting nouns
+
+Each noun binds to a distinct kind of command. The binding — not the exact syntax — is
+what carries the discipline; the syntax shown is one illustration and must be re-derived
+for the stack under check.
 
 1. **檔案數 files** — a file listing.
-   `find . -path '*/bin/*' -prune -o -path '*/obj/*' -prune -o -name '*.cs' -print | wc -l`
-   Backs only 「檔案數」, never 「類別／實作數」: the directory also holds base / factory /
-   bean files that declare no concrete class, so a file count over-states classes.
+   Backs only 「檔案數」, never 「類別／實作數」: a directory of source files also holds
+   base / abstract / factory / interface files that declare no concrete type, so a file
+   count over-states classes. (e.g. in a C-family layout, `find … -name '<src-ext>' | wc -l`.)
 
-2. **類別數 classes** — declaration sites, never a directory file listing.
-   `grep -rlE 'class \w+<Suffix>' --include='*.cs' --exclude-dir=bin --exclude-dir=obj . | wc -l`
+2. **類別數 classes / types** — declaration sites, never a directory file listing.
+   Count a type by matching its declaration in the language's own syntax; the file count
+   and the declaration count are different numbers. (e.g. `grep -rlE 'class \w+<Suffix>'`
+   in a `class`-keyword language; a `struct` / `type … struct` / `impl` form elsewhere.)
 
-3. **呼叫點 call sites** — dot-prefixed invocations.
-   `grep -rnE '\.<Method>\(' --include='*.cs' --exclude-dir=bin --exclude-dir=obj .`
-   The leading dot is MANDATORY, not decoration: bare `<Method>(` also matches the
-   declaration, the interface signature, and comment lines, so it may never back 「呼叫點」.
+3. **呼叫點 call sites** — invocations only.
+   The pattern MUST match the invocation form so it EXCLUDES the declaration, the
+   interface / signature, and comment lines — a pattern that also matches the declaration
+   can never back 「呼叫點」. The exact syntax is language-specific, not a fixed leading dot.
+   (e.g. in a dot-notation language the leading dot in `\.<Method>\(` drops the declaration
+   that a bare `<Method>(` would still match; free-function `func()`, UFCS, pipeline `|>`,
+   or Lisp `(method …)` languages each need their own form.)
 
-4. **測試案例數 test cases** — a test-attribute count, never a call-site or file count.
-   `grep -rhoE '\[(Test|TestMethod|Fact)\]' --include='*.cs' --exclude-dir=bin --exclude-dir=obj . | wc -l`
+4. **測試案例數 test cases** — a per-case marker count, never a call-site or file count.
+   Count by this framework's own per-case marker — an attribute, a decorator, or a naming
+   convention — each of which identifies exactly one case. (e.g. `[Test]` / `[Fact]`
+   attributes in .NET, `def test_` / `@pytest.mark` in Python, `it(` / `test(` in JS,
+   `func TestXxx` in Go, `#[test]` in Rust.)
 
-5. **框架指紋 framework fingerprint** — per test project, the triple of attribute counts.
-   Run once per `*.csproj` test-project directory:
-   `grep -rhoE '\[(TestMethod|Test|Fact)\]' --include='*.cs' <proj-dir> | sort | uniq -c`
-   The max of the three identifies the framework — `[TestMethod]`→MSTest, `[Test]`→NUnit,
-   `[Fact]`→xUnit. A framework-identity claim ("this project uses xUnit") may cite ONLY
-   this row: a pasted fragment whose attributes read `[Test]` cannot back a claim of xUnit.
+## Framework-identity claims
 
-Non-.NET ecosystems substitute the language's file glob and test attributes / decorators
-into the same templates (`*.py` + `def test_` / `@pytest.mark`; `*.ts` + `it(` / `test(`);
-the noun-to-template binding and the leading-dot rule are unchanged.
+A claim that "this project uses framework X" must be backed by the actual in-repo
+fingerprint — the marker that framework, and only that framework, leaves in the source —
+not assumed from a filename or from memory. A pasted fragment whose markers belong to
+framework A cannot back a claim about framework B.
 
-## Executor
+## Existence and absence claims
 
-When a shell is available, fill each row by running
-`plugins/baransu/skills/review/scripts/fact-count.sh <category> <root> …` — the
-script IS the template (the leading dot, the excludes, and the per-project
-fingerprint are all hardcoded); the prose templates above stay the spec and the
-fallback when no shell exists.
+An 「X 存在」 claim maps to the noun of the artifact: a file's existence cites a file
+listing that prints its path, a class the declaration search, a test suite the test-case
+marker count. **Existence** = the command returning > 0 with the artifact visible in the
+pasted fragment. **Absence** may be asserted ONLY when a repo-root-scoped command genuinely
+returns 0 across every candidate location — never from a subdirectory search, never from
+not having looked. When several directories could hold the artifact, the absence command
+must span all of them; a zero from one subtree does not license 「不存在」 for the repo.
 
-**Template-authority rule (structural).** A row's `command run` MUST be the
-category's canonical template — the script subcommand, or the verbatim prose
-template above. Re-running the TARGET's own command proves reproducibility only,
-never earns `✔`; a row whose command deviates from its category's template is
-itself marked `✘ (template-deviation)`, because a reproducible number under the
-wrong pattern is exactly how a dotless `25` passed as 呼叫點.
+## Don't swap one unverified figure for another
 
-## Existence claims
-
-An 「X 存在」 claim maps to the category of the artifact's noun: a file's existence cites
-the files template (its output listing the path), a class the classes template, a test
-suite the test-cases or fingerprint template. Existence = the category's command returning
-> 0 with the artifact visible in the pasted fragment; absence may be asserted only when
-the repo-root-scoped template genuinely returns 0.
+Revising a claim under challenge does not discharge it. If a premise is refuted or unproven,
+replacing it with a second unverified premise ("actually it's N, not M") re-opens the same
+obligation: the replacement number needs its own command plus quoted fragment before
+anything downstream leans on it. A drifted or swapped figure that was never re-run is
+`(inferred: 未實查)`, not a correction.
 
 ## Literal-number anchoring
 
-The number written in prose MUST be the literal number in the pasted output fragment of
-the SAME fact-table entry. A `(verified: …)` tag is earned only by carrying the exact
-command AND a quoted fragment of its output. A tag whose quote holds no number, or a
-number different from the prose (a figure that drifted 34→32), or a fragment whose noun /
-attributes do not match the claimed one, downgrades to `(inferred: 未實查)`.
+A `(verified: …)` tag is earned only by carrying the exact command AND a quoted fragment
+of its output. A tag whose quote holds no number, or a number different from the prose (a
+figure that drifted 34→32), or a fragment whose noun / markers do not match the claimed
+one, downgrades to `(inferred: 未實查)`. A bare tool name — `(verified: find)`,
+`(verified: grep)` — never qualifies.
+
+## Never re-run the target's own command
+
+Re-verification means an INDEPENDENT command that counts the claimed noun from the repo
+root. Re-running the command the target itself used proves reproducibility, not
+noun-correctness — the exact way a dotless pattern passes a declaration off as a call site.
+A tag the target already carries is a claim about the repo, not in-session evidence, and
+does not discharge the row.
 
 ## Fact-table entry shape
 
 One row per load-bearing quantitative / existence claim:
 
-| # | claim quoted from target | category | command run | pasted output fragment | verdict ✔/✘ |
-|---|--------------------------|----------|-------------|------------------------|-------------|
+| # | claim quoted from target | noun | command run | pasted output fragment | verdict ✔/✘ |
+|---|--------------------------|------|-------------|------------------------|-------------|
 
-`category` is one of the five above. `verdict` is `✔` only when the pasted fragment's
-literal number AND noun both match the claim; otherwise `✘`.
+`noun` is one of the counting nouns above. `verdict` is `✔` only when the pasted fragment's
+literal number AND its noun both match the claim; otherwise `✘` (including a number
+reproduced under a pattern that counts a different noun — a mislabel).
 
 ## Fail-closed rule
 
