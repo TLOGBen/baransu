@@ -74,6 +74,8 @@ Two things, in order, both passed to every dispatched reviewer.
 
 Materialize the target from disk first (`git diff --stat` + content for code, Read for files/plans), then write down — in 繁中 — what the target claims it did, decided, explicitly did not do, and left open, against that artifact — conversation memory and commit messages are claims about it, not sources. This is the reviewer's anchor against drifting into free-form critique. If no source exists for a claim (no commit message, no docstring, no plan section), write **「no explicit claim for <area>」** rather than inventing one.
 
+**Quantitative-claim disposition (mandatory, output-shaping).** Every load-bearing count / existence / coverage claim the target makes — N files / N classes / N call-sites / N test-cases / 「X 存在」 / 「安全網充足」 — enters the checklist with an explicit `✔`/`✘` disposition, never a bare restatement. To set it, re-run the claim's own command yourself from the repo root (excluding the repo ecosystem's generated/build-output dirs, e.g. `bin/`/`obj/` in .NET); a `(verified:)` tag the target already carries is a claim about the repo, not evidence, and does not discharge the re-run. Record which noun you counted so the pass is reproducible. A load-bearing count left without a re-run disposition is itself a gap the Unverified-claims hard stop pins.
+
 Target can be any shape:
 - git diff, file set, directory, uncommitted changes
 - a /think 5-section plan or other design document
@@ -96,7 +98,7 @@ If the dispatcher's first impulse is to skip goal derivation and let reviewers s
 
 ## Stage 1.5 — Domain grounding (business-behavior targets)
 
-Runs only when the target **claims business behavior** — a test-case set, a business spec, or any artifact asserting states / transitions / preconditions of a business flow. The judgment is about what the target *does*, never about which keywords appear in the invocation text — a non-business target must not trigger this stage, so no false positives are manufactured. All other targets skip straight to Stage 2 unchanged.
+Runs only when the target **claims business behavior** — a test-case set, a business spec, or any artifact asserting states / transitions / preconditions of a business flow. A plan claims business behavior whenever it asserts *any* state transition, decision / approval path, or event fired on a transition (e.g. 推關 / 決行 / 代決 / auto-sign, or 「this refactor preserves behavior X」), even when its headline frames the work as a purely structural refactor — a business-flow claim wrapped in refactor or count vocabulary still triggers this stage. The judgment is about what the target *does*, never about which keywords appear in the invocation text — a non-business target (pure structure, no transition claim) must not trigger this stage, so no false positives are manufactured. All other targets skip straight to Stage 2 unchanged. Once the table is built, every transition the target *asserts* is checked against the upstream state-producing flow per the authority ranking below; an asserted path the upstream flow cannot produce, or an upstream-reachable path the target omits, is a domain finding.
 
 When it triggers, the dispatcher materializes a **state × event × precondition transition table** for the claimed business flow, BEFORE Stage 4 dispatch. Authority ranking for table sources is fixed: spec / requirement documents plus upstream state-producing flows **outrank** the code under test. Rationale in one line: a test case that needs manual DB setup to reach its initial state is itself evidence that the code under test does not guard that state — the code's acceptance defines nothing about reachability. The code under test may corroborate a transition's *effect*, never which states are legal or reachable; a state combination the code accepts but no spec or upstream flow can produce is marked unreachable (or inferred), not legalized.
 
@@ -213,7 +215,7 @@ Run after Stage 6 consolidation, per the hard-stop ordering paragraph above. Eac
 
 **Required (5)**:
 
-- **Unverified claims** — the target asserts something was done / verified / tested without in-session evidence (no shell output, no green-run record, no commit pointing to a real fix). Pin the relevant claim-vs-implementation finding to needs-judgment.
+- **Unverified claims** — the target asserts something was done / verified / tested without in-session evidence (no shell output, no green-run record, no commit pointing to a real fix); OR a load-bearing count / existence / coverage claim the target tags `(verified:)` was not independently re-run this session, or re-ran to a different number or a different counted noun (file vs class vs call-site vs test-case). A tag the target wrote is not in-session evidence — only the review's own re-run is. Pin the relevant claim-vs-implementation finding to needs-judgment.
 - **Destructive auto-execution** — the target marks any operation that modifies user-visible state (history files, config, preferences, installed software, remote state) as "safe" or "auto-run" without explicit confirmation gating. Pin to needs-judgment.
 - **Unknown identifier in target** — any function / variable / type / module referenced in the target that does not exist in the codebase (verify by Read / Grep, not by memory). Pin to needs-judgment.
 - **Dependency changes** — additions, version bumps, or removals in package.json / Cargo.toml / go.mod / requirements.txt / lockfiles not obviously required by the target's stated goal. Pin to needs-judgment.
@@ -256,7 +258,7 @@ Traditional Chinese, natural prose, this shape:
 
 - One-sentence conclusion (完成 / 需要你的判斷 / 未完成)
 - Target and scope
-- Claim checklist
+- Claim checklist — when the target carries counts / existence / coverage claims, render it as a table with a per-claim 實查結果 column: each load-bearing quantitative claim shows `✔`/`✘` plus the number the review re-ran (Stage 1), never a bare echo of the target's figure
 - Review goal
 - Who was dispatched and why; when dispatcher == author (this session edited the target or produced it), disclose that here
 - Findings by tier — 已修 / 待確認 / 需判斷 / 僅供參考. Themes hit by a Hard stops sweep item must be fully described in the prose; the hard-stops checklist below is a machine-readable companion, never a substitute — do not skip a topic in prose because it will appear in the checklist.
