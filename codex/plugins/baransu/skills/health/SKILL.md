@@ -51,7 +51,7 @@ These hard rules hold across every step, tier, and mode. They are non-negotiable
 
 1. **Secret redaction.** Secrets, tokens, keys, and passwords appear only as `[REDACTED]`. Full keys are never printed — when a key must be touched at all, only `head -c 5` is permitted.
 2. **No raw config values.** Raw config values are never printed; report file:line and the key name instead.
-3. **Subagent depth = 1.** Inspectors never call any `/baransu:` skill and never dispatch further subagents.
+3. **Subagent depth = 1.** Inspectors never call any `/baransu:` skill and never dispatch further subagents. Being dispatched as a subagent does NOT disable this skill's own worker fan-out — the `Agent` tool is always available (probe run a928109). The depth=1 rule here governs the leaf inspectors this skill dispatches (they never dispatch further), NOT health's own ability to fan out its inspectors when health is itself hosted as a subagent. Fan-out is released unconditionally and is orthogonal to interactive-capability detection — it is never gated behind an direct user question with numbered options (stop; classify whether this is an authorization PAUSE before continuing) proxy.
 4. **No unconfirmed mutation.** Never auto-apply fixes or auto-run destructive actions without explicit user confirmation.
 
 ## Two lanes share one report
@@ -153,7 +153,7 @@ Confirm the tier. Then route:
   - **Inspector 3** (AI Maintainability): dispatch Task with agent `baransu:health-inspector-maintainability` (repo-layout fallback: `plugins/baransu/agents/health-inspector-maintainability.md`). Feed only `TIER METRICS`, `AI MAINTAINABILITY SUMMARY` or `AI MAINTAINABILITY DETAIL`, and the script hotspot lists. Launch this inspector only for deep audits, Complex projects, or explicit code-rot/AI-maintainability requests.
 - **Fallback:** If a subagent fails, analyze that layer locally and note 「（本層由主代理人就地分析）」.
 
-Each inspector file defines `Perspective / Mission / Principles / Lane-keeping` — no persona, no character voice. Subagent depth = 1: inspectors never call any `/baransu:` skill and never dispatch further subagents.
+Each inspector file defines `Perspective / Mission / Principles / Lane-keeping` — no persona, no character voice. Subagent depth = 1: inspectors never call any `/baransu:` skill and never dispatch further subagents. This governs the leaf inspectors; being dispatched as a subagent does NOT disable this skill's own worker fan-out — the `Agent` tool is always available (probe run a928109), so health still fans out its inspectors in parallel by spawning Codex subagents even when health is itself hosted as a subagent, orthogonal to interactive-capability detection.
 
 ## Step 3: Report
 

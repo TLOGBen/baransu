@@ -34,7 +34,7 @@ This file is read only when the run is Workflow-driven or a system-reminder expl
 
 The orchestrator-driven loop exactly as SKILL.md §4b specifies: dispatch summarize-agent, impl-agent, and review-agent as stateless leaf Tasks per task, groups at the same frontier level in parallel (L/XL via gitworktrees), merge points per §4d. All routing (SWITCH, filter, escalation) happens in the orchestrator after collection.
 
-Depth invariant (restated for this adapter): subagent depth = 1 — dispatched agents must not invoke skills or dispatch further subagents; review-agent never calls `/baransu:review`, and impl-agent never spawns its own helpers.
+Depth invariant (restated for this adapter): subagent depth = 1 — dispatched agents must not invoke skills or dispatch further subagents; review-agent never calls `/baransu:review`, and impl-agent never spawns its own helpers. This depth invariant constrains the leaf agents execute dispatches; it does not constrain execute's own worker fan-out when execute is itself hosted as a subagent — the `Agent` tool is always available (probe run a928109), so being dispatched as a subagent does NOT disable this skill's own worker fan-out. That release is unconditional and orthogonal to interactive-capability detection — never gated behind an AskUserQuestion proxy.
 
 ## 4. Workflow thin adapter — pinned-workflow mode only
 

@@ -45,6 +45,8 @@ These named rules are load-bearing red lines restated here from where they appea
 - **INV-no-manufacture**: a zero-finding report that states which surfaces were examined is valid; fabricating findings to justify the invocation is forbidden.
 - **INV-consent**: never change behavior without user consent.
 
+Being hosted as a subagent does NOT disable this dispatch: the five-perspective fan-out still proceeds — the `Agent` tool is always available (probe run a928109). INV-depth / INV-no-recursion forbid only /review→/review nesting and reviewer self-spawning, never the top-level perspective dispatch. Fan-out is orthogonal to interactive-capability detection.
+
 ## Five perspectives (agent files)
 
 `plugins/baransu/agents/architecture-reviewer.md` / `quality-reviewer.md` / `security-reviewer.md` / `style-reviewer.md` / `domain-reviewer.md`.
@@ -62,11 +64,19 @@ means the current (parallel-subagent) adapter.
 
 ---
 
+## Subagent-hosted degradation
+
+When /review is hosted as a subagent, the `authorization PAUSE` tool is simply absent from the runtime tool list — there is no human to ask. The detection primitive is defined in `../_shared/loop-contract.md`: inspect the run's own tool list directly and check whether `authorization PAUSE` is present; this is NOT an attempt-and-catch (invoking a missing tool "to see if it fails" is forbidden). Tool absence gates the interaction axis only — worker fan-out rides the always-present `Agent` tool and stays unconditionally allowed (see the INV clarification above).
+
+When the tool is absent, each of the four direct user question (record the authorization decision; stop until the user answers) call-points below degrades per loop-contract §2: a preference/confirmation checkpoint is an **Input PAUSE** — take the recommended default and continue, annotating every substituted decision in the report with the user-visible string 「此處採預設：{假設}」; a checkpoint that cannot be resolved without a human decision is a hard stop — report `needs-input` upward to the calling layer and never fabricate a substitute. The per-point degradation branches are stated inline at each call-point (the Stage 1 pre-dispatch off-ramp target-pin, the Stage 1.5 domain-sources round, the Stage 7 needs-judgment tier, and the Output-shape needs-judgment note); the human-present (tool-present) behavior at every point is unchanged.
+
+---
+
 ## Stage 1 — Claim checklist AND review goal
 
 ### Pre-dispatch off-ramp
 
-Before materializing anything: if the invocation matches a frontmatter Not-For boundary (own-project agent-config audit → /health; baransu structure verification → scripts/verify-skills.py), name the correct route and stop — dispatch nothing. The same name-the-route-and-stop semantics apply to two adjacent confusion surfaces: a symptom/error-debugging ask (e.g. 「看一下為什麼報錯」) → /hunt; a capture-to-offline intent (e.g. 「幫我存下來」) → /read. If no target can be materialized from disk (no diff, no file, no named artifact), ask exactly ONE direct user question (record the authorization decision; stop until the user answers) to pin the target; if the user cannot name one, stop without dispatching — never review from conversation memory.
+Before materializing anything: if the invocation matches a frontmatter Not-For boundary (own-project agent-config audit → /health; baransu structure verification → scripts/verify-skills.py), name the correct route and stop — dispatch nothing. The same name-the-route-and-stop semantics apply to two adjacent confusion surfaces: a symptom/error-debugging ask (e.g. 「看一下為什麼報錯」) → /hunt; a capture-to-offline intent (e.g. 「幫我存下來」) → /read. If no target can be materialized from disk (no diff, no file, no named artifact), ask exactly ONE direct user question (record the authorization decision; stop until the user answers) to pin the target; if the user cannot name one, stop without dispatching — never review from conversation memory. When direct user question (record the authorization decision; stop until the user answers) is absent (subagent-hosted): the target cannot be pinned interactively, so apply the existing stop rule — stop and report `needs-input` upward to the calling layer, and never fabricate or invent a target from conversation memory.
 
 Two things, in order, both passed to every dispatched reviewer.
 
@@ -104,7 +114,7 @@ When it triggers, the dispatcher materializes a **state × event × precondition
 
 Every table row carries a source annotation at section granularity: `(verified: <doc §section / file:line>)` or `(inferred: 未實查)`.
 
-If sources are insufficient (no spec found, upstream flow code unavailable): in interactive sessions, ask exactly ONE direct user question (record the authorization decision; stop until the user answers) round to obtain sources. If sources remain insufficient after that round, do not dispatch domain-reviewer, and the report must not claim domain coverage — the Hard stops sweep enforces this outcome.
+If sources are insufficient (no spec found, upstream flow code unavailable): in interactive sessions, ask exactly ONE direct user question (record the authorization decision; stop until the user answers) round to obtain sources. If sources remain insufficient after that round, do not dispatch domain-reviewer, and the report must not claim domain coverage — the Hard stops sweep enforces this outcome. When direct user question (record the authorization decision; stop until the user answers) is absent (subagent-hosted): the source-obtaining round cannot run, so this same non-interactive outcome applies directly — do not dispatch domain-reviewer and the report must not claim domain coverage.
 
 ---
 
@@ -246,7 +256,7 @@ This list deliberately does **not** include release-artifact missing, generated-
 | **Needs judgment** | logic / boundary / API / behavior / security findings with concrete fixes. Batch-ask via direct user question (record the authorization decision; stop until the user answers) — group by theme, not by target question count. |
 | **Advisory** | balance-downgraded, off-goal, or no concrete fix. In the report, not in the user's face. |
 
-Per **INV-consent**, never change behavior without user consent. Do not ask one question per finding.
+Per **INV-consent**, never change behavior without user consent. Do not ask one question per finding. When direct user question (record the authorization decision; stop until the user answers) is absent (subagent-hosted): treat each needs-judgment batch as an Input PAUSE per the Subagent-hosted degradation section — take the recommended default, annotate it in the report with the user-visible string 「此處採預設：{假設}」, and report the needs-judgment items upward to the calling layer instead of deciding them here.
 
 PAUSE classification for non-interactive drivers: `references/loop-pauses.md` — read it when driven by /loop, cron, or Workflow.
 
@@ -304,7 +314,7 @@ Field semantics (single source of truth for each):
 
 No verdict enum. No YAML schema. No skeleton template — write the kind of review a real engineer would read as a review.
 
-For **needs-judgment** items, batch-ask via direct user question (record the authorization decision; stop until the user answers). Let the question count follow the natural theme grouping; don't split to hit a number, don't merge to shrink one.
+For **needs-judgment** items, batch-ask via direct user question (record the authorization decision; stop until the user answers). Let the question count follow the natural theme grouping; don't split to hit a number, don't merge to shrink one. When direct user question (record the authorization decision; stop until the user answers) is absent (subagent-hosted): take the recommended default per the Subagent-hosted degradation section, annotate it with 「此處採預設：{假設}」, and report the needs-judgment items upward to the calling layer.
 
 ---
 

@@ -2,6 +2,18 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.7.6 (2026-07-07)
+
+**Subagent 巢狀 fan-out——被托管 dispatcher 照常派 worker**。plugin version 2.7.5 → 2.7.6。四個會派 subagent 的 dispatcher skill（review/execute/evolve/health）原先隱含「自己被當 subagent 托管時不得再 fan-out」的 dispatcher-level depth=1 假設；探針（run a928109）實測 `Agent` 工具在 subagent 內恆在、`AskUserQuestion` 則硬缺席，故該假設事實錯誤。本版本移除之，並把「工具缺席」的互動降級收編進 loop-contract。經 /analyze→/execute 五組 TDAID 實作、/review 複審。
+
+- **`_shared/loop-contract.md` §Scope/§2 擴充**：新增「被 subagent 托管（AskUserQuestion 工具缺席）」為一種 non-interactive driving context；§2 Input-PAUSE 觸發源涵蓋「工具缺席」，Authorization-PAUSE 明言不因工具缺席弱化（仍硬停／standing-auth，「Cannot ask」不等於「may assume」）；新增偵測原語小節＝**檢視自身工具清單**（非 attempt-and-catch），且只 gate 互動軸、不 gate fan-out。§3 三硬停未動。
+- **四 dispatcher SKILL（＋execute/evolve orchestration-interface）**：明述 worker fan-out 不因自身被托管而停用（`Agent` 恆在），並清楚區分 dispatcher-level（可 fan-out）與 leaf-level（不再往下派）兩種 depth 語意；fan-out 與互動能力偵測為兩正交軸，不綁 AskUserQuestion proxy。evolve 歸類為純 fan-out（採納閘＝loop-contract Authorization PAUSE＋standing-auth）。
+- **`review/SKILL.md` 四個 AskUserQuestion 點降級**：`:54` target-pin 缺席時 stop 回報 needs-input 不捏造；`:92` domain 缺席時不派 domain-reviewer、不宣稱覆蓋；`:231`/`:292` needs-judgment 缺席時取推薦預設＋標註「此處採預設」＋回報上層。human-present 路徑逐字保留（append-only）。
+- **`rules/anti-patterns.md` 首條＋`CLAUDE.md` review-agent invariant** 改模型自主判斷式：事實前提由「depth 硬上限」更正為「AskUserQuestion 硬缺席」，改為呼叫方 call 前自判 subagent-safe，不設機器可檢的旗標／test gate（使用者明選模型自主，殘留風險由降級對映兜底）。
+- **不變式保全**：leaf worker agent 檔（evolve-judge／health-inspector-*／review-agent／smart-friend-agent／evolve-diagnostician）git diff 零改動；/analyze 維持不可巢狀。
+- **驗證**：fan-out 探針 depth-2 真實通過（並行 2 worker 皆回具名字串）；AskUserQuestion 硬缺席以 tool-list inspection live 觀察；`make test` 全綠、`make mirror-check` in sync、codex mirror 同步 regen。
+- **/review 修正**：複審自身 diff 找到 2 項 in-scope 文字缺陷並直接修正——`review/SKILL.md` 降級節自引行號過時（改用 edit-stable Stage 名稱）、`CLAUDE.md` review-agent invariant 理由過度涵蓋 needs-judgment（收窄為僅 target-pin 不可降級）。
+
 ## v2.7.5 (2026-07-07)
 
 **覆蓋錯置防護——第 8 條通用行為內核**。plugin version 2.7.4 → 2.7.5。多生態系盲測中唯一一致 partial 的缺陷（被引測試 mock 掉它宣稱要覆蓋的那一層 → 對該層覆蓋率其實為零）補上通用行為提示後升級為 full catch。

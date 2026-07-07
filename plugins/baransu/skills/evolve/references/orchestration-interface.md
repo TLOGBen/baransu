@@ -40,7 +40,7 @@ When the read does happen, before Stage 1 begins:
 
 **Three fresh evolve-judge Tasks in parallel** per round, each in a clean context, exactly as SKILL.md Stage 5 specifies. Judges are single-use — never reuse a judge across rounds — and blind to which label is the mutation. The Stage 1 evolve-diagnostician is a separate single dispatch (no fan-out) and is not part of this panel interface.
 
-Depth invariant (restated for this adapter): dispatched judge and diagnostician agents must not invoke skills or dispatch further subagents — they are stateless leaf nodes (depth = 1) that never call any `/baransu:*` skill and never spawn a sub-panel.
+Depth invariant (restated for this adapter): dispatched judge and diagnostician agents must not invoke skills or dispatch further subagents — they are stateless leaf nodes (depth = 1) that never call any `/baransu:*` skill and never spawn a sub-panel. This depth invariant constrains those leaf judge/diagnostician agents; it does not constrain evolve's own worker fan-out when evolve is itself hosted as a subagent — the `Agent` tool is always available (probe run a928109), so being dispatched as a subagent does NOT disable evolve's fan-out of the judge panel. That release is unconditional and orthogonal to interactive-capability detection — never gated behind an AskUserQuestion proxy.
 
 ## 4. Workflow thin adapter — pinned-workflow mode only
 
@@ -51,4 +51,4 @@ When Stage 0 pinned `workflow`, dispatch the same three judges via Workflow `par
 
 Nothing else. No tally, no keep/restore, no adoption, no mutation — those stay in the main flow (SKILL.md Stages 5–6). A batch run that evolves several skills may wrap one such per-skill panel per Workflow item, but the per-run vote schema above is unchanged.
 
-Depth invariant (restated for this adapter): Workflow-dispatched judge agents must not invoke skills or dispatch further subagents — no branch may add judges, extra rounds, or a nested panel.
+Depth invariant (restated for this adapter): Workflow-dispatched judge agents must not invoke skills or dispatch further subagents — no branch may add judges, extra rounds, or a nested panel. As above, this leaf-level depth invariant does not constrain evolve's own worker fan-out when evolve is itself hosted as a subagent — the `Agent` tool is always available (probe run a928109), and the fan-out release is orthogonal to interactive-capability detection.

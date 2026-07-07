@@ -78,7 +78,7 @@ Small tasks with clear scope no longer route through a dedicated skill: implemen
 These have each caused regressions — do not "optimize" them away:
 
 - **No `skills` array in `plugin.json`**: Claude Code discovers skills from the filesystem. Adding one was done in v0.3.0 and immediately reverted.
-- **`review-agent` must NOT call `/baransu:review`**: subagent depth = 1. Calling it triggers AskUserQuestion + parallel Tasks, violating the depth limit. Implement four-tier semantics directly in `review-agent.md`.
+- **`review-agent` must NOT call `/baransu:review`**: before calling, the model judges that `/review` is not currently subagent-safe — its path hits a non-degradable AskUserQuestion point (target-pin) that is hard-absent inside a subagent (the tool simply isn't in the tool list), so calling it would strand that interaction point rather than being any depth-limit violation. Implement four-tier semantics directly in `review-agent.md`.
 - **`/ship` branch deletion uses `-D` not `-d`**: after push the branch is unmerged locally, so `-d` always fails. Both steps need `git -C "$MAIN_REPO" branch -D`.
 - **`failure_count` excludes compile errors**: compile errors do NOT count toward the 3-strike TDAID block limit. Merging these two counters breaks retry behavior.
 - **`DESIGN.md` ≠ `design.md`**: uppercase at project root = UI visual spec (from `/design`); lowercase in `.claude/analyze/` = technical architecture layer (from `/analyze`). Never confuse them.

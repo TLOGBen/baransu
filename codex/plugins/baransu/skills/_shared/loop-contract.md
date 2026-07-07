@@ -9,14 +9,20 @@
 - Scope
 - 1. Automation field vocabulary
 - 2. PAUSE semantics
+  - Interactive-capability detection primitive
 - 3. Three hard stops — responsibility boundary
 - 4. PAUSE classification registry
 
 ## Scope
 
 Applies whenever a baransu skill is driven by a non-interactive context:
-`/loop`, `/goal`-style external verifiers, cron, Workflow orchestration, or
-any automation harness. Human-present sessions follow platform defaults.
+`/loop`, `/goal`-style external verifiers, cron, Workflow orchestration,
+being **hosted as a subagent** (the `AskUserQuestion` tool is simply absent
+from the runtime tool list, so there is no way to ask a human anything), or
+any automation harness. Human-present sessions follow platform defaults —
+including a nested session where the `AskUserQuestion` tool *is* present in
+the tool list; presence of that tool, not nesting depth, is what marks a run
+as interactive.
 
 ---
 
@@ -65,15 +71,28 @@ This contract adds an orthogonal axis — the *driving context*. When a
 non-interactive driver is detected, the skill behaves as follows regardless
 of platform:
 
-- **Input PAUSE** — take the recommended default and continue. The final
-  report MUST annotate every substituted decision as 「此處採預設：{假設}」.
+- **Input PAUSE** — take the recommended default and continue. This trigger
+  fires in two shapes that are treated identically: (a) the `AskUserQuestion`
+  tool is present but unanswerable (no human to answer, or a platform mode /
+  `--auto`-style flag skips it), and (b) the `AskUserQuestion`
+  tool is absent from the tool list entirely (the skill is hosted as a
+  subagent). An
+  absent tool is exactly as non-interactive as an unanswered one — both take
+  the recommended default. The final report MUST annotate every substituted
+  decision as 「此處採預設：{假設}」.
 - **Authorization PAUSE** — if the driving context carries a **standing
   authorization** for this action (per the skill's `references/loop-pauses.md`),
   proceed under that authorization, applying every safety precondition the table
   names (e.g. structure gate, blind-judge bar, file-level snapshot, audit log),
   and record the standing-authorized decision in the run's audit trail.
   Otherwise it is an unconditional hard stop: report `needs input` to the driver;
-  never substitute a default.
+  never substitute a default. Tool absence does not weaken this: a missing
+  `AskUserQuestion` tool (subagent hosting) never downgrades an Authorization
+  PAUSE to a default substitution. It remains a hard stop reported to the
+  upper layer, satisfiable only by a standing authorization where the skill's
+  `references/loop-pauses.md` permits it. "Cannot ask" is not "may assume" —
+  only Input PAUSE takes a default under tool absence; Authorization PAUSE
+  does not.
 
 **Override precedence (explicit)**:
 
@@ -83,6 +102,28 @@ An Authorization PAUSE is never satisfied by `--auto`, driver flags, or platform
 mode alone — those are default substitutions, not authorization. A standing
 authorization is explicit human authorization given up-front (not a default), so
 it is the one sanctioned way a non-interactive run may proceed past such a PAUSE.
+
+### Interactive-capability detection primitive
+
+The detection primitive is a **tool-list inspection**: at the start of a run
+the skill inspects its own available tool list and checks whether
+`AskUserQuestion` is present. Present means the interaction axis is live and
+platform defaults govern PAUSE cost; absent means every Input PAUSE takes its
+recommended default (annotated) and every Authorization PAUSE hard-stops per
+the rules above.
+
+This detection MUST be a direct tool-list check, **not** an attempt-and-catch.
+Tool absence means the tool does not exist in this runtime — there is no call
+to attempt and no error to catch, so invoking a missing tool "to see if it
+fails" is forbidden and would simply be a no-op or an undefined reference, not
+a signal. Inspect the tool list directly.
+
+The detection gates the **interaction axis only** (Input and Authorization
+PAUSE). It does **not** gate worker fan-out: subagent dispatch relies on the
+Task/Agent tool, which is always present, so fan-out stays unconditionally
+allowed whether or not `AskUserQuestion` is in the tool list. A skill hosted
+as a subagent still fans out its own worker layer exactly as it would when
+driven interactively — only its PAUSE handling degrades, never its dispatch.
 
 ---
 

@@ -16,7 +16,7 @@ Cross-skill behavioral guardrails for all baransu skills and agents.
 
 | Inertia | Wrong | Right |
 |------|----------|----------|
-| Nested skill call | A subagent calls `/baransu:<skill>`, triggering AskUserQuestion or parallel Tasks | subagent depth = 1: embed the needed semantics directly in the agent definition, do not call out to a skill |
+| Nested skill call | A subagent calls `/baransu:<skill>` whose path hits a non-degradable AskUserQuestion — a tool simply absent from a subagent's tool list — stranding that interaction point | The caller MAY call it, but MUST self-judge before calling whether that skill is subagent-safe (its path carries no non-degradable AskUserQuestion); when it is not, embed the needed semantics directly instead. This is a model-judgment discipline, not a machine-checked flag |
 | Editing from memory | Edit/Write directly based on a Read result from a prior turn | Read-before-write: Read again in the same turn before editing; if any other operation intervened, re-read |
 | Changing tests to fit the implementation | Modifying an existing passing test to turn the new implementation green | Fix the implementation, not the test; only change a test when the test itself is wrong |
 | Skipping the red light and writing the implementation directly | Starting the implementation without confirming the test fails (exit code ≠ 0) | Write the failing test first, confirm it actually fails, then write the minimal implementation |
