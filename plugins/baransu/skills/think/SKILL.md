@@ -285,7 +285,7 @@ Record what you found in one short paragraph as part of the proposal — the use
 - **檔案數 files** — a `find … *.cs | wc -l` file listing; backs only 「檔案數」, never 「類別／實作數」 (the directory also holds base/bean/factory files that declare no concrete class).
 - **類別數 classes** — declaration sites via `grep -rlE 'class \w+<Suffix>'`, never a directory file listing.
 - **呼叫點 call sites** — the dot-prefixed invocation `\.<Method>(`; the leading dot is MANDATORY, not an example — bare `<Method>(` also matches the declaration, the interface signature, and comment lines, so it may never back 「呼叫點」.
-- **測試案例數 test cases** — an attribute count (e.g. `grep -rE '\[Test\]|\[Fact\]'`), never a call-site or file count.
+- **測試案例數 test cases** — an attribute count (e.g. `grep -rE '\[(Test|TestMethod|Fact)\]'`), never a call-site or file count.
 
 Existence, count, and absence premises are binary — either enumerate them with a `REPO_ROOT`-scoped command whose output you quote, or leave the artifact's status unestablished and do NOT build the plan on its absence; never assert 「不存在／稀薄」 from a subdirectory search or from not having looked.
 

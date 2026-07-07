@@ -59,7 +59,7 @@ Two things, in order, both passed to every dispatched reviewer.
 
 Materialize the target from disk first (`git diff --stat` + content for code, Read for files/plans), then write down — in 繁中 — what the target claims it did, decided, explicitly did not do, and left open, against that artifact — conversation memory and commit messages are claims about it, not sources. This is the reviewer's anchor against drifting into free-form critique. If no source exists for a claim (no commit message, no docstring, no plan section), write **「no explicit claim for <area>」** rather than inventing one.
 
-**Quantitative-claim disposition (mandatory, output-shaping).** Every load-bearing count / existence / coverage claim the target makes — N files / N classes / N call-sites / N test-cases / 「X 存在」 / 「安全網充足」 — enters the checklist with an explicit `✔`/`✘` disposition, never a bare restatement. To set it, re-run the claim's own command yourself from the repo root (excluding the repo ecosystem's generated/build-output dirs, e.g. `bin/`/`obj/` in .NET); a `(verified:)` tag the target already carries is a claim about the repo, not evidence, and does not discharge the re-run. Record which noun you counted so the pass is reproducible. A load-bearing count left without a re-run disposition is itself a gap the Unverified-claims hard stop pins.
+**Quantitative-claim disposition (mandatory, output-shaping).** Every load-bearing count / existence / coverage claim the target makes — N files / N classes / N call-sites / N test-cases / 「X 存在」 / 「安全網充足」 — enters the checklist with an explicit `✔`/`✘` disposition, never a bare restatement. Each disposition is set from its Stage 1.6 fact-table row — the `✔`/`✘` is that row's verdict, cited by its row number, never a free-standing judgment; a `(verified:)` tag the target already carries is a claim about the repo, not evidence, and does not discharge the row. A quantitative `✔`/`✘` carrying no fact-table row number, or a load-bearing count with no row at all, is an Unverified-claims hard-stop hit.
 
 Target can be any shape:
 - git diff, file set, directory, uncommitted changes
@@ -90,6 +90,14 @@ When it triggers, the dispatcher materializes a **state × event × precondition
 Every table row carries a source annotation at section granularity: `(verified: <doc §section / file:line>)` or `(inferred: 未實查)`.
 
 If sources are insufficient (no spec found, upstream flow code unavailable): in interactive sessions, ask exactly ONE AskUserQuestion round to obtain sources. If sources remain insufficient after that round, do not dispatch domain-reviewer, and the report must not claim domain coverage — the Hard stops sweep enforces this outcome.
+
+---
+
+## Stage 1.6 — Fact table (load-bearing quantitative claims)
+
+Between the claim checklist (Stage 1) and dispatch (Stage 4), the dispatcher builds a **fact table** for every load-bearing quantitative / existence claim the checklist carries — N files / N classes / N call-sites / N test-cases / a framework-identity claim / 「X 存在」. Build it per `plugins/baransu/skills/_shared/fact-check.md`: pick the category whose canonical command template backs the claim's noun and fill the row by running `plugins/baransu/skills/review/scripts/fact-count.sh` (the executable form of the templates) when a shell is available, or the verbatim template otherwise — NEVER by re-running the target's own command: the target's command proves reproducibility, not noun-correctness, and a row filled from it is a template-deviation ✘. Paste the raw output fragment into the row. The row shape and the five categories are defined there — apply them, do not restate them here.
+
+This table is the sole evidence store for quantitative verdicts: the Stage 1 `✔`/`✘` disposition and the Output-shape claim table each cite its row numbers, and a quantitative verdict citing no row is an Unverified-claims hard-stop hit. When the environment cannot run the commands, apply fact-check.md's fail-closed rule — every such claim is unverifiable-by-harness and the Unverified-claims hard stop fires; never fail open.
 
 ---
 
@@ -127,7 +135,7 @@ If Stage 2's tier cap disagrees with activation count (e.g. a 100-LOC target tri
 
 ## Stage 4 — Parallel dispatch
 
-Launch one **parallel Task** per activated perspective, each in a clean context. Pass each reviewer three things: target content, the **claim checklist** (Stage 1), and the **review goal** (Stage 1). Reviewers do not know about each other and do not coordinate. The domain transition table (Stage 1.5) is added to the dispatch input of domain-reviewer only — a fourth input for that one perspective; the other four perspectives keep receiving exactly the three things above.
+Launch one **parallel Task** per activated perspective, each in a clean context. Pass each reviewer three things: target content, the **claim checklist** (Stage 1), and the **review goal** (Stage 1). Reviewers do not know about each other and do not coordinate. The domain transition table (Stage 1.5) is added to the dispatch input of domain-reviewer only — a fourth input for that one perspective; the other four perspectives keep receiving exactly the three things above. The Stage 1.6 fact table travels WITH the claim checklist to every perspective: reviewers re-interpret its rows — and may flag a row whose category or pattern mismatches its noun — instead of producing their own counts; only when no fact table exists (standalone perspective use) does a reviewer apply `plugins/baransu/skills/_shared/fact-check.md` directly.
 
 Findings return in natural language (not YAML). Each must include: citation (file:line or section), which claim it contradicts (or "none — observation"), the observation itself, the surgical fix, and a balance note (see Stage 6). Any non-obvious claim inside a finding carries a source annotation — `(verified: <how>)` when the reviewer actually checked, or `(inferred: 未實查)` when it rests on reasoning alone.
 
@@ -200,7 +208,7 @@ Run after Stage 6 consolidation, per the hard-stop ordering paragraph above. Eac
 
 **Required (5)**:
 
-- **Unverified claims** — the target asserts something was done / verified / tested without in-session evidence (no shell output, no green-run record, no commit pointing to a real fix); OR a load-bearing count / existence / coverage claim the target tags `(verified:)` was not independently re-run this session, or re-ran to a different number or a different counted noun (file vs class vs call-site vs test-case). A tag the target wrote is not in-session evidence — only the review's own re-run is. Pin the relevant claim-vs-implementation finding to needs-judgment.
+- **Unverified claims** — the target asserts something was done / verified / tested without in-session evidence (no shell output, no green-run record, no commit pointing to a real fix); OR a load-bearing count / existence / coverage claim the target tags `(verified:)` was not independently re-run this session, or re-ran to a different number or a different counted noun (file vs class vs call-site vs test-case), or was 'verified' by re-running the target's own command instead of the category's canonical template (template-deviation). A tag the target wrote is not in-session evidence — only the review's own re-run is. Pin the relevant claim-vs-implementation finding to needs-judgment.
 - **Destructive auto-execution** — the target marks any operation that modifies user-visible state (history files, config, preferences, installed software, remote state) as "safe" or "auto-run" without explicit confirmation gating. Pin to needs-judgment.
 - **Unknown identifier in target** — any function / variable / type / module referenced in the target that does not exist in the codebase (verify by Read / Grep, not by memory). Pin to needs-judgment.
 - **Dependency changes** — additions, version bumps, or removals in package.json / Cargo.toml / go.mod / requirements.txt / lockfiles not obviously required by the target's stated goal. Pin to needs-judgment.
@@ -243,7 +251,7 @@ Traditional Chinese, natural prose, this shape:
 
 - One-sentence conclusion (完成 / 需要你的判斷 / 未完成)
 - Target and scope
-- Claim checklist — when the target carries counts / existence / coverage claims, render it as a table with a per-claim 實查結果 column: each load-bearing quantitative claim shows `✔`/`✘` plus the number the review re-ran (Stage 1), never a bare echo of the target's figure
+- Claim checklist — when the target carries counts / existence / coverage claims, render it as a table with a per-claim 實查結果 column: each load-bearing quantitative claim shows `✔`/`✘` plus the number the review re-ran AND the Stage 1.6 fact-table row it cites — a quantitative verdict with no cited row is an Unverified-claims hard-stop hit — never a bare echo of the target's figure
 - Review goal
 - Who was dispatched and why; when dispatcher == author (this session edited the target or produced it), disclose that here
 - Findings by tier — 已修 / 待確認 / 需判斷 / 僅供參考. Themes hit by a Hard stops sweep item must be fully described in the prose; the hard-stops checklist below is a machine-readable companion, never a substitute — do not skip a topic in prose because it will appear in the checklist.
