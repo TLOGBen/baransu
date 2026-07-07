@@ -74,6 +74,20 @@ returns 0 across every candidate location — never from a subdirectory search, 
 not having looked. When several directories could hold the artifact, the absence command
 must span all of them; a zero from one subtree does not license 「不存在」 for the repo.
 
+## Coverage claims
+
+A coverage claim (「X 已被測試」 / 「安全網充足」 / 「有測試保護，可安全重構」) is not discharged by
+a test that merely names or references the unit under change. Confirm the test drives the
+**real** implementation and asserts on its **actual** behavior. A reference to that unit
+sitting inside a mock / stub / spy / fake construct — the test doubling it out (e.g.
+`vi.mock` / `jest.mock` in JS, `Mock<>` / a substitute in .NET, `patch` in Python,
+`Mockito.mock` in Java) — is **anti-coverage**: it proves the test deliberately replaces
+that code with a stand-in and exercises none of it. When counting a layer's coverage,
+exclude every reference that sits inside a mocking construct; a symbol grep that counts
+mock declarations as call sites inflates coverage with the exact opposite of coverage. A
+spec named for the layer it targets but which mocks that very layer covers it **zero** —
+the coverage lives at whatever layer actually runs unmocked and is asserted on.
+
 ## Don't swap one unverified figure for another
 
 Revising a claim under challenge does not discharge it. If a premise is refuted or unproven,
