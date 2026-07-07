@@ -23,7 +23,7 @@ description: "Builds a goal→requirement→design→test→task spec under .cla
 ## Constraints
 
 - Do not write production code, scaffolding, or config files during Stages 1-6. The only output is the five spec documents.
-- Do not call `/review` from within Stages 1-6. Cross-layer subagents answer alignment questions ("are these two layers consistent?"), not per-layer quality questions ("what's wrong with this layer?"). These are different questions. Stage 7 may offer /review as a handoff option — that is a post-spec quality check, not an in-spec alignment check.
+- Do not call `/review` from within Stages 1-6. Cross-layer subagents answer alignment questions ("are these two layers consistent?"), not per-layer quality questions ("what's wrong with this layer?"). These are different questions. The sole exception is the test-quality checks explicitly embedded in Agent 1's Stage 6 review question (reachability / assertion validity / redundancy) - those are part of Agent 1's mandate, not an invitation to general per-layer critique. Stage 7 may offer /review as a handoff option — that is a post-spec quality check, not an in-spec alignment check.
 - Auto-correction is one round. No silent looping.
 - On a same-day same-slug directory collision (Stage 0.C), never silently overwrite: branch via the AskUserQuestion among resume / overwrite-rebuild / new -N-suffixed directory before writing any spec file. The overwrite-rebuild branch may delete only the computed spec dir `{repo_root}/.claude/analyze/{date}-{slug}/`; if the resolved delete target does not string-equal that path (or contains `..`, or falls outside `{repo_root}` from `git rev-parse --show-toplevel`), abort the deletion and fall back to the `-N`-suffixed branch instead.
 - `goal.md` and `requirement.md` are user-intent layers. Do not modify their semantics during auto-correct. Only design / test / task layers are auto-correctable.
@@ -98,10 +98,10 @@ Write `goal.md`. Fill every section — do not leave template placeholders.
 {一句話：完成後的世界和現在有什麼不同}
 
 ## 驗收標準（Criteria）
-{可觀察的條件清單；Agent 可用這個清單判斷任務是否完成}
-- [ ] {criterion 1}
-- [ ] {criterion 2}
-- [ ] {criterion 3}
+{可觀察的條件清單；Agent 可用這個清單判斷任務是否完成。每條冠 `C{n}` 編號，供 test.md 逐列回指}
+- [ ] C1: {criterion 1}
+- [ ] C2: {criterion 2}
+- [ ] C3: {criterion 3}
 
 ## 範圍（Scope）
 
@@ -234,24 +234,28 @@ Define the testing strategy that verifies the implementation satisfies requireme
 # Test Strategy
 
 ## E2E 測試策略
-{關鍵使用者流程；每條對應哪個 Criteria}
+{每條 = 主路徑分支盤點中的一個分支；每條標明真實入口（已驗證存在）與所斷言的具體可觀察值，並回指一個 goal Criteria 編號 C{n}}
 
-| 場景 | 起點 | 終點 | 對應 Criteria |
+| 場景（主路徑分支） | 真實入口（端點或方法名＋file:line，已 grep/read 驗證存在） | 具體斷言（具名 ReturnCode／狀態轉換／回調觸發或不觸發） | 對應 Criteria |
 |------|------|------|--------------|
-| {scenario} | {start} | {end} | {criterion ref} |
+| {branch} | {verified entry point + file:line} | {named assertion} | C{n} |
 
 ## 整合測試策略
-{跨層邊界的驗證；哪些服務或元件需要實際啟動}
+{跨層邊界的驗證；哪些服務或元件需要實際啟動。關鍵驗證點必須是具名可斷言的觀察值，「有回應／全綠」這類同義反覆一律不收}
 
-| 測試目標 | 涉及層 | 關鍵驗證點 |
+| 測試目標 | 涉及層 | 關鍵驗證點（具名斷言，禁同義反覆） |
 |---------|--------|-----------|
-| {target} | {layers} | {assertion} |
+| {target} | {layers} | {named assertion — 具名值，非「有回應」} |
 
 ## 關鍵邊界條件
-{哪些邊界條件必須有測試覆蓋；連結到對應需求}
+{每條邊界條件雙向追溯：連到它驗證的 REQ-XXX，並連到產生此風險的 task（TASK-{group}-NN）；孤懸於任何 task 風險之外的邊界條件應刪除}
 
-- {edge case — REQ-XXX}
-- {edge case — REQ-XXX}
+- {edge case — REQ-XXX — 由 TASK-{group}-NN 製造的風險}
+- {edge case — REQ-XXX — 由 TASK-{group}-NN 製造的風險}
+
+## 冗餘與首要交付掃描
+{逐條掃上面三張表，列出並刪除重複或不對應任何 task 風險的多餘測試；並確認本次首要交付物本身有一條測試把「達成」釘死（收斂類重構需一條殘留複本掃描列，例如 grep 存量呼叫點＝模板一檔）}
+- {kept/removed — reason}
 ```
 
 ---
@@ -328,7 +332,7 @@ Dispatch 3 subagents in parallel Tasks, each in a clean context. Pass each agent
 
 Required files: `task-*.md`, `test.md`, `requirement.md`
 
-Review question: 「task-*.md 的每個 task 是否都有 test.md 裡對應的測試覆蓋錨點？task 產生的邊界條件（例如空值、並發、超時）是否在 test.md 的邊界條件清單中被覆蓋？有沒有 task 產出了一個功能，但 test.md 裡找不到驗證它的策略？requirement.md 的每個 Given-When-Then 情境，是否都能在 test.md 找到對應的覆蓋錨點（E2E 列、整合測試列、或邊界條件項）？沒有錨點的情境即為 finding。」
+Review question: 「task-*.md 的每個 task 是否都有 test.md 裡對應的測試覆蓋錨點？task 產生的邊界條件（例如空值、並發、超時）是否在 test.md 的邊界條件清單中被覆蓋，且每條邊界條件都回指到產生該風險的 task？有沒有 task 產出了一個功能，但 test.md 裡找不到驗證它的策略？requirement.md 的每個 Given-When-Then 情境，是否都能在 test.md 找到對應的覆蓋錨點（E2E 列、整合測試列、或邊界條件項）？沒有錨點的情境即為 finding。再檢查測試品質三點，任一不過即為 finding：(1) 可達性與情境合理性——每條 E2E 列的真實入口（端點或方法）是否經 grep/read 驗證存在，且業務語意正確（同意／決行／會簽／駁回／批次不得張冠李戴）；主路徑分支盤點是否完整（單簽、會簽、決行的最後一關 vs 非最後一關兩側、批次各佔一列，未折疊）——缺任一分支即為 finding；(2) 斷言有效性——關鍵驗證點是否為具名可斷言值（具名 ReturnCode／狀態轉換／回調觸發或不觸發），凡「有回應／回傳成功／全綠」這類同義反覆即為 finding；(3) 冗餘與首要交付——是否有重複或不對應任何 task 風險的多餘測試，且本次首要交付物是否有一條測試把『達成』釘死。」
 
 **Agent 2 — test ↔ design alignment**
 
