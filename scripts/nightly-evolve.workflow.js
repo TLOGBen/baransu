@@ -8,7 +8,12 @@ export const meta = {
 // args = { skills?: string[], margin?: number, root?: string }
 // Body-size ceiling is enforced by the CALLER (Bash precomputes eligible skills
 // and passes them in args.skills) because the workflow sandbox has no fs access.
-const ROOT = (args && args.root) || '/home/vakarve/projects/baransu/.claude/worktrees/nightly-evolve-codex-ship'
+// args.root is REQUIRED — the previous hardcoded default pointed at a dead path.
+// Adoption (writing scratch back to the live SKILL.md) is the CALLER's obligation
+// and passes through evolve's Gate 4 (Authorization PAUSE / standing auth); this
+// workflow only proposes.
+const ROOT = args && args.root
+if (!ROOT) throw new Error('args.root required — pass the baransu repo/worktree root')
 const ALL = ['analyze','book','codex-skill-transfer','design','evolve','execute','health','hunt','learn','read','review','ship','think','write']
 const SKILLS = (args && Array.isArray(args.skills) && args.skills.length) ? args.skills : ALL
 const MARGIN = (args && typeof args.margin === 'number') ? args.margin : 2.0   // min per-judge structure-point improvement to adopt
@@ -32,18 +37,22 @@ const allGE=(m,b)=>m.d1>=b.d1&&m.d2>=b.d2&&m.d3>=b.d3&&m.d4>=b.d4&&m.d5>=b.d5&&m
 const results = await pipeline(
   SKILLS,
   (skill)=>agent(`Target SKILL.md: ${ROOT}/plugins/baransu/skills/${skill}/SKILL.md\n\nSTRUCTURE-AXIS-ONLY: weakest dimension ONLY from dims 1-6.\n\n${RUBRIC}\n\nRead in full, score dims 1-6, pick the single weakest by weighted headroom, propose ONE concrete single-variable improvement (minimal, respect cluster {3,4,5}). Prefer in-place rewording over net additions when the dimension allows. Diagnose only; never edit.`,{agentType:'baransu:evolve-diagnostician',phase:'Diagnose',label:`diag:${skill}`,schema:DIAG_SCHEMA}),
-  (diag,skill)=>{ if(!diag) return null; const scratch=`${ROOT}/.claude/evolve/${skill}/scratch.md`; const real=`${ROOT}/plugins/baransu/skills/${skill}/SKILL.md`;
-    return agent(`Read ${real}. Apply EXACTLY ONE single-variable change addressing ONLY dimension ${diag.weakest_dimension} (${diag.weakest_name}): ${diag.improvement_direction}\n\nHARD RULES:\n- Do NOT edit ${real}. Write the FULL revised file to ${scratch} via the Write tool (creates parent dirs).\n- Minimal single-variable change; do not touch other dimensions; respect cluster {3,4,5}; preserve frontmatter + English-body convention + every required section.\nReturn scratch_path=${scratch}, mutation_summary, wrote_scratch_only=true.`,{agentType:'general-purpose',phase:'Mutate',label:`mutate:${skill}`,schema:MUT_SCHEMA}).then(m=>m?{diag,mut:m}:null) },
-  (prev,skill,i)=>{ if(!prev) return null; const real=`${ROOT}/plugins/baransu/skills/${skill}/SKILL.md`; const scratch=prev.mut.scratch_path; const even=(i%2)===0; const alphaPath=even?real:scratch; const betaPath=even?scratch:real; const mutatedLabel=even?'beta':'alpha';
+  (diag,skill,i)=>{ if(!diag) return null; const scratch=`${ROOT}/.claude/evolve/${skill}/scratch.md`; const real=`${ROOT}/plugins/baransu/skills/${skill}/SKILL.md`; const panel=`${ROOT}/.claude/evolve/${skill}/panel/round-1`; const even=(i%2)===0;
+    // Mechanical blinding (evolve SKILL.md Stage 5 contract): judges must never see
+    // live-vs-scratch path names. The mutate agent writes byte-identical copies to
+    // neutral panel paths; round parity decides which side is the mutation.
+    return agent(`Read ${real}. Apply EXACTLY ONE single-variable change addressing ONLY dimension ${diag.weakest_dimension} (${diag.weakest_name}): ${diag.improvement_direction}\n\nHARD RULES:\n- Do NOT edit ${real}. Write the FULL revised file to ${scratch} via the Write tool (creates parent dirs).\n- Minimal single-variable change; do not touch other dimensions; respect cluster {3,4,5}; preserve frontmatter + English-body convention + every required section.\n- Then write two byte-identical blinded copies: copy ${real} unchanged to ${panel}/${even?'alpha':'beta'}.md and your revised version to ${panel}/${even?'beta':'alpha'}.md — no headers, no annotations, exact bytes.\nReturn scratch_path=${scratch}, mutation_summary, wrote_scratch_only=true.`,{agentType:'general-purpose',phase:'Mutate',label:`mutate:${skill}`,schema:MUT_SCHEMA}).then(m=>m?{diag,mut:m}:null) },
+  (prev,skill,i)=>{ if(!prev) return null; const panel=`${ROOT}/.claude/evolve/${skill}/panel/round-1`; const even=(i%2)===0; const alphaPath=`${panel}/alpha.md`; const betaPath=`${panel}/beta.md`; const mutatedLabel=even?'beta':'alpha';
     return parallel([0,1,2].map(j=>()=>agent(`Two versions of a SKILL.md. One is a proposed single-variable revision of the other; do NOT assume which.\nalpha = ${alphaPath}\nbeta = ${betaPath}\n\n${RUBRIC}\n\nRead BOTH in full. Score each independently on dims 1-6. Return alpha_scores, beta_scores, brief reasoning.`,{agentType:'baransu:evolve-judge',phase:'Judge',label:`judge${j}:${skill}`,schema:JUDGE_SCHEMA}))).then(raw=>{
       const votes=raw.filter(Boolean).map(v=>{const m=v[mutatedLabel+'_scores'];const b=v[(mutatedLabel==='beta'?'alpha':'beta')+'_scores'];const mt=sum(m),bt=sum(b);return{mutatedTotal:mt,baseTotal:bt,delta:mt-bt,strict:mt>bt&&allGE(m,b)}});
       const keepCount=votes.filter(v=>v.strict).length;
       const minMargin=votes.length?Math.min(...votes.map(v=>v.delta)):0;
-      // CONVERGENCE GUARD: auto-adopt requires unanimous 3/3 strict AND a meaningful margin.
+      // CONVERGENCE GUARD: a proposal is forwarded only on unanimous 3/3 strict AND a meaningful margin.
+      // (Adoption itself stays with the caller via evolve Gate 4 — this script never writes back.)
       const unanimous=keepCount>=3 && votes.length>=3;
       const meaningful=minMargin>=MARGIN;
       const keep=unanimous && meaningful;
-      const reason = !unanimous ? 'not-unanimous' : (!meaningful ? `margin-converged(min ${minMargin} < ${MARGIN})` : 'adopt');
+      const reason = !unanimous ? 'not-unanimous' : (!meaningful ? `margin-converged(min ${minMargin} < ${MARGIN})` : 'propose');
       return {skill,weakest_dimension:prev.diag.weakest_dimension,weakest_name:prev.diag.weakest_name,mutation_summary:prev.mut.mutation_summary,scratch_path:prev.mut.scratch_path,votes,keepCount,minMargin,keep,reason}; }) }
 )
 const clean=results.filter(Boolean)

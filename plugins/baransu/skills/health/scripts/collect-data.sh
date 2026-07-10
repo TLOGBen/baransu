@@ -590,19 +590,28 @@ else
   echo "(none)"
 fi
 echo "=== GITIGNORE ==="
-_GITIGNORE_HIT=$(git -C "$P" check-ignore -v .claude/settings.local.json 2>/dev/null || true)
-if [ -n "$_GITIGNORE_HIT" ]; then
-  _GITIGNORE_SOURCE=${_GITIGNORE_HIT%%:*}
-  case "$_GITIGNORE_SOURCE" in
-    .gitignore|.claude/.gitignore)
-      echo "settings.local.json: gitignored"
-      ;;
-    *)
-      echo "settings.local.json: ignored only by non-project rule ($_GITIGNORE_SOURCE) -- add a repo-local ignore rule"
-      ;;
-  esac
+# Only print a verdict when there is something committable: the file must
+# exist and the project must be a git repo, else a literal analyst turns the
+# baked-in alarm text into a false Critical.
+if [ ! -f "$SETTINGS" ]; then
+  echo "settings.local.json: (file absent)"
+elif ! git -C "$P" rev-parse --git-dir >/dev/null 2>&1; then
+  echo "settings.local.json: (not a git repo -- nothing can be committed)"
 else
-  echo "settings.local.json: NOT gitignored -- risk of committing tokens/credentials"
+  _GITIGNORE_HIT=$(git -C "$P" check-ignore -v .claude/settings.local.json 2>/dev/null || true)
+  if [ -n "$_GITIGNORE_HIT" ]; then
+    _GITIGNORE_SOURCE=${_GITIGNORE_HIT%%:*}
+    case "$_GITIGNORE_SOURCE" in
+      .gitignore|.claude/.gitignore)
+        echo "settings.local.json: gitignored"
+        ;;
+      *)
+        echo "settings.local.json: ignored only by non-project rule ($_GITIGNORE_SOURCE) -- add a repo-local ignore rule"
+        ;;
+    esac
+  else
+    echo "settings.local.json: NOT gitignored -- risk of committing tokens/credentials"
+  fi
 fi
 
 echo "[7/12] HANDOFF.md + MEMORY.md..."
@@ -621,7 +630,9 @@ print_conversation_file_listing
 echo "=== CONVERSATION SIGNALS ==="
 print_conversation_signals
 
-if [ "$TIER" != "simple" ] && [ "$MODE" = "deep" ]; then
+# Deep sections gate on MODE alone: deep already implies user-approved cost,
+# and an explicit deep audit of a Simple-tier project must still get extracts.
+if [ "$MODE" = "deep" ]; then
 echo "=== CONVERSATION EXTRACT ==="
 print_conversation_extract
 echo "=== MCP ACCESS DENIALS ==="
@@ -727,7 +738,7 @@ done | grep -q .; }; then
 fi
 
 echo "[12/12] Skill content sample + security scan..."
-if [ "$TIER" != "simple" ] && [ "$MODE" = "deep" ]; then
+if [ "$MODE" = "deep" ]; then
 echo "=== SKILL FULL CONTENT ==="
 _CONTENT_COUNT=0
 for DIR in "$P/.claude/skills" "$HOME/.claude/skills"; do

@@ -10,7 +10,7 @@ dispatch(version_alpha, version_beta, rubric, round_parity) → votes[]   // exa
 
 Inputs per dispatched judge — identical in both modes (SKILL.md Stage 5):
 
-- the two neutrally-labelled versions (`alpha` / `beta`); `round_parity` fixes which label is the mutated one, swapped on odd vs even rounds to cancel position bias
+- the two neutrally-labelled versions (`alpha` / `beta`) as the **mechanically blinded panel copies** at `.claude/evolve/<slug>/panel/round-<N>/{alpha,beta}.md` (SKILL.md Stage 5) — judges receive only these paths, never the live skill path or the scratch path (path names leak which version is the mutation); `round_parity` fixes which label is the mutated one, swapped on odd vs even rounds to cancel position bias, and is never disclosed to judges
 - the fixed rubric (`references/rubric-9dim.md`) — the selection environment, never edited mid-run
 
 Each returned vote carries exactly the fields Stage 5 already mandates:
@@ -21,7 +21,7 @@ Each returned vote carries exactly the fields Stage 5 already mandates:
 | strict_improvement | boolean — the mutated version strictly improves (total rises AND no dimension regresses) |
 | per_dimension_deltas | signed per-dimension change, used to detect cluster-sibling regression ({3,4,5}, {7,8}) |
 
-The keep rule — **keep iff ≥ 2 of 3 `strict_improvement` = true** (tightened to 3 of 3 under high real-exec noise) — is applied by the main flow only. Adapters never tally votes, never keep, never restore, and never write the target file.
+The keep rule — **keep iff ≥ 2 of 3 `strict_improvement` = true** (tightened to 3 of 3 whenever the round's effectiveness evidence label is `real-exec`, per SKILL.md Stage 5) — is applied by the main flow only. Adapters never tally votes, never keep, never restore, and never write the target file.
 
 Business rules — single-variable mutation, the structure gate (Gate 4), file-level rollback (Gate 2), and the adoption Authorization PAUSE (Gate 1) — live only in SKILL.md Stages 2–6 and `references/safety-gates.md`. This document cites them and never copies them.
 
@@ -40,7 +40,7 @@ When the read does happen, before Stage 1 begins:
 
 **Three fresh evolve-judge Tasks in parallel** per round, each in a clean context, exactly as SKILL.md Stage 5 specifies. Judges are single-use — never reuse a judge across rounds — and blind to which label is the mutation. The Stage 1 evolve-diagnostician is a separate single dispatch (no fan-out) and is not part of this panel interface.
 
-Depth invariant (restated for this adapter): dispatched judge and diagnostician agents must not invoke skills or dispatch further subagents — they are stateless leaf nodes (depth = 1) that never call any `/baransu:*` skill and never spawn a sub-panel. This depth invariant constrains those leaf judge/diagnostician agents; it does not constrain evolve's own worker fan-out when evolve is itself hosted as a subagent — the `Agent` tool is always available (probe run a928109), so being dispatched as a subagent does NOT disable evolve's fan-out of the judge panel. That release is unconditional and orthogonal to interactive-capability detection — never gated behind an AskUserQuestion proxy.
+Depth invariant (restated for this adapter): dispatched judge and diagnostician agents must not invoke skills or dispatch further subagents — they are stateless leaf nodes (depth = 1) that never call any `/baransu:*` skill and never spawn a sub-panel. This constrains only the leaf agents, not evolve's own fan-out when evolve is itself hosted as a subagent — see the fan-out release in SKILL.md Constraints and loop-contract's detection-primitive paragraph.
 
 ## 4. Workflow thin adapter — pinned-workflow mode only
 
@@ -51,4 +51,4 @@ When Stage 0 pinned `workflow`, dispatch the same three judges via Workflow `par
 
 Nothing else. No tally, no keep/restore, no adoption, no mutation — those stay in the main flow (SKILL.md Stages 5–6). A batch run that evolves several skills may wrap one such per-skill panel per Workflow item, but the per-run vote schema above is unchanged.
 
-Depth invariant (restated for this adapter): Workflow-dispatched judge agents must not invoke skills or dispatch further subagents — no branch may add judges, extra rounds, or a nested panel. As above, this leaf-level depth invariant does not constrain evolve's own worker fan-out when evolve is itself hosted as a subagent — the `Agent` tool is always available (probe run a928109), and the fan-out release is orthogonal to interactive-capability detection.
+Depth invariant (restated for this adapter): Workflow-dispatched judge agents must not invoke skills or dispatch further subagents — no branch may add judges, extra rounds, or a nested panel. As in §3, the leaf-level invariant does not constrain evolve's own fan-out — stated once in SKILL.md Constraints.

@@ -177,3 +177,5 @@ Outcome Contract still applies.
 | /write | `../write/references/loop-pauses.md` |
 | /read | `../read/references/loop-pauses.md` |
 | /book | `../book/references/loop-pauses.md` |
+| /design | `../design/references/loop-pauses.md` |
+| /health | `../health/references/loop-pauses.md` |

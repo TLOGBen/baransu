@@ -1,7 +1,7 @@
 ## Contents
 
 - §4.1 Color tokens (SVG roles)
-- §4.2 Required `<defs>` fragment (prepend to every SVG)
+- §4.2 Required `<defs>` fragment (the fixed marker vocabulary)
 - §4.3 Marker defs (arrows use a chevron `<path>`, three fixed ids)
 - §4.4 Two-layer paper-mask (node background and canvas base)
 - §4.5 Type tag (top-left of node, 7px Geist Mono uppercase)
@@ -34,7 +34,9 @@ All SVG fill / stroke **must not use `rgba()`** — always use a solid hex token
 
 > `rgba()` inside CSS `box-shadow` is not restricted (it is not an SVG attribute).
 
-## §4.2 Required `<defs>` fragment (prepend to every SVG)
+## §4.2 Required `<defs>` fragment (the fixed marker vocabulary)
+
+The fragment below is the **complete three-id vocabulary**. Prepend to each SVG **only the marker ids that SVG actually references** via `marker-end` — GATE-D (marker-integrity) fails any unused marker definition, so blindly prepending all three to a diagram that never uses e.g. `arrow-link` is a guaranteed GATE FAIL (the repo's `validate-fixtures/unused-marker-def.html` negative fixture asserts exactly this).
 
 ```svg
 <defs>
@@ -60,7 +62,7 @@ All SVG fill / stroke **must not use `rgba()`** — always use a solid hex token
 
 ## §4.3 Marker defs (arrows use a chevron `<path>`, three fixed ids)
 
-**Rule**: every SVG that contains arrows must define the following three markers inside `<defs>` and reference them via `marker-end="url(#…)"`; the arrow geometry **must always use a stroked chevron path** (`d="M2 1 L8 5 L2 9"`, `fill="none"`, `stroke-linecap="round"`) — no filled polygon, and no hand-drawn arrow path.
+**Rule**: every SVG that contains arrows takes its marker definitions from the following fixed three-id vocabulary — define inside `<defs>` **only the ids the diagram actually references** via `marker-end="url(#…)"` (defs ↔ refs must be bijective; GATE-D fails both dangling references and unused definitions); the arrow geometry **must always use a stroked chevron path** (`d="M2 1 L8 5 L2 9"`, `fill="none"`, `stroke-linecap="round"`) — no filled polygon, and no hand-drawn arrow path.
 
 | Marker id | Use | stroke |
 |-----------|----------|--------|
@@ -127,7 +129,7 @@ All SVG fill / stroke **must not use `rgba()`** — always use a solid hex token
 <!-- Items — 水平排列，~160px 間距，每項一個 swatch + label -->
 ```
 
-- **Exception**: when the SVG `viewBox` width < 400px (card embed, small diagram) the legend strip may be omitted and replaced by an explanation in the body text
+- **Exception**: when the SVG `viewBox` **height** < 400px (card embed, small / short diagram) the legend strip may be omitted and replaced by an explanation in the body text — height is the axis GATE-C keys on (`validate-output.ts` SKIPs GATE-C when viewBox height < 400, and only then), so the spec and the gate share one axis
 
 **Why**: placing the legend outside the diagram (rather than between the nodes) reserves the central area for structural information; the hairline separator makes the legend visually belong to a "footnote zone" rather than part of the diagram, preventing readers from mistaking a swatch for a node.
 

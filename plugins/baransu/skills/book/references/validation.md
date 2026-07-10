@@ -62,7 +62,7 @@ Mapping each hard-floor item to the existing gate that enforces it (confirmed ag
 
 | Hard-floor item | Enforcing gate in `validate-output.ts` | Coverage |
 |-----------------|----------------------------------------|----------|
-| token-only (class prefix routed through canonical preset) | GATE-F class-prefix (F-a prefix-in-whitelist / F-b single-prefix / F-c tokens.css tie-break) | covered for class tokens; bare-hex *color values* are **not** scanned by any gate — see follow-up note |
+| token-only (class prefix routed through canonical preset) | GATE-F class-prefix (F-a prefix-in-whitelist / F-b single-prefix / F-c tokens.css tie-break) | covered for class tokens **in PPT mode only** — GATE-F SKIPs on long-form html (`isPpt` keys on `section[data-layout]`), where the class-prefix/token floor is guarded solely by the Stage 3 §3 pre-write checklist; bare-hex *color values* are **not** scanned by any gate in either mode — see follow-up note |
 | no-rgba (SVG fill / stroke) | — | **not covered** by an existing gate — see follow-up note |
 | accent ≤5% (single chromatic accent, painted area) | — | **not covered** by an existing gate (area share is unmeasured) — see follow-up note |
 | PDF-safe (no WeasyPrint ghost-border / unsafe layout) | GATE-K chevron-strict (forbids `<polygon>` markers that ghost-border in PDF) + html2pptx pre-checks rule2_gradient / rule3_bg_on_text / rule4_div_bg_image (all `hard_fail`, PPT mode) | partially covered: chevron / gradient / bg-image ghosting is gated; the `rgba()` alpha-composite ghost-border is not (it overlaps the no-rgba gap above) |

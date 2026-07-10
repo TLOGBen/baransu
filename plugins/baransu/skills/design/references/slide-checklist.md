@@ -45,7 +45,7 @@ Under the swiss preset, the long-form / slide HTML body contains `<em>` / `<i>` 
 The author carries over the general web-emphasis instinct, equating semantic emphasis with visual italics; Swiss invariant #10 states explicitly: emphasis goes through weight / spacing / accent color, not italic. The italic glyph set of fonts like Inter actually breaks KPI alignment in numeric tabular scenarios.
 
 ### Fix
-Remove all `<em>` / `<i>` / `font-style: italic` declarations from slide-core / long-form templates; use `<strong>` + the `--swiss-weight-emphasis` token, or a `letter-spacing` tweak, instead. `check.py` adds an `<em>|<i\b|font-style:\s*italic` regex detection in the `preset == swiss` context; a hit fails.
+Remove all `<em>` / `<i>` / `font-style: italic` declarations from slide-core / long-form templates; use `<strong>` + the `--swiss-weight-emphasis` token, or a `letter-spacing` tweak, instead. Detection today: `check.py`'s legacy per-file mode flags `font-style: italic` (all presets, not swiss-scoped); the swiss-context `<em>|<i\b>` tag regex is proposed tooling (not yet implemented) — until it lands, grep the tags manually.
 
 source: kami-spec-L86
 
@@ -60,7 +60,7 @@ swiss preset slide-core / long-form HTML inlines `style="color: oklch(...)"` or 
 The author copies oklch values directly from `tokens.css` and stuffs them into an attribute, ignoring the parser-level split between an attribute literal and a CSS property — attributes go through the SVG presentation parser, whose oklch support lags far behind CSS. TASK-shared-02 already drew the line: oklch may exist only in a CSS variable or stylesheet, and **must not** enter an attribute.
 
 ### Fix
-Route all color attributes through a CSS class or `var(--token-name)` instead (and that token may use oklch internally); change SVG `fill` / `stroke` attributes to `currentColor` or a named class. `check.py` adds a `(style|fill|stroke)=["'][^"']*oklch\(` regex; a hit fails P0-S-02.
+Route all color attributes through a CSS class or `var(--token-name)` instead (and that token may use oklch internally); change SVG `fill` / `stroke` attributes to `currentColor` or a named class. The `(style|fill|stroke)=["'][^"']*oklch\(` regex in `check.py` is proposed tooling (not yet implemented) — until it lands, grep for attribute-embedded `oklch(` manually; do not assume the gate fires.
 
 source: dogfood-v1.3-handoff
 
@@ -75,7 +75,7 @@ SVG chevron / arrow markers inside diagram-types/*.md use `<path d="M..."/>` to 
 The author takes "marker = arbitrary vector" as the premise, not understanding that `<polygon points="0,0 10,5 0,10"/>` is the standard form of a marker: explicit vertices, no control point, and correctly rotatable by marker-orient. Kami spec L86 states explicitly: chevron marker = polygon-three-points; a path simulation always fails.
 
 ### Fix
-In all 13 `references/diagram-types/*.md` example SVGs, replace the chevron `<path>` with `<polygon points="0,0 10,5 0,10" fill="currentColor"/>`, and set `markerUnits="strokeWidth"` `orient="auto"` on the `<marker>`. `validate-output.ts` GATE-J already covers this; `check.py` adds a `<marker[^>]*>\s*<path` regex detection.
+In all 13 `references/diagram-types/*.md` example SVGs, replace the chevron `<path>` with `<polygon points="0,0 10,5 0,10" fill="currentColor"/>`, and set `markerUnits="strokeWidth"` `orient="auto"` on the `<marker>`. `validate-output.ts` GATE-J already covers this on the /book side; the `check.py` `<marker[^>]*>\s*<path` regex is proposed tooling (not yet implemented) — until it lands, grep manually.
 
 source: kami-spec-L86
 
@@ -90,7 +90,7 @@ The outermost node (focal / hub node) inside a diagram SVG takes a `<rect width=
 The author sets width by "looks about right", without aligning to the baseline grid multiple-of-4 whitelist; TASK-svg-05 GATE-J locks top-level node width to three tiers {128, 144, 160} (small / medium / large), corresponding to multiple-of-4 × golden-ratio approximation. Arbitrary values break cross-diagram visual rhythm.
 
 ### Fix
-In all diagram-types/*.md, change every top-level node `<rect width>` to one of 128 / 144 / 160; focal node defaults to 144. `validate-output.ts` GATE-J is already implemented; `check.py` adds a check that parses the SVG and compares top-level rect width against the whitelist, failing when it is not in the set.
+In all diagram-types/*.md, change every top-level node `<rect width>` to one of 128 / 144 / 160; focal node defaults to 144. `validate-output.ts` GATE-J is already implemented on the /book side; the equivalent SVG-parsing whitelist check in `check.py` is proposed tooling (not yet implemented) — until it lands, verify widths manually.
 
 source: huashu-incident-2026-04-20
 
@@ -105,7 +105,7 @@ The number of nodes marked with the `--focal-fill` token or `class="focal"` insi
 The author marks every important node as focal, not understanding that focal = a sticky point for the visual center of gravity, which should correspond to "at most two narrative throughlines"; the shared TASK-svg-01..04 invariant: focal cap 2, beyond which it becomes the "mark everything = mark nothing" anti-pattern.
 
 ### Fix
-Re-examine focal annotations in the diagram-types/*.md example SVGs, using at most 2 focal class / token uses per diagram; demote other important nodes to the `secondary` class (which automatically lowers contrast one level). `check.py` counts occurrences of `class="[^"]*focal[^"]*"`; > 2 fails P0-A-03.
+Re-examine focal annotations in the diagram-types/*.md example SVGs, using at most 2 focal class / token uses per diagram; demote other important nodes to the `secondary` class (which automatically lowers contrast one level). The `check.py` count of `class="[^"]*focal[^"]*"` (> 2 fails) is proposed tooling (not yet implemented) — until it lands, count focal annotations manually.
 
 source: kami-spec-L86
 

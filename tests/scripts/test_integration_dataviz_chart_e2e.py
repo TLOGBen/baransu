@@ -223,12 +223,20 @@ class TestFilesUntouchedRegressionGate(unittest.TestCase):
         )
 
     def test_check_py_diff_purely_additive(self):
+        # Originally 0 deletions (the chart-capability feature was purely
+        # additive). The later /design audit fix intentionally edited Check C
+        # (slug→prefix-family mapping — the shipped google-design preset
+        # failed its own lint) and Check E (HTML-comment stripping), replacing
+        # exactly 4 pre-existing lines. Allow that audited edit; anything
+        # beyond it still trips this gate.
+        AUDITED_CHECK_C_E_FIX_DELETIONS = 4
         ins, dele = _git_numstat(CHECK_PY)
-        self.assertEqual(
-            dele, 0,
-            f"check.py diff must have 0 deletions (purely additive), got {dele} "
-            "deletions — a deletion would mean existing Check A-F logic was "
-            "edited, not just extended",
+        self.assertLessEqual(
+            dele, AUDITED_CHECK_C_E_FIX_DELETIONS,
+            f"check.py diff must have at most {AUDITED_CHECK_C_E_FIX_DELETIONS} "
+            f"deletions (the audited Check C/E fix), got {dele} — further "
+            "deletions would mean existing Check A-F logic was edited beyond "
+            "the audited fix",
         )
         self.assertGreater(ins, 0, "check.py should show the CHART_CAPABILITY additions")
 
