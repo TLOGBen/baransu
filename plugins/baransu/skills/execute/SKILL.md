@@ -412,7 +412,7 @@ Advisory notes from Coverage Report → record in final-report; do not trigger f
 Write `.claude/execute/{date}-{slug}/execute/final-report.md`. Template: `references/output-formats.md §final-report.md`.
 
 When emitting the report:
-- If an upstream work journal exists (`.claude/think/*.html` for the approved plan), read `../_shared/output-journal.md` and append this run's off-spec decisions / forced changes / tradeoffs to its 執行日誌 section per that contract, then SendUserFile the updated journal.
+- If an upstream work journal exists (`.claude/think/*.html` for the approved plan; `.claude/review/*.html` when the spec was handed off via a review deliverable), read `../_shared/output-journal.md` and append this run's off-spec decisions / forced changes / tradeoffs to its 執行日誌 section per that contract, then SendUserFile the updated journal. Journal selection when several exist: pick the one whose slug matches the plan/spec this run traces to; if no slug matches unambiguously, pick the most recently modified journal and open the appended entry with 「（自動選定最近修改的 journal）」 — never fan out the append to multiple journals.
 
 Remove all worktrees created this session, iterating the confirm.md worktree registry (a degraded in-place run has an empty registry — skip this whole block silently). The worktree-remove is safe only because dirty not-integrated worktrees are WIP-committed first (below) — after that it discards a checkout, not committed work. The branch force-delete is **integration-state-gated**: `git branch -D` is irreversible and would silently discard any commits that never reached main, so it runs **only** for a group whose work is confirmed integrated (`in-place` groups have no session branch — nothing to delete).
 
