@@ -194,6 +194,8 @@ In the converted markdown, replace each original image ref (absolute or relative
 
 Find the first `# ` heading in `/tmp/{slug}-convert.md`. If none, use the URL path's last segment or filename stem.
 
+If the first `# ` heading is a numbered/section artifact (e.g. "1. Overview") or otherwise clearly not the document title, fall back to the HTML `<title>` from `raw/`, then to the URL path stem — a section number must never become the slug.
+
 ### 2. Generate final slug
 
 Apply slug rules to the title: lowercase, ASCII, hyphens, max 60 chars; collapse consecutive hyphens into one and strip leading/trailing hyphens. For worked examples and directory-layout rationale, consult `references/storage-protocol.md` when an edge case is unclear.
