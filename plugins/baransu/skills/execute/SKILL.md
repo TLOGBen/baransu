@@ -32,7 +32,7 @@ These apply across all steps. The review-agent rule and the spec-read-only rule 
 - **All Task Tools created before execution begins.** Register every group × task via TaskCreate in Step 2. No mid-execution task creation.
 - **Working files live under `.claude/execute/`.** Edit and Write are only permitted in the execute working directory.
 - **goal.md criteria are the top acceptance authority.** requirement.md / test.md operationalizations are means, not the finish line: when they under-specify a goal.md 驗收標準 (C{n}), the criterion's literal wording wins. A criterion satisfied only inside test scaffolding while its production path stays inert is NOT met (see the [latent-defect disclosure trap] gotcha). Step 6 cross-checks every C{n} against its literal wording.
-- **Process artifacts are a closed list.** The only working documents this skill writes are: confirm.md, task-map.md, impl-checklist-{group}.md, context/*-ctx.md, and final-report.md (plus task-registry.md only when Task tools are unavailable). Do not invent additional per-task self-review / telemetry / coverage documents — review evidence lives in the checklist fields and final-report.md. Degraded runs that absorb agent roles get no extra artifacts beyond this list.
+- **Process artifacts are a closed list.** The only working documents this skill writes are: confirm.md, task-map.md, impl-checklist-{group}.md, context/*-ctx.md, and final-report.md (plus task-registry.md only when Task tools are unavailable). Do not invent additional per-task self-review / telemetry / coverage documents — review evidence lives in the checklist fields and final-report.md. Degraded runs that absorb agent roles get no extra artifacts beyond this list; in a degraded single-context run, context/*-ctx.md may be terse — the eight field headers with file/line pointers instead of copied prose — since it exists for post-compaction re-read resilience, not for a subagent reader.
 - **Goal-Alignment Filter is hard governance.** `failure_count` accounting is affected by the filter (off-goal findings are downgraded to advisory and do not increment the counter), but findings tied to an acceptance-criterion direct failure (驗收標準直接失敗) are protected by the hard invariant — they keep their original tier and still increment `failure_count`.
 - **Worktree lifecycle.** Worktrees are created for any parallel execution (L/XL) **only when git is available**; removed in Step 7 after final-report.md is written. When the project has no git repo, or any `git worktree add` fails, the run degrades one-way to in-place serialized execution (see §4a) — a missing git repo never blocks tasks and never wedges the session.
 - **final-fixer-agent is dispatched at most once per session.**
@@ -171,6 +171,8 @@ Dispatch **summarize-agent** with `spec_dir`, `task_id`, and `output_path`. The 
 
 **Phase 2 — Impl** (Write Tests → Prove Red → Impl Green)
 
+**Test-weight tier (orchestrator decides per task, before the first dispatch)**: a task whose 步驟 only wire existing behavior — thin pass-through forwarders, module registration, re-exports, config plumbing — takes the **coverage-riding path** (`test_weight: riding`): impl-agent writes no new per-task tests when every 驗收標準 item is already semantically pinned by a named test elsewhere in the suite (same session or pre-existing); the pinning tests must be named per criterion in the impl report and in `green_proof.tests_correspondence`, and review-agent verifies that correspondence. Any task that gives birth to new observable behavior — new logic, new state, new user-visible output — takes the full Red gate → Green path (`test_weight: full`). When in doubt, full. This is the 輕重 rule: the prove-red ritual is spent where behavior is born; wiring rides on the named pinning tests plus the Step 5 E2E net.
+
 ```
 failure_count = 0
 compile_error_count = 0  # consecutive compile-error ❌ returns; reset by any other return
@@ -179,6 +181,7 @@ LOOP:
   Dispatch impl-agent with:
     - ctx_path:            context/{group}-{task-id}-ctx.md
     - worktree_path:       group worktree path (or null for M)
+    - test_weight:         full | riding  (per the tier rule above; default full)
     - refactor_mode:       false  (set true only when review signals it)
     - correction_strategy: composite object {text, investigate_files} when
                            failure_count == 2 (built from smart-friend output;
@@ -266,6 +269,8 @@ SWITCH review_tier:
     #   off-goal findings.
     → go to Goal-Alignment Filter sub-step below
 ```
+
+**Per-task commit**: immediately after a task marks ✅ (any SWITCH path above), commit that task's changes in its working tree with a conventional message — `feat|fix|refactor({group}): TASK-{group}-NN {title}`. One task = one commit: red/green checkpoints stay bisectable and mid-run work is never lost to a crash. Never batch multiple ✅ tasks into one commit.
 
 **Goal-Alignment Filter** (applies to: `packaged confirm (correctness)`, `needs judgment`)
 
