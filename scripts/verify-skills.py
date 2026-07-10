@@ -20,7 +20,7 @@ Repo mode（無參數）執行全部檢查：
      silent no-op）
  10. loop-pauses 註冊表完備（loop=drivable/assisted 技能須出貨
      references/loop-pauses.md 且在 _shared/loop-contract.md §4 註冊；
-     無孤兒檔、無死鏈；例外與變體見 check_loop_pauses docstring）
+     無孤兒檔、無死鏈；變體見 check_loop_pauses docstring）
  11. green_proof 欄位名跨檔一致（四鍵 × 四發行面；stale 變體
      run_command 全面禁、passed/collected 僅在 green_proof 語境內禁）
 
@@ -96,11 +96,8 @@ LOOP_VALUE_RE = re.compile(r"\*\*Automation\*\*:[^\n]*\bloop=([a-z-]+)")
 LOOP_ROW_CANON_RE = re.compile(
     r"^\|\s*/([a-z0-9-]+)\s*\|\s*`\.\./([a-z0-9-]+)/references/loop-pauses\.md`\s*\|\s*$"
 )
-# codex-skill-transfer 宣告 loop=assisted 但從未出貨 loop-pauses.md、亦無註冊
-# 列；loop-contract.md §4 明文允許缺席（"A skill absent from this registry has
-# no PAUSE checkpoints beyond the shared semantics"）。在此白名單化，讓其餘
-# drivable/assisted 技能全部吃嚴格規則；移除此豁免須先補齊該檔＋註冊列。
-LOOP_PAUSES_EXEMPT = frozenset({"codex-skill-transfer"})
+# 無豁免：所有 loop=drivable/assisted 技能一律須出貨 loop-pauses.md＋§4 註冊列
+# （codex-skill-transfer 的歷史豁免已於補齊該檔＋註冊列後移除）。
 
 # ---------------------------------------------------------------------------
 # 檢查 11：green_proof 欄位名跨檔一致（常數）
@@ -465,8 +462,7 @@ def check_loop_pauses(skills_root: Path) -> list[str]:
     編碼變體（校準至 2026-07-10 HEAD 現狀，取「能通過現狀的最嚴規則」）：
       a. loop=drivable / loop=assisted 技能 MUST 出貨
          references/loop-pauses.md 且在 _shared/loop-contract.md §4 有
-         canonical 註冊列 —— 唯一豁免 LOOP_PAUSES_EXEMPT
-         （codex-skill-transfer：assisted 但從未出貨；§4 明文允許缺席）。
+         canonical 註冊列 —— 無豁免。
       b. loop=not-drivable 免出貨，但「若出貨即須註冊」（think 現狀：
          not-drivable、有檔、有註冊列 —— 故孤兒規則適用於所有技能）。
       c. 反向：每一註冊列必須指向存在的檔案（無死鏈），列內 /<name> 與
@@ -516,7 +512,7 @@ def check_loop_pauses(skills_root: Path) -> list[str]:
         m = LOOP_VALUE_RE.search(text)
         loop = m.group(1) if m else None
         has_file = (skill / "references" / "loop-pauses.md").is_file()
-        required = loop in ("drivable", "assisted") and skill.name not in LOOP_PAUSES_EXEMPT
+        required = loop in ("drivable", "assisted")
         if required and not has_file:
             v.append(
                 f"{skill.name}: loop={loop} 但缺 references/loop-pauses.md"

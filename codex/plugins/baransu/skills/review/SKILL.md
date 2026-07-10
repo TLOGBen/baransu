@@ -76,7 +76,7 @@ When the tool is absent, each of the four direct user question (record the autho
 
 ### Pre-dispatch off-ramp
 
-Before materializing anything: if the invocation matches a frontmatter Not-For boundary (own-project agent-config audit → /health; baransu structure verification → scripts/verify-skills.py), name the correct route and stop — dispatch nothing. The same name-the-route-and-stop semantics apply to two adjacent confusion surfaces: a symptom/error-debugging ask (e.g. 「看一下為什麼報錯」) → /hunt; a capture-to-offline intent (e.g. 「幫我存下來」) → /read. If no target can be materialized from disk (no diff, no file, no named artifact), ask exactly ONE direct user question (record the authorization decision; stop until the user answers) to pin the target; if the user cannot name one, stop without dispatching — never review from conversation memory. When direct user question (record the authorization decision; stop until the user answers) is absent (subagent-hosted): the target cannot be pinned interactively, so apply the existing stop rule — stop and report `needs-input` upward to the calling layer, and never fabricate or invent a target from conversation memory.
+Before materializing anything: if the invocation matches a frontmatter Not-For boundary (own-project agent-config audit → /health; baransu structure verification → scripts/verify-skills.py), name the correct route and stop — dispatch nothing. The same name-the-route-and-stop semantics apply to two adjacent confusion surfaces: a symptom/error-debugging ask (e.g. 「看一下為什麼報錯」) → /hunt; a capture-to-offline intent (e.g. 「幫我存下來」) → /read. If no target can be materialized from disk (no diff, no file, no named artifact), ask exactly ONE user-question prompt to pin the target; if the user cannot name one, stop without dispatching — never review from conversation memory. When direct user question (record the authorization decision; stop until the user answers) is absent (subagent-hosted): the target cannot be pinned interactively, so apply the existing stop rule — stop and report `needs-input` upward to the calling layer, and never fabricate or invent a target from conversation memory.
 
 Two things, in order, both passed to every dispatched reviewer.
 
@@ -114,7 +114,7 @@ When it triggers, the dispatcher materializes a **state × event × precondition
 
 Every table row carries a source annotation at section granularity: `(verified: <doc §section / file:line>)` or `(inferred: 未實查)`.
 
-If sources are insufficient (no spec found, upstream flow code unavailable): in interactive sessions, ask exactly ONE direct user question (record the authorization decision; stop until the user answers) round to obtain sources. If sources remain insufficient after that round, do not dispatch domain-reviewer, and the report must not claim domain coverage — the Hard stops sweep enforces this outcome. When direct user question (record the authorization decision; stop until the user answers) is absent (subagent-hosted): the source-obtaining round cannot run, so this same non-interactive outcome applies directly — do not dispatch domain-reviewer and the report must not claim domain coverage.
+If sources are insufficient (no spec found, upstream flow code unavailable): in interactive sessions, ask exactly ONE user-question round to obtain sources. If sources remain insufficient after that round, do not dispatch domain-reviewer, and the report must not claim domain coverage — the Hard stops sweep enforces this outcome. When direct user question (record the authorization decision; stop until the user answers) is absent (subagent-hosted): the source-obtaining round cannot run, so this same non-interactive outcome applies directly — do not dispatch domain-reviewer and the report must not claim domain coverage.
 
 ---
 
@@ -322,7 +322,7 @@ For **needs-judgment** items, batch-ask via direct user question (record the aut
 
 After the report has been presented in conversation, persist it as an HTML work journal:
 
-1. Render the full report as a single HTML file at `.claude/review/<slug>.html`, styled after the book golden-template. Derive `<slug>` from the reviewed target's name plus the date — the reviewed spec/plan's own slug when it has one, else `{YYYY-MM-DD}-{target basename}`: the in-conversation report has no on-disk slug of its own, and downstream journal selection matches by slug. The shared rendering contract lives at `plugins/baransu/skills/_shared/output-journal.md` — follow it.
+1. Render the full report as a single HTML file at `.claude/review/<slug>.html`, styled after the book golden-template. Derive `<slug>` per the shared contract's `/review` rule (Location section: the reviewed target's slug when it has one, else `{YYYY-MM-DD}-{target basename}`). The shared rendering contract lives at `plugins/baransu/skills/_shared/output-journal.md` — follow it.
 2. Include an 「執行日誌」 section: off-spec decisions, forced changes, tradeoffs, and anything else from this run the user should know.
 3. Send the file to the user via write the artifact to disk and list its absolute path.
 

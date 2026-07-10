@@ -152,7 +152,7 @@ Total output: ~10 lines in Traditional Chinese, then wait. This mode is for valu
 
 ### Constraint elicitation gate
 
-The three reasons below must be grounded in the user's actual constraints. If the conversation does not already reveal them (time budget, motivation, maintenance cost, business model), ask exactly ONE direct user question with numbered options (stop; classify whether this is an authorization PAUSE before continuing) round in 繁體中文 to elicit the missing ones BEFORE emitting the verdict — never fabricate constraints, never substitute generic trade-offs. If the user declines to answer, state that in the output and ground the reasons in what is observable from the repo instead.
+The three reasons below must be grounded in the user's actual constraints. If the conversation does not already reveal them (time budget, motivation, maintenance cost, business model), ask exactly ONE user-question round in 繁體中文 to elicit the missing ones BEFORE emitting the verdict — never fabricate constraints, never substitute generic trade-offs. If the user declines to answer, state that in the output and ground the reasons in what is observable from the repo instead.
 
 ### Output format (Kill / Keep / Pivot)
 

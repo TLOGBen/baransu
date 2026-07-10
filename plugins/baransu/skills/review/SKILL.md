@@ -307,7 +307,7 @@ For **needs-judgment** items, batch-ask via AskUserQuestion. Let the question co
 
 After the report has been presented in conversation, persist it as an HTML work journal:
 
-1. Render the full report as a single HTML file at `.claude/review/<slug>.html`, styled after the book golden-template. Derive `<slug>` from the reviewed target's name plus the date — the reviewed spec/plan's own slug when it has one, else `{YYYY-MM-DD}-{target basename}`: the in-conversation report has no on-disk slug of its own, and downstream journal selection matches by slug. The shared rendering contract lives at `plugins/baransu/skills/_shared/output-journal.md` — follow it.
+1. Render the full report as a single HTML file at `.claude/review/<slug>.html`, styled after the book golden-template. Derive `<slug>` per the shared contract's `/review` rule (Location section: the reviewed target's slug when it has one, else `{YYYY-MM-DD}-{target basename}`). The shared rendering contract lives at `plugins/baransu/skills/_shared/output-journal.md` — follow it.
 2. Include an 「執行日誌」 section: off-spec decisions, forced changes, tradeoffs, and anything else from this run the user should know.
 3. Send the file to the user via SendUserFile.
 

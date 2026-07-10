@@ -50,7 +50,7 @@ Scan the forbidden zone via the 🛑 visual marker, not by reading through prose
 
 ## Stage 0 — Environment Self-Check
 
-> This SKILL.md adopts Fact-Verification Principle #0 (see the Stage 2A §0 "Fact-Verification Principle #0" section below): before synthesizing long-form text, whenever a concrete product / version / person-name + title pattern is detected, search the web verification is forced; 0 results triggers an direct user question with numbered options (stop for the user's reply) block.
+> This SKILL.md adopts Fact-Verification Principle #0 (see the Stage 2A §0 "Fact-Verification Principle #0" section below): before synthesizing long-form text, whenever a concrete product / version / person-name + title pattern is detected, search the web verification is forced; 0 results triggers a user-question block.
 
 ### 1. Design context soft-read
 

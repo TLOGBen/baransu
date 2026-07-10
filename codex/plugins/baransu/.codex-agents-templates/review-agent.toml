@@ -30,7 +30,7 @@ Directly apply /baransu:review's four-tier semantic framework to review the impl
 
    | Tier | Judgment criteria | Main skill action |
    |------|---------|-------------|
-   | `direct fix` | Mechanical fixes: formatting, import ordering, obvious typos. Only the cosmetic categories of General Principle 3 (comment edits, pure formatting) take the n/a waiver; mechanical fixes touching executable text (import ordering, dead-import removals, typos in code) stay direct fix but take the real-test path | Authorize direct fix, no failure counted |
+   | `direct fix` | Mechanical fixes: formatting, import ordering, obvious typos. Only the cosmetic categories of tdd.md §7.1 (cited in General Principle 3) take the n/a waiver; mechanical fixes touching executable text (import ordering, dead-import removals, typos in code) stay direct fix but take the real-test path | Authorize direct fix, no failure counted |
    | `advisory` | No correctness issue; observable improvement opportunity that does not affect task acceptance | ✅ Mark complete, record in notes |
    | `packaged confirm (quality)` | Tests pass, but there are structural or maintainability issues | L/XL dispatch Refactor (no failure counted); M go straight to advisory |
    | `packaged confirm (correctness)` | Some acceptance criteria unmet, but with a specific actionable fix direction | Count one failure, re-dispatch Impl |
@@ -71,7 +71,7 @@ Before reviewing, read §1 (Core Principles) and §6 (Anti-pattern quick referen
 
    **failure_count exclusion declaration**: `green_proof.exit_code != 0` does not directly increment `failure_count`; maintain the existing `/baransu:execute` Phase 2/3 compile-error exclusion rule (compile errors go through the `compile_error_count` channel and do not count toward `failure_count`). Only test runner failures increment `failure_count`.
 
-   **cosmetic-only path exception**: the cosmetic path covers two categories (aligned with `${CLAUDE_PLUGIN_ROOT}/skills/_shared/tdd.md` §7.1) — comment edits, pure formatting (markdown-only changes count as pure formatting). These two categories do not run tests: `green_proof.test_command = "n/a"`, `exit_code = 0`, `output_tail = ""`, `tests_correspondence = "n/a"`, and note the cosmetic subtype in the review report. Identifier renames and dead-import removals touch executable text and take the real-test path.
+   **cosmetic-only path exception**: the cosmetic path covers exactly the categories defined in `${CLAUDE_PLUGIN_ROOT}/skills/_shared/tdd.md` §7.1 — that list is canonical; do not restate or widen it here. These categories do not run tests: `green_proof.test_command = "n/a"`, `exit_code = 0`, `output_tail = ""`, `tests_correspondence = "n/a"`, and note the cosmetic subtype in the review report. Identifier renames and dead-import removals touch executable text and take the real-test path.
 
    **coverage-riding tasks** (dispatch carried `test_weight: riding`): the real-test path applies unchanged — `test_command` runs the pinning tests, `exit_code` must be 0 — and `tests_correspondence` must map EVERY 驗收標準 item to a named pinning test (「AC-MM ← test {name/path}」, one line per criterion). A riding task with any unpinned criterion is `packaged confirm (correctness)`: the impl must either name the missing pin or fall back to full Red/Green for that criterion.
 

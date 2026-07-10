@@ -39,7 +39,7 @@ These apply across all steps. The review-agent rule and the spec-read-only rule 
 
 - **review-agent is never optional.** Every task — documentation, scripts, config, code — goes through review-agent after each impl-agent attempt. `update task-map.md task state status=completed` is only reachable as the result of a review-agent outcome for the current impl attempt. Marking a task ✅ without spawning a `review-agent` subagent first is a constraint violation.
 - **Analyze spec directory is read-only.** Never Edit or Write any file under `.claude/analyze/`; hooks intercept any write attempts. Any execution path that attempts this must stop immediately and escalate as a structural blocker.
-- **Subagent depth = 1.** Agents in `agents/*.md` are stateless leaf nodes. They do not dispatch further subagents. Being dispatched as a subagent does NOT disable this skill's own worker fan-out — the `Agent` tool is always available (probe run a928109). The depth=1 rule here governs the leaf agents this skill dispatches (they never dispatch further), NOT this dispatcher's own ability to fan out its summarize/impl/review Tasks. Fan-out is released unconditionally and is orthogonal to interactive-capability detection — it is never gated behind an direct user question with numbered options (stop; classify whether this is an authorization PAUSE before continuing) proxy.
+- **Subagent depth = 1.** Agents in `agents/*.md` are stateless leaf nodes. They do not dispatch further subagents. Being dispatched as a subagent does NOT disable this skill's own worker fan-out — the `Agent` tool is always available (probe run a928109). The depth=1 rule here governs the leaf agents this skill dispatches (they never dispatch further), NOT this dispatcher's own ability to fan out its summarize/impl/review Tasks. Fan-out is released unconditionally and is orthogonal to interactive-capability detection — it is never gated behind a user-question proxy.
 - **All `task-map.md` records created before execution begins.** Register every group × task via create a `task-map.md` record in Step 2. No mid-execution task creation.
 - **Working files live under `.claude/execute/`.** Edit and Write are only permitted in the execute working directory.
 - **goal.md criteria are the top acceptance authority.** requirement.md / test.md operationalizations are means, not the finish line: when they under-specify a goal.md 驗收標準 (C{n}), the criterion's literal wording wins. A criterion satisfied only inside test scaffolding while its production path stays inert is NOT met (see the [latent-defect disclosure trap] gotcha). Step 6 cross-checks every C{n} against its literal wording.
@@ -387,7 +387,7 @@ If E2E passes → record ✅ in final-report together with an `e2e_evidence` blo
 
 If E2E fails:
 1. Group independent failure clusters (one per failing feature area; if boundaries unclear, one cluster per failing test)
-2. Spawn one `e2e-fix-agent` subagent per cluster in parallel
+2. Spawn one `e2e-fix-agent` subagent per cluster in parallel, with: `e2e_failure_report` (that cluster's error messages, failing case names, stack traces), `e2e_strategy` (the E2E 測試策略 section excerpted from test.md), `relevant_files` (paths of the code files implicated by the failing stack/case)
 3. Re-run E2E (Monitor)
 4. Passes → ✅. Still fails → record ❌ with details in final-report blocked section; proceed to Step 6.
 
@@ -412,7 +412,7 @@ The Coverage Report has two mandatory parts: (1) per-REQ coverage as before, and
 If `needs_fixer: false` → record conclusion in final-report; proceed to Step 7.
 
 If `needs_fixer: true`:
-1. Spawn a `final-fixer-agent` subagent with: `coverage_report`, `requirement_excerpts` (full text of ❌ REQ-XXX entries), `design_excerpts` (design.md sections relevant to ❌ REQs)
+1. Spawn a `final-fixer-agent` subagent with: `coverage_report`, `requirement_excerpts` (full text of ❌ REQ-XXX entries), `design_excerpts` (design.md sections relevant to ❌ REQs), `goal_excerpts` (verbatim goal.md 驗收標準 text of each ❌ C{n} row plus the cross-check's inert-mechanism evidence)
 2. After fixer completes, dispatch final-review-agent again (same inputs)
 3. If `needs_fixer: false` → proceed to Step 7
 4. If still `needs_fixer: true` → record remaining gaps in final-report blocked section; proceed to Step 7. **Do not invoke fixer again.**
@@ -488,7 +488,7 @@ final-report.md: .claude/execute/{date}-{slug}/execute/final-report.md
 - **[merge branch deletion]**: Use `git branch -D` (force delete), never `git branch -d`. The execute branch was pushed but not PR-merged, so `-d` fails. This applies only when the branch is eligible for deletion — see the integration-state guard in Step 7: a branch whose work never reached main (direct-blocked, cascade-blocked, or merge ❌/⚠️) is kept, not deleted.
   Solution: Always `-D` for `execute/{date}-{slug}/{group}` branches that are integrated; do not delete branches that are not integrated.
 
-- **[task-map.md missing during merge]**: merge-agent needs to know which impl-checklist files exist. If task-map.md was not written in Step 3 before starting Step 4, merge-agent cannot verify coverage. Step 3 must complete fully before Step 4 begins.
+- **[task-map.md missing during merge]**: the orchestrator's §4d `integration_status` bookkeeping and the Step 7 branch-deletion guard both read task-map.md. If task-map.md was not written in Step 3 before starting Step 4, those records have nowhere to live and Step 7 cannot tell integrated branches from blocked ones. Step 3 must complete fully before Step 4 begins.
   Solution: The Step 2 / Step 3 "Done when" gates enforce ordering.
 
 - **[goal-alignment over-filter trap]**: When the Goal-Alignment Filter downgrades all reviewer-initiated off-goal findings to advisory, an acceptance-criteria failure finding can be misclassified as off-goal and silently downgraded too. That collapses back to the [review-agent bypass trap] failure mode — the task marks ✅ while a 驗收標準直接失敗 finding was suppressed.

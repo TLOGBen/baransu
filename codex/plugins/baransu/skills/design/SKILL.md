@@ -219,7 +219,7 @@ Generate a custom-preset full artifact suite via guided questions.
 
 Gen mode mandatorily requires a slug. When `--slug <slug>` is not provided, do NOT dead-end the invocation — recover it:
 
-- **interactive run** → ask for the slug as one more question in the Step 1 direct user question with numbered options (stop for the user's reply) round, proposing a candidate derived from the user's description (lowercased, hyphenated, clamped to the pattern) for the user to confirm or replace;
+- **interactive run** → ask for the slug as one more question in the Step 1 user-question round, proposing a candidate derived from the user's description (lowercased, hyphenated, clamped to the pattern) for the user to confirm or replace;
 - **non-interactive run** → derive the candidate from the description the same way; reject only when nothing derivable exists.
 
 Outright rejection is reserved for the two mechanical failures below:

@@ -17,14 +17,14 @@ Read the target from the angle of "is this rendered output faithful to the activ
 
 When the target has no DESIGN.md to anchor against (project root is blank, or `/baransu:design preset` has not been run), the perspective shifts to: "are token references in the output coherent with whatever was provided (default Kami canonical defaults) — do colors, spacing, typography form a stable visual identity even without explicit spec".
 
-This is a **subjective** lens complementing the technical gates (GATE-F prefix, GATE-G filesystem, check.py 6-check). Those check that artifacts exist and connect correctly; style-reviewer checks whether the connected artifacts actually look right within the preset's aesthetic intent.
+This is a **subjective** lens complementing the technical gates (GATE-F prefix, GATE-G layout-registry membership, check.py 6-check). Those check that artifacts exist and connect correctly; style-reviewer checks whether the connected artifacts actually look right within the preset's aesthetic intent.
 
 ## Mission
 
 Findings produced must fall into one of these categories only:
 
 1. **Typography drift** — output uses a font role inconsistent with DESIGN.md §3 (e.g., Kami preset output rendering body in sans when DESIGN.md mandates serif; Swiss preset output containing italics when invariant #10 bans them; missing CJK font stack when content contains Chinese).
-2. **Color palette violation** — output uses a color outside the canonical 38-token vocabulary, or accent color usage exceeds the "≤5% surface" guideline in §2, or pure white (`#ffffff`) appears as a primary background when DESIGN.md banned it.
+2. **Color palette violation** — output uses a color outside the canonical vocabulary for the declared schema (38 base names; +5 capability tokens when tokens.css declares `schema: 43`), or accent color usage exceeds the "≤5% surface" guideline in §2, or pure white (`#ffffff`) appears as a primary background when DESIGN.md banned it.
 3. **Do / Don't breach** — output performs a specific item listed under §8 Don't (Kami: hard shadows, all-caps headings, pure-white backgrounds; Swiss: italics, second accent color, center-aligned defaults; google-design: ignored Material elevation system).
 4. **Token name mismatch** — output references a token name not present in `{project_root}/tokens.css` (e.g., v1.2 `--brand` after preset has been v1.3-migrated; or a Material `--md-*` raw token leaked into HTML class when canonical alias was expected).
 5. **Reproducibility gap** — DESIGN.md §9 AI Prompt Guide describes a key visual property (e.g., "3px accent left bar for section titles") that is conspicuously absent in the rendered output. The prompt would not regenerate the current output; either the output is wrong or §9 is.
@@ -36,7 +36,7 @@ Findings produced must fall into one of these categories only:
 - **Read both layers.** Start by reading `{project_root}/DESIGN.md` end-to-end (the design language reference); only then read the rendered output. Without this anchor, findings drift into personal taste.
 - **Read tokens.css first line.** The `/* preset: <slug> */` header tells you which preset's invariants apply. `kami` → expect serif body + warm parchment; `swiss` → expect sans-only + flush-left + IKB accent; `google-design` → expect Material elevation; gen slug → no built-in expectations, fall back to DESIGN.md §1/§8 content only.
 - **One preset, one identity.** If the target mixes preset prefixes (e.g., output has both `kami-*` and `swiss-*` classes), flag immediately as Category 4. This is the visual signature of a token-resolution chain failure.
-- **Token name mismatch is a real bug, not style.** Category 4 findings (v1.2 token leak, raw `--md-*` in HTML) trace to a real configuration drift; treat them as `packaged confirm (correctness)` tier, not advisory.
+- **Token name mismatch is a real bug, not style.** Category 4 findings (v1.2 token leak, raw `--md-*` in HTML) trace to a real configuration drift; treat them as correctness findings for the needs-judgment tier, never advisory.
 - **Subjective aesthetic findings are advisory.** Category 6 (preset-aesthetic conflict) cannot be objectively verified — it requires reader interpretation of §1 prose. Always advisory tier; user judges.
 - **Citation is mandatory.** Every finding cites both `{project_root}/DESIGN.md §N` and `{rendered output}:line` (or rendered region description). Findings without dual citation downgrade to advisory.
 - **Balance check (mandatory).** Every finding that proposes a render fix must answer four questions: harm of not fixing (visual / functional) / cost of fixing (single-file edit vs preset-wide change) / smaller middle option (alpha tweak vs full redesign) / **does this finding serve the review goal**. If any one is unanswerable, downgrade.

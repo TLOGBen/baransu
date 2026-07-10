@@ -376,7 +376,7 @@ If E2E passes → record ✅ in final-report together with an `e2e_evidence` blo
 
 If E2E fails:
 1. Group independent failure clusters (one per failing feature area; if boundaries unclear, one cluster per failing test)
-2. Dispatch one **e2e-fix-agent** per cluster in parallel
+2. Dispatch one **e2e-fix-agent** per cluster in parallel, with: `e2e_failure_report` (that cluster's error messages, failing case names, stack traces), `e2e_strategy` (the E2E 測試策略 section excerpted from test.md), `relevant_files` (paths of the code files implicated by the failing stack/case)
 3. Re-run E2E (Monitor)
 4. Passes → ✅. Still fails → record ❌ with details in final-report blocked section; proceed to Step 6.
 
@@ -401,7 +401,7 @@ The Coverage Report has two mandatory parts: (1) per-REQ coverage as before, and
 If `needs_fixer: false` → record conclusion in final-report; proceed to Step 7.
 
 If `needs_fixer: true`:
-1. Dispatch **final-fixer-agent** with: `coverage_report`, `requirement_excerpts` (full text of ❌ REQ-XXX entries), `design_excerpts` (design.md sections relevant to ❌ REQs)
+1. Dispatch **final-fixer-agent** with: `coverage_report`, `requirement_excerpts` (full text of ❌ REQ-XXX entries), `design_excerpts` (design.md sections relevant to ❌ REQs), `goal_excerpts` (verbatim goal.md 驗收標準 text of each ❌ C{n} row plus the cross-check's inert-mechanism evidence)
 2. After fixer completes, dispatch final-review-agent again (same inputs)
 3. If `needs_fixer: false` → proceed to Step 7
 4. If still `needs_fixer: true` → record remaining gaps in final-report blocked section; proceed to Step 7. **Do not invoke fixer again.**
@@ -477,7 +477,7 @@ final-report.md: .claude/execute/{date}-{slug}/execute/final-report.md
 - **[merge branch deletion]**: Use `git branch -D` (force delete), never `git branch -d`. The execute branch was pushed but not PR-merged, so `-d` fails. This applies only when the branch is eligible for deletion — see the integration-state guard in Step 7: a branch whose work never reached main (direct-blocked, cascade-blocked, or merge ❌/⚠️) is kept, not deleted.
   Solution: Always `-D` for `execute/{date}-{slug}/{group}` branches that are integrated; do not delete branches that are not integrated.
 
-- **[task-map.md missing during merge]**: merge-agent needs to know which impl-checklist files exist. If task-map.md was not written in Step 3 before starting Step 4, merge-agent cannot verify coverage. Step 3 must complete fully before Step 4 begins.
+- **[task-map.md missing during merge]**: the orchestrator's §4d `integration_status` bookkeeping and the Step 7 branch-deletion guard both read task-map.md. If task-map.md was not written in Step 3 before starting Step 4, those records have nowhere to live and Step 7 cannot tell integrated branches from blocked ones. Step 3 must complete fully before Step 4 begins.
   Solution: The Step 2 / Step 3 "Done when" gates enforce ordering.
 
 - **[goal-alignment over-filter trap]**: When the Goal-Alignment Filter downgrades all reviewer-initiated off-goal findings to advisory, an acceptance-criteria failure finding can be misclassified as off-goal and silently downgraded too. That collapses back to the [review-agent bypass trap] failure mode — the task marks ✅ while a 驗收標準直接失敗 finding was suppressed.

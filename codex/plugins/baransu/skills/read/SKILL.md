@@ -77,7 +77,7 @@ Chrome being unavailable is NOT an early exit for the run as a whole — only th
 
 ## Stage 1 — Input Detection & Acquire Routing
 
-**Forward-reference map** — the lanes below jump to two routing targets: URL routing → §9 (defined below in this stage); candidate presentation → `references/acquisition/candidate-selection.md` (read it before the first direct user question with numbered options (stop for the user's reply) round).
+**Forward-reference map** — the lanes below jump to two routing targets: URL routing → §9 (defined below in this stage); candidate presentation → `references/acquisition/candidate-selection.md` (read it before the first user-question round).
 
 Parse the argument(s) passed to `/read`. `--use-proxy` is a modifier flag, not a mode: if present, strip it from the argument list before routing and record `$USE_PROXY=true` (default `false`). Route as follows (check in order):
 

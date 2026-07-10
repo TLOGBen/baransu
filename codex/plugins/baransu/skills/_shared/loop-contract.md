@@ -79,7 +79,12 @@ of platform:
   subagent). An
   absent tool is exactly as non-interactive as an unanswered one — both take
   the recommended default. The final report MUST annotate every substituted
-  decision as 「此處採預設：{假設}」.
+  decision as 「此處採預設：{假設}」. A skill's `references/loop-pauses.md`
+  table may bind a specific Input row to a stop-and-report default — report
+  `no progress: {reason}` and end the run — when no recommended default can
+  exist for that point (the answer requires information only a human holds);
+  the per-skill table is the authority for that point's non-interactive
+  behavior.
 - **Authorization PAUSE** — if the driving context carries a **standing
   authorization** for this action (per the skill's `references/loop-pauses.md`),
   proceed under that authorization, applying every safety precondition the table
@@ -111,6 +116,13 @@ the skill inspects its own available tool list and checks whether
 platform defaults govern PAUSE cost; absent means every Input PAUSE takes its
 recommended default (annotated) and every Authorization PAUSE hard-stops per
 the rules above.
+
+The tool-list check covers the hosted-as-subagent case (tool hard-absent).
+It does not — and cannot — detect `/loop`, cron, or Workflow driving, where
+the tool is present: those are **declared by the driving context itself** (the
+loop/cron prompt, Workflow script, or a system reminder stating non-interactive
+drive), not detected. The two signals are independent, and either one alone
+marks the run non-interactive.
 
 This detection MUST be a direct tool-list check, **not** an attempt-and-catch.
 Tool absence means the tool does not exist in this runtime — there is no call
@@ -148,12 +160,13 @@ Skill-side obligations (all mandatory):
    advance, report `no progress: {reason}` instead of silently retrying.
 4. **Machine-checkable outcome signal** — every loop-driven run's final
    message MUST end with the single line
-   `LOOP_OUTCOME: ok | blocked | no-progress: {reason}`.
+   `LOOP_OUTCOME: ok | blocked | no progress: {reason}`.
    Drivers grep this line for go/no-go instead of trusting the process exit
    code (a mid-run kill can still return rc=0 — documented false green,
-   2026-06-29). `blocked` covers §2 `needs input` hard stops; `no-progress`
-   carries the same reason as obligation 3. No line means the run did not
-   complete.
+   2026-06-29). `blocked` covers §2 `needs input` hard stops; `no progress`
+   carries the same reason as obligation 3 — one literal, space form, in both
+   the in-report phrase and this terminal token. No line means the run did
+   not complete.
 
 ---
 
@@ -180,3 +193,4 @@ Outcome Contract still applies.
 | /book | `../book/references/loop-pauses.md` |
 | /design | `../design/references/loop-pauses.md` |
 | /health | `../health/references/loop-pauses.md` |
+| /codex-skill-transfer | `../codex-skill-transfer/references/loop-pauses.md` |

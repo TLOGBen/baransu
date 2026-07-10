@@ -5,9 +5,9 @@ Gate 10 (--loop-registry <skills-root> / repo mode): loop-pauses registry
 completeness. Encoded variant (calibrated to current HEAD, see the check's
 docstring): every `loop=drivable`/`loop=assisted` skill must ship
 references/loop-pauses.md AND own a canonical row in
-_shared/loop-contract.md §4 — except the documented exemption
-(codex-skill-transfer, which has never shipped one and whose absence
-loop-contract.md §4 prose explicitly sanctions). `loop=not-drivable` skills
+_shared/loop-contract.md §4 — with no exemption (the historical
+codex-skill-transfer exemption was removed once that skill shipped its
+table and registry row). `loop=not-drivable` skills
 are exempt from shipping, but ANY shipped loop-pauses.md must be registered
 (no orphans — think ships one and is registered), and every registry row
 must resolve to an existing file (no dead links) with matching skill names.
@@ -174,15 +174,17 @@ class TestLoopRegistryGate(unittest.TestCase):
         result, out = self._run(skills, [row("alpha"), row("beta"), row("delta")])
         self.assertEqual(result.returncode, 0, out)
 
-    def test_exempt_skill_may_omit_file_and_row(self):
-        # Documents the calibration: codex-skill-transfer is loop=assisted on
-        # current HEAD yet ships no loop-pauses.md and owns no registry row.
+    def test_no_exemption_codex_skill_transfer_is_enforced(self):
+        # The historical LOOP_PAUSES_EXEMPT entry is gone: an assisted
+        # codex-skill-transfer without loop-pauses.md + registry row now
+        # fails Gate 10 like any other skill.
         skills = {
             "alpha": ("drivable", True),
             "codex-skill-transfer": ("assisted", False),
         }
         result, out = self._run(skills, [row("alpha")])
-        self.assertEqual(result.returncode, 0, out)
+        self.assertEqual(result.returncode, 1, out)
+        self.assertIn("codex-skill-transfer", out)
 
     def test_drivable_missing_file_flagged(self):
         skills = {"alpha": ("drivable", False)}
