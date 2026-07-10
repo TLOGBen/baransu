@@ -26,13 +26,13 @@ Read an `/analyze` spec directory. Execute every task through a Summarize → Im
 
 These apply across all steps. The review-agent rule and the spec-read-only rule are the two most commonly violated — they are the first things to re-read at Steps 4, 5, and 6 entry after any auto-compact.
 
-- **review-agent is never optional.** Every task — documentation, scripts, config, code — goes through review-agent after each impl-agent attempt. `TaskUpdate status=completed` is only reachable as the result of a review-agent outcome for the current impl attempt. Marking a task ✅ without dispatching review-agent first is a constraint violation.
+- **The review ROLE is never optional; its host varies by mode.** Every task — documentation, scripts, config, code — goes through review-agent after each impl-agent attempt (in serial-absorbed mode the orchestrator hosts the role — Step 0 — still mandatory, mechanical gates still enforced). `TaskUpdate status=completed` is only reachable as the result of a review outcome for the current impl attempt. Marking a task ✅ without the review role having run first is a constraint violation.
 - **Analyze spec directory is read-only.** Never Edit or Write any file under `.claude/analyze/`; hooks intercept any write attempts. Any execution path that attempts this must stop immediately and escalate as a structural blocker.
-- **Subagent depth = 1.** Agents in `agents/*.md` are stateless leaf nodes. They do not dispatch further subagents. Being dispatched as a subagent does NOT disable this skill's own worker fan-out — the `Agent` tool is always available (probe run a928109). The depth=1 rule here governs the leaf agents this skill dispatches (they never dispatch further), NOT this dispatcher's own ability to fan out its summarize/impl/review Tasks. Fan-out is released unconditionally and is orthogonal to interactive-capability detection — it is never gated behind an AskUserQuestion proxy.
+- **Subagent depth = 1.** Agents in `agents/*.md` are stateless leaf nodes. They do not dispatch further subagents. Being dispatched as a subagent does NOT disable this skill's own worker fan-out whenever a subagent-dispatch tool (Agent / Task-dispatch) is present — presence is decided by the Step 0 tool-list probe (inspection, never attempt-and-catch). When NO dispatch tool exists, the run enters **serial-absorbed** mode (defined in Step 0) instead of blocking. The depth=1 rule governs the leaf agents this skill dispatches (they never dispatch further), NOT this dispatcher's own ability to fan out its summarize/impl/review Tasks. Fan-out is never gated behind an AskUserQuestion proxy.
 - **All Task Tools created before execution begins.** Register every group × task via TaskCreate in Step 2. No mid-execution task creation.
 - **Working files live under `.claude/execute/`.** Edit and Write are only permitted in the execute working directory.
 - **goal.md criteria are the top acceptance authority.** requirement.md / test.md operationalizations are means, not the finish line: when they under-specify a goal.md 驗收標準 (C{n}), the criterion's literal wording wins. A criterion satisfied only inside test scaffolding while its production path stays inert is NOT met (see the [latent-defect disclosure trap] gotcha). Step 6 cross-checks every C{n} against its literal wording.
-- **Process artifacts are a closed list.** The only working documents this skill writes are: confirm.md, task-map.md, impl-checklist-{group}.md, context/*-ctx.md, and final-report.md (plus task-registry.md only when Task tools are unavailable). Do not invent additional per-task self-review / telemetry / coverage documents — review evidence lives in the checklist fields and final-report.md. Degraded runs that absorb agent roles get no extra artifacts beyond this list; in a degraded single-context run, context/*-ctx.md may be terse — the eight field headers with file/line pointers instead of copied prose — since it exists for post-compaction re-read resilience, not for a subagent reader.
+- **Process artifacts are a closed list.** The only working documents this skill writes are: confirm.md, task-map.md, impl-checklist-{group}.md, context/*-ctx.md, and final-report.md (plus task-registry.md only when Task tools are unavailable). Do not invent additional per-task self-review / telemetry / coverage documents — review evidence lives in the checklist fields and final-report.md. Runs that absorb agent roles (serial-absorbed mode — Step 0) get no extra artifacts beyond this list; in such a single-context run, context/*-ctx.md may be terse — the eight field headers with file/line pointers instead of copied prose — since it exists for post-compaction re-read resilience, not for a subagent reader.
 - **Goal-Alignment Filter is hard governance.** `failure_count` accounting is affected by the filter (off-goal findings are downgraded to advisory and do not increment the counter), but findings tied to an acceptance-criterion direct failure (驗收標準直接失敗) are protected by the hard invariant — they keep their original tier and still increment `failure_count`.
 - **Worktree lifecycle.** Worktrees are created for any parallel execution (L/XL) **only when git is available**; removed in Step 7 after final-report.md is written. When the project has no git repo, or any `git worktree add` fails, the run degrades one-way to in-place serialized execution (see §4a) — a missing git repo never blocks tasks and never wedges the session.
 - **final-fixer-agent is dispatched at most once per session.**
@@ -66,6 +66,12 @@ Before spec validation, check for a DESIGN.md at the project root:
 
 Run `git rev-parse --show-toplevel 2>/dev/null` in the project root. Record `git_available: true|false` into confirm.md. When false, also record `execution_mode: degraded-in-place` and output one line: 「偵測不到 git repo：L/XL 將降級為就地序列執行（無 worktree、無 merge point）」. A missing git repo is NEVER a stop condition — the run proceeds; only the worktree/merge machinery is skipped.
 
+### Dispatch-tool probe
+
+Inspect the tool list once, here at Step 0: is a subagent-dispatch tool (Agent / Task-dispatch) present? Inspection only — never attempt-and-catch. Record `dispatch_available: true|false` in confirm.md; when false, also record `execution_mode: serial-absorbed` and output one line: 「無 subagent 派遣工具：進入 serial-absorbed 模式（保留 worktree/merge 機制，角色由 orchestrator 吸收）」.
+
+**serial-absorbed semantics**: classification, worktrees, §4d merge points, and Step 7 cleanup are ALL retained. Groups at the same frontier level process serially in document order (logged in task-map.md). Agent roles are absorbed by the orchestrator — absorption is sanctioned ONLY in this mode — with their artifacts still produced and their MECHANICAL gates still enforced: green_proof Bash verification, red_proof capture, checklist fill. The loss of reviewer independence is disclosed in final-report.md. Never a stop condition.
+
 ### Spec Validation
 
 Validate the provided spec directory. Check: (1) directory exists, (2) `goal.md`, `requirement.md`, `design.md`, `test.md` are present, (3) at least one `task-{group}.md` is present.
@@ -92,7 +98,7 @@ Derive `{date}-{slug}` from the spec directory name (same date + slug segment). 
 | 2–3 | L | width count | worktree per group |
 | 1 | M | 1 | none (main branch) |
 
-When the DAG allows ≥ 2 groups at the same level, run them in parallel — do not serialize L-class groups sequentially. For XL waves with > 4 groups, pick the first 4 by document order; remainder wait for the next wave.
+When the DAG allows ≥ 2 groups at the same level, run them in parallel — do not serialize L-class groups sequentially, except under §1d file-overlap or serial-absorbed mode (dispatch absent, Step 0) — both logged. For XL waves with > 4 groups, pick the first 4 by document order; remainder wait for the next wave.
 
 **1d. Pre-scan for file conflicts.** For group pairs in the same frontier level, scan their `步驟` sections for identical file paths. Overlap is defined as: the two groups' `步驟` sections name at least one identical normalized file path (exact string match after trimming whitespace and resolving relative-path prefixes against the repo root). When that condition holds: serialize those two groups (move the later one to the next level), record reason in task-map.md.
 
@@ -137,13 +143,13 @@ Write:
 
 ### 4a. Execution order + worktrees
 
-Process groups by frontier level (topological order). Groups at the same level run in parallel.
+Process groups by frontier level (topological order). Groups at the same level run in parallel (serially in document order under serial-absorbed mode — Step 0; worktrees and §4d merge points unchanged).
 
 For **M**: single workflow, main branch. No worktrees.
 
 For **L/XL**: worktrees require `git_available: true` (Step 0 probe). If git is unavailable, or any `git worktree add` below exits non-zero: do NOT retry and do NOT block the wave — degrade the whole run, one-way, to **in-place serialized execution**: process every group sequentially in topological document order in the main working directory with M-mode semantics (no worktrees, no §4d merge points), record `execution_mode: degraded-in-place` plus the failing command's verbatim output in confirm.md, and continue the TDAID loop unchanged. Announce once: 「worktree 不可用，已降級為就地序列執行」.
 
-Otherwise (git available): before creating the first worktree, record `target_branch = $(git branch --show-current)` (fallback `main` if empty/detached) into confirm.md — every later merge targets this recorded value, never a hardcoded name. Then create one worktree per group in the current wave before dispatching any impl-agent for that wave, recording each created path in confirm.md's worktree registry:
+Otherwise (git available): BEFORE running the first `git worktree add`, record `target_branch = $(git branch --show-current)` (fallback `main` if empty/detached) and the wave's worktree-registry rows into confirm.md — every later merge targets this recorded value, never a hardcoded name, and a crash between adds must never leave a worktree invisible to Step 7's registry-iterating cleanup. Then create the wave's worktrees before dispatching any impl-agent for that wave, strictly in this per-group order: registry row written in confirm.md → run the add → verify exit 0 → next group:
 ```bash
 git worktree add .claude/worktrees/execute-{date}-{slug}-{group} -b execute/{date}-{slug}/{group}
 ```
@@ -437,6 +443,8 @@ Then decide per group whether to force-delete its branch by reading the `integra
 
 `-D` (force) is still required — never `-d` — when deletion is allowed: an integrated execute branch was pushed but not PR-merged, so `-d` fails. The integration-state guard above only decides *whether* to delete; it never relaxes `-D` to `-d`.
 
+After all session worktrees are removed, remove the now-empty parent: `rmdir .claude/worktrees 2>/dev/null` — ignore failure (non-empty means other worktrees live there).
+
 Output to user (繁體中文):
 ```
 /baransu:execute 完成。
@@ -457,7 +465,7 @@ final-report.md: .claude/execute/{date}-{slug}/execute/final-report.md
   Solution: Re-read §Hard Constraints before marking any task ✅.
 
 - **[loaded-orchestrator self-review trap]**: When execute runs in a context already holding the spec (e.g. inline after a think→analyze chain), the orchestrator rationalizes absorbing subagent roles — writing and reviewing in its own polluted context because the ceremony "feels redundant when I already understand the task". Honest boundary (see /think Stage E "Mechanism necessity"): this gotcha is prose inside the same path that fails, so it can be skipped like any other — it raises the cost and names the move, it does not mechanically prevent it; real prevention removes the trigger (do not invoke execute inline; hand off to a fresh session) or gates verifier dispatch outside the orchestrator's cognition.
-  Solution: Any subagent bearing a verification function must run in a fresh-context subagent; the orchestrator may never substitute itself. Context-loading roles (summarize) may be absorbed only by still producing their artifact for downstream agents to read.
+  Solution: When dispatch IS available (Step 0 probe), any subagent bearing a verification function must run in a fresh-context subagent; the orchestrator may never substitute itself. In serial-absorbed mode (dispatch absent) the substitution is sanctioned but evidence-gated — the mechanical green_proof/red_proof gates are precisely what compensates for the lost independence. The review ROLE is never optional; its host varies by mode. Context-loading roles (summarize) may be absorbed only by still producing their artifact for downstream agents to read.
 
 - **[compile error vs failure_count]**: After impl-agent returns ❌ with a compile error, `failure_count` must NOT increment. Counting compile errors as failures triggers smart-friend early and wastes the retry budget on syntax issues. The exclusion is not a license for unbounded retries: `compile_error_count` increments on every consecutive compile-error ❌ (any other return resets it) and blocks the task at 3.
   Solution: Only `failure_count++` on review-agent "packaged confirm (correctness)" or "needs judgment" returns; cap compile errors on their own counter.

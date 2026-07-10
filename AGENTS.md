@@ -2,13 +2,7 @@
 
 **Single source of truth: [CLAUDE.md](CLAUDE.md).** Repo layout, the fourteen-skill table, non-obvious invariants, versioning, and commit style all live there — read it first and follow it. This file only adds what a non-Claude agent (e.g. Codex CLI) needs to know. (General, plugin-agnostic working principles are user-scoped, not repeated here.)
 
-`baransu` is a Claude Code plugin distributing fourteen governance skills. Theme: バランス — deliberate before executing, verify after.
-
-## Philosophy — バランス (Balance)
-
-**Origin.** The market is full of skills, but they all feel wrong to use — either they govern nothing (the model runs on its own reading of the request) or the ceremony is so heavy a one-line change needs five forms filled first. The first attempt, a home-grown `everything-cli`, hit the opposite extreme: it burned tokens fast and made every small task clear seven gates before touching the code. `baransu` is the second attempt.
-
-**Core principle.** Balance is not compromise — it is knowing *when* to go light and when lightness is not allowed. A small task doesn't need three rounds of alignment; an important decision can't skip thinking. Tools fit the shape of the task — small task, lightweight path; large task, full spec — never the reverse. Every skill carries a clear trigger boundary (what may be skipped, what must always happen). Since v2.1.0 this is written down as five acceptance-testable principles, each bound to an in-repo mechanism; a clause with no anchor is not admitted, and the structure verifier enforces that the anchor exists.
+`baransu` is a Claude Code plugin distributing fourteen governance skills. Theme: バランス — deliberate before executing, verify after. The Philosophy (origin and core principle of バランス) lives in CLAUDE.md's Philosophy section — it is not duplicated here.
 
 ## Notes for non-Claude agents
 

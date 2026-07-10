@@ -22,7 +22,8 @@ session_start: {ISO 8601}
 spec_dir: {provided path}
 classification: {M | L | XL}  # filled after Step 1
 git_available: {true | false}  # Step 0 probe
-execution_mode: {standard | degraded-in-place}  # degraded when git unavailable or worktree add failed (§4a)
+dispatch_available: {true | false}  # Step 0 tool-list probe (subagent-dispatch tool present?)
+execution_mode: {standard | degraded-in-place | serial-absorbed}  # degraded when git unavailable or worktree add failed (§4a); serial-absorbed when no dispatch tool (Step 0)
 
 ## 已讀取文件
 
@@ -46,7 +47,7 @@ Classification: {M | L | XL}
 Parallel workflows: {N}
 Worktrees: {none | one per group}
 
-## Worktree Registry（standard L/XL only；degraded-in-place 留空）
+## Worktree Registry（standard / serial-absorbed L/XL；degraded-in-place 留空）
 
 | Group | Path | target_branch |
 |-------|------|---------------|

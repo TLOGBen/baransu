@@ -115,7 +115,10 @@ def project_instruction_files(root: Path) -> list[Path]:
     return [path for path in files if path.is_file()]
 
 
-def claude_delegates_to_agents(path: Path) -> bool:
+def delegates_to(path: Path, other_name: str) -> bool:
+    """True when a meaningful (non-heading) line of `path` names the other
+    instruction file. Delegation is bidirectional: either file naming the
+    other as source of truth counts."""
     text = read(path, 20_000)
     if not text:
         return False
@@ -124,7 +127,7 @@ def claude_delegates_to_agents(path: Path) -> bool:
         for line in text.splitlines()
         if line.strip() and not line.strip().startswith("#")
     ]
-    return any("AGENTS.md" in line for line in meaningful)
+    return any(other_name in line for line in meaningful)
 
 
 def has_operational_rules(path: Path) -> bool:
@@ -331,7 +334,9 @@ def main() -> int:
     instruction_files = project_instruction_files(root)
     agents = root / "AGENTS.md"
     claude = root / "CLAUDE.md"
-    claude_delegates = claude_delegates_to_agents(claude)
+    claude_delegates = delegates_to(claude, "AGENTS.md")
+    agents_delegates = delegates_to(agents, "CLAUDE.md")
+    delegation_present = claude_delegates or agents_delegates
     github_instructions_dir = root / ".github" / "instructions"
     github_instruction_count = (
         len(list(github_instructions_dir.glob("*.md"))) if github_instructions_dir.is_dir() else 0
@@ -340,7 +345,7 @@ def main() -> int:
     instruction_findings: list[str] = []
     if not instruction_files:
         instruction_findings.append("no project agent instruction files")
-    if agents.is_file() and claude.is_file() and not claude_delegates:
+    if agents.is_file() and claude.is_file() and not delegation_present:
         claude_lines = len(read(claude).splitlines())
         agents_lines = len(read(agents).splitlines())
         if claude_lines > 20 and agents_lines > 20:
@@ -366,6 +371,8 @@ def main() -> int:
     claude_findings: list[str] = []
     if claude.is_file() and claude_delegates:
         claude_findings.append("CLAUDE.md delegates to AGENTS.md")
+    if agents.is_file() and agents_delegates:
+        claude_findings.append("AGENTS.md delegates to CLAUDE.md")
     if not global_claude.is_file() and not claude.is_file():
         claude_findings.append("Claude instruction surface not found")
 
@@ -389,7 +396,7 @@ def main() -> int:
         )
 
     conflict_findings: list[str] = []
-    if agents.is_file() and claude.is_file() and not claude_delegates:
+    if agents.is_file() and claude.is_file() and not delegation_present:
         conflict_findings.append("AGENTS.md and CLAUDE.md both exist; verify they do not diverge")
 
     instruction_status = "FAIL" if not instruction_files else ("WARN" if instruction_findings else "PASS")
@@ -407,6 +414,7 @@ def main() -> int:
     print(f"AGENTS.md: {yes(agents)}")
     print(f"CLAUDE.md: {yes(claude)}")
     print(f"claude_delegates_to_agents: {'yes' if claude_delegates else 'no'}")
+    print(f"agents_delegates_to_claude: {'yes' if agents_delegates else 'no'}")
     print(f".github/copilot-instructions.md: {yes(root / '.github' / 'copilot-instructions.md')}")
     print(f".github/instructions/*.md: {github_instruction_count}")
     print(f"GEMINI.md: {yes(root / 'GEMINI.md')}")
