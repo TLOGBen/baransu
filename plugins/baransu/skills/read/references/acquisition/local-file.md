@@ -28,13 +28,22 @@ cp "{path}" "raw/{slug}/index.{ext}"
 
 When the input contains glob characters (`*`, `?`, `[...]`):
 
-1. Expand the glob:
+1. Expand the glob natively (never parse `ls` output):
 
 ```bash
-files=($(ls {pattern} 2>/dev/null))
+shopt -s nullglob
+files=({pattern})
 ```
 
-2. If no files match, report: "無匹配項目：{pattern}" and stop. Do not create any `raw/` directories.
+Iterate with quoted expansion so filenames containing spaces survive intact:
+
+```bash
+for f in "${files[@]}"; do
+  ...
+done
+```
+
+2. If no files match (`${#files[@]}` is 0), report: "無匹配項目：{pattern}" and stop. Do not create any `raw/` directories.
 
 3. For each matched file, run the full pipeline independently:
    - Each file gets its own slug derived from its filename stem.

@@ -57,14 +57,16 @@ If installation succeeds: continue.
 
 If installation fails: read `references/setup/{$PLATFORM}.md` ($PLATFORM lowercased — wsl2 / macos / windows / linux) and attempt its troubleshooting steps; if still failing, output 「markitdown 安裝失敗。請手動執行：pip install markitdown」 and stop.
 
-### 4. Chrome check (soft dependency)
+### 4. Chrome check (soft dependency, lazy)
 
-Try calling `mcp__claude-in-chrome__tabs_context_mcp`.
+Do NOT probe Chrome here. The probe runs lazily — only at the first point a lane actually needs Chrome: `--x` (§4), `--chrome` (§5), or the Stage 1 §9 SPA→web-dynamic escalation. Plain URL / local / glob / clipboard runs never probe.
 
-- If succeeds: set `$CHROME_AVAILABLE=true`
-- If fails or tool unavailable: set `$CHROME_AVAILABLE=false`; output 「Chrome 未連線，--chrome 模式暫時停用，其他輸入類型仍可使用。」
+At that first point of need, determine availability by inspecting the current tool list for the Chrome MCP tools (e.g. `mcp__claude-in-chrome__tabs_context_mcp`) — prefer tool-list inspection over attempt-and-catch; only if inspection is inconclusive, try calling the tool. Cache the result as `$CHROME_AVAILABLE` for the rest of the run — probe at most once per invocation.
 
-This is NOT an early exit. Proceed to Stage 1 regardless.
+- If available: set `$CHROME_AVAILABLE=true`
+- If unavailable: set `$CHROME_AVAILABLE=false`; output 「Chrome 未連線，--chrome 模式暫時停用，其他輸入類型仍可使用。」
+
+Chrome being unavailable is NOT an early exit for the run as a whole — only the lane that needed Chrome fails per its own rules; proceed with everything else.
 
 ## Stage 1 — Input Detection & Acquire Routing
 
@@ -92,13 +94,13 @@ Run `gh search repos` to fetch candidate repos, present them via AskUserQuestion
 
 ### 4. `--x "keyword"`
 
-If `$CHROME_AVAILABLE=false`: output 「Chrome 未連線，--x 模式無法使用」 and stop.
+Probe Chrome now if not yet probed (lazy check, Stage 0 §4). If `$CHROME_AVAILABLE=false`: output 「Chrome 未連線，--x 模式無法使用」 and stop.
 
 Otherwise: Read `references/acquisition/x-search.md` and `references/acquisition/web-dynamic.md` (the lane follows web-dynamic's Chrome MCP Path Steps 1–4 for Chrome MCP navigation). The lane runs schema-level health check, extracts tweet URLs via regex, presents them via AskUserQuestion, then routes the selected tweet URL through existing URL routing.
 
 ### 5. `--chrome`
 
-If `$CHROME_AVAILABLE=false`: output 「chrome-tab 模式暫時不可用，請改用 URL 模式」 and stop.
+Probe Chrome now if not yet probed (lazy check, Stage 0 §4). If `$CHROME_AVAILABLE=false`: output 「chrome-tab 模式暫時不可用，請改用 URL 模式」 and stop.
 
 Otherwise: Read `references/acquisition/chrome-tab.md` and follow the MCP call sequence described there.
 
@@ -114,17 +116,23 @@ Read `references/acquisition/local-file.md` (glob section). Each matched file ru
 
 ### 8. Local path
 
-Run `test -e "{input}"` to verify the path exists.
+Run `test -f "{input}"` to verify the path is an existing regular file.
 
-If exists: Read `references/acquisition/local-file.md` (single-path section).
+If it is: Read `references/acquisition/local-file.md` (single-path section).
+
+If the path is an existing directory (`test -d "{input}"`): treat it as the glob `{input}/*` and route to the glob lane (§7).
+
+Local inputs (this lane and the glob lane §7) skip the URL-lane quality gate and SPA machinery entirely.
 
 ### 9. URL
 
 Starts with `http://` or `https://`. Apply URL pattern routing:
 
 - `github.com` or `raw.githubusercontent.com` in hostname → Read `references/acquisition/web-static.md` (GitHub section)
-- URL ends with `.pdf` OR HEAD request `curl -sI "{url}" | grep -i "content-type: application/pdf"` matches → Read `references/acquisition/web-static.md` (PDF URL section)
-- Other URLs → local-first fetch per Constraints bullet 1 and `references/acquisition/web-static.md` (Local-First Fetch section). After the fetch completes, check if result is < 500 bytes or contains SPA feature strings (`<app-root`, `<div id="root"`, `__NEXT_DATA__`, `window.__NUXT__`); if SPA detected → Read `references/acquisition/web-dynamic.md`
+- URL ends with `.pdf` → Read `references/acquisition/web-static.md` (PDF URL section)
+- Other URLs → local-first fetch per Constraints bullet 1 and `references/acquisition/web-static.md` (Local-First Fetch section). No standalone HEAD pre-flight: do the local-first GET and inspect the response Content-Type (capture headers with `curl -sL -D`, or use `-w '%{content_type}'`). If it reports `application/pdf`, reroute to the PDF URL section (web-static.md), reusing the already-fetched body.
+  Otherwise, run web-static.md's quality checks on the fetched result FIRST. Only when the quality checks FAIL do the SPA signals (body < 500 bytes, or feature strings `<app-root`, `<div id="root"`, `__NEXT_DATA__`, `window.__NUXT__`) decide escalation: if a signal matches → Read `references/acquisition/web-dynamic.md`. A page that passes the quality checks never escalates, even if it contains a feature string.
+  Before escalating, probe Chrome lazily (Stage 0 §4). If `$CHROME_AVAILABLE=false`: report 「此頁需 JS 渲染但 Chrome 未連線，請連線 Chrome 後重試，或改用 --use-proxy」 and record the item as failed — this is the defined exit for that item; do not leave the flow undefined.
 
 ### 10. Unrecognized input
 
@@ -138,13 +146,17 @@ All acquired content must be saved to `.claude/read/raw/{slug}/index.{ext}` befo
 
 Generate an initial slug from the URL path's last segment or filename stem using slug rules: lowercase, ASCII, hyphens, max 60 chars.
 
+If `raw/{slug}/` already exists (recapture of the same source), do NOT overwrite it — it is the immutable archive. Use `raw/{slug}_v2/` instead (then `_v3`, and so on), mirroring the `material/` `_vN` dedup convention. `_vN` suffixes are appended AFTER slug generation and are exempt from slug rules — the underscore is intentional and never re-normalized.
+
 ## Stage 2 — Convert
 
 ### 1. Run markitdown
 
 ```bash
-markitdown ".claude/read/raw/{slug}/index.{ext}" -o "/tmp/{slug}-convert.md" 2>/dev/null
+python3 -m markitdown ".claude/read/raw/{slug}/index.{ext}" -o "/tmp/{slug}-convert.md" 2>/dev/null
 ```
+
+Invoke markitdown as `python3 -m markitdown` (matching the Stage 0 §3 check) — never the bare `markitdown` form, which may not be on PATH.
 
 Always use quoted paths. Suppress onnxruntime warnings with `2>/dev/null`.
 
@@ -154,18 +166,18 @@ If `/tmp/{slug}-convert.md` is empty (0 bytes) or missing: consult `references/c
 
 ### 3. Image handling
 
-Extract image URLs from the converted markdown:
+Extract ALL image refs from the converted markdown — absolute AND relative:
 
 ```bash
-grep -oE '!\[.*?\]\((https?://[^)]+)\)' /tmp/{slug}-convert.md | grep -oE 'https?://[^)]+' | sort -u
+grep -oE '!\[[^]]*\]\(([^)]+)\)' /tmp/{slug}-convert.md | sed -E 's/^!\[[^]]*\]\(//; s/\)$//' | sort -u
 ```
 
-Also check raw/ HTML for `<img src=` tags to catch images markitdown may have dropped.
+Classify each extracted target as absolute (`https?://`) or relative; resolve relative refs against the source URL to form absolute URLs. Also check raw/ HTML for `<img src=` tags to catch images markitdown may have dropped.
 
 For each image URL:
 
 - If relative path: resolve against the source URL to form absolute URL
-- Derive `{filename}` from the image URL's last path segment only (drop the query string and every preceding directory component), then sanitize it by stripping any `/`, `\`, and leading `.`/`..` sequences. If the derived `{filename}` is empty, contains a path separator, or resolves outside `assets/`, then record `[image skipped: unsafe filename {img_url}]` as a note and continue (do not write the file).
+- Derive `{filename}` from the image URL's last path segment only (drop the query string and every preceding directory component), then sanitize it by stripping any `/`, `\`, and leading `.`/`..` sequences. If the derived `{filename}` is empty, contains a path separator, or resolves outside `assets/`, then record `[image skipped: unsafe filename {img_url}]` as a note and continue (do not write the file). When two distinct image URLs share the same basename, uniquify: the first keeps `hero.png`, subsequent ones become `hero-2.png`, `hero-3.png`, …; record the URL→filename mapping.
 - Download:
   ```bash
   curl -sL "{img_url}" -H "Referer: {source_url}" -o ".claude/read/raw/{slug}/assets/{filename}" 2>/dev/null
@@ -174,7 +186,7 @@ For each image URL:
 
 Leave the downloaded images in `raw/{slug}/assets/`; they are copied into `material/{final-slug}/assets/` in Stage 3, once the final slug is known ({slug} here is the initial slug and differs from the final slug).
 
-In the converted markdown, replace each original image URL reference with `./assets/{filename}`.
+In the converted markdown, replace each original image ref (absolute or relative) with `./assets/{filename}`, using the same URL→filename mapping built above (including uniquified names).
 
 ## Stage 3 — Organize
 
@@ -196,12 +208,20 @@ Read `.claude/read/index.md` (if it exists):
 
 ### 4. Create directories and localize images
 
+First, pair the raw and material trees by name: if the final slug differs from the initial slug, rename `raw/{initial-slug}/` to `raw/{final-slug}/`:
+
 ```bash
-mkdir -p ".claude/read/material/{final-slug}/assets"
-cp -r ".claude/read/raw/{slug}/assets/." ".claude/read/material/{final-slug}/assets/" 2>/dev/null
+mv ".claude/read/raw/{initial-slug}" ".claude/read/raw/{final-slug}"
 ```
 
-The `cp` copies every successfully downloaded image from the immutable `raw/{slug}/assets/` into the final material directory, so the `./assets/{filename}` links written in Stage 2 resolve. If no images were downloaded, `raw/{slug}/assets/` may be absent — the `2>/dev/null` makes that non-fatal.
+A directory rename is not a content modification — the contents stay untouched, so the raw-immutability constraint holds.
+
+```bash
+mkdir -p ".claude/read/material/{final-slug}/assets"
+cp -r ".claude/read/raw/{final-slug}/assets/." ".claude/read/material/{final-slug}/assets/" 2>/dev/null
+```
+
+The `cp` copies every successfully downloaded image from the immutable `raw/{final-slug}/assets/` into the final material directory, so the `./assets/{filename}` links written in Stage 2 resolve. If no images were downloaded, `raw/{final-slug}/assets/` may be absent — the `2>/dev/null` makes that non-fatal.
 
 ### 5. Write `material/{final-slug}/index.md`
 
@@ -234,6 +254,14 @@ Append row: `| {source_url} | {final-slug} | {title} | {captured_at} |`
 
 ### 7. Completion report (繁體中文)
 
+Immediately before emitting the report, run a mandatory integrity pass:
+
+- (a) Run `file` on each downloaded asset in `material/{final-slug}/assets/` and confirm it is a real image format (PNG/JPEG/GIF/WebP/SVG…) — not an HTML error page or empty file.
+- (b) Grep the material markdown for remaining remote IMAGE refs: `grep -E '!\[[^]]*\]\(https?://' ".claude/read/material/{final-slug}/index.md"` must return zero matches (non-image hyperlinks are fine).
+- (c) Confirm the `.claude/read/index.md` row for `{final-slug}` exists.
+
+Failures found here are recorded and reported per the partial-failure constraint — never silently passed.
+
 ```
 ✅ 已儲存：.claude/read/material/{final-slug}/index.md
 圖片：{N} 張已儲存，{M} 張失敗
@@ -243,7 +271,7 @@ Append row: `| {source_url} | {final-slug} | {title} | {captured_at} |`
 
 For glob batches of 10+ items, compress to: `成功 N 筆，失敗 M 筆` without listing each path.
 
-Keyword-search lanes present candidates per `references/acquisition/candidate-selection.md` — read it before the first AskUserQuestion round.
+Non-interactive (loop-driven) runs append the `LOOP_OUTCOME:` terminal line per `../_shared/loop-contract.md` after the completion report.
 
 ## Constraints
 

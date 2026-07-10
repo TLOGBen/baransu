@@ -47,8 +47,8 @@ The candidate's `title` populates the AskUserQuestion `label`; `description` pop
 | Empty keyword (`/read --web ""`) | Output 「請提供關鍵字」 and stop. Do not invoke WebSearch. |
 | WebSearch returns 0 results | Output 「web 搜尋無結果，建議改關鍵字」 and stop. Do not invoke AskUserQuestion. Do not write `raw/` or `material/`. |
 | WebSearch throws (API error / rate limit / geo-restriction / key missing) | Output 「web 搜尋呼叫失敗：{原因}」 and stop. Wording must be distinguishable from the 0-results message above. |
-| 1 ≤ N ≤ 9 results | Apply the `candidate-selection.md` round mapping (N≤3 → 1 round; 4-6 → 2; 7-9 → 3). Do not 3-round-pad small N. |
-| N ≥ 10 results | Truncate to first 9 by WebSearch's native order (no re-ranking — preserve "搬運不審判"). 3 rounds. |
+| 1 ≤ N ≤ 7 results | Apply the `candidate-selection.md` round mapping (N≤3 → 1 round; 4-5 → 2; 6-7 → 3, with `「下一批」` advancing between rounds). Do not round-pad small N. |
+| N ≥ 8 results | Truncate to first 7 by WebSearch's native order (no re-ranking — preserve "搬運不審判"). 3 rounds. |
 
 Do not fall back to other lanes. Do not silent-retry.
 
@@ -58,8 +58,8 @@ Do not fall back to other lanes. Do not silent-retry.
 
 When the user selects one URL, hand it back to `/read`'s existing URL routing in `SKILL.md` Stage 1 §9:
 - `github.com` / `raw.githubusercontent.com` host → web-static.md GitHub section
-- `.pdf` URL or `content-type: application/pdf` → web-static.md PDF URL section
-- SPA detected (response < 500 bytes or feature strings) → web-dynamic.md
+- `.pdf` URL, or the local-first GET's Content-Type reports `application/pdf` → web-static.md PDF URL section
+- Quality checks fail AND SPA signals match (response < 500 bytes or feature strings) → web-dynamic.md
 - Otherwise → web-static.md Local-First Fetch flow（代理需 --use-proxy 顯式開啟）
 
 The existing `raw/{slug}/index.{ext}` → markitdown → `material/{slug}/index.md` chain is unchanged.

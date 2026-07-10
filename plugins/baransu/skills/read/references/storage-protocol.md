@@ -19,7 +19,8 @@ All captured content lives under `.claude/read/` relative to the repository root
 
 - `index.{ext}`: the original fetched/downloaded file. Extension matches the source format: `.html`, `.pdf`, `.txt`, `.docx`, etc.
 - `assets/`: any downloaded assets (images, attachments) belonging to that capture.
-- **Immutability rule**: once `raw/{slug}/` is written, never modify or delete its contents. It is the permanent record of the original source state.
+- **Immutability rule**: once `raw/{slug}/` is written, never modify or delete its contents. It is the permanent record of the original source state. (Renaming the directory itself — e.g. pairing it with the final material slug — is not a content modification.)
+- **Recapture versioning**: if `raw/{slug}/` already exists when a new capture of the same source begins, never overwrite it — write the new capture to `raw/{slug}_v2/` (then `_v3`, …), mirroring the `material/` `_vN` dedup convention.
 
 ### `material/{slug}/` — Processed output
 
@@ -96,7 +97,12 @@ Before creating a new capture, check for conflicts in `.claude/read/index.md`:
 
 1. Read `.claude/read/index.md` (if it does not exist, no dedup needed — proceed).
 2. Search for an existing row where `source_url` matches the incoming URL exactly.
-   - **Match found**: find the highest existing `_vN` suffix on that slug (e.g., `my-page_v2`). Use `_v{N+1}` as the new slug. If no `_vN` suffix exists yet, the new slug is `{base-slug}_v2`.
+   - **Match found**: the dedup base is the **existing index.md row's slug** — not a re-derived title slug. Find the highest existing `_vN` suffix on that slug (e.g., `my-page_v2`). Use `_v{N+1}` as the new slug. If no `_vN` suffix exists yet, the new slug is `{existing-row-slug}_v2`.
 3. If no `source_url` match, check whether the generated slug already exists (title collision with a different URL).
    - **Slug collision with different URL**: append `_v2` to the new slug.
 4. If neither conflict exists, use the slug as generated.
+
+### `_vN` suffix semantics
+
+- `_vN` suffixes are appended **AFTER** slug generation and are **exempt from slug rules**: the underscore is intentional and is never re-normalized into a hyphen. Never run the slug rules over a slug that already carries a `_vN` suffix.
+- The same convention applies to `raw/` recapture versioning (`raw/{slug}_v2/`, see above).

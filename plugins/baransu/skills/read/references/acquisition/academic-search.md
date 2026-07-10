@@ -79,7 +79,7 @@ Then present candidates via AskUserQuestion per `references/acquisition/candidat
 
 User selection happens via AskUserQuestion (single-pick semantics; selection terminates the round sequence). The selected paper proceeds through the Acquire → Convert → Organize pipeline; if the user picks the escape option (`「以上都不選」`), terminate with no material output.
 
-For `N = 10` candidates from `search-papers.py` (default), the round mapping in `references/acquisition/candidate-selection.md` truncates to the first 9 by `search-papers.py`'s native ranking and presents 3 rounds (3 + 3 + 3 result slots, plus escape per round).
+For `N = 10` candidates from `search-papers.py` (default), the round mapping in `references/acquisition/candidate-selection.md` truncates to the first 7 by `search-papers.py`'s native ranking and presents 3 rounds (2 + 2 + 3 result slots, plus escape per round and `「下一批」` on non-final rounds).
 
 Single-pick replaces the prior multi-select (`1 3 5`) workflow; multi-paper sessions are achieved by re-invoking `/read --topic "keyword"` after each paper finishes.
 
@@ -104,8 +104,9 @@ When `pdf_url` is non-null:
 
 When `pdf_url` is null but `doi` is non-null:
 - Construct the URL: `https://doi.org/{doi}`
-- Route to the web-static.md **Proxy Cascade** flow (general HTML).
-- Note in the `material/{slug}/index.md` frontmatter and in the user-facing report: "已抓取摘要頁面而非全文 PDF"
+- Route to the web-static.md **Local-First Fetch** flow (general HTML). The Proxy Cascade may be entered ONLY when the user explicitly passed `--use-proxy` AND the direct fetch failed quality checks (hard opt-in rule).
+- If the direct fetch fails quality checks and `--use-proxy` was NOT passed: record the failure and report 「本地抓取品質不足：{url}。可改用 --use-proxy（內容會經第三方代理）或 --chrome（瀏覽器抓取）。」 — do not silently proxy; no `material/` entry is created for this paper.
+- On success, note in the `material/{slug}/index.md` frontmatter and in the user-facing report: "已抓取摘要頁面而非全文 PDF"
 
 ---
 
