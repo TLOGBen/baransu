@@ -28,6 +28,7 @@
 **匯流檔案契約**：ship 歸檔白名單補 write；execute Step 7 journal 選擇規則（slug 匹配→mtime 最新＋註明，review 亦為 producer）；loop-contract §4 註冊表補 /design /hunt /health /analyze 四列。
 
 - 驗證：`make test` 全綠（19 結構斷言＋pytest 246+＋全 shell suite）、`make mirror-check` in sync、實驗全紀錄於 9 個 NovelReader 工作區 + 21 個 workflow/agent 回報。
+- **同版本後續增補（release 前同 PR 累積）**：C' 驗證輪——learn 9.5/10 追平自由跑金標準（批判層四節實質到位、33 段落級引註過 Refine 保留，judge 判 improved、四 delta 全關）；hunt 9/10 ~7 分鐘（快徑生效、RED 逐字證據、四層端到端迴歸守護、首獵 skip，judge 判 improved 4/5 delta 關閉，殘餘 Locate 期建檔已補錨）。verify-skills.py Gates 10/11（loop-pauses 註冊完整性、green_proof 欄名一致，TDD 18 tests，零豁免執法）。覆蓋完成審計 21 項修復（codex mirror AskUserQuestion 改寫污染守衛、輸出 rmtree 防護、_shared 掃描、final-fixer C{n} 範圍擴充、loop-contract §2 釐清、tdd §7.1 canonical 收回）。evals 14 skill 體檢＋CLAUDE.md 七條新 invariant 入冊＋review target-pin 三表面統一。
 
 **review-agent rationale 對齊——收束 v2.7.6 的 leaf doc-debt**。plugin version 2.7.6 → 2.7.7。v2.7.6 因 C7「leaf worker 檔零改動」硬驗收，未一併對齊 `agents/review-agent.md` 的自我禁令理由，留下一筆跨檔不一致的 doc-debt（`review-agent.md:81` 仍寫「subagent depth = 1, cannot dispatch parallel Tasks」，而 `CLAUDE.md:81` 已改「AskUserQuestion 硬缺席」）。本版本以獨立微任務收束。
 

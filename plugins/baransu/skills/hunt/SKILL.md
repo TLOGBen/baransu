@@ -78,7 +78,7 @@ When BOTH hold: (1) the FIRST instrument, or the error message itself, confirms 
 - Locate's four questions answered in one line each.
 - Short-form case file: root cause / fix / 確認方式 / 迴歸守護 / blast verdicts only.
 
-The case file, the Scope Blast, and 迴歸守護 are **never** skipped — only their length compresses.
+The case file, the Scope Blast, and 迴歸守護 are **never** skipped — only their length compresses. Compression does not defer creation either: even on the Fast Path, the case file is created at the Locate stage with `status: scoping` (short form is fine) and finalized at close — a file that first appears at the fix commit is end-of-hunt assembly, not a living record.
 
 Case-memory fast path: before running the Locate-stage case search, check whether any case dirs exist at all (`.claude/hunt-report/` or hunt cases in `.claude/archived/`). If none exist (fresh project), skip the search ritual and log 「首獵：無既往案例」 in the case file instead.
 
