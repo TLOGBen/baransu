@@ -94,13 +94,29 @@ If this fails: output 「Python 3.8+ 未安裝，無法繼續。請先安裝 Pyt
 
 ### 6. Dependency install (markitdown included)
 
-Run the format-aware dependency installer — it already probes `python3 -m markitdown --version` itself and installs on a miss, so no separate manual markitdown check is needed:
+Installing packages mutates the local environment, so the installer never runs unconditionally. Gate it with an explicit probe → if-then flow:
+
+1. **Probe first (list, no install)**: run the format-aware installer in dry-run/probe mode to list the packages this `$FORMAT` would newly install (the script already probes `python3 -m markitdown --version` itself, so no separate manual markitdown check is needed):
+
+```bash
+npx tsx "$CLAUDE_SKILL_DIR/scripts/install-deps.ts" --format $FORMAT --dry-run
+```
+
+If the script does not support `--dry-run` (it exits non-zero with an unknown-flag error), fall back to probing each `$FORMAT`-required dependency directly — `python3 -m markitdown --version`; plus WeasyPrint when `$FORMAT` contains `pdf`; plus playwright + pptxgenjs when `$FORMAT` contains `ppt` — and assemble the miss list yourself. Either way, store the would-be-installed packages as `$INSTALL_LIST`.
+
+2. **IF `$INSTALL_LIST` is empty** → every dependency is already present; skip installation entirely and continue to §7.
+
+3. **IF `$INSTALL_LIST` is non-empty AND the run is interactive** → 🔴 CHECKPOINT — install confirmation: via `AskUserQuestion`, reveal the exact list before touching the environment: 「本次 --format {$FORMAT} 需要新安裝以下套件：{$INSTALL_LIST}。要安裝並繼續嗎？（安裝並繼續 / 中止本次 /book）」. Only after the user confirms, run the real install:
 
 ```bash
 npx tsx "$CLAUDE_SKILL_DIR/scripts/install-deps.ts" --format $FORMAT
 ```
 
-If the script returns a non-zero exit code:
+If the user declines: output 「已取消安裝，/book 中止。」 and stop.
+
+4. **IF `$INSTALL_LIST` is non-empty AND the run is driven non-interactively** (/loop, cron, Workflow) → this is an **Input PAUSE** (classification: `references/loop-pauses.md`): take the default (安裝並繼續) without stopping — the non-interactive path must never hard-stop here, preserving the Outcome Contract's loop=drivable — run the same real install command, and **annotate the actually-installed package list in the Stage 4 completion report** (one line: 「本次自動安裝套件：{$INSTALL_LIST}」).
+
+If the real install returns a non-zero exit code:
 - Output the error message (the script has already listed details) and stop; do not enter Stage 1
 - If `$FORMAT` contains `pdf`: confirm WeasyPrint is available
 - If `$FORMAT` contains `ppt`: confirm playwright + pptxgenjs are available

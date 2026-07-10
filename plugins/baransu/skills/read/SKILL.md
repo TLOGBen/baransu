@@ -210,10 +210,15 @@ Read `.claude/read/index.md` (if it exists):
 
 ### 4. Create directories and localize images
 
-First, pair the raw and material trees by name: if the final slug differs from the initial slug, rename `raw/{initial-slug}/` to `raw/{final-slug}/`:
+First, pair the raw and material trees by name: if the final slug differs from the initial slug, rename `raw/{initial-slug}/` to `raw/{final-slug}/`. The rename is gated: before any `mv`, run `test -d ".claude/read/raw/{final-slug}"`. If the target directory already exists, `mv` is FORBIDDEN — an unconditional `mv` would silently nest the source directory inside the existing one and corrupt the immutable `raw/` tree. Instead, recompute the final slug by applying the existing `_vN` increment rule (After Acquire / §3): find the highest existing `_vN` for that slug under `raw/` and use `{final-slug}_v{N+1}` as the new final slug for this rename and for ALL subsequent steps (material/ paths, frontmatter, index row).
 
 ```bash
-mv ".claude/read/raw/{initial-slug}" ".claude/read/raw/{final-slug}"
+if test -d ".claude/read/raw/{final-slug}"; then
+  # Target exists — do NOT mv into it. Recompute: {final-slug} := {final-slug}_v{N+1}
+  mv ".claude/read/raw/{initial-slug}" ".claude/read/raw/{final-slug}_v{N+1}"
+else
+  mv ".claude/read/raw/{initial-slug}" ".claude/read/raw/{final-slug}"
+fi
 ```
 
 A directory rename is not a content modification — the contents stay untouched, so the raw-immutability constraint holds.
