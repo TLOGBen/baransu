@@ -407,8 +407,8 @@ BARANSU_HARNESS_FAKE_NOW=2026-04-30 \
 #### Caller 責任（push-gate.sh 後續處理）
 
 - `exit 0` 後：在 worktree 內跑 `git push origin harness/fix/<cluster_id>`，
-  push 成功印出 GitLab MR 連結
-  `https://git.hy-tech.com.tw/{owner}/baransu/-/merge_requests/new?merge_request[source_branch]=harness/fix/<cluster_id>`；
+  push 成功印出 GitHub PR 連結
+  `https://github.com/{owner}/baransu/compare/harness/fix/<cluster_id>?expand=1`；
   push 失敗（git error / 網路 / 503）→ `attempt_history` append `result: "fail"`、
   **不刷** `daily_push_count`（避免單次失敗吃配額）、寫
   `triage.jsonl.escalate = requires_human`。

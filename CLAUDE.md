@@ -136,7 +136,7 @@ These have each caused regressions — do not "optimize" them away:
 
 ```
 # Local:  /plugin marketplace add /home/vakarve/projects/baransu
-# Remote: /plugin marketplace add https://git.hy-tech.com.tw/ben.tsai/baransu.git
+# Remote: /plugin marketplace add https://github.com/TLOGBen/baransu.git
 /plugin install baransu@baransu
 /plugin validate
 ```

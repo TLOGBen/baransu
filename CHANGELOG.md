@@ -180,7 +180,7 @@ Overall baseline-parity score: 100.0%
 - `plugins/baransu/.claude-plugin/plugin.json` 版本提升至 1.1.17
 - 關鍵字表新增 `book`
 
-[1.1.17]: https://git.hy-tech.com.tw/ben.tsai/baransu/-/compare/1.1.16...1.1.17
+[1.1.17]: https://github.com/TLOGBen/baransu/compare/1.1.16...1.1.17
 
 ## [1.1.16] — 2026-05-11
 
@@ -188,7 +188,7 @@ Overall baseline-parity score: 100.0%
 
 - **plugin description / keywords 精簡** — `plugin.json` 與 `marketplace.json` 描述改為單句，keywords 改為 12 個 skill name 的扁平列表
 
-[1.1.16]: https://git.hy-tech.com.tw/ben.tsai/baransu/-/compare/1.1.15...1.1.16
+[1.1.16]: https://github.com/TLOGBen/baransu/compare/1.1.15...1.1.16
 
 ## [1.1.15] — 2026-05-07
 
@@ -199,7 +199,7 @@ Overall baseline-parity score: 100.0%
   - 來源原文已 capture 至 `.claude/read/material/ygzsw007/index.md`（via `/baransu:read --web`，Defuddle Layer 1，4361 字）
   - 啟用方式：`/baransu:write zh voice="yu-guang-zhong" [text]`，loader 走 1.1.14 加入的 `references/{name}-voice.md` 路徑
 
-[1.1.15]: https://git.hy-tech.com.tw/ben.tsai/baransu/-/compare/1.1.14...1.1.15
+[1.1.15]: https://github.com/TLOGBen/baransu/compare/1.1.14...1.1.15
 
 ## [1.1.14] — 2026-05-07
 
@@ -212,7 +212,7 @@ Overall baseline-parity score: 100.0%
 - **零回歸保證** — 規則本文（zh rules 1-9 / en rules 1-7）零修改；`references/writing-principles.md` 整份零修改；既有 Refine 輸出格式（Before/After/修正說明）三 header 零修改；既有 zh/en prefix 行為零修改；/learn Stage 5 內部呼叫 `/write {LANG}`（不帶 voice）byte-for-byte backward compat。
 - **新增結構測試** — `tests/skills/test-write-skill.sh`，14 個 bash 結構斷言（A1-A4 Voice cue 段、B1-B4 Long input handling、C1-C2 Rule tag、D1-D4 backward compat invariants），exit 0/1/2 標準閘門 contract，與既有 `tests/skills/test-{skill}-skill.sh` 命名慣例一致。
 
-[1.1.14]: https://git.hy-tech.com.tw/ben.tsai/baransu/-/compare/1.1.13...1.1.14
+[1.1.14]: https://github.com/TLOGBen/baransu/compare/1.1.13...1.1.14
 
 ## [1.1.13] — 2026-05-07
 
@@ -224,7 +224,7 @@ Overall baseline-parity score: 100.0%
   - `EnterPlanMode` / `ExitPlanMode` → 明寫 Codex 沒有 skill-callable 等價物（active mode 由 developer message 切換），需改寫成 prompt-driven plan gate
 - **Codex 端同步** — `codex/plugins/baransu/` 重生，反映新 description 格式 + plugin.json 版本。
 
-[1.1.13]: https://git.hy-tech.com.tw/ben.tsai/baransu/-/compare/1.1.12...1.1.13
+[1.1.13]: https://github.com/TLOGBen/baransu/compare/1.1.12...1.1.13
 
 ## [1.1.12] — 2026-05-07
 
@@ -248,4 +248,4 @@ baransu 從本版起同時發行 Claude Code 與 Codex CLI 兩種變體。Claude
 - 修掉 `codex-skill-transfer` SKILL.md 內殘留的 `` !`cmd` `` 字面 pattern，避免 slash-command 解析器把它當成 bash injection 而觸發 `command not found: cmd`。
 - 修正 `grade` SKILL.md frontmatter — 描述含裸 colon（`tune_review_due: true`、`(00:00)`）導致 PyYAML 嚴格解析失敗。改用單引號包裹。
 
-[1.1.12]: https://git.hy-tech.com.tw/ben.tsai/baransu/-/compare/1.1.4...1.1.12
+[1.1.12]: https://github.com/TLOGBen/baransu/compare/1.1.4...1.1.12

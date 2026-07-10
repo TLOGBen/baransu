@@ -31,7 +31,7 @@ baransu 是第二次。
 ### Claude Code
 
 ```
-/plugin marketplace add https://git.hy-tech.com.tw/ben.tsai/baransu.git
+/plugin marketplace add https://github.com/TLOGBen/baransu.git
 /plugin install baransu@baransu
 ```
 
@@ -41,13 +41,13 @@ Codex 變體放在 `codex/` 子樹，repo 根目錄有一份 `.agents/plugins/ma
 
 ```bash
 # HTTPS
-codex plugin marketplace add https://git.hy-tech.com.tw/ben.tsai/baransu.git
+codex plugin marketplace add https://github.com/TLOGBen/baransu.git
 
 # SSH
-codex plugin marketplace add git@git.hy-tech.com.tw:ben.tsai/baransu.git
+codex plugin marketplace add git@github.com:TLOGBen/baransu.git
 
 # 釘特定版本（推薦，main 可能隨時動）
-codex plugin marketplace add https://git.hy-tech.com.tw/ben.tsai/baransu.git --ref v1.1.10
+codex plugin marketplace add https://github.com/TLOGBen/baransu.git --ref v1.1.10
 
 # 本地 clone 也行
 codex plugin marketplace add /path/to/baransu
