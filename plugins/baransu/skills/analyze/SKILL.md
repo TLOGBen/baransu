@@ -20,6 +20,8 @@ description: "Builds a goal→requirement→design→test→task spec under .cla
 - **Output**: Spec directory `.claude/analyze/{YYYY-MM-DD}-{slug}/` holding the five spec documents.
 - **Automation**: ultracode=assist, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
+PAUSE classification for non-interactive drivers: `references/loop-pauses.md` — read it alongside `../_shared/loop-contract.md` when driven by /loop, cron, or Workflow, or hosted as a subagent.
+
 ## Constraints
 
 - Do not write production code, scaffolding, or config files during Stages 1-6. The only output is the five spec documents.
@@ -28,6 +30,7 @@ description: "Builds a goal→requirement→design→test→task spec under .cla
 - On a same-day same-slug directory collision (Stage 0.C), never silently overwrite: branch via the AskUserQuestion among resume / overwrite-rebuild / new -N-suffixed directory before writing any spec file. The overwrite-rebuild branch may delete only the computed spec dir `{repo_root}/.claude/analyze/{date}-{slug}/`; if the resolved delete target does not string-equal that path (or contains `..`, or falls outside `{repo_root}` from `git rev-parse --show-toplevel`), abort the deletion and fall back to the `-N`-suffixed branch instead.
 - `goal.md` and `requirement.md` are user-intent layers. Do not modify their semantics during auto-correct. Only design / test / task layers are auto-correctable.
 - Never invent requirement numbers. Every `REQ-XXX` reference in task files must have a matching entry in `requirement.md`.
+- Never invent Criteria numbers. Every `C{n}` reference in `test.md` must have a matching entry in `goal.md`.
 - All user-visible output is Traditional Chinese (繁體中文). English appears only in this SKILL.md body, in code identifiers, file paths, and diagram labels the task itself uses.
 
 ## Stage 0 — Lightweight alignment + scope gate
@@ -283,7 +286,7 @@ If a natural task fails the above, split it.
 
 **Full-stack**: use both, innermost backend first.
 
-Cap at 8 group files. If work exceeds 8 groups, add `wave.md` that divides groups into Wave 1 / Wave 2 with explicit dependency notes between waves.
+Cap at 8 group files. If work exceeds 8 groups, add `wave.md` that divides groups into Wave 1 / Wave 2 with explicit dependency notes between waves. `wave.md` is presentational only — /execute never reads it; the `前置群組` field is the sole authoritative dependency channel, so every inter-wave dependency noted in `wave.md` MUST also appear as `前置群組` entries in the affected group files.
 
 Before writing task files, note which groups must complete before another can start. Capture this as the `前置群組` field at the top of each file.
 
@@ -296,6 +299,7 @@ Before writing task files, note which groups must complete before another can st
 ## TASK-{group}-01: {task title}
 
 **需求追溯**：REQ-XXX
+**測試重量建議**：full | riding（純接線/轉發時；選填）
 **目標**：{one sentence — what will exist or work when this task is done}
 **驗收標準**：
 - [ ] {observable criterion}
@@ -319,6 +323,8 @@ Before writing task files, note which groups must complete before another can st
 
 Every task must have at least one requirement reference (`REQ-XXX`). Do not invent requirement numbers not defined in `requirement.md`.
 
+The optional 「測試重量建議」 line lets the spec author mark wiring-only tasks (thin pass-through forwarders, module registration, re-exports, config plumbing) as `riding` at decomposition time, when that knowledge is freshest. It is advisory input only — /execute's §4b test-weight tier rule keeps final decision authority (when in doubt, full). Omit the line when unsure.
+
 ---
 
 ## Stage 6 — Cross-layer subagent review
@@ -330,9 +336,11 @@ Dispatch 3 subagents in parallel Tasks, each in a clean context. Pass each agent
 
 **Agent 1 — task ↔ test alignment**
 
-Required files: `task-*.md`, `test.md`, `requirement.md`
+Required files: `task-*.md`, `test.md`, `requirement.md`, `goal.md`
 
-Review question: 「task-*.md 的每個 task 是否都有 test.md 裡對應的測試覆蓋錨點？task 產生的邊界條件（例如空值、並發、超時）是否在 test.md 的邊界條件清單中被覆蓋，且每條邊界條件都回指到產生該風險的 task？有沒有 task 產出了一個功能，但 test.md 裡找不到驗證它的策略？requirement.md 的每個 Given-When-Then 情境，是否都能在 test.md 找到對應的覆蓋錨點（E2E 列、整合測試列、或邊界條件項）？沒有錨點的情境即為 finding。再檢查測試品質三點，任一不過即為 finding：(1) 可達性與語意正確性——每條 E2E 列的真實入口（端點或方法）是否經 grep/read 驗證存在，且斷言指向該操作自身的真實結果、未張冠李戴到另一個互斥操作上；主路徑分支盤點是否完整——每個互斥的主路徑情境各佔一列、未被折疊，凡同一條件在兩側產生不同結果者兩側各算一列——缺任一分支或誤標即為 finding；(2) 斷言有效性——關鍵驗證點是否為具名可斷言值（具名 ReturnCode／狀態轉換／回調觸發或不觸發），凡「有回應／回傳成功／全綠」這類同義反覆即為 finding；(3) 冗餘與首要交付——是否有重複或不對應任何 task 風險的多餘測試，且本次首要交付物是否有一條測試把『達成』釘死。」
+Review question: 「task-*.md 的每個 task 是否都有 test.md 裡對應的測試覆蓋錨點？task 產生的邊界條件（例如空值、並發、超時）是否在 test.md 的邊界條件清單中被覆蓋，且每條邊界條件都回指到產生該風險的 task？有沒有 task 產出了一個功能，但 test.md 裡找不到驗證它的策略？requirement.md 的每個 Given-When-Then 情境，是否都能在 test.md 找到對應的覆蓋錨點（E2E 列、整合測試列、或邊界條件項）？沒有錨點的情境即為 finding。再檢查測試品質三點，任一不過即為 finding：(1) 可達性與語意正確性——每條 E2E 列的真實入口（端點或方法）是否經 grep/read 驗證存在，且斷言指向該操作自身的真實結果、未張冠李戴到另一個互斥操作上；主路徑分支盤點是否完整——每個互斥的主路徑情境各佔一列、未被折疊，凡同一條件在兩側產生不同結果者兩側各算一列——缺任一分支或誤標即為 finding；(2) 斷言有效性——關鍵驗證點是否為具名可斷言值（具名 ReturnCode／狀態轉換／回調觸發或不觸發），凡「有回應／回傳成功／全綠」這類同義反覆即為 finding；(3) 冗餘與首要交付——是否有重複或不對應任何 task 風險的多餘測試，且本次首要交付物是否有一條測試把『達成』釘死。最後檢查 goal 準則錨定，任一不過即為 finding：goal.md 的每條 C{n} 是否至少有一列 test.md 錨點回指？test.md 每個 C{n} 回指是否都存在於 goal.md（不得杜撰編號）？字面含持久化語意的準則（例如「重啟後仍在」）是否有一列 reopen 形狀的測試（關閉後重開／process 重入），而非僅結構性推論？」
+
+The goal-criteria clause mirrors /execute's final-review goal-criteria cross-check (final-review-agent §1b) so C{n} gaps die at spec time, not at execute time.
 
 **Agent 2 — test ↔ design alignment**
 
@@ -349,6 +357,8 @@ Review question: 「design.md 的架構和資料流是否能支撐 requirement.m
 ### Subagent-failure path
 
 If any of the 3 review subagents returns without per-question verdicts, errors out, or does not complete, then re-dispatch that single agent once. If it fails again, skip that agent's lane and record in the Stage 7 handoff output the line 「Stage 6 第N位審查員未完成，該層交叉審查略過」 (substituting the agent's number for N) — so the Done-when review round is never silently reported as complete.
+
+A 「未檢查」 verdict is the same incompleteness in a softer coat: a lane that returns 「未檢查」 for any of its review questions is treated as incomplete — apply the same single re-dispatch to that agent. If any question is still 「未檢查」 after the re-dispatch, record the same Stage 7 skip line extended to name the unchecked question(s): 「Stage 6 第N位審查員未完成，該層交叉審查略過（未檢查：[問題摘要]）」. A lane that answered 未檢查 is never silently treated as reviewed.
 
 ### After receiving findings
 

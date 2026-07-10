@@ -169,6 +169,7 @@ Outcome Contract still applies.
 |---|---|
 | /review | `../review/references/loop-pauses.md` |
 | /execute | `../execute/references/loop-pauses.md` |
+| /analyze | `../analyze/references/loop-pauses.md` |
 | /hunt | `../hunt/references/loop-pauses.md` |
 | /learn | `../learn/references/loop-pauses.md` |
 | /ship | `../ship/references/loop-pauses.md` |
