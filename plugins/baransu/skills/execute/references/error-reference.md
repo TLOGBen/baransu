@@ -23,3 +23,6 @@ verbatim from SKILL.md; semantics unchanged.
 | Filter downgraded finding to advisory | §4b Phase 3 | Normal path; does not increment failure_count |
 | Invariant violation: 驗收標準失敗 finding wrongly downgraded | §4b Phase 3 filter sub-step | Structural blocker; escalate (hard invariant breach) |
 | Latent production defect (criterion test-green but production-inert) | any Impl/Review attempt, or Step 6 cross-check | Small in-scope fix → fold into the current task with a test; otherwise BLOCKED (latent defect blocks C{n}) + escalate. Disclosure alone never converts to ✅ |
+| Project is not a git repo | Step 0 probe | Record git_available=false + execution_mode=degraded-in-place; L/XL run in-place serialized; NEVER stop, block, or wedge |
+| `git worktree add` fails | §4a | One-way degrade to in-place serialized execution; record verbatim output in confirm.md; do not retry, do not block the wave |
+| `git worktree remove` fails | Step 7 | `git worktree prune` → scoped `rm -rf` (registry-recorded path under `.claude/worktrees/` only) → prune again; still failing → append to final-report and continue; never wedge the session |

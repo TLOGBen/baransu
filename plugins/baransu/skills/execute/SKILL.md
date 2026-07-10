@@ -34,7 +34,7 @@ These apply across all steps. The review-agent rule and the spec-read-only rule 
 - **goal.md criteria are the top acceptance authority.** requirement.md / test.md operationalizations are means, not the finish line: when they under-specify a goal.md 驗收標準 (C{n}), the criterion's literal wording wins. A criterion satisfied only inside test scaffolding while its production path stays inert is NOT met (see the [latent-defect disclosure trap] gotcha). Step 6 cross-checks every C{n} against its literal wording.
 - **Process artifacts are a closed list.** The only working documents this skill writes are: confirm.md, task-map.md, impl-checklist-{group}.md, context/*-ctx.md, and final-report.md (plus task-registry.md only when Task tools are unavailable). Do not invent additional per-task self-review / telemetry / coverage documents — review evidence lives in the checklist fields and final-report.md. Degraded runs that absorb agent roles get no extra artifacts beyond this list.
 - **Goal-Alignment Filter is hard governance.** `failure_count` accounting is affected by the filter (off-goal findings are downgraded to advisory and do not increment the counter), but findings tied to an acceptance-criterion direct failure (驗收標準直接失敗) are protected by the hard invariant — they keep their original tier and still increment `failure_count`.
-- **Worktree lifecycle.** Worktrees are created for any parallel execution (L/XL); removed in Step 7 after final-report.md is written.
+- **Worktree lifecycle.** Worktrees are created for any parallel execution (L/XL) **only when git is available**; removed in Step 7 after final-report.md is written. When the project has no git repo, or any `git worktree add` fails, the run degrades one-way to in-place serialized execution (see §4a) — a missing git repo never blocks tasks and never wedges the session.
 - **final-fixer-agent is dispatched at most once per session.**
 - **smart-friend-agent is dispatched at most once per task** (when failure_count reaches 2).
 - **Error Reference.** When any step hits an error condition not covered by an inline Fallback, read `references/error-reference.md` and apply the matching condition → action row (condition / detection point / action lookup table, all steps). If no row matches, do not improvise: mark the affected task blocked with the verbatim error, escalate 「未涵蓋的錯誤：{condition}，該任務已標記 blocked」, and continue unblocked work per the Goal line.
@@ -61,6 +61,10 @@ Before spec validation, check for a DESIGN.md at the project root:
 2. If `{root}/DESIGN.md` exists, read it into context and output one line in Traditional Chinese:
    「已載入 DESIGN.md，視覺規格已參考」
 3. If absent, skip silently. Non-blocking.
+
+### Git availability probe
+
+Run `git rev-parse --show-toplevel 2>/dev/null` in the project root. Record `git_available: true|false` into confirm.md. When false, also record `execution_mode: degraded-in-place` and output one line: 「偵測不到 git repo：L/XL 將降級為就地序列執行（無 worktree、無 merge point）」. A missing git repo is NEVER a stop condition — the run proceeds; only the worktree/merge machinery is skipped.
 
 ### Spec Validation
 
@@ -137,7 +141,9 @@ Process groups by frontier level (topological order). Groups at the same level r
 
 For **M**: single workflow, main branch. No worktrees.
 
-For **L/XL**: before creating the first worktree, record `target_branch = $(git branch --show-current)` (fallback `main` if empty/detached) into confirm.md — every later merge targets this recorded value, never a hardcoded name. Then create one worktree per group in the current wave before dispatching any impl-agent for that wave:
+For **L/XL**: worktrees require `git_available: true` (Step 0 probe). If git is unavailable, or any `git worktree add` below exits non-zero: do NOT retry and do NOT block the wave — degrade the whole run, one-way, to **in-place serialized execution**: process every group sequentially in topological document order in the main working directory with M-mode semantics (no worktrees, no §4d merge points), record `execution_mode: degraded-in-place` plus the failing command's verbatim output in confirm.md, and continue the TDAID loop unchanged. Announce once: 「worktree 不可用，已降級為就地序列執行」.
+
+Otherwise (git available): before creating the first worktree, record `target_branch = $(git branch --show-current)` (fallback `main` if empty/detached) into confirm.md — every later merge targets this recorded value, never a hardcoded name. Then create one worktree per group in the current wave before dispatching any impl-agent for that wave, recording each created path in confirm.md's worktree registry:
 ```bash
 git worktree add .claude/worktrees/execute-{date}-{slug}-{group} -b execute/{date}-{slug}/{group}
 ```
@@ -311,6 +317,8 @@ Record direct-blocked vs cascade-blocked separately in final-report.
 
 ### 4d. Merge Point (L/XL only)
 
+Skipped entirely on a degraded in-place run (`execution_mode: degraded-in-place`): work already lives in the main working directory — record `integration_status[{group}] = in-place` for each all-✅ group in task-map.md and proceed to the next frontier level.
+
 After all tasks in a frontier level complete (✅, blocked, or cascade-blocked):
 
 ```
@@ -406,7 +414,9 @@ Write `.claude/execute/{date}-{slug}/execute/final-report.md`. Template: `refere
 When emitting the report:
 - If an upstream work journal exists (`.claude/think/*.html` for the approved plan), read `../_shared/output-journal.md` and append this run's off-spec decisions / forced changes / tradeoffs to its 執行日誌 section per that contract, then SendUserFile the updated journal.
 
-Remove all worktrees created this session. The worktree-remove is safe only because dirty not-integrated worktrees are WIP-committed first (below) — after that it discards a checkout, not committed work. The branch force-delete is **integration-state-gated**: `git branch -D` is irreversible and would silently discard any commits that never reached main, so it runs **only** for a group whose work is confirmed integrated.
+Remove all worktrees created this session, iterating the confirm.md worktree registry (a degraded in-place run has an empty registry — skip this whole block silently). The worktree-remove is safe only because dirty not-integrated worktrees are WIP-committed first (below) — after that it discards a checkout, not committed work. The branch force-delete is **integration-state-gated**: `git branch -D` is irreversible and would silently discard any commits that never reached main, so it runs **only** for a group whose work is confirmed integrated (`in-place` groups have no session branch — nothing to delete).
+
+If a `git worktree remove --force` exits non-zero: run `git worktree prune`; if the directory still exists, fall back to `rm -rf {path}` **only** when the path is recorded in this session's registry AND lies under `.claude/worktrees/` — then `git worktree prune` again. If it still fails, append 「worktree 清理失敗：{path}，請手動處理」 to final-report.md and continue — cleanup failure never wedges the session.
 
 For each session group's worktree — if the group's `integration_status` is not `integrated`, first run `git -C .claude/worktrees/execute-{date}-{slug}-{group} status --porcelain`; if dirty, commit the WIP onto the group's kept branch (`git -C .claude/worktrees/execute-{date}-{slug}-{group} add -A && git -C .claude/worktrees/execute-{date}-{slug}-{group} commit -m "WIP: blocked partial work"`) so the retained branch actually preserves it — then:
 ```bash

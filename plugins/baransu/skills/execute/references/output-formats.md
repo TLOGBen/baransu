@@ -21,6 +21,8 @@ Path: `.claude/execute/{date}-{slug}/execute/confirm.md`
 session_start: {ISO 8601}
 spec_dir: {provided path}
 classification: {M | L | XL}  # filled after Step 1
+git_available: {true | false}  # Step 0 probe
+execution_mode: {standard | degraded-in-place}  # degraded when git unavailable or worktree add failed (§4a)
 
 ## 已讀取文件
 
@@ -43,6 +45,12 @@ Max frontier width: {N}
 Classification: {M | L | XL}
 Parallel workflows: {N}
 Worktrees: {none | one per group}
+
+## Worktree Registry（standard L/XL only；degraded-in-place 留空）
+
+| Group | Path | target_branch |
+|-------|------|---------------|
+| {group} | .claude/worktrees/execute-{date}-{slug}-{group} | {recorded target_branch} |
 ```
 
 ---
