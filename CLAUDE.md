@@ -22,10 +22,10 @@ When working on any UI/UX content, read the design system at the project root an
 plugins/
   baransu/
     .claude-plugin/
-      plugin.json              # plugin manifest (v2.1.0)
+      plugin.json              # plugin manifest (v2.8.0)
     skills/
       think/ review/ analyze/ write/ execute/ ship/ hunt/ health/ read/ learn/ book/ design/ codex-skill-transfer/ evolve/
-      _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md)
+      _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md, fact-check.md) + evals/ scripts/
     rules/
       anti-patterns.md         # cross-skill behavioral guardrails
     agents/
@@ -33,6 +33,7 @@ plugins/
       # Execute:     summarize-agent.md  impl-agent.md  review-agent.md  smart-friend-agent.md
       #              e2e-fix-agent.md  final-review-agent.md  final-fixer-agent.md  merge-agent.md
       # Health:      health-inspector-context.md  health-inspector-control.md  health-inspector-maintainability.md
+      # Evolve:      evolve-diagnostician.md  evolve-judge.md
 ```
 
 **Critical**: `.claude-plugin/marketplace.json` at repo root is the catalog; `plugins/baransu/.claude-plugin/plugin.json` is the plugin manifest. Never merge them. Components (`skills/`, `agents/`) go at the plugin root (`plugins/baransu/`), not inside `.claude-plugin/`.
@@ -56,12 +57,12 @@ Invoke with `/baransu:<name>`. To edit a skill, read its `SKILL.md` — design c
 | `/review` | After any model output — code, plan, claim — for independent re-verification | 審「使用者專案」的 agent 配置與 AI 可維護性 → `/health` |
 | `/analyze` | Medium-to-large tasks: builds goal→requirement→design→test→task spec | 單一 session 收得掉的小任務不展 spec → `_shared/tdd.md` §7 |
 | `/execute` | Run an `/analyze` spec: drives TDAID loop, produces `final-report.md` | 無 `/analyze` spec 不入；小任務直接實作 |
-| `/write` | Bilingual copywriting: `zh`/`en` prefix; Refine (existing text) or Generate (new) | 寫完要 commit/push 的收尾 → `/ship` |
+| `/write` | Bilingual copywriting: `zh`/`en` prefix; Refine (existing text), Generate (new), or Proofread (findings table → `錯字修改.html`) | 寫完要 commit/push 的收尾 → `/ship` |
 | `/ship` | Session cleanup: archive `.claude/` dirs, commit, push, optional worktree removal | 只收尾；不寫作、不審查 |
 | `/hunt` | Bug diagnosis: symptom → root cause via observability-first investigation | 「值不值得修」是價值判斷 → `/think` Evaluation Mode |
 | `/health` | Audit the user project's agent configuration and AI-maintainability: budget-aware five-layer audit (config → instructions → tools → verifiers → maintainability) | baransu 自身結構驗證 → `scripts/verify-skills.py`；審單次模型輸出 → `/review` |
 | `/read` | Capture any content to offline Markdown: URL, path, glob, Chrome, `--topic`, `--web`, `--gh`, `--x` | 要消化成筆記 → `/learn`；要瀏覽器成品 → `/book` |
-| `/design` | UI/UX spec: `gen` (guided), `lint` (Stitch+Kami), `preset <name>` | 技術架構文件是 `/analyze` 的 design 層（小寫 `design.md`） |
+| `/design` | UI/UX spec: `gen` (guided), `lint` (preset-agnostic structure + consistency, 6 checks A-F), `preset <name>`, `export-brief` | 技術架構文件是 `/analyze` 的 design 層（小寫 `design.md`） |
 | `/learn` | Research pipeline: Collect→Digest→Outline→Fill In→Refine; `--brief` stops at Digest | 只要離線原文不要筆記 → `/read` |
 | `/book` | Convert any content source (URL, `/read` slug, `/learn` digest, local file, `--text`) into a Kami-themed browser-ready HTML with SVG diagrams. Three stages: Acquire → Synthesize (technical/narrative/research) → Render (golden-template + validate-output.ts gate) | 要可編輯的 Markdown 工件 → `/read` 或 `/learn` |
 | `/codex-skill-transfer` | One-way port Claude Code skill / plugin / marketplace material to Codex format. Auto-detects single-skill / batch / plugin mode. Refuses `context: fork` skills (cross-boundary; surfaces three Codex paths). | 單向 Claude→Codex；不做反向移植 |
@@ -78,10 +79,17 @@ Small tasks with clear scope no longer route through a dedicated skill: implemen
 These have each caused regressions — do not "optimize" them away:
 
 - **No `skills` array in `plugin.json`**: Claude Code discovers skills from the filesystem. Adding one was done in v0.3.0 and immediately reverted.
-- **`review-agent` must NOT call `/baransu:review`**: before calling, the model judges that `/review` is not currently subagent-safe — its path hits a non-degradable AskUserQuestion point (target-pin) that is hard-absent inside a subagent (the tool simply isn't in the tool list), so calling it would strand that interaction point rather than being any depth-limit violation. Implement four-tier semantics directly in `review-agent.md`.
+- **`review-agent` must NOT call `/baransu:review`**: `/review` is not currently subagent-safe — per `skills/review/references/loop-pauses.md` (the classification authority), its Stage 1 target-pin is an Input point whose non-interactive default is stop-and-report (a human must name the target; no default can substitute a target that doesn't exist), and its Stage 7 needs-judgment checkpoints are Authorization hard stops. Implement four-tier semantics directly in `review-agent.md`.
 - **`/ship` branch deletion uses `-D` not `-d`**: after push the branch is unmerged locally, so `-d` always fails. Both steps need `git -C "$MAIN_REPO" branch -D`.
 - **`failure_count` excludes compile errors**: compile errors do NOT count toward the 3-strike TDAID block limit. Merging these two counters breaks retry behavior.
 - **`DESIGN.md` ≠ `design.md`**: uppercase at project root = UI visual spec (from `/design`); lowercase in `.claude/analyze/` = technical architecture layer (from `/analyze`). Never confuse them.
+- **Execute worktrees live under `.claude/worktrees/`**: checkouts go to `.claude/worktrees/execute-{date}-{slug}-{group}` — NEVER `.git/worktrees/` (git's per-worktree metadata lives there; a checkout there is permanently dirty and `git add -A` commits git internals — empirically verified).
+- **goal.md 驗收標準 C{n} is the top acceptance authority** in the analyze→execute chain: a criterion satisfied only in test scaffolding while its production path is inert is NOT met (anchors: execute Step 6 literal cross-check + final-review-agent §1b).
+- **Coverage-riding is a gate-time decision**: the test tier is recorded in task-map.md at Step 3; impl-agent may never self-authorize riding (it only receives the dispatch field `test_weight`).
+- **learn's full digest ends with the 批判層 four sections** (來源矛盾點／盲點／信度評分／後續角度): silence is non-compliant — 「查無矛盾」 must be stated affirmatively.
+- **read `raw/` is immutable by construction**: recaptures version to `raw/{slug}_vN`, cascade fetches go through `/tmp` then move — never write `raw/` twice.
+- **verify-skills.py Gates 10/11 are the contract** for loop-pauses registry completeness and `green_proof` field-name consistency: adding or revising a skill's Automation line or green_proof surface must clear these gates.
+- **No-git projects degrade one-way**: execute falls back to in-place serialized execution (never wedges); ship fast-fails BEFORE any archive move (archiving without git would strand the moved files with no commit to anchor them).
 - **Cross-skill guardrails**: behavioral anti-patterns that apply across skills live in `plugins/baransu/rules/anti-patterns.md`; the skill-specific invariants above stay here.
 
 ## Install

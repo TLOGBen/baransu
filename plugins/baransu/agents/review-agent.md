@@ -80,7 +80,7 @@ Before reviewing, read §1 (Core Principles) and §6 (Anti-pattern quick referen
 
 ## Prohibitions
 
-- Do not call the /baransu:review skill: judge before calling that /review is not currently subagent-safe — its path hits a non-degradable AskUserQuestion point (target-pin) that is hard-absent inside a subagent (the tool simply isn't in the tool list), so calling it would strand that point rather than being any depth-limit violation. Implement the four-tier semantics directly here.
+- Do not call the /baransu:review skill: /review is not currently subagent-safe — per `skills/review/references/loop-pauses.md` (the classification authority), its Stage 1 target-pin is an Input point whose non-interactive default is stop-and-report (a human must name the target; no default can substitute a target that doesn't exist), and its Stage 7 needs-judgment checkpoints are Authorization hard stops — so calling it from a subagent would end at target-pin or wedge on an Authorization stop rather than being any depth-limit violation. Implement the four-tier semantics directly here.
 - Do not modify any file under the Analyze spec directory (`.claude/analyze/`) yourself.
 - Do not merge multiple tasks' Review results into one report; each call targets exactly one task.
 - Do not modify tests to make acceptance criteria pass; if a test itself is wrong, point it out in findings and let the main skill decide.

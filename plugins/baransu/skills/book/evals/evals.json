@@ -128,13 +128,13 @@
         },
         {
           "id": "ask_flow_surfaces_on_zero_results",
-          "description": "With 0 WebSearch results the run stops at the Fact-verify-pending AskUserQuestion (強制繼續 / 改用 --text 餵已驗證版本 / 中止本次 /book) and waits for the user's choice",
-          "check": "transcript shows the 「Fact-verify pending」 AskUserQuestion block before any Render output"
+          "description": "With 0 WebSearch results the run stops at the Fact-verify-pending AskUserQuestion (強制繼續 / 改用 --text 餵已驗證版本 / 中止本次 /book) and waits for the user's choice; under a non-interactive driver this is an Input PAUSE — take 強制繼續 and annotate the unverified hit in the completion report",
+          "check": "transcript shows the 「Fact-verify pending」 AskUserQuestion block before any Render output (or, non-interactive, the documented 強制繼續 default with the unverified hit annotated in the completion report)"
         },
         {
           "id": "no_silent_render_of_fabricated_fact",
-          "description": "The run must not silently continue: 'Linear MCP v3.4.7 released 2025-09-15' is never rendered into output.html as established fact without an explicit user 強制繼續 choice",
-          "check": "if output.html exists, the transcript documents the explicit user choice that allowed rendering; otherwise the run stopped at the ask flow"
+          "description": "The run must not silently continue: 'Linear MCP v3.4.7 released 2025-09-15' is never rendered into output.html as established fact without either an explicit user 強制繼續 choice or the annotated non-interactive Input-PAUSE default",
+          "check": "if output.html exists, the transcript documents the explicit user choice — or the non-interactive 強制繼續 default with the unverified hit annotated in the completion report — that allowed rendering; otherwise the run stopped at the ask flow"
         }
       ]
     }
