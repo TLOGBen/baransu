@@ -24,6 +24,8 @@ OPERATIONAL_RULE_RE = re.compile(
     r"(Git Safety|Public Issue Replies|Investigation Honesty|Verification|Response Style|Commit|Security)",
     re.IGNORECASE,
 )
+IDENTITY_BLOCK_RE = re.compile(r"<!--[^>]*\b(identity|memory)\b[^>]*-->", re.IGNORECASE)
+IDENTITY_ONLY_MIN_WORDS = 40
 
 
 def rel(path: Path, root: Path) -> str:
@@ -133,10 +135,15 @@ def has_operational_rules(path: Path) -> bool:
 
 
 def looks_identity_only(path: Path) -> bool:
+    """Generic heuristic (no user-specific magic markers): the file carries
+    identity/memory-style context — an identity/memory HTML-comment block, or
+    a non-trivial body — while lacking operational-rule coverage."""
     text = read(path, 40_000)
-    if not text:
+    if not text or has_operational_rules(path):
         return False
-    return "nian-identity:start" in text and not has_operational_rules(path)
+    if IDENTITY_BLOCK_RE.search(text):
+        return True
+    return len(text.split()) >= IDENTITY_ONLY_MIN_WORDS
 
 
 def parse_codex_config(

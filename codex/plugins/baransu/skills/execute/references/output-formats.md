@@ -21,6 +21,8 @@ Path: `.claude/execute/{date}-{slug}/execute/confirm.md`
 session_start: {ISO 8601}
 spec_dir: {provided path}
 classification: {M | L | XL}  # filled after Step 1
+git_available: {true | false}  # Step 0 probe
+execution_mode: {standard | degraded-in-place}  # degraded when git unavailable or worktree add failed (§4a)
 
 ## 已讀取文件
 
@@ -43,6 +45,12 @@ Max frontier width: {N}
 Classification: {M | L | XL}
 Parallel workflows: {N}
 Worktrees: {none | one per group}
+
+## Worktree Registry（standard L/XL only；degraded-in-place 留空）
+
+| Group | Path | target_branch |
+|-------|------|---------------|
+| {group} | .claude/worktrees/execute-{date}-{slug}-{group} | {recorded target_branch} |
 ```
 
 ---
@@ -54,13 +62,26 @@ Path: `.claude/execute/{date}-{slug}/execute/task-map.md`
 ```markdown
 # Task Map
 
-| Task Tool ID | Group | Task ID | Impl-Checklist | Notes |
-|-------------|-------|---------|----------------|-------|
-| {id} | {group} | TASK-{group}-01 | impl-checklist-{group}.md | |
-| {id} | {group} | TASK-{group}-02 | impl-checklist-{group}.md | ⚠️ file conflict with {other-group} — serialized |
+| Task Tool ID | Group | Task ID | test_weight | Impl-Checklist | Notes |
+|-------------|-------|---------|-------------|----------------|-------|
+| {id} | {group} | TASK-{group}-01 | full | impl-checklist-{group}.md | |
+| {id} | {group} | TASK-{group}-02 | riding | impl-checklist-{group}.md | ⚠️ file conflict with {other-group} — serialized |
+
+`test_weight` is decided at Step 3 write time (gate-time), one row per task, with a
+one-line rationale in Notes when `riding` is chosen.
 ```
 
 Pre-scan warnings appear in the Notes column when Step 1d detects a shared file path between two groups in the same frontier level.
+
+For L/XL runs, task-map.md also carries the group-level integration record written by §4d and read by the Step 7 branch-deletion guard:
+
+```markdown
+## Integration Status
+
+| Group | integration_status | 原因 |
+|-------|--------------------|------|
+| {group} | integrated \| not-integrated | {merge ✅ / direct-blocked / cascade-blocked / merge ❌ / Green broken ×3} |
+```
 
 ---
 
@@ -118,16 +139,17 @@ Requirements 達成率：N/M（N 個 REQ-XXX 有對應綠燈測試）
 
 | Group | Task | 狀態 | 證據 | 備註 |
 |-------|------|------|------|------|
-| {group} | TASK-{group}-01 | ✅ | green_proof: `{run_command}` exit {exit_code}，{passed}/{collected} | |
+| {group} | TASK-{group}-01 | ✅ | green_proof: `{test_command}` exit {exit_code}；{tests_correspondence 摘要} | |
 | {group} | TASK-{group}-02 | ❌ blocked | — | 連續失敗 3 次；smart-friend 診斷：{...} |
 | {group} | TASK-{group}-03 | ❌ cascade-blocked | — | 前置群組 {group} blocked |
 | {group} | TASK-{group}-04 | ❌ blocked | — | spec 矛盾：REQ-001 與 REQ-003 衝突 |
 
 Every ✅ row must fill the 證據 column by citing that task's Pre-SWITCH green_proof
-fields (run_command / exit_code / passed / collected) — the report carries the
-evidence reference; the gate itself stays at Pre-SWITCH (this step still only
-serializes, it does not recompute). A ✅ row with an empty 證據 column is a claim,
-not a confirmation.
+fields (test_command / exit_code / output_tail / tests_correspondence — the exact
+schema of `agents/review-agent.md` §3) — the report carries the evidence
+reference; the gate itself stays at Pre-SWITCH (this step still only serializes,
+it does not recompute). A ✅ row with an empty 證據 column is a claim, not a
+confirmation.
 
 ## E2E 測試結果
 
@@ -144,6 +166,13 @@ e2e_evidence:（僅 ✅ 時必填；exit 0 但 collected 為 0 或計數不可�
 ## Final-Review 結論
 
 {✅ 通過（needs_fixer: false）| 殘餘問題：{advisory notes}}
+
+goal.md 準則交叉核對（每條 C{n} 依字面判定，缺一即為 needs_fixer）：
+
+| Criteria | 判定 | 證據（字面條件 vs 實際行為） |
+|----------|------|------------------------------|
+| C1 | ✅/❌ | {evidence} |
+| C2 | ✅/❌ | {evidence} |
 
 ## Blocked 項目
 

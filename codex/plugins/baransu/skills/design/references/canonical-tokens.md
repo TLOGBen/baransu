@@ -95,7 +95,20 @@ The following v1.2 token names are dropped in v1.3; tokens.css MUST NOT define t
 
 ## Slide Layout Registry
 
-Benchmarked against guizang S01-S22; mechanically verified by the `book/scripts/validate-swiss-deck.mjs` LOCK_LIST. The `slide-cores/` of all three presets (paper / swiss / google-design) must align with the following 22 layout names and use-cases; any layout name not in the lock list is a hard fail.
+Benchmarked against guizang S01-S22; mechanically verified by the `book/scripts/validate-swiss-deck.mjs` LOCK_LIST. The `slide-cores/` of all three presets (paper / swiss / google-design) must align with the following 22 layout names and use-cases. **Enforcement is asymmetric** (matching validate-swiss-deck.mjs's actual behavior): a layout name outside the lock list (after alias resolution) is a hard fail; a lock-list layout with no shipped core only soft-warns.
+
+**Alias map (preset-historical filenames → canonical lock-list names)** — the shipped slide-cores use these historical ids; validate-swiss-deck.mjs resolves them via its `ALIASES` table before the lock-list comparison, so do NOT bulk-rename existing cores, and when authoring a new core prefer the historical id its siblings use:
+
+| shipped `data-layout` / filename | canonical lock-list name |
+| --- | --- |
+| `cover` | `title` |
+| `cover-section` | `section` |
+| `cover-data` | `data` |
+| `cover-quote` | `quote` |
+| `compare` | `comparison` |
+| `content-2col` | `two-column` |
+
+**Reserved, no core shipped yet (4)**: `toc` / `image-full` / `quote-stack` / `breakout` are in the lock list but no preset ships a core for them — validate-swiss-deck.mjs reports them as a WARN (21/22 present), not a fail.
 
 `required-section-count` is the lower bound of required semantic blocks (heading / body / caption / cell …) within a layout; `SVG-allowed-types` is the SVG chart-type slug that may be embedded in that layout (one of the 13 status=complete diagram-types corresponding to `book/references/diagram-types/type-{slug}.md`: `architecture / flowchart / sequence / state / er / timeline / swimlane / quadrant / nested / tree / layers / venn / pyramid`). `none` = SVG embedding forbidden (image-heavy or pure layout); `optional` = embeddable but no semantically required type.
 

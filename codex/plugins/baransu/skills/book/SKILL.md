@@ -28,7 +28,7 @@ Converts any content into a Kami-themed, browser-ready HTML book saved to `.clau
 ## Constraints
 
 - **Token source = project root**: all visual elements consume tokens from `{project_root}/tokens.css` (written by `/baransu:design preset <style>` or `/baransu:design gen --slug <slug>`) plus the component patterns in `{project_root}/design-cores/long-form.html` (SSOT) or `references/golden-template.html` (fallback). No inline hex colours; use named CSS variables (canonical 38 base names; +5 capability for schema:43).
-- **Soft generation inside the hard floor**: the render generates layout within the preset's §9 expression range (Stage 3 §3), using the SSOT template / fallback as reference exemplars rather than a closed class whitelist. The non-negotiable floor is the token boundary — every color routes through the canonical token (38 base names; +5 capability for schema:43), no bare hex — which validate-output.ts (GATE-F) guards; the soft §9 range is judged by style-reviewer.
+- **Soft generation inside the hard floor**: the render generates layout within the preset's §9 expression range (Stage 3 §3), using the SSOT template / fallback as reference exemplars rather than a closed class whitelist. The non-negotiable floor is the token boundary — every color routes through the canonical token (38 base names; +5 capability for schema:43), no bare hex. In PPT mode validate-output.ts (GATE-F) mechanically enforces the class-prefix subset of this floor; in html (long-form) mode GATE-F SKIPs, so the floor is guarded by the Stage 3 §3 pre-write checklist instead; the soft §9 range is judged by style-reviewer.
 - **SVG required**: a document with 0 SVG diagrams fails the quality gate and must be fixed before completion.
 - **Length cap**: final HTML body ≤ 1800 words. Excess goes into a 延伸閱讀 link block.
 - **No LLM-generated commentary**: the rendered HTML contains the source content, structured and styled — not Claude's own analysis. The Synthesize stage extracts; the Render stage presents.
@@ -98,13 +98,9 @@ If this fails: output 「Python 3.8+ 未安裝，無法繼續。請先安裝 Pyt
 - **macOS**: `uname -s 2>/dev/null | grep -qi darwin && echo macos` → set `$PLATFORM=macOS`
 - **Otherwise**: set `$PLATFORM=Linux`
 
-### 6. markitdown check
+### 6. Dependency install (markitdown included)
 
-```bash
-python3 -m markitdown --version 2>/dev/null
-```
-
-Run the format-aware dependency installer:
+Run the format-aware dependency installer — it already probes `python3 -m markitdown --version` itself and installs on a miss, so no separate manual markitdown check is needed:
 
 ```bash
 npx tsx "./scripts/install-deps.ts" --format $FORMAT
@@ -168,7 +164,7 @@ Layer 2: curl -sL "https://r.jina.ai/{url}"   → same quality checks
 Layer 3: curl -sL "{url}" -H "User-Agent: Mozilla/5.0"
 ```
 
-Store the best result in a temp file `/tmp/book-raw-{slug}.{ext}`.
+Store the best result in a temp file `/tmp/book-raw-{slug}.{ext}`, where `{slug}` here is an **initial working slug** — the URL's host + path stem (as /read uses), since the definitive `$SLUG` does not exist yet at Stage 1; Stage 2A §5's derived `$SLUG` supersedes this working slug for all output paths.
 Convert to Markdown via `markitdown "/tmp/book-raw-{slug}.{ext}" -o "/tmp/book-body-{slug}.md" 2>/dev/null`.
 Set `$RAW_CONTENT` to the content of `/tmp/book-body-{slug}.md`.
 
@@ -184,7 +180,7 @@ Check the following paths in order:
 2. `.claude/read/material/{slug}/index.md`
 
 If found: read the file; set `$RAW_CONTENT` to its body (strip YAML frontmatter).
-If not found: treat as a bare topic → go to §4 (plain text).
+If not found: first check whether the input is actually a local file (`test -e "{input}"` — a bare filename like `notes.md` matches this slug pattern too); if it exists, route to §3 (local file). Only when it is neither a known slug nor an existing file: treat as a bare topic → go to §4 (plain text).
 
 ### 3. Local file path (`./`, `/`, or existing file)
 
@@ -223,14 +219,16 @@ Receives `$RAW_CONTENT`. Produces `$STRUCTURE` (a JSON-like outline) and `$CONTE
 **Trigger regex** (soft-match against the full `$RAW_CONTENT`; not all hits are required and a miss is not an error — it only serves as a signal to trigger search the web):
 
 ```
-/([A-Z][a-zA-Z]+\s+(MCP|SDK|CLI|API)?\s*v?\d+(\.\d+)*)|([A-Z][a-z]+\s+[A-Z][a-z]+(\s|,)+(CEO|CTO|founder|engineer))/
+/([A-Z][a-zA-Z]+\s+((MCP|SDK|CLI|API)\s+v?\d+(\.\d+)*|v\d+(\.\d+)+))|([A-Z][a-z]+\s+[A-Z][a-z]+(\s|,)+(CEO|CTO|founder|engineer))/
 ```
 
 Explanation:
-- First-half alternation: product name (capitalized word) + optional MCP/SDK/CLI/API + optional `v` + one or more dot-separated numbers → matches such as 「Linear MCP v3.4.7」「Anthropic SDK 0.39」.
+- First-half alternation: product name (capitalized word) + **either** an MCP/SDK/CLI/API token followed by a version number **or** a `v`-prefixed dotted version → matches such as 「Linear MCP v3.4.7」「Anthropic SDK 0.39」「Claude v2.1」. The middle group is deliberately non-optional: a bare capitalized-word + number (「Stage 3」「Python 3」「Windows 11」「Chapter 4」) must NOT trigger — those benign patterns saturate normal technical prose.
 - Second-half alternation: person name (two capitalized words) + space or comma + title (CEO/CTO/founder/engineer) → matches such as 「Jane Doe, CTO」.
 
-**Flow on hit** (for each matched `{hit}`):
+**Dedup and cap before the flow**: dedup the matched hits (identical strings verify once), then keep at most the **3 most-specific** hits (longest match first — a fully-versioned product string outranks a looser one). Hits beyond the cap are listed in the completion report as unverified, not searched.
+
+**Flow on hit** (for each surviving `{hit}`):
 
 1. **Sanitize `{hit}` before query**: first strip all `"` (`U+0022`) characters inside `{hit}` (the regex captures legitimate identifier/version strings, which normally contain no quote; if present it is noise or adversarial input). The sanitized `{hit_clean}` is then passed to the next step.
 2. Run `search the web`, query template: `"{hit_clean}" release notes` or `"{hit_clean}" announcement` (for person-name hits use `"{hit_clean}" announcement` / `"{hit_clean}" interview` instead).
@@ -291,6 +289,7 @@ Derive `$SLUG` from the title:
 - Collapse consecutive hyphens
 - Strip leading/trailing hyphens
 - Truncate to 60 chars
+- **Empty-slug fallback** (an all-CJK title — the common case for 繁中 content — reduces to the empty string): fall back in order to (1) a romanized/translated ASCII rendering of the title, (2) the source URL's path stem (as /read does), (3) a date-stamped `book-{YYYYMMDD}` slug. Never emit `.claude/book/.html`.
 
 Check `.claude/book/` for existing files with the same slug.
 If a collision exists: append `_v2`, `_v3`, etc., and **output one Traditional-Chinese notice line so the renamed output is not silent** (notify, not a blocking PAUSE): 「偵測到既有 {slug}.html，本次另存為 {slug}_v2.html（如要覆寫請刪除舊檔後重跑）」, then continue.
@@ -320,7 +319,9 @@ Before generating any HTML:
    - tokens.css begins with a preset-identifying comment (`/* preset: kami */` / `/* preset: google-design */` / `/* preset: swiss */` or a user-supplied gen slug), for the `$STYLE` variable parsed in Stage 0 to do a tie-break comparison in GATE-F.
 2. **v1.3 long-form template SSOT dynamic read**: prefer reading `{project_root}/design-cores/long-form.html`, treating `<section data-slot="long-form-body">` as the body insertion point.
    - File **exists but fails to read** (malformed / chmod 000 / 0 bytes) → **hard fail**, no silent fallback; stderr 「long-form.html 讀取失敗：{原因}」, abort Stage 3.
-   - File **does not exist** → fall back to `references/golden-template.html` (the v1.2 Kami-style built-in template); stderr warning 「current preset 為 {style} 但 fallback 到 Kami template，class prefix 可能不一致；建議先跑 /baransu:design preset {style}」; continue producing output (GATE-F will detect the class-prefix inconsistency, which is expected behavior).
+   - File **does not exist** → fall back to `references/golden-template.html` (the v1.2 Kami-style built-in template); stderr warning 「current preset 為 {style} 但 fallback 到 Kami template，class prefix 可能不一致；建議先跑 /baransu:design preset {style}」; continue producing output. (Note: GATE-F runs in PPT mode only and SKIPs on long-form html, so this prefix inconsistency is NOT mechanically detected on the html path — the §3 pre-write checklist and style-reviewer are the only guards there.)
+
+On this fallback path, the golden template has no `<section data-slot="long-form-body">` marker — treat the inside of its `<article class="paper">` element as the body insertion point that §2's `data-slot` section otherwise provides.
 
 The long-form.html slot is a show-by-example contract — the slot demonstrates 6+ section types (heading / paragraph / quote / code / SVG / list), and serves as a *reference exemplar* for generation, **not a fixed class whitelist that the output is limited to**. Token values are provided by `{project_root}/tokens.css`; the template references canonical names (var(--paper) / var(--accent) etc.), and any layout the render generates must likewise route every color through those canonical tokens — no bare hex (this is the unchanged hard safety floor; see §3).
 
@@ -343,7 +344,7 @@ Produce the full HTML document using the SSOT template loaded in §1 step 2:
 </main>
 ```
 
-`<slug>` is the preset prefix read from `tokens.css` line 1 (kami / google / swiss / gen slug). All class names in output must use that prefix; GATE-F guards consistency.
+`<slug>` is the preset prefix read from `tokens.css` line 1 (kami / google / swiss / gen slug). All class names in output must use that prefix; GATE-F guards consistency in PPT mode only — on long-form html it SKIPs, so the §3 pre-write checklist is the guard.
 
 ### 3. Section content rules
 
@@ -364,7 +365,7 @@ For each section from `$STRUCTURE`:
 
 **§9-missing conservative fallback**: when the preset's §9 lacks the expression-range fields (an older preset not yet upgraded), the render does **not** improvise without a range — it falls back to a **conservative symmetric layout** (symmetric spatial basis, the default single-column reading rhythm), generating nothing beyond what the conservative baseline requires.
 
-**Hard floor (unchanged safety boundary the soft generation lives inside)**: regardless of how the layout is generated, **all colors go through canonical tokens (the canonical 38 base names; +5 capability for schema:43) — no bare hex** anywhere in the output. The generated layout is bounded by, never exempt from, this floor; validate-output.ts guards it (GATE-F class prefix / token membership) and style-reviewer judges the soft §9 range. If a needed component truly has no token-backed expression, prefer plain `<p>` over inventing a bare-hex color.
+**Hard floor (unchanged safety boundary the soft generation lives inside)**: regardless of how the layout is generated, **all colors go through canonical tokens (the canonical 38 base names; +5 capability for schema:43) — no bare hex** anywhere in the output. The generated layout is bounded by, never exempt from, this floor; validate-output.ts guards the class-prefix subset in PPT mode (GATE-F — SKIPs on long-form html, where the pre-write checklist below is the guard) and style-reviewer judges the soft §9 range. If a needed component truly has no token-backed expression, prefer plain `<p>` over inventing a bare-hex color.
 
 🔴 GATE — pre-render visual self-check (pre-write checklist): **before** writing the HTML to file in Stage 3 §7, go through the following seven-line binary checklist item by item (each restates an existing reference rule, not a new rule). Any ✗ → fix it then Write, do not write to disk directly; only enter §7 when all seven are ✓.
 
@@ -410,7 +411,7 @@ Whenever any stage needs to fetch a raster / photographic / logo / UI mockup ima
 Takes effect only when `$FORMAT` ∈ {`pdf`, `ppt`, `all`}.
 
 - **PDF**: inject `@page` + hidden `.toc-wrap` + serif `body { font-family: var(--font-serif) }` into the HTML, save the patched HTML, call `python3 -m weasyprint`. On failure → warning, do not abort.
-- **PPTX**: per `$STRUCTURE_SLIDES`, take the skeleton from `{project_root}/slide-cores/<layout-id>.html`; output `<body width=960>` + per slide `<div class="slide" data-layout=...>`; before calling, verify three items (`width=960` / `.slide` present / no `background-image`); once passed, call `node html2pptx.js`.
+- **PPTX**: per `$STRUCTURE_SLIDES`, take the skeleton from `{project_root}/slide-cores/<layout-id>.html`; output one HTML per slide with a `960pt × 540pt` `<body>` (the unit is **pt** — 960px fails html2pptx's LAYOUT_WIDE dimension validation) + per slide `<section class="{prefix}-slide" data-layout=...>`; before calling, verify three items (`width:960pt` / a prefixed `section[data-layout]` slide present / no `background-image`); once passed, call `node html2pptx.js` **once with all per-slide files** (multiple inputs append slides to one .pptx).
 
 **Detailed steps (HTML preprocessing / verification items / failure handling) → read `references/render-pipelines.md`.**
 ### 7. Write the output file
@@ -466,6 +467,6 @@ SVG 圖解：{N} 張
 
 Verification splits into two tiers with opposite authority — **the hard floor blocks; the soft range advises**. Soft generation (Stage 3 §3) lives *inside* the hard floor and is *judged against* the soft range; a soft-range objection never blocks, a hard-floor violation always does.
 
-- **Hard floor — blocking boundary**: **token-only / no-rgba (in SVG) / accent ≤5% / PDF-safe**. `scripts/validate-output.ts` mechanically enforces the gated subset — token-only via GATE-F class-prefix, PDF-safe via GATE-K + the html2pptx pre-checks; any gate violation = GATE FAIL (blocking). **No gate scans no-rgba, accent ≤5%, or bare-hex color literals today** — those hard-floor items are caught only by the Stage 3 §3 pre-write checklist, so self-check them before writing (coverage table: `references/validation.md`).
+- **Hard floor — blocking boundary**: **token-only / no-rgba (in SVG) / accent ≤5% / PDF-safe**. `scripts/validate-output.ts` mechanically enforces the gated subset — token-only via GATE-F class-prefix (PPT mode only; SKIPs on long-form html), PDF-safe via GATE-K + the html2pptx pre-checks (likewise PPT-mode); any gate violation = GATE FAIL (blocking). **No gate scans no-rgba, accent ≤5%, or bare-hex color literals today** — those hard-floor items are caught only by the Stage 3 §3 pre-write checklist, so self-check them before writing (coverage table: `references/validation.md`).
 - **Soft range — non-blocking opinion**: `style-reviewer` plus mechanical heuristics (**bare hex**, a **second accent**, **column width** past the §9 欄寬上限 ceiling) — advisory, recorded in the review, never blocks output.
 - Full detail (hard-floor→gate coverage mapping, follow-up note, gate-internal trust boundary, REQ-003 Scenario 2 automated evidence) → read `references/validation.md`.

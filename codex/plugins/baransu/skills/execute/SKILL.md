@@ -42,8 +42,10 @@ These apply across all steps. The review-agent rule and the spec-read-only rule 
 - **Subagent depth = 1.** Agents in `agents/*.md` are stateless leaf nodes. They do not dispatch further subagents. Being dispatched as a subagent does NOT disable this skill's own worker fan-out — the `Agent` tool is always available (probe run a928109). The depth=1 rule here governs the leaf agents this skill dispatches (they never dispatch further), NOT this dispatcher's own ability to fan out its summarize/impl/review Tasks. Fan-out is released unconditionally and is orthogonal to interactive-capability detection — it is never gated behind an direct user question with numbered options (stop; classify whether this is an authorization PAUSE before continuing) proxy.
 - **All `task-map.md` records created before execution begins.** Register every group × task via create a `task-map.md` record in Step 2. No mid-execution task creation.
 - **Working files live under `.claude/execute/`.** Edit and Write are only permitted in the execute working directory.
+- **goal.md criteria are the top acceptance authority.** requirement.md / test.md operationalizations are means, not the finish line: when they under-specify a goal.md 驗收標準 (C{n}), the criterion's literal wording wins. A criterion satisfied only inside test scaffolding while its production path stays inert is NOT met (see the [latent-defect disclosure trap] gotcha). Step 6 cross-checks every C{n} against its literal wording.
+- **Process artifacts are a closed list.** The only working documents this skill writes are: confirm.md, task-map.md, impl-checklist-{group}.md, context/*-ctx.md, and final-report.md (plus task-registry.md only when Task tools are unavailable). Do not invent additional per-task self-review / telemetry / coverage documents — review evidence lives in the checklist fields and final-report.md. Degraded runs that absorb agent roles get no extra artifacts beyond this list; in a degraded single-context run, context/*-ctx.md may be terse — the eight field headers with file/line pointers instead of copied prose — since it exists for post-compaction re-read resilience, not for a subagent reader.
 - **Goal-Alignment Filter is hard governance.** `failure_count` accounting is affected by the filter (off-goal findings are downgraded to advisory and do not increment the counter), but findings tied to an acceptance-criterion direct failure (驗收標準直接失敗) are protected by the hard invariant — they keep their original tier and still increment `failure_count`.
-- **Worktree lifecycle.** Worktrees are created for any parallel execution (L/XL); removed in Step 7 after final-report.md is written.
+- **Worktree lifecycle.** Worktrees are created for any parallel execution (L/XL) **only when git is available**; removed in Step 7 after final-report.md is written. When the project has no git repo, or any `git worktree add` fails, the run degrades one-way to in-place serialized execution (see §4a) — a missing git repo never blocks tasks and never wedges the session.
 - **final-fixer-agent is dispatched at most once per session.**
 - **smart-friend-agent is dispatched at most once per task** (when failure_count reaches 2).
 - **Error Reference.** When any step hits an error condition not covered by an inline Fallback, read `references/error-reference.md` and apply the matching condition → action row (condition / detection point / action lookup table, all steps). If no row matches, do not improvise: mark the affected task blocked with the verbatim error, escalate 「未涵蓋的錯誤：{condition}，該任務已標記 blocked」, and continue unblocked work per the Goal line.
@@ -70,6 +72,10 @@ Before spec validation, check for a DESIGN.md at the project root:
 2. If `{root}/DESIGN.md` exists, read it into context and output one line in Traditional Chinese:
    「已載入 DESIGN.md，視覺規格已參考」
 3. If absent, skip silently. Non-blocking.
+
+### Git availability probe
+
+Run `git rev-parse --show-toplevel 2>/dev/null` in the project root. Record `git_available: true|false` into confirm.md. When false, also record `execution_mode: degraded-in-place` and output one line: 「偵測不到 git repo：L/XL 將降級為就地序列執行（無 worktree、無 merge point）」. A missing git repo is NEVER a stop condition — the run proceeds; only the worktree/merge machinery is skipped.
 
 ### Spec Validation
 
@@ -127,7 +133,7 @@ For each group (topological order):
 ## Step 3 — Work Document Initialization
 
 Write:
-- `.claude/execute/{date}-{slug}/execute/task-map.md` — maps `task-map.md` IDs to groups and checklist files. Template: `references/output-formats.md §task-map.md`.
+- `.claude/execute/{date}-{slug}/execute/task-map.md` — maps `task-map.md` IDs to groups and checklist files, and records each task's `test_weight` (full | riding, per the §4b tier rule) decided NOW — before any dispatch. Gate-time only: a weight may change later solely via an explicit re-decision logged at that task's dispatch time; classifying weights retroactively after implementation is a constraint violation (post-hoc rationalization, not a decision). Template: `references/output-formats.md §task-map.md`.
 - `.claude/execute/{date}-{slug}/execute/impl-checklist-{group}.md` (one per group) — copies `驗收標準` items from each task in `task-{group}.md`, adds blank `Review 結果:` and `備註:` fields. Template: `references/output-formats.md §impl-checklist`.
 
 **Done when:** task-map.md and all impl-checklist files written.
@@ -146,10 +152,14 @@ Process groups by frontier level (topological order). Groups at the same level r
 
 For **M**: single workflow, main branch. No worktrees.
 
-For **L/XL**: before creating the first worktree, record `target_branch = $(git branch --show-current)` (fallback `main` if empty/detached) into confirm.md — every later merge targets this recorded value, never a hardcoded name. Then create one worktree per group in the current wave before dispatching any impl-agent for that wave:
+For **L/XL**: worktrees require `git_available: true` (Step 0 probe). If git is unavailable, or any `git worktree add` below exits non-zero: do NOT retry and do NOT block the wave — degrade the whole run, one-way, to **in-place serialized execution**: process every group sequentially in topological document order in the main working directory with M-mode semantics (no worktrees, no §4d merge points), record `execution_mode: degraded-in-place` plus the failing command's verbatim output in confirm.md, and continue the TDAID loop unchanged. Announce once: 「worktree 不可用，已降級為就地序列執行」.
+
+Otherwise (git available): before creating the first worktree, record `target_branch = $(git branch --show-current)` (fallback `main` if empty/detached) into confirm.md — every later merge targets this recorded value, never a hardcoded name. Then create one worktree per group in the current wave before dispatching any impl-agent for that wave, recording each created path in confirm.md's worktree registry:
 ```bash
-git worktree add .git/worktrees/{group} -b execute/{date}-{slug}/{group}
+git worktree add .claude/worktrees/execute-{date}-{slug}-{group} -b execute/{date}-{slug}/{group}
 ```
+
+Never place worktree checkouts under `.git/worktrees/` — that directory is git's own per-worktree metadata store; a checkout there shares its directory with git's HEAD/index/commondir files, so the tree is permanently dirty and a Step 7 WIP `git add -A` would commit git internals.
 
 ### 4b. Per-task TDAID loop
 
@@ -172,14 +182,17 @@ Spawn a `summarize-agent` subagent with `spec_dir`, `task_id`, and `output_path`
 
 **Phase 2 — Impl** (Write Tests → Prove Red → Impl Green)
 
+**Test-weight tier (orchestrator decides per task, before the first dispatch)**: a task whose 步驟 only wire existing behavior — thin pass-through forwarders, module registration, re-exports, config plumbing — takes the **coverage-riding path** (`test_weight: riding`): impl-agent writes no new per-task tests when every 驗收標準 item is already semantically pinned by a named test elsewhere in the suite (same session or pre-existing); the pinning tests must be named per criterion in the impl report and in `green_proof.tests_correspondence`, and review-agent verifies that correspondence. Any task that gives birth to new observable behavior — new logic, new state, new user-visible output — takes the full Red gate → Green path (`test_weight: full`). When in doubt, full. This is the 輕重 rule: the prove-red ritual is spent where behavior is born; wiring rides on the named pinning tests plus the Step 5 E2E net.
+
 ```
 failure_count = 0
-compile_error_count = 0  # only counted after smart-friend has been dispatched
+compile_error_count = 0  # consecutive compile-error ❌ returns; reset by any other return
 
 LOOP:
   Spawn a impl-agent subagent with:
     - ctx_path:            context/{group}-{task-id}-ctx.md
     - worktree_path:       group worktree path (or null for M)
+    - test_weight:         full | riding  (per the tier rule above; default full)
     - refactor_mode:       false  (set true only when review signals it)
     - correction_strategy: composite object {text, investigate_files} when
                            failure_count == 2 (built from smart-friend output;
@@ -194,16 +207,18 @@ LOOP:
     break LOOP
 
   CASE impl-agent status == ❌  AND failure detail mentions compile error:
-    # Compile errors do NOT count toward failure_count
-    if failure_count >= 2:
-      compile_error_count += 1
-      if compile_error_count >= 3:
-        Mark task BLOCKED (reason: persistent compile error after smart-friend)
-        update task-map.md task state: status=blocked
-        escalate to user: 「TASK-{group}-NN blocked：smart-friend 後持續 compile error」
-        break LOOP
+    # Compile errors do NOT count toward failure_count — but they are capped on
+    # their own channel at EVERY failure_count level, so a deterministic compile
+    # error can never retry unbounded.
+    compile_error_count += 1
+    if compile_error_count >= 3:
+      Mark task BLOCKED (reason: 3 consecutive compile errors)
+      update task-map.md task state: status=blocked
+      escalate to user: 「TASK-{group}-NN blocked：連續 3 次 compile error」
+      break LOOP
     continue LOOP  # retry without incrementing failure_count
 
+  compile_error_count = 0   # any non-compile-error return breaks the consecutive chain
   → proceed to Phase 3 (impl-agent returned Green, no compile error)
 ```
 
@@ -266,6 +281,8 @@ SWITCH review_tier:
     → go to Goal-Alignment Filter sub-step below
 ```
 
+**Per-task commit**: immediately after a task marks ✅ (any SWITCH path above), commit that task's changes in its working tree with a conventional message — `feat|fix|refactor({group}): TASK-{group}-NN {title}`. One task = one commit: red/green checkpoints stay bisectable and mid-run work is never lost to a crash. Never batch multiple ✅ tasks into one commit.
+
 **Goal-Alignment Filter** (applies to: `packaged confirm (correctness)`, `needs judgment`)
 
 Full procedure — applicability gate, finding-level loop, hard invariant (an 驗收標準直接失敗 finding must not be downgraded), semantic-coverage decision criterion, and re-tier post-step — lives in `references/goal-alignment-filter.md` and is authoritative for `failure_count` accounting in this sub-step. Follow it; its outcome routes to either task ✅ (all findings downgraded to advisory) or the failure escalation logic below (`failure_count += 1`).
@@ -310,11 +327,13 @@ Full procedure — applicability gate, finding-level loop, hard invariant (an �
 After each task is marked BLOCKED, evaluate group-level status:
 - A group is **group-blocked** if ANY of its tasks is BLOCKED.
 
-For each downstream group G where `前置群組` contains at least one group-blocked group: mark G **cascade-blocked**. update `task-map.md` task state all G's tasks to cascade-blocked.
+For each downstream group G where `前置群組` contains at least one group that is group-blocked OR already cascade-blocked: mark G **cascade-blocked**. update `task-map.md` task state all G's tasks to cascade-blocked. Re-evaluate until no group changes state (fixpoint) — propagation is transitive: a group depending only on a cascade-blocked group is itself cascade-blocked.
 
 Record direct-blocked vs cascade-blocked separately in final-report.
 
 ### 4d. Merge Point (L/XL only)
+
+Skipped entirely on a degraded in-place run (`execution_mode: degraded-in-place`): work already lives in the main working directory — record `integration_status[{group}] = in-place` for each all-✅ group in task-map.md and proceed to the next frontier level.
 
 After all tasks in a frontier level complete (✅, blocked, or cascade-blocked):
 
@@ -384,7 +403,11 @@ If E2E fails:
 
 Spawn a `final-review-agent` subagent with:
 - `requirement_path`: path to requirement.md
+- `goal_path`: path to goal.md
 - `test_dir`: parse from test.md integration/E2E sections; default to `tests/`
+- `e2e_evidence`: the Step 5 e2e_evidence block plus the current tree state (`git rev-parse HEAD` and whether `git status --porcelain` is empty), so the agent can decide whether that suite run is current and reusable
+
+The Coverage Report has two mandatory parts: (1) per-REQ coverage as before, and (2) a **goal-criteria cross-check** — every C{n} in goal.md judged against its LITERAL wording (displayed fields, persistence semantics, production effectiveness), each with evidence. A criterion that passes only inside test scaffolding while its production path is inert (a PRAGMA / feature flag / wiring the real entry point never sets) is ❌. `needs_fixer: true` when any REQ **or any C{n}** is ❌.
 
 If `needs_fixer: false` → record conclusion in final-report; proceed to Step 7.
 
@@ -405,13 +428,15 @@ Advisory notes from Coverage Report → record in final-report; do not trigger f
 Write `.claude/execute/{date}-{slug}/execute/final-report.md`. Template: `references/output-formats.md §final-report.md`.
 
 When emitting the report:
-- If an upstream work journal exists (`.claude/think/*.html` for the approved plan), read `../_shared/output-journal.md` and append this run's off-spec decisions / forced changes / tradeoffs to its 執行日誌 section per that contract, then write the artifact to disk and list its absolute path the updated journal.
+- If an upstream work journal exists (`.claude/think/*.html` for the approved plan; `.claude/review/*.html` when the spec was handed off via a review deliverable), read `../_shared/output-journal.md` and append this run's off-spec decisions / forced changes / tradeoffs to its 執行日誌 section per that contract, then write the artifact to disk and list its absolute path the updated journal. Journal selection when several exist: pick the one whose slug matches the plan/spec this run traces to; if no slug matches unambiguously, pick the most recently modified journal and open the appended entry with 「（自動選定最近修改的 journal）」 — never fan out the append to multiple journals.
 
-Remove all worktrees created this session. The worktree-remove is safe only because dirty not-integrated worktrees are WIP-committed first (below) — after that it discards a checkout, not committed work. The branch force-delete is **integration-state-gated**: `git branch -D` is irreversible and would silently discard any commits that never reached main, so it runs **only** for a group whose work is confirmed integrated.
+Remove all worktrees created this session, iterating the confirm.md worktree registry (a degraded in-place run has an empty registry — skip this whole block silently). The worktree-remove is safe only because dirty not-integrated worktrees are WIP-committed first (below) — after that it discards a checkout, not committed work. The branch force-delete is **integration-state-gated**: `git branch -D` is irreversible and would silently discard any commits that never reached main, so it runs **only** for a group whose work is confirmed integrated (`in-place` groups have no session branch — nothing to delete).
 
-For each session group's worktree — if the group's `integration_status` is not `integrated`, first run `git -C .git/worktrees/{group} status --porcelain`; if dirty, commit the WIP onto the group's kept branch (`git -C .git/worktrees/{group} add -A && git -C .git/worktrees/{group} commit -m "WIP: blocked partial work"`) so the retained branch actually preserves it — then:
+If a `git worktree remove --force` exits non-zero: run `git worktree prune`; if the directory still exists, fall back to `rm -rf {path}` **only** when the path is recorded in this session's registry AND lies under `.claude/worktrees/` — then `git worktree prune` again. If it still fails, append 「worktree 清理失敗：{path}，請手動處理」 to final-report.md and continue — cleanup failure never wedges the session.
+
+For each session group's worktree — if the group's `integration_status` is not `integrated`, first run `git -C .claude/worktrees/execute-{date}-{slug}-{group} status --porcelain`; if dirty, commit the WIP onto the group's kept branch (`git -C .claude/worktrees/execute-{date}-{slug}-{group} add -A && git -C .claude/worktrees/execute-{date}-{slug}-{group} commit -m "WIP: blocked partial work"`) so the retained branch actually preserves it — then:
 ```bash
-git worktree remove .git/worktrees/{group} --force
+git worktree remove .claude/worktrees/execute-{date}-{slug}-{group} --force
 ```
 Then decide per group whether to force-delete its branch by reading the `integration_status[{group}]` field recorded in task-map.md by §4d:
 - **Integrated (force-delete allowed)**: task-map.md records `integration_status[{group}] = integrated` (work landed on the recorded target_branch). Only then run:
@@ -445,8 +470,11 @@ final-report.md: .claude/execute/{date}-{slug}/execute/final-report.md
 - **[loaded-orchestrator self-review trap]**: When execute runs in a context already holding the spec (e.g. inline after a think→analyze chain), the orchestrator rationalizes absorbing subagent roles — writing and reviewing in its own polluted context because the ceremony "feels redundant when I already understand the task". Honest boundary (see /think Stage E "Mechanism necessity"): this gotcha is prose inside the same path that fails, so it can be skipped like any other — it raises the cost and names the move, it does not mechanically prevent it; real prevention removes the trigger (do not invoke execute inline; hand off to a fresh session) or gates verifier dispatch outside the orchestrator's cognition.
   Solution: Any subagent bearing a verification function must run in a fresh-context subagent; the orchestrator may never substitute itself. Context-loading roles (summarize) may be absorbed only by still producing their artifact for downstream agents to read.
 
-- **[compile error vs failure_count]**: After impl-agent returns ❌ with a compile error, `failure_count` must NOT increment. Counting compile errors as failures triggers smart-friend early and wastes the retry budget on syntax issues.
-  Solution: Only `failure_count++` on review-agent "packaged confirm (correctness)" or "needs judgment" returns.
+- **[compile error vs failure_count]**: After impl-agent returns ❌ with a compile error, `failure_count` must NOT increment. Counting compile errors as failures triggers smart-friend early and wastes the retry budget on syntax issues. The exclusion is not a license for unbounded retries: `compile_error_count` increments on every consecutive compile-error ❌ (any other return resets it) and blocks the task at 3.
+  Solution: Only `failure_count++` on review-agent "packaged confirm (correctness)" or "needs judgment" returns; cap compile errors on their own counter.
+
+- **[latent-defect disclosure trap]**: Implementation reveals a pre-existing defect that makes an acceptance criterion production-inert — tests pass only because test scaffolding enables what production never does (a PRAGMA, a feature flag, a missing wire in the real entry point). The orchestrator rationalizes "out of scope" and settles for disclosing it in final-report while the criterion marks ✅. Disclosure alone never converts to ✅.
+  Solution: If the minimal fix sits inside the task's already-touched modules and is small (single-digit lines), it IS part of the task — inject a finding and fix it with a test in the current TDAID loop. Otherwise mark the affected task blocked (reason: latent defect blocks C{n}) and escalate. The Step 6 goal-criteria cross-check is the backstop.
 
 - **[final-fixer one-pass cap]**: If Final-Review is still `needs_fixer: true` after the fixer pass, record remaining gaps as BLOCKED and proceed to Step 7. Looping back to dispatch the fixer again is a constraint violation.
   Solution: The re-read checkpoint at Step 6 entry is the enforcement reminder.

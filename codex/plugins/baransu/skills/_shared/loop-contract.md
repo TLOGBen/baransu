@@ -169,6 +169,8 @@ Outcome Contract still applies.
 |---|---|
 | /review | `../review/references/loop-pauses.md` |
 | /execute | `../execute/references/loop-pauses.md` |
+| /analyze | `../analyze/references/loop-pauses.md` |
+| /hunt | `../hunt/references/loop-pauses.md` |
 | /learn | `../learn/references/loop-pauses.md` |
 | /ship | `../ship/references/loop-pauses.md` |
 | /evolve | `../evolve/references/loop-pauses.md` |
@@ -176,3 +178,5 @@ Outcome Contract still applies.
 | /write | `../write/references/loop-pauses.md` |
 | /read | `../read/references/loop-pauses.md` |
 | /book | `../book/references/loop-pauses.md` |
+| /design | `../design/references/loop-pauses.md` |
+| /health | `../health/references/loop-pauses.md` |

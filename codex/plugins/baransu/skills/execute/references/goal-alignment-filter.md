@@ -13,6 +13,12 @@ Applicability gate. This sub-step runs ONLY when the SWITCH above landed on
 `direct fix`, and `packaged confirm (quality)` the filter is **skipped**
 and the original SWITCH outcome stands unchanged.
 
+Spec-contradiction pre-check. Before walking any finding: if
+`review.spec_contradiction != false`, skip the filter entirely and go directly
+to the failure escalation logic — its spec-contradiction branch marks the task
+BLOCKED. A spec-contradiction review must always reach that branch; the
+all-findings-downgraded ✅ path below must never absorb it.
+
 Purpose. review-agent is a finding-producing perspective; governance lives
 here. Some findings reviewer raises are **off-goal observations** (style,
 unrelated polish) that should not block the task. The filter walks each

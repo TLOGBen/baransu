@@ -11,7 +11,6 @@ metadata:
   version: 1.0.0
   scope: investigation-and-fix
 compatibility: Designed for Claude Code; ported to Codex.
-allowed-tools: Read Write Edit Grep Glob Bash AskUserQuestion Skill
 ---
 
 # Hunt — Diagnose Before You Fix
@@ -32,9 +31,10 @@ The body below is English (agent-facing). All user-facing output is in **Traditi
 
 - **Outcome**: The bug's root cause is stated in one sentence with confirming evidence before any fix, and the hunt is recorded for future reference.
 - **Done when**: A Success-format report (根因/修復/確認方式/測試矩陣/迴歸守護) or a Handoff-format report is emitted with status 已解決 / 已解決（附帶條件說明）/ 受阻, and the case file `.claude/hunt-report/HUNT-YYYY-NNN.md` is written.
-- **Evidence**: The report's 確認方式 line cites the instrument or test that confirmed the root cause; all 🎯HUNT-id tagged instruments removed after confirmation (`grep "🎯HUNT-"` finds none).
+- **Evidence**: The report's 確認方式 line cites the instrument or test that confirmed the root cause; all 🎯HUNT-id tagged instruments removed after confirmation (`grep -rn "🎯HUNT-{YYYY-NNN}" --exclude-dir=.claude .` over the source/test dirs returns 0 matches).
 - **Output**: The 繁中 success or handoff report plus the `.claude/hunt-report/HUNT-YYYY-NNN.md` case file.
 - **Automation**: ultracode=assist, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
+  In the same non-interactive pass, read `references/loop-pauses.md` for this skill's own PAUSE classification.
 
 ## Core constraints
 
@@ -76,6 +76,19 @@ Progress claims must map to at least one of the above signals.
 
 ---
 
+## Fast Path — Trivial Bugs
+
+When BOTH hold: (1) the FIRST instrument, or the error message itself, confirms a one-sentence root cause, AND (2) the Scope Blast grep returns ≤3 relevant matches — the hunt may compress ceremony:
+
+- Locate's four questions answered in one line each.
+- Short-form case file: root cause / fix / 確認方式 / 迴歸守護 / blast verdicts only.
+
+The case file, the Scope Blast, and 迴歸守護 are **never** skipped — only their length compresses.
+
+Case-memory fast path: before running the Locate-stage case search, check whether any case dirs exist at all (`.claude/hunt-report/` or hunt cases in `.claude/archived/`). If none exist (fresh project), skip the search ritual and log 「首獵：無既往案例」 in the case file instead.
+
+---
+
 ## Tool Scan
 
 Before investigating, pick the tool that can **observe the layer where the problem occurs** — not the first available tool:
@@ -103,7 +116,9 @@ After selecting a tool in Tool Scan, answer these four questions before adding a
 
 These four questions determine where the first instrument goes. Adding a log before answering these questions = setting traps in a forest without knowing where the prey is.
 
-Before instrumenting, run `python3 "./scripts/hunt-search.py" --keyword "<symptom term>"` to check whether a similar case was already solved; the search covers `.claude/hunt-report/` plus `/ship`-archived cases in `.claude/archived/`. Cite any hit in the report.
+Before instrumenting, run `python3 "./scripts/hunt-search.py" --keyword "<symptom term>"` to check whether a similar case was already solved; the search covers `.claude/hunt-report/` plus `/ship`-archived cases in `.claude/archived/`. Cite any hit in the report. (If no case dirs exist at all, apply the Fast Path's case-memory rule: skip the search and log 「首獵：無既往案例」.)
+
+**Create the case file now, at the Locate stage — not after completion.** Allocate NNN = max(existing ids found by hunt-search.py across `.claude/hunt-report/` and archived cases) + 1, create `.claude/hunt-report/HUNT-YYYY-NNN.md` (format: `references/hunt-case-template.md`) with a `status: scoping` frontmatter field, and update the status as the hunt progresses: scoping → confirmed → fixed / handoff.
 
 ---
 
@@ -112,8 +127,8 @@ Before instrumenting, run `python3 "./scripts/hunt-search.py" --keyword "<sympto
 All instruments (log lines, failing assertions, minimal test cases) **must carry a HUNT-id tag**.
 
 - Tag format: see `references/hunt-case-template.md`
-- `grep "🎯HUNT-[id]"` finds all instruments at once
-- After root cause is confirmed, **remove all tagged instruments in one sweep** and verify the build still passes
+- `grep -rn "🎯HUNT-{YYYY-NNN}" --exclude-dir=.claude .` finds all instruments at once (the `--exclude-dir=.claude` scope matters: the case file itself carries the tag and must not count)
+- After root cause is confirmed, **remove all tagged instruments in one sweep**, verify the build still passes, and confirm the same scoped grep over the source/test dirs returns 0 matches
 
 Log bisection: add only 2–3 instruments per round, not 20.
 ```
@@ -131,7 +146,7 @@ Round 3: usually locates within 5–10 lines
 Add only **one** minimal instrument at a time (one log line, one failing assertion, or one minimal test case).
 
 After executing:
-- Evidence **supports the hypothesis** → find one independent cross-confirmation, then proceed to Before You Fix (next section). Independent means the cross-confirmation MUST come from a different observable layer than the one that produced the first evidence (per the Tool Scan layers — UI/render, data state, call-chain structure, runtime intermediate values, static structure). Concretely, if a log line at the runtime layer confirmed it, the second check must be a DB query, a failing test, or a UI/render observation — not a second log at the same layer.
+- Evidence **supports the hypothesis** → find one independent cross-confirmation, then proceed to Before You Fix (next section). Independent means the cross-confirmation MUST come from a different observable layer than the one that produced the first evidence (per the Tool Scan layers — UI/render, data state, call-chain structure, runtime intermediate values, static structure). Concretely, if a log line at the runtime layer confirmed it, the second check must be a DB query, a failing test, or a UI/render observation — not a second log at the same layer. One explicitly sanctioned second channel: **a failing test you then watch fail** — writing a test that encodes the hypothesis and observing it fail is a distinct confirmation *mechanism*, and counts even when it exercises the same layer as the first evidence.
 - Evidence **contradicts the hypothesis** → **discard the hypothesis completely**. Not patch, not explain. Reorient using what was just learned.
 
 A preserved-but-contradicted hypothesis produces a new bug. Discard completely.
@@ -166,7 +181,7 @@ Activate after the root cause is confirmed and before declaring the bug fixed. T
 1. **Extract the pattern signature**: the specific function name, regex, API call, CSS selector, lock acquisition, validation skip, parser input boundary, or token-handling path that produced the bug.
 2. **`grep -rn <pattern>`** across the repo. Exclude generated directories, build output, and vendored dependencies. For class-of-bug patterns (e.g. "any handler missing the lock"), grep for the surrounding shape, not just the literal text.
 3. **For each match, record a decision in the case file's `Scope Blast` section** (template line per match: `<file:line> — fix | leave: <reason> | unsure: <question>`). After a user reply resolves an `unsure`, update the same line to `unsure → fix` or `unsure → leave: <reason> after user reply <date>`. Do not silently skip a match.
-4. **Do not claim fixed until** (a) every grep match has a recorded decision in the case file's `Scope Blast` section, AND (b) the success report's `迴歸守護` line names the regression test **and** cites the case file's Scope Blast section by id (例：`[tests/foo.spec.ts:42] + Scope Blast: HUNT-YYYY-NNN §3`).
+4. **Do not claim fixed until** (a) every grep match has a recorded decision in the case file's `Scope Blast` section, AND (b) the success report's `迴歸守護` line names the regression test — or a justified 無 with its reason — **and** cites the case file's Scope Blast section by id (例：`[tests/foo.spec.ts:42] + Scope Blast: HUNT-YYYY-NNN §3`).
 
 Common triggers:
 - Visual bug fixed on one page → every other page using the same component, layout, or media-query breakpoint.
@@ -182,12 +197,14 @@ If the blast surfaces unrelated bugs, list them in the case file but do not fix 
 
 Activate when: "It worked before and now it's broken" or "It broke after an update."
 
-1. Find `last-known-good`: use the most recent tag, not a date or raw SHA. (`git tag --sort=-version:refname | head -5`)
+**Precondition — git repo**: If the project is not a git repo, skip Bisect Mode entirely and fall back to static analysis + instrumentation (Tool Scan / Instrumentation sections). Never wedge trying to bisect what has no history.
+
+1. Find `last-known-good`: use the most recent tag, not a date or raw SHA. (`git tag --sort=-version:refname | head -5`) If the repo has **zero tags**, ask the user for a known-good ref; when driven non-interactively, pick the oldest commit touching the symptom file and label the choice 「此處採預設」 in the case file.
 2. Before starting bisect, define a **pass/fail test command**. The command must be auto-executable and produce a clear exit code. Write it down; reuse the same command at every step.
-3. **Pre-bisect clean-tree gate**: Before `git bisect start`, run `git status --porcelain`. If it is empty, start directly. If it is **non-empty** (working tree dirty), `git stash` (or commit) the in-progress changes first, then **re-run `git status --porcelain` to verify the tree is now actually clean**. IF it is still non-empty after the stash (stash conflict, or untracked-file residue the stash left behind) THEN do NOT run `git bisect start` — stop and report, because bisect would otherwise check out arbitrary commits over a tree that was never truly clean and clobber the residue. Only when the post-stash status is empty may you start bisect. Likewise, if the changes cannot be safely stashed or committed in the first place, stop and do not start bisect.
-4. Execute: `git bisect start` → `git bisect bad` (current) → `git bisect good <tag>`. Let bisect guide — do not skip steps.
+3. **Pre-bisect clean-tree gate**: Before `git bisect start`, run `git status --porcelain`. If it is empty, start directly. If it is **non-empty** (working tree dirty), stash the in-progress changes with `git stash push -u -m "hunt-{HUNT-id}"` (or commit them), and **record the stash entry's SHA in the case file** (`git stash list --format='%H %gs' | head -1`) so it can be restored in step 6 even if stack positions shift. Then **re-run `git status --porcelain` to verify the tree is now actually clean**. IF it is still non-empty after the stash (stash conflict, or residue the stash left behind) THEN do NOT run `git bisect start` — stop and report, because bisect would otherwise check out arbitrary commits over a tree that was never truly clean and clobber the residue. Only when the post-stash status is empty may you start bisect. Likewise, if the changes cannot be safely stashed or committed in the first place, stop and do not start bisect.
+4. Execute: `git bisect start` → `git bisect bad` (current) → `git bisect good <tag>`. Let bisect drive the binary search — do not shortcut it by hand-picking commits. When a commit cannot build or cannot run the test command, `git bisect skip` it; skipping unbuildable commits is the correct use of bisect, not a violation.
 5. When bisect identifies a commit: read only that commit's diff. Do not read surrounding history.
-6. **Cleanup gate**: After bisect identifies the commit → run `git bisect reset` to exit the bisecting state and restore HEAD before touching code or running any other git operation. If a fix or any other git operation is attempted while still bisecting, stop and run `git bisect reset` first. Never leave the repo in a detached-HEAD bisecting state.
+6. **Cleanup gate**: After bisect identifies the commit → run `git bisect reset` to exit the bisecting state and restore HEAD before touching code or running any other git operation. If a fix or any other git operation is attempted while still bisecting, stop and run `git bisect reset` first. Never leave the repo in a detached-HEAD bisecting state. **Then restore the step-3 stash**: locate the recorded SHA in `git stash list --format='%H %gr %gs'`, run `git stash apply <sha>` (never pop blindly — apply keeps the entry if conflicts appear), resolve or report any conflicts, and only then drop the entry by re-finding its current `stash@{n}` for that SHA. A hunt must never end with the user's work stranded in a stash.
 
 ---
 
@@ -201,7 +218,7 @@ Treat the reference as **evidence, not decoration**. Five-step flow:
 2. **Identify the reference oracle**: last-good commit / tag, old build, fixture file, screenshot, downloaded artifact, or the user's described expected state. Name the artifact concretely.
 3. **Define the pass/fail check before editing**. For visual bugs: a narrow screenshot checklist plus the command that renders the view. For behavioral bugs: an automated regression test or deterministic repro.
 4. **Compare current vs. reference and name the exact delta**. Do not generalize an observed defect into "style polish" when the evidence points to a broken render, race, font pipeline, or state path.
-5. **If the same symptom remains after one attempted fix**: this triggers the Hard Rule「Same symptom recurs after fix」(see Hard Rules — stop, do not touch code again). Then rebuild the hypothesis from the evidence collected in steps 1–4 above; do not stack more patches onto a disproven explanation.
+5. **If the same symptom remains after one attempted fix**: this triggers the Hard Rule「Same symptom recurs after fix」(see Hard Rules — stop; no further fix attempts until the hypothesis is rebuilt, though 🎯HUNT-tagged instruments for re-diagnosis remain allowed). Then rebuild the hypothesis from the evidence collected in steps 1–4 above; do not stack more patches onto a disproven explanation.
 
 If the issue is purely subjective UI taste, route to `/baransu:design` instead. Stay in `/hunt` when the issue is rendering, state, timing, build output, font generation, or a regression from a known-good version.
 
@@ -211,7 +228,7 @@ If the issue is purely subjective UI taste, route to `/baransu:design` instead. 
 
 | Condition | Action |
 |------|------|
-| Same symptom recurs after fix | Stop. Hypothesis was incomplete. Re-read the execution path. Do not touch code again. |
+| Same symptom recurs after fix | Stop. Hypothesis was incomplete. Re-read the execution path. No further fix attempts until the hypothesis is rebuilt — adding 🎯HUNT-tagged instruments for re-diagnosis remains allowed. |
 | "Let's try this" appears | Stop. Write the hypothesis before acting. |
 | Three hypothesis failures | Switch to Handoff format (see Output). |
 | Before You Fix incomplete when fix is attempted | Stop. Complete call chain analysis and test matrix first. |
@@ -248,12 +265,16 @@ If the issue is purely subjective UI taste, route to `/baransu:design` instead. 
 ```
 根因：      [問題是什麼，file:line 或 component/query/condition]
 修復：      [改了什麼，在哪裡]
-確認方式：  [哪個證據或測試確認了修復]
+確認方式：  [哪個證據或測試確認了修復 + 一行原樣引用的失敗證據]
 測試矩陣：  [通過數 / 總數，迴歸測試位置]
-迴歸守護：  [test file:line] 或 [無，理由]
+迴歸守護：  [test file:line] + Scope Blast: HUNT-YYYY-NNN §N ｜ 或 [無，理由 + Scope Blast citation]
 ```
 
 狀態：**已解決** / **已解決（附帶條件說明）** / **受阻**
+
+**確認方式 — RED-evidence preservation**: the 確認方式 line MUST include one verbatim line of the observed failing evidence (the test failure line, log line, or query result), captured at the moment it happened. A prose claim that "old code fails" without the quoted artifact does not count.
+
+**迴歸守護 — fidelity**: the named test must observe the **persisted or user-visible truth** of the original symptom end-to-end — drive the real trigger sequence and assert the stored or displayed outcome. Asserting an extracted helper or an internal seam that the fix could bypass does not satisfy 迴歸守護. If end-to-end observation is genuinely impossible, say why in the case file; per Scope Blast step 4(b), a justified 無 with the Scope Blast citation is a legal exit.
 
 For a bug that was previously fixed and then recurred, the conditions for 「已解決」 are: (1) the regression test fails on the old code and passes on the new code; (2) the test lives in the project test suite; (3) the commit message explains the recurrence cause and how it is prevented.
 
@@ -281,4 +302,4 @@ After confirming root cause, route the fix by task scope:
 
 ---
 
-After completing the hunt, create a case file at `.claude/hunt-report/HUNT-YYYY-NNN.md` (format: `references/hunt-case-template.md`) to record the root cause and fix for future reference. Past cases are searchable via `scripts/hunt-search.py` — invoked at the Locate stage.
+After completing the hunt, finalize the case file at `.claude/hunt-report/HUNT-YYYY-NNN.md` (created at the Locate stage; format: `references/hunt-case-template.md`): set its final `status` (fixed / handoff) and make sure the root cause and fix are recorded for future reference. Past cases are searchable via `scripts/hunt-search.py` — invoked at the Locate stage.

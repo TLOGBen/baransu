@@ -2,7 +2,32 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
-## v2.7.7 (2026-07-07)
+## v2.8.0 (2026-07-10)
+
+**慣性帳本大修——用盲測 A/B 實驗量化「skill 對抗了哪些模型慣性」，據以增重與減重**。plugin version 2.7.7 → 2.8.0。方法論：同一任務三條件盲測（模型直接動手＝金標準／模型+skill／異模型+skill），不知情 examiner 依工件建行為側寫，盲測 judge 產出四欄慣性帳本（skill 解決的／沒解決的／skill 造成的枷鎖／無行為指紋的純紀錄條款），修訂後精簡驗證輪確認收斂。execute 跑了 4 輪（v1→v4）+ 平等 A/B 終局；read/learn/hunt 各 1 輪；write/design/book/health/evolve/think/analyze/review 以注入慣性知識的綜合審計覆蓋。
+
+**核心量化結果（execute，NovelReader 書籤功能 fixture，2×3 模型×方法矩陣，9 工作區）**：
+- 對齊目標達成（終審 ×2 一致判 yes）：Opus+v4 ↔ Fable+v4 相似度 82-83，達 Fable 自身噪音底線 81；R1 起點僅 ~50
+- Opus 完成定義分 6→10（超越 Fable 直接跑的 8.9）；無 skill 對照組（Opus 直接）C2+C5 雙 FAIL 證實「中層字面主義／揭露不修復」為模型原生慣性，v2+ 的 goal-criteria gate 與 latent-defect 規則精準導正
+- Fable 在 v4 下零回歸，且兩模型都主動修復 production FK 潛藏缺陷並寫 reopen 級測試
+
+**execute（v1→v4）**：goal.md 準則字面權威 + Step 6 逐條 C{n} 交叉核對（test-green-but-production-inert = 未達成）；latent-defect 規則（小規模在地修復折入當前 task，揭露不換 ✅）；工作文件封閉清單（儀式 15 檔 490 行→9 檔 232 行）；coverage-riding 測試分層（純接線任務免 per-task prove-red，具名 pinning tests + E2E 網承擔；test_weight gate-time 決策入 task-map，事後追認=違規）；red_proof 證據欄（Red gate 不能事後追認）；per-task commit 明文化；persistence 措辭需 reopen 級證明；審計 bug 修復：compile error 無界重試死循環（獨立連續計數 3 次 BLOCKED）、cascade-blocked 遞移傳播、worktree checkout 撞 `.git/worktrees/`（改 `.claude/worktrees/`，實證 git metadata 同目錄樹永髒）、全降級路徑 spec_contradiction 不可達、green_proof 欄名跨檔漂移。
+
+**無 git 專案不再死卡**：execute Step 0 git 探測 + L/XL 單向降級為就地序列執行（不重試不 block）、Step 7 清理失敗走 prune→範圍守衛 rm→續行；ship 探測前置於歸檔搬移、無 git 明確停止；analyze 覆寫重建分支無 git 時自動走 -N 後綴不刪任何東西；think Stage D REPO_ROOT cwd fallback；hunt bisect 非 git 跳過。
+
+**read**：三 run 產出位元組級一致（相似度 90-95）證實核心機制條款對前沿模型無行為指紋——保留為跨 skill 格式契約；修 raw/ 重抓覆寫（`_vN` 版本化）、Chrome 探測改 lazy、SPA 偵測從屬品質檢查＋無 Chrome 明確出口、GET-first PDF 偵測、相對圖址＋重名唯一化、raw/material slug 配對改名、完成前強制完整性 pass（file(1) 驗圖/remote-ref grep=0）、四份 reference 繞管線直寫 material 修正、DOI 僅 --use-proxy 才進 cascade、candidate 多輪可達化、glob 空白檔名、首標題垃圾 slug 防呆。
+
+**learn**：帳本反轉——skill 後勤全贏（工件契約/溯源），思考輸給自由跑（9.4-10 vs 6-9）；批判裝置只在 --brief 路徑。修：批判層四節強制進 digest 路徑（來源矛盾點含裁決＋「查無矛盾」須明說／盲點／信度評分表含可觀察訊號依據／後續調查角度，Refine 分割保護不被洗掉）、引註段落級保留（成文丟 tag=違規）、Refine 右尺寸（/write 長文 change-points 處理、draft 重複檔刪除、無變更合法）、§3.5 fan-out 候選落盤捕獲步（high：原規格 bare-topic 跑不完）、觸發器重置/範圍語意、語言偵測去 shell 化。
+
+**hunt**：三 run 全 0 盲改直取根因——「不追根因」慣性在前沿模型不存在；skill 真值=案例記憶/Scope Blast/測試矩陣/儀器衛生。修：快徑（首儀器定根因+blast≤3 → 壓縮儀式）、迴歸守護端到端保真（helper/內部縫斷言不算——帳本抓到的字面化漏洞）、RED 證據逐字保存、bisect stash push→apply→drop 復原（原規格 stash 後永不 pop）、案例檔 Locate 期建立含 status 生命週期、刪矛盾的 allowed-tools frontmatter、新建 loop-pauses.md。
+
+**輕量群綜合審計（3 high + 37 medium）**：design——google preset 過不了自家 lint（43 違規，check.py Check C/E 修復＋實證三 preset 全綠）、gen 模式自然語言入口死路、Gen 走 staging 原子流、新建 loop-pauses.md；book——PPT 管線 960px 規格必炸（統一 960pt×540pt）、html2pptx 多輸入合併、CJK 空 slug 鏈、fact-verify regex 過寬；write——change-points/「全部」契約補全（learn 消費路徑）、en/zh anti-AI floor 分語言、Generate 綁完整規則集；health——inspector 派發欄位對齊、collect-data.sh no-git/缺檔防呆、新建 loop-pauses.md；evolve——結構閘門改有界寫入→驗證→還原窗口（原規格驗的是快照非變異）、盲測改中性 panel alpha/beta 副本（路徑不再洩底，nightly workflow 同步）、held-out 回歸分支、非 baransu 目標降級閘門。
+
+**think/analyze/review 複檢（15 項跨 skill 收口）**：think Option 1 先落盤 draft 再送 /review、loop-pauses 逐互動點枚舉（Stage G=Authorization）；analyze Stage 6 補 goal.md C{n} 驗證 lane（缺口死在 spec 期）、未檢查 verdict 補消費者、新建 loop-pauses.md、task 模板加測試重量建議欄（riding 鉤子）；review needs-judgment 統一 Authorization、review-agent green_proof 對齊 execute 機械閘門。
+
+**匯流檔案契約**：ship 歸檔白名單補 write；execute Step 7 journal 選擇規則（slug 匹配→mtime 最新＋註明，review 亦為 producer）；loop-contract §4 註冊表補 /design /hunt /health /analyze 四列。
+
+- 驗證：`make test` 全綠（19 結構斷言＋pytest 246+＋全 shell suite）、`make mirror-check` in sync、實驗全紀錄於 9 個 NovelReader 工作區 + 21 個 workflow/agent 回報。
 
 **review-agent rationale 對齊——收束 v2.7.6 的 leaf doc-debt**。plugin version 2.7.6 → 2.7.7。v2.7.6 因 C7「leaf worker 檔零改動」硬驗收，未一併對齊 `agents/review-agent.md` 的自我禁令理由，留下一筆跨檔不一致的 doc-debt（`review-agent.md:81` 仍寫「subagent depth = 1, cannot dispatch parallel Tasks」，而 `CLAUDE.md:81` 已改「AskUserQuestion 硬缺席」）。本版本以獨立微任務收束。
 
