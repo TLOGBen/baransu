@@ -54,8 +54,11 @@ Before writing tests, read §1 (Core Principles) and §6 (Anti-pattern quick ref
    status: [✅ Green 通過 | ❌ 失敗 | ⚠️ Red gate 未通過]
    modified_files: [修改的檔案路徑清單]
    test_summary: {測試執行結果摘要：通過數 / 總數}
+   red_proof: {full path: the pre-implementation failing run — command + the failing lines verbatim (a few lines suffice); riding path: "n/a (riding)"}
    failure_detail: {若失敗，附上失敗測試名稱和錯誤訊息}
    ```
+
+   `red_proof` is evidence of work already done (the Red-gate run), not extra work — capture the failing output when it happens, never reconstruct it afterwards.
 
 ## Prohibitions
 

@@ -122,7 +122,7 @@ For each group (topological order):
 ## Step 3 — Work Document Initialization
 
 Write:
-- `.claude/execute/{date}-{slug}/execute/task-map.md` — maps Task Tool IDs to groups and checklist files. Template: `references/output-formats.md §task-map.md`.
+- `.claude/execute/{date}-{slug}/execute/task-map.md` — maps Task Tool IDs to groups and checklist files, and records each task's `test_weight` (full | riding, per the §4b tier rule) decided NOW — before any dispatch. Gate-time only: a weight may change later solely via an explicit re-decision logged at that task's dispatch time; classifying weights retroactively after implementation is a constraint violation (post-hoc rationalization, not a decision). Template: `references/output-formats.md §task-map.md`.
 - `.claude/execute/{date}-{slug}/execute/impl-checklist-{group}.md` (one per group) — copies `驗收標準` items from each task in `task-{group}.md`, adds blank `Review 結果:` and `備註:` fields. Template: `references/output-formats.md §impl-checklist`.
 
 **Done when:** task-map.md and all impl-checklist files written.

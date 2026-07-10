@@ -76,7 +76,7 @@ Before reviewing, read §1 (Core Principles) and §6 (Anti-pattern quick referen
 
 5. **Fill in `impl-checklist-{group}.md`**: after the review completes, fill in the corresponding task's Review result field (`advisory` / `packaged confirm` / `needs judgment` / `direct fix`) and a findings-summary note, per the result. When the same task is called multiple times, overwrite the same field, do not add duplicate entries.
 
-6. **Check acceptance criteria item by item**: do not auto-upgrade to advisory just because "tests pass." You must check ctx.md's `Task.驗收標準` item by item, confirming each criterion is satisfied.
+6. **Check acceptance criteria item by item**: do not auto-upgrade to advisory just because "tests pass." You must check ctx.md's `Task.驗收標準` item by item, confirming each criterion is satisfied. For a full-weight task, the impl report must carry a non-empty `red_proof` (pre-implementation failing run); a missing or evidently reconstructed `red_proof` is a correctness finding — the Red gate cannot be attested after the fact.
 
 ## Prohibitions
 

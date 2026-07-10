@@ -62,10 +62,13 @@ Path: `.claude/execute/{date}-{slug}/execute/task-map.md`
 ```markdown
 # Task Map
 
-| Task Tool ID | Group | Task ID | Impl-Checklist | Notes |
-|-------------|-------|---------|----------------|-------|
-| {id} | {group} | TASK-{group}-01 | impl-checklist-{group}.md | |
-| {id} | {group} | TASK-{group}-02 | impl-checklist-{group}.md | ⚠️ file conflict with {other-group} — serialized |
+| Task Tool ID | Group | Task ID | test_weight | Impl-Checklist | Notes |
+|-------------|-------|---------|-------------|----------------|-------|
+| {id} | {group} | TASK-{group}-01 | full | impl-checklist-{group}.md | |
+| {id} | {group} | TASK-{group}-02 | riding | impl-checklist-{group}.md | ⚠️ file conflict with {other-group} — serialized |
+
+`test_weight` is decided at Step 3 write time (gate-time), one row per task, with a
+one-line rationale in Notes when `riding` is chosen.
 ```
 
 Pre-scan warnings appear in the Notes column when Step 1d detects a shared file path between two groups in the same frontier level.
