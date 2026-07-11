@@ -1,7 +1,7 @@
 ---
 hunt_id: HUNT-YYYY-NNN
 target: 一句話描述狩獵目標
-status: scoping  # scoping | investigating | root_caused | fixed | closed
+status: scoping  # scoping | confirmed | fixed | handoff — created at Locate stage with scoping; update as the hunt progresses
 created: YYYY-MM-DD
 scope:
   files:
@@ -52,11 +52,27 @@ fix: ""
 
 [改了什麼，在哪裡，對應哪個 commit]
 
+## Scope Blast
+
+Pattern signature：`[grep 的 pattern]`
+
+每一個 grep match 一行，格式（對應 SKILL.md Scope Blast step 3）：
+
+```
+<file:line> — fix ｜ leave: <一句理由> ｜ unsure: <問題>
+```
+
+- §1 `src/example.ts:42` — fix
+- §2 `src/other.ts:17` — leave: 該路徑已有上游驗證
+- §3 `src/third.ts:88` — unsure: 是否共用同一把 lock？（解決後改寫為 `unsure → fix` 或 `unsure → leave: <理由> after user reply <date>`）
+
+不得默默跳過任何 match；狩獵中發現的無關 bug 列於此、但未經使用者同意不得在本次修復。
+
 ## 迴歸驗證
 
 - 原 bug：✅ / ❌
 - 測試矩陣：N/N 通過
-- 迴歸守護：[test file:line 或 無（理由）]
+- 迴歸守護：[test file:line + Scope Blast: HUNT-YYYY-NNN §N ｜ 或 無（理由 + Scope Blast citation）]
 
 ## 診斷工具清理
 

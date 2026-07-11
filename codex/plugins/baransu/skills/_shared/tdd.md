@@ -213,7 +213,11 @@ section per the `output-journal.md` contract.
 cosmetic = the change has no semantic impact on runtime behavior, limited to two kinds:
 
 - comment edits (comment modifications)
-- pure formatting (pure formatting adjustments)
+- pure formatting (pure formatting adjustments) — changes confined to
+  non-executable documentation files (markdown-only) count as pure formatting
+
+This list is canonical: every consumer (including `/execute`'s review-agent
+cosmetic waiver) cites it; none restates or widens it.
 
 Dead-import removal and identifier rename touch executable text: they take the TDD path
 (§7.2), not the cosmetic path.

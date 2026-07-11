@@ -13,7 +13,7 @@ This skill takes any content source and produces structured learning output via 
 ## Outcome Contract
 
 - **Outcome**: Collected sources are scored, filtered, and turned into a structured learning output for the topic.
-- **Done when**: `--brief` path — `.claude/learn/briefs/{$BRIEF_SLUG}.md` exists with the five-column body per Stage 2 §4; full path — `.claude/learn/digests/{$DIGEST_SLUG}.md` exists with the Stage 5 §5 frontmatter schema and the refined body.
+- **Done when**: `--brief` path — `.claude/learn/briefs/{$BRIEF_SLUG}.md` exists with the five-column body per Stage 2 §4; full path — `.claude/learn/digests/{$DIGEST_SLUG}.md` exists with the Stage 5 §5 frontmatter schema and the refined body, whose body ends with the 批判層 block containing all four sections（來源矛盾點 / 缺少資訊與盲點 / 各來源信度評分 / 建議後續調查角度）.
 - **Evidence**: The 繁中 completion notice naming the written file path; the file's frontmatter lists every surviving `$FILTERED_SOURCES` entry (and, for digests, `phases_completed`).
 - **Output**: A brief under `.claude/learn/briefs/` or a digest under `.claude/learn/digests/`.
 - **Automation**: ultracode=overlap, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
@@ -32,7 +32,7 @@ mode record — no record means the current (four-lane fan-out) adapter. Detecti
 is explicit system-reminder confirmation only, never inferred. On the Workflow
 path, pin the mode at Stage 0, never switch adapters mid-run, and re-apply the
 contract whenever §3.5 fan-out fires. Both adapters return the identical
-candidate-pool `{path, lane}` shape; the depth invariant is restated per adapter.
+candidate-pool `{url, path|null, lane}` shape; the depth invariant is restated per adapter.
 
 ## Stage 1 — Collect
 
@@ -71,7 +71,7 @@ Triggered when §3 matches the syntactic shape of a slug but `.claude/read/mater
 | `academic` | `../read/scripts/search-papers.py` | Thin (invoke + normalize) | — |
 | `web` | WebSearch tool | Thin (invoke + normalize) | — |
 | `gh` | `gh search repos` | **Thick** — before running the gh lane, read `../read/references/acquisition/gh-search.md` §Search Command; reuse its escape rule (single-quote form + `'\''` escape) by **anchor cite**, never fork the literal text. The bare `{topic}` from §3.5 invocation IS the user-supplied keyword for §Search Command Step 1; apply Step 1 escape verbatim before substitution. | `../read/references/acquisition/gh-search.md §Search Command`, §Failure Modes |
-| `x` | Chrome MCP via `../read/references/acquisition/web-dynamic.md` WSL2 path | **Thick** — before running the x lane, read both `../read/references/acquisition/x-search.md` and `../read/references/acquisition/web-dynamic.md`; reuse the 5-rule schema-level health check from x-search.md §Schema-level Health Check and the candidate regex from §Candidate Extraction by **anchor cite**, never fork. | `../read/references/acquisition/x-search.md §Search Phase`, §Schema-level Health Check, §Candidate Extraction |
+| `x` | Chrome MCP via `../read/references/acquisition/web-dynamic.md` §Chrome MCP Path | **Thick** — before running the x lane, read both `../read/references/acquisition/x-search.md` and `../read/references/acquisition/web-dynamic.md`; reuse the 5-rule schema-level health check from x-search.md §Schema-level Health Check and the candidate regex from §Candidate Extraction by **anchor cite**, never fork. | `../read/references/acquisition/x-search.md §Search Phase`, §Schema-level Health Check, §Candidate Extraction |
 
 **Academic lane precondition**: before invoking `search-papers.py`, run `python3 --version 2>/dev/null`. If it fails, map the lane to `academic: failed (cli_missing)` and continue — the soft-failure invariant below applies; do not stop the run.
 
@@ -100,8 +100,10 @@ Triggered when §3 matches the syntactic shape of a slug but `.claude/read/mater
 - `{lane}: failed (timeout|api_error|chrome_unavailable|schema_check_fail|cli_missing)` (transient or environmental failure)
 
 **Candidate pool merging**:
-- Each lane's candidates are written into `$SOURCES` as `{path, lane}` tuples (the `lane` field carries `academic|web|gh|x`; for inputs from §1/§2/§3, the `lane` field is `null`).
-- Deduplicate across lanes by `url` exact-string equality (no fuzzy normalization; trailing slash / query string differences are kept distinct, Stage 2 will surface them and the user can drop duplicates during the trim step).
+- Each lane's candidates are written into `$SOURCES` as `{url, path|null, lane}` tuples (the `lane` field carries `academic|web|gh|x`; `path` is `null` until the capture step below fills it; for inputs from §1/§2/§3, the `lane` field is `null` and `path` is already resolved).
+- Deduplicate across lanes by the candidate's `url` field, exact-string equality (no fuzzy normalization; trailing slash / query string differences are kept distinct, Stage 2 will surface them and the user can drop duplicates during the trim step).
+
+**Capture step (main flow, after merging, before Stage 2)**: the MAIN flow — never the lanes themselves — routes each surviving candidate URL through the Stage 1 §1 `/read` route to produce `.claude/read/material/{slug}/index.md`, filling the tuple's `path` field. Only those captured paths enter Stage 2 scoring. A candidate whose capture fails is dropped from `$SOURCES` with a one-line 繁中 notice naming the URL.
 
 **Disambiguation note** (slug vs topic):
 - `/learn react` (single word, slug shape, slug-file exists) → §3 reads existing material.
@@ -131,13 +133,14 @@ Receives `$SOURCES` from Stage 1. Scores each source on three criteria, presents
 The topic string is needed for the brief filename (slug) and YAML frontmatter.
 
 - If the original invocation included `--topic "keyword"`: set `$TOPIC` to that keyword.
+- If Stage 1 entered §3.5 fan-out: set `$TOPIC` to the bare input that seeded the fan-out; do not ask.
 - Otherwise (URL-only or slug-only input): ask the user once:
   「請輸入這批資料的研究主題（用於生成 brief 檔名）：」
   Set `$TOPIC` to the user's reply.
 
 ### 2. Score each source
 
-For each entry in `$SOURCES`, read its `index.md` and evaluate it on three criteria. Each criterion is scored independently on a 1–5 scale by reading the source's `index.md`; assign the level whose anchor signal is the highest one observable in the text (when a source falls between two anchors, assign the lower of the two).
+For each entry in `$SOURCES`, read its `index.md` and evaluate it on three criteria. Each criterion is scored independently on a 1–5 scale by reading the source's `index.md`; assign the level whose anchor signal is the highest one observable in the text (when the signal sits between two adjacent anchors, assign the even level between them (2 or 4); assign 1/3/5 only when the anchor itself is matched).
 
 | Criterion | Meaning |
 |------|------|
@@ -206,7 +209,7 @@ Using only `$FILTERED_SOURCES`, populate each of the five columns:
 - (a) 核心主張列表
 - (b) 來源矛盾點
 - (c) 缺少資訊/盲點
-- (d) 各來源信度評分 — credibility score (1–5) per source, assigned from the observable-signal anchor scale below by reading the source's `index.md` (level = highest observable signal present; when a source falls between two anchors, assign the lower):
+- (d) 各來源信度評分 — credibility score (1–5) per source, assigned from the observable-signal anchor scale below by reading the source's `index.md` (level = highest observable signal present; when the signal sits between two adjacent anchors, assign the even level between them (2 or 4); assign 1/3/5 only when the anchor itself is matched):
   - 1 = anonymous or no identifiable author and no publication date.
   - 3 = named author with one corroborating reference cited.
   - 5 = peer-reviewed, or ≥2 independent corroborating sources cited.
@@ -271,6 +274,8 @@ If a bullet or point cannot be grounded in any entry in `$FILTERED_SOURCES` — 
 Output the outline in 繁體中文. Precede it with the notice:
 「大綱已生成，請確認結構後繼續填充。」
 
+Wait for the user's reply (confirmation or edits) before Stage 4; non-interactive runs take the loop-pauses default (accept as generated).
+
 Store the outline as `$OUTLINE` for use in Stage 4.
 
 If `$OUTLINE` contains any entries marked `⚠️ 需補充調查`, output the following reminder **before** proceeding:
@@ -289,15 +294,17 @@ Receives `$OUTLINE`, `$FILTERED_SOURCES`, and `$TOPIC` from Stage 3. Writes pros
 
 For each section in `$OUTLINE`, write a paragraph or set of paragraphs that expand the bullet points into coherent prose. Use only information grounded in `$FILTERED_SOURCES`. Unsupported claims (marked `⚠️ 需補充調查` in the outline) may be excluded or noted as areas requiring additional research.
 
+The prose MUST retain source attribution at paragraph level minimum, carrying the outline's `[source: {slug}]` tags (or an equivalent inline tag the note defines once, near the top). Converting a tagged outline into untagged prose is a contract violation.
+
 Track the number of times you revise any single section. This count is used by the gap trigger checks below.
 
 ### 2. Gap trigger checks (after each section)
 
 After completing each section's prose, check all three gap triggers. If **any** trigger fires, execute the gap-handling procedure (§3 below) before writing the next section.
 
-**Trigger 1 — Repeated edits**: the same section has been reworked ≥ 2 times (same content revised repeatedly without settling).
+**Trigger 1 — Repeated edits**: the same section has been reworked ≥ 2 times (same content revised repeatedly without settling). Reset rule: after a gap-fill supplies new sources and the section is rewritten with them, reset that section's revision count to 0.
 
-**Trigger 2 — Single-source dependency**: a critical claim in the section is supported by only one source (only one entry in `$FILTERED_SOURCES` backs it).
+**Trigger 2 — Single-source dependency**: a critical claim in the section is supported by only one source (only one entry in `$FILTERED_SOURCES` backs it). Scoping rule: when `|$FILTERED_SOURCES| ≤ 2`, this trigger fires at most ONCE per run — one batch supplementation offer covering the whole digest, not one per section; the sections it would otherwise have flagged get a `⚠️ 單一來源` annotation instead.
 
 **Trigger 3 — Core concept opacity**: after writing the section, you cannot explain the core concept in one sentence.
 
@@ -308,7 +315,7 @@ When a gap trigger fires for a section:
 1. Output a 繁中 notice identifying the trigger and section:
    「[第N節] 偵測到缺口（{觸發原因}），回退至 Stage 2 補充來源。」
 
-2. Return to Stage 2 — Digest with the following scoped call: present the user with the gap description and ask them to provide additional sources (URLs or slugs) for that section specifically. Re-run Stage 2 scoring on these new sources only. Append accepted sources to `$FILTERED_SOURCES`.
+2. Return to Stage 2 — Digest with the following scoped call: present the user with the gap description and ask them to provide additional sources (URLs or slugs) for that section specifically. URL supplements first pass through the Stage 1 §1 route (`/read` capture) to obtain their `material/{slug}/index.md` paths, and only then enter the scoped Stage 2 scoring; slug supplements resolve directly as Stage 1 §3 does. Re-run Stage 2 scoring on these new sources only. Append accepted sources to `$FILTERED_SOURCES`.
 
 3. Track the number of consecutive retreats for this section in `$RETREAT_COUNT[section]`.
 
@@ -317,9 +324,18 @@ When a gap trigger fires for a section:
    - If the user selects 1 (continue): accept new sources and resume fill-in for this section; reset `$RETREAT_COUNT[section]` to 0.
    - If the user selects 2 (skip): omit this section from the draft and proceed to the next section.
 
-### 4. Handoff to Stage 5
+### 4. Critical apparatus — 批判層 (mandatory)
 
-After all sections have been written (or skipped), collect the full prose into `$DRAFT`. Pass `$DRAFT` and `$TOPIC` to Stage 5 — Refine.
+After all sections have been written (or skipped), the draft MUST end with a 批判層 block: four short sections, each grounded in analysis already performed in earlier stages (Stage 2 scoring, Stage 3 grounding, this stage's gap checks) — never fabricated here from scratch:
+
+- 「## 來源矛盾點」 — every place the sources disagree, each with a one-line adjudication (which reading is better supported and why). If a genuine cross-check across `$FILTERED_SOURCES` found no contradictions, state 「已交叉比對，未發現矛盾」 affirmatively — silence is not allowed.
+- 「## 缺少資訊與盲點」 — concrete missing angles the sources do not cover.
+- 「## 各來源信度評分」 — persist the Stage 2 §2 scores as a table: `slug | 多情境適用性 | 預測力 | 通用性 | 依據` where 依據 is a one-line observable-signal justification per source. Bare numbers without justification are non-compliant.
+- 「## 建議後續調查角度」 — prioritized next-step angles for further investigation.
+
+### 5. Handoff to Stage 5
+
+After the 批判層 block is appended, collect the full prose (all sections plus the 批判層 block) into `$DRAFT`. Pass `$DRAFT` and `$TOPIC` to Stage 5 — Refine.
 
 ## Stage 5 — Refine
 
@@ -327,20 +343,17 @@ Receives `$DRAFT` and `$TOPIC` from Stage 4. Polishes the draft via `/write`, ex
 
 ### 1. Language detection
 
-Inspect `$DRAFT` for the presence of any CJK character. Use the following check:
-
-```bash
-echo "$DRAFT" | grep -qP '[\x{4e00}-\x{9fff}\x{3040}-\x{309f}\x{30a0}-\x{30ff}\x{ac00}-\x{d7af}]'
-```
-
-- If the grep matches (exit code 0): set `$LANG=zh`
-- Otherwise: set `$LANG=en`
+Inspect `$DRAFT` directly: if it contains ≥1 CJK character, set `$LANG=zh`; otherwise set `$LANG=en`. Do not shell out for this check.
 
 The threshold is one character — a single CJK character is sufficient to trigger `$LANG=zh`.
 
 ### 2. Call /write in Refine mode
 
-Call `/write {$LANG}` passing `$DRAFT` as the input. The explicit language prefix (`zh` or `en`) is always provided — do NOT omit the prefix or rely on `/write` auto-detection.
+The Refine pass covers the prose sections only; the trailing 批判層 block (Stage 4 §4) must be carried through intact. Before calling `/write`, split `$DRAFT` at the 批判層 boundary (the 「## 來源矛盾點」 heading): only the prose portion is passed to `/write`; the 批判層 block is held back verbatim and re-appended in §3.
+
+Call `/write {$LANG}` passing the prose portion of `$DRAFT` as the input. The explicit language prefix (`zh` or `en`) is always provided — do NOT omit the prefix or rely on `/write` auto-detection.
+
+`/write` Refine must treat citation tags (`[source: {slug}]` or the note's declared equivalent) as content — never polish them away.
 
 `/write` returns output in the Refine format:
 
@@ -357,9 +370,17 @@ Call `/write {$LANG}` passing `$DRAFT` as the input. The explicit language prefi
 
 ### 3. Extract the After segment
 
-From `/write`'s output, extract only the content between `**After:**` and the next `**修正說明：**` heading. Discard the `**Before:**` section and the `**修正說明：**` section entirely. The extracted text is the final digest body; store it as `$REFINED_BODY`.
+From `/write`'s output, extract only the content between `**After:**` and the next `**修正說明：**` heading. Discard the `**Before:**` section and the `**修正說明：**` section entirely. The extracted text is the refined prose; store it as `$REFINED_BODY`.
 
-If `/write`'s output contains no `**After:**` marker (e.g. it classified `$DRAFT` as Generate/Proofread rather than Refine, or returned an unexpected shape): do NOT write an empty or truncated digest. Set `$REFINED_BODY = $DRAFT` verbatim and continue.
+If `/write` instead returns a change-points list awaiting selection (its long-document path) rather than Before/After: reply 「全部」 and reassemble the refined prose from the returned fragments into `$REFINED_BODY`; if reassembly is not possible, fall back to `$REFINED_BODY = $DRAFT` (prose portion) as below.
+
+If `/write`'s output contains no `**After:**` marker (e.g. it classified the input as Generate/Proofread rather than Refine, or returned an unexpected shape): do NOT write an empty or truncated digest. Set `$REFINED_BODY = $DRAFT` (prose portion) verbatim and continue.
+
+If the Refine pass produced no changes (After == Before): log 「Refine 無變更」 and proceed — that is a legal outcome, not a failure.
+
+After extraction, verify citation retention: if the prose passed to `/write` contained citation tags but `$REFINED_BODY` now contains zero, the polish discarded content — restore `$REFINED_BODY = $DRAFT` (prose portion).
+
+Finally, re-append the held-back 批判層 block verbatim to the end of `$REFINED_BODY`.
 
 ### 4. Derive digest slug
 
@@ -390,9 +411,11 @@ phases_completed:
 ---
 ```
 
-Followed by `$REFINED_BODY` as the Markdown body.
+Followed by `$REFINED_BODY` as the Markdown body: the refined prose sections ending with the intact 批判層 block（來源矛盾點 / 缺少資訊與盲點 / 各來源信度評分 / 建議後續調查角度）.
 
 The `sources` array must list every source in `$FILTERED_SOURCES` (the sources that survived Stage 2 scoring). For sources acquired from local files, the `url` value takes the form `local:{path}`. The `language` field must be exactly `"zh"` or `"en"` — the value of `$LANG`.
+
+Never leave a draft duplicate beside the digest — cleanup is tracked, never judged after the fact: whenever Stage 4 or Stage 5 writes an intermediate draft file to disk, immediately record that file's absolute path in the named list `$TEMP_FILES` at the moment of writing. After the digest file is written, apply this explicit gate to cleanup: if a path is in `$TEMP_FILES` AND the path lies under `.claude/learn/`, then delete it; any path not in `$TEMP_FILES`, or located outside `.claude/learn/`, must never be deleted.
 
 ### 6. Completion notice
 

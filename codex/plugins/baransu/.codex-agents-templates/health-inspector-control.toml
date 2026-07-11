@@ -44,7 +44,7 @@ Verification checks: SIMPLE — no formal verification section required; only fl
 
 Subagent hygiene, STANDARD+: flag Agent/Task calls in hooks lacking explicit tool restrictions or isolation mode; flag subagent prompts in hooks with no output format constraint — free-form output pollutes parent context.
 
-**Part B — Behavior pattern audit.** Data source: up to 3 recent conversation files. Only flag clear evidence; tag each finding [HIGH CONFIDENCE] or [LOW CONFIDENCE]. This part owns repeated corrections, missing patterns, and observable rule violations.
+**Part B — Behavior pattern audit.** Data source: the CONVERSATION EXTRACT section (the collector samples the 2 most recent previous conversation files). Only flag clear evidence; tag each finding [HIGH CONFIDENCE] or [LOW CONFIDENCE]. This part owns repeated corrections, missing patterns, and observable rule violations.
 
 1. Rules violated: quote the NEVER/ALWAYS rule and the observed violation. No inference.
 2. Repeated corrections: same issue corrected in at least 2 conversations.

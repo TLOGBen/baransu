@@ -49,8 +49,12 @@ CHECK_PY = (
 # changes from earlier tasks (TASK-design-01/02) in this working tree, so
 # `git diff --name-only HEAD` would report it as touched regardless of this
 # task's own edits.
+# Re-pinned after the /design audit fix (Check C slug→prefix-family mapping +
+# Check E HTML-comment stripping — the shipped google-design preset previously
+# failed its own lint with 43 violations). That fix is intentional and outside
+# TASK-book-03's scope question; the pin below reflects check.py post-fix.
 CHECK_PY_SHA256_BEFORE_TASK = (
-    "306872eefa647ed665b10389952959e899fc756a2bce38b383020c596eb94f26"
+    "11bac26eeeee7ee06e5e795f18eb4424aadd327c62e707a9ab453ca97ba69635"
 )
 
 # Verbatim text of SKILL.md's existing "Statistical-type color-capability
@@ -181,10 +185,15 @@ class TestAntiSlop8DocumentsDeclaredStatisticalChartException(unittest.TestCase)
 
     def test_exception_gated_on_same_skill_md_check_not_a_new_one(self):
         # REQ-004 Scenario 3 / ORCHESTRATOR-CONFIRMED CONSTRAINT: must cite
-        # the exact existing mechanism (SKILL.md:356-357 via check.py's
+        # the exact existing mechanism (SKILL.md Stage 3 §4's statistical-type
+        # color-capability degrade check, via check.py's
         # _parse_chart_capability_header), and explicitly disclaim inventing
         # a second, parallel declaration-reading mechanism.
-        self.assertIn("skill.md:356", self.lower)
+        # (The citation used to be line-number-based — "skill.md:356" — which
+        # is brittle and had already drifted; the audit replaced it with the
+        # stable section anchor asserted below.)
+        self.assertIn("skill.md stage 3 §4", self.lower)
+        self.assertIn("statistical-type color-capability degrade", self.lower)
         self.assertIn("tokens.css", self.lower)
         self.assertIn("chart-capability", self.lower)
         self.assertIn("_parse_chart_capability_header", self.region)

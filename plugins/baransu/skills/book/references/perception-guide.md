@@ -35,7 +35,7 @@ Use the signals below; when signals conflict, choose the type that matches the
 - Flow diagrams (nodes-and-arrows showing data movement or decision paths)
 - Comparison tables (before/after, option A vs B)
 - Section badges / numbered steps
-- Tight body line-height (1.65) — engineers scan, not read linearly
+- Tight body line-height — resolve to the Quantified Type Scale's dense row (1.42 at 9.2pt; regular body reading 1.50–1.55), not a looser value — engineers scan, not read linearly
 
 ---
 
@@ -78,19 +78,19 @@ learning briefs (like /learn output)
 
 ## Visual Treatment Constants (all types)
 
-These apply regardless of content type — they are the Kami invariants for `book`:
+These apply regardless of content type — they are the standing `book` invariants, stated **preset-neutrally in canonical token names only** (concrete values come from the current preset's `tokens.css` via `design-token-resolver.md`; a swiss / google-design / gen-slug render must never receive Kami hex or fonts through this table):
 
 | Element | Rule |
 |---------|------|
 | Design tokens | Read from `{project_root}/tokens.css`（canonical 38-name tokens; written by `/baransu:design preset\|gen`, this skill only reads）— use named tokens, never raw hex |
-| Background | `--parchment` (#f5f4ed) as page canvas; `--ivory` (#faf9f5) for cards |
-| Accent | `--brand` (#1B365D) ink-blue only; no secondary accent colour |
-| Typography | Charter/Georgia (en) + TsangerJinKai02/Noto Serif TC (zh) — always serif for body |
+| Background | `var(--paper)` as page canvas; `var(--surface)` for cards |
+| Accent | `var(--accent)` as the sole chromatic accent; no secondary accent colour |
+| Typography | `var(--font-serif)` for body (the preset defines it — a serif stack in kami, a sans alias in sans-only presets like swiss/google-design); `var(--font-sans)` / `var(--font-mono)` per the preset's stacks |
 | TOC sidebar | Show at ≥ 1024px viewport; sticky; highlight active section via IntersectionObserver |
 | SVG diagrams | Minimum 1 per document; stroke-based, round linecap, 1.5–2px stroke; no fills heavier than 20% opacity |
-| Left rule | 1px warm accent line at x=52px inside the paper sheet (as in golden-template.html) |
+| Left rule | 1px `var(--accent)` hairline at x=52px inside the paper sheet (as in the long-form SSOT / golden-template exemplars) |
 | Max body width | 760px; reading column capped at 680px |
-| Paper shadow | `box-shadow: 0 2px 8px rgba(0,0,0,.08), 0 12px 40px rgba(0,0,0,.06)` |
+| Paper shadow | route through the preset's shadow tokens (`var(--shadow-ring)` / `var(--shadow-whisper)`), not hand-tuned rgba values |
 
 ---
 
@@ -192,7 +192,7 @@ legitimate exception**, plus a grep-able self-check. Scan before declaring Stage
      loosen) the warm-warning-token exception above, gated on the SAME check, not a second,
      separate declaration check: inside a section whose `statistical` chart type (§4.9/§4.10)
      resolved to the **Declared** branch — i.e. `{project_root}/tokens.css` line 1's
-     `; chart-capability: <N>` header check SKILL.md:356-357 already performs, via `check.py`'s
+     `; chart-capability: <N>` header check that SKILL.md Stage 3 §4 (「Statistical-type color-capability degrade」) already performs, via `check.py`'s
      `_parse_chart_capability_header` contract — the chart's computed multi-color palette
      (SKILL.md's Declared branch: `references/color-reasoning.md` guidance +
      `color_distance.py`-validated) is exempt from the "one chromatic accent only" count, but

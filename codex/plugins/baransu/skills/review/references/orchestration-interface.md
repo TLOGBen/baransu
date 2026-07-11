@@ -8,11 +8,12 @@ Single internal interface for the Stage 4 perspective dispatch. Two adapters imp
 dispatch(activated_perspectives, target, claim_checklist, review_goal) → findings[]
 ```
 
-Inputs per dispatched perspective — identical in both modes (SKILL.md Stage 4):
+Inputs per dispatched perspective — identical in both modes; SKILL.md Stage 4 is the single source:
 
 - target content
-- the claim checklist (Stage 1)
+- the claim checklist (Stage 1) — the Stage 1.6 fact table travels with it to every perspective
 - the review goal (Stage 1)
+- for domain-reviewer only: the Stage 1.5 domain transition table (a fourth input for that one perspective)
 
 Each returned finding is natural language (not YAML) and carries exactly the fields SKILL.md Stage 4 mandates — that list is the single source; this document cites it and never copies it.
 
@@ -41,7 +42,7 @@ Depth invariant (restated for this adapter): dispatched perspective agents must 
 
 When mode pinning (§2) pinned `workflow`, dispatch the same activated perspectives via Workflow `parallel` primitives instead of hand-rolled parallel Tasks. The adapter does exactly two things:
 
-1. **Dispatch**: one parallel branch per activated perspective, passing the same three inputs as §1.
+1. **Dispatch**: one parallel branch per activated perspective, passing the same inputs as §1 (including the Stage 1.6 fact table alongside the checklist, and the Stage 1.5 domain transition table for domain-reviewer).
 2. **Collect**: gather findings in the §1 shape and hand them to Stage 5/6 unchanged.
 
 Nothing else. No tiering, no balance check, no dedup, no adversarial logic — those stay in the main flow (SKILL.md Stages 5–7).

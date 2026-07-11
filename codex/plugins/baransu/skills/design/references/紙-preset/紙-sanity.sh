@@ -20,12 +20,15 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Locate check.py — try plugin source first, fallback to system search
+# Locate check.py — try plugin source first, fallback to the plugin cache.
+# The cache candidates are version-agnostic globs (the cache path embeds the
+# plugin version, which changes on every release — never hardcode it).
 CHECK_PY=""
 for candidate in \
-  "$HOME/.claude/plugins/cache/baransu/baransu/1.3.0/skills/design/scripts/check.py" \
   "$SCRIPT_DIR/../plugins/baransu/skills/design/scripts/check.py" \
-  "$(git rev-parse --show-toplevel 2>/dev/null)/plugins/baransu/skills/design/scripts/check.py"; do
+  "$(git rev-parse --show-toplevel 2>/dev/null)/plugins/baransu/skills/design/scripts/check.py" \
+  "$HOME"/.claude/plugins/cache/baransu/baransu/*/skills/design/scripts/check.py \
+  "$HOME"/.claude/plugins/cache/baransu/*/skills/design/scripts/check.py; do
   if [ -f "$candidate" ]; then
     CHECK_PY="$candidate"
     break
@@ -34,7 +37,7 @@ done
 
 if [ -z "$CHECK_PY" ]; then
   echo "❌ Cannot locate check.py for Kami sanity check." >&2
-  echo "   Tried: ~/.claude/plugins/cache/baransu/baransu/1.3.0/, ../plugins/baransu/, project root" >&2
+  echo "   Tried: ../plugins/baransu/, project root, ~/.claude/plugins/cache/baransu/*/" >&2
   exit 2
 fi
 
@@ -65,17 +68,23 @@ fi
 echo ""
 echo "── schemas existence ──"
 schema_dir="$SCRIPT_DIR/schemas"
-sx_fail=0
-for s in resume portfolio one-pager letter equity-report changelog; do
-  if [ ! -f "$schema_dir/$s.md" ]; then
-    echo "FAIL schemas existence: missing $schema_dir/$s.md" >&2
-    sx_fail=1
-    exit_code=1
-    break
+if [ ! -d "$schema_dir" ]; then
+  # The preset-apply flow copies only the 5-artifact set + this script to the
+  # project root — schemas/ never deploys there. Skip, don't FAIL.
+  echo "SKIP schemas existence（schemas/ 未部署於此位置 — 僅 plugin 原始碼內檢查）"
+else
+  sx_fail=0
+  for s in resume portfolio one-pager letter equity-report changelog; do
+    if [ ! -f "$schema_dir/$s.md" ]; then
+      echo "FAIL schemas existence: missing $schema_dir/$s.md" >&2
+      sx_fail=1
+      exit_code=1
+      break
+    fi
+  done
+  if [ "$sx_fail" = "0" ]; then
+    echo "OK  schemas existence (6 new doc-types present)"
   fi
-done
-if [ "$sx_fail" = "0" ]; then
-  echo "OK  schemas existence (6 new doc-types present)"
 fi
 
 # ── object-position lint (REQ-002 Scenario 3 / B5) ──

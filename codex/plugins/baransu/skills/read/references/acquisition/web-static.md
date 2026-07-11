@@ -7,6 +7,8 @@
 
 # Web — Static Content Acquisition
 
+Path convention: define `$READ_ROOT=.claude/read` (relative to the repository root); every `raw/` path in this file lives under it. Each lane runs `mkdir -p` before its first write into `$READ_ROOT/raw/{slug}/`. Fetches land in a temp path first and move into `raw/` only after quality checks pass — so `raw/{slug}/` is written exactly once and immutability holds by construction.
+
 ## Local-First Fetch (default)
 
 This is the default path. The URL is fetched directly from this machine and extraction happens locally (markitdown in Stage 2) — the URL is never sent to any third-party proxy unless the user explicitly passed `--use-proxy`.
@@ -15,17 +17,26 @@ This is the default path. The URL is fetched directly from this machine and extr
 curl -sL "{url}" \
   -H "Accept: text/html" \
   -H "User-Agent: Mozilla/5.0" \
-  -o raw/{slug}/index.html
+  -w '%{content_type}\n' \
+  -o "/tmp/{slug}-fetch.html"
 ```
 
-Quality checks:
+The `-w '%{content_type}'` output feeds SKILL.md Stage 1 §9's Content-Type inspection (PDF reroute) — no standalone HEAD pre-flight is needed.
+
+Quality checks (run on the temp file):
 - Word count > 100
 - More than 5 non-empty lines
 
 Routing after the checks:
 
-- **Checks pass** → continue to Stage 2 (Convert) with the local file.
-- **Checks fail, `--use-proxy` NOT passed** → do NOT silently fall back to a proxy. Discard the file, record the failure, and report to the user: 「本地抓取品質不足：{url}。可改用 --use-proxy（內容會經第三方代理）或 --chrome（瀏覽器抓取）。」
+- **Checks pass** → move the file into `raw/`, then continue to Stage 2 (Convert):
+
+  ```bash
+  mkdir -p "$READ_ROOT/raw/{slug}"
+  mv "/tmp/{slug}-fetch.html" "$READ_ROOT/raw/{slug}/index.html"
+  ```
+
+- **Checks fail, `--use-proxy` NOT passed** → do NOT silently fall back to a proxy. Nothing was written to `raw/` (the fetch stayed in `/tmp`); record the failure, and report to the user: 「本地抓取品質不足：{url}。可改用 --use-proxy（內容會經第三方代理）或 --chrome（瀏覽器抓取）。」
 - **Checks fail, `--use-proxy` passed** → run the Hard Rule check below, then proceed to the Proxy Cascade.
 
 ## Proxy Cascade (`--use-proxy` opt-in only)
@@ -46,29 +57,41 @@ If matched: skip the cascade entirely and output 「此 URL 屬於認證或內�
 ### Layer 1 — Defuddle proxy
 
 ```bash
-curl -sL "https://defuddle.md/{url}" -o raw/{slug}/index.html
+curl -sL "https://defuddle.md/{url}" -o "/tmp/{slug}-fetch.html"
 ```
 
-Quality checks:
+Quality checks (run on the temp file):
 - Word count > 100
 - More than 5 non-empty lines
 
-If either check fails, discard the file and proceed to Layer 2.
+If both checks pass, move the file into `raw/` and continue to Stage 2 (Convert):
+
+```bash
+mkdir -p "$READ_ROOT/raw/{slug}"
+mv "/tmp/{slug}-fetch.html" "$READ_ROOT/raw/{slug}/index.html"
+```
+
+If either check fails, proceed to Layer 2 — `raw/` stays untouched.
 
 ### Layer 2 — Jina reader
 
 ```bash
-curl -sL "https://r.jina.ai/{url}" -o raw/{slug}/index.md
+curl -sL "https://r.jina.ai/{url}" -o "/tmp/{slug}-fetch.md"
 ```
 
 Note: pass the target URL as-is after the slash. For `http://` URLs, Jina prepends its own scheme automatically — do not double-encode or modify the scheme.
 
-Quality checks: same as Layer 1 (word count > 100, > 5 non-empty lines).
+Quality checks: same as Layer 1 (word count > 100, > 5 non-empty lines), run on the temp file. On pass, move into `raw/`:
+
+```bash
+mkdir -p "$READ_ROOT/raw/{slug}"
+mv "/tmp/{slug}-fetch.md" "$READ_ROOT/raw/{slug}/index.md"
+```
 
 ### All layers fail
 
 If the direct fetch and (when permitted) both proxy layers fail quality checks or return HTTP errors:
-- Do NOT create any `raw/{slug}/` files.
+- `raw/{slug}/` was never written — by construction, every failed fetch stayed in `/tmp`.
 - Record the failure.
 - Report to the user: what URL was attempted, which layers were tried, and the failure reason for each.
 
@@ -91,8 +114,9 @@ Example:
 Then fetch with:
 
 ```bash
+mkdir -p "$READ_ROOT/raw/{slug}"
 curl -sL "https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}" \
-  -o raw/{slug}/index.{ext}
+  -o "$READ_ROOT/raw/{slug}/index.{ext}"
 ```
 
 Alternative for public repos (no auth needed):
@@ -115,16 +139,13 @@ For private repos: `gh api` with an authenticated token. If authentication fails
 
 Detection:
 - URL ends with `.pdf`, OR
-- `curl -sI "{url}" | grep -i "content-type: application/pdf"` matches
+- the local-first GET's response Content-Type reports `application/pdf` (see SKILL.md Stage 1 §9 — no standalone HEAD pre-flight)
 
 Download:
 
 ```bash
-curl -sL "{url}" -o raw/{slug}/index.pdf
+mkdir -p "$READ_ROOT/raw/{slug}"
+curl -sL "{url}" -o "$READ_ROOT/raw/{slug}/index.pdf"
 ```
 
-Save as `index.pdf`. Use extension `pdf` for the markitdown call:
-
-```bash
-markitdown "raw/{slug}/index.pdf" -o material/{slug}/index.md
-```
+Save as `index.pdf` (extension `pdf`). Then hand the saved raw file to SKILL.md Stage 2 (Convert) — the Stage 2/3 pipeline (tmp intermediate, image handling, final slug + dedup, frontmatter, index row) applies unchanged.

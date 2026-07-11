@@ -8,11 +8,12 @@ Single internal interface for the Stage 1 §3.5 four-lane fan-out. Two adapters 
 fanout(topic) → candidates[]   # merged into $SOURCES
 ```
 
-Each candidate is a `{path, lane}` tuple, identical in both modes:
+Each candidate is a `{url, path|null, lane}` tuple, identical in both modes:
 
 | Field | Shape |
 |-------|-------|
-| path | `.claude/read/material/{slug}/index.md` |
+| url | the candidate's source URL (dedup key) |
+| path | `.claude/read/material/{slug}/index.md` — `null` until the SKILL.md §3.5 capture step fills it |
 | lane | `academic` \| `web` \| `gh` \| `x` — `null` only for direct inputs from Stage 1 §1/§2/§3, which never pass through this interface |
 
 The merged pool is deduplicated by `url` exact-string equality and handed to Stage 2 as `$SOURCES`, exactly as SKILL.md §3.5 specifies.
@@ -24,9 +25,9 @@ Business rules — the lane status surface (three states), the soft-failure inva
 During Stage 0 (environment self-check):
 
 1. Detect ultracode via system-reminder confirmation — the session context must explicitly confirm a Workflow-capable environment. Do not infer it.
-2. Record the chosen mode (`current` or `workflow`) to disk in the session's working notes before Stage 1 begins.
+2. Record the chosen mode (`current` or `workflow`) before Stage 1 begins: write it to the confirm-style file path if one is named by the driving context; otherwise record the mode line at the top of the run's first working artifact.
 3. The mode is pinned for the entire run. Never switch adapters mid-run — not even when a lane fails and is retried.
-4. Degraded path: if detection is unreliable or ambiguous, use the Workflow adapter only when the user explicitly declares it. The default is always the current adapter (non-ultracode behavior identical to 1.5.0).
+4. Degraded path: if detection is unreliable or ambiguous, fall back to the current adapter. System-reminder confirmation is the only authorization source for the Workflow adapter — never infer it and never accept any other declaration. The default is always the current adapter (non-ultracode behavior identical to 1.5.0).
 
 ## 3. Current adapter — four-lane fan-out
 
@@ -39,7 +40,7 @@ Depth invariant (restated for this adapter): lane agents must not invoke skills 
 When Stage 0 pinned `workflow`, run the four lanes as Workflow `parallel` branches. The adapter does exactly two things:
 
 1. **Dispatch**: one parallel branch per lane, each invoking the same underlying tool with the same query as §3.
-2. **Collect**: gather `{path, lane}` tuples in the §1 shape, merge and dedupe per SKILL.md §3.5, and hand `$SOURCES` to Stage 2 unchanged.
+2. **Collect**: gather `{url, path|null, lane}` tuples in the §1 shape, merge and dedupe per SKILL.md §3.5, and hand `$SOURCES` to Stage 2 unchanged.
 
 Nothing else. Lane-status mapping, timeout values, the soft-failure invariant, and Stage 2 scoring stay in the main flow (SKILL.md Stage 1 §3.5 and Stage 2).
 

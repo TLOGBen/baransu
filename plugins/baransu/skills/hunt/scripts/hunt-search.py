@@ -53,9 +53,12 @@ def load_cases(report_dirs: list[Path]) -> list[tuple[Path, dict]]:
 
 STATUS_COLORS = {
     "scoping":      "\033[33m",
+    "confirmed":    "\033[35m",
+    "fixed":        "\033[32m",
+    "handoff":      "\033[31m",
+    # legacy statuses (pre-lifecycle-alignment cases in .claude/archived/)
     "investigating": "\033[34m",
     "root_caused":  "\033[35m",
-    "fixed":        "\033[32m",
     "closed":       "\033[90m",
 }
 RESET = "\033[0m"
@@ -83,7 +86,7 @@ def print_catalog(cases: list[tuple[Path, dict]]) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Search the hunt-report catalog")
     parser.add_argument("--dir",     default=None, help="search only this directory (default: .claude/hunt-report/ + .claude/archived/)")
-    parser.add_argument("--status",  help="filter by status (scoping|investigating|root_caused|fixed|closed)")
+    parser.add_argument("--status",  help="filter by status (scoping|confirmed|fixed|handoff; legacy: investigating|root_caused|closed)")
     parser.add_argument("--keyword", help="search keyword across target and root_cause (case-insensitive)")
     parser.add_argument("--id",      help="exact hunt_id lookup")
     args = parser.parse_args()

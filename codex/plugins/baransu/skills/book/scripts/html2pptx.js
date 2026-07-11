@@ -980,27 +980,33 @@ async function html2pptx(htmlFile, pres, options = {}) {
 
 module.exports = html2pptx;
 
-// CLI entry point: node html2pptx.js <input-html-path> <output-pptx-path>
+// CLI entry point: node html2pptx.js <input-html-path> [more-input-html…] <output-pptx-path>
+// Multiple inputs append one slide each (in argument order) to a single presentation —
+// a multi-slide deck is assembled in ONE invocation. (Invoking once per slide against
+// the same output path would overwrite: each invocation writes a complete file.)
 if (require.main === module) {
   const pptxgen = require('pptxgenjs');
-  const inputHtml = process.argv[2];
-  const outputPptx = process.argv[3];
+  const args = process.argv.slice(2);
 
-  if (!inputHtml || !outputPptx) {
-    console.error('Usage: node html2pptx.js <input-html-path> <output-pptx-path>');
+  if (args.length < 2) {
+    console.error('Usage: node html2pptx.js <input-html-path> [more-input-html…] <output-pptx-path>');
     process.exit(1);
   }
+
+  const outputPptx = args[args.length - 1];
+  const inputHtmls = args.slice(0, -1);
 
   const pptx = new pptxgen();
   pptx.layout = 'LAYOUT_WIDE'; // 13.333" × 7.5" (960×540pt)
 
-  html2pptx(inputHtml, pptx)
-    .then(() => pptx.writeFile({ fileName: outputPptx }))
-    .then(() => {
-      console.log(`PPTX written to: ${outputPptx}`);
-    })
-    .catch((err) => {
-      console.error(`Error: ${err.message}`);
-      process.exit(1);
-    });
+  (async () => {
+    for (const inputHtml of inputHtmls) {
+      await html2pptx(inputHtml, pptx); // sequential: slide order = argument order
+    }
+    await pptx.writeFile({ fileName: outputPptx });
+    console.log(`PPTX written to: ${outputPptx} (${inputHtmls.length} slide${inputHtmls.length > 1 ? 's' : ''})`);
+  })().catch((err) => {
+    console.error(`Error: ${err.message}`);
+    process.exit(1);
+  });
 }

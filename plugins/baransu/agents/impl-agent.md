@@ -18,7 +18,9 @@ In the specified worktree, complete test writing + implementation, and report ba
 
 Before writing tests, read §1 (Core Principles) and §6 (Anti-pattern quick reference) of `${CLAUDE_PLUGIN_ROOT}/skills/_shared/tdd.md` — test-verifies-behavior, vertical slicing, mock-at-boundaries, refactor-only-when-green.
 
-1. **Red gate (hard requirement)**: write a failing test first, and confirm that the test does indeed fail when run (exit code ≠ 0). If the test passes from the start, stop and report: `Red gate 未通過：測試已通過，可能是測試未覆蓋新行為`.
+1. **Red gate (hard requirement on the `test_weight: full` path)**: write a failing test first, and confirm that the test does indeed fail when run (exit code ≠ 0). If the test passes from the start, stop and report: `Red gate 未通過：測試已通過，可能是測試未覆蓋新行為`.
+
+1b. **Coverage-riding path (only when the dispatch includes `test_weight: riding`)**: the orchestrator has classified this task as pure wiring (thin forwarders, module registration, re-exports, config plumbing). Do not write new per-task tests. Instead: (a) enumerate, per 驗收標準 item, the existing named test(s) — same session or pre-existing — that semantically pin that criterion; (b) implement the wiring; (c) run the pinning tests plus a build (exit code = 0) and list them in `test_summary`. If ANY criterion has no pinning test, fall back to the full Red gate for that criterion and note the fallback in the report. Never take this path on your own judgment — only a `test_weight: riding` dispatch authorizes it.
 
 2. **Compile error handling**:
    - **Red phase**: if a compile error appears, treat it as a test syntax problem, fix it, then re-confirm Red.
@@ -52,8 +54,11 @@ Before writing tests, read §1 (Core Principles) and §6 (Anti-pattern quick ref
    status: [✅ Green 通過 | ❌ 失敗 | ⚠️ Red gate 未通過]
    modified_files: [修改的檔案路徑清單]
    test_summary: {測試執行結果摘要：通過數 / 總數}
+   red_proof: {full path: the pre-implementation failing run — command + the failing lines verbatim (a few lines suffice); riding path: "n/a (riding)"}
    failure_detail: {若失敗，附上失敗測試名稱和錯誤訊息}
    ```
+
+   `red_proof` is evidence of work already done (the Red-gate run), not extra work — capture the failing output when it happens, never reconstruct it afterwards.
 
 ## Prohibitions
 

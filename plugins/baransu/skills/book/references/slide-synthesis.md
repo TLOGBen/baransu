@@ -92,11 +92,11 @@ Store the result as `$STRUCTURE_SLIDES`.
 
 ## Hard rules for slide font sizing and height limits (PPT output quality)
 
-Render-time standing instruction: when the Stage 3 PPTX path (render-pipelines.md step one「生成 slide HTML」) applies large type to each slide, it **must** obey the following binary-decidable hard rules. Violating any one → mark fail in the pre-render self-check, and fix the copy or split the page before rendering. The slide container is 16:9 (the PPTX path is fixed at `960×540px`, so `100vw=960px`, `100vh=540px`, aspect ratio 960/540≈1.778).
+Render-time standing instruction: when the Stage 3 PPTX path (render-pipelines.md step one「生成 slide HTML」) applies large type to each slide, it **must** obey the following binary-decidable hard rules. Violating any one → mark fail in the pre-render self-check, and fix the copy or split the page before rendering. The slide container is 16:9 (the PPTX path is fixed at `960pt × 540pt` — i.e. 1280×720px at 96dpi, matching html2pptx.js's `LAYOUT_WIDE` 13.333in × 7.5in; **not** 960px — so `100vw = 1280px (960pt)`, `100vh = 720px (540pt)`, aspect ratio 960/540 ≈ 1.778).
 
 ### 1. Large-type dual constraint `font-size: min(Xvw, Yvh)`, and `Y ≥ X × 1.6`
 
-Using the `vw` single constraint alone in a 16:9 container gets clipped and shrinks ~20% (reproducible bug): `min(7vw, 10vh)` at 960×540 has `7vw = 67.2px = 12.4vh`, clipped by `10vh = 54px`, leaving only ~80% in practice → large type inexplicably shrinks and the layout becomes unbalanced. Failure branch: **only `vw` is seen without `vh`, or `Y < X × 1.6` → that large type fails**.
+Using the `vw` single constraint alone in a 16:9 container gets clipped and shrinks ~20% (reproducible bug): `min(7vw, 10vh)` at 1280×720px (960×540pt) has `7vw = 89.6px = 12.4vh`, clipped by `10vh = 72px`, leaving only ~80% in practice → large type inexplicably shrinks and the layout becomes unbalanced. Failure branch: **only `vw` is seen without `vh`, or `Y < X × 1.6` → that large type fails**.
 
 Quick-reference table (apply directly, do not re-derive):
 

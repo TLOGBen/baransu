@@ -53,7 +53,7 @@ means the current (parallel-Task) adapter.
 
 When /review is hosted as a subagent, the `AskUserQuestion` tool is simply absent from the runtime tool list — there is no human to ask. The detection primitive is defined in `../_shared/loop-contract.md`: inspect the run's own tool list directly and check whether `AskUserQuestion` is present; this is NOT an attempt-and-catch (invoking a missing tool "to see if it fails" is forbidden). Tool absence gates the interaction axis only — worker fan-out rides the always-present `Agent` tool and stays unconditionally allowed (see the INV clarification above).
 
-When the tool is absent, each of the four AskUserQuestion call-points below degrades per loop-contract §2: a preference/confirmation checkpoint is an **Input PAUSE** — take the recommended default and continue, annotating every substituted decision in the report with the user-visible string 「此處採預設：{假設}」; a checkpoint that cannot be resolved without a human decision is a hard stop — report `needs-input` upward to the calling layer and never fabricate a substitute. The per-point degradation branches are stated inline at each call-point (the Stage 1 pre-dispatch off-ramp target-pin, the Stage 1.5 domain-sources round, the Stage 7 needs-judgment tier, and the Output-shape needs-judgment note); the human-present (tool-present) behavior at every point is unchanged.
+When the tool is absent, each of the four AskUserQuestion call-points below degrades per loop-contract §2: a preference/confirmation checkpoint is an **Input PAUSE** — take the recommended default and continue, annotating every substituted decision in the report with the user-visible string 「此處採預設：{假設}」; a checkpoint that cannot be resolved without a human decision is an **Authorization PAUSE** — a hard stop: report it upward to the calling layer and never fabricate a substitute (`references/loop-pauses.md` is the authority for each point's class). The per-point degradation branches are stated inline at each call-point (the Stage 1 pre-dispatch off-ramp target-pin, the Stage 1.5 domain-sources round, the Stage 7 needs-judgment tier, and the Output-shape needs-judgment note); the human-present (tool-present) behavior at every point is unchanged. One non-AskUserQuestion checkpoint degrades here too: Stage 7 packaged-confirm batches are never applied when no human is present — do NOT apply the batch; list it in the report as pending-confirm per loop-pauses.md（「此處採預設：不套用，留待人工確認」）.
 
 ---
 
@@ -69,7 +69,7 @@ Two things, in order, both passed to every dispatched reviewer.
 
 Materialize the target from disk first (`git diff --stat` + content for code, Read for files/plans), then write down — in 繁中 — what the target claims it did, decided, explicitly did not do, and left open, against that artifact — conversation memory and commit messages are claims about it, not sources. This is the reviewer's anchor against drifting into free-form critique. If no source exists for a claim (no commit message, no docstring, no plan section), write **「no explicit claim for <area>」** rather than inventing one.
 
-**Quantitative-claim disposition (mandatory, output-shaping).** Every load-bearing count / existence / coverage claim the target makes — N files / N classes / N call-sites / N test-cases / 「X 存在」 / 「安全網充足」 — enters the checklist with an explicit `✔`/`✘` disposition, never a bare restatement. Each disposition is set from its Stage 1.6 fact-table row — the `✔`/`✘` is that row's verdict, cited by its row number, never a free-standing judgment; a `(verified:)` tag the target already carries is a claim about the repo, not evidence, and does not discharge the row. A quantitative `✔`/`✘` carrying no fact-table row number, or a load-bearing count with no row at all, is an Unverified-claims hard-stop hit.
+**Quantitative-claim disposition (mandatory, output-shaping).** Every load-bearing count / existence / coverage claim the target makes — N files / N classes / N call-sites / N test-cases / 「X 存在」 / 「安全網充足」 — enters the checklist as an enumerated entry with its disposition marked `pending`, never a bare restatement; Stage 1 only enumerates, it never verdicts. The execution order is fixed: Stage 1 enumerates → Stage 1.6 builds the fact table → each `pending` disposition is backfilled to `✔`/`✘` before Stage 4 dispatch. The backfilled `✔`/`✘` is the corresponding fact-table row's verdict, cited by its row number, never a free-standing judgment; a `(verified:)` tag the target already carries is a claim about the repo, not evidence, and does not discharge the row. A quantitative `✔`/`✘` carrying no fact-table row number, or a load-bearing count with no row at all, is an Unverified-claims hard-stop hit.
 
 Target can be any shape:
 - git diff, file set, directory, uncommitted changes
@@ -241,9 +241,9 @@ This list deliberately does **not** include release-artifact missing, generated-
 | **Needs judgment** | logic / boundary / API / behavior / security findings with concrete fixes. Batch-ask via AskUserQuestion — group by theme, not by target question count. |
 | **Advisory** | balance-downgraded, off-goal, or no concrete fix. In the report, not in the user's face. |
 
-Per **INV-consent**, never change behavior without user consent. Do not ask one question per finding. When AskUserQuestion is absent (subagent-hosted): treat each needs-judgment batch as an Input PAUSE per the Subagent-hosted degradation section — take the recommended default, annotate it in the report with the user-visible string 「此處採預設：{假設}」, and report the needs-judgment items upward to the calling layer instead of deciding them here.
+Per **INV-consent**, never change behavior without user consent. Do not ask one question per finding. When AskUserQuestion is absent (subagent-hosted): each needs-judgment batch is an **Authorization PAUSE** (`references/loop-pauses.md` is the authority) — a hard stop: never take a default and never apply behavior changes; return verdict 「需判斷」 with the findings upward to the calling layer.
 
-PAUSE classification for non-interactive drivers: `references/loop-pauses.md` — read it when driven by /loop, cron, or Workflow.
+PAUSE classification for non-interactive drivers: `references/loop-pauses.md` — read it when driven by /loop, cron, or Workflow, or hosted as a subagent.
 
 ---
 
@@ -299,7 +299,7 @@ Field semantics (single source of truth for each):
 
 No verdict enum. No YAML schema. No skeleton template — write the kind of review a real engineer would read as a review.
 
-For **needs-judgment** items, batch-ask via AskUserQuestion. Let the question count follow the natural theme grouping; don't split to hit a number, don't merge to shrink one. When AskUserQuestion is absent (subagent-hosted): take the recommended default per the Subagent-hosted degradation section, annotate it with 「此處採預設：{假設}」, and report the needs-judgment items upward to the calling layer.
+For **needs-judgment** items, batch-ask via AskUserQuestion. Let the question count follow the natural theme grouping; don't split to hit a number, don't merge to shrink one. When AskUserQuestion is absent (subagent-hosted): this is an Authorization PAUSE — never decide or apply the items; return verdict 「需判斷」 with the findings to the calling layer, per the Subagent-hosted degradation section and `references/loop-pauses.md`.
 
 ---
 
@@ -307,7 +307,7 @@ For **needs-judgment** items, batch-ask via AskUserQuestion. Let the question co
 
 After the report has been presented in conversation, persist it as an HTML work journal:
 
-1. Render the full report as a single HTML file at `.claude/review/<slug>.html`, styled after the book golden-template. The shared rendering contract lives at `plugins/baransu/skills/_shared/output-journal.md` — follow it.
+1. Render the full report as a single HTML file at `.claude/review/<slug>.html`, styled after the book golden-template. Derive `<slug>` per the shared contract's `/review` rule (Location section: the reviewed target's slug when it has one, else `{YYYY-MM-DD}-{target basename}`). The shared rendering contract lives at `plugins/baransu/skills/_shared/output-journal.md` — follow it.
 2. Include an 「執行日誌」 section: off-spec decisions, forced changes, tradeoffs, and anything else from this run the user should know.
 3. Send the file to the user via SendUserFile.
 

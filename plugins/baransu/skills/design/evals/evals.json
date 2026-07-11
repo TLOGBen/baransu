@@ -14,7 +14,7 @@
       "prompt": "/design lint",
       "should_trigger": true,
       "expected_skill": "design",
-      "expected_behavior": "lint mode: structure + Kami invariant check over the existing DESIGN.md."
+      "expected_behavior": "lint mode: preset-agnostic structure + consistency check (6 checks A-F) over the existing design artifacts; Kami invariants live in 紙-sanity.sh, not lint."
     },
     {
       "id": 3,

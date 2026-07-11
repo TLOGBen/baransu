@@ -10,7 +10,7 @@
 | preset: v1.2 residue + no `--force` | tokens.css first line fails regex or partial v1.2 artifact | stderr warning + exit ≠ 0 |
 | preset: copy write failure (permission/disk full/EPERM/ENOSPC) | IO error | Report path; abort; preserve staging |
 | preset: atomic mv failed | partial state risk | Report; project root stays in prior state |
-| gen: --slug missing | gen mode with no `--slug` | reject |
+| gen: --slug missing | gen mode with no `--slug` | recover: ask via the Step 1 question round (interactive) or derive a candidate from the description (non-interactive); reject only when nothing derivable exists |
 | gen: --slug pattern fail | does not match `/^[a-z][a-z0-9-]{1,15}$/` | reject |
 | gen: --slug reserved word collision | slug ∈ {kami, google-design, swiss} | reject |
 | lint: any check (A/B/C/D/E/F) fail | see Lint Mode section | list the specific violation + exit 1; if Check A fails, terminate without running B-F |

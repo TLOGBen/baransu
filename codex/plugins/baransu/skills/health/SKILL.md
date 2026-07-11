@@ -31,7 +31,7 @@ Audit the current project's agent setup and AI coding maintainability against th
 
 Find violations. Identify the misaligned layer. Calibrate to project complexity only.
 
-**Positioning**: structural validation of baransu itself belongs to `scripts/verify-skills.py`. `/health` audits the **user's project's** agent configuration and AI maintainability — it is not a baransu self-audit and does not overlap verify-skills.
+**Positioning**: structural validation of baransu's skills belongs to `scripts/verify-skills.py`. `/health` audits the **audited project's** agent configuration and AI maintainability — and that project may legitimately be the baransu repo itself, audited like any other project. The boundary is what gets checked (skill structure vs. agent config and maintainability), not whose repo it is.
 
 The body below is English (agent-facing). All user-facing output is in **Traditional Chinese (繁體中文)**.
 
@@ -42,8 +42,9 @@ The body below is English (agent-facing). All user-facing output is in **Traditi
 - **Outcome**: One budget-aware health audit of the user's project, routing agent-config risk and AI-maintainability risk into two lanes of a single report.
 - **Done when**: Every finding marks the misaligned layer (one of the five-layer framework), concrete evidence (file:line or a script-output section), and a directly copy-runnable action or diagnostic command; or a clean health attestation + residual risk is emitted.
 - **Evidence**: collect-data.sh output sections, the tracked project instruction files, the runtime config summary, verifier logs, the hooks/MCP surface, and (deep audit) inspector subagent reports.
-- **Output**: A Traditional Chinese health report in the conversation (graded by tier, two lanes, sorted by severity); not separately persisted to a file.
+- **Output**: A Traditional Chinese health report in the conversation (graded by tier, two lanes, sorted by severity); not separately persisted to a file — except when driven non-interactively, where the report is additionally persisted to `.claude/health/report-{date}.md` (loop-contract skill obligation 2) and the final message ends with the `LOOP_OUTCOME` line.
 - **Automation**: ultracode=assist, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
+  In the same non-interactive pass, read `references/loop-pauses.md` for this skill's own PAUSE classification.
 
 ## Invariants (hard red-lines)
 
@@ -51,7 +52,7 @@ These hard rules hold across every step, tier, and mode. They are non-negotiable
 
 1. **Secret redaction.** Secrets, tokens, keys, and passwords appear only as `[REDACTED]`. Full keys are never printed — when a key must be touched at all, only `head -c 5` is permitted.
 2. **No raw config values.** Raw config values are never printed; report file:line and the key name instead.
-3. **Subagent depth = 1.** Inspectors never call any `/baransu:` skill and never dispatch further subagents. Being dispatched as a subagent does NOT disable this skill's own worker fan-out — the `Agent` tool is always available (probe run a928109). The depth=1 rule here governs the leaf inspectors this skill dispatches (they never dispatch further), NOT health's own ability to fan out its inspectors when health is itself hosted as a subagent. Fan-out is released unconditionally and is orthogonal to interactive-capability detection — it is never gated behind an direct user question with numbered options (stop; classify whether this is an authorization PAUSE before continuing) proxy.
+3. **Subagent depth = 1.** Inspectors never call any `/baransu:` skill and never dispatch further subagents. Being dispatched as a subagent does NOT disable this skill's own worker fan-out — the `Agent` tool is always available (probe run a928109). The depth=1 rule here governs the leaf inspectors this skill dispatches (they never dispatch further), NOT health's own ability to fan out its inspectors when health is itself hosted as a subagent. Fan-out is released unconditionally and is orthogonal to interactive-capability detection — it is never gated behind a user-question proxy.
 4. **No unconfirmed mutation.** Never auto-apply fixes or auto-run destructive actions without explicit user confirmation.
 
 ## Two lanes share one report
@@ -83,15 +84,19 @@ Pick one. Apply only that tier's requirements.
 | **Standard** | 500-5K files, small team or CI | AGENTS.md + 1-2 rules; 2-4 skills; basic hooks |
 | **Complex** | >5K files, multi-contributor, active CI | Full layered setup: instructions + rules + skills + hooks + executable verification |
 
+Tier classification is fed by the collector's `project_files` count (git-tracked files); the maintainability checker's `tracked_files` uses a different (filtered) base and is informational only, and `contributors` counts raw author emails (identities not deduped) — do not treat small deltas between these counts as findings.
+
 ## Step 1: Collect data
 
 Run the collection script in summary mode first. Do not interpret yet.
 
 ```bash
-# Resolve scripts from the installed skill dir, falling back to the repo layout.
+# Resolve scripts from the installed skill dir, falling back to the repo layout
+# anchored at the git toplevel (not the current shell cwd), then cwd.
 HEALTH_SCRIPTS_DIR="./scripts"
 if [ ! -f "${HEALTH_SCRIPTS_DIR:-}/collect-data.sh" ]; then
-  HEALTH_SCRIPTS_DIR="./plugins/baransu/skills/health/scripts"
+  REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+  HEALTH_SCRIPTS_DIR="$REPO_ROOT/plugins/baransu/skills/health/scripts"
 fi
 if [ ! -f "$HEALTH_SCRIPTS_DIR/collect-data.sh" ]; then
   echo "找不到 health collect-data.sh；請設定 CLAUDE_SKILL_DIR 或重新安裝 baransu plugin"
@@ -99,6 +104,8 @@ if [ ! -f "$HEALTH_SCRIPTS_DIR/collect-data.sh" ]; then
 fi
 bash "$HEALTH_SCRIPTS_DIR/collect-data.sh"
 ```
+
+Shell variables do not persist between separate command invocations — re-run the resolution block above, **from the audited project root** (collect-data.sh uses pwd as the project root), at the top of every later `$HEALTH_SCRIPTS_DIR` script call (the Step 2 deep re-run, the Step 3 quick check, and the `references/conditional-audits.md` checker).
 
 Sections may show `(unavailable)` when tools are missing:
 
@@ -115,7 +122,7 @@ The collector includes both runtime-specific and agent-agnostic surfaces:
 
 ## Step 1b: MCP live check
 
-Test every MCP server: call one harmless tool per server. Record `live=yes/no` with error detail. If the probe itself cannot run (the tool is not exposed in this harness, or it errors for a reason unrelated to the server), record `live=unknown` and treat it as insufficient data, not a finding — do not flag the server as down. Respect `enabled: false` (skip without flagging). For API keys, only check if the env var is set (`echo $VAR | head -c 5`), never print full keys.
+Probe only when at least one holds: this is a deep audit; the user's request mentions MCP（「MCP 壞了」 etc.）; or the Step 1 collector's MCP section shows anomalies. Otherwise record `live=not-probed (summary mode)` and treat it as insufficient data, not a finding — the per-server probe is the one collection step whose cost scales with server count, so it stays off the light path. When probing, test every MCP server: call one harmless tool per server. Record `live=yes/no` with error detail. If the probe itself cannot run (the tool is not exposed in this harness, or it errors for a reason unrelated to the server), record `live=unknown` and treat it as insufficient data, not a finding — do not flag the server as down. Respect `enabled: false` (skip without flagging). For API keys, only check if the env var is set (`echo $VAR | head -c 5`), never print full keys.
 
 ## Step 1c: Safety and security checks
 
@@ -133,7 +140,7 @@ Run these on every audit, regardless of tier. They are the floor, not the ceilin
 
 Treat agent memory and third-party skills as supply-chain artifacts. They run with the user's privileges.
 
-**Memory hygiene.** Audit the project's long-term agent memory store for secrets, tokens, or credentials (Critical), and for entries written by untrusted runs (subagent invoked on attacker-controlled input, loop iteration over external content); recommend rotation after such runs. For high-risk one-off runs (untrusted PDFs, uncontrolled scraping, third-party scripts), recommend disabling memory persistence for that session entirely. Also flag durable memory problems when they affect behavior: oversized injected summaries, stale or contradictory entries, missing project entrypoint references, or private paths copied into public instructions. Keep these as context findings, not code-review findings.
+**Memory hygiene.** Locating the store: Claude Code's long-term project memory lives at `~/.claude/projects/<slug>/memory/` (e.g. `MEMORY.md`), where `<slug>` is the project's absolute path with `/` and `_` replaced by `-`. A worktree checkout maps to the MAIN repo's slug, not the worktree path — derive the slug from the main repo root. If the directory does not exist, the project simply has no memory: treat that as no-memory, not a finding. Audit the project's long-term agent memory store for secrets, tokens, or credentials (Critical), and for entries written by untrusted runs (subagent invoked on attacker-controlled input, loop iteration over external content); recommend rotation after such runs. For high-risk one-off runs (untrusted PDFs, uncontrolled scraping, third-party scripts), recommend disabling memory persistence for that session entirely. Also flag durable memory problems when they affect behavior: oversized injected summaries, stale or contradictory entries, missing project entrypoint references, or private paths copied into public instructions. Keep these as context findings, not code-review findings.
 
 **Skill supply chain.** Third-party skills, plugins, and MCP servers run with the user's privileges. For each one not authored in this repo, check: source pinned to a release tag or revision (not `main`, a branch, or a remote git marketplace left tracking its latest head), hook handlers do not write to credential directories, MCP servers have explicit user consent (not auto-trusted by wildcard). Report unpinned sources or unreviewed hook handlers as Structural, not Critical, unless an active exploit signal is present.
 
@@ -148,12 +155,12 @@ Confirm the tier. Then route:
 - **Simple:** Analyze locally. No subagents.
 - **Standard:** Analyze locally from the summary output. Do not launch subagents by default. If the user asks for a deep/full/thorough audit, or if local analysis cannot classify a security/control issue, escalate to a deep audit and explain the likely token cost.
 - **Complex, remembered deep preference, explicit deep audit, or explicit AI maintainability audit:** Re-run collection with `bash "$HEALTH_SCRIPTS_DIR/collect-data.sh" auto deep`, then launch the relevant inspector subagents in parallel by spawning Codex subagents. Redact credentials to `[REDACTED]`.
-  - **Inspector 1** (Context + Security): dispatch Task with agent `baransu:health-inspector-context` (repo-layout fallback: `plugins/baransu/agents/health-inspector-context.md`). Feed the `CONVERSATION SIGNALS` section.
-  - **Inspector 2** (Control + Behavior): dispatch Task with agent `baransu:health-inspector-control` (repo-layout fallback: `plugins/baransu/agents/health-inspector-control.md`). Feed the detected tier.
+  - **Inspector 1** (Context + Security): dispatch Task with agent `baransu:health-inspector-context` (repo-layout fallback: `plugins/baransu/agents/health-inspector-context.md`). Feed the detected tier plus the sections its Input bundle names — in practice the full collector output (AGENTS.md global/local, NESTED AGENTS.md, rules/, skill descriptions, STARTUP CONTEXT ESTIMATE, MCP, hooks/settings, HANDOFF.md, MEMORY.md, SKILL INVENTORY, SKILL FRONTMATTER, SKILL SYMLINK PROVENANCE, SKILL FULL CONTENT, CONVERSATION SIGNALS) — and paste the Step 1b probe results as an `MCP Live Status` section (or `live=not-probed`). Inspectors work from pasted data and may not re-crawl the repo, so an under-fed inspector has no sanctioned recovery.
+  - **Inspector 2** (Control + Behavior): dispatch Task with agent `baransu:health-inspector-control` (repo-layout fallback: `plugins/baransu/agents/health-inspector-control.md`). Feed the detected tier plus the sections its Input bundle names: settings.local.json, GITIGNORE, AGENTS.md (global/local), hooks, MCP FILESYSTEM, MCP ACCESS DENIALS, allowedTools count, skill descriptions, and CONVERSATION EXTRACT.
   - **Inspector 3** (AI Maintainability): dispatch Task with agent `baransu:health-inspector-maintainability` (repo-layout fallback: `plugins/baransu/agents/health-inspector-maintainability.md`). Feed only `TIER METRICS`, `AI MAINTAINABILITY SUMMARY` or `AI MAINTAINABILITY DETAIL`, and the script hotspot lists. Launch this inspector only for deep audits, Complex projects, or explicit code-rot/AI-maintainability requests.
 - **Fallback:** If a subagent fails, analyze that layer locally and note 「（本層由主代理人就地分析）」.
 
-Each inspector file defines `Perspective / Mission / Principles / Lane-keeping` — no persona, no character voice. Subagent depth = 1: inspectors never call any `/baransu:` skill and never dispatch further subagents. This governs the leaf inspectors; being dispatched as a subagent does NOT disable this skill's own worker fan-out — the `Agent` tool is always available (probe run a928109), so health still fans out its inspectors in parallel by spawning Codex subagents even when health is itself hosted as a subagent, orthogonal to interactive-capability detection.
+Each inspector file defines `Perspective / Mission / Principles / Lane-keeping` — no persona, no character voice. Depth rule per INV-3: inspectors are leaves; health's own inspector fan-out by spawning Codex subagents remains available even when health is itself hosted as a subagent.
 
 ## Step 3: Report
 
@@ -177,7 +184,7 @@ The 「行動」 (action) must be directly copy-runnable. Do not write 「調查
 
 ### [!] 嚴重 — 立即修
 
-Rules violated, dangerous allowedTools, MCP overhead >12.5%, security findings, leaked credentials.
+Rules violated, dangerous allowedTools, security findings, leaked credentials. 嚴重 is reserved for verified findings; estimate-based signals (e.g. MCP overhead) belong in the Structural band below.
 
 Example:
 
@@ -189,21 +196,21 @@ Example:
 
 ### [~] 結構性 — 儘快修
 
-Agent instructions in the wrong layer, missing hooks, oversized descriptions, verifier gaps.
+Agent instructions in the wrong layer, missing hooks, oversized descriptions, verifier gaps, estimated MCP overhead >12.5% of a 200K context (>5 servers by the collector's directional ~5K-tokens/server estimate — the single threshold; inspector-context cites the same one).
 
-**Instruction drift across runtimes.** Use the `AGENT CONFIG SUMMARY` section of the Step 1 collector output first — do not re-run the checker; the evidence is already collected. Report a Structural finding when `AGENTS.md` and runtime-specific files both contain substantial guidance without delegation, when a runtime config lacks trust for the current project, when settings or package metadata point at missing skill roots, when project agent instructions are missing, or when runtime-specific instructions contradict the shared project source of truth. Also report when important rules live only in ignored or private local instruction overlays but the tracked/public docs lack them; those overlays are private context, not durable project source of truth. Do not print raw config values. Secrets, tokens, keys, and passwords must appear only as `[REDACTED]`.
+**Instruction drift across runtimes.** Use the `AGENT CONFIG SUMMARY` section of the Step 1 collector output first — do not re-run the checker; the evidence is already collected. Report a Structural finding when `AGENTS.md` and runtime-specific files both contain substantial guidance without delegation (delegation counts in either direction — either file naming the other as source of truth), when a runtime config lacks trust for the current project, when settings or package metadata point at missing skill roots, when project agent instructions are missing, or when runtime-specific instructions contradict the shared project source of truth. Also report when important rules live only in ignored or private local instruction overlays but the tracked/public docs lack them; those overlays are private context, not durable project source of truth. Do not print raw config values. Secrets, tokens, keys, and passwords must appear only as `[REDACTED]`.
 
-**Baseline working-principles coverage.** Read the user-scope instruction surface (`~/.claude/CLAUDE.md` and any loaded `~/.claude/rules/*.md`) and the project-scope surface (`CLAUDE.md` / `AGENTS.md`), then test them against the coverage checklist at the top of `references/baseline-principles.md` — on every audit read only the delimited "Coverage checklist" section (down to its END marker); read the rest of that file only after the user confirms the append below. Judge by substance, not exact wording — a theme paraphrased still counts as covered. Report a Structural `WARN` naming the missing principle themes, calibrated by Step 0 tier: Simple → informational; Standard / Complex → `WARN`. **Placement rule:** general, plugin-agnostic principles belong at **user scope** (they apply to every project); only project-specific rules belong in the project files — never recommend duplicating a principle already covered at user scope down into a project file. **Action (a mutation → gated by INV-4, offer never auto-apply):** ask 「是否將缺少的原則從 baseline 範本補上？（通用原則寫入 user scope `~/.claude/CLAUDE.md`，專案特定寫入專案 `CLAUDE.md`/`AGENTS.md`）」. On confirmation, read the canonical template below the checklist's END marker in `references/baseline-principles.md` and append only the missing sections' canonical text to the appropriate scope. Appending is additive (non-destructive), so it needs no 破壞性 marker, but confirmation is still required.
+**Baseline working-principles coverage.** Read the user-scope instruction surface (`~/.claude/CLAUDE.md` and any loaded `~/.claude/rules/*.md`) and the project-scope surface (`CLAUDE.md` / `AGENTS.md`), then test them against the coverage checklist at the top of `references/baseline-principles.md` — on every audit read only the delimited "Coverage checklist" section (from the `<!-- COVERAGE-CHECKLIST-START -->` sentinel down to the first `<!-- COVERAGE-CHECKLIST-END` line); read the rest of that file only after the user confirms the append below. Judge by substance, not exact wording — a theme paraphrased still counts as covered. Report a Structural `WARN` naming the missing principle themes, calibrated by Step 0 tier: Simple → informational; Standard / Complex → `WARN`. **Placement rule:** general, plugin-agnostic principles belong at **user scope** (they apply to every project); only project-specific rules belong in the project files — never recommend duplicating a principle already covered at user scope down into a project file. **Action (a mutation → gated by INV-4, offer never auto-apply):** ask 「是否將缺少的原則從 baseline 範本補上？（通用原則寫入 user scope `~/.claude/CLAUDE.md`，專案特定寫入專案 `CLAUDE.md`/`AGENTS.md`）」. On confirmation, read the canonical template below the `<!-- COVERAGE-CHECKLIST-END` sentinel in `references/baseline-principles.md` and append only the missing sections' canonical text to the appropriate scope. Appending is additive (non-destructive), so it needs no 破壞性 marker, but confirmation is still required.
 
 **AI-maintainability gaps.** Use the `AI MAINTAINABILITY SUMMARY` section of the Step 1 collector output in summary mode and `AI MAINTAINABILITY DETAIL` (from Step 2's deep re-run) in a deep audit — do not re-run the checker; the evidence is already collected. Report `FAIL` when the project has no executable verification command, no agent instruction surface for a non-trivial repo, or broken doc references. Report `WARN` when instructions exist but lack a project map, verification guidance, boundary/non-goal language, when TODO/HACK markers are concentrated, when large source hotspots lack ownership/boundary and verification guidance, or when durable docs contain raw one-off review reports, scorecards, dated line references, or diagnostic dumps instead of stable invariants. For missing `docs/`, `specs/`, `.specify/`, `HANDOFF.md`, `CHANGELOG`, issue templates, and PR templates, set the flag by Step 0's tier ladder without judgment: Simple tier → always informational; Standard tier → `WARN` only if active handoff is present (multi-contributor or CI detected), else informational; Complex tier → `FAIL` when absent. The action for stale reports is to extract stable rules into public instructions, rules, references, or verifier scripts, then remove or archive the transient report.
 
 **Conversation-derived guidance.** If the audit reads recent agent conversations (deep audit only), read `references/conditional-audits.md` §Conversation-derived guidance before recommending any documentation change from conversation content.
 
-**Concentrated fix chains.** Run `git log --oneline --since='2 weeks ago' | grep -i fix` and group by area (the prefix before `:` or `(`). When the same area has 3+ fix commits in a short window, it signals a missing structural invariant: each fix is a guess at a rule that was never written down. Report a Structural `WARN` with the area name, fix count, and recommend adding an explicit rule to `AGENTS.md` / `CLAUDE.md` / project rules that captures the invariant those fixes were converging toward. A concentrated fix chain that touches the same file 4+ times is a stronger signal than scattered fixes across different files.
+**Concentrated fix chains.** First run `git rev-parse --git-dir >/dev/null 2>&1` — if it fails, skip this check with 「非 git 專案：略過 fix-chain 檢查」. Otherwise run `git log --oneline --since='2 weeks ago' | grep -iE '^[0-9a-f]+ fix[(:]' || true` (the anchored pattern avoids matching "prefix"/"fixture" commits; `|| true` keeps a clean fortnight from reading as an error) and group by area (the prefix before `:` or `(`). When the same area has 3+ fix commits in a short window, it signals a missing structural invariant: each fix is a guess at a rule that was never written down. Report a Structural `WARN` with the area name, fix count, and recommend adding an explicit rule to `AGENTS.md` / `CLAUDE.md` / project rules that captures the invariant those fixes were converging toward. A concentrated fix chain that touches the same file 4+ times is a stronger signal than scattered fixes across different files.
 
 **Hotspot ownership gaps.** In a deep audit, read `references/conditional-audits.md` §Hotspot ownership gaps before interpreting `HOTSPOT OWNERSHIP SURFACE`.
 
-**Missing stable verifier wrapper.** If the repo exposes multiple verification commands through CI, scripts, or manifests but `Makefile` has no `check`, `test`, or `verify` target, report a Structural `WARN`. This is an AI-maintainability gap because agents need one stable default entrypoint, not because the project is broken.
+**Missing stable verifier wrapper.** If the repo exposes multiple verification commands through CI, scripts, or manifests and a `Makefile` exists but has no `check`, `test`, or `verify` target, report a Structural `WARN`. (Repos with no Makefile are not flagged — this matches the collected `wrapper_status` evidence; trust the script, do not out-WARN it.) This is an AI-maintainability gap because agents need one stable default entrypoint, not because the project is broken.
 
 Keep actions concrete and non-invasive: add or fix the smallest useful instruction surface, add one executable validation command, document hotspot ownership and tests, split only when the boundary is already clear, or repair the broken reference. Do not propose broad rewrites from the script output alone.
 
@@ -239,7 +246,7 @@ If no issues: 「所有相關檢查通過，無需修正。」
 
 ## Non-goals
 
-- Never audit the baransu plugin's own structure — that is `scripts/verify-skills.py`'s job.
+- Never verify baransu's own skill **structure** (frontmatter, registries, skill counts) — that is `scripts/verify-skills.py`'s job. Auditing the baransu repo as a normal audited project — its agent config, instruction surfaces, maintainability — is legitimate and in scope. Plugin-style repos keep their skills under `plugins/*/skills`, so the collector's `.claude/skills`-oriented counting reports 0 there — treat the plugin skill dirs as the project's skill surface when analyzing.
 - Never auto-apply fixes without confirmation.
 - Never apply complex-tier checks to simple projects.
 - Never act as a heavy lint, typecheck, duplication, or architecture-rewrite substitute; `/health` reports maintainability guardrails and concrete next actions only.

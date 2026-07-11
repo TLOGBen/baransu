@@ -446,10 +446,15 @@ ASK_USER_CAPABILITY_BY_SKILL: dict[str, str] = {
     "think": "AskUserQuestion:think",
     "analyze": "AskUserQuestion:authorization",
     "review": "AskUserQuestion:authorization",
-    "hunt": "AskUserQuestion:input-gate",
     "read": "AskUserQuestion:cosmetic",
     "book": "AskUserQuestion:cosmetic",
     "design": "AskUserQuestion:cosmetic",
+    # Descriptive-only skills: their AskUserQuestion occurrences are noun
+    # phrases about the tool (fan-out clauses), never a call site. Rewrite to
+    # a plain noun; NEVER inject a stop instruction into these sentences.
+    "evolve": "AskUserQuestion:descriptive",
+    "execute": "AskUserQuestion:descriptive",
+    "health": "AskUserQuestion:descriptive",
 }
 
 
@@ -470,6 +475,9 @@ ASK_USER_REWRITE_BY_CAPABILITY: dict[str, str] = {
     "AskUserQuestion:unclassified": (
         "direct user question with numbered options (stop; classify whether this is an authorization PAUSE before continuing)"
     ),
+    # Descriptive noun mention — no imperative, no stop. Used when the source
+    # sentence talks ABOUT the tool rather than instructing a call.
+    "AskUserQuestion:descriptive": "a user-question prompt",
 }
 
 
@@ -479,6 +487,7 @@ ASK_USER_CODE_REWRITE_BY_CAPABILITY: dict[str, str] = {
     "AskUserQuestion:input-gate": "input-alignment question PAUSE",
     "AskUserQuestion:cosmetic": "numbered-options question",
     "AskUserQuestion:unclassified": "user-question PAUSE (unclassified)",
+    "AskUserQuestion:descriptive": "user-question prompt",
 }
 
 
@@ -849,6 +858,49 @@ def rewrite_body(
     if subagent_term_count:
         note_capability(report, "Task tool")
 
+    # Noun-phrase / negated-mention guard — runs BEFORE the per-skill call-site
+    # rewrite. Mentions like "never gated behind an AskUserQuestion proxy",
+    # "0 AskUserQuestion calls", "ONE AskUserQuestion round" are nouns inside
+    # sentences that describe (often negate) the tool; injecting the call-site
+    # replacement's parenthetical imperative there ("(stop; ...)") plants a
+    # mid-sentence stop instruction inside a sentence whose point is that no
+    # stop happens. Substitute a plain noun with no imperative instead.
+    noun_count = 0
+
+    def ask_user_article_noun_sub(m: re.Match[str]) -> str:
+        nonlocal noun_count
+        noun_count += 1
+        art = m.group(1)
+        if art.lower() in ("an", "a"):
+            art = "A" if art[0].isupper() else "a"
+        tail = m.group(2) or " prompt"
+        return f"{art} user-question{tail}"
+
+    def ask_user_bare_noun_sub(m: re.Match[str]) -> str:
+        nonlocal noun_count
+        noun_count += 1
+        del m
+        return "user-question"
+
+    body, _ = markdown_aware_subn(
+        r"\b(an|a|An|A|0|ONE|one)\s+AskUserQuestion\b(\s+(?:proxy|calls|round|block)\b)?",
+        ask_user_article_noun_sub,
+        body,
+        code_replacement=lambda m: m.group(0),
+    )
+    body, _ = markdown_aware_subn(
+        r"\bAskUserQuestion\b(?=\s+(?:proxy|calls|round|block)\b)",
+        ask_user_bare_noun_sub,
+        body,
+        code_replacement=lambda m: m.group(0),
+    )
+    if noun_count:
+        tool_count += noun_count
+        report.rewrites.append(
+            f"{noun_count} 處 AskUserQuestion 名詞性／否定語境提及改寫為 plain noun"
+            "（不注入停頓指令）"
+        )
+
     ask_keys_seen: set[str] = set()
 
     def ask_user_sub(m: re.Match[str]) -> str:
@@ -1004,6 +1056,43 @@ def check_output_invariants(target: Path, report: TransferReport) -> None:
 
 SKILL_DIR_ENV = re.compile(r"\$\{CLAUDE_SKILL_DIR\}|\$CLAUDE_SKILL_DIR\b")
 
+# Claude-only token scan patterns. Conservative by design: scanned files are
+# NEVER rewritten (they may quote these tokens as documentation — e.g. this
+# skill's own mapping tables); each affected file is flagged for manual review
+# instead. Used for copied references/*.md (copy_aux) AND for shared aux dirs
+# copied verbatim in plugin mode (transfer_plugin).
+TOKEN_SCAN_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
+    ("AskUserQuestion", re.compile(r"\bAskUserQuestion\b")),
+    ("Task tool", re.compile(r"\bTask\s+tool\b")),
+    ("TodoWrite", re.compile(r"\bTodoWrite\b")),
+    ("EnterPlanMode", re.compile(r"\bEnterPlanMode\b")),
+    ("TaskCreate", re.compile(r"\bTaskCreate\b")),
+    ("TaskUpdate", re.compile(r"\bTaskUpdate\b")),
+    ("TaskGet", re.compile(r"\bTaskGet\b")),
+    ("TaskList", re.compile(r"\bTaskList\b")),
+    ("TaskOutput", re.compile(r"\bTaskOutput\b")),
+    ("TaskStop", re.compile(r"\bTaskStop\b")),
+    ("SendUserFile", re.compile(r"\bSendUserFile\b")),
+    ("parallel Tasks", re.compile(r"\bparallel\s+Tasks\b")),
+    ("clean Task contexts", re.compile(r"\bclean\s+Task\s+contexts\b")),
+    ("via Task", re.compile(r"\bvia\s+Task\b")),
+    ("Dispatch **agent**", re.compile(r"\bDispatch\s+\*\*[a-zA-Z][\w-]*?-agent\*\*")),
+    ("Workflow primitives", re.compile(r"\bWorkflow\s+primitives\b")),
+    ("$ARGUMENTS", re.compile(r"\$ARGUMENTS\b")),
+    ("!`cmd` injection", re.compile(r"!`[^`]+`")),
+    ("CLAUDE_SKILL_DIR", re.compile(r"\bCLAUDE_SKILL_DIR\b")),
+    ("CLAUDE.md", re.compile(r"\bCLAUDE\.md\b")),
+]
+
+
+class OutputGuardError(RuntimeError):
+    """Existing output dir is non-empty and carries no generated marker.
+
+    Raised instead of rmtree-ing a directory this script cannot prove it
+    generated — pointing the output at an unrelated non-empty directory must
+    refuse (exit 2), never silently destroy its contents.
+    """
+
 
 def copy_aux(source: Path, target: Path, report: TransferReport) -> None:
     # Standard auxiliary dirs. node_modules / __pycache__ are runtime-
@@ -1083,32 +1172,8 @@ def copy_aux(source: Path, target: Path, report: TransferReport) -> None:
             f"{rewritten} 處 scripts/ 內的 `${{CLAUDE_SKILL_DIR}}` 改寫為 `.`（skill root）"
         )
 
-    # Claude-only token scan over copied references/*.md. Conservative by
-    # design: reference bodies are NEVER rewritten (they may quote these
-    # tokens as documentation — e.g. this skill's own mapping tables); each
-    # affected file is flagged for manual review instead.
-    token_patterns: list[tuple[str, re.Pattern[str]]] = [
-        ("AskUserQuestion", re.compile(r"\bAskUserQuestion\b")),
-        ("Task tool", re.compile(r"\bTask\s+tool\b")),
-        ("TodoWrite", re.compile(r"\bTodoWrite\b")),
-        ("EnterPlanMode", re.compile(r"\bEnterPlanMode\b")),
-        ("TaskCreate", re.compile(r"\bTaskCreate\b")),
-        ("TaskUpdate", re.compile(r"\bTaskUpdate\b")),
-        ("TaskGet", re.compile(r"\bTaskGet\b")),
-        ("TaskList", re.compile(r"\bTaskList\b")),
-        ("TaskOutput", re.compile(r"\bTaskOutput\b")),
-        ("TaskStop", re.compile(r"\bTaskStop\b")),
-        ("SendUserFile", re.compile(r"\bSendUserFile\b")),
-        ("parallel Tasks", re.compile(r"\bparallel\s+Tasks\b")),
-        ("clean Task contexts", re.compile(r"\bclean\s+Task\s+contexts\b")),
-        ("via Task", re.compile(r"\bvia\s+Task\b")),
-        ("Dispatch **agent**", re.compile(r"\bDispatch\s+\*\*[a-zA-Z][\w-]*?-agent\*\*")),
-        ("Workflow primitives", re.compile(r"\bWorkflow\s+primitives\b")),
-        ("$ARGUMENTS", re.compile(r"\$ARGUMENTS\b")),
-        ("!`cmd` injection", re.compile(r"!`[^`]+`")),
-        ("CLAUDE_SKILL_DIR", re.compile(r"\bCLAUDE_SKILL_DIR\b")),
-        ("CLAUDE.md", re.compile(r"\bCLAUDE\.md\b")),
-    ]
+    # Claude-only token scan over copied references/*.md (TOKEN_SCAN_PATTERNS;
+    # flag-only, never rewrite).
     refs_root = target / "references"
     if refs_root.is_dir():
         for path in sorted(refs_root.rglob("*.md")):
@@ -1116,7 +1181,7 @@ def copy_aux(source: Path, target: Path, report: TransferReport) -> None:
                 text = path.read_text(encoding="utf-8")
             except (UnicodeDecodeError, OSError):
                 continue
-            found = [label for label, pat in token_patterns if pat.search(text)]
+            found = [label for label, pat in TOKEN_SCAN_PATTERNS if pat.search(text)]
             if found:
                 rel = path.relative_to(target)
                 report.manual_review.append(
@@ -1131,18 +1196,34 @@ def transfer_one(source: Path, output_root: Path) -> TransferReport:
     target = output_root / name
     report = TransferReport(skill_name=name, source=source, target=target)
 
+    if not skill_md.is_file():
+        # Skipped BEFORE any output mutation: a skipped source never wipes a
+        # prior target. Batch mode feeds every dir child through here so
+        # SKILL.md-less children surface as skipped report entries instead of
+        # being silently dropped (SKILL.md Step 1 contract).
+        report.skipped = True
+        report.skip_reason = "no SKILL.md in source"
+        return report
+
     # Always clear stale output before producing a fresh result. Without this,
     # rerunning into the same output dir would merge old files (auxiliary
     # resources, agents/openai.yaml from a prior `disable-model-invocation`,
     # etc.) with new ones, leaving artifacts that contradict the current
-    # source or this run's report.
+    # source or this run's report. Guard first: a generated skill target
+    # always contains SKILL.md; a non-empty target without one was not
+    # produced by this script and must not be destroyed.
+    if (
+        target.is_dir()
+        and any(target.iterdir())
+        and not (target / "SKILL.md").is_file()
+    ):
+        raise OutputGuardError(
+            f"refused: output target ({target}) exists, is non-empty, and has "
+            "no generated SKILL.md marker; not wiping a directory this script "
+            "did not generate. Remove it yourself or pick another output dir."
+        )
     if target.exists():
         shutil.rmtree(target)
-
-    if not skill_md.is_file():
-        report.skipped = True
-        report.skip_reason = "no SKILL.md in source"
-        return report
 
     text = skill_md.read_text(encoding="utf-8")
     try:
@@ -1470,7 +1551,18 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
     summary["plugin_name"] = plugin_name
 
     # Clear and rewrite the entire output (same rerun-correctness principle
-    # as transfer_one). output_root is the marketplace root.
+    # as transfer_one). output_root is the marketplace root. Guard first:
+    # every plugin-mode run writes `.agents/plugins/marketplace.json`, so a
+    # non-empty output_root without that marker was not generated by this
+    # script and must not be destroyed.
+    marker = output_root / ".agents" / "plugins" / "marketplace.json"
+    if output_root.is_dir() and any(output_root.iterdir()) and not marker.is_file():
+        raise OutputGuardError(
+            f"refused: output ({output_root}) exists, is non-empty, and has no "
+            "generated marker (.agents/plugins/marketplace.json); not wiping a "
+            "directory this script did not generate. Remove it yourself or "
+            "pick another output dir."
+        )
     if output_root.exists():
         shutil.rmtree(output_root)
     output_root.mkdir(parents=True)
@@ -1527,6 +1619,7 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
 
     skill_reports: list[TransferReport] = []
     aux_dirs_copied: list[str] = []
+    aux_manual: list[str] = []
     if has_skills:
         out_skills = plugin_out / "skills"
         out_skills.mkdir()
@@ -1539,11 +1632,31 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
                 # Non-skill sibling dirs under skills/ (e.g. _shared/) carry
                 # cross-skill content referenced by SKILL.md bodies (e.g.
                 # _shared/tdd.md cited by think/hunt and the execute agents). Copy
-                # verbatim so cross-references resolve.
+                # verbatim so cross-references resolve, then run the same
+                # Claude-only token scan copy_aux applies to references/ —
+                # flag only, never rewrite (the copied files may quote the
+                # tokens as documentation).
                 shutil.copytree(child, out_skills / child.name)
                 aux_dirs_copied.append(child.name)
+                for path in sorted((out_skills / child.name).rglob("*.md")):
+                    try:
+                        text = path.read_text(encoding="utf-8")
+                    except (UnicodeDecodeError, OSError):
+                        continue
+                    found = [
+                        label
+                        for label, pat in TOKEN_SCAN_PATTERNS
+                        if pat.search(text)
+                    ]
+                    if found:
+                        rel = path.relative_to(plugin_out)
+                        aux_manual.append(
+                            f"`{rel}` 含 Claude-only token（{', '.join(found)}）；"
+                            "共用目錄整批拷貝、不自動改寫，請人工確認語境後處理"
+                        )
         summary["skill_count"] = len(skill_reports)
         summary["aux_dirs_copied"] = aux_dirs_copied
+        summary["aux_manual"] = aux_manual
 
     agents_dir = plugin_root / "agents"
     if agents_dir.is_dir():
@@ -1620,7 +1733,11 @@ def main(argv: list[str]) -> int:
         return 2
 
     if mode == "plugin":
-        skill_reports, summary = transfer_plugin(source_root, output_root)
+        try:
+            skill_reports, summary = transfer_plugin(source_root, output_root)
+        except OutputGuardError as e:
+            sys.stderr.write(f"{e}\n")
+            return 2
         print(f"# Codex Transfer — Plugin Mode\n")
         print(f"- 來源 plugin: `{source_root}`")
         print(f"- 輸出 plugin: `{output_root}`")
@@ -1648,6 +1765,10 @@ def main(argv: list[str]) -> int:
             print(
                 f"- Skills 共用目錄整批拷貝：{', '.join(summary['aux_dirs_copied'])}"
             )
+        if summary.get("aux_manual"):
+            print(f"- 共用目錄 ⚠️ 需人工檢視：")
+            for n in summary["aux_manual"]:
+                print(f"    - {n}")
         print(f"- 寫入 `.agents/plugins/marketplace.json` (marketplace 目錄結構：plugins/{summary['plugin_name']}/)")
         print(
             "- End-user install (記得寫進 README)：\n"
@@ -1663,15 +1784,21 @@ def main(argv: list[str]) -> int:
     else:
         output_root.mkdir(parents=True, exist_ok=True)
         reports = []
-        if mode == "single-skill":
-            reports.append(transfer_one(source_root, output_root))
-        else:  # skills-batch (unknown already exited above)
-            for child in sorted(source_root.iterdir()):
-                if not child.is_dir():
-                    continue
-                if not (child / "SKILL.md").is_file():
-                    continue
-                reports.append(transfer_one(child, output_root))
+        try:
+            if mode == "single-skill":
+                reports.append(transfer_one(source_root, output_root))
+            else:  # skills-batch (unknown already exited above)
+                # Every dir child goes through transfer_one — children without
+                # SKILL.md come back as skipped reports (skip_reason: no
+                # SKILL.md in source) so the mismatch is named in the report
+                # and counted by the ⚠️ stderr summary, never silently dropped.
+                for child in sorted(source_root.iterdir()):
+                    if not child.is_dir():
+                        continue
+                    reports.append(transfer_one(child, output_root))
+        except OutputGuardError as e:
+            sys.stderr.write(f"{e}\n")
+            return 2
         print(f"# Codex Transfer Batch Report\n")
         print(f"- 處理 {len(reports)} 個 skill")
         print(f"- 輸出: `{output_root}`")

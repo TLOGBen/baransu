@@ -165,6 +165,7 @@ _DATA_LAYOUT = re.compile(r'\bdata-layout\s*=\s*["\']', re.I)
 _CLASS_ATTR  = re.compile(r'\bclass\s*=\s*"([^"]*)"|\bclass\s*=\s*\'([^\']*)\'', re.I)
 _FIGCAPTION  = re.compile(r'<\s*figcaption\b', re.I)
 _SLOT_RE     = re.compile(r'<\s*section[^>]*data-slot\s*=\s*["\']long-form-body["\']', re.I)
+_HTML_COMMENT_RE = re.compile(r'<!--.*?-->', re.DOTALL)
 _SCRIPT_TAG  = re.compile(r'<\s*script\b', re.I)
 _EXT_SRC     = re.compile(r'\bsrc\s*=\s*["\'](?:https?:)?//', re.I)
 
@@ -391,13 +392,28 @@ def _check_chart_capability_completeness(path: Path, text: str, status: str) -> 
         1, '')]
 
 
+def _slug_prefix(slug: str | None) -> str | None:
+    """Map a preset slug to its class-prefix family: the slug's first
+    hyphen-segment (e.g. `google-design` → `google`, `swiss` → `swiss`).
+
+    Regression note: Check C originally compared class first-tokens against
+    the FULL slug, so the shipped google-design preset failed its own lint
+    (42 × check-C-prefix-mismatch: classes are `google-*`, header slug is
+    `google-design`). The first-segment mapping mirrors /book GATE-F's
+    {kami, google, swiss} allowlist semantics and also covers multi-segment
+    gen slugs, whose class first-token is likewise the first segment.
+    """
+    return slug.split('-', 1)[0] if slug else None
+
+
 def _check_cross_artifact_prefix(root: Path, expected_slug: str | None) -> list[dict]:
     """Check C — design-cores/*.html + slide-cores/*.html 內 class prefix 一致。
 
     一致性條件：
       - 所有 class first-token prefix 屬於 STATIC_PREFIXES 或等於 expected_slug
+        的 prefix family（slug 第一個 hyphen-segment，見 _slug_prefix）
       - 同檔內不混 prefix
-      - 若 expected_slug 存在，所有檔案 prefix 必須等於 expected_slug
+      - 若 expected_slug 存在，所有檔案 prefix 必須等於其 prefix family
     """
     findings: list[dict] = []
     files = list((root / "design-cores").glob("*.html")) + \
@@ -405,7 +421,8 @@ def _check_cross_artifact_prefix(root: Path, expected_slug: str | None) -> list[
     if not files:
         return findings
 
-    allowed_prefixes = STATIC_PREFIXES | ({expected_slug} if expected_slug else set())
+    expected_prefix = _slug_prefix(expected_slug)
+    allowed_prefixes = STATIC_PREFIXES | ({expected_prefix} if expected_prefix else set())
 
     for fp in files:
         text = fp.read_text(encoding='utf-8', errors='replace')
@@ -428,12 +445,12 @@ def _check_cross_artifact_prefix(root: Path, expected_slug: str | None) -> list[
                 fp, 3, 'check-C-prefix-mix',
                 f'單檔混用 prefix: {", ".join(sorted(unique_prefixes))}',
                 min(prefixes_in_file.values()), ''))
-        elif expected_slug and unique_prefixes != {expected_slug}:
+        elif expected_prefix and unique_prefixes != {expected_prefix}:
             mismatch = unique_prefixes.pop()
             findings.append(_make_finding(
                 fp, 3, 'check-C-prefix-mismatch',
                 f'檔內 prefix `{mismatch}-*` 與 tokens.css preset header '
-                f'`{expected_slug}` 不一致',
+                f'`{expected_slug}`（prefix family `{expected_prefix}`）不一致',
                 prefixes_in_file[mismatch], ''))
 
     return findings
@@ -475,6 +492,11 @@ def _check_longform_slot(path: Path) -> list[dict]:
             1, ''))
         return findings
     text = path.read_text(encoding='utf-8', errors='replace')
+    # Regression note: strip HTML comments before counting — the shipped
+    # swiss/google long-form.html carry a header comment quoting the literal
+    # `<section data-slot="long-form-body">` slot contract, which used to be
+    # counted as a second slot (false check-E-slot-duplicate on preset apply).
+    text = _HTML_COMMENT_RE.sub('', text)
     count = len(_SLOT_RE.findall(text))
     if count == 0:
         findings.append(_make_finding(

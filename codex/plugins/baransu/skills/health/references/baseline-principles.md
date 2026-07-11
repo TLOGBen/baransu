@@ -2,7 +2,7 @@
 
 ## Coverage checklist (read ONLY this section on every audit)
 
-<!-- COMMON PATH — the audit needs nothing below the END marker. -->
+<!-- COVERAGE-CHECKLIST-START — common path: the audit needs nothing below the end sentinel. -->
 
 Judge by substance — a theme counts as covered whether it appears verbatim or paraphrased.
 
@@ -15,9 +15,9 @@ Judge by substance — a theme counts as covered whether it appears verbatim or 
 | First Principles | return to the root problem; decompose into smallest verifiable units; justify "why," not just "how" |
 | Adversarial Review | before delivery, self-review from logic / fact / simpler-approach angles; list likely-break points; require evidence over "looks fine" |
 
-Read-before-write (re-read a file before editing it in the same turn) is a related floor; treat it as covered if either the instruction surface or a loaded rule states it.
+Read-before-write (re-read a file before editing it in the same turn) is a related floor; treat it as covered if either the instruction surface or a loaded rule states it. **Check-only theme** — it has no canonical section in the append template below; when missing, report it and recommend the user add it to their own rules file rather than appending.
 
-<!-- END COMMON PATH — read the rest of this file only after the user explicitly confirms the append (INV-4). -->
+<!-- COVERAGE-CHECKLIST-END — read the rest of this file only after the user explicitly confirms the append (INV-4). -->
 
 ## Append flow (confirmed-append path only)
 

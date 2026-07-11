@@ -27,7 +27,7 @@ Directly apply /baransu:review's four-tier semantic framework to review the impl
 
    | Tier | Judgment criteria | Main skill action |
    |------|---------|-------------|
-   | `direct fix` | Formatting, import ordering, obvious typos — only issues within the cosmetic categories of General Principle 3 | Authorize direct fix, no failure counted |
+   | `direct fix` | Mechanical fixes: formatting, import ordering, obvious typos. Only the cosmetic categories of tdd.md §7.1 (cited in General Principle 3) take the n/a waiver; mechanical fixes touching executable text (import ordering, dead-import removals, typos in code) stay direct fix but take the real-test path | Authorize direct fix, no failure counted |
    | `advisory` | No correctness issue; observable improvement opportunity that does not affect task acceptance | ✅ Mark complete, record in notes |
    | `packaged confirm (quality)` | Tests pass, but there are structural or maintainability issues | L/XL dispatch Refactor (no failure counted); M go straight to advisory |
    | `packaged confirm (correctness)` | Some acceptance criteria unmet, but with a specific actionable fix direction | Count one failure, re-dispatch Impl |
@@ -48,8 +48,8 @@ Before reviewing, read §1 (Core Principles) and §6 (Anti-pattern quick referen
    spec_contradiction: [false | "REQ-XXX 與 REQ-YYY 在現有設計下無法共存：{原因}"]
    green_proof:
      test_command: {the actual test command string executed, e.g.: `pytest tests/test_foo.py`; the cosmetic-only path allows "n/a"}
-     exit_code: {integer; for non-direct-fix tiers it must be 0 for the review to pass}
-     output_tail: {string; last 30 lines of output verbatim, must not be rewritten; the cosmetic-only path allows ""}
+     exit_code: {integer; must be 0 for the review to pass whenever a real test is required — every tier, including a non-cosmetic direct fix; only the cosmetic-only waiver path leaves the value unverified}
+     output_tail: {string; last 30 lines of output verbatim, must not be rewritten; recorded durably in the checklist, never only /tmp; the cosmetic-only path allows ""}
      tests_correspondence: {string; the reviewer must declare 「以下 test 對應 TASK-NN 的 AC-MM」 and cite a test path or name fragment that already exists in design.md / the task spec; the cosmetic-only path allows "n/a"}
    ```
    `refactor_signal` is true only when `packaged confirm (quality)` and the task is L/XL; otherwise false.
@@ -58,7 +58,7 @@ Before reviewing, read §1 (Core Principles) and §6 (Anti-pattern quick referen
 
    | tier | test_command | tests_correspondence | exit_code | output_tail |
    |------|---|---|---|---|
-   | `direct fix` | "n/a" only for cosmetic-category fixes (comment edits, pure formatting — non-executable text); otherwise real test required | "n/a" under the same cosmetic condition; otherwise required | must be an integer; value not checked | "" under the same cosmetic condition; otherwise required |
+   | `direct fix` | "n/a" only for cosmetic-category fixes (comment edits, pure formatting — non-executable text); otherwise real test required | "n/a" under the same cosmetic condition; otherwise required | integer 0 under the same cosmetic condition (waiver — value not independently checked); otherwise must be 0, same as every real-test tier (matches execute's `green-proof-verify.md`) | "" under the same cosmetic condition; otherwise required |
    | `advisory` | real test required | required | must be 0 | required |
    | `packaged confirm (quality)` | real test required | required | must be 0 | required |
    | `packaged confirm (correctness)` | real test required | required | must be 0 | required |
@@ -68,17 +68,19 @@ Before reviewing, read §1 (Core Principles) and §6 (Anti-pattern quick referen
 
    **failure_count exclusion declaration**: `green_proof.exit_code != 0` does not directly increment `failure_count`; maintain the existing `/baransu:execute` Phase 2/3 compile-error exclusion rule (compile errors go through the `compile_error_count` channel and do not count toward `failure_count`). Only test runner failures increment `failure_count`.
 
-   **cosmetic-only path exception**: the cosmetic path covers two categories (aligned with `${CLAUDE_PLUGIN_ROOT}/skills/_shared/tdd.md` §7.1) — comment edits, pure formatting (markdown-only changes count as pure formatting). These two categories do not run tests: `green_proof.test_command = "n/a"`, `exit_code = 0`, `output_tail = ""`, `tests_correspondence = "n/a"`, and note the cosmetic subtype in the review report. Identifier renames and dead-import removals touch executable text and take the real-test path.
+   **cosmetic-only path exception**: the cosmetic path covers exactly the categories defined in `${CLAUDE_PLUGIN_ROOT}/skills/_shared/tdd.md` §7.1 — that list is canonical; do not restate or widen it here. These categories do not run tests: `green_proof.test_command = "n/a"`, `exit_code = 0`, `output_tail = ""`, `tests_correspondence = "n/a"`, and note the cosmetic subtype in the review report. Identifier renames and dead-import removals touch executable text and take the real-test path.
+
+   **coverage-riding tasks** (dispatch carried `test_weight: riding`): the real-test path applies unchanged — `test_command` runs the pinning tests, `exit_code` must be 0 — and `tests_correspondence` must map EVERY 驗收標準 item to a named pinning test (「AC-MM ← test {name/path}」, one line per criterion). A riding task with any unpinned criterion is `packaged confirm (correctness)`: the impl must either name the missing pin or fall back to full Red/Green for that criterion.
 
 4. **Spec contradiction escalation**: if during review you find two REQ-XXX that cannot coexist under the current design, fill in an explanation in the `spec_contradiction` field and mark the tier as `needs judgment`. When the main skill reads a non-false `spec_contradiction`, it marks this task as blocked (reason: spec contradiction) and stops re-dispatching Impl.
 
 5. **Fill in `impl-checklist-{group}.md`**: after the review completes, fill in the corresponding task's Review result field (`advisory` / `packaged confirm` / `needs judgment` / `direct fix`) and a findings-summary note, per the result. When the same task is called multiple times, overwrite the same field, do not add duplicate entries.
 
-6. **Check acceptance criteria item by item**: do not auto-upgrade to advisory just because "tests pass." You must check ctx.md's `Task.驗收標準` item by item, confirming each criterion is satisfied.
+6. **Check acceptance criteria item by item**: do not auto-upgrade to advisory just because "tests pass." You must check ctx.md's `Task.驗收標準` item by item, confirming each criterion is satisfied. For a full-weight task, the impl report must carry a non-empty `red_proof` (pre-implementation failing run); a missing or evidently reconstructed `red_proof` is a correctness finding — the Red gate cannot be attested after the fact.
 
 ## Prohibitions
 
-- Do not call the /baransu:review skill: judge before calling that /review is not currently subagent-safe — its path hits a non-degradable AskUserQuestion point (target-pin) that is hard-absent inside a subagent (the tool simply isn't in the tool list), so calling it would strand that point rather than being any depth-limit violation. Implement the four-tier semantics directly here.
+- Do not call the /baransu:review skill: /review is not currently subagent-safe — per `skills/review/references/loop-pauses.md` (the classification authority), its Stage 1 target-pin is an Input point whose non-interactive default is stop-and-report (a human must name the target; no default can substitute a target that doesn't exist), and its Stage 7 needs-judgment checkpoints are Authorization hard stops — so calling it from a subagent would end at target-pin or wedge on an Authorization stop rather than being any depth-limit violation. Implement the four-tier semantics directly here.
 - Do not modify any file under the Analyze spec directory (`.claude/analyze/`) yourself.
 - Do not merge multiple tasks' Review results into one report; each call targets exactly one task.
 - Do not modify tests to make acceptance criteria pass; if a test itself is wrong, point it out in findings and let the main skill decide.

@@ -30,6 +30,12 @@ happened during implementation.
 primary deliverable's slug (e.g. `.claude/think/baransu-v2.1-philosophy-merge-plan.html`
 beside the approved plan `.md`).
 
+For `/review`, whose primary deliverable is in-conversation prose with no
+on-disk slug of its own, derive `<slug>` from the reviewed target instead:
+the reviewed spec/plan's own slug when it has one, else
+`{YYYY-MM-DD}-{target basename}`. Downstream journal selection (e.g.
+`/execute` Step 7) matches by slug, so the derivation must stay deterministic.
+
 ## Rendering basis
 
 Render with the book golden template — `plugins/baransu/skills/book/references/golden-template.html`

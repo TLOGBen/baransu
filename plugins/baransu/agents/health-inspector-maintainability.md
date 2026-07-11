@@ -19,6 +19,8 @@ Input sections (use only these):
 - `=== DECISION ARTIFACTS ===`
 - `=== DRIFT MARKERS ===`
 - `=== HOTSPOT OWNERSHIP SURFACE ===`
+- `=== VERIFICATION WRAPPER SURFACE ===`
+- `=== MARKDOWN LINK SURFACE ===`
 
 ## Perspective
 

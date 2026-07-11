@@ -37,7 +37,7 @@ mcp__claude-in-chrome__get_page_text
 Save the returned text to:
 
 ```
-raw/{slug}/index.html
+.claude/read/raw/{slug}/index.html
 ```
 
 where `slug` is derived from the tab's `title` using the standard slug rules.
@@ -56,10 +56,6 @@ Use the returned URL list to download relevant images into `raw/{slug}/assets/` 
 
 ## After Extraction
 
-Proceed with the standard Convert → Organize pipeline using the saved file path:
-
-```bash
-markitdown "raw/{slug}/index.html" -o material/{slug}/index.md
-```
+The extracted content is already saved under `.claude/read/raw/{slug}/index.html` (Step 2). Hand the saved raw file to SKILL.md Stage 2 (Convert) — the Stage 2/3 pipeline (tmp intermediate, image handling, final slug + dedup, frontmatter, index row) applies unchanged. Never convert straight into `material/`.
 
 Set `source_url` in the frontmatter to the tab's `url` (recorded in Step 1).

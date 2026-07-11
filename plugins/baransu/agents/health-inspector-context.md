@@ -31,7 +31,7 @@ MEMORY.md checks, STANDARD+: check for `.claude/projects/.../memory/MEMORY.md`; 
 
 AGENTS.md checks, COMPLEX multi-module only: verify CLAUDE.md includes an "AGENTS.md usage guide" section explaining when to consult each AGENTS.md, not just links.
 
-MCP token cost, ALL tiers: count MCP servers and estimate token overhead (~200 tokens/tool, ~25 tools/server); flag context pressure if estimated MCP tokens >10% of 200K context; flag as HIGH if >6 servers (likely exceeding 12.5% overhead); flag too-narrow filesystem allowlists when tool-results denials indicate breakage; flag idle/rarely-used servers to disconnect and reclaim context.
+MCP token cost, ALL tiers: count MCP servers and estimate token overhead (~200 tokens/tool, ~25 tools/server, i.e. ~5K tokens/server); flag context pressure if estimated MCP tokens >10% of 200K context; flag as HIGH if >5 servers (>12.5% estimated overhead — the single threshold SKILL.md's Structural band also cites; the estimate is directional, so it is never Critical); flag too-narrow filesystem allowlists when tool-results denials indicate breakage; flag idle/rarely-used servers to disconnect and reclaim context.
 
 MCP live status, ALL tiers: any server with `live=no` is [!] with the error message — a configured but unreachable server silently wastes context and causes task failures; any required env var that is unset is [!].
 

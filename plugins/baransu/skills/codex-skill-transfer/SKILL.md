@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Designed for Claude Code; output targets Codex CLI. Optional `skills-ref` CLI for validation.
 metadata:
   author: baransu
-  version: "0.10.0"
+  version: "0.11.0"
 ---
 
 # Codex Skill Transfer
@@ -16,7 +16,7 @@ One-way port from Claude Code → Codex. Claude is canonical; this skill produce
 
 - **Outcome**: A derived Codex-format copy of the Claude Code skill / batch / plugin source exists in a separate output directory, with every lossy decision surfaced.
 - **Done when**: `python3 scripts/transfer.py <claude-source> <codex-output>` completes (or the equivalent inline port is written), the output directory contains the detected mode's expected shape, and the transfer report is printed.
-- **Evidence**: The 繁中 transfer report enumerating 完整保留 / 翻譯處理 / 動態注入改寫 / 已捨棄 / 需人工檢視 items; the source tree is untouched.
+- **Evidence**: The 繁中 transfer report enumerating 完整保留 / 翻譯處理 / 動態注入改寫 / 已捨棄 / Capability 降級風險 / 需人工檢視 items; the source tree is untouched.
 - **Output**: The Codex output directory (single skill dir, batch subdirs, or marketplace root) plus the transfer report.
 - **Automation**: ultracode=assist, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
@@ -34,7 +34,7 @@ Look at the source path the user gave you. Pick the matching mode:
 | `<dir>/SKILL.md` exists at the top level | **Single skill** | One `<output>/<skill-name>/` |
 | `<dir>` has children that each contain `SKILL.md` | **Skills batch** | One subdir per child |
 
-`scripts/transfer.py` auto-detects Plugin / Single skill / Skills batch and dispatches. If `transfer.py` auto-detects a mode whose expected shape does not match the source — e.g. a Plugin source missing `.claude-plugin/plugin.json`, or a Skills-batch dir where one child has no `SKILL.md` — then stop, name the mismatched child/file in the report's 需人工檢視 section, and do NOT dispatch the partial port. If the source matches none of the three shapes — e.g. a marketplace root that has `.claude-plugin/marketplace.json` but no top-level `plugin.json` or `SKILL.md` — `transfer.py` exits 2 without writing; marketplace-catalog conversion is manual, so follow [`references/marketplace-mapping.md`](references/marketplace-mapping.md) by hand rather than forcing a mode. Plugin mode emits a Layout B marketplace catalog (codex/ self-contained); for monorepos that publish via git URL, the repo root needs a separate Layout A catalog — see [`references/marketplace-mapping.md`](references/marketplace-mapping.md) §8.
+`scripts/transfer.py` auto-detects Plugin / Single skill / Skills batch and dispatches. A Skills-batch child without `SKILL.md` is not silently dropped: the script emits a ⚠️ skipped report entry for it (skip_reason: no SKILL.md in source) and the stderr summary counts it — in plugin mode the same child is instead copied verbatim as a shared aux dir and token-scanned. When porting inline, mirror that contract: name every mismatched child in the report rather than dropping it. If the source matches none of the three shapes — e.g. a marketplace root that has `.claude-plugin/marketplace.json` but no top-level `plugin.json` or `SKILL.md` — `transfer.py` exits 2 without writing; marketplace-catalog conversion is manual, so follow [`references/marketplace-mapping.md`](references/marketplace-mapping.md) by hand rather than forcing a mode. Plugin mode emits a Layout B marketplace catalog (codex/ self-contained); for monorepos that publish via git URL, the repo root needs a separate Layout A catalog — see [`references/marketplace-mapping.md`](references/marketplace-mapping.md) §8.
 
 ## Step 2 — Run the transfer
 
@@ -45,6 +45,8 @@ python3 scripts/transfer.py <claude-source> <codex-output>
 ```
 
 The script refuses if `<codex-output>` overlaps the source — there is a real data-loss path otherwise (rerun would `rmtree` the source). Always pick a separate output directory. If `transfer.py` exits non-zero because `<codex-output>` overlaps the source, then re-invoke with a sibling output directory outside the source tree (e.g. `codex/` at repo root for baransu) — do NOT delete or move the source to make room.
+
+**Rerun wipes the output.** Each run regenerates the output wholesale: an existing output directory is deleted and rewritten from the current Claude source. To keep that safe, the script refuses (exit 2) when the output exists, is non-empty, and lacks a generated marker — `.agents/plugins/marketplace.json` for plugin mode, a `SKILL.md` inside the per-skill target otherwise. A refusal means the directory was not produced by a prior run: pick a different output directory (or remove the directory yourself if you are certain); never point the output at a directory holding unrelated content.
 
 For single-skill and batch output, install by copying each skill directory into `<repo>/.agents/skills/` (project) or `~/.agents/skills/` (personal) — note `.agents/`, NOT `.codex/` or `.claude/` — then restart Codex to pick it up.
 
@@ -93,6 +95,9 @@ For automated runs the script prints the report. For inline runs you write it. U
 - ...
 
 ### 已捨棄 (dropped)
+- ...
+
+### Capability 降級風險 (weighted by model inertia)
 - ...
 
 ### ⚠️ 需人工檢視 (manual review)

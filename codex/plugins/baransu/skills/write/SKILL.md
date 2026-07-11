@@ -22,7 +22,7 @@ metadata:
 ## Outcome Contract
 
 - **Outcome**: Per the language prefix (zh/en) or auto-detection, complete one rule-driven refine (Refine), generation (Generate), or document proofread (Proofread), with rule application traceable rule by rule (Refine/Generate) or finding by finding (Proofread).
-- **Done when**: Refine output contains Before/After plus per-rule 修正說明 (or Generate output carries a format/tone note), and no rules 5/7/8 (禁對仗句/禁排比/禁名詞化) violations remain; or Proofread has written `錯字修改.html` containing the six-column findings table and reported the file path plus a finding count.
+- **Done when**: Refine output contains Before/After plus per-rule 修正說明 (or Generate output carries a format/tone note), and no floor-rule violations remain (zh 5/7/8 禁對仗句/禁排比/禁名詞化; en 5/7 plus the en 8 em-dash ban); or Proofread has written `錯字修改.html` containing the six-column findings table and reported the file path plus a finding count.
 - **Evidence**: The structure of the output body — Refine's Before / After / 修正說明 three sections with rule tags (or the format/tone note attached to the Generate piece), each item cross-checkable against the embedded rule sets; for Proofread, every table row's 錯誤類型 maps to one of the three fixed labels (錯別字／用語不妥／語句不通順) and carries a 建議修正 plus 修改原因.
 - **Output**: The revised or generated piece output in the conversation, or — for Proofread — a self-contained `錯字修改.html` file styled with the project's book/Kami design tokens; operational notifications are Traditional Chinese, content language follows the prefix or detection result.
 - **Automation**: ultracode=neutral, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
@@ -100,18 +100,18 @@ The prefix simultaneously determines the **rule set** and the **output language*
 - preset name (e.g. `voice="yu-guang-zhong"`) → if `references/{name}-voice.md` exists, read it as a stylistic reference
 - named author or descriptor (e.g. `voice="和菜頭"` or `voice="像和菜頭那種口語部落格"`) → use the string directly as a stylistic reference
 
-When provided, Refine adjusts wording toward the voice while still applying the rule set. Voice cue is **optional**; when omitted, Refine behaves as before. In Generate mode, voice cue is silently ignored.
+When provided, Refine adjusts wording toward the voice while still applying the rule set. Voice cue is **optional**; when omitted, Refine behaves as before. In Generate and Proofread modes, voice cue is silently ignored.
 
 Rules interact with voice in two semantic classes:
 
-- **Must-not-override floor**: rules 5, 7, 8 (anti-AI 味 floor: 禁對仗句 / 禁排比 / 禁名詞化). Voice cue never overrides these — they continue to apply at every match regardless of voice.
+- **Must-not-override floor**: the anti-AI 味 floor, qualified per language — zh rules 5, 7, 8 (禁對仗句 / 禁排比 / 禁名詞化); en rules 5 and 7 (No binary opposition / No nominalization chains), plus en rule 8's em-dash ban, which is unconditional by its own text (en has no parallelism rule). Voice cue never overrides these — they continue to apply at every match regardless of voice.
 - **Voice-overridable rules**: rules explicitly marked as soft. Currently only zh rule 10 (the 「——」 soft rule) belongs to this class. When the active voice preset's source style legitimately uses the flagged construction (e.g., a preset whose author employs 「——」 as a rhythmic pause), the preset overrides the soft rule for those instances; without such a preset, the soft rule applies normally. A rule joins this class only by being explicitly labeled voice-overridable in its own text — unlabeled rules are never overridable.
 
-**Prefix–content mismatch (Refine mode only)**: if the user's prefix language does not match the actual language of the input text (e.g., `en` prefix with a Chinese-language body, or `zh` prefix with an English-only body), the selected rule set cannot be meaningfully applied. In this case respond:
+**Prefix–content mismatch (Refine and Proofread modes)**: if the user's prefix language does not match the actual language of the input text (e.g., `en` prefix with a Chinese-language body, or `zh` prefix with an English-only body), the selected rule set cannot be meaningfully applied. In this case respond:
 
 > 「前綴語言與內容語言不一致，規則集無法套用。請重新呼叫並指定正確前綴，或移除前綴改用自動偵測。」
 
-Do not apply the rule set to incompatible content. Generate mode is **not** affected by mismatch — the prefix determines the language of the generated piece, not the language of the request prompt itself.
+Do not apply the rule set to incompatible content. Proofread mode follows the same mismatch rule as Refine (its scan lens is language-specific). Generate mode is **not** affected by mismatch — the prefix determines the language of the generated piece, not the language of the request prompt itself.
 
 ---
 
@@ -152,9 +152,9 @@ Also read `references/writing-principles.md` for the detected language and, for 
 
 Additionally, read context cues (salutation style, register of existing vocabulary, audience implied by content) to derive tone, then apply that tone by substituting **register-bearing tokens only** — salutations, closings, and modal/politeness words (e.g. 您好／嗨、敬上／掰、請／麻煩；Dear/Hi, Regards/Cheers, kindly/please). Do NOT alter content nouns or verbs (the words that carry the message's subject matter and actions) for tone reasons — those change only when a mechanical rule dictates it. This bounds tone adjustment to a determinate edit set: the Formal/Conversational Signal→Tone mapping rewrites only the register-bearing slots, never the substance. Derive tone by applying the **same Signal→Tone mapping as Stage 3's Tone-detection table** (no separate criterion): a 正式／商務／business signal → Formal; a 朋友／輕鬆／casual／口語 signal → Conversational; no signal → leave word choice unchanged and apply the mechanical rules only. Tone adjustment is supplementary — it does not override mechanical rule application.
 
-**Long input handling**: when the input has ≥ 5 paragraphs OR ≥ 800 characters (zh) / ≥ 500 words (en), apply rule changes only to the most-impacted instance per rule, not to every match. Example: if rule 2「『的』克制」 finds three sentences each with ≥ 3 「的」, change only the densest sentence and leave the other two alone. This preserves long-form rhythm and prevents the over-trim ("省詞略字") symptom from rule cascades.
+**Long input handling**: when the input has ≥ 5 paragraphs OR ≥ 800 characters (zh) / ≥ 500 words (en), apply rule changes only to the most-impacted instance per rule, not to every match. Example: if the writing-principles entry 「的」克制 finds three sentences each with ≥ 3 「的」, change only the densest sentence and leave the other two alone. This preserves long-form rhythm and prevents the over-trim ("省詞略字") symptom from rule cascades.
 
-Rules 5 / 7 / 8 (anti-AI 味 floor: 禁對仗句 / 禁排比 / 禁名詞化) are exempt from suppression and apply to every match regardless of input length.
+The floor rules (zh 5/7/8 禁對仗句/禁排比/禁名詞化; en 5/7 plus the en 8 em-dash ban) are exempt from suppression and apply to every match regardless of input length.
 
 **Long-form output: change-points list**: when the Refine output would be roughly 300 lines or longer, do not emit the whole-block Before/After rewrite. A whole rewrite at that size cannot be reviewed as a diff, and re-emitting the full text silently overwrites hand-tuned wording the rules never touched. Instead, emit a change-points list and let the user pick which changes to apply:
 
@@ -173,7 +173,7 @@ Rules 5 / 7 / 8 (anti-AI 味 floor: 禁對仗句 / 禁排比 / 禁名詞化) are
 
 Under a non-interactive driver (`/loop`, cron, Workflow), this selection is an Input PAUSE — see `references/loop-pauses.md` for the classified default.
 
-After the user replies with their selection, apply only the chosen change points and output the affected fragments (not the full text). If the reply contains numbers outside the listed change-point range, or no parseable selection (non-numeric / empty), then re-display the numbered change-points list once with the operational notification 「選擇編號無效，請回覆清單內的編號（例：『1 3』）或『全部』」 and apply nothing until a valid selection is received; ignore out-of-range numbers within an otherwise-valid reply rather than aborting. This re-display is a within-same-pass clarification of the selection step, not a new iteration. This selection step is part of the same Refine pass, not an iterative refinement loop.
+A **valid selection** is one or more listed change-point numbers, or the exact string 「全部」; anything else (out-of-range-only, other non-numeric text, empty) is invalid. After a valid reply, apply only the chosen change points. **Applied-output format**: for 「全部」, emit the full revised text as a `**After:**` block followed by `**修正說明：**` (the standard Refine output shape, minus `**Before:**` — this is the shape downstream consumers such as /learn Stage 5 extract from); for a partial selection, emit each applied fragment under its 位置 header copied verbatim from the change-points list, so a consumer can splice deterministically, and do not re-emit untouched text. If the reply is invalid, re-display the numbered change-points list once with the operational notification 「選擇編號無效，請回覆清單內的編號（例：『1 3』）或『全部』」 and apply nothing until a valid selection is received; ignore out-of-range numbers within an otherwise-valid reply rather than aborting. If the second reply is also invalid, end the pass applying nothing and report 「未套用任何變更點；請重新呼叫」. This re-display is a within-same-pass clarification of the selection step, not a new iteration. This selection step is part of the same Refine pass, not an iterative refinement loop.
 
 **Boundary between the two long-form mechanisms**: the input thresholds above (≥ 5 paragraphs OR ≥ 800 characters zh / ≥ 500 words en) govern **per-rule suppression** — how many instances each rule may touch. The ~300-line threshold governs **output form** — whole-block Before/After versus change-points list, measured on the would-be output. They are independent and can co-occur: a 6-paragraph, 80-line text gets per-rule suppression with the inline Before/After format; a 350-line text gets per-rule suppression and the change-points format.
 
@@ -234,7 +234,7 @@ When format is not identifiable but the topic is clear, silently default to Shor
 格式：[Email／短訊／短文／社群貼文] ｜ 語氣：[正式／輕鬆／中性]
 ```
 
-When generating, equally avoid the zh anti-AI-voice patterns above (對仗句、純裝飾性排比、概念名詞化、飄浮錨點).
+When generating, also apply the embedded rule set for the detected language while composing — both format rules and anti-AI-voice rules (zh: 對仗句、純裝飾性排比、概念名詞化、飄浮錨點; en: including rule 8's em-dash hard ban) — in addition to the writing principles.
 
 ---
 

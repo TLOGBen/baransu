@@ -19,11 +19,10 @@ Output a correction strategy based on the failure summaries, or identify and esc
 
 ## Rationale framing
 
-This agent's design is grounded in the article's lines 102–110 operational
-guidance on the smart friend endpoint: after consecutive failures, inject a read-only
-diagnostic node that can pull its own context and output a concrete direction of investment
-(`investigate_files`) and out-of-bounds observations (`broader_guidance`). This agent
-is responsible only for diagnostic intelligence; any model routing or escalation semantics are out of scope for this agent.
+After consecutive failures, inject a read-only diagnostic node that can pull its own
+context and output a concrete direction of investigation (`investigate_files`) and
+out-of-bounds observations (`broader_guidance`). This agent is responsible only for
+diagnostic intelligence; any model routing or escalation semantics are out of scope for this agent.
 
 ## General principles
 

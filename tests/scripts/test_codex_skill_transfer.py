@@ -115,6 +115,64 @@ After the plan is presented, call `AskUserQuestion` with four options.
         self.assertIn("AskUserQuestion:input-gate", rpt.capability_risks)
         self.assertNotIn("`run the Codex alignment gate: output numbered alignment questions, stop, then require `alignment.md` before planning`", out)
 
+    def test_noun_phrase_mentions_get_plain_noun_no_stop_imperative(self):
+        # Negated/noun-phrase mentions must never receive the call-site
+        # rewrite's "(stop; ...)" imperative — a mid-sentence stop instruction
+        # inside a "never gated" sentence inverts the invariant.
+        for skill_name, body, expected in [
+            (
+                "execute",
+                "Fan-out is released unconditionally — it is never gated "
+                "behind an AskUserQuestion proxy.",
+                "never gated behind a user-question proxy",
+            ),
+            (
+                "evolve",
+                "The fan-out uses 0 AskUserQuestion calls.",
+                "uses 0 user-question calls",
+            ),
+            (
+                "think",
+                "Ask exactly ONE AskUserQuestion round in 繁體中文.",
+                "ONE user-question round",
+            ),
+            (
+                "book",
+                "0 results triggers an AskUserQuestion block.",
+                "triggers a user-question block",
+            ),
+        ]:
+            with self.subTest(skill_name=skill_name):
+                rpt = transfer.TransferReport(
+                    skill_name=skill_name,
+                    source=Path("source"),
+                    target=Path("target"),
+                )
+                out = transfer.rewrite_body(body, rpt)
+                self.assertIn(expected, out)
+                self.assertNotIn("(stop", out)
+                self.assertNotIn("AskUserQuestion", out)
+
+    def test_descriptive_skills_fall_back_to_plain_noun_not_unclassified(self):
+        # evolve/execute/health are mapped descriptive-only: even a bare
+        # occurrence outside the noun-phrase shapes must not inherit the
+        # unclassified "(stop; ...)" rewrite.
+        for skill_name in ("evolve", "execute", "health"):
+            with self.subTest(skill_name=skill_name):
+                rpt = transfer.TransferReport(
+                    skill_name=skill_name,
+                    source=Path("source"),
+                    target=Path("target"),
+                )
+                out = transfer.rewrite_body("Mentions AskUserQuestion here.", rpt)
+                self.assertIn("a user-question prompt", out)
+                self.assertNotIn("(stop", out)
+
+    def test_hunt_no_longer_carries_a_dead_registry_entry(self):
+        # hunt contains no AskUserQuestion any more; the stale input-gate map
+        # entry was removed, so hunt falls to unclassified like other skills.
+        self.assertNotIn("hunt", transfer.ASK_USER_CAPABILITY_BY_SKILL)
+
     def test_cosmetic_ask_user_becomes_numbered_text_pause(self):
         rpt = transfer.TransferReport(
             skill_name="read",
@@ -429,6 +487,137 @@ class TestCopyAuxExclusions(unittest.TestCase):
             self.assertFalse((target / "scripts" / "__pycache__").exists())
 
 
+def write_stub_skill(source: Path, name: str) -> None:
+    source.mkdir(parents=True, exist_ok=True)
+    (source / "SKILL.md").write_text(
+        f"---\nname: {name}\ndescription: Fixture.\n---\n\n# {name}\n\nBody.\n",
+        encoding="utf-8",
+    )
+
+
+class TestOutputGuard(unittest.TestCase):
+    def test_transfer_one_refuses_nonempty_unmarked_target(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "alpha"
+            write_stub_skill(source, "alpha")
+            out = root / "out"
+            unrelated = out / "alpha"
+            unrelated.mkdir(parents=True)
+            (unrelated / "precious.txt").write_text("keep me\n", encoding="utf-8")
+
+            with self.assertRaises(transfer.OutputGuardError):
+                transfer.transfer_one(source, out)
+            # The unrelated content survived the refusal.
+            self.assertTrue((unrelated / "precious.txt").is_file())
+
+    def test_transfer_one_overwrites_previously_generated_target(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "alpha"
+            write_stub_skill(source, "alpha")
+            out = root / "out"
+
+            first = transfer.transfer_one(source, out)
+            self.assertFalse(first.skipped)
+            second = transfer.transfer_one(source, out)  # marker: SKILL.md
+            self.assertFalse(second.skipped)
+            self.assertTrue((out / "alpha" / "SKILL.md").is_file())
+
+    def test_transfer_plugin_refuses_nonempty_unmarked_output(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            plugin = root / "plug"
+            (plugin / ".claude-plugin").mkdir(parents=True)
+            (plugin / ".claude-plugin" / "plugin.json").write_text(
+                json.dumps({"name": "plug", "version": "1.0.0"}), encoding="utf-8"
+            )
+            write_stub_skill(plugin / "skills" / "alpha", "alpha")
+            out = root / "existing"
+            out.mkdir()
+            (out / "precious.txt").write_text("keep me\n", encoding="utf-8")
+
+            with self.assertRaises(transfer.OutputGuardError):
+                transfer.transfer_plugin(plugin, out)
+            self.assertTrue((out / "precious.txt").is_file())
+
+    def test_transfer_plugin_rerun_into_marked_output_succeeds(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            plugin = root / "plug"
+            (plugin / ".claude-plugin").mkdir(parents=True)
+            (plugin / ".claude-plugin" / "plugin.json").write_text(
+                json.dumps({"name": "plug", "version": "1.0.0"}), encoding="utf-8"
+            )
+            write_stub_skill(plugin / "skills" / "alpha", "alpha")
+            out = root / "codex"
+
+            transfer.transfer_plugin(plugin, out)  # writes the marker
+            reports, summary = transfer.transfer_plugin(plugin, out)  # rerun
+            self.assertEqual(1, summary["skill_count"])
+            self.assertEqual(1, len(reports))
+
+
+class TestBatchSkipReport(unittest.TestCase):
+    def test_batch_child_without_skill_md_yields_skipped_report(self):
+        import contextlib
+        import io
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            batch = root / "batch"
+            write_stub_skill(batch / "alpha", "alpha")
+            (batch / "_shared").mkdir()
+            (batch / "_shared" / "notes.md").write_text("shared\n", encoding="utf-8")
+            out = root / "out"
+
+            stdout = io.StringIO()
+            with contextlib.redirect_stdout(stdout):
+                rc = transfer.main(["transfer.py", str(batch), str(out)])
+
+            self.assertEqual(0, rc)
+            printed = stdout.getvalue()
+            self.assertIn("處理 2 個 skill", printed)
+            self.assertIn("_shared", printed)
+            self.assertIn("no SKILL.md in source", printed)
+            # The skipped child produced no partial output.
+            self.assertFalse((out / "_shared").exists())
+            self.assertTrue((out / "alpha" / "SKILL.md").is_file())
+
+
+class TestAuxDirScan(unittest.TestCase):
+    def test_shared_aux_dirs_are_token_scanned_and_flagged(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            plugin = root / "plug"
+            (plugin / ".claude-plugin").mkdir(parents=True)
+            (plugin / ".claude-plugin" / "plugin.json").write_text(
+                json.dumps({"name": "plug", "version": "1.0.0"}), encoding="utf-8"
+            )
+            write_stub_skill(plugin / "skills" / "alpha", "alpha")
+            shared = plugin / "skills" / "_shared"
+            shared.mkdir()
+            (shared / "loop-contract.md").write_text(
+                "Typically an AskUserQuestion. Dispatch via Task tool.\n",
+                encoding="utf-8",
+            )
+            (shared / "plain.md").write_text("nothing Claude-only here\n", encoding="utf-8")
+            out = root / "codex"
+
+            _, summary = transfer.transfer_plugin(plugin, out)
+
+            aux_manual = "\n".join(summary["aux_manual"])
+            self.assertIn("loop-contract.md", aux_manual)
+            self.assertIn("AskUserQuestion", aux_manual)
+            self.assertIn("Task tool", aux_manual)
+            self.assertNotIn("plain.md", aux_manual)
+            # Flag only — the copied file itself is never rewritten.
+            copied = (out / "plugins" / "plug" / "skills" / "_shared" / "loop-contract.md").read_text(
+                encoding="utf-8"
+            )
+            self.assertIn("AskUserQuestion", copied)
+
+
 class TestPluginModeGeneration(unittest.TestCase):
     def test_baransu_plugin_generation_includes_inertia_adapters(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -442,12 +631,15 @@ class TestPluginModeGeneration(unittest.TestCase):
             manifest = json.loads(
                 (plugin_out / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
             )
-            self.assertEqual("2.7.7", manifest["version"])
+            self.assertEqual("2.8.0", manifest["version"])
 
             codex_transfer = plugin_out / "skills" / "codex-skill-transfer"
             self.assertTrue((codex_transfer / "references" / "CODEX_PORT_PLAN.md").is_file())
             self.assertIn(
-                "version: 0.10.0",
+                # Re-pinned 0.10.0 -> 0.11.0: skill gained the AskUserQuestion
+                # noun-phrase guard, output rmtree guards, aux-dir token scan,
+                # batch skip reports, and its loop-pauses table.
+                "version: 0.11.0",
                 (codex_transfer / "SKILL.md").read_text(encoding="utf-8"),
             )
             codex_transfer_skill = (codex_transfer / "SKILL.md").read_text(encoding="utf-8")
@@ -491,6 +683,33 @@ class TestPluginModeGeneration(unittest.TestCase):
             read_skill = (plugin_out / "skills" / "read" / "SKILL.md").read_text(encoding="utf-8")
             self.assertIn('bash "./scripts/install-deps.sh"', read_skill)
             self.assertNotIn("the skill's root directory/scripts", read_skill)
+
+            # Noun-phrase guard: no generated SKILL.md may carry a "(stop; ..."
+            # imperative inside a "never gated" sentence — the whole point of
+            # those sentences is that fan-out must NOT stop.
+            for skill_md in sorted(plugin_out.glob("skills/*/SKILL.md")):
+                text = skill_md.read_text(encoding="utf-8")
+                for line in text.splitlines():
+                    if "never gated" in line:
+                        self.assertNotIn("(stop;", line, skill_md)
+            self.assertIn("never gated behind a user-question proxy", execute)
+            self.assertIn("never gated behind a user-question proxy", health)
+            evolve = (plugin_out / "skills" / "evolve" / "SKILL.md").read_text(encoding="utf-8")
+            self.assertIn("0 user-question calls", evolve)
+            self.assertIn("never gated behind a user-question proxy", evolve)
+
+            # Shared aux dirs are copied verbatim AND token-scanned: the real
+            # _shared/loop-contract.md carries Claude-only tokens and must be
+            # flagged for manual review, never rewritten.
+            aux_manual = "\n".join(summary.get("aux_manual", []))
+            self.assertIn("_shared", aux_manual)
+            self.assertIn("loop-contract.md", aux_manual)
+            self.assertIn(
+                "AskUserQuestion",
+                (plugin_out / "skills" / "_shared" / "loop-contract.md").read_text(
+                    encoding="utf-8"
+                ),
+            )
 
 
 if __name__ == "__main__":

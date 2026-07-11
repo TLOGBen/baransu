@@ -40,10 +40,12 @@ The optional target-branch argument may be written as `<branch>`, `到 <branch>`
 
 ## Step 1 — Detect
 
+Git probe first — run `git rev-parse --git-dir 2>/dev/null`. If it fails (the project is not a git repo), output 「此專案不是 git repo：/ship 的 commit／push／worktree 流程無法執行，已停止。如需歸檔請手動處理 .claude/ 工作目錄。」 and stop. The probe MUST run before any archive move: without git there is no commit to anchor moved files, so archiving first would strand them — and every later git step (commit, push, worktree teardown) would wedge.
+
 Check both whether the workspace dirs hold archivable items AND whether the git working tree has pending changes. Stop only when **both** are empty — otherwise there is still work to ship even when one side is empty.
 
 ```bash
-ARCHIVE_DIRS="tmp analyze execute think design hunt-report evolve review"
+ARCHIVE_DIRS="tmp analyze execute think design hunt-report evolve review write"
 ARCHIVE_ITEMS=$(python3 -c "import sys, pathlib; print(next((str(p) for d in sys.argv[1].split() if pathlib.Path('.claude', d).is_dir() for p in pathlib.Path('.claude', d).iterdir()), ''))" "$ARCHIVE_DIRS")
 GIT_DIRTY=$(git status --porcelain 2>/dev/null | head -1)
 ```

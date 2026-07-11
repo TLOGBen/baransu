@@ -17,7 +17,7 @@
 
 # slide-image-prompts.md
 
-> **Scope: PPT only.** This document governs image handling and external AI image-generation prompt templates for `/design` PPT outputs (slide-cores). It does **not** apply to long-form output (`--format longform`). The `/book` skill's image-generation capability is out of scope here — this file regulates user-supplied image placement and prompt templates only; it never calls an external image API.
+> **Scope: PPT only.** This document governs image handling and external AI image-generation prompt templates for `/design` slide-core outputs (the PPT surface consumed by `/book --format ppt` — `/design` itself has no `--format` flag). It does **not** apply to long-form output. The `/book` skill's image-generation capability is out of scope here — this file regulates user-supplied image placement and prompt templates only; it never calls an external image API.
 >
 > Audience: `/design` slide-core authors and `check.py` lint source.
 
@@ -25,8 +25,8 @@
 
 ## 1. Scope Declaration
 
-- **Applies to**: all `--format ppt` slide-core HTML (9 layouts).
-- **Does not apply to**: `--format longform` (single-column long-form is not governed by this document).
+- **Applies to**: all slide-core HTML (`/book --format ppt` surface). The table in §2 covers the 9 most image-prone layouts explicitly; any layout not listed follows the fallback row at the end of the table.
+- **Does not apply to**: long-form output (single-column long-form is not governed by this document).
 - **Out of scope**: actual invocation of external AI image-generation tools; this document only provides prompt templates for the user to copy and paste.
 
 ---
@@ -48,6 +48,7 @@ An `<img>` or `background-image` the user pastes into a slide-core must follow t
 | compare      | `cover`         | `center 35%`         | `contain` allowed       | Side-by-side comparison; both focal points must match (both `center 35%`) |
 | quote        | `cover`         | `center center`      | `contain` allowed       | Quotation page background, avoid centering a person's face |
 | closing      | `cover`         | `center 40%`         | `contain` allowed       | Closing page; consistent with cover |
+| **any layout not listed** (testimonial, timeline, cover-data, cover-quote, cover-section, …) | `cover` | `center 35%` when a person / primary focal subject is present, else `center center` | `contain` allowed | Fallback row — do not invent per-layout crop ratios beyond this rule |
 
 ### Common Rules
 

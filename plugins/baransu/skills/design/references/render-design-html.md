@@ -35,9 +35,9 @@ Color count / contrast / whitespace may all pass yet still output an "AI-generic
 
 > 🔴 **Honest disclosure**: at this layer `editorial-sanity.sh` (which only covers the kami/swiss/google prefixes of design-cores HTML) **does not yet cover** DESIGN.html — there is no script to run, so execute each item manually one by one. After rendering DESIGN.html, run E1–E4 **in order**, and **re-do the layout if any fails** — no papering over with empty words. Each item's pass criterion is written explicitly in the "Expected" field — if you cannot measure it, treat it as a fail.
 
-- **E1 — list items use the native `<li>` marker tinted with the accent color; forbid `::before` en-dash fake bullets** (root cause: `::before` em-dash bullets are an instantly recognizable AI default output, not editorial typesetting).
-  - How: `li::marker { color: var(--accent) }`, do not build bullets with `::before`.
-  - Self-check: `grep -nE "li::before|content:\s*['\"][-–—]" DESIGN.html`
+- **E1 — list items use the native `<li>` marker tinted with the accent color; forbid `::before` dash-content fake bullets** (root cause: `::before` em-dash bullets are an instantly recognizable AI default output, not editorial typesetting). E2's accent-bar `::before` (a sized background bar with no text content) is the sanctioned exception — E1 bans only dash **content** bullets.
+  - How: `li::marker { color: var(--accent) }`, do not build bullets whose `::before` content is a dash glyph.
+  - Self-check: `grep -nE "content:\s*['\"][-–—]" DESIGN.html`
   - Expected pass: **empty output (0 lines)**.
 - **E2 — no round-dot bullet beside CJK list items; replace with an 8px×1.5px `var(--accent)` short bar** (root cause: round dots beside Chinese read as childish; the short bar is editorial-tier restraint).
   - How: for `<li>` segments containing CJK, use `list-style: none` + `::before` to draw a `width:8px;height:1.5px;background:var(--accent)` short bar.
@@ -54,7 +54,7 @@ Color count / contrast / whitespace may all pass yet still output an "AI-generic
 
 ## Write location
 
-`{project_root}/DESIGN.html`. Overwrite if it already exists.
+`.tmp/design-staging/DESIGN.html` (atomic staging item 5, per SKILL.md invariant I5 — never render straight to project root). The shared atomic mv delivers it to `{project_root}/DESIGN.html`, replacing any existing file.
 
 ## Success message
 
