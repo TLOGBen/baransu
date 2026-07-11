@@ -7,6 +7,7 @@
 - §4.5 Type tag (top-left of node, 7px Geist Mono uppercase)
 - §4.6 Legend strip (~60px at the bottom of the viewBox)
 - §4.7 Anti-slop precision constraints
+- §4.7b Node-role vocabulary + annotation primitive (7 roles, margins-only aside)
 - §4.8 Embedded font calibration (scale ≈ 0.47 after embedding in A4)
 - §4.9 14-type chart routing decision tree (first-match)
 - §4.10 14-type selection table (v1 ref skeleton + status disclosure)
@@ -143,6 +144,35 @@ The fragment below is the **complete three-id vocabulary**. Prepend to each SVG 
 - `<text y>` ≥ font-size × 1.2 (prevents the text top from being clipped)
 - The arrow endpoint lands exactly on the node edge (the marker `refX="8"` auto-aligns the chevron tip)
 - A focal node must correspond to the element emphasized with `<span class="hl">` in the caption; a mismatch between focal and caption emphasis is an anti-slop fail (aligned with the Kami `diagrams.md` anti-slop table)
+
+**Additional AI-slop failures** (— tw93/Kami `diagrams.md` §7, MIT; only rows not already covered by the constraints above):
+
+| Slop pattern | Fix |
+|--------------|-----|
+| ring/cycle diagram with a large empty center | put the subject (or the one summary stat) in the center, or use a linear flow instead |
+| cycle drawn twice — a dashed ring AND directed arcs carrying the same loop | one loop representation only |
+| roadmap furniture (30/60/90 markers, owners, milestones) inside an architecture diagram | timeline content routes to the timeline type (§4.9); an architecture diagram carries structure only |
+| future/planned capability drawn at shipped visual weight | draw future state dashed at reduced opacity, never focal, never load-bearing on the main path |
+| multi-accent diagram while the caption names a single focal | migrate to one focal + neutrals matching the caption's `<span class="hl">` emphasis |
+| crowded diagram "fixed" by scaling everything down globally | fix at module level — split, drop, or re-group nodes; never global scaling |
+
+## §4.7b Node-role vocabulary + annotation primitive
+
+Source: cathrynlavery/diagram-design `style-guide.md` + `primitive-annotation.md` (MIT), re-expressed onto baransu canonical tokens.
+
+Beyond focal vs standard (§4.7), a node may take one of seven semantic roles — each maps to exactly one treatment, so a style difference always reads as a meaning difference, never as decoration:
+
+| Role | Treatment |
+|------|-----------|
+| focal | `--accent` stroke + `#EEF2F7` fill (§4.7 rules unchanged; ≤2 per SVG) |
+| backend / service | standard fill (`--surface`), `--ink` stroke |
+| store / database | standard fill + `DB` type tag (§4.5) |
+| external | `--text-muted` stroke + `arrow-link` connectors (§4.3) |
+| input / source | standard treatment, placed at the flow origin |
+| optional | dashed stroke `stroke-dasharray="4,3"` |
+| security boundary | dashed stroke `stroke-dasharray="4,4"`, container outline only, never filled |
+
+**Annotation primitive** — for judgment/caveat copy that would otherwise bloat a node: a serif aside set in the margin + a dashed leader line (`stroke-dasharray="4,3"`) ending in a small landing dot (`r="2"`) at the referenced element. Margins only — the aside never sits over nodes or connectors — and max 2 per diagram. The upstream face is italic serif; under a preset whose DESIGN.md bans italics (e.g. Kami §8), keep the serif aside at regular style — the dashed leader + landing dot is the primitive's identity, not the slant.
 
 ## §4.8 Embedded font calibration (scale ≈ 0.47 after embedding in A4)
 

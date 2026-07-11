@@ -25,6 +25,8 @@ Hard rules referenced by number throughout this skill (restated, not abstracted 
 - **I4 — Uppercase-only DESIGN.md**: this skill only ever reads/writes uppercase `DESIGN.md` (UI visual spec) at project root; never lowercase `design.md` (the `/analyze` technical layer).
 - **I5 — Atomic staged-then-mv write**: the 5 artifacts are first written to `.tmp/design-staging/`, then atomic-mv'd to project root only after all 5 succeed; never write straight to project root.
 
+**Direction-defense stance (design rules, not pipeline invariants)**: the design-side hard rules this skill enforces — numeric anchors, preset sanity rules, DESIGN.md §8 Do/Don't — defend the committed direction from the generic default; they are not a lint pass run for its own sake. When the committed direction genuinely calls for breaking one, break it deliberately and name the tradeoff in DESIGN.md. Two floors never move: the accessibility baseline (contrast ratios) and the CSS-pattern bans — and I1–I5 above are pipeline invariants, outside this stance entirely.
+
 ## Stage 0 — Inject DESIGN.md reference into context files
 
 Before mode dispatch, proactively ensure that CLAUDE.md, AGENT.md, and INSTRUCTION.md (any that exist at the project root) carry a top-of-file reminder to read DESIGN.md when handling UI/UX work.
@@ -252,6 +254,8 @@ Replace any neutral intensity / boldness slider with a single **extreme-commitme
 - **Which extreme** — 「你要承諾哪一個極端？（極簡 minimal / 極繁 maximal / brutalist / editorial / …）」 (commit to one clear extreme).
 
 `極簡 minimal` is a **chosen extreme** — an equal peer to maximal / brutalist / editorial, NOT a default safe value. Treat 「平等極端」: restraint is a deliberate commitment a user picks, not the fallback the system reaches for when no extreme is named. Do not pre-select minimal; the user must name their extreme just as they would name maximal.
+
+**Aesthetics foundation (read before construction)**: once the direction is locked (the extreme + 記憶點 answers are in hand), read `references/aesthetics-foundation.md` in full and let it INFORM (not dictate) every aesthetic construction step — colour derivation, composition, uniqueness derivation. Preset Mode does NOT read it (presets are already-derived aesthetics).
 
 **The chosen extreme drives BOTH derivation lines** — record it and propagate it through both:
 
