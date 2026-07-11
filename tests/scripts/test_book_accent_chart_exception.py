@@ -53,8 +53,13 @@ CHECK_PY = (
 # Check E HTML-comment stripping — the shipped google-design preset previously
 # failed its own lint with 43 violations). That fix is intentional and outside
 # TASK-book-03's scope question; the pin below reflects check.py post-fix.
+# Re-pinned again after the field-smoke audit fix (legacy per-file mode:
+# Markdown inline-code exemption — the 紙 preset's own DESIGN.md documents the
+# bans in backtick-quoted prose and previously failed its own 紙-sanity.sh
+# gate with 7 false violations). Likewise intentional and outside
+# TASK-book-03's scope question; the pin below reflects check.py post-fix.
 CHECK_PY_SHA256_BEFORE_TASK = (
-    "11bac26eeeee7ee06e5e795f18eb4424aadd327c62e707a9ab453ca97ba69635"
+    "4c5d8326b13f94722cb4d53b2989ed5d2e586bbec8c3a95811a5e779334d317f"
 )
 
 # Verbatim text of SKILL.md's existing "Statistical-type color-capability

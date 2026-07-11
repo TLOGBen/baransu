@@ -53,7 +53,7 @@ Before mode dispatch, proactively ensure that CLAUDE.md, AGENT.md, and INSTRUCTI
       When working on any UI/UX content, read the design system at the project root and follow it:
       - DESIGN.md — visual spec (nine-section design system)
       - tokens.css — CSS variables (canonical 38-name vocabulary (+5 capability for schema:43); first line `/* preset: <slug> */`)
-      - design-cores/ — component skeletons consuming the tokens (long-form / gallery / dashboard / 6 elements)
+      - design-cores/ — 21 component skeletons consuming the tokens (long-form / gallery / dashboard + 6 bilingual document types + 6 elements)
       - slide-cores/ — slide layouts (4 cover variants + 17 non-cover layouts)
       ```
 
@@ -159,14 +159,14 @@ Use `git rev-parse --show-toplevel` to find the project root.
 **v1.2 residue detection** (before the atomic write):
 
 Either condition counts as v1.2 residue:
-1. `{project_root}/tokens.css` exists but its first line does not match the regex `/^\/\* preset: [a-z][a-z0-9-]{1,15} \*\/$/`
+1. `{project_root}/tokens.css` exists but its first line does not match the regex `/^\/\* preset: [a-z][a-z0-9-]{1,15}[^*]*\*\/$/` (the `[^*]*` tolerates the optional `; schema: NN` / `; chart-capability: N` fields every shipped preset carries — aligned with check.py's `PRESET_HEADER_RE`; a bare `/* preset: kami */` and `/* preset: kami; schema: 43 */` both match)
 2. `{project_root}/tokens.css` does not exist, but any of `design-cores/` / `slide-cores/` / `DESIGN.md` exists
 
 🔴 **GATE — destructive overwrite**: this branch can overwrite the user's existing project-root artifacts (tokens.css / DESIGN.md / design-cores/ / slide-cores/). STOP and do not proceed without confirmation.
 
 If v1.2 residue is detected and the `--force` flag is absent → print to stderr 「將覆蓋 v1.2 artifact，建議 `git stash` 或備份；以 `--force` 確認繼續」 and abort the command (exit ≠ 0). **Without `--force` present, you must not bypass this GATE and write directly.**
 
-If the first line of `tokens.css` matches the regex → treat it as a v1.3 header and atomic-overwrite directly without reporting residue (idempotent).
+If the first line of `tokens.css` matches the regex → treat it as a v1.3 header and atomic-overwrite directly without reporting residue (idempotent). Every shipped preset writes `/* preset: <slug>; schema: 43 */`, so a faithful re-apply MUST take this branch — classifying the skill's own v1.3 output as v1.2 residue (and demanding `--force`) is the regression this regex tolerance exists to prevent.
 
 **v1.3 unified routing** — every preset copies the complete three-layer artifact set:
 
@@ -192,8 +192,10 @@ The v1.2 shared directories `references/cores/` and `references/slide-cores/` ar
 7. Copy staging/slide-cores/ (21 files: 4 cover variants + 17 existing non-cover layouts)
 8. (紙 preset only) Copy staging/紙-sanity.sh
 9. Atomic move: mv the project root's existing v1.3 artifacts to .tmp/design-old/ → mv staging/* to project root → rm -rf .tmp/design-old/
-10. rm -rf .tmp/design-staging/
+10. rm -rf .tmp/design-staging/; then rmdir {project_root}/.tmp if now empty (ignore failure — a non-empty .tmp belongs to the user and stays)
 ```
+
+**Staged verification anchor (preset mode)**: after staging item 8 completes and **before** the atomic move (item 9), run `python3 {skill_dir}/scripts/check.py {project_root}/.tmp/design-staging` — mirroring Gen Mode Step 3's anchor. The staged dir contains tokens.css + DESIGN.md, so check.py enters project-root mode and Checks A–F fire on the staged set — including existence of the freshly rendered `DESIGN.html`, the one artifact that is NOT a byte-copy from the preset source. Exit ≠ 0 → keep the staging dir, leave the project root unchanged, exit ≠ 0 (same contract as an IO fail); a mangled render must never reach project root where only lint-mode Check A would ever see it.
 
 If any stage fails amid an IO fail / SIGTERM / SIGINT → keep the staging dir, leave the project root unchanged, exit ≠ 0.
 
@@ -407,7 +409,7 @@ Cross-tool brief packaging — package the current preset's DESIGN.md + tokens.c
 #### Step 1 — Parse the preset
 - Read the first line of `{project_root}/tokens.css`.
 - Parse the `/* preset: <slug> */` comment to obtain `$PRESET` (`kami` / `swiss` / `google-design`, or a slug the user custom-built via `gen --slug`).
-- **Canonical regex (path-traversal hardening)**: the first line must fully match `^/\* preset: [a-z][a-z0-9-]{1,15} \*/$` (same slug spec as Gen Mode Step 0). The `<slug>` character class is only `[a-z0-9-]`, forbidding path elements like `/` `.` `..` — because `$PRESET` is subsequently concatenated directly into the output filename `brief-{preset}-{date}.md`.
+- **Canonical regex (path-traversal hardening)**: the first line must fully match `^/\* preset: [a-z][a-z0-9-]{1,15}[^*]*\*/$` (same slug spec as Gen Mode Step 0; the `[^*]*` tolerates the `; schema: NN` / `; chart-capability: N` fields every shipped preset writes — aligned with check.py's `PRESET_HEADER_RE`). The `<slug>` character class is only `[a-z0-9-]`, forbidding path elements like `/` `.` `..` — because `$PRESET` is subsequently concatenated directly into the output filename `brief-{preset}-{date}.md`.
 - If `tokens.css` does not exist or the first-line regex does not match → print to stderr 「未找到 tokens.css 或無 preset 註解；請先跑 `/baransu:design preset <name>`」 and exit 1.
 
 #### Step 2 — Read source files

@@ -55,6 +55,20 @@ if (!htmlFile || !existsSync(htmlFile)) {
 
 const htmlDir = dirname(resolve(htmlFile));
 const content = readFileSync(htmlFile, "utf8");
+
+// ── Mode detection (shared by svg-balance, GATE-C, 4 html2pptx pre-checks,
+//    GATE-F and GATE-G — hoisted here because svg-balance/GATE-C run first) ──
+//   PPT       → contains `<section data-layout="...">`
+//   long-form → contains `<article class="paper">` (v1.2) or the v1.3 kami
+//               SSOT classes `kami-page` / `kami-main` (long-form.html emits
+//               `<div class="kami-page">` / `<main class="kami-main">`)
+//   otherwise → unknown; PPT-only gates skipped (preserves backwards-compat
+//   with the existing SVG-only fixtures used in scripts/validate-fixtures/).
+const isPpt = /<section\b[^>]*\bdata-layout\s*=/i.test(content);
+const isLongForm =
+  /<article\b[^>]*\bclass\s*=\s*"[^"]*\bpaper\b[^"]*"/i.test(content) ||
+  /\bclass\s*=\s*"[^"]*\bkami-(page|main)\b[^"]*"/i.test(content);
+
 let fail = 0;
 // Module-level warnings sink. Every `WARN …` line we log also gets pushed here
 // so the end-of-run summary can list them together (soft_warn levels would
@@ -110,6 +124,11 @@ const openSvg  = (content.match(/<svg/gi)  ?? []).length;
 const closeSvg = (content.match(/<\/svg>/gi) ?? []).length;
 if (openSvg >= 1 && openSvg === closeSvg) {
   console.log(`OK  svg-balance (${openSvg} diagram(s))`);
+} else if (openSvg === 0 && isPpt) {
+  // Per-slide PPT HTML: an SVG-less slide is legal (text-only layouts, or a
+  // diagram rasterized to PNG for html2pptx). Requiring ≥1 SVG per slide
+  // would make GATE-F/G structurally unreachable for every non-diagram slide.
+  console.log("SKIP svg-balance (mode=ppt — per-slide SVG optional)");
 } else if (openSvg === 0) {
   console.log("FAIL svg-balance: no SVG diagram found (at least 1 required)");
   fail = 1;
@@ -198,6 +217,16 @@ svgs.forEach((svg, i) => {
 
 // ── GATE-C: legend strip (only when viewBox height ≥ 400) ───────────────────
 svgs.forEach((svg, i) => {
+  if (isPpt) {
+    // Slide SVGs are forbidden from containing <text> (slide-checklist P0-5:
+    // labels live in <figcaption>), so the LEGEND-<text> requirement is
+    // mechanically unsatisfiable in PPT mode — exempt instead of trapping
+    // every slide SVG taller than 399 viewBox units.
+    console.log(
+      `SKIP GATE-C legend-strip (${svgLabel(i, svg)}, mode=ppt — P0-5 forbids <text>; labels in figcaption)`
+    );
+    return;
+  }
   const vbH = parseViewBoxHeight($(svg).attr("viewBox"));
   if (vbH === null || vbH < 400) {
     console.log(
@@ -607,14 +636,6 @@ svgs.forEach((svg, i) => {
   }
 });
 
-// ── Mode detection (shared by 4 html2pptx pre-checks + GATE-F + GATE-G) ─────
-//   PPT       → contains `<section data-layout="...">`
-//   long-form → contains `<article class="paper">`
-//   otherwise → unknown; PPT-only gates skipped (preserves backwards-compat
-//   with the existing SVG-only fixtures used in scripts/validate-fixtures/).
-const isPpt = /<section\b[^>]*\bdata-layout\s*=/i.test(content);
-const isLongForm = /<article\b[^>]*\bclass\s*=\s*"[^"]*\bpaper\b[^"]*"/i.test(content);
-
 // ── html2pptx 4-rule pre-check (PPT mode only) ──────────────────────────────
 // Fixture-calibrated rule levels (TASK-book-validator-03 / REQ-003-S1).
 // Calibration source: fixture-result.md (hardcoded — not read at runtime so
@@ -879,7 +900,11 @@ if (!isPpt) {
   let presetWarning: string | null = null;
   if (existsSync(tokensPath)) {
     const tokensHead = readFileSync(tokensPath, "utf8").slice(0, 4096);
-    const m = tokensHead.match(/\/\*\s*preset\s*:\s*([A-Za-z0-9_-]+)\s*\*\//);
+    // `[^*]*` tolerates the `; schema: NN` / `; chart-capability: N` fields
+    // every /design preset writes (`/* preset: kami; schema: 43 */`) —
+    // aligned with design/scripts/check.py PRESET_HEADER_RE. Without it the
+    // F-c tie-break and the dynamic gen-slug whitelist entry are dead code.
+    const m = tokensHead.match(/\/\*\s*preset\s*:\s*([A-Za-z0-9_-]+)[^*]*\*\//);
     if (m) {
       presetName = m[1];
     } else {

@@ -40,12 +40,15 @@ Run only when `$FORMAT` is `ppt` or `all`. Depends on the `$STRUCTURE_SLIDES` ge
 
 For each slide object in `$STRUCTURE_SLIDES`, read the skeleton from `{project_root}/slide-cores/<layout-id>.html` (`<layout-id>` = the Stage 2B dynamic decision-table result, e.g. `cover.html` / `content-bullets.html` / `closing.html`) and generate a slide HTML file.
 
+Write each generated slide to **`.claude/book/slides-{$SLUG}/slide-{NN}.html`** (`{NN}` = zero-padded deck order starting at `01`; `mkdir -p` the directory first). This is the fixed on-disk contract — Stage 4's PPT-mode validation loop and the Step 3 html2pptx invocation both read the files back from this path; do not invent a per-run location.
+
 If `{project_root}/slide-cores/<layout-id>.html` is missing (consistent with the Stage 2B graceful-degradation behavior): warning「請先跑 `/baransu:design preset <style>` 取得 slide-cores」, and the body slot degrades to the inline skeleton of the hardcoded fallback three layouts (`cover` / `closing` / `content-bullets`); do not abort Stage 3.
 
 Output spec for each slide (one HTML file per slide):
 
 - `<body style="width:960pt; height:540pt; margin:0; padding:0;">` — the unit is **pt**, not px. html2pptx.js validates the body against `LAYOUT_WIDE` (13.333in × 7.5in): 960**pt** = 1280px = 13.333in passes; 960**px** = 10.0in throws a dimension-mismatch error and the whole PPT run fails (the passing fixture `scripts/validate-fixtures/swiss-positive.html` uses `body { width: 960pt; height: 540pt; }`).
 - Each slide is wrapped in `<section class="{prefix}-slide" data-layout="{layout_type}">` (`{prefix}` = tokens.css preset prefix, e.g. `swiss-slide` — matching the fixture and validate-output.ts, whose PPT-mode detection and GATE-F/GATE-G key on `section[data-layout]` and prefixed class tokens; an unprefixed `class="slide"` `<div>` would fail GATE-F)
+- The `<section>` sits inside a `<main>` element directly under `<body>` — validate-output.ts's structure check requires a `<main>` or `<article>` in every file it gates, and the blessed fixture `scripts/validate-fixtures/swiss-positive.html` wraps its slide content in `<main>`; a slide built without it fails `FAIL structure: no <main> or <article> element found`
 - Text content is rendered with `<h1>`/`<h2>` and `<ul><li>`
 - If `has_svg` is true, insert the corresponding inline SVG
 - **Large type size and minimum font size**: apply the three hard rules from `slide-synthesis.md` §「投影片字級與限高硬規則」 (large-type dual constraint `min(Xvw,Yvh)` with `Y≥X×1.6`, the Chinese-title tier table, and the 18/16/14px minimum font-size floors); violating any one is marked fail in the pre-render self-check — fix the copy or split the page before rendering.
@@ -66,7 +69,7 @@ Pass **all** per-slide HTML files from Step 1, in deck order, to **one** invocat
 
 ```bash
 node "$CLAUDE_SKILL_DIR/scripts/html2pptx.js" \
-  "{slide_1_html}" "{slide_2_html}" … "{slide_N_html}" \
+  ".claude/book/slides-{$SLUG}/slide-01.html" ".claude/book/slides-{$SLUG}/slide-02.html" … ".claude/book/slides-{$SLUG}/slide-{NN}.html" \
   ".claude/book/{$SLUG}.pptx"
 ```
 

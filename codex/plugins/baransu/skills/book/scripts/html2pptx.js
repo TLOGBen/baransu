@@ -557,7 +557,12 @@ async function extractSlideData(page) {
       }
 
       // Extract placeholder elements (for charts, etc.)
-      if (el.className && el.className.includes('placeholder')) {
+      // NOTE: read the class via getAttribute, NOT el.className — on SVG
+      // elements className is an SVGAnimatedString (an object: always truthy,
+      // no .includes), so `el.className.includes(...)` throws on the first
+      // inline-SVG child and kills the whole deck render.
+      const elClassAttr = el.getAttribute('class') || '';
+      if (elClassAttr.includes('placeholder')) {
         const rect = el.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) {
           errors.push(
