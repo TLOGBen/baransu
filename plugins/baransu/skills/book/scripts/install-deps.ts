@@ -1,5 +1,6 @@
 #!/usr/bin/env -S npx tsx
 import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname } from "node:path";
 
@@ -24,6 +25,14 @@ function parseFormat(): Format {
 
 const format = parseFormat();
 
+// ── --dry-run: probe-only mode (SKILL.md Stage 0 §6 step 1 contract) ─────────
+// "list, no install": probes run, installers do NOT. The probe→confirm→install
+// gate depends on this — a --dry-run invocation must never mutate the
+// environment (no pip/npm install, no browser download). Missing deps are
+// collected into `missing` and listed at the end (exit 0 either way).
+const dryRun = process.argv.includes("--dry-run");
+const missing: string[] = [];
+
 function check(cmd: string, args: string[]): boolean {
   return spawnSync(cmd, args, { encoding: "utf8" }).status === 0;
 }
@@ -42,6 +51,9 @@ function install(label: string, attempts: [string, string[]][]): void {
 const markitdownOk = check("python3", ["-m", "markitdown", "--version"]);
 if (markitdownOk) {
   console.log("markitdown OK");
+} else if (dryRun) {
+  console.log("markitdown MISSING");
+  missing.push("markitdown");
 } else {
   console.error("markitdown not found, installing...");
   install("markitdown. Run manually: python3 -m pip install markitdown", [
@@ -62,6 +74,9 @@ if (markitdownOk) {
 const playwrightOk = check("python3", ["-c", "import playwright"]);
 if (playwrightOk) {
   console.log("playwright OK");
+} else if (dryRun) {
+  console.log("playwright (python) MISSING");
+  missing.push("playwright (python) + chromium");
 } else {
   console.error("playwright not found, installing...");
   install("playwright (python). Run manually: pip install playwright && playwright install chromium", [
@@ -91,6 +106,9 @@ const cheerioOk =
   }).status === 0;
 if (cheerioOk) {
   console.log("cheerio OK");
+} else if (dryRun) {
+  console.log("cheerio MISSING");
+  missing.push("cheerio");
 } else {
   console.error("cheerio not found, installing...");
   const r = spawnSync("npm", ["install", "cheerio"], {
@@ -116,6 +134,9 @@ if (format === "pdf" || format === "all") {
   const weasyOk = check("python3", ["-m", "weasyprint", "--version"]);
   if (weasyOk) {
     console.log("weasyprint OK");
+  } else if (dryRun) {
+    console.log("weasyprint MISSING");
+    missing.push("weasyprint");
   } else {
     console.error("weasyprint not found, installing...");
     const r = spawnSync("pip", ["install", "weasyprint"], { stdio: "inherit" });
@@ -130,39 +151,71 @@ if (format === "pdf" || format === "all") {
 }
 
 // ── playwright + pptxgenjs (ppt | all) ──────────────────────────────────────
+
+// A passing `npx playwright --version` only proves the CLI wrapper resolves —
+// the chromium BINARY download is a separate step, and html2pptx.js fails at
+// first launch ("Executable doesn't exist at …/ms-playwright/…") when it is
+// absent. `playwright install --dry-run` prints each browser's install
+// location WITHOUT mutating anything; require every listed location to exist.
+function chromiumBrowsersReady(): boolean {
+  const r = spawnSync("npx", ["playwright", "install", "--dry-run", "chromium"], {
+    encoding: "utf8",
+  });
+  if (r.status !== 0) return false;
+  const locs = [...`${r.stdout}${r.stderr}`.matchAll(/Install location:\s*(\S+)/gi)].map(
+    (m) => m[1]
+  );
+  return locs.length > 0 && locs.every((p) => existsSync(p));
+}
+
 if (format === "ppt" || format === "all") {
-  // playwright
-  const playwrightOk = check("npx", ["playwright", "--version"]);
-  if (playwrightOk) {
+  // playwright (node) + chromium browser binary
+  if (chromiumBrowsersReady()) {
     console.log("playwright OK");
+  } else if (dryRun) {
+    console.log("playwright chromium browser MISSING");
+    missing.push("playwright chromium browser");
   } else {
-    console.error("playwright not found, installing...");
+    console.error("playwright chromium not found, installing...");
     const r = spawnSync(
       "npx",
-      ["playwright", "install", "--with-deps"],
+      ["playwright", "install", "--with-deps", "chromium"],
       { stdio: "inherit" }
     );
-    if (r.status !== 0 || !check("npx", ["playwright", "--version"])) {
+    if (r.status !== 0 || !chromiumBrowsersReady()) {
       console.error(
-        "❌ playwright 安裝失敗。請手動執行：npx playwright install --with-deps"
+        "❌ playwright 安裝失敗。請手動執行：npx playwright install --with-deps chromium"
       );
       process.exit(1);
     }
     console.log("playwright OK");
   }
 
-  // pptxgenjs
-  const pptxOk = check("node", ["-e", "require('pptxgenjs')"]);
-  if (pptxOk) {
+  // pptxgenjs — install AND verify in the SAME resolution context (cwd:
+  // SCRIPT_DIR, exactly like cheerio above; html2pptx.js lives in SCRIPT_DIR
+  // so its require() resolves from SCRIPT_DIR/node_modules regardless of the
+  // caller's cwd). A global `npm install -g` paired with a cwd-relative
+  // `node -e require(…)` verification can NEVER pass on a clean machine —
+  // global node_modules are not on node's default require path.
+  const pptxCheck = () =>
+    spawnSync("node", ["-e", "require('pptxgenjs')"], {
+      cwd: SCRIPT_DIR,
+      encoding: "utf8",
+    }).status === 0;
+  if (pptxCheck()) {
     console.log("pptxgenjs OK");
+  } else if (dryRun) {
+    console.log("pptxgenjs MISSING");
+    missing.push("pptxgenjs");
   } else {
     console.error("pptxgenjs not found, installing...");
-    const r = spawnSync("npm", ["install", "-g", "pptxgenjs"], {
+    const r = spawnSync("npm", ["install", "pptxgenjs"], {
+      cwd: SCRIPT_DIR,
       stdio: "inherit",
     });
-    if (r.status !== 0 || !check("node", ["-e", "require('pptxgenjs')"])) {
+    if (r.status !== 0 || !pptxCheck()) {
       console.error(
-        "❌ pptxgenjs 安裝失敗。請手動執行：npm install -g pptxgenjs"
+        `❌ pptxgenjs 安裝失敗。請手動執行：cd ${SCRIPT_DIR} && npm install pptxgenjs`
       );
       process.exit(1);
     }
@@ -171,4 +224,14 @@ if (format === "ppt" || format === "all") {
 }
 
 // ── success ──────────────────────────────────────────────────────────────────
+if (dryRun) {
+  if (missing.length === 0) {
+    console.log(`DRY-RUN：所有依賴已就緒，無需安裝（format: ${format}）`);
+  } else {
+    console.log(
+      `DRY-RUN（僅列出，未安裝）需新安裝：${missing.join(", ")}（format: ${format}）`
+    );
+  }
+  process.exit(0);
+}
 console.log(`✅ 依賴已就緒（format: ${format}）`);

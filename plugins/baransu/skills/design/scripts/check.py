@@ -168,6 +168,9 @@ _SLOT_RE     = re.compile(r'<\s*section[^>]*data-slot\s*=\s*["\']long-form-body[
 _HTML_COMMENT_RE = re.compile(r'<!--.*?-->', re.DOTALL)
 _SCRIPT_TAG  = re.compile(r'<\s*script\b', re.I)
 _EXT_SRC     = re.compile(r'\bsrc\s*=\s*["\'](?:https?:)?//', re.I)
+# Markdown inline-code span (single-backtick, one line). Used by the legacy
+# per-file mode to exempt backtick-quoted documentation from the lint rules.
+_MD_INLINE_CODE_RE = re.compile(r'`[^`\n]+`')
 
 
 def _norm_hex(h: str) -> str:
@@ -678,6 +681,16 @@ def check_file_legacy(path: Path, rules: dict) -> list[dict]:
     cool_set = {_norm_hex(h) for h in rules['cool_gray_blocklist']}
     findings: list[dict] = []
 
+    # Regression note: Markdown prose that DOCUMENTS a ban must not trip it.
+    # The 紙 preset's own DESIGN.md writes 「禁用純白 `#ffffff`；禁用純黑
+    # `#000000`」 and quotes the sanctioned whisper shadow
+    # `0 4px 24px rgba(0,0,0,0.05)` in backticks — before this exemption a
+    # pristine, just-applied 紙 preset could never pass its own 紙-sanity.sh
+    # gate (7 false violations, exit 1). Inline-code spans are quotations, so
+    # they are blanked before rule matching; fenced code blocks stay linted
+    # (they are exemplar code, not quotation).
+    is_markdown = path.suffix.lower() in ('.md', '.markdown')
+
     def add(inv: int, name: str, msg: str, lineno: int, snippet: str):
         findings.append({
             'file': str(path), 'line': lineno,
@@ -686,6 +699,8 @@ def check_file_legacy(path: Path, rules: dict) -> list[dict]:
         })
 
     for i, line in enumerate(text.splitlines(), 1):
+        if is_markdown:
+            line = _MD_INLINE_CODE_RE.sub('``', line)
         if _RGBA.search(line):
             in_shadow = 'box-shadow' in line.lower()
             if in_shadow and not rules['allow_rgba_in_box_shadow']:

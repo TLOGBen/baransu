@@ -24,16 +24,44 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # The cache candidates are version-agnostic globs (the cache path embeds the
 # plugin version, which changes on every release — never hardcode it).
 CHECK_PY=""
+# 1) Direct candidates: this script inside the plugin source tree, or a
+#    project root that sits next to a plugins/ checkout.
 for candidate in \
-  "$SCRIPT_DIR/../plugins/baransu/skills/design/scripts/check.py" \
-  "$(git rev-parse --show-toplevel 2>/dev/null)/plugins/baransu/skills/design/scripts/check.py" \
-  "$HOME"/.claude/plugins/cache/baransu/baransu/*/skills/design/scripts/check.py \
-  "$HOME"/.claude/plugins/cache/baransu/*/skills/design/scripts/check.py; do
+  "$SCRIPT_DIR/../../scripts/check.py" \
+  "$SCRIPT_DIR/../plugins/baransu/skills/design/scripts/check.py"; do
   if [ -f "$candidate" ]; then
     CHECK_PY="$candidate"
     break
   fi
 done
+
+# 2) Plugin cache: the glob may match SEVERAL cached versions — pick the
+#    NEWEST (ls -v natural-sorts the version segment ascending; take the
+#    last). A plain for-loop expands lexicographically and would pin the
+#    OLDEST cached engine, silently ignoring lint fixes shipped since.
+if [ -z "$CHECK_PY" ]; then
+  for glob in \
+    "$HOME/.claude/plugins/cache/baransu/baransu/*/skills/design/scripts/check.py" \
+    "$HOME/.claude/plugins/cache/baransu/*/skills/design/scripts/check.py"; do
+    # shellcheck disable=SC2086 — glob must expand
+    newest="$(ls -v $glob 2>/dev/null | tail -1 || true)"
+    if [ -n "$newest" ] && [ -f "$newest" ]; then
+      CHECK_PY="$newest"
+      break
+    fi
+  done
+fi
+
+# 3) Last resort: git root of the CHECKED project. This only ever hits when
+#    the audited project IS the baransu repo itself — a dead path in real
+#    deployments (rev-parse runs in the user project's cwd), kept only as a
+#    final fallback for in-repo dogfooding.
+if [ -z "$CHECK_PY" ]; then
+  candidate="$(git rev-parse --show-toplevel 2>/dev/null)/plugins/baransu/skills/design/scripts/check.py"
+  if [ -f "$candidate" ]; then
+    CHECK_PY="$candidate"
+  fi
+fi
 
 if [ -z "$CHECK_PY" ]; then
   echo "❌ Cannot locate check.py for Kami sanity check." >&2
@@ -53,11 +81,18 @@ echo ""
 if [ -f "$TARGET/tokens.css" ] && [ -f "$TARGET/DESIGN.md" ]; then
   echo "→ Running on design-cores/ + DESIGN.md individually (avoiding project-root mode)..."
   exit_code=0
+  file_count=0
   for f in "$TARGET"/DESIGN.md "$TARGET"/design-cores/*.html "$TARGET"/slide-cores/*.html; do
     if [ -f "$f" ]; then
-      python3 "$CHECK_PY" "$f" || exit_code=1
+      file_count=$((file_count + 1))
+      # Quiet on pass (one summary line below instead of N duplicates);
+      # violations print in full.
+      out="$(python3 "$CHECK_PY" "$f" 2>&1)" || { printf '%s\n' "$out"; exit_code=1; }
     fi
   done
+  if [ "$exit_code" = "0" ]; then
+    echo "OK  Kami per-file lint (${file_count} file(s), no violations)"
+  fi
 else
   python3 "$CHECK_PY" "$TARGET" || exit_code=1
   exit_code="${exit_code:-0}"
@@ -129,5 +164,8 @@ fi
 if [ "${exit_code:-0}" = "0" ]; then
   echo ""
   echo "✅ Kami 十不變量 + editorial-sanity pass"
+else
+  echo ""
+  echo "❌ Kami sanity FAIL — 詳見上方輸出" >&2
 fi
 exit "${exit_code:-0}"

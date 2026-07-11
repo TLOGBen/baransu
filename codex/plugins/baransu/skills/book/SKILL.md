@@ -427,7 +427,7 @@ Whenever any stage needs to fetch a raster / photographic / logo / UI mockup ima
 Takes effect only when `$FORMAT` ∈ {`pdf`, `ppt`, `all`}.
 
 - **PDF**: inject `@page` + hidden `.toc-wrap` + serif `body { font-family: var(--font-serif) }` into the HTML, save the patched HTML, call `python3 -m weasyprint`. On failure → warning, do not abort.
-- **PPTX**: per `$STRUCTURE_SLIDES`, take the skeleton from `{project_root}/slide-cores/<layout-id>.html`; output one HTML per slide with a `960pt × 540pt` `<body>` (the unit is **pt** — 960px fails html2pptx's LAYOUT_WIDE dimension validation) + per slide `<section class="{prefix}-slide" data-layout=...>`; before calling, verify three items (`width:960pt` / a prefixed `section[data-layout]` slide present / no `background-image`); once passed, call `node html2pptx.js` **once with all per-slide files** (multiple inputs append slides to one .pptx).
+- **PPTX**: per `$STRUCTURE_SLIDES`, take the skeleton from `{project_root}/slide-cores/<layout-id>.html`; write one HTML per slide to `.claude/book/slides-{$SLUG}/slide-{NN}.html` (zero-padded deck order — the fixed on-disk contract Stage 4's PPT-mode validation reads back) with a `960pt × 540pt` `<body>` (the unit is **pt** — 960px fails html2pptx's LAYOUT_WIDE dimension validation) + per slide `<section class="{prefix}-slide" data-layout=...>`; before calling, verify three items (`width:960pt` / a prefixed `section[data-layout]` slide present / no `background-image`); once passed, call `node html2pptx.js` **once with all per-slide files** (multiple inputs append slides to one .pptx).
 
 **Detailed steps (HTML preprocessing / verification items / failure handling) → read `references/render-pipelines.md`.**
 ### 7. Write the output file
@@ -453,6 +453,16 @@ Exit codes:
   - **First-line fix**: read the failure lines printed to stdout, fix only the failing element and rewrite the file, then rerun the quality gate once.
   - **Still-failing fallback**: 🛑 STOP — quality gate failed a second time, human intervention: if exit 1 still on the second run, output 「品質閘第二次失敗，請手動開啟 .claude/book/{$SLUG}.html 確認問題。」 and stop (do not enter the completion report).
 - `2` (usage error): script invocation was wrong — fix and re-run
+
+**PPT-mode addition (`$FORMAT` contains `ppt`)**: after the long-form gate above, additionally run the validator over **each per-slide HTML** written by Stage 3 §6 (`.claude/book/slides-{$SLUG}/slide-*.html`):
+
+```bash
+for f in .claude/book/slides-{$SLUG}/slide-*.html; do
+  npx tsx "./scripts/validate-output.ts" "$f"
+done
+```
+
+Every slide must exit 0. The slide files are where GATE-F (class prefix) and GATE-G (layout registration) actually fire — the long-form HTML SKIPs both (mode=non-ppt), so omitting this loop means PPT gating never ran and the Outcome Contract's 「GATE F/G all green or legitimate SKIP」 is satisfied only vacuously. A failing slide follows the same three-stage fallback as above (first-line fix → rerun once → 🛑 STOP).
 
 ### 2. Visual render verification + completion report
 
