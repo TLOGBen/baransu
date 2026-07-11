@@ -73,10 +73,15 @@ Progress claims must map to at least one of the above signals.
 
 ## Fast Path — Trivial Bugs
 
-When BOTH hold: (1) the FIRST instrument, or the error message itself, confirms a one-sentence root cause, AND (2) the Scope Blast grep returns ≤3 relevant matches — the hunt may compress ceremony:
+Eligibility is measured **at routing time**, by running the Scope Blast grep early — one cheap grep over the pattern signature (Scope Blast Mode step 1). The close-stage blast then reuses/extends this early grep; it is not a second invention.
+
+When BOTH hold: (1) the FIRST instrument, or the error message itself, confirms a one-sentence root cause, AND (2) the routing-time Scope Blast grep returns ≤3 matches still needing a fix/leave verdict (exclude matches inside `tests/` and `.claude/`) — the hunt may compress ceremony. The count that governs is post-exclusion matches requiring a verdict, not raw grep hits (raw hits may be 5 while relevant matches are 1; the Fast Path gates on the 1).
 
 - Locate's four questions answered in one line each.
-- Short-form case file: root cause / fix / 確認方式 / 迴歸守護 / blast verdicts only.
+- Short-form case file: EXACTLY these five named sections — root cause / fix / 確認方式 / 迴歸守護 / blast verdicts. Before You Fix call-chain analysis and the hypothesis log are omitted on the Fast Path; both return the moment the run leaves the Fast Path (the first instrument fails to confirm, or the blast grows past 3).
+
+When the Fast Path is taken, the case file (trace) MUST carry one routing log line — recognition must be auditable, not inferred from a section heading:
+「Fast Path：首儀器定根因 ✓；blast 候選 N ≤3 → 壓縮儀式」
 
 The case file, the Scope Blast, and 迴歸守護 are **never** skipped — only their length compresses. Compression does not defer creation either: even on the Fast Path, the case file is created at the Locate stage with `status: scoping` (short form is fine) and finalized at close — a file that first appears at the fix commit is end-of-hunt assembly, not a living record.
 
@@ -113,7 +118,7 @@ These four questions determine where the first instrument goes. Adding a log bef
 
 Before instrumenting, run `python3 "$CLAUDE_SKILL_DIR/scripts/hunt-search.py" --keyword "<symptom term>"` to check whether a similar case was already solved; the search covers `.claude/hunt-report/` plus `/ship`-archived cases in `.claude/archived/`. Cite any hit in the report. (If no case dirs exist at all, apply the Fast Path's case-memory rule: skip the search and log 「首獵：無既往案例」.)
 
-**Create the case file now, at the Locate stage — not after completion.** Allocate NNN = max(existing ids found by hunt-search.py across `.claude/hunt-report/` and archived cases) + 1, create `.claude/hunt-report/HUNT-YYYY-NNN.md` (format: `references/hunt-case-template.md`) with a `status: scoping` frontmatter field, and update the status as the hunt progresses: scoping → confirmed → fixed / handoff.
+**Create the case file now, at the Locate stage — not after completion.** Allocate NNN = max(existing ids found by hunt-search.py across `.claude/hunt-report/` and archived cases) + 1, create `.claude/hunt-report/HUNT-YYYY-NNN.md` (format: `references/hunt-case-template.md`) with a `status: scoping` frontmatter field, and update the status as the hunt progresses: scoping → confirmed → fixed / handoff. On the Fast Path, scoping → fixed is a legal collapse — the `confirmed` hop may fold into the fix transition; off the Fast Path the three-state ladder stands. At creation, the trace entry recording the case file MUST quote the file's `status: scoping` frontmatter line verbatim, so early creation is externally checkable against the trace even in single-commit hunts.
 
 ---
 
