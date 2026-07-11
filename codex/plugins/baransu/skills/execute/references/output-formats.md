@@ -54,6 +54,8 @@ Worktrees: {none | one per group}
 | {group} | .claude/worktrees/execute-{date}-{slug}-{group} | {recorded target_branch} |
 ```
 
+Sections marked "filled after Step N" must not be pre-baked with values at Step 0 — write placeholders and fill at the owning step, so file state can witness step ordering.
+
 ---
 
 ## §task-map.md

@@ -49,7 +49,7 @@ Before reviewing, read §1 (Core Principles) and §6 (Anti-pattern quick referen
    green_proof:
      test_command: {the actual test command string executed, e.g.: `pytest tests/test_foo.py`; the cosmetic-only path allows "n/a"}
      exit_code: {integer; must be 0 for the review to pass whenever a real test is required — every tier, including a non-cosmetic direct fix; only the cosmetic-only waiver path leaves the value unverified}
-     output_tail: {string; last 30 lines of output verbatim, must not be rewritten; the cosmetic-only path allows ""}
+     output_tail: {string; last 30 lines of output verbatim, must not be rewritten; recorded durably in the checklist, never only /tmp; the cosmetic-only path allows ""}
      tests_correspondence: {string; the reviewer must declare 「以下 test 對應 TASK-NN 的 AC-MM」 and cite a test path or name fragment that already exists in design.md / the task spec; the cosmetic-only path allows "n/a"}
    ```
    `refactor_signal` is true only when `packaged confirm (quality)` and the task is L/XL; otherwise false.

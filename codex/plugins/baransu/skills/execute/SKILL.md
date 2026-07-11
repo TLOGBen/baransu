@@ -81,7 +81,9 @@ Run `git rev-parse --show-toplevel 2>/dev/null` in the project root. Record `git
 
 Inspect the tool list once, here at Step 0: is a subagent-dispatch tool (Agent / Task-dispatch) present? Inspection only — never attempt-and-catch. Record `dispatch_available: true|false` in confirm.md; when false, also record `execution_mode: serial-absorbed` and output one line: 「無 subagent 派遣工具：進入 serial-absorbed 模式（保留 worktree/merge 機制，角色由 orchestrator 吸收）」.
 
-**serial-absorbed semantics**: classification, worktrees, §4d merge points, and Step 7 cleanup are ALL retained. Groups at the same frontier level process serially in document order (logged in task-map.md). Agent roles are absorbed by the orchestrator — absorption is sanctioned ONLY in this mode — with their artifacts still produced and their MECHANICAL gates still enforced: green_proof Bash verification, red_proof capture, checklist fill. The loss of reviewer independence is disclosed in final-report.md. Never a stop condition.
+**serial-absorbed semantics**: classification, worktrees, §4d merge points, and Step 7 cleanup are ALL retained. Groups at the same frontier level process serially in document order (logged in task-map.md). Agent roles are absorbed by the orchestrator — absorption is sanctioned ONLY in this mode — with their artifacts still produced and their MECHANICAL gates still enforced: green_proof Bash verification, red_proof capture, checklist fill. The loss of reviewer independence is disclosed in final-report.md. Never a stop condition. Mode collision: when `git_available: false` AND `dispatch_available: false`, `execution_mode: degraded-in-place` — it subsumes serial-absorbed (no worktrees/merge to retain; roles absorbed per serial-absorbed's gates).
+
+**Logging note**: every logged gate result carries its value inline (exit code, counts) as a contemporaneous, self-contained line — "see above" references and retro-batched timestamps make the trace unable to witness ordering.
 
 ### Spec Validation
 
@@ -160,12 +162,14 @@ For **M**: single workflow, main branch. No worktrees.
 
 For **L/XL**: worktrees require `git_available: true` (Step 0 probe). If git is unavailable, or any `git worktree add` below exits non-zero: do NOT retry and do NOT block the wave — degrade the whole run, one-way, to **in-place serialized execution**: process every group sequentially in topological document order in the main working directory with M-mode semantics (no worktrees, no §4d merge points), record `execution_mode: degraded-in-place` plus the failing command's verbatim output in confirm.md, and continue the TDAID loop unchanged. Announce once: 「worktree 不可用，已降級為就地序列執行」.
 
-Otherwise (git available): BEFORE running the first `git worktree add`, record `target_branch = $(git branch --show-current)` (fallback `main` if empty/detached) and the wave's worktree-registry rows into confirm.md — every later merge targets this recorded value, never a hardcoded name, and a crash between adds must never leave a worktree invisible to Step 7's registry-iterating cleanup. Then create the wave's worktrees before dispatching any impl-agent for that wave, strictly in this per-group order: registry row written in confirm.md → run the add → verify exit 0 → next group:
+Otherwise (git available): single ordering invariant — ALL of the wave's worktree-registry rows, plus `target_branch = $(git branch --show-current)` (fallback `main` if empty/detached), are written into confirm.md BEFORE the wave's first `git worktree add`. Every later merge targets this recorded value, never a hardcoded name, and a crash between adds can never leave a worktree invisible to Step 7's registry-iterating cleanup. Then create the wave's worktrees (verify each add exits 0) before dispatching any impl-agent for that wave:
 ```bash
 git worktree add .claude/worktrees/execute-{date}-{slug}-{group} -b execute/{date}-{slug}/{group}
 ```
 
 Never place worktree checkouts under `.git/worktrees/` — that directory is git's own per-worktree metadata store; a checkout there shares its directory with git's HEAD/index/commondir files, so the tree is permanently dirty and a Step 7 WIP `git add -A` would commit git internals.
+
+Sharing the main tree's build cache from a worktree (e.g. `CARGO_TARGET_DIR`) is permitted and should be logged as a build-env decision — it is not a contract deviation.
 
 ### 4b. Per-task TDAID loop
 
@@ -385,7 +389,7 @@ LOOP:
 
 > **Re-read checkpoint:** Before entering, re-read this step. Confirm single-retry limit for E2E.
 
-Read `test.md` for the E2E startup command (typically in the E2E 測試策略 section). Use Monitor tool to observe long-running test output.
+Read `test.md` for the E2E startup command (typically in the E2E 測試策略 section). Use Monitor tool to observe long-running test output; suites known to complete in seconds may run via Bash directly.
 
 If no command found → record 「E2E 跳過：test.md 未提供啟動命令」in final-report; proceed to Step 6.
 
@@ -465,6 +469,8 @@ completed_at: {ISO 8601}
 final-report.md: .claude/execute/{date}-{slug}/execute/final-report.md
 {若有 blocked 項目，條列清單}
 ```
+
+When hosted as a subagent whose caller mandates a structured final-text shape, this 繁中 completion block (and the Step 0 announce lines) is recorded verbatim in final-report.md instead of the conversation — that recording satisfies the output obligation.
 
 **Done when:** final-report.md written; all worktrees removed; user notified.
 
