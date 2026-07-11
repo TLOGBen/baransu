@@ -301,11 +301,9 @@ When the answer straddles two, prefer `swiss` (most preset-agnostic skeleton).
 
 Output of this step feeds Step 3's atomic staging (`Copy staging/design-cores/` + `slide-cores/`) exactly as the preset path does. No new skeleton source is invented — gen only re-skins an existing donor.
 
-**Staged verification anchor**: immediately after the 42 files are staged — before the shared atomic mv — run `python3 {skill_dir}/scripts/check.py` against the staged output so Check C (prefix consistency) and Check B (canonical tokens) fire at this point in the gen pipeline. This staged run is the verification event the failure branch below refers to; gen mode never defers it to a Lint-Mode invocation it does not schedule.
-
 **Gen-mode donor-clone failure branch** (three-tiered — resilience specific to the gen output path; the preset path's atomic/lint fallback does not cover this newly-generated path):
 
-- **Trigger condition**: the staged Check C run above fails — some staged `design-cores/` / `slide-cores/` file's class prefix still mixes in a donor prefix (`kami-*` / `swiss-*` / `google-*`).
+- **Trigger condition**: the staged Check C run (the §Staged verification anchor after Step 3, once all five artifacts are staged) fails — some staged `design-cores/` / `slide-cores/` file's class prefix still mixes in a donor prefix (`kami-*` / `swiss-*` / `google-*`).
 - **First-line fix**: run a full `sed` over that staged file replacing the leftover donor prefix → `<slug>-` (patching the gap from (a) above), then re-run the staged Check C to confirm it passes.
 - **Still-fails fallback** (the donor skeleton itself lacks some canonical token alias; the prefix is clean but the staged Check B still fails): fall back to preset mode applying that donor preset, and tell the user plainly 「gen slug `<slug>` 已降級為 `<donor>` preset」. 🔴 **Do not silently produce a half artifact set** — better to downgrade and report than to write out an incomplete skeleton that fails lint.
 
@@ -343,6 +341,8 @@ Each section must be substantive — no placeholder text. Base content on the us
 ### Step 3 — Render DESIGN.html
 
 **Spec → read `references/render-design-html.md`** (includes the 7-section structure + technical requirements + write location + success message). Rendered into the staging dir as `staging/DESIGN.html` (atomic staging item 5, per I5); the shared atomic mv delivers it to project root.
+
+**Staged verification anchor**: immediately after this step completes — all five artifacts are now staged (Step 1.5's 42 skeletons, staging/tokens.css, staging/DESIGN.md, and this step's staging/DESIGN.html) and the shared atomic mv has not yet run — run `python3 {skill_dir}/scripts/check.py` against the staged output. With the staged set complete, Check A (5 artifacts) passes through, so Check B (canonical tokens) and Check C (prefix consistency) fire at this point in the gen pipeline. This staged run is the verification event the Step 1.5 donor-clone failure branch refers to; gen mode never defers it to a Lint-Mode invocation it does not schedule.
 
 
 ---

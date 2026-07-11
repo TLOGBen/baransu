@@ -12,11 +12,13 @@ export const meta = {
 // Adoption (writing scratch back to the live SKILL.md) is the CALLER's obligation
 // and passes through evolve's Gate 4 (Authorization PAUSE / standing auth); this
 // workflow only proposes.
-const ROOT = args && args.root
+// Top-level drivers may deliver args as a JSON-encoded string — tolerate both shapes.
+const A = (typeof args === 'string') ? JSON.parse(args) : (args || {})
+const ROOT = A.root
 if (!ROOT) throw new Error('args.root required — pass the baransu repo/worktree root')
 const ALL = ['analyze','book','codex-skill-transfer','design','evolve','execute','health','hunt','learn','read','review','ship','think','write']
-const SKILLS = (args && Array.isArray(args.skills) && args.skills.length) ? args.skills : ALL
-const MARGIN = (args && typeof args.margin === 'number') ? args.margin : 2.0   // min per-judge structure-point improvement to adopt
+const SKILLS = (Array.isArray(A.skills) && A.skills.length) ? A.skills : ALL
+const MARGIN = (typeof A.margin === 'number') ? A.margin : 2.0   // min per-judge structure-point improvement to adopt
 
 const RUBRIC = `Structure-axis rubric (score each dimension 0..weight). STRUCTURE-AXIS-ONLY: dims 7-9 excluded.
 1 Trigger Clarity (8): frontmatter description has unambiguous trigger phrases AND explicit not-for boundaries.
