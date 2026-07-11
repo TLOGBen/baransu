@@ -2,6 +2,14 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.9.0 (2026-07-11)
+
+**美學基底與出廠修復——design/book 回歸「美學與統一」本心**。plugin version 2.8.0 → 2.9.0。三 PR 合併:
+
+- **PR #5 經典美學基底(盲測全票勝出)**:`design/references/aesthetics-foundation.md`(238 行)——七部經典(Itten/Albers/Arnheim+格式塔/Rams/原研哉/Müller-Brockmann/Tschichold)經 /learn 消化蒸餾為決策規則,每條落名出處;元規則「理論服務於軟弱時刻,永不覆蓋直覺 — Itten」。實驗證據:2 brief × 2 條件盲測 clearly-better ×2 全票;機制=基底提供「brief→專屬材質隱喻→全 token 推導」,無基底側落入體裁先驗;理論致平坦化被反證。Gen Mode 接線(INFORM not dictate,Preset Mode 不讀);book 新視覺結構按需引用。上游吸收:Waza 方向防衛框架、反泛型禁名單、字型配對規則、huashu 採樣→收斂→論證+印墨彩度帶(MIT)、CJK 排印(screen/print line-height 分歧明文)、Kami AI-slop +6 列、diagram-design 7-role 節點表+註解原語(MIT)。
+- **PR #4 煙霧測試出廠級修復**:真執行煙霧發現 4 high——全新 preset 過不了自家 sanity(lint 打中規格散文→check.py .md inline-code 豁免)、冪等重跑被 schema 欄打死(殘留 regex 對齊)、html2pptx 遇 inline SVG 必崩(SVGAnimatedString→getAttribute)、pptxgenjs 裝 global 驗 cwd(同境化);+6 medium(--dry-run 真列表化、GATE-F regex、playwright 驗二進位、GATE-F/G 接入實流程+slides-{slug}/ 落盤契約、Preset Mode staged 驗證錨點)。兩煙霧閘門實證翻綠。
+- **PR #3 hunt 快徑收口**:C'2 驗證(Locate 期建檔錨點 PASS)回饋——資格判定去循環(路由時跑 blast grep)、relevant 定義、必記路由行、短表五節精確邊界、狀態梯快徑摺疊、建檔逐字引 status 行。
+
 ## v2.8.0 (2026-07-10)
 
 **慣性帳本大修——用盲測 A/B 實驗量化「skill 對抗了哪些模型慣性」，據以增重與減重**。plugin version 2.7.7 → 2.8.0。方法論：同一任務三條件盲測（模型直接動手＝金標準／模型+skill／異模型+skill），不知情 examiner 依工件建行為側寫，盲測 judge 產出四欄慣性帳本（skill 解決的／沒解決的／skill 造成的枷鎖／無行為指紋的純紀錄條款），修訂後精簡驗證輪確認收斂。execute 跑了 4 輪（v1→v4）+ 平等 A/B 終局；read/learn/hunt 各 1 輪；write/design/book/health/evolve/think/analyze/review 以注入慣性知識的綜合審計覆蓋。
