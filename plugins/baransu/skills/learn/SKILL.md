@@ -415,7 +415,7 @@ Followed by `$REFINED_BODY` as the Markdown body: the refined prose sections end
 
 The `sources` array must list every source in `$FILTERED_SOURCES` (the sources that survived Stage 2 scoring). For sources acquired from local files, the `url` value takes the form `local:{path}`. The `language` field must be exactly `"zh"` or `"en"` — the value of `$LANG`.
 
-Never leave a draft duplicate beside the digest: if any intermediate draft file was written to disk during Stage 4 or Stage 5, delete it after the digest file is written.
+Never leave a draft duplicate beside the digest — cleanup is tracked, never judged after the fact: whenever Stage 4 or Stage 5 writes an intermediate draft file to disk, immediately record that file's absolute path in the named list `$TEMP_FILES` at the moment of writing. After the digest file is written, apply this explicit gate to cleanup: if a path is in `$TEMP_FILES` AND the path lies under `.claude/learn/`, then delete it; any path not in `$TEMP_FILES`, or located outside `.claude/learn/`, must never be deleted.
 
 ### 6. Completion notice
 

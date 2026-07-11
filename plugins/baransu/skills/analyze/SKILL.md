@@ -251,13 +251,13 @@ Define the testing strategy that verifies the implementation satisfies requireme
 | {target} | {layers} | {named assertion — 具名值，非「有回應」} |
 
 ## 關鍵邊界條件
-{每條邊界條件雙向追溯：連到它驗證的 REQ-XXX，並連到產生此風險的 task（TASK-{group}-NN）；孤懸於任何 task 風險之外的邊界條件應刪除}
+{每條邊界條件雙向追溯：連到它驗證的 REQ-XXX，並連到產生此風險的 task（TASK-{group}-NN）；孤懸於任何 task 風險之外的邊界條件應刪除。task 編號於 Stage 5 回填——撰寫本節時 task 尚未編號，該欄先留佔位}
 
 - {edge case — REQ-XXX — 由 TASK-{group}-NN 製造的風險}
 - {edge case — REQ-XXX — 由 TASK-{group}-NN 製造的風險}
 
 ## 冗餘與首要交付掃描
-{逐條掃上面三張表，列出並刪除重複或不對應任何 task 風險的多餘測試；並確認本次首要交付物本身有一條測試把「達成」釘死（收斂類重構需一條殘留複本掃描列，例如 grep 存量呼叫點＝模板一檔）}
+{逐條掃上面三張表，列出並刪除重複或不對應任何 task 風險的多餘測試；並確認本次首要交付物本身有一條測試把「達成」釘死（收斂類重構需一條殘留複本掃描列，例如 grep 存量呼叫點＝模板一檔）。逐 task 對應檢查所需的 task 編號於 Stage 5 回填}
 - {kept/removed — reason}
 ```
 
@@ -324,6 +324,10 @@ Before writing task files, note which groups must complete before another can st
 Every task must have at least one requirement reference (`REQ-XXX`). Do not invent requirement numbers not defined in `requirement.md`.
 
 The optional 「測試重量建議」 line lets the spec author mark wiring-only tasks (thin pass-through forwarders, module registration, re-exports, config plumbing) as `riding` at decomposition time, when that knowledge is freshest. It is advisory input only — /execute's §4b test-weight tier rule keeps final decision authority (when in doubt, full). Omit the line when unsure.
+
+### Backfill test.md task references
+
+After all task files are written — and before dispatching the Stage 6 review — reopen `test.md` and replace the placeholder task back-references left in Stage 4's 「關鍵邊界條件」 and 「冗餘與首要交付掃描」 sections with the actual `TASK-{group}-NN` numbers now defined in the task files. Any edge case that cannot be traced to a risk produced by a real task is deleted, per Stage 4's existing rule. This backfill is the sanctioned in-process write point for task references in `test.md`, so Agent 1's Stage 6 back-reference audit checks a chain the flow itself completed rather than relying on auto-correct to repair it.
 
 ---
 
