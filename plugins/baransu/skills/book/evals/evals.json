@@ -4,8 +4,17 @@
     {
       "id": 1,
       "prompt": "/book --text \"Kubernetes 三層架構：Control Plane（API Server、Scheduler、etcd）、Node（kubelet、kube-proxy、Container Runtime）、Pod（最小部署單位）。核心物件包括 Deployment（管理 ReplicaSet 確保 Pod 數量）、Service（提供穩定 ClusterIP endpoint）、ConfigMap / Secret（設定注入）。HPA 依 CPU / memory metrics 自動水平擴縮；Ingress 作為 L7 負載均衡入口，路由到不同 Service。\"",
-      "expected_output": "A Kami-themed HTML file at .claude/book/<slug>.html with: at least 1 SVG diagram, TOC nav, 4-8 sections, validates via validate-output.ts",
-      "files": [],
+      "expected_output": "A preset-themed HTML file (theme per project-root tokens.css) at .claude/book/<slug>.html with: at least 1 SVG diagram, TOC nav, 4-8 sections; passes validate-output.ts (GATE A-E/J/K/L on html mode; F/G SKIP)",
+      "files": [
+        {
+          "path": "tokens.css",
+          "content": "/* preset: kami; schema: 43 */\n:root {\n  --paper: #faf6ef;\n  --surface: #f3ede1;\n  --surface-strong: #e9e0cf;\n  --dark-surface: #2b2724;\n  --deep-dark: #1c1916;\n  --accent: #b0563b;\n  --accent-on: #faf6ef;\n  --ink: #2b2724;\n  --text-primary: #3a352f;\n  --text-secondary: #6b6258;\n  --text-muted: #8d8478;\n  --text-faint: #b3aa9c;\n  --border: #d8cdb9;\n  --border-soft: #e6ddcc;\n  --font-sans: 'Noto Sans TC', sans-serif;\n  --font-serif: 'Noto Serif TC', serif;\n  --font-mono: 'JetBrains Mono', monospace;\n  --shadow-ring: 0 0 0 1px rgba(43, 39, 36, 0.06);\n  --shadow-whisper: 0 1px 2px rgba(43, 39, 36, 0.05);\n  --space-xs: 4px;\n  --space-sm: 8px;\n  --space-md: 16px;\n  --space-lg: 24px;\n  --space-xl: 40px;\n  --space-2xl: 64px;\n  --space-3xl: 96px;\n  --radius-xs: 2px;\n  --radius-sm: 4px;\n  --radius-md: 8px;\n  --radius-lg: 12px;\n  --radius-xl: 16px;\n  --radius-2xl: 24px;\n  --radius-hero: 32px;\n  --cover-title-align: left;\n  --grid-columns: 12;\n  --grid-gutter: 24px;\n  --delta-up: #4a7c59;\n  --delta-down: #a04b3c;\n  --ease: cubic-bezier(0.4, 0, 0.2, 1);\n  --duration: 200ms;\n  --stagger-step: 60ms;\n  --font-display: 'Noto Serif TC', serif;\n  --shadow-drama: 0 24px 48px rgba(28, 25, 22, 0.18);\n}\n"
+        },
+        {
+          "path": "design-cores/long-form.html",
+          "content": "<!DOCTYPE html>\n<html lang=\"zh-Hant\">\n<head>\n  <meta charset=\"utf-8\">\n  <title>{{TITLE}}</title>\n  <link rel=\"stylesheet\" href=\"tokens.css\">\n</head>\n<body>\n  <nav class=\"kami-toc\"></nav>\n  <main>\n    <header class=\"kami-cover\">\n      <p class=\"kami-kicker\"></p>\n      <h1>{{TITLE}}</h1>\n      <p class=\"kami-subtitle\"></p>\n    </header>\n    <section data-slot=\"long-form-body\">\n      <!-- Replace this section's innerHTML with rendered body sections -->\n    </section>\n    <footer class=\"kami-footer\"></footer>\n  </main>\n</body>\n</html>\n"
+        }
+      ],
       "assertions": [
         {
           "id": "html_file_exists",
@@ -13,14 +22,14 @@
           "check": "glob outputs/*.html has at least 1 match"
         },
         {
-          "id": "has_kami_article",
-          "description": "HTML contains <article class=\"paper\"> — the Kami paper container",
-          "check": "grep -q 'class=\"paper\"' output.html"
+          "id": "has_long_form_body_slot",
+          "description": "HTML contains the SSOT body slot <section data-slot=\"long-form-body\"> (design-cores/long-form.html contract)",
+          "check": "grep -q 'data-slot=\"long-form-body\"' output.html"
         },
         {
           "id": "has_toc",
-          "description": "HTML contains <nav class=\"toc-wrap\"> — the sticky TOC navigation",
-          "check": "grep -q 'toc-wrap' output.html"
+          "description": "HTML contains the preset-prefixed TOC nav (<nav class=\"<slug>-toc\">, e.g. kami-toc; prefix from tokens.css line 1)",
+          "check": "grep -Eq 'class=\"[a-z0-9-]+-toc\"' output.html"
         },
         {
           "id": "svg_present_and_balanced",
@@ -42,8 +51,21 @@
     {
       "id": 2,
       "prompt": "/book context-engineering-langchain",
-      "expected_output": "A Kami-themed HTML file re-rendering the existing read material, with SVG diagram and proper structure",
-      "files": [],
+      "expected_output": "A preset-themed HTML file (per project-root tokens.css) re-rendering the existing read material via the Stage 1 §2 slug path, with SVG diagram and proper structure",
+      "files": [
+        {
+          "path": "tokens.css",
+          "content": "/* preset: kami; schema: 43 */\n:root {\n  --paper: #faf6ef;\n  --surface: #f3ede1;\n  --surface-strong: #e9e0cf;\n  --dark-surface: #2b2724;\n  --deep-dark: #1c1916;\n  --accent: #b0563b;\n  --accent-on: #faf6ef;\n  --ink: #2b2724;\n  --text-primary: #3a352f;\n  --text-secondary: #6b6258;\n  --text-muted: #8d8478;\n  --text-faint: #b3aa9c;\n  --border: #d8cdb9;\n  --border-soft: #e6ddcc;\n  --font-sans: 'Noto Sans TC', sans-serif;\n  --font-serif: 'Noto Serif TC', serif;\n  --font-mono: 'JetBrains Mono', monospace;\n  --shadow-ring: 0 0 0 1px rgba(43, 39, 36, 0.06);\n  --shadow-whisper: 0 1px 2px rgba(43, 39, 36, 0.05);\n  --space-xs: 4px;\n  --space-sm: 8px;\n  --space-md: 16px;\n  --space-lg: 24px;\n  --space-xl: 40px;\n  --space-2xl: 64px;\n  --space-3xl: 96px;\n  --radius-xs: 2px;\n  --radius-sm: 4px;\n  --radius-md: 8px;\n  --radius-lg: 12px;\n  --radius-xl: 16px;\n  --radius-2xl: 24px;\n  --radius-hero: 32px;\n  --cover-title-align: left;\n  --grid-columns: 12;\n  --grid-gutter: 24px;\n  --delta-up: #4a7c59;\n  --delta-down: #a04b3c;\n  --ease: cubic-bezier(0.4, 0, 0.2, 1);\n  --duration: 200ms;\n  --stagger-step: 60ms;\n  --font-display: 'Noto Serif TC', serif;\n  --shadow-drama: 0 24px 48px rgba(28, 25, 22, 0.18);\n}\n"
+        },
+        {
+          "path": "design-cores/long-form.html",
+          "content": "<!DOCTYPE html>\n<html lang=\"zh-Hant\">\n<head>\n  <meta charset=\"utf-8\">\n  <title>{{TITLE}}</title>\n  <link rel=\"stylesheet\" href=\"tokens.css\">\n</head>\n<body>\n  <nav class=\"kami-toc\"></nav>\n  <main>\n    <header class=\"kami-cover\">\n      <p class=\"kami-kicker\"></p>\n      <h1>{{TITLE}}</h1>\n      <p class=\"kami-subtitle\"></p>\n    </header>\n    <section data-slot=\"long-form-body\">\n      <!-- Replace this section's innerHTML with rendered body sections -->\n    </section>\n    <footer class=\"kami-footer\"></footer>\n  </main>\n</body>\n</html>\n"
+        },
+        {
+          "path": ".claude/read/material/context-engineering-langchain/index.md",
+          "content": "---\ntitle: Context Engineering with LangChain\nsource: https://blog.langchain.dev/context-engineering\ncaptured: 2026-06-20\ntool: /read\n---\n\n# Context Engineering with LangChain\n\nContext engineering is the practice of assembling the right information, in the right format, into a model's context window. Where prompt engineering tunes a single instruction string, context engineering manages the full pipeline: retrieval, memory, tool outputs, and conversation history.\n\n## Why it matters\n\nAgents fail most often not because the model is weak but because the context is wrong — missing facts, stale state, or noise crowding out the signal. LangChain frames this as the primary lever for agent reliability.\n\n## Core techniques\n\n- **Write**: persist scratchpads and memories outside the window so the agent can re-read them later.\n- **Select**: retrieve only the relevant slice — semantic search over memories, tool descriptions, and few-shot examples.\n- **Compress**: summarize or trim trajectories when the window fills; keep decisions, drop chatter.\n- **Isolate**: split context across sub-agents or sandboxed environments so each task sees only what it needs.\n\n## LangGraph support\n\nLangGraph exposes checkpointing, long-term memory stores, and state schemas that make each of the four techniques explicit and testable, rather than implicit in prompt strings.\n"
+        }
+      ],
       "assertions": [
         {
           "id": "html_file_exists",
@@ -51,14 +73,14 @@
           "check": "glob outputs/*.html has at least 1 match"
         },
         {
-          "id": "has_kami_article",
-          "description": "HTML contains <article class=\"paper\"> — the Kami paper container",
-          "check": "grep -q 'class=\"paper\"' output.html"
+          "id": "has_long_form_body_slot",
+          "description": "HTML contains the SSOT body slot <section data-slot=\"long-form-body\"> (design-cores/long-form.html contract)",
+          "check": "grep -q 'data-slot=\"long-form-body\"' output.html"
         },
         {
           "id": "has_toc",
-          "description": "HTML contains <nav class=\"toc-wrap\"> — the sticky TOC navigation",
-          "check": "grep -q 'toc-wrap' output.html"
+          "description": "HTML contains the preset-prefixed TOC nav (<nav class=\"<slug>-toc\">, e.g. kami-toc; prefix from tokens.css line 1)",
+          "check": "grep -Eq 'class=\"[a-z0-9-]+-toc\"' output.html"
         },
         {
           "id": "svg_present_and_balanced",
@@ -80,8 +102,17 @@
     {
       "id": 3,
       "prompt": "/book https://blog.langchain.dev/langchain-state-of-ai-agents-report-2025",
-      "expected_output": "A Kami-themed HTML file converting a public URL, with SVG and structured sections",
-      "files": [],
+      "expected_output": "A preset-themed HTML file (per project-root tokens.css) converting a public URL, with SVG and structured sections",
+      "files": [
+        {
+          "path": "tokens.css",
+          "content": "/* preset: kami; schema: 43 */\n:root {\n  --paper: #faf6ef;\n  --surface: #f3ede1;\n  --surface-strong: #e9e0cf;\n  --dark-surface: #2b2724;\n  --deep-dark: #1c1916;\n  --accent: #b0563b;\n  --accent-on: #faf6ef;\n  --ink: #2b2724;\n  --text-primary: #3a352f;\n  --text-secondary: #6b6258;\n  --text-muted: #8d8478;\n  --text-faint: #b3aa9c;\n  --border: #d8cdb9;\n  --border-soft: #e6ddcc;\n  --font-sans: 'Noto Sans TC', sans-serif;\n  --font-serif: 'Noto Serif TC', serif;\n  --font-mono: 'JetBrains Mono', monospace;\n  --shadow-ring: 0 0 0 1px rgba(43, 39, 36, 0.06);\n  --shadow-whisper: 0 1px 2px rgba(43, 39, 36, 0.05);\n  --space-xs: 4px;\n  --space-sm: 8px;\n  --space-md: 16px;\n  --space-lg: 24px;\n  --space-xl: 40px;\n  --space-2xl: 64px;\n  --space-3xl: 96px;\n  --radius-xs: 2px;\n  --radius-sm: 4px;\n  --radius-md: 8px;\n  --radius-lg: 12px;\n  --radius-xl: 16px;\n  --radius-2xl: 24px;\n  --radius-hero: 32px;\n  --cover-title-align: left;\n  --grid-columns: 12;\n  --grid-gutter: 24px;\n  --delta-up: #4a7c59;\n  --delta-down: #a04b3c;\n  --ease: cubic-bezier(0.4, 0, 0.2, 1);\n  --duration: 200ms;\n  --stagger-step: 60ms;\n  --font-display: 'Noto Serif TC', serif;\n  --shadow-drama: 0 24px 48px rgba(28, 25, 22, 0.18);\n}\n"
+        },
+        {
+          "path": "design-cores/long-form.html",
+          "content": "<!DOCTYPE html>\n<html lang=\"zh-Hant\">\n<head>\n  <meta charset=\"utf-8\">\n  <title>{{TITLE}}</title>\n  <link rel=\"stylesheet\" href=\"tokens.css\">\n</head>\n<body>\n  <nav class=\"kami-toc\"></nav>\n  <main>\n    <header class=\"kami-cover\">\n      <p class=\"kami-kicker\"></p>\n      <h1>{{TITLE}}</h1>\n      <p class=\"kami-subtitle\"></p>\n    </header>\n    <section data-slot=\"long-form-body\">\n      <!-- Replace this section's innerHTML with rendered body sections -->\n    </section>\n    <footer class=\"kami-footer\"></footer>\n  </main>\n</body>\n</html>\n"
+        }
+      ],
       "assertions": [
         {
           "id": "html_file_exists",
@@ -89,14 +120,14 @@
           "check": "glob outputs/*.html has at least 1 match"
         },
         {
-          "id": "has_kami_article",
-          "description": "HTML contains <article class=\"paper\"> — the Kami paper container",
-          "check": "grep -q 'class=\"paper\"' output.html"
+          "id": "has_long_form_body_slot",
+          "description": "HTML contains the SSOT body slot <section data-slot=\"long-form-body\"> (design-cores/long-form.html contract)",
+          "check": "grep -q 'data-slot=\"long-form-body\"' output.html"
         },
         {
           "id": "has_toc",
-          "description": "HTML contains <nav class=\"toc-wrap\"> — the sticky TOC navigation",
-          "check": "grep -q 'toc-wrap' output.html"
+          "description": "HTML contains the preset-prefixed TOC nav (<nav class=\"<slug>-toc\">, e.g. kami-toc; prefix from tokens.css line 1)",
+          "check": "grep -Eq 'class=\"[a-z0-9-]+-toc\"' output.html"
         },
         {
           "id": "svg_present_and_balanced",
@@ -111,7 +142,7 @@
         {
           "id": "no_broken_local_assets",
           "description": "No local src= references point to missing files (validate-output.ts check)",
-          "check": "python3 -c \"import re; c=open('output.html').read(); local=[s for s in re.findall(r'src=\\\"([^\\\"]+)\\\"', c) if not s.startswith(('http','data')); import os; missing=[s for s in local if not os.path.exists(s)]; assert not missing, f'missing assets: {missing}'\""
+          "check": "python3 -c \"import re, os; c=open('output.html').read(); local=[s for s in re.findall(r'src=\\\"([^\\\"]+)\\\"', c) if not s.startswith(('http','data'))]; missing=[s for s in local if not os.path.exists(s)]; assert not missing, f'missing assets: {missing}'\""
         }
       ]
     },

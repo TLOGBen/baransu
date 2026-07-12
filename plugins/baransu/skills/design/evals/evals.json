@@ -7,7 +7,7 @@
       "prompt": "生成設計規格",
       "should_trigger": true,
       "expected_skill": "design",
-      "expected_behavior": "gen mode: guided DESIGN.md (uppercase, UI visual spec) generation."
+      "expected_behavior": "gen mode: guided interview (extreme-commitment axis + chart-capability declaration), --slug required (recoverable via interview / description derivation), donor-clones the skeletons from the closest preset, and atomically writes the five-artifact set (tokens.css / DESIGN.md / DESIGN.html / design-cores/ / slide-cores/) at project root."
     },
     {
       "id": 2,
@@ -21,7 +21,7 @@
       "prompt": "用 preset 幫這個專案產一套 tokens.css 跟 DESIGN.md",
       "should_trigger": true,
       "expected_skill": "design",
-      "expected_behavior": "preset NAME mode: emits DESIGN.md, DESIGN.html, tokens.css, design-cores/."
+      "expected_behavior": "preset NAME mode: atomically emits the five artifacts DESIGN.md, DESIGN.html, tokens.css, design-cores/, slide-cores/ (v1.2-residue destructive-overwrite GATE requires --force)."
     },
     {
       "id": 4,
