@@ -13,11 +13,15 @@ structural/regex checks. This suite follows that same pattern.
 Covers (per ctx.md's Test block, REQ-001 Scenarios 1/3 + acceptance criteria):
   (a) statistical-feature content (axis/legend/multi-datapoint) routes to the
       new type — §4.10's 14th row + the new type-statistical.md reference file
-  (b) existing-13-type priority tie-break holds — §4.9's 7 structural rows are
-      still positioned to win first-match ties against the 7 statistical rows
+  (b) existing-type priority tie-break holds — the 7 pre-existing rows of
+      §4.9's structural block (now 10 rows, after org-chart / class /
+      architecture-board joined it) are still positioned to win first-match
+      ties against the 7 statistical rows
   (c) the L1/L2 degrade branch selection logic is documented in SKILL.md and
       testable via structural assertion
-  (d) regression — none of the existing 13 types' rows/content changed meaning
+  (d) regression — the existing 13 types' §4.10 rows survive as pinned (the
+      tree row's Best-for was re-scoped once Org Chart became a dedicated
+      type; the pin below tracks that wording)
 """
 
 from __future__ import annotations
@@ -41,7 +45,9 @@ EXISTING_13_TYPES = [
 ]
 
 # The 7 pre-existing structural §4.9 rows (data shape, chosen chart) — must
-# survive verbatim (content unchanged; order may move as a block).
+# survive verbatim (content unchanged; order may move as a block). §4.9's
+# structural block has since grown to 10 rows (org-chart / class /
+# architecture-board); this list deliberately pins only the original 7.
 STRUCTURAL_ROWS = [
     ("2×2 strategic positioning", "Quadrant"),
     ("Hierarchical data depth ≥ 2", "Tree"),
@@ -81,7 +87,7 @@ ORIGINAL_410_ROWS = [
     "| swimlane | cross-functional process / RACI flow / vendor handoff / multi-team workflow / cross-team responsibility | `references/diagram-types/type-swimlane.md` | `status: complete` |",
     "| quadrant | prioritization (Impact × Effort) / positioning map / portfolio map / 2×2 decision / scenario planning | `references/diagram-types/type-quadrant.md` | `status: complete` |",
     "| nested | expressing hierarchy via containment / scope boundary / CLAUDE.md cascade / trust zone / blast radius | `references/diagram-types/type-nested.md` | `status: complete` |",
-    "| tree | org chart / dependency tree / taxonomy / file tree / decision breakdown / skill tree | `references/diagram-types/type-tree.md` | `status: complete` |",
+    "| tree | module hierarchy / dependency tree / taxonomy / file tree / decision breakdown / skill tree | `references/diagram-types/type-tree.md` | `status: complete` |",
     "| layers | OSI model / CSS cascade / context hierarchy / tech stack / abstraction layer / memory hierarchy | `references/diagram-types/type-layers.md` | `status: complete` |",
     "| venn | concept intersection / shared attributes across categories / ikigai-style frame / positioning sweet spot | `references/diagram-types/type-venn.md` | `status: complete` |",
     "| pyramid | hierarchy of needs / prioritization rank / value pyramid / conversion funnel / content importance | `references/diagram-types/type-pyramid.md` | `status: complete` |",
@@ -110,7 +116,7 @@ def _extract_region(text: str, start_marker: str, end_markers: list[str]) -> str
 
 def section_49(text: str) -> str:
     return _extract_region(
-        text, "## §4.9 14-type chart routing decision tree", ["\n## §4.10"])
+        text, "## §4.9 17-type chart routing decision tree", ["\n## §4.10"])
 
 
 def section_410(text: str) -> str:
@@ -256,15 +262,16 @@ class TestFourteenthRowInSelectionTable(unittest.TestCase):
         row_line = next(l for l in self.section.splitlines() if l.startswith("| statistical |"))
         self.assertIn("`status: complete`", row_line)
 
-    def test_table_now_has_fourteen_rows(self):
+    def test_table_now_has_seventeen_rows(self):
         rows = [l for l in self.section.splitlines() if l.startswith("| ") and " | " in l[2:]]
         # First matching line is the header row, second is the separator; data rows follow.
         data_rows = [l for l in rows if not l.startswith("| Type |") and not set(l.replace("|", "").strip()) <= {"-"}]
-        self.assertEqual(len(data_rows), 14, f"expected 14 data rows, got {len(data_rows)}:\n{data_rows}")
+        self.assertEqual(len(data_rows), 17, f"expected 17 data rows, got {len(data_rows)}:\n{data_rows}")
 
-    def test_heading_and_toc_updated_to_fourteen(self):
-        self.assertIn("14-type selection table", self.full)
+    def test_heading_and_toc_updated_to_seventeen(self):
+        self.assertIn("17-type selection table", self.full)
         self.assertNotIn("13-type selection table", self.full)
+        self.assertNotIn("14-type selection table", self.full)
 
     def test_all_thirteen_original_rows_unchanged(self):
         for row in ORIGINAL_410_ROWS:
@@ -272,8 +279,9 @@ class TestFourteenthRowInSelectionTable(unittest.TestCase):
 
 
 class TestFirstMatchOrderingPriority(unittest.TestCase):
-    """(b) — §4.9's 7 structural rows keep first-match priority over the 7
-    statistical rows, per design.md's 既有型態優先 tie-break rule."""
+    """(b) — the 7 pre-existing rows of §4.9's now-10-row structural block
+    keep first-match priority over the 7 statistical rows, per design.md's
+    既有型態優先 tie-break rule."""
 
     def setUp(self) -> None:
         self.full = SVG_RULES.read_text(encoding="utf-8")
@@ -317,7 +325,8 @@ class TestFirstMatchOrderingPriority(unittest.TestCase):
         self.assertEqual(len(statistical_indices), 7)
         self.assertLess(
             max(structural_indices), min(statistical_indices),
-            "all 7 structural rows must precede all 7 statistical rows for "
+            "the 7 pinned pre-existing structural rows (of the now-10-row "
+            "structural block) must precede all 7 statistical rows for "
             "first-match tie-break priority (既有型態優先)",
         )
 
@@ -432,7 +441,13 @@ class TestRegressionExistingThirteenTypesUntouched(unittest.TestCase):
     """(d) — none of the existing 13 types' files/content changed meaning."""
 
     def test_thirteen_type_files_not_touched_by_this_task(self):
-        for name in EXISTING_13_TYPES:
+        # `architecture` is exempted: the book-diagrams change legitimately
+        # extends type-architecture.md's Layout conventions with the
+        # scale-levels cluster (Level 1 figure → board → sister boards).
+        # `tree` is exempted: once Org Chart became a dedicated type routed
+        # above Tree in §4.9, type-tree.md's Best-for dropped its "org chart"
+        # first-match bait (re-scoped to "module hierarchy").
+        for name in [t for t in EXISTING_13_TYPES if t not in ("architecture", "tree")]:
             path = DIAGRAM_TYPES_DIR / f"type-{name}.md"
             with self.subTest(type=name):
                 self.assertTrue(path.exists())
@@ -441,9 +456,9 @@ class TestRegressionExistingThirteenTypesUntouched(unittest.TestCase):
                     f"type-{name}.md must not be modified by TASK-book-01",
                 )
 
-    def test_directory_now_has_fourteen_type_files(self):
+    def test_directory_now_has_seventeen_type_files(self):
         files = sorted(p.name for p in DIAGRAM_TYPES_DIR.glob("type-*.md"))
-        self.assertEqual(len(files), 14, f"expected 14 type-*.md files, got {files}")
+        self.assertEqual(len(files), 17, f"expected 17 type-*.md files, got {files}")
 
     def test_sections_41_through_48_untouched(self):
         full = SVG_RULES.read_text(encoding="utf-8")

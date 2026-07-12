@@ -9,8 +9,9 @@
 - §4.7 Anti-slop precision constraints
 - §4.7b Node-role vocabulary + annotation primitive (7 roles, margins-only aside)
 - §4.8 Embedded font calibration (scale ≈ 0.47 after embedding in A4)
-- §4.9 14-type chart routing decision tree (first-match)
-- §4.10 14-type selection table (v1 ref skeleton + status disclosure)
+- §4.9 17-type chart routing decision tree (first-match)
+- §4.10 17-type selection table (v1 ref skeleton + status disclosure)
+- §4.11 Maintained-diagram lifecycle (trio contract)
 
 # SVG Rendering Rules — Stage 3 §4
 
@@ -72,6 +73,8 @@ The fragment below is the **complete three-id vocabulary**. Prepend to each SVG 
 | `arrow-link` | external / API call / cross-boundary | `#2D5A8A` (`--brand-light`) |
 
 **Fixed marker attributes**: `markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"`; the chevron path is fixed at `d="M2 1 L8 5 L2 9"`, `stroke-width="1.5"`, `stroke-linecap="round"`, `stroke-linejoin="round"`, `fill="none"`.
+
+**Id scoping**: the three ids are a per-SVG vocabulary, not document-global names — `url(#…)` resolves document-wide, so when one document carries multiple arrow-bearing SVGs, suffix the ids per section (`arrow-s2`, `arrow-accent-s2`, …) to keep DOM ids unique; the gates are id-name-agnostic and check defs ↔ refs bijectivity per SVG.
 
 **Why**: WeasyPrint / most static PDF renderers handle `<marker orient="auto">` rotation + `<polygon fill>` inconsistently, producing flipped arrows or missing fills; switching to a stroked chevron path aligns across every print pipeline. The chevron (line-drawn, not solid) also aligns directly with Kami `references/diagrams.md` L86 and is one of Kami's visual signatures. The three semantic tiers (general / focal / external) are what let the SVG layer align with the two specs "focal nodes ≤ 2" and "cross-system calls".
 
@@ -136,7 +139,7 @@ The fragment below is the **complete three-id vocabulary**. Prepend to each SVG 
 
 ## §4.7 Anti-slop precision constraints
 
-- All coordinates, widths, and spacings must be **multiples of 4**
+- All `<rect>`/`<line>`/`<circle>` positional geometry — x/y/width/height, line endpoints, circle centers — must be **multiples of 4**; text baselines and stroke-widths are exempt (only shape placement carries the 4px grid)
 - Node-width whitelist is **3 sizes** (aligned with Kami `references/diagrams.md` L79): {`128`, `144`, `160`}; a single SVG uses at most 2 of them at a time — mixing 3 is an anti-slop fail
   - **Exception**: viewBox width < **360px** (card embed / small diagram) may compress to **2 sizes** (recommended {128, 144} or {128, 160}), still keeping a 2-size rhythm, and **must not** custom-craft individual widths outside the whitelist
 - Node height: **32** (pill) / **64** (standard)
@@ -184,17 +187,20 @@ Beyond focal vs standard (§4.7), a node may take one of seven semantic roles �
 | Caption | 15-16 |
 | Mono tag | 14 |
 
-## §4.9 14-type chart routing decision tree (first-match)
+## §4.9 17-type chart routing decision tree (first-match)
 
-Find the first matching item top-to-bottom by data shape. **Ordering rule**: the 7 pre-existing structural rows are listed first, ahead of the 7 statistical rows, so that content matching both a structural data shape and a statistical one (e.g. an architecture diagram that happens to carry an axis) always resolves to the structural type first — first-match top-to-bottom means row position *is* priority, so this ordering is what implements design.md's 既有型態優先 (existing-type-priority) tie-break rule, not just a stated intention.
+Find the first matching item top-to-bottom by data shape. **Ordering rule**: the 10 structural rows are listed first, ahead of the 7 statistical rows, so that content matching both a structural data shape and a statistical one (e.g. an architecture diagram that happens to carry an axis) always resolves to the structural type first — first-match top-to-bottom means row position *is* priority, so this ordering is what implements design.md's 既有型態優先 (existing-type-priority) tie-break rule, not just a stated intention.
 
 | Data shape | Chosen chart |
 |---------|---------|
 | 2×2 strategic positioning | Quadrant |
+| Accountable owners + invocation / escalation routing | Org Chart |
 | Hierarchical data depth ≥ 2 | Tree |
 | Process with decision branches | Flowchart |
 | Cross-role process ≥ 3 actors | Swimlane |
 | 2-3 cluster sets overlapping | Venn |
+| Full-system panorama ≥ 10 blocks (multi-layer platform / governance map) | Architecture Board |
+| Code entities with fields/methods + inheritance/composition | Class |
 | System components + connections | Architecture |
 | Timeline + milestones | Timeline |
 | OHLC / per-day price | Statistical |
@@ -209,9 +215,9 @@ Find the first matching item top-to-bottom by data shape. **Ordering rule**: the
 
 > When nothing matches → fall back to **Architecture** (the general-purpose type).
 
-## §4.10 14-type selection table (v1 ref skeleton + status disclosure)
+## §4.10 17-type selection table (v1 ref skeleton + status disclosure)
 
-Each section containing a diagram looks up the corresponding ref from this table per Layer 2. The Status column always aligns with each ref's frontmatter (fact-synced, binary-verifiable via `grep '^status:' references/diagram-types/type-*.md`): `complete` means the ref contains directly reusable SVG example HTML marked `example: inline` and the renderer should reuse that skeleton; `ref-only` means only the ref spec exists and the example HTML is still pending (the renderer falls back to generic SVG primitives). All 14 types currently have frontmatter that is **entirely `status: complete` + `example: inline`**, and this table aligns with that; the `ref-only` row only carries reserved semantics for future new types not yet shipping an example.
+Each section containing a diagram looks up the corresponding ref from this table per Layer 2. The Status column always aligns with each ref's frontmatter (fact-synced, binary-verifiable via `grep '^status:' references/diagram-types/type-*.md`): `complete` means the ref contains directly reusable SVG example HTML marked `example: inline` and the renderer should reuse that skeleton; `ref-only` means only the ref spec exists and the example HTML is still pending (the renderer falls back to generic SVG primitives). All 17 types currently have frontmatter that is **entirely `status: complete` + `example: inline`**, and this table aligns with that; the `ref-only` row only carries reserved semantics for future new types not yet shipping an example.
 
 | Type | Best for | Reference | Status |
 |------|----------|-----------|--------|
@@ -224,12 +230,19 @@ Each section containing a diagram looks up the corresponding ref from this table
 | swimlane | cross-functional process / RACI flow / vendor handoff / multi-team workflow / cross-team responsibility | `references/diagram-types/type-swimlane.md` | `status: complete` |
 | quadrant | prioritization (Impact × Effort) / positioning map / portfolio map / 2×2 decision / scenario planning | `references/diagram-types/type-quadrant.md` | `status: complete` |
 | nested | expressing hierarchy via containment / scope boundary / CLAUDE.md cascade / trust zone / blast radius | `references/diagram-types/type-nested.md` | `status: complete` |
-| tree | org chart / dependency tree / taxonomy / file tree / decision breakdown / skill tree | `references/diagram-types/type-tree.md` | `status: complete` |
+| tree | module hierarchy / dependency tree / taxonomy / file tree / decision breakdown / skill tree | `references/diagram-types/type-tree.md` | `status: complete` |
 | layers | OSI model / CSS cascade / context hierarchy / tech stack / abstraction layer / memory hierarchy | `references/diagram-types/type-layers.md` | `status: complete` |
 | venn | concept intersection / shared attributes across categories / ikigai-style frame / positioning sweet spot | `references/diagram-types/type-venn.md` | `status: complete` |
 | pyramid | hierarchy of needs / prioritization rank / value pyramid / conversion funnel / content importance | `references/diagram-types/type-pyramid.md` | `status: complete` |
+| org-chart | accountable ownership / who-owns-what routing / invocation + escalation paths / coverage-gap map / agent-team responsibility | `references/diagram-types/type-org-chart.md` | `status: complete` |
+| class | code entity structure / fields + methods compartments / inheritance + composition relations / interface contracts / module API surface | `references/diagram-types/type-class.md` | `status: complete` |
+| architecture-board | full-system panorama / multi-layer platform map / control plane + governance + roadmap in one view / owner map / report-scale board (10–25 blocks) | `references/diagram-types/type-architecture-board.md` | `status: complete` |
 | statistical | time-series trend / candlestick / waterfall / donut / horizontal-bar ranking / bar / grouped-bar comparison — any section with an axis, a legend, and multiple data points | `references/diagram-types/type-statistical.md` | `status: complete` |
 
-> **Fallback (triggered by ref-only types only)**: if and only if some type's frontmatter is still `status: ref-only` (none of the 14 types are currently in this state, so no type takes this path right now), the renderer falls back to generic SVG primitives (the marker / paper-mask / type tag / legend strip specs still apply) and flags `degraded-type: <type-name>` in the Stage 4 completion report to signal that example HTML needs to be added. A `status: complete` type always reuses that ref's `example: inline` SVG skeleton and must not be downgraded to generic primitives.
+> **Fallback (triggered by ref-only types only)**: if and only if some type's frontmatter is still `status: ref-only` (none of the 17 types are currently in this state, so no type takes this path right now), the renderer falls back to generic SVG primitives (the marker / paper-mask / type tag / legend strip specs still apply) and flags `degraded-type: <type-name>` in the Stage 4 completion report to signal that example HTML needs to be added. A `status: complete` type always reuses that ref's `example: inline` SVG skeleton and must not be downgraded to generic primitives.
 
 > **Forward note**: when v2-N adds a dark/full variant or a new SVG primitive, it must follow the hex shape contract in `design-token-resolver.md` (`^#[0-9a-fA-F]{3,8}$`) and must not open a separate sink.
+
+## §4.11 Maintained-diagram lifecycle (trio contract)
+
+When the diagram's destination is the **user's repository** (a README hero, a docs-site figure, or an update to an existing in-repo diagram) rather than `.claude/book/`, every per-type rule above still applies — but the artifact gains a lifecycle: the source HTML, the exported PNG, and the intent file move together as one trio. Read `references/diagram-types/maintained-diagrams.md` before redrawing any such diagram; never redraw from memory alone.

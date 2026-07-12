@@ -176,7 +176,13 @@ class TestRegressionExistingTypesAndUnrelatedSkillSectionsUnchanged(unittest.Tes
     sections changed meaning."""
 
     def test_thirteen_type_files_not_touched_by_this_task(self):
-        for name in EXISTING_13_TYPES:
+        # `architecture` is exempted: the book-diagrams change legitimately
+        # extends type-architecture.md's Layout conventions with the
+        # scale-levels cluster (Level 1 figure → board → sister boards).
+        # `tree` is exempted: once Org Chart became a dedicated type routed
+        # above Tree in §4.9, type-tree.md's Best-for dropped its "org chart"
+        # first-match bait (re-scoped to "module hierarchy").
+        for name in [t for t in EXISTING_13_TYPES if t not in ("architecture", "tree")]:
             path = DIAGRAM_TYPES_DIR / f"type-{name}.md"
             with self.subTest(type=name):
                 self.assertTrue(path.exists())

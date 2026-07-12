@@ -6,6 +6,7 @@
 - Border (2)
 - Font (3)
 - Modular Scale — Perfect Fourth (`r = 1.333`)
+- Extreme → Value Lookup
 - Shadow (2)
 - Spacing — 4pt grid (7)
 - Radius (7)
@@ -61,6 +62,18 @@ re-derive from their own anchor — never copy raw numbers across presets.
 **Banned ratios (v1.2 residue, MUST NOT appear in any preset tokens.css)**:
 `× 2.2` (old H1:body), `× 1.24` (old H2:H3), `× 1.2` minor-third chain.
 
+## Extreme → Value Lookup
+
+Read each column off the chosen extreme; values are starting anchors, tune ±1 step to the 記憶點 — never invent new token names.
+Consumed by Gen Mode Step 1's derivation lines (a) and (b).
+
+| chosen extreme | `--duration` | `--stagger-step` | `--ease` | `--shadow-drama` | §9 asymmetry / overlap | §9 column ceiling |
+|----------------|-----------|----------------|--------|----------------|------------------------|-------------------|
+| 極簡 minimal | 160–220ms | 30–40ms | calm `cubic-bezier(.4,0,.2,1)` | soft, alpha ≤0.10 | low / overlap ≤5% | ≤66ch |
+| 極繁 maximal | 320–480ms | 60–90ms | emphasized `cubic-bezier(.2,0,0,1)` | deep, alpha 0.18–0.30 | high / overlap 20–40% | ≤90ch |
+| brutalist | 0–140ms | 0–20ms | linear / step | hard offset, 0-blur alpha ≥0.4 | high, grid-broken / overlap ≤50% | full-bleed |
+| editorial | 240–360ms | 50–70ms | decelerate `cubic-bezier(0,0,.2,1)` | medium, alpha 0.10–0.16 | mid / overlap 10–20% | 60–72ch |
+
 ## Shadow (2)
 `--shadow-ring` (`0 0 0 1px var(--border)`) • `--shadow-whisper` (elevated hover)
 
@@ -110,7 +123,7 @@ Benchmarked against guizang S01-S22; mechanically verified by the `book/scripts/
 
 **Reserved, no core shipped yet (4)**: `toc` / `image-full` / `quote-stack` / `breakout` are in the lock list but no preset ships a core for them — validate-swiss-deck.mjs reports them as a WARN (21/22 present), not a fail.
 
-`required-section-count` is the lower bound of required semantic blocks (heading / body / caption / cell …) within a layout; `SVG-allowed-types` is the SVG chart-type slug that may be embedded in that layout (one of the 13 status=complete diagram-types corresponding to `book/references/diagram-types/type-{slug}.md`: `architecture / flowchart / sequence / state / er / timeline / swimlane / quadrant / nested / tree / layers / venn / pyramid`). `none` = SVG embedding forbidden (image-heavy or pure layout); `optional` = embeddable but no semantically required type.
+`required-section-count` is the lower bound of required semantic blocks (heading / body / caption / cell …) within a layout; `SVG-allowed-types` is the SVG chart-type slug that may be embedded in that layout (one of the 15 slide-embeddable status=complete diagram-types corresponding to `book/references/diagram-types/type-{slug}.md`: `architecture / flowchart / sequence / state / er / timeline / swimlane / quadrant / nested / tree / layers / venn / pyramid / org-chart / class`; `statistical` and `architecture-board` are excluded from slides — statistical for axis/legend density, architecture-board for its report-scale 10–25-block canvas). `none` = SVG embedding forbidden (image-heavy or pure layout); `optional` = embeddable but no semantically required type.
 
 | layout-name | use-case | required-section-count | SVG-allowed-types |
 | --- | --- | --- | --- |

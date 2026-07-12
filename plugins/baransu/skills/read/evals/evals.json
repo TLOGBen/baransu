@@ -21,7 +21,7 @@
       "prompt": "/read --topic \"vector databases\"",
       "should_trigger": true,
       "expected_skill": "read",
-      "expected_behavior": "Topic mode: search, capture, and store offline Markdown sources."
+      "expected_behavior": "Academic topic mode: paper search (academic-search lane) with a user-selection prompt, then capture the selected paper's PDF/DOI to offline Markdown."
     },
     {
       "id": 4,

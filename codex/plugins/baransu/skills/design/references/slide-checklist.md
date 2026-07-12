@@ -13,7 +13,7 @@
 - P1-03：lead paragraph missing `text-wrap: pretty`
 - P1-04：portrait `<img>` missing `object-position: center 35%`
 - P2-01：top-level node coordinates violate multiple-of-4
-- P2-02：chevron marker `<defs>` duplicated across the 13 diagram-types
+- P2-02：chevron marker `<defs>` duplicated across the 17 diagram-types
 - P2-03：slide-core layout name not in the 22-lock-list
 - P2-04：en variant HTML contains a CJK font stack
 - P3-01：SKILL.md contains a fractional heading
@@ -75,7 +75,7 @@ SVG chevron / arrow markers inside diagram-types/*.md use `<path d="M..."/>` to 
 The author takes "marker = arbitrary vector" as the premise, not understanding that `<polygon points="0,0 10,5 0,10"/>` is the standard form of a marker: explicit vertices, no control point, and correctly rotatable by marker-orient. Kami spec L86 states explicitly: chevron marker = polygon-three-points; a path simulation always fails.
 
 ### Fix
-In all 13 `references/diagram-types/*.md` example SVGs, replace the chevron `<path>` with `<polygon points="0,0 10,5 0,10" fill="currentColor"/>`, and set `markerUnits="strokeWidth"` `orient="auto"` on the `<marker>`. `validate-output.ts` GATE-J already covers this on the /book side; the `check.py` `<marker[^>]*>\s*<path` regex is proposed tooling (not yet implemented) — until it lands, grep manually.
+In all 17 `references/diagram-types/*.md` example SVGs, replace the chevron `<path>` with `<polygon points="0,0 10,5 0,10" fill="currentColor"/>`, and set `markerUnits="strokeWidth"` `orient="auto"` on the `<marker>`. `validate-output.ts` GATE-J already covers this on the /book side; the `check.py` `<marker[^>]*>\s*<path` regex is proposed tooling (not yet implemented) — until it lands, grep manually.
 
 source: kami-spec-L86
 
@@ -84,7 +84,7 @@ source: kami-spec-L86
 ## P0-A-02：top-level node `<rect>` width must be ∈ {128, 144, 160}
 
 ### Symptom
-The outermost node (focal / hub node) inside a diagram SVG takes a `<rect width="..."/>` value like 130 / 150 / 175, causing inconsistent alignment across the 13 diagram-types; when multiple diagrams sit side by side, the hub node's visual weight jitters.
+The outermost node (focal / hub node) inside a diagram SVG takes a `<rect width="..."/>` value like 130 / 150 / 175, causing inconsistent alignment across the 17 diagram-types; when multiple diagrams sit side by side, the hub node's visual weight jitters.
 
 ### Root cause
 The author sets width by "looks about right", without aligning to the baseline grid multiple-of-4 whitelist; TASK-svg-05 GATE-J locks top-level node width to three tiers {128, 144, 160} (small / medium / large), corresponding to multiple-of-4 × golden-ratio approximation. Arbitrary values break cross-diagram visual rhythm.
@@ -216,16 +216,16 @@ source: huashu-incident-2026-04-20
 
 ---
 
-## P2-02：chevron marker `<defs>` duplicated across the 13 diagram-types
+## P2-02：chevron marker `<defs>` duplicated across the 17 diagram-types
 
 ### Symptom
-The 13 `references/diagram-types/*.md` example SVGs each inline `<defs><marker id="chevron">...</marker></defs>`, totaling 13 near-identical marker definitions scattered across files, so later edits to the marker style require changing 13 places.
+The 17 `references/diagram-types/*.md` example SVGs each inline `<defs><marker id="chevron">...</marker></defs>`, totaling 17 near-identical marker definitions scattered across files, so later edits to the marker style require changing 17 places.
 
 ### Root cause
 The author inlines the marker in each file for the convenience of single-file independent rendering, ignoring that the marker is a cross-diagram shared asset that ideally should be hoisted to a single shared `<defs>` source for single-point maintenance.
 
 ### Fix
-Observation item (observed; proposed tooling not yet implemented): in the future the canonical chevron / dot / arrow marker definitions can be centralized into a single shared `<defs>` block that all 13 diagram-types/*.md reference. The currently executable detection is: `check.py` counts occurrences of the chevron marker `<polygon points="0,0 10,5 0,10"/>` literal across files; > 1 raises a P2-02 hoist-suggestion warning (soft). Until a shared source lands, do not create new files on this basis.
+Observation item (observed; proposed tooling not yet implemented): in the future the canonical chevron / dot / arrow marker definitions can be centralized into a single shared `<defs>` block that all 17 diagram-types/*.md reference. The currently executable detection is: `check.py` counts occurrences of the chevron marker `<polygon points="0,0 10,5 0,10"/>` literal across files; > 1 raises a P2-02 hoist-suggestion warning (soft). Until a shared source lands, do not create new files on this basis.
 
 source: dogfood-v1.3-handoff
 

@@ -12,7 +12,7 @@ example: inline
 
 # Tree / Hierarchy
 
-**Best for**: org chart, dependency tree, taxonomy, file tree, decision breakdown, skill tree.
+**Best for**: module hierarchy, dependency tree, taxonomy, file tree, decision breakdown, skill tree.
 
 ## Layout conventions
 

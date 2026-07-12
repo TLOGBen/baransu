@@ -24,6 +24,11 @@ example: inline
 - Use only the 3-step width whitelist {128 / 144 / 160} (Kami diagrams.md L79; mix at most 2 steps per SVG); don't let each node's width vary freely — readers scan at a stable speed only when the visual rhythm is consistent.
 - Node embedded text is 14–24px: above 24 it looks like a hero, below 14 it blurs in a 1× SVG. Use `--font-sans` for titles, `--font-mono` for metric / id, and `--color-muted` for units.
 - The three markers (`arrow` / `arrow-accent` / `arrow-link`) are defined once inside `<defs>` with fixed attributes `markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"`; never hand-write arrow paths, to avoid alignment drift under viewBox scaling.
+- **Scale levels** — this file governs the embedded-figure scale only; bigger asks escalate instead of inflating:
+  - **Level 1 — embedded figure (this file)**: complexity budget ≤9 nodes at a density around 4/10. A pair of nodes that never appears apart collapses into a single node; a line whose relation is already obvious from layout gets deleted — past 9 nodes the 1–2-focal contrast dissolves and the figure stops being scannable in one pass.
+  - **When the ask outgrows the budget**: NEVER inflate one figure. Either (a) split into two sibling figures along a domain seam, each keeping its own 1–2 focal elements (`--accent` stays the only emphasis hue in each), or (b) escalate to the report-scale board — `type-architecture-board.md` (10–25 blocks in banded layers).
+  - **When even one board overflows** (>25 blocks after domain-merging): split into sister boards along domain seams; if the diagram is repo-maintained, record each sister's boundary in the intent file (see `maintained-diagrams.md`) — an endless canvas hides the seams a reader needs to know where one map ends and the next begins.
+
 
 ## Anti-patterns
 

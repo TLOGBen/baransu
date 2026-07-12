@@ -238,9 +238,7 @@ Receives `$RAW_CONTENT`. Produces `$STRUCTURE` (a JSON-like outline) and `$CONTE
 /([A-Z][a-zA-Z]+\s+((MCP|SDK|CLI|API)\s+v?\d+(\.\d+)*|v\d+(\.\d+)+))|([A-Z][a-z]+\s+[A-Z][a-z]+(\s|,)+(CEO|CTO|founder|engineer))/
 ```
 
-Explanation:
-- First-half alternation: product name (capitalized word) + **either** an MCP/SDK/CLI/API token followed by a version number **or** a `v`-prefixed dotted version → matches such as 「Linear MCP v3.4.7」「Anthropic SDK 0.39」「Claude v2.1」. The middle group is deliberately non-optional: a bare capitalized-word + number (「Stage 3」「Python 3」「Windows 11」「Chapter 4」) must NOT trigger — those benign patterns saturate normal technical prose.
-- Second-half alternation: person name (two capitalized words) + space or comma + title (CEO/CTO/founder/engineer) → matches such as 「Jane Doe, CTO」.
+Explanation: the first alternation matches product + versioned-token strings (the middle group is deliberately non-optional so bare capitalized-word + number — 「Stage 3」「Python 3」「Windows 11」 — never triggers); the second matches person-name + title (「Jane Doe, CTO」).
 
 **Dedup and cap before the flow**: dedup the matched hits (identical strings verify once), then keep at most the **3 most-specific** hits (longest match first — a fully-versioned product string outranks a looser one). Hits beyond the cap are listed in the completion report as unverified, not searched.
 
@@ -278,7 +276,7 @@ Output one line: 「內容類型偵測：{$CONTENT_TYPE}」
 The Stage 2A selection splits into two layers, **the order must not be reversed**:
 
 - **Layer 1 (content type → HTML layout density)**: the `$CONTENT_TYPE` already produced by §2 (A=`technical` / B=`narrative` / C=`research`) determines the whole HTML's layout style — whether the TOC is expanded, number of cards, density, callout style, etc., all given separately for the A/B/C categories by `references/perception-guide.md` (already read in §1). Take the layout density and visual-treatment rules corresponding to that $CONTENT_TYPE.
-- **Layer 2 (14-type selection → per-section diagram structure)**: each section containing a diagram independently looks up the Stage 3 §4 「14 型 selection 表」, picking one diagram type based on that section's data shape (architecture / flowchart / sequence / ... / statistical).
+- **Layer 2 (17-type selection → per-section diagram structure)**: each section containing a diagram independently looks up the Stage 3 §4 「17 型 selection 表」, picking one diagram type based on that section's data shape (architecture / flowchart / sequence / ... / statistical).
 
 The two axes are orthogonal: Layer 1 controls layout, Layer 2 controls each section's SVG structure; do Layer 1 first, then Layer 2, deciding each section independently without inheriting the previous section's choice.
 
@@ -395,10 +393,12 @@ For each section from `$STRUCTURE`:
 
 ### 4. SVG generation spec
 
-Takes effect only when the long-form HTML contains `<figure class="diagram">`. The spec includes: color tokens (canonical names + Kami hex defaults), the required `<defs>` / marker / two-layer paper-mask, type tag, legend strip, 4px alignment and the 3-step node-width whitelist (128/144/160), embedded-font correction, the 14-type diagram first-match decision tree, and the 14-type selection table (including `status: complete | ref-only`).
+Takes effect only when the long-form HTML contains `<figure class="diagram">`. The spec includes: color tokens (canonical names + Kami hex defaults), the required `<defs>` / marker / two-layer paper-mask, type tag, legend strip, 4px alignment and the 3-step node-width whitelist (128/144/160), embedded-font correction, the 17-type diagram first-match decision tree, and the 17-type selection table (including `status: complete | ref-only`).
 
 **Full rules → read `references/svg-rendering-rules.md`.** SVG fill / stroke **must not use `rgba()`**; node width is limited to 3 steps (128/144/160); focal nodes are marked via `data-role="focal"`, capped at 2 per SVG. Per-type SVG specs live in `references/diagram-types/type-*.md`, selected via that file's §4.10 routing table (its ToC lists §4.9/§4.10 up top).
 Token hex resolution (three-layer fallback: project-root tokens.css → built-in presets → per-type derived) → read `references/design-token-resolver.md` before resolving any SVG/CSS hex.
+
+**Repo-maintained diagrams** (README hero / docs-site figure / updating an existing in-repo diagram): the source-HTML + exported-PNG + intent-file lifecycle contract → read `references/diagram-types/maintained-diagrams.md` before redrawing — never redraw from memory alone.
 
 **Statistical-type color-capability degrade (undeclared-style fallback)**: when Layer 2 resolves a section to the `statistical` type (§4.9/§4.10), before writing that section's SVG, Render checks `{project_root}/tokens.css` line 1's header for the `; chart-capability: <N>` field written by `/baransu:design` (declared vs undeclared per `design/scripts/check.py`'s `_parse_chart_capability_header` contract):
 
@@ -445,6 +445,8 @@ Do not write partial content — write the full file in one operation.
 ```bash
 npx tsx "./scripts/validate-output.ts" ".claude/book/{$SLUG}.html"
 ```
+
+> Runtime note: if `npx tsx` is unavailable, `bun run "./scripts/validate-output.ts" <file>` works (bun auto-installs cheerio).
 
 Exit codes:
 - `0` (GATE PASS): proceed to completion report
