@@ -161,37 +161,37 @@ Inline example below — a 2-series quarterly revenue trend line chart (Product 
           font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">24-Q2</text>
 
     <!-- ===== LEGEND STRIP ===== -->
-    <line x1="60" y1="560" x2="940" y2="560"
+    <line x1="60" y1="640" x2="940" y2="640"
           stroke="#141413" stroke-opacity="0.10" stroke-width="0.8"/>
-    <text x="60" y="580" fill="#504e49" font-size="8"
+    <text x="60" y="660" fill="#504e49" font-size="8"
           font-family="'Geist Mono', ui-monospace, monospace"
           letter-spacing="0.14em">LEGEND</text>
 
-    <line x1="140" y1="576" x2="156" y2="576"
+    <line x1="140" y1="656" x2="156" y2="656"
           stroke="#1B365D" stroke-width="1.6"/>
-    <circle cx="148" cy="576" r="4" fill="#1B365D"/>
-    <text x="168" y="581" fill="#504e49" font-size="9"
+    <circle cx="148" cy="656" r="4" fill="#1B365D"/>
+    <text x="168" y="661" fill="#504e49" font-size="9"
           font-family="'Geist', system-ui, sans-serif">Product A (focal trend)</text>
 
-    <line x1="380" y1="576" x2="396" y2="576"
+    <line x1="380" y1="656" x2="396" y2="656"
           stroke="#2D5A8A" stroke-width="1.4"/>
-    <circle cx="388" cy="576" r="4" fill="#2D5A8A"/>
-    <text x="408" y="581" fill="#504e49" font-size="9"
+    <circle cx="388" cy="656" r="4" fill="#2D5A8A"/>
+    <text x="408" y="661" fill="#504e49" font-size="9"
           font-family="'Geist', system-ui, sans-serif">Product B</text>
 
-    <rect x="580" y="568" width="16" height="12" rx="2"
+    <rect x="580" y="648" width="16" height="12" rx="2"
           fill="#EEF2F7" stroke="#1B365D" stroke-width="1.2"/>
-    <text x="600" y="581" fill="#504e49" font-size="9"
+    <text x="600" y="661" fill="#504e49" font-size="9"
           font-family="'Geist', system-ui, sans-serif">Key data point (peak)</text>
 
-    <line x1="780" y1="576" x2="800" y2="576"
+    <line x1="780" y1="656" x2="800" y2="656"
           stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
-    <text x="808" y="581" fill="#504e49" font-size="9"
+    <text x="808" y="661" fill="#504e49" font-size="9"
           font-family="'Geist', system-ui, sans-serif">Axis</text>
 
-    <line x1="860" y1="576" x2="880" y2="576"
+    <line x1="860" y1="656" x2="880" y2="656"
           stroke="#2D5A8A" stroke-width="1.2" marker-end="url(#arrow-link)"/>
-    <text x="888" y="581" fill="#504e49" font-size="9"
+    <text x="888" y="661" fill="#504e49" font-size="9"
           font-family="'Geist', system-ui, sans-serif">Ref</text>
   </svg>
   <figcaption>圖：Quarterly revenue trend（Product A[focal] vs Product B，6 季度），focal 標示 Product A 的 24-Q2 峰值。</figcaption>

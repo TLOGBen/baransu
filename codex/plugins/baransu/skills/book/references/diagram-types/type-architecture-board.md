@@ -40,14 +40,14 @@ example: inline
 
 ## Examples
 
-Inline example below — a 4-band, 12-block content-platform panorama (`viewBox="0 0 1000 700"`): ROLES (3 blocks) → MODULES (4 blocks, Pipeline focal) → RUNTIME (2 blocks) → GOVERNANCE (3 pill blocks). Complete `<defs>` with a paper-grain overlay pattern (a deliberately re-authored variant of the §4.4 dotted overlay: finer 16px cell, lower opacity) and two chevron markers (`#arrow-accent` on the single main flow Creator→Ingest→Pipeline→Store, `#arrow` on the one secondary path — both referenced, defs ↔ refs bijective), two paper-mask layers, horizontal band hairlines + uppercase mono band labels, hairline vertical peer dividers, the 2-step block-width whitelist `{128, 160}`, §4.5 type tags, 1 `data-role="focal"` block, corner metadata (date basis / version / scope), a legend strip, and all `<rect>/<line>` geometry as multiples of 4.
+Inline example below — a 4-band, 12-block content-platform panorama (`viewBox="0 0 1000 700"`): ROLES (3 blocks) → MODULES (4 blocks, Pipeline focal) → RUNTIME (2 blocks) → GOVERNANCE (3 pill blocks). Complete `<defs>` with the dots pattern and two chevron markers (`#arrow-accent` on the single main flow Creator→Ingest→Pipeline→Store, `#arrow` on the one secondary path — both referenced, defs ↔ refs bijective), two paper-mask layers, horizontal band hairlines + uppercase mono band labels, hairline vertical peer dividers, the 2-step block-width whitelist `{128, 160}`, §4.5 type tags, 1 `data-role="focal"` block, corner metadata (date basis / version / scope), a legend strip, and all `<rect>/<line>` geometry as multiples of 4.
 
 ```html
 <figure class="diagram">
   <svg viewBox="0 0 1000 700" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Content platform architecture board, four bands">
     <defs>
-      <pattern id="grain" width="16" height="16" patternUnits="userSpaceOnUse">
-        <circle cx="2" cy="2" r="0.7" fill="#e5e3d8"/>
+      <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+        <circle cx="1" cy="1" r="0.9" fill="#E3E2DC"/>
       </pattern>
       <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
         <path d="M2 1 L8 5 L2 9" fill="none" stroke="#504e49"
@@ -61,8 +61,8 @@ Inline example below — a 4-band, 12-block content-platform panorama (`viewBox=
 
     <!-- Paper-mask layer 1（強制） -->
     <rect width="100%" height="100%" fill="#f5f4ed"/>
-    <!-- Paper-mask layer 2（可選 grain overlay，本檔自訂變體） -->
-    <rect width="100%" height="100%" fill="url(#grain)" opacity="0.4"/>
+    <!-- Paper-mask layer 2（可選 dotted overlay） -->
+    <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
 
     <!-- ===== TITLE + corner metadata（日期基準／版本／資料範圍——僅此三類） ===== -->
     <text x="500" y="36" fill="#141413" font-size="14" font-weight="700"
@@ -258,17 +258,17 @@ Inline example below — a 4-band, 12-block content-platform panorama (`viewBox=
     <text x="692" y="524" fill="#141413" font-size="10" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">Roadmap</text>
 
     <!-- ===== LEGEND STRIP ===== -->
-    <line x1="60" y1="616" x2="940" y2="616" stroke="#141413" stroke-opacity="0.10" stroke-width="0.8"/>
-    <text x="60" y="636" fill="#504e49" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" letter-spacing="0.14em">LEGEND</text>
-    <rect x="140" y="628" width="16" height="12" rx="2" fill="#ebeae5" stroke="#504e49" stroke-width="1"/>
-    <text x="160" y="637" fill="#504e49" font-size="9" font-family="'Geist', system-ui, sans-serif">Block (role / module)</text>
-    <rect x="332" y="628" width="16" height="12" rx="2" fill="#EEF2F7" stroke="#1B365D" stroke-width="1.2"/>
-    <text x="352" y="637" fill="#504e49" font-size="9" font-family="'Geist', system-ui, sans-serif">Focal (next intervention)</text>
-    <line x1="548" y1="632" x2="568" y2="632" stroke="#1B365D" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
-    <text x="576" y="637" fill="#504e49" font-size="9" font-family="'Geist', system-ui, sans-serif">Main flow</text>
-    <line x1="680" y1="632" x2="700" y2="632" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
-    <text x="708" y="637" fill="#504e49" font-size="9" font-family="'Geist', system-ui, sans-serif">Secondary path</text>
+    <line x1="60" y1="640" x2="940" y2="640" stroke="#141413" stroke-opacity="0.10" stroke-width="0.8"/>
+    <text x="60" y="660" fill="#504e49" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" letter-spacing="0.14em">LEGEND</text>
+    <rect x="140" y="652" width="16" height="12" rx="2" fill="#ebeae5" stroke="#504e49" stroke-width="1"/>
+    <text x="160" y="661" fill="#504e49" font-size="9" font-family="'Geist', system-ui, sans-serif">Block (role / module)</text>
+    <rect x="332" y="652" width="16" height="12" rx="2" fill="#EEF2F7" stroke="#1B365D" stroke-width="1.2"/>
+    <text x="352" y="661" fill="#504e49" font-size="9" font-family="'Geist', system-ui, sans-serif">Focal (next intervention)</text>
+    <line x1="548" y1="656" x2="568" y2="656" stroke="#1B365D" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+    <text x="576" y="661" fill="#504e49" font-size="9" font-family="'Geist', system-ui, sans-serif">Main flow</text>
+    <line x1="680" y1="656" x2="700" y2="656" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text x="708" y="661" fill="#504e49" font-size="9" font-family="'Geist', system-ui, sans-serif">Secondary path</text>
   </svg>
-  <figcaption>圖：內容平台全景 board（4 帶 12 塊）：主流程 Creator→Ingest→Pipeline→Store 收斂為單一可讀路徑；GOVERNANCE 帶尚未逐 module 標註 owner——下一步把每個 module 的 owner 填進 Owners 塊。</figcaption>
+  <figcaption>圖：內容平台全景 board（4 帶 12 塊）：主流程 Creator→Ingest→<span class="hl">Pipeline</span>→Store 收斂為單一可讀路徑；GOVERNANCE 帶尚未逐 module 標註 owner——下一步把每個 module 的 owner 填進 Owners 塊。</figcaption>
 </figure>
 ```

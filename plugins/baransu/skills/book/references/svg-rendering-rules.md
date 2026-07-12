@@ -74,6 +74,8 @@ The fragment below is the **complete three-id vocabulary**. Prepend to each SVG 
 
 **Fixed marker attributes**: `markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"`; the chevron path is fixed at `d="M2 1 L8 5 L2 9"`, `stroke-width="1.5"`, `stroke-linecap="round"`, `stroke-linejoin="round"`, `fill="none"`.
 
+**Id scoping**: the three ids are a per-SVG vocabulary, not document-global names — `url(#…)` resolves document-wide, so when one document carries multiple arrow-bearing SVGs, suffix the ids per section (`arrow-s2`, `arrow-accent-s2`, …) to keep DOM ids unique; the gates are id-name-agnostic and check defs ↔ refs bijectivity per SVG.
+
 **Why**: WeasyPrint / most static PDF renderers handle `<marker orient="auto">` rotation + `<polygon fill>` inconsistently, producing flipped arrows or missing fills; switching to a stroked chevron path aligns across every print pipeline. The chevron (line-drawn, not solid) also aligns directly with Kami `references/diagrams.md` L86 and is one of Kami's visual signatures. The three semantic tiers (general / focal / external) are what let the SVG layer align with the two specs "focal nodes ≤ 2" and "cross-system calls".
 
 **SVG reference example**:
@@ -137,7 +139,7 @@ The fragment below is the **complete three-id vocabulary**. Prepend to each SVG 
 
 ## §4.7 Anti-slop precision constraints
 
-- All coordinates, widths, and spacings must be **multiples of 4**
+- All `<rect>`/`<line>`/`<circle>` positional geometry — x/y/width/height, line endpoints, circle centers — must be **multiples of 4**; text baselines and stroke-widths are exempt (only shape placement carries the 4px grid)
 - Node-width whitelist is **3 sizes** (aligned with Kami `references/diagrams.md` L79): {`128`, `144`, `160`}; a single SVG uses at most 2 of them at a time — mixing 3 is an anti-slop fail
   - **Exception**: viewBox width < **360px** (card embed / small diagram) may compress to **2 sizes** (recommended {128, 144} or {128, 160}), still keeping a 2-size rhythm, and **must not** custom-craft individual widths outside the whitelist
 - Node height: **32** (pill) / **64** (standard)

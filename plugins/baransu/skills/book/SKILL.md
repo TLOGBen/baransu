@@ -440,6 +440,8 @@ Do not write partial content — write the full file in one operation.
 npx tsx "$CLAUDE_SKILL_DIR/scripts/validate-output.ts" ".claude/book/{$SLUG}.html"
 ```
 
+> Runtime note: if `npx tsx` is unavailable, `bun run "$CLAUDE_SKILL_DIR/scripts/validate-output.ts" <file>` works (bun auto-installs cheerio).
+
 Exit codes:
 - `0` (GATE PASS): proceed to completion report
 - `1` (GATE FAIL): three-stage fallback:

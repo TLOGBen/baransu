@@ -23,7 +23,10 @@ Covers:
   (e) maintained-diagrams.md — exists, is NOT a diagram type (no `status:`
       frontmatter), and is wired from both svg-rendering-rules §4.11 and
       book SKILL.md
-  (f) stale-count scan — no 13/14/15/16-count residue ("N-type" / "N 型" /
+  (f) legend-hairline GATE-C window — every inline example SVG across all
+      17 type files (viewBox height ≥ 400) carries a <line> whose lower end
+      sits inside the bottom-60px window GATE-C keys on
+  (g) stale-count scan — no 13/14/15/16-count residue ("N-type" / "N 型" /
       "N-set" / "N per-type" / "N diagram(-)types" / "other N") across the
       five catalog-speaking surfaces (book SKILL.md, svg-rendering-rules.md,
       design-token-resolver.md, color-reasoning.md, design slide-checklist.md);
@@ -331,6 +334,49 @@ class TestMaintainedDiagramsContract(unittest.TestCase):
         )
 
 
+
+# GATE-C window scan — mirrors validate-output.ts GATE-C: an SVG with
+# viewBox height >= 400 must place a legend hairline <line> whose lower
+# end (max of y1/y2) falls within [vbH - 60, vbH].
+SVG_VIEWBOX_RE = re.compile(r'<svg\b[^>]*viewBox="0 0 \d+ (\d+)"[^>]*>(.*?)</svg>', re.S)
+LINE_TAG_RE = re.compile(r"<line\b[^>]*>")
+LINE_Y_RE = re.compile(r'\b(y1|y2)="(-?\d+(?:\.\d+)?)"')
+
+
+class TestLegendHairlineGateCWindow(unittest.TestCase):
+    """(f) — every inline example SVG across ALL 17 type-*.md files places
+    its legend hairline inside GATE-C's bottom-60px window, so extracting
+    any example verbatim into a document cannot fail GATE-C."""
+
+    # GATE-C exemption, encoded on the same axis the shipped gate uses
+    # (§4.6: viewBox height < 400 may omit the legend strip entirely).
+    # No current type example is that short — types are exempted by height,
+    # never by name, so a future short example self-exempts mechanically.
+    GATE_C_MIN_HEIGHT = 400
+
+    def test_legend_hairline_within_bottom_60px_window(self):
+        for t in SEVENTEEN_TYPES:
+            text = (DIAGRAM_TYPES_DIR / f"type-{t}.md").read_text(encoding="utf-8")
+            svgs = SVG_VIEWBOX_RE.findall(text)
+            self.assertTrue(svgs, f"type-{t}.md: no viewBox-bearing <svg> in its inline example")
+            for i, (vb_h_str, body) in enumerate(svgs):
+                vb_h = int(vb_h_str)
+                with self.subTest(type=t, svg=i, vb_height=vb_h):
+                    if vb_h < self.GATE_C_MIN_HEIGHT:
+                        continue  # GATE-C SKIP semantics (legend optional below 400)
+                    y_maxes = []
+                    for tag in LINE_TAG_RE.findall(body):
+                        ys = [float(v) for _, v in LINE_Y_RE.findall(tag)]
+                        if len(ys) == 2:
+                            y_maxes.append(max(ys))
+                    self.assertTrue(
+                        any(vb_h - 60 <= y <= vb_h for y in y_maxes),
+                        f"type-{t}.md svg#{i}: no <line> with max(y1,y2) in "
+                        f"[{vb_h - 60}, {vb_h}] — GATE-C would FAIL this example "
+                        f"(line y-maxima seen: {sorted(set(y_maxes))})",
+                    )
+
+
 # Every file that speaks about the diagram-type catalog's size. Consumer
 # surfaces (token resolver, chart-color reasoning, the design skill's lint
 # checklist) have each gone stale before — scan them all.
@@ -363,7 +409,7 @@ STALE_COUNT_LITERALS = [
 
 
 class TestStaleCountLiteralsGone(unittest.TestCase):
-    """(f) — no 13/14/15/16-count residue on any surface that speaks about
+    """(g) — no 13/14/15/16-count residue on any surface that speaks about
     the diagram-type catalog (mechanical substring grep, no judgment)."""
 
     def test_scanned_files_free_of_stale_count_literals(self):

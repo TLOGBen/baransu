@@ -16,7 +16,7 @@ example: inline
 
 ## Layout conventions
 
-- **Compartment node = one rect + hairline separators**: each class is ONE whitelist-width rect (144 or 160) divided internally by hairline `<line>` separators into title band / fields / methods. Internal separators are `<line>`s, never stacked sub-rects — one rect per class keeps the node-width rhythm intact and GATE-J trivially clean — sub-rects read as extra nodes and multiply the perceived node count.
+- **Compartment node = one rect + hairline separators**: each class is ONE whitelist-width rect (144 or 160) divided internally by hairline `<line>` separators into title band / fields / methods. 3-compartment class nodes use `h=96` — a sanctioned exception to §4.7's node-height whitelist {32, 64}, since three internal bands cannot fit a 64-high rect. Internal separators are `<line>`s, never stacked sub-rects — one rect per class keeps the node-width rhythm intact and GATE-J trivially clean — sub-rects read as extra nodes and multiply the perceived node count.
 - **Member lines are trimmed, not dumped**: 2–4 members per compartment max, 9px mono, trimmed to `name: Type` — never full signatures with parameter lists or generics — a signature dump turns the structure diagram back into source code; the reader came for shape, and the code itself is one click away.
 - **Relationship vocabulary — one chevron, labeled lines**: inheritance = solid line + the standard chevron marker (`d="M2 1 L8 5 L2 9"`) pointing at the parent; composition / aggregation / implements = line style (solid vs dashed `stroke-dasharray="4,3"`) + a ≤14-char uppercase mono edge label (`EXTENDS` / `HAS-A` / `IMPL`) sitting on a small opaque mask rect — never filled UML diamond / hollow-triangle glyphs — the single stroked chevron across all 17 types is what makes consecutive diagrams read as one system; per-type glyph endings break that unity, and GATE-K forbids `<polygon>` markers outright.
 - **Class budget ≤6–7 per diagram**: a deeper model splits along aggregate / module boundaries into sister diagrams, one per aggregate, each with its own focal class — past ~7 compartment nodes the relationship web stops being traceable — every added class multiplies edge crossings, not understanding.
@@ -170,33 +170,33 @@ Inline example below — a 4-class Repository aggregate (Repository [interface, 
           text-anchor="middle" letter-spacing="0.04em">HAS-A</text>
 
     <!-- ===== LEGEND STRIP ===== -->
-    <line x1="60" y1="516" x2="940" y2="516"
+    <line x1="60" y1="540" x2="940" y2="540"
           stroke="#141413" stroke-opacity="0.10" stroke-width="0.8"/>
-    <text x="60" y="536" fill="#504e49" font-size="8"
+    <text x="60" y="560" fill="#504e49" font-size="8"
           font-family="'Geist Mono', ui-monospace, monospace"
           letter-spacing="0.14em">LEGEND</text>
 
-    <rect x="140" y="528" width="16" height="12" rx="2"
+    <rect x="140" y="552" width="16" height="12" rx="2"
           fill="#ebeae5" stroke="#504e49" stroke-width="1"/>
-    <text x="160" y="537" fill="#504e49" font-size="9"
+    <text x="160" y="561" fill="#504e49" font-size="9"
           font-family="'Geist', system-ui, sans-serif">Class (title / fields / methods)</text>
 
-    <rect x="356" y="528" width="16" height="12" rx="2"
+    <rect x="356" y="552" width="16" height="12" rx="2"
           fill="#EEF2F7" stroke="#1B365D" stroke-width="1.2"/>
-    <text x="376" y="537" fill="#504e49" font-size="9"
+    <text x="376" y="561" fill="#504e49" font-size="9"
           font-family="'Geist', system-ui, sans-serif">Focal contract</text>
 
-    <line x1="504" y1="532" x2="524" y2="532"
+    <line x1="504" y1="556" x2="524" y2="556"
           stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow)"/>
-    <text x="532" y="537" fill="#504e49" font-size="9"
+    <text x="532" y="561" fill="#504e49" font-size="9"
           font-family="'Geist', system-ui, sans-serif">EXTENDS (points at parent)</text>
 
-    <line x1="716" y1="532" x2="736" y2="532"
+    <line x1="716" y1="556" x2="736" y2="556"
           stroke="#504e49" stroke-width="1.2" stroke-dasharray="4,3"
           marker-end="url(#arrow)"/>
-    <text x="744" y="537" fill="#504e49" font-size="9"
+    <text x="744" y="561" fill="#504e49" font-size="9"
           font-family="'Geist', system-ui, sans-serif">HAS-A / IMPL (labeled)</text>
   </svg>
-  <figcaption>圖：Repository 契約的類別結構（4 類別、EXTENDS／HAS-A 兩種關係）：兩個實作可互換而 UnitOfWork 只依賴介面；超過 7 個類別時沿 aggregate 邊界拆成姊妹圖，而不是縮小塞進同一張。</figcaption>
+  <figcaption>圖：<span class="hl">Repository</span> 契約的類別結構（4 類別、EXTENDS／HAS-A 兩種關係）：兩個實作可互換而 UnitOfWork 只依賴介面；超過 7 個類別時沿 aggregate 邊界拆成姊妹圖，而不是縮小塞進同一張。</figcaption>
 </figure>
 ```

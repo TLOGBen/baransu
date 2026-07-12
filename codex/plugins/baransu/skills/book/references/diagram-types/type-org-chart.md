@@ -203,36 +203,36 @@ Inline example below — a 3-tier, 9-node agent-team ownership chart (Team Lead 
           font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">needs setup</text>
 
     <!-- ===== LEGEND STRIP + escalation footer ===== -->
-    <line x1="60" y1="516" x2="940" y2="516"
+    <line x1="60" y1="540" x2="940" y2="540"
           stroke="#141413" stroke-opacity="0.10" stroke-width="0.8"/>
-    <text x="60" y="536" fill="#504e49" font-size="8"
+    <text x="60" y="560" fill="#504e49" font-size="8"
           font-family="'Geist Mono', ui-monospace, monospace"
           letter-spacing="0.14em">LEGEND</text>
 
-    <rect x="140" y="528" width="16" height="12" rx="2"
+    <rect x="140" y="552" width="16" height="12" rx="2"
           fill="#ebeae5" stroke="#504e49" stroke-width="1"/>
-    <text x="160" y="537" fill="#504e49" font-size="9"
+    <text x="160" y="561" fill="#504e49" font-size="9"
           font-family="'Geist', system-ui, sans-serif">Owner (route wired)</text>
 
-    <rect x="316" y="528" width="16" height="12" rx="2"
+    <rect x="316" y="552" width="16" height="12" rx="2"
           fill="#EEF2F7" stroke="#1B365D" stroke-width="1.2"/>
-    <text x="336" y="537" fill="#504e49" font-size="9"
+    <text x="336" y="561" fill="#504e49" font-size="9"
           font-family="'Geist', system-ui, sans-serif">Front door (ambiguous work)</text>
 
-    <rect x="556" y="528" width="16" height="12" rx="2"
+    <rect x="556" y="552" width="16" height="12" rx="2"
           fill="#f1f0eb" stroke="#504e49" stroke-width="1"
           stroke-opacity="0.55" stroke-dasharray="4,3"/>
-    <text x="576" y="537" fill="#504e49" font-size="9"
+    <text x="576" y="561" fill="#504e49" font-size="9"
           font-family="'Geist', system-ui, sans-serif">Planned (not wired)</text>
 
-    <line x1="740" y1="532" x2="760" y2="532" stroke="#504e49" stroke-width="1"/>
-    <text x="768" y="537" fill="#504e49" font-size="9"
+    <line x1="740" y1="556" x2="760" y2="556" stroke="#504e49" stroke-width="1"/>
+    <text x="768" y="561" fill="#504e49" font-size="9"
           font-family="'Geist', system-ui, sans-serif">Reporting line</text>
 
-    <text x="60" y="568" fill="#504e49" font-size="8"
+    <text x="60" y="592" fill="#504e49" font-size="8"
           font-family="'Geist Mono', ui-monospace, monospace"
           letter-spacing="0.10em">ESCALATION · agent → pod owner → @lead (3-strike)</text>
   </svg>
-  <figcaption>圖：agent 團隊職責路由（3 層 9 節點）：模糊工作一律先送 focal 前門 @lead；Deploy Agent 路由尚未接線（虛線）——下一步是補上 infra pod 的部署佇列再轉為實線。</figcaption>
+  <figcaption>圖：agent 團隊職責路由（3 層 9 節點）：模糊工作一律先送 focal 前門 <span class="hl">@lead</span>；Deploy Agent 路由尚未接線（虛線）——下一步是補上 infra pod 的部署佇列再轉為實線。</figcaption>
 </figure>
 ```
