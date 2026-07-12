@@ -2,6 +2,19 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.11.0 (2026-07-12)
+
+**全席 evolve ratchet 第一輪(v2.10.0 基準)——七席採納**。plugin version 2.10.0 → 2.11.0。nightly-evolve 盲測提案輪(14 skill × 診斷+變異+3 盲評,margin 2.0 守衛;採納走 Gate 1b standing-auth,結構閘 write-verify-restore 全過):
+
+- **analyze D3**:Stage 7 Done-when 閘自身失敗分支明文化(缺 spec 檔→回產出層重生一次;goal/requirement placeholder 絕不自動修,呈使用者確認)
+- **codex-skill-transfer D6**:marker-check 拒絕(exit 2)目錄 agent 絕不可自刪——列內容、換目錄或等人類明示路徑;移除「if you are certain」模糊授權
+- **design D2**:Export-brief Step 2/3 懸空抽取錨點全解析到 Gen Mode 九節正典 + 每抽取點 if-then fallback
+- **evolve D3**:Stage 3 窗口中斷恢復(live≠snapshot 且無採納記錄→先還原記 window-breach-restored 再診斷)
+- **execute D4**:§4b per-task commit 釘死暫存範圍(ctx Files + impl 報告檔案;worktree 外絕不 git add -A)
+- **learn D4**:四 hedge 改可判定規則(lane timeout 固定、排除=⚠️∧無補源、critical claim 可觀察定義、平行模型綁定)
+- **ship D3**:Teardown 腳本遺失/不可執行→保守 GATE_FAIL(不手工替代刪除,保留 worktree 回報)
+- 七席 margin-converged(0.5-1.5)= 大修後結構軸天花板健康收斂;design 首輪撞 session limit 由 resume 快取補跑
+
 ## v2.10.0 (2026-07-12)
 
 **遞延美學功能一次落地——design/book 八候選連續完成(ultracode 單 workflow,12 agents)**。plugin version 2.9.0 → 2.10.0。上游素材淺 clone 實讀(Kami/diagram-design/guizang/Waza+官方 frontend-design),三視角對抗驗證(美學統一/機械正確性/出處汙染)後收斂:

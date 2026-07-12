@@ -418,18 +418,21 @@ Cross-tool brief packaging — package the current preset's DESIGN.md + tokens.c
 - If `tokens.css` does not exist or the first-line regex does not match → print to stderr 「未找到 tokens.css 或無 preset 註解；請先跑 `/baransu:design preset <name>`」 and exit 1.
 
 #### Step 2 — Read source files
-- `{project_root}/DESIGN.md` (full text, for §9 hex rationale + §G editorial + §J quote extraction).
+
+All `§N` references below resolve against the canonical nine-section DESIGN.md structure defined in Gen Mode Step 2 (§1 Visual Theme & Atmosphere … §3 Typography Rules … §8 Do / Don't, §9 AI Prompt Guide).
+
+- `{project_root}/DESIGN.md` (full text — Section B extracts the named subsections of §9 AI Prompt Guide; Section D extracts the editorial passages of §3 Typography Rules + §8 Do / Don't; Section C extracts fallback quotes from §8/§9). If a referenced subsection or passage does not exist in the current DESIGN.md → apply that Section's per-extraction fallback in Step 3.
 - `{project_root}/tokens.css` (full text; additionally parse the hex values of `--accent` / `--paper` / `--surface`, **read dynamically**, not hard-coded).
 - `{project_root}/design-cores/*.html` (the filename list + the first 30 lines of inline `<style>` per file, as raw material for the structure summary).
-- `{skill_dir}/references/{$PRESET}-preset/image-prompts.md` (full text, for the §J negative tail and fallback quotes).
+- `{skill_dir}/references/{$PRESET}-preset/image-prompts.md` (full text — supplies the verbatim negative-tail string and fallback quotes consumed by Section C). If this file exists but contains no negative-tail string → Section C takes the shared negative tail from `{skill_dir}/references/slide-image-prompts.md` §4 verbatim instead.
 - `{skill_dir}/references/{$PRESET}-preset/schemas/*.md` (filename list; take names only, do not expand the full text).
 - **Gen-built slug branch**: when `{skill_dir}/references/{$PRESET}-preset/` does not exist (`$PRESET` was custom-built via `gen --slug`, so the two reads above have no source), fall back — Section C takes the shared negative tail verbatim from `{skill_dir}/references/slide-image-prompts.md` §4 plus three quotes extracted from the project-root DESIGN.md §8/§9; Section E is laid out from the project-root `design-cores/` + `slide-cores/` filename lists alone (omit the schemas lines).
 
 #### Step 3 — Assemble the brief (markdown block)
-- **Section A — Preset header**: preset name + a one-sentence philosophy caption (extracted from DESIGN.md §1).
-- **Section B — §9 hex rationale**: extract the three subsections `DESIGN.md §9 (a) 焦點 / (b) hex 設計理據 / (c) 我不是什麼`. All hex values are **dynamically parsed from the current `tokens.css`** by Step 2; **do not** hard-code Kami `#1B365D`; if `$PRESET=swiss` then `--accent: #002FA7`, if `$PRESET=google-design` then `--accent: #6750A4` (all derived from tokens.css parsing, switching automatically when the preset is switched and re-run).
-- **Section C — §J negative tail**: take the string 「no title, no footer, no page chrome, no logo, no border」 from `image-prompts.md` + three fallback quotes.
-- **Section D — §G editorial spec**: dropcap 3-line / `text-wrap: pretty` / curly quotes (Kami spec quotation; **forbid** straight quotes).
+- **Section A — Preset header**: preset name + a one-sentence philosophy caption (extracted from DESIGN.md §1 Visual Theme & Atmosphere).
+- **Section B — §9 hex rationale**: extract the three named subsections of `DESIGN.md §9 AI Prompt Guide` — (a) 焦點 / (b) hex 設計理據 / (c) 我不是什麼. If any of these named subsections does not exist in the current DESIGN.md (a gen-built nine-section §9 need not carry them) → extract the §9 AI Prompt Guide full text instead. All hex values are **dynamically parsed from the current `tokens.css`** by Step 2; **do not** hard-code Kami `#1B365D`; if `$PRESET=swiss` then `--accent: #002FA7`, if `$PRESET=google-design` then `--accent: #6750A4` (all derived from tokens.css parsing, switching automatically when the preset is switched and re-run).
+- **Section C — negative tail**: take the string 「no title, no footer, no page chrome, no logo, no border」 from the preset's `image-prompts.md` (read in Step 2) + three fallback quotes. If the preset's `image-prompts.md` is missing or lacks that string (per the Step 2 fallbacks) → take the shared negative tail from `{skill_dir}/references/slide-image-prompts.md` §4 verbatim.
+- **Section D — editorial spec (DESIGN.md §3 + §8)**: dropcap 3-line / `text-wrap: pretty` / curly quotes (Kami spec quotation; **forbid** straight quotes), extracted from the editorial passages of §3 Typography Rules + §8 Do / Don't. If the current DESIGN.md carries no such editorial passage in §3/§8 (a gen-built nine-section structure need not include one) → extract the §3 Typography Rules full text instead.
 - **Section E — design-cores structure summary**: one line per schema + one line per slide-core (laid out from the file list gathered in Step 2).
 - **Section F — Codex CLI bridge wording**: plain-text guidance (no MCP implementation), including an invocation example:
 

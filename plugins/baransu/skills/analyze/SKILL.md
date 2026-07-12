@@ -385,7 +385,7 @@ If no structural finding remains but one or more wording-only findings are still
 
 ## Stage 7 — Handoff
 
-Run `ls` on the spec dir in this turn and list the generated files exactly as that output returns them — never from memory. Confirm the five layers are present and grep the spec files for leftover template braces (e.g. `{criterion`, `{item}`), repairing any miss before declaring. Then call `AskUserQuestion`:
+Run `ls` on the spec dir in this turn and list the generated files exactly as that output returns them — never from memory. Confirm the five layers are present and grep the spec files for leftover template braces (e.g. `{criterion`, `{item}`). Each check has an explicit failure path. **If** the `ls` output lacks any of the five required spec files (`goal.md`, `requirement.md`, `design.md`, `test.md`, at least one `task-{group}.md`), **then** do not call the handoff `AskUserQuestion` — return to the stage that produces the missing layer, regenerate it, and re-run this Stage 7 check once. **If** the grep finds leftover template braces, **then** repair is allowed in `design.md` / `test.md` / `task-*.md` only (one pass, then re-grep); **if** a placeholder sits in `goal.md` or `requirement.md`, do not auto-repair — those are user-intent layers per Constraints — pause and show the user the offending line for confirmation before declaring. Only after both checks pass (or the user has confirmed the goal/requirement placeholder), call `AskUserQuestion`:
 
 ```
 question: "spec 完成。接下來怎麼做？"
