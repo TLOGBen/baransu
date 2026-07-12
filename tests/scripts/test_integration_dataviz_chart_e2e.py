@@ -386,7 +386,7 @@ class TestE2ERow1UndeclaredExistingContentRegression(unittest.TestCase):
     def test_architecture_row_precedes_any_statistical_row(self):
         text = SVG_RULES.read_text(encoding="utf-8")
         region = _extract_region(
-            text, "## §4.9 14-type chart routing decision tree", ["\n## §4.10"])
+            text, "## §4.9 17-type chart routing decision tree", ["\n## §4.10"])
         lines = [l for l in region.splitlines() if l.startswith("| ")]
         arch_idx = next(
             i for i, l in enumerate(lines) if l.endswith("| Architecture |"))
@@ -640,20 +640,23 @@ class TestIntegrationRow3Schema43ChartCapabilityIndependenceSubprocess(unittest.
 class TestIntegrationRow4FourteenthTypeDoesNotAffectExisting13(unittest.TestCase):
     """Integration row 4 — 「/book 圖表選型決策樹新增第 14 型不影響既有 13 型」.
     Prior suites spot-check svg-rendering-rules.md's own table content; this
-    additionally confirms SKILL.md's own PROSE CLAIM ('14-type ... decision
-    tree') agrees with the underlying table it describes — a cross-file
-    consistency angle no prior suite checked."""
+    additionally confirms SKILL.md's own PROSE CLAIM (the N-type decision-tree
+    language — 17-type since the book-diagrams expansion) agrees with the
+    underlying table it describes — a cross-file consistency angle no prior
+    suite checked."""
 
-    def test_skill_md_and_svg_rules_agree_on_fourteen_type_language(self):
+    def test_skill_md_and_svg_rules_agree_on_seventeen_type_language(self):
         skill_text = BOOK_SKILL.read_text(encoding="utf-8")
-        self.assertIn("14-type diagram first-match decision tree", skill_text)
-        self.assertIn("14-type selection table", skill_text)
+        self.assertIn("17-type diagram first-match decision tree", skill_text)
+        self.assertIn("17-type selection table", skill_text)
         self.assertNotIn("13-type", skill_text)
+        self.assertNotIn("14-type", skill_text)
 
         rules_text = SVG_RULES.read_text(encoding="utf-8")
-        self.assertIn("14-type chart routing decision tree", rules_text)
-        self.assertIn("14-type selection table", rules_text)
+        self.assertIn("17-type chart routing decision tree", rules_text)
+        self.assertIn("17-type selection table", rules_text)
         self.assertNotIn("13-type", rules_text)
+        self.assertNotIn("14-type", rules_text)
 
 
 class TestIntegrationRow5ColorReasoningReadCountZeroForExisting13(unittest.TestCase):
@@ -757,7 +760,7 @@ class TestBoundaryExistingTypePriorityConcreteTrace(unittest.TestCase):
     def test_first_match_search_resolves_ambiguous_content_to_architecture(self):
         text = SVG_RULES.read_text(encoding="utf-8")
         region = _extract_region(
-            text, "## §4.9 14-type chart routing decision tree", ["\n## §4.10"])
+            text, "## §4.9 17-type chart routing decision tree", ["\n## §4.10"])
         rows = []
         for line in region.splitlines():
             if not line.startswith("| ") or line.startswith("| Data shape") or set(

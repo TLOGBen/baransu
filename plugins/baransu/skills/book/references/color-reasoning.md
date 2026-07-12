@@ -14,7 +14,7 @@ makes it fail (not just "this is wrong"), and shows a concrete before/after
 correction. This file is read only when `/book`'s Render stage generates a
 `statistical`-type section under a declared chart-capability (SKILL.md Stage
 3 §4's "Statistical-type color-capability degrade" note) — it does not affect
-any of the other 13 diagram types. It absorbs the reasoning behind dataviz's
+any of the other 16 diagram types. It absorbs the reasoning behind dataviz's
 `color-formula.md` and `validate_palette.py`, not a copy of dataviz's own
 prose or its full seven-step methodology (goal.md's out-of-scope note: 不整套
 內化 dataviz 七步方法論 — only the color layer is absorbed here).
