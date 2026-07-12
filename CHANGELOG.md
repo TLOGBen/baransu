@@ -2,6 +2,17 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.10.0 (2026-07-12)
+
+**遞延美學功能一次落地——design/book 八候選連續完成(ultracode 單 workflow,12 agents)**。plugin version 2.9.0 → 2.10.0。上游素材淺 clone 實讀(Kami/diagram-design/guizang/Waza+官方 frontend-design),三視角對抗驗證(美學統一/機械正確性/出處汙染)後收斂:
+
+- **book 圖表目錄 14→17**:新增 `type-org-chart`(含顧問情境矩陣變體,交叉引用 quadrant)、`type-class`(EXTENDS/HAS-A 邊語彙)、`type-architecture-board`(架構板);三檔逐節同構於既有結構契約,inline 範例全過機械閘門(雙 paper-mask、雙射 markers、寬度階、×4 幾何、單焦點、LEGEND、「圖:」)。`svg-rendering-rules` §4.9/§4.10 全表面同步、新增 §4.11。
+- **維護型圖表 trio 契約**:`maintained-diagrams.md` —— 與 repo 同生圖表的生命週期契約(trio 工件、意圖塊、證據巡檢與權威鏈、成熟度編碼、匯出紀律、反模式);Kami 概念全文自行表述。
+- **架構板規模級**:`type-architecture` 增補 ≤9 節點 → 分板升級 → 姊妹板+意圖檔邊界的三級指引。
+- **design 尺寸反比權重梯**:`typography-discipline.md` —— 越大越細/越小越粗、字級下限(guizang AGPL 概念,n-gram 比對 0 verbatim);Waza 系 CJK 文字適配三件組(孤行防護、長詞/在地化字串預試、整段截斷紀律)。
+- **表達軸雙軸**:`expression-axes.md` —— 背景質感軸(flat→grain→noise→gradient)與動效預算軸(none/functional/expressive),官方 skill 萃取,INFORM-not-dictate 錨定 aesthetics-foundation 元規則;三 preset 與 check.py 位元組不動(sha256 釘死)。
+- **守衛升級**:`test_book_diagram_types_17`(5 檔×陳舊計數措辭掃描)+ `test_design_typography_expression_axes`;下游 `design-token-resolver`/`color-reasoning`/`slide-checklist` 計數殘留(含既存陳舊)全清。
+
 ## v2.9.0 (2026-07-11)
 
 **美學基底與出廠修復——design/book 回歸「美學與統一」本心**。plugin version 2.8.0 → 2.9.0。三 PR 合併:

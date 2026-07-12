@@ -268,14 +268,7 @@ Replace any neutral intensity / boldness slider with a single **extreme-commitme
 - **(a) Capability-token VALUE derivation** — the chosen extreme sets the VALUES (not the names) of `--ease` / `--duration` / `--stagger-step` / `--font-display` / `--shadow-drama`, read off the lookup table below. The canonical token NAMES (38 base +5 capability for schema:43) never change — only the derived values move (per I1; Step 1.5 (b) consumes these values).
 - **(b) §9 expression-range authoring** — the same chosen extreme drives the DESIGN.md §9 expression-range spec (表現範圍), read off the same table: the asymmetry/overlap tolerance, the column-width ceiling, and the single-accent ≤5% discipline (the ≤5% accent budget is fixed for every extreme; per I2).
 
-**Extreme → value lookup** (read each column off the chosen extreme; values are starting anchors, tune ±1 step to the 記憶點 — never invent new token names):
-
-| chosen extreme | `--duration` | `--stagger-step` | `--ease` | `--shadow-drama` | §9 asymmetry / overlap | §9 column ceiling |
-|----------------|-----------|----------------|--------|----------------|------------------------|-------------------|
-| 極簡 minimal | 160–220ms | 30–40ms | calm `cubic-bezier(.4,0,.2,1)` | soft, alpha ≤0.10 | low / overlap ≤5% | ≤66ch |
-| 極繁 maximal | 320–480ms | 60–90ms | emphasized `cubic-bezier(.2,0,0,1)` | deep, alpha 0.18–0.30 | high / overlap 20–40% | ≤90ch |
-| brutalist | 0–140ms | 0–20ms | linear / step | hard offset, 0-blur alpha ≥0.4 | high, grid-broken / overlap ≤50% | full-bleed |
-| editorial | 240–360ms | 50–70ms | decelerate `cubic-bezier(0,0,.2,1)` | medium, alpha 0.10–0.16 | mid / overlap 10–20% | 60–72ch |
+**Extreme → value lookup** → read `references/canonical-tokens.md` §Extreme → Value Lookup (read each column off the chosen extreme; values are starting anchors, tune ±1 step to the 記憶點 — never invent new token names).
 
 All values stay token-only / PDF-safe (per I3): CSS animation is progressive-enhancement only; PDF/PPT render the static final state.
 
@@ -342,7 +335,9 @@ Each section must be substantive — no placeholder text. Base content on the us
 - §3 Typography: type scale perfect-fourth `r=1.333` (h1:body ≈ 2.37, h2:h3 ≈ 1.333); Chinese body line-height 1.5–1.55, forbid ≥1.6; reading column `max-width` ≤65ch.
 - §5 Layout: whitespace ≥40% of total area; spacing follows a 4pt grid (multiples).
 
-→ For the source of the numeric thresholds and the post-render self-check method, see `references/render-design-html.md §可驗品質門檻`; for the type-scale formula and tolerances, see `references/canonical-tokens.md §Modular Scale` (not re-transcribing the full table here — keeping the body lean).
+→ For the source of the numeric thresholds and the post-render self-check method, see `references/render-design-html.md §可驗品質門檻`; for the type-scale formula and tolerances, see `references/canonical-tokens.md §Modular Scale` (not re-transcribing the full table here — keeping the body lean); for the weight-discipline ladder, size floors, and text-adaptation IF-THEN rules (orphan lines, truncation, CJK), see `references/typography-discipline.md`.
+
+**Optional expression axes** — when authoring §1 / §6 / §7, read `references/expression-axes.md` (four-rung texture ladder, flat default; three-rung motion budget, functional default). Both axes are optional and INFORM-only: a DESIGN.md that never declares them keeps current behavior, and no new tokens or sections are introduced.
 
 ### Step 3 — Render DESIGN.html
 
