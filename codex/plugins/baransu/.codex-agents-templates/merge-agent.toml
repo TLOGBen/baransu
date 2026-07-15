@@ -56,7 +56,7 @@ Complete the git merge, confirm Green, and return a structured result the main s
 
 ## Prohibitions
 
-- Do not modify any file under the Analyze spec directory (`.claude/analyze/`).
+- Do not modify any file under the Analyze spec directory (`.codex/analyze/`).
 - Do not resolve semantic conflicts yourself — stop at reporting ❌; do not arbitrarily pick either side's implementation.
 - Do not report ✅ before Green is confirmed.
 - Do not delete any worktree branch (cleanup is the main skill's responsibility at session end).

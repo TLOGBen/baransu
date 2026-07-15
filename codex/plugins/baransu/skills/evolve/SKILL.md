@@ -26,9 +26,9 @@ The body below is English (agent-facing). All user-visible output is in **Tradit
 ## Outcome Contract
 
 - **Outcome**: 對目標 SKILL.md 跑只能向前轉的棘輪，產出每步可追溯、經獨立盲評與 held-out 驗證的演化包。
-- **Done when**: `.claude/evolve/<slug>/` 內有 `report.md`、`results.tsv`、`log.md`、`held-out.md`、收斂曲線與成果卡（零採納時成果卡依 Stage 7 較輕出口省略並於 `report.md` 註記），且演化版已過結構閘並經使用者於 Authorization PAUSE 採納或全部回滾。
+- **Done when**: `.codex/evolve/<slug>/` 內有 `report.md`、`results.tsv`、`log.md`、`held-out.md`、收斂曲線與成果卡（零採納時成果卡依 Stage 7 較輕出口省略並於 `report.md` 註記），且演化版已過結構閘並經使用者於 Authorization PAUSE 採納或全部回滾。
 - **Evidence**: `report.md` 的起訖分數、effectiveness mode（real-exec / offline-同源 / no-benchmark）與 Gate 3 理由、每軸證據來源與 held-out 證據力標籤；`log.md` 的逐輪 keep/restore 記錄。
-- **Output**: `.claude/evolve/<slug>/` 演化包；對話內呈現繁中收斂摘要與成果卡。
+- **Output**: `.codex/evolve/<slug>/` 演化包；對話內呈現繁中收斂摘要與成果卡。
 - **Automation**: ultracode=overlap, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
   In the same non-interactive pass, read `references/loop-pauses.md` for this skill's own PAUSE classification.
 
@@ -46,7 +46,7 @@ Use when a SKILL.md (or any skill-shaped instruction file) should be measurably 
 ## Stage 0 — Target, slug, work dir
 
 1. Resolve the target SKILL.md path. Derive `<slug>` from the skill name.
-2. Create `.claude/evolve/<slug>/` with a `snapshot/` subdir.
+2. Create `.codex/evolve/<slug>/` with a `snapshot/` subdir.
 3. Read `references/rubric-9dim.md` (the selection environment) and `references/safety-gates.md` (the red lines). Both are loaded once and held constant for the whole run.
 4. Locate or build the benchmark `test-prompts`, split into **train** (drives the loop) and **held-out** (final validation only) by this rule: the held-out set keeps at least 1 prompt and about 1/3 of all benchmark prompts (round up), and held-out prompts stay invisible to the evolution loop (Stages 1–6) until Stage 7 — feeding every prompt into the loop hollows out held-out validation. If the target has no benchmark, pause and ask the user for 2–3 prompts; the system fills a skeleton for confirmation — never fabricate the pass criteria. **If the user declines or no benchmark is confirmed → then run the loop structure-axis-only: hard-label dims 7–9 as `no-benchmark` (unscored, never assumed) in `report.md`, and skip Stage 7's held-out validation (there is no held-out set). Do not silently proceed as if effectiveness were measured.**
 
@@ -82,7 +82,7 @@ Score the effectiveness dimensions (7–9). Decide real-exec vs offline via the 
 
 ## Stage 5 — Blind judge panel
 
-Blind the panel mechanically, not by instruction alone: copy the pre- and post-mutation versions to `.claude/evolve/<slug>/panel/round-<N>/alpha.md` and `beta.md` (byte-identical copies — no added headers or annotations that could mark which is which). Round parity decides the assignment (odd rounds: mutation = alpha; even rounds: mutation = beta), cancelling position bias; the mapping is never disclosed to judges. Then dispatch **three fresh evolve-judge agents in parallel**, passing ONLY the two neutral panel paths — never the live skill path or the scratch path, whose names leak which version is the mutation. Each judge returns `{better, strict_improvement, per_dimension_deltas}`. Judges are single-use — never reuse a judge across rounds.
+Blind the panel mechanically, not by instruction alone: copy the pre- and post-mutation versions to `.codex/evolve/<slug>/panel/round-<N>/alpha.md` and `beta.md` (byte-identical copies — no added headers or annotations that could mark which is which). Round parity decides the assignment (odd rounds: mutation = alpha; even rounds: mutation = beta), cancelling position bias; the mapping is never disclosed to judges. Then dispatch **three fresh evolve-judge agents in parallel**, passing ONLY the two neutral panel paths — never the live skill path or the scratch path, whose names leak which version is the mutation. Each judge returns `{better, strict_improvement, per_dimension_deltas}`. Judges are single-use — never reuse a judge across rounds.
 
 **Keep iff ≥ 2 of 3 judge strict_improvement = true.** When the effectiveness axis ran via real-exec (Stage 4 evidence label `real-exec`, not `offline-同源`), the keep-bar is 3 of 3; otherwise 2 of 3. If any of the three judges fails to return a well-formed `{better, strict_improvement, per_dimension_deltas}` vote (crash, timeout, or malformed payload) → then record that vote as `strict_improvement=false` (a non-vote never counts toward keep); it still counts as a cast vote, the tally always runs over exactly 3 votes, and re-dispatch is never attempted.
 
@@ -96,7 +96,7 @@ Blind the panel mechanically, not by instruction alone: copy the pre- and post-m
 
 - **Converge** when the no-progress counter reaches **N=3** consecutive rounds, or the round cap **R=6** total rounds is hit. Otherwise loop back to Stage 1.
 - **Held-out**: validate the converged version on the held-out set. Fresh held-out judges are the baseline (judges are single-use anyway), NOT an independence layer; an independence layer changes the ruler — a different rubric dimension weighting, or human ground-truth. Write `held-out.md` with the evidence-strength label (`硬證據` only if a ruler-changing independence layer was applied; otherwise `題目泛化證據`). **Regression branch**: if the converged version scores below the pre-evolution version on the held-out set, mark the run 未通過 held-out prominently in `report.md`, the result card, and the convergence summary, and offer a rollback to `snapshot/1.md` — a second Authorization PAUSE (never auto-rollback in either direction; non-interactive runs flag the regression and stop there). See `references/output-contract.md`.
-- **Package**: write `results.tsv`, `convergence.svg` (the score-over-rounds curve; the effective baseline steps up on keeps only), and `report.md` (start/end score, effectiveness mode + Gate 3 reason, per-axis evidence source) — every artifact lands in `.claude/evolve/<slug>/`. **Make the user-facing surfaces human-readable — draft the convergence summary and the card copy through `/write` (zh), then render the result card through the `/book` entry (never hand-assemble HTML) and copy the `/book` output HTML to `.claude/evolve/<slug>/card.html` (the durable card artifact named in `references/output-contract.md`); see that file's §Human-readable delivery.** Surface the `/write`-refined 繁中 convergence summary, not the raw round-by-round trace. **Lighter exit**: if zero mutations were adopted, skip `/write` + `/book` — report a one-paragraph 繁中 convergence summary in-conversation, omit the result card, and note the omission in `report.md`.
+- **Package**: write `results.tsv`, `convergence.svg` (the score-over-rounds curve; the effective baseline steps up on keeps only), and `report.md` (start/end score, effectiveness mode + Gate 3 reason, per-axis evidence source) — every artifact lands in `.codex/evolve/<slug>/`. **Make the user-facing surfaces human-readable — draft the convergence summary and the card copy through `/write` (zh), then render the result card through the `/book` entry (never hand-assemble HTML) and copy the `/book` output HTML to `.codex/evolve/<slug>/card.html` (the durable card artifact named in `references/output-contract.md`); see that file's §Human-readable delivery.** Surface the `/write`-refined 繁中 convergence summary, not the raw round-by-round trace. **Lighter exit**: if zero mutations were adopted, skip `/write` + `/book` — report a one-paragraph 繁中 convergence summary in-conversation, omit the result card, and note the omission in `report.md`.
 
 ## Provenance + optional engine
 

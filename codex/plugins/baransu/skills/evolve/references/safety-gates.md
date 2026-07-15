@@ -21,7 +21,7 @@ Diagnosis, mutation-into-a-scratch-copy, scoring, and rollback are *not* Authori
 
 The snapshot/restore mechanism touches exactly one file: the target SKILL.md.
 
-- **Snapshot**: before mutating, copy the target file's bytes to `.claude/evolve/<slug>/snapshot/<round>.md`.
+- **Snapshot**: before mutating, copy the target file's bytes to `.codex/evolve/<slug>/snapshot/<round>.md`.
 - **Restore**: write the snapshot bytes back to the target path.
 - **Forbidden**: `git reset --hard`, `git stash`, `git clean`, `git checkout -- <path>`, or any git command that can touch the working tree beyond the single target file. The user is, by definition, mid-edit on a skill; the working tree is dirty as a matter of course. A repo-wide git rollback would eat their other uncommitted work (`rules/anti-patterns.md` Worktree Safety).
 - **Restore failure** is an irreversible-risk event: abort the run, preserve state, report. Never continue in an uncertain state.

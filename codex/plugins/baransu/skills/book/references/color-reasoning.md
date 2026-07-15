@@ -174,7 +174,7 @@ several hue boundaries the eye reads as categorical breaks, it implies false
 discontinuities inside data that is genuinely continuous; a reader sees "the
 yellow band" as its own group instead of a point on a continuum. Verify any
 generated sequential ramp with
-`plugins/baransu/skills/_shared/scripts/color_distance.py` on the ramp's
+`../../_shared/scripts/color_distance.py` on the ramp's
 sampled steps — the tool's CVD-separation check flags whether adjacent steps
 remain distinguishable under color-vision-deficiency simulation, which a true
 single-hue ramp should pass smoothly and a rainbow ramp routinely fails at
@@ -198,7 +198,7 @@ grayscale printouts, low-contrast displays — a color-only encoding silently
 excludes part of the audience; a series distinguishable only by hue isn't
 actually resolvable to those readers at all, no matter how obvious the
 difference looks to the author who chose it. Run
-`plugins/baransu/skills/_shared/scripts/color_distance.py` on the palette's
+`../../_shared/scripts/color_distance.py` on the palette's
 hex values before finalizing: an "adequate" CVD-separation score confirms the
 colors stay distinguishable under protan/deutan/tritan simulation, but it is
 advisory only — it does not replace pairing each color with a legend entry or
@@ -214,7 +214,7 @@ ordinal-ramp step resolution. This file absorbs the reasoning behind those
 checks into the entries above rather than reproducing the full six-check
 suite (goal.md's out-of-scope note: 不整套內化 dataviz 七步方法論). The one
 check with a working baransu implementation is CVD separation —
-`plugins/baransu/skills/_shared/scripts/color_distance.py` (hex → linear
+`../../_shared/scripts/color_distance.py` (hex → linear
 sRGB → Machado-Oliveira-Fernandes (2009) CVD simulation → CIELAB → CIE76 ΔE)
 — already referenced above and wired into the statistical-type Render path
 alongside this document (SKILL.md Stage 3 §4).

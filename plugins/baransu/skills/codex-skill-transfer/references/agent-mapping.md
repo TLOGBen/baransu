@@ -147,7 +147,9 @@ This is intentionally advisory. Codex custom agents still inherit the parent run
 
 ### 4.3 What the stub deliberately doesn't translate
 
-The Markdown body lands in `developer_instructions` verbatim because the agent's *prompt* is the meaningful content. References to Claude-specific tools (`Task`, `AskUserQuestion`, etc.) survive unchanged — the user adapts these by hand using the body-rewrite table in [`skill-mapping.md`](skill-mapping.md) §6 when they migrate the stub into their Codex config.
+The Markdown body lands in `developer_instructions` almost verbatim because the agent's *prompt* is the meaningful content. References to Claude-specific tools (`Task`, `AskUserQuestion`, etc.) survive unchanged — the user adapts these by hand using the body-rewrite table in [`skill-mapping.md`](skill-mapping.md) §6 when they migrate the stub into their Codex config.
+
+The one exception is repo-internal path references: `emit_agent_stub` runs `rewrite_repo_paths(..., skills_relative=False)` over the body so it does not send the agent to Claude-only paths. The flat-valid rewrites apply — `.claude/<dir>` → `.codex/<dir>` and `plugins/baransu/agents/<name>.md` → `~/.codex/agents/<name>.toml` — because those resolve from the flat `~/.codex/agents/` install location. The skills-relative rule is deliberately skipped (see [`skill-mapping.md`](skill-mapping.md) §6.1): a stub has no `../`-anchor into the plugin's `skills/` tree, so a `_shared/*` reference is left as a discoverable plugin path rather than an unresolvable relative one. Tool/API tokens still survive unchanged as above.
 
 ## 5. Naming-collision pitfall
 

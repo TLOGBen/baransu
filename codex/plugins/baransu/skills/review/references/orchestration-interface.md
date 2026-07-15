@@ -19,7 +19,7 @@ Each returned finding is natural language (not YAML) and carries exactly the fie
 
 Tier vocabulary is fixed by Stage 7 and applied downstream only: `direct fix` / `packaged confirm` / `needs judgment` / `advisory`. Adapters never assign tiers.
 
-Business rules — perspective lane-keeping (agent files), the balance check, the hard-stops sweep, and four-tier routing — live only in SKILL.md Stages 5–7 and `plugins/baransu/agents/*-reviewer.md`. This document cites them and never copies them.
+Business rules — perspective lane-keeping (agent files), the balance check, the hard-stops sweep, and four-tier routing — live only in SKILL.md Stages 5–7 and `~/.codex/agents/*-reviewer.toml`. This document cites them and never copies them.
 
 ## 2. Pre-Stage-1 mode pinning (ultracode-confirmed runs only)
 

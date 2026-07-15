@@ -10,7 +10,7 @@ dispatch(version_alpha, version_beta, rubric, round_parity) → votes[]   // exa
 
 Inputs per dispatched judge — identical in both modes (SKILL.md Stage 5):
 
-- the two neutrally-labelled versions (`alpha` / `beta`) as the **mechanically blinded panel copies** at `.claude/evolve/<slug>/panel/round-<N>/{alpha,beta}.md` (SKILL.md Stage 5) — judges receive only these paths, never the live skill path or the scratch path (path names leak which version is the mutation); `round_parity` fixes which label is the mutated one, swapped on odd vs even rounds to cancel position bias, and is never disclosed to judges
+- the two neutrally-labelled versions (`alpha` / `beta`) as the **mechanically blinded panel copies** at `.codex/evolve/<slug>/panel/round-<N>/{alpha,beta}.md` (SKILL.md Stage 5) — judges receive only these paths, never the live skill path or the scratch path (path names leak which version is the mutation); `round_parity` fixes which label is the mutated one, swapped on odd vs even rounds to cancel position bias, and is never disclosed to judges
 - the fixed rubric (`references/rubric-9dim.md`) — the selection environment, never edited mid-run
 
 Each returned vote carries exactly the fields Stage 5 already mandates:
@@ -32,7 +32,7 @@ This file is read only when the run is Workflow-driven or a system-reminder conf
 When the read does happen, before Stage 1 begins:
 
 1. Detect ultracode via system-reminder confirmation — the session context must explicitly confirm a Workflow-capable environment. Do not infer it from tool names or vibes.
-2. Record the pinned mode (`workflow`) to disk under `.claude/evolve/<slug>/` before any dispatch.
+2. Record the pinned mode (`workflow`) to disk under `.codex/evolve/<slug>/` before any dispatch.
 3. The mode is pinned for the entire run. Never switch adapters mid-run, even after a partial dispatch failure.
 4. Degraded path: if detection is unreliable or ambiguous, use the Workflow adapter only when the user explicitly declares it; otherwise fall back to the current adapter and write no mode record (non-ultracode behavior unchanged).
 

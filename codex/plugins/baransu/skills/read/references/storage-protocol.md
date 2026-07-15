@@ -2,10 +2,10 @@
 
 ## Directory Structure
 
-All captured content lives under `.claude/read/` relative to the repository root.
+All captured content lives under `.codex/read/` relative to the repository root.
 
 ```
-.claude/read/
+.codex/read/
   index.md               # master index (append-only)
   raw/{slug}/
     index.{ext}          # original fetched content (immutable)
@@ -56,7 +56,7 @@ Field notes:
 
 ---
 
-## `.claude/read/index.md` — Master Index
+## `.codex/read/index.md` — Master Index
 
 Format: a Markdown table with four columns.
 
@@ -93,9 +93,9 @@ Examples:
 
 ## Dedup Flow
 
-Before creating a new capture, check for conflicts in `.claude/read/index.md`:
+Before creating a new capture, check for conflicts in `.codex/read/index.md`:
 
-1. Read `.claude/read/index.md` (if it does not exist, no dedup needed — proceed).
+1. Read `.codex/read/index.md` (if it does not exist, no dedup needed — proceed).
 2. Search for an existing row where `source_url` matches the incoming URL exactly.
    - **Match found**: the dedup base is the **existing index.md row's slug** — not a re-derived title slug. Find the highest existing `_vN` suffix on that slug (e.g., `my-page_v2`). Use `_v{N+1}` as the new slug. If no `_vN` suffix exists yet, the new slug is `{existing-row-slug}_v2`.
 3. If no `source_url` match, check whether the generated slug already exists (title collision with a different URL).

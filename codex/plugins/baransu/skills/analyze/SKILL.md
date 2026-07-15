@@ -1,6 +1,6 @@
 ---
 name: analyze
-description: Builds a goal→requirement→design→test→task spec under .claude/analyze/,
+description: Builds a goal→requirement→design→test→task spec under .codex/analyze/,
   then hands off to /execute. Use when task scope spans ≥2 interdependent modules
   and context rot is real. Trigger On '/analyze', '分析需求', '展開規格'. Not for single-file
   or single-layer changes with no cross-module dependency (use /think or implement
@@ -23,9 +23,9 @@ metadata:
 ## Outcome Contract
 
 - **Outcome**: A five-layer spec (goal → requirement → design → test → task) exists for the stated goal, ready for /execute handoff.
-- **Done when**: `.claude/analyze/{date}-{slug}/` contains `goal.md`, `requirement.md`, `design.md`, `test.md`, and at least one `task-{group}.md`, and the Stage 6 cross-layer review round (3 subagents + one auto-correct round) has completed.
+- **Done when**: `.codex/analyze/{date}-{slug}/` contains `goal.md`, `requirement.md`, `design.md`, `test.md`, and at least one `task-{group}.md`, and the Stage 6 cross-layer review round (3 subagents + one auto-correct round) has completed.
 - **Evidence**: The `ls` output of the spec dir captured in the Stage 7 declaring turn, plus a clean template-placeholder scan; Stage 6 findings and the auto-corrections applied to the design / test / task layers.
-- **Output**: Spec directory `.claude/analyze/{YYYY-MM-DD}-{slug}/` holding the five spec documents.
+- **Output**: Spec directory `.codex/analyze/{YYYY-MM-DD}-{slug}/` holding the five spec documents.
 - **Automation**: ultracode=assist, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 PAUSE classification for non-interactive drivers: `references/loop-pauses.md` — read it alongside `../_shared/loop-contract.md` when driven by /loop, cron, or Workflow, or hosted as a subagent.
@@ -35,7 +35,7 @@ PAUSE classification for non-interactive drivers: `references/loop-pauses.md` �
 - Do not write production code, scaffolding, or config files during Stages 1-6. The only output is the five spec documents.
 - Do not call `/review` from within Stages 1-6. Cross-layer subagents answer alignment questions ("are these two layers consistent?"), not per-layer quality questions ("what's wrong with this layer?"). These are different questions. The sole exception is the test-quality checks explicitly embedded in Agent 1's Stage 6 review question (reachability / assertion validity / redundancy) - those are part of Agent 1's mandate, not an invitation to general per-layer critique. Stage 7 may offer /review as a handoff option — that is a post-spec quality check, not an in-spec alignment check.
 - Auto-correction is one round. No silent looping.
-- On a same-day same-slug directory collision (Stage 0.C), never silently overwrite: branch via the direct user question (record the authorization decision; stop until the user answers) among resume / overwrite-rebuild / new -N-suffixed directory before writing any spec file. The overwrite-rebuild branch may delete only the computed spec dir `{repo_root}/.claude/analyze/{date}-{slug}/`; if the resolved delete target does not string-equal that path (or contains `..`, or falls outside `{repo_root}` from `git rev-parse --show-toplevel`), abort the deletion and fall back to the `-N`-suffixed branch instead.
+- On a same-day same-slug directory collision (Stage 0.C), never silently overwrite: branch via the direct user question (record the authorization decision; stop until the user answers) among resume / overwrite-rebuild / new -N-suffixed directory before writing any spec file. The overwrite-rebuild branch may delete only the computed spec dir `{repo_root}/.codex/analyze/{date}-{slug}/`; if the resolved delete target does not string-equal that path (or contains `..`, or falls outside `{repo_root}` from `git rev-parse --show-toplevel`), abort the deletion and fall back to the `-N`-suffixed branch instead.
 - `goal.md` and `requirement.md` are user-intent layers. Do not modify their semantics during auto-correct. Only design / test / task layers are auto-correctable.
 - Never invent requirement numbers. Every `REQ-XXX` reference in task files must have a matching entry in `requirement.md`.
 - Never invent Criteria numbers. Every `C{n}` reference in `test.md` must have a matching entry in `goal.md`.
@@ -75,26 +75,26 @@ Slug: lowercase, hyphens for spaces, ASCII only, max 30 characters, from the goa
 
 All spec files share one directory:
 ```
-.claude/analyze/{YYYY-MM-DD}-{slug}/
+.codex/analyze/{YYYY-MM-DD}-{slug}/
 ```
 
 Use today's date from the `currentDate` context. Confirm the path to the user in one line before writing.
 
-Then resolve the directory-existence failure path explicitly — never silently overwrite. If `.claude/analyze/{date}-{slug}/` already exists (the same-day, same-goal-slug rerun case), then call `authorization PAUSE` once to pick among three branches before any file is written; otherwise (directory absent) create it and continue:
+Then resolve the directory-existence failure path explicitly — never silently overwrite. If `.codex/analyze/{date}-{slug}/` already exists (the same-day, same-goal-slug rerun case), then call `authorization PAUSE` once to pick among three branches before any file is written; otherwise (directory absent) create it and continue:
 
 ```
-question: "目錄 .claude/analyze/{date}-{slug}/ 已存在，怎麼處理？"
+question: "目錄 .codex/analyze/{date}-{slug}/ 已存在，怎麼處理？"
 header:   "目錄衝突"
 options:
   1. label: "resume 既有 spec 【推薦】"
      description: "沿用現有目錄與已寫檔案，只補齊或更新缺漏的層，不刪除既有內容。"
   2. label: "覆寫重建"
-     description: "僅刪除計算出的 spec 目錄 .claude/analyze/{date}-{slug}/ 內容後從 Stage 1 重新生成五層 spec；刪除範圍嚴格限定在這唯一一個路徑。"
+     description: "僅刪除計算出的 spec 目錄 .codex/analyze/{date}-{slug}/ 內容後從 Stage 1 重新生成五層 spec；刪除範圍嚴格限定在這唯一一個路徑。"
   3. label: "改用 -2 後綴另建目錄"
-     description: "改寫到 .claude/analyze/{date}-{slug}-2/，保留原目錄不動（已存在 -2 則續加 -3、-4…）。"
+     description: "改寫到 .codex/analyze/{date}-{slug}-2/，保留原目錄不動（已存在 -2 則續加 -3、-4…）。"
 ```
 
-If the user picks option 2 (覆寫重建), apply a scoped path-guard before deleting anything: resolve the intended delete target and compute the canonical spec dir as `{repo_root}/.claude/analyze/{date}-{slug}/`, where `{repo_root}` comes from `git rev-parse --show-toplevel`. If that command fails (the project is not a git repo), the overwrite-rebuild branch is unavailable — do not delete anything; take the option-3 `-N`-suffixed branch automatically and tell the user 「非 git repo，無法安全定界刪除範圍，改用 -N 後綴目錄」. **If** the resolved delete target is not exactly that computed spec dir — i.e. the resolved path does not string-equal the computed spec dir, OR it contains any `..` segment, OR it does not lie under `{repo_root}` — **then** abort the overwrite entirely and fall back to the option-3 `-N`-suffixed branch (write to `.claude/analyze/{date}-{slug}-2/`, then `-3`, `-4`… ) instead of deleting. Only when the resolved target string-equals the computed spec dir may the directory contents be deleted. This pins the only irreversible deletion to one verifiable path so a single dropdown click can never remove anything outside the computed spec subdirectory.
+If the user picks option 2 (覆寫重建), apply a scoped path-guard before deleting anything: resolve the intended delete target and compute the canonical spec dir as `{repo_root}/.codex/analyze/{date}-{slug}/`, where `{repo_root}` comes from `git rev-parse --show-toplevel`. If that command fails (the project is not a git repo), the overwrite-rebuild branch is unavailable — do not delete anything; take the option-3 `-N`-suffixed branch automatically and tell the user 「非 git repo，無法安全定界刪除範圍，改用 -N 後綴目錄」. **If** the resolved delete target is not exactly that computed spec dir — i.e. the resolved path does not string-equal the computed spec dir, OR it contains any `..` segment, OR it does not lie under `{repo_root}` — **then** abort the overwrite entirely and fall back to the option-3 `-N`-suffixed branch (write to `.codex/analyze/{date}-{slug}-2/`, then `-3`, `-4`… ) instead of deleting. Only when the resolved target string-equals the computed spec dir may the directory contents be deleted. This pins the only irreversible deletion to one verifiable path so a single dropdown click can never remove anything outside the computed spec subdirectory.
 
 ---
 
@@ -409,11 +409,11 @@ options:
 
 **Option 1 — 送 /review 再決定.** Invoke `/baransu:review` on the generated spec files. Review goal: 「確認五層 spec 的品質與一致性，找出任何可能影響執行的遺漏或矛盾」. After review, the user naturally loops back to this gate.
 
-**Option 2 — 直接交接 execute（完全授權）.** Inline same-session execution contradicts this skill's never-share-context premise, so gate it on spec size: **if** the spec dir contains ≥2 `task-*.md` group files or a `wave.md`, **then** stop at the handoff and tell the user to run /execute in a fresh session instead of continuing in the loaded context (see /think Stage E, Mechanism necessity), outputting: 「spec 規模跨多個 task 群組，請在新 session 執行：/baransu:execute .claude/analyze/{date}-{slug}/」. Only a single-group spec — exactly one `task-*.md` and no `wave.md` — may continue inline: find the execute skill and pass the spec directory path, executing autonomously without asking the user for further confirmation.
+**Option 2 — 直接交接 execute（完全授權）.** Inline same-session execution contradicts this skill's never-share-context premise, so gate it on spec size: **if** the spec dir contains ≥2 `task-*.md` group files or a `wave.md`, **then** stop at the handoff and tell the user to run /execute in a fresh session instead of continuing in the loaded context (see /think Stage E, Mechanism necessity), outputting: 「spec 規模跨多個 task 群組，請在新 session 執行：/baransu:execute .codex/analyze/{date}-{slug}/」. Only a single-group spec — exactly one `task-*.md` and no `wave.md` — may continue inline: find the execute skill and pass the spec directory path, executing autonomously without asking the user for further confirmation.
 
 **Option 3 — 手動決定.**
 
-「spec 已完成，路徑：`.claude/analyze/{date}-{slug}/`
+「spec 已完成，路徑：`.codex/analyze/{date}-{slug}/`
 
 下一步選擇：
 1. 在新 session 中開始依 task-*.md 逐一執行（建議：每個 task 獨立 session）

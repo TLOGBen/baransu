@@ -26,4 +26,4 @@ verbatim from SKILL.md; semantics unchanged.
 | Subagent-dispatch tool absent | Step 0 probe / first dispatch attempt | Enter serial-absorbed mode (worktrees + merge points retained, roles absorbed with mechanical gates); never block, never improvise beyond this row |
 | Project is not a git repo | Step 0 probe | Record git_available=false + execution_mode=degraded-in-place; L/XL run in-place serialized; NEVER stop, block, or wedge |
 | `git worktree add` fails | §4a | One-way degrade to in-place serialized execution; record verbatim output in confirm.md; do not retry, do not block the wave |
-| `git worktree remove` fails | Step 7 | `git worktree prune` → scoped `rm -rf` (registry-recorded path under `.claude/worktrees/` only) → prune again; still failing → append to final-report and continue; never wedge the session |
+| `git worktree remove` fails | Step 7 | `git worktree prune` → scoped `rm -rf` (registry-recorded path under `.codex/worktrees/` only) → prune again; still failing → append to final-report and continue; never wedge the session |

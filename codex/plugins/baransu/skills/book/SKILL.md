@@ -11,7 +11,7 @@ metadata:
   version: 0.1.0-codex
 ---
 
-Converts any content into a Kami-themed, browser-ready HTML book saved to `.claude/book/{slug}.html`.
+Converts any content into a Kami-themed, browser-ready HTML book saved to `.codex/book/{slug}.html`.
 
 **User-facing language**: 繁體中文. All output shown to the user must be in Traditional Chinese.
 
@@ -20,9 +20,9 @@ Converts any content into a Kami-themed, browser-ready HTML book saved to `.clau
 ## Outcome Contract
 
 - **Outcome**: Convert any content source (URL / slug / local file / text) through the three stages Acquire → Synthesize → Render into a Kami-themed, browser-openable HTML book.
-- **Done when**: The output HTML passes all GATEs of scripts/validate-output.ts (exit 0), and the file lands at `.claude/book/{slug}.html`.
+- **Done when**: The output HTML passes all GATEs of scripts/validate-output.ts (exit 0), and the file lands at `.codex/book/{slug}.html`.
 - **Evidence**: The execution result of validate-output.ts (GATE A-E / F / G / J / K / L all green or a legitimate SKIP).
-- **Output**: `.claude/book/{slug}.html`; per `--format` additionally includes `.pdf` / `.pptx`.
+- **Output**: `.codex/book/{slug}.html`; per `--format` additionally includes `.pdf` / `.pptx`.
 - **Automation**: ultracode=neutral, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 ## Constraints
@@ -129,10 +129,10 @@ If the real install returns a non-zero exit code:
 
 ### 7. Output directory
 
-Ensure `.claude/book/` exists relative to the project root:
+Ensure `.codex/book/` exists relative to the project root:
 
 ```bash
-mkdir -p ".claude/book"
+mkdir -p ".codex/book"
 ```
 
 ---
@@ -192,8 +192,8 @@ If all three layers fail or produce < 100 words:
 If the input matches the slug pattern (no `http://`, `./`, `/`, `*` prefix and no `--` prefix):
 
 Check the following paths in order:
-1. `.claude/learn/digests/{slug}.md`
-2. `.claude/read/material/{slug}/index.md`
+1. `.codex/learn/digests/{slug}.md`
+2. `.codex/read/material/{slug}/index.md`
 
 If found: read the file; set `$RAW_CONTENT` to its body (strip YAML frontmatter).
 If not found: first check whether the input is actually a local file (`test -e "{input}"` — a bare filename like `notes.md` matches this slug pattern too); if it exists, route to §3 (local file). Only when it is neither a known slug nor an existing file: treat as a bare topic → go to §4 (plain text).
@@ -303,9 +303,9 @@ Derive `$SLUG` from the title:
 - Collapse consecutive hyphens
 - Strip leading/trailing hyphens
 - Truncate to 60 chars
-- **Empty-slug fallback** (an all-CJK title — the common case for 繁中 content — reduces to the empty string): fall back in order to (1) a romanized/translated ASCII rendering of the title, (2) the source URL's path stem (as /read does), (3) a date-stamped `book-{YYYYMMDD}` slug. Never emit `.claude/book/.html`.
+- **Empty-slug fallback** (an all-CJK title — the common case for 繁中 content — reduces to the empty string): fall back in order to (1) a romanized/translated ASCII rendering of the title, (2) the source URL's path stem (as /read does), (3) a date-stamped `book-{YYYYMMDD}` slug. Never emit `.codex/book/.html`.
 
-Check `.claude/book/` for existing files with the same slug.
+Check `.codex/book/` for existing files with the same slug.
 If a collision exists: append `_v2`, `_v3`, etc., and **output one Traditional-Chinese notice line so the renamed output is not silent** (notify, not a blocking PAUSE): 「偵測到既有 {slug}.html，本次另存為 {slug}_v2.html（如要覆寫請刪除舊檔後重跑）」, then continue.
 
 **$SLUG is derived only once in Stage 2A; Stage 2B and all Render steps inherit the same $SLUG and do not re-derive it.**
@@ -322,7 +322,7 @@ Runs only when `$FORMAT` ∈ {`ppt`, `all`}; produces `$STRUCTURE_SLIDES` (6–1
 
 ## Stage 3 — Render
 
-Produces a complete HTML file at `.claude/book/{$SLUG}.html`.
+Produces a complete HTML file at `.codex/book/{$SLUG}.html`.
 
 ### 1. Read the design system
 
@@ -415,24 +415,24 @@ Whenever any stage needs to fetch a raster / photographic / logo / UI mockup ima
 2. **Generate OR Search** — pick one:
    - **Generate**: run **Codex CLI image-gen**, with the brief produced by `/baransu:design export-brief` then fed in via stdin. Example:
      ```bash
-     codex prompt --stdin < .claude/design/brief-{preset}-{date}.md \
+     codex prompt --stdin < .codex/design/brief-{preset}-{date}.md \
        --suffix "請生成符合上述 design brief 的封面圖，no title, no footer, no page chrome, no logo, no border"
      ```
    - **Search**: call `search the web` to find ready-made resources; **accept only CC licenses** (CC0 / CC-BY / CC-BY-SA), everything else falls back to the Generate branch.
 3. **Verify** — the renderer embeds the image into the long-form HTML preview, and the user visually confirms composition, layout alignment, no AI slop, no watermark; if it fails, fall back to step 2 and rerun.
-4. **Freeze** — commit the image file to `.claude/book/{slug}/assets/`, and write a `meta.json` containing `source` (generate / search), `prompt` (required on the Generate path), `license` (required on the Search path), and a `verified_at` timestamp. After freezing the image is treated as immutable; to change it → start over from step 1.
+4. **Freeze** — commit the image file to `.codex/book/{slug}/assets/`, and write a `meta.json` containing `source` (generate / search), `prompt` (required on the Generate path), `license` (required on the Search path), and a `verified_at` timestamp. After freezing the image is treated as immutable; to change it → start over from step 1.
 
 ### 6. Multi-format pipeline (PDF / PPTX)
 
 Takes effect only when `$FORMAT` ∈ {`pdf`, `ppt`, `all`}.
 
 - **PDF**: inject `@page` + hidden `.toc-wrap` + serif `body { font-family: var(--font-serif) }` into the HTML, save the patched HTML, call `python3 -m weasyprint`. On failure → warning, do not abort.
-- **PPTX**: per `$STRUCTURE_SLIDES`, take the skeleton from `{project_root}/slide-cores/<layout-id>.html`; write one HTML per slide to `.claude/book/slides-{$SLUG}/slide-{NN}.html` (zero-padded deck order — the fixed on-disk contract Stage 4's PPT-mode validation reads back) with a `960pt × 540pt` `<body>` (the unit is **pt** — 960px fails html2pptx's LAYOUT_WIDE dimension validation) + per slide `<section class="{prefix}-slide" data-layout=...>`; before calling, verify three items (`width:960pt` / a prefixed `section[data-layout]` slide present / no `background-image`); once passed, call `node html2pptx.js` **once with all per-slide files** (multiple inputs append slides to one .pptx).
+- **PPTX**: per `$STRUCTURE_SLIDES`, take the skeleton from `{project_root}/slide-cores/<layout-id>.html`; write one HTML per slide to `.codex/book/slides-{$SLUG}/slide-{NN}.html` (zero-padded deck order — the fixed on-disk contract Stage 4's PPT-mode validation reads back) with a `960pt × 540pt` `<body>` (the unit is **pt** — 960px fails html2pptx's LAYOUT_WIDE dimension validation) + per slide `<section class="{prefix}-slide" data-layout=...>`; before calling, verify three items (`width:960pt` / a prefixed `section[data-layout]` slide present / no `background-image`); once passed, call `node html2pptx.js` **once with all per-slide files** (multiple inputs append slides to one .pptx).
 
 **Detailed steps (HTML preprocessing / verification items / failure handling) → read `references/render-pipelines.md`.**
 ### 7. Write the output file
 
-Write the complete HTML to `.claude/book/{$SLUG}.html`.
+Write the complete HTML to `.codex/book/{$SLUG}.html`.
 
 Do not write partial content — write the full file in one operation.
 
@@ -443,7 +443,7 @@ Do not write partial content — write the full file in one operation.
 ### 1. Run quality gate
 
 ```bash
-npx tsx "./scripts/validate-output.ts" ".claude/book/{$SLUG}.html"
+npx tsx "./scripts/validate-output.ts" ".codex/book/{$SLUG}.html"
 ```
 
 > Runtime note: if `npx tsx` is unavailable, `bun run "./scripts/validate-output.ts" <file>` works (bun auto-installs cheerio).
@@ -453,13 +453,13 @@ Exit codes:
 - `1` (GATE FAIL): three-stage fallback:
   - **Trigger condition**: validate-output.ts returns exit 1.
   - **First-line fix**: read the failure lines printed to stdout, fix only the failing element and rewrite the file, then rerun the quality gate once.
-  - **Still-failing fallback**: 🛑 STOP — quality gate failed a second time, human intervention: if exit 1 still on the second run, output 「品質閘第二次失敗，請手動開啟 .claude/book/{$SLUG}.html 確認問題。」 and stop (do not enter the completion report).
+  - **Still-failing fallback**: 🛑 STOP — quality gate failed a second time, human intervention: if exit 1 still on the second run, output 「品質閘第二次失敗，請手動開啟 .codex/book/{$SLUG}.html 確認問題。」 and stop (do not enter the completion report).
 - `2` (usage error): script invocation was wrong — fix and re-run
 
-**PPT-mode addition (`$FORMAT` contains `ppt`)**: after the long-form gate above, additionally run the validator over **each per-slide HTML** written by Stage 3 §6 (`.claude/book/slides-{$SLUG}/slide-*.html`):
+**PPT-mode addition (`$FORMAT` contains `ppt`)**: after the long-form gate above, additionally run the validator over **each per-slide HTML** written by Stage 3 §6 (`.codex/book/slides-{$SLUG}/slide-*.html`):
 
 ```bash
-for f in .claude/book/slides-{$SLUG}/slide-*.html; do
+for f in .codex/book/slides-{$SLUG}/slide-*.html; do
   npx tsx "./scripts/validate-output.ts" "$f"
 done
 ```

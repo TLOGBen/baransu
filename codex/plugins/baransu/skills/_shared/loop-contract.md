@@ -154,7 +154,7 @@ Skill-side obligations (all mandatory):
 
 1. **Re-entrant** — re-invocation must resume or redo safely; repetition never
    corrupts state.
-2. **State on disk** — persist working artifacts under `.claude/<skill>/` so
+2. **State on disk** — persist working artifacts under `.codex/<skill>/` so
    the driver and the next invocation can observe progress.
 3. **Explicit no-progress reporting** — when the skill detects it cannot
    advance, report `no progress: {reason}` instead of silently retrying.

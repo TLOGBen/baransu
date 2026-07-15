@@ -26,7 +26,7 @@ Advisory baseline for a project's or a user's agent-instruction surface (`CLAUDE
 Two hard framing rules:
 
 - **Advisory, not mandatory.** Missing coverage is a `WARN` (Standard/Complex tier) or informational (Simple tier) — never a hard `FAIL`, never auto-applied.
-- **Mutation is gated (INV-4).** Appending happens only after explicit user confirmation. General, plugin-agnostic principles go to **user scope** (`~/.claude/CLAUDE.md`); only project-specific rules go to project scope. Never recommend duplicating a principle already covered at user scope into a project file.
+- **Mutation is gated (INV-4).** Appending happens only after explicit user confirmation. General, plugin-agnostic principles go to **user scope** (`~/.codex/CLAUDE.md`); only project-specific rules go to project scope. Never recommend duplicating a principle already covered at user scope into a project file.
 
 ## Canonical template (append the missing sections only)
 

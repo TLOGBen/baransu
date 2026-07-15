@@ -7,7 +7,7 @@
 
 # Web — Static Content Acquisition
 
-Path convention: define `$READ_ROOT=.claude/read` (relative to the repository root); every `raw/` path in this file lives under it. Each lane runs `mkdir -p` before its first write into `$READ_ROOT/raw/{slug}/`. Fetches land in a temp path first and move into `raw/` only after quality checks pass — so `raw/{slug}/` is written exactly once and immutability holds by construction.
+Path convention: define `$READ_ROOT=.codex/read` (relative to the repository root); every `raw/` path in this file lives under it. Each lane runs `mkdir -p` before its first write into `$READ_ROOT/raw/{slug}/`. Fetches land in a temp path first and move into `raw/` only after quality checks pass — so `raw/{slug}/` is written exactly once and immutability holds by construction.
 
 ## Local-First Fetch (default)
 

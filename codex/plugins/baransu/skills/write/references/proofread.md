@@ -1,6 +1,6 @@
 # Proofread procedure — /write Stage 4
 
-Full execution detail for the Proofread path. Read this file when Proofread mode is detected, before executing Stage 4. The SKILL.md body stub restates the red lines (report-don't-rewrite, never invent a page number, the three fixed labels, the `.claude/write/` target); this file holds the procedure.
+Full execution detail for the Proofread path. Read this file when Proofread mode is detected, before executing Stage 4. The SKILL.md body stub restates the red lines (report-don't-rewrite, never invent a page number, the three fixed labels, the `.codex/write/` target); this file holds the procedure.
 
 ## 1. Acquire the source (page tracking is mandatory)
 
@@ -46,12 +46,12 @@ Match /book's Kami visual style **without** routing through the /book pipeline �
 1. **Palette / type tokens**: read `{project_root}/tokens.css` first line for the preset slug and reuse its canonical color/type tokens, inlined into a `<style>` block so the file opens standalone. If `tokens.css` is absent, fall back to a clean, modern, light-theme palette (neutral paper background, one restrained accent, system-ui / serif reading font) — do not abort; proofread does not depend on `/baransu:design preset` having been run.
 2. **Structure**: a single self-contained HTML document — a header (document title + scan summary: total findings and a per-type count), then one `<table>` with the six columns in this order: 頁數 ｜ 段落／上下文 ｜ 原文內容 ｜ 錯誤類型 ｜ 建議修正 ｜ 修改原因. Render 錯誤類型 as a color-coded badge (one hue per label) and wrap the problematic span in 原文內容 with `<mark>` so it stands out. Keep the reading column comfortable and the table zebra-striped for scanability.
 3. **No validate-output.ts**: that gate enforces SVG presence and long-form section structure, neither of which applies to a report table. Do not run it; do not add a decorative SVG just to satisfy a gate that is not invoked here.
-4. **Write target**: `.claude/write/錯字修改.html` (create `.claude/write/` if absent). Write the full file in one operation. If `.claude/write/錯字修改.html` already exists (a prior proofread of a possibly different document), do NOT silently clobber it: write to `.claude/write/錯字修改-<YYYYMMDD-HHMMSS>.html` instead (the collision scheme defined in SKILL.md Stage 4 — timestamp suffixes stay collision-proof under concurrent runs) and report the renamed path in the completion line, so an earlier report is never lost.
+4. **Write target**: `.codex/write/錯字修改.html` (create `.codex/write/` if absent). Write the full file in one operation. If `.codex/write/錯字修改.html` already exists (a prior proofread of a possibly different document), do NOT silently clobber it: write to `.codex/write/錯字修改-<YYYYMMDD-HHMMSS>.html` instead (the collision scheme defined in SKILL.md Stage 4 — timestamp suffixes stay collision-proof under concurrent runs) and report the renamed path in the completion line, so an earlier report is never lost.
 
 ## 5. Completion report (Traditional Chinese)
 
 ```
-✅ 校對完成：.claude/write/錯字修改.html
+✅ 校對完成：.codex/write/錯字修改.html
 共 {N} 處：錯別字 {a}｜用語不妥 {b}｜語句不通順 {c}
 頁數來源：{PDF 逐頁 ／ 無分頁（以段落上下文定位）}
 ```

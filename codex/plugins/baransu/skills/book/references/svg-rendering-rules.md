@@ -245,4 +245,4 @@ Each section containing a diagram looks up the corresponding ref from this table
 
 ## §4.11 Maintained-diagram lifecycle (trio contract)
 
-When the diagram's destination is the **user's repository** (a README hero, a docs-site figure, or an update to an existing in-repo diagram) rather than `.claude/book/`, every per-type rule above still applies — but the artifact gains a lifecycle: the source HTML, the exported PNG, and the intent file move together as one trio. Read `references/diagram-types/maintained-diagrams.md` before redrawing any such diagram; never redraw from memory alone.
+When the diagram's destination is the **user's repository** (a README hero, a docs-site figure, or an update to an existing in-repo diagram) rather than `.codex/book/`, every per-type rule above still applies — but the artifact gains a lifecycle: the source HTML, the exported PNG, and the intent file move together as one trio. Read `references/diagram-types/maintained-diagrams.md` before redrawing any such diagram; never redraw from memory alone.

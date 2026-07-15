@@ -646,6 +646,16 @@ def translate_frontmatter(fm: dict, report: TransferReport) -> tuple[dict, dict 
         report.mapped.append(
             f"`description` {desc_rewrite_count} 處 Claude Task/subagent wording 改為 Codex wording"
         )
+    # Repo-internal path refs in the description (usually the output dir, e.g.
+    # `.claude/analyze/`) -> Codex layout, unless this skill documents them.
+    if fm.get("name") not in REPO_PATH_REWRITE_EXEMPT_SKILLS:
+        desc_paths, desc_path_n = rewrite_repo_paths(str(desc), "../", fm.get("name"))
+        if desc_path_n:
+            out["description"] = desc_paths
+            desc = desc_paths
+            report.rewrites.append(
+                f"`description` {desc_path_n} 處 repo 路徑參照改寫為 Codex 佈局"
+            )
     if len(desc) > 1024:
         trimmed = re.sub(
             r"\s*Trigger immediately when[^.]*\.",
@@ -719,11 +729,101 @@ def translate_frontmatter(fm: dict, report: TransferReport) -> tuple[dict, dict 
     return out, openai_yaml
 
 
+# ---------------------------------------------------------------------------
+# Repo-internal path reference rewriting
+# ---------------------------------------------------------------------------
+# Claude skill bodies cite sibling material by baransu-repo-root path
+# (`plugins/baransu/agents/*.md`, `plugins/baransu/skills/_shared/*`). Those
+# prefixes do not exist in the Codex output tree, so left alone they dangle —
+# a dispatched reviewer told to read `plugins/baransu/agents/foo.md` finds
+# nothing. The Codex layout equivalents:
+#   - agents/*.md          -> `~/.codex/agents/<name>.toml` (agent-mapping §1)
+#   - skills/<other>/...    -> `<updots><other>/...` (sibling skill under skills/)
+#   - skills/<self>/...     -> skill-root-relative (strip any `$VAR/` prefix)
+#   - .claude-plugin/plugin.json -> `.codex-plugin/plugin.json`
+#   - `.claude/<dir>`       -> `.codex/<dir>` (output/config dirs; not .claude-plugin)
+#
+# Files whose baransu paths are documentation ABOUT the repo or the mapping
+# itself — not live cross-references — are exempt (rewriting corrupts meaning):
+# the codex-skill-transfer skill's own mapping tables, and design's
+# slide-checklist version-bump example. They are still Claude-token-scanned.
+REPO_PATH_REWRITE_EXEMPT_SKILLS = frozenset({"codex-skill-transfer"})
+# Scoped to (skill, relpath): a bare relpath would exempt any same-named file
+# in an unrelated skill. slide-checklist.md is design's version-bump example.
+REPO_PATH_REWRITE_EXEMPT_RELPATHS = frozenset(
+    {("design", "references/slide-checklist.md")}
+)
+
+# Agent name may carry a glob (`*-reviewer`); the class excludes `/` and `.`
+# so it never swallows a nested path or a bare `agents/**` glob (no `.md`).
+_AGENT_REF = re.compile(r"plugins/baransu/agents/([A-Za-z0-9*_-]+)\.md")
+# Optional leading `$VAR/` lets a self-reference like
+# `$REPO_ROOT/plugins/baransu/skills/health/scripts` collapse to skill-root.
+_SKILLS_REF = re.compile(
+    r"(?:\$[A-Za-z_][A-Za-z0-9_]*/)?plugins/baransu/skills/([A-Za-z0-9_-]+)/"
+)
+_PLUGIN_JSON_REF = re.compile(r"plugins/baransu/\.claude-plugin/plugin\.json")
+# `.claude/` only — `.claude-plugin` (hyphen, not slash) is deliberately spared.
+_CLAUDE_DIR_REF = re.compile(r"\.claude/")
+
+
+def rewrite_repo_paths(
+    text: str,
+    updots: str,
+    skill_name: str | None,
+    skills_relative: bool = True,
+) -> tuple[str, int]:
+    """Rewrite baransu repo-internal path references to their Codex layout.
+
+    `updots` is the `../`-prefix that reaches the skills/ dir from the file
+    being rewritten (SKILL.md -> `../`, references/*.md -> `../../`).
+
+    `skills_relative=False` is for agent-stub bodies, which install flat at
+    `~/.codex/agents/*.toml` and therefore have NO `../`-anchor into the
+    plugin's skills/ tree: the `skills/<other>/...` rule is skipped so a
+    `_shared/*` ref is left as a discoverable plugin path rather than an
+    unresolvable relative one. Agent→agent and `.claude/` rewrites still apply.
+    Returns (rewritten_text, change_count).
+    """
+    n = 0
+
+    def agent_sub(m: re.Match[str]) -> str:
+        nonlocal n
+        n += 1
+        return f"~/.codex/agents/{m.group(1)}.toml"
+
+    text = _AGENT_REF.sub(agent_sub, text)
+
+    def skills_sub(m: re.Match[str]) -> str:
+        nonlocal n
+        n += 1
+        seg = m.group(1)
+        if seg == skill_name:
+            # Self-reference -> skill-ROOT-relative (drop any `$VAR/` prefix).
+            # `updots` reaches the skills/ dir; the skill root is one level
+            # below, so strip one `../`. Depth-correct: SKILL.md `../`->`` ,
+            # references/*.md `../../`->`../`. A bare `""` here would be wrong
+            # for any file below the skill root (it resolves from the file's
+            # own dir, not the skill root).
+            return updots[3:]
+        return f"{updots}{seg}/"
+
+    if skills_relative:
+        text = _SKILLS_REF.sub(skills_sub, text)
+
+    text, k = _PLUGIN_JSON_REF.subn(".codex-plugin/plugin.json", text)
+    n += k
+    text, k = _CLAUDE_DIR_REF.subn(".codex/", text)
+    n += k
+    return text, n
+
+
 def rewrite_body(
     body: str,
     report: TransferReport,
     named_args: list[str] | None = None,
     positional_args: bool = False,
+    skill_name: str | None = None,
 ) -> str:
     inline_count = 0
     block_count = 0
@@ -976,6 +1076,18 @@ def rewrite_body(
             "（Codex 由 root 向下讀 AGENTS.md，合併上限 32 KiB）"
         )
 
+    # Repo-internal path references -> Codex layout. SKILL.md sits at the skill
+    # root, so `../` reaches the skills/ dir. Exempt skills document these paths
+    # literally (see REPO_PATH_REWRITE_EXEMPT_SKILLS).
+    if skill_name not in REPO_PATH_REWRITE_EXEMPT_SKILLS:
+        body, path_n = rewrite_repo_paths(body, "../", skill_name)
+        if path_n:
+            report.rewrites.append(
+                f"{path_n} 處 repo 內部路徑參照改寫為 Codex 佈局"
+                "（agents→`~/.codex/agents/*.toml`、_shared/跨 skill→相對路徑、"
+                "`.claude/`→`.codex/`）"
+            )
+
     return body
 
 
@@ -1172,9 +1284,34 @@ def copy_aux(source: Path, target: Path, report: TransferReport) -> None:
             f"{rewritten} 處 scripts/ 內的 `${{CLAUDE_SKILL_DIR}}` 改寫為 `.`（skill root）"
         )
 
+    # Repo-internal path references in copied references/*.md -> Codex layout.
+    # (SKILL.md itself is rewritten in rewrite_body.) Exempt skills/files whose
+    # baransu paths are documentation, not live refs (REPO_PATH_REWRITE_EXEMPT_*).
+    refs_root = target / "references"
+    skill_name = target.name
+    if refs_root.is_dir() and skill_name not in REPO_PATH_REWRITE_EXEMPT_SKILLS:
+        path_rewrites = 0
+        for path in sorted(refs_root.rglob("*.md")):
+            rel = path.relative_to(target)
+            if (skill_name, str(rel)) in REPO_PATH_REWRITE_EXEMPT_RELPATHS:
+                continue
+            try:
+                text = path.read_text(encoding="utf-8")
+            except (UnicodeDecodeError, OSError):
+                continue
+            # One `../` per path component reaches the skills/ dir:
+            # references/foo.md (2 parts) -> `../../`.
+            new_text, n = rewrite_repo_paths(text, "../" * len(rel.parts), skill_name)
+            if n:
+                path.write_text(new_text, encoding="utf-8")
+                path_rewrites += n
+        if path_rewrites:
+            report.rewrites.append(
+                f"{path_rewrites} 處 references/ 內 repo 路徑參照改寫為 Codex 佈局"
+            )
+
     # Claude-only token scan over copied references/*.md (TOKEN_SCAN_PATTERNS;
     # flag-only, never rewrite).
-    refs_root = target / "references"
     if refs_root.is_dir():
         for path in sorted(refs_root.rglob("*.md")):
             try:
@@ -1270,7 +1407,11 @@ def transfer_one(source: Path, output_root: Path) -> TransferReport:
 
     positional_args = bool(fm.get("arguments") or fm.get("argument-hint"))
     new_body = rewrite_body(
-        body, report, named_args=named_args, positional_args=positional_args
+        body,
+        report,
+        named_args=named_args,
+        positional_args=positional_args,
+        skill_name=name,
     )
     new_body = inject_codex_port_adapter(new_body, report)
     write_skill(target, new_fm, new_body, openai_yaml)
@@ -1399,6 +1540,14 @@ def emit_agent_stub(agent_md: Path, dest: Path) -> None:
             pass
 
     instructions = body[fm_end + 4 :].lstrip("\n") if fm_end > 0 else body
+    # Rewrite repo-internal path refs so the stub body doesn't send the agent
+    # to Claude-only paths (`.claude/analyze/`, `plugins/baransu/agents/*.md`).
+    # Flat install (`~/.codex/agents/`) has no `../`-anchor into skills/, so the
+    # skills-relative rule is skipped — a `_shared/*` ref stays a discoverable
+    # plugin path rather than an unresolvable relative one.
+    instructions, _ = rewrite_repo_paths(
+        instructions, "", name, skills_relative=False
+    )
     instructions_block = _toml_multiline(instructions)
 
     # name/description go through json.dumps for ironclad escaping. TOML
@@ -1632,17 +1781,26 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
                 # Non-skill sibling dirs under skills/ (e.g. _shared/) carry
                 # cross-skill content referenced by SKILL.md bodies (e.g.
                 # _shared/tdd.md cited by think/hunt and the execute agents). Copy
-                # verbatim so cross-references resolve, then run the same
-                # Claude-only token scan copy_aux applies to references/ —
-                # flag only, never rewrite (the copied files may quote the
-                # tokens as documentation).
-                shutil.copytree(child, out_skills / child.name)
+                # verbatim so cross-references resolve, rewrite repo-internal
+                # path refs to the Codex layout (same as SKILL.md/references —
+                # `_shared/tdd.md` cites `plugins/baransu/agents/*.md` etc. that
+                # would otherwise dangle), then run the same Claude-only token
+                # scan copy_aux applies to references/ (flag only).
+                aux_root = out_skills / child.name
+                shutil.copytree(child, aux_root)
                 aux_dirs_copied.append(child.name)
-                for path in sorted((out_skills / child.name).rglob("*.md")):
+                for path in sorted(aux_root.rglob("*.md")):
                     try:
                         text = path.read_text(encoding="utf-8")
                     except (UnicodeDecodeError, OSError):
                         continue
+                    rel_to_aux = path.relative_to(aux_root)
+                    new_text, n = rewrite_repo_paths(
+                        text, "../" * len(rel_to_aux.parts), child.name
+                    )
+                    if n:
+                        path.write_text(new_text, encoding="utf-8")
+                        text = new_text
                     found = [
                         label
                         for label, pat in TOKEN_SCAN_PATTERNS

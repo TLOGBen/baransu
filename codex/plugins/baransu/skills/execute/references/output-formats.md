@@ -13,7 +13,7 @@ Templates for all files written by /baransu:execute. Section anchors (§) are re
 
 ## §confirm.md
 
-Path: `.claude/execute/{date}-{slug}/execute/confirm.md`
+Path: `.codex/execute/{date}-{slug}/execute/confirm.md`
 
 ```markdown
 # Confirm — Execute Session
@@ -51,7 +51,7 @@ Worktrees: {none | one per group}
 
 | Group | Path | target_branch |
 |-------|------|---------------|
-| {group} | .claude/worktrees/execute-{date}-{slug}-{group} | {recorded target_branch} |
+| {group} | .codex/worktrees/execute-{date}-{slug}-{group} | {recorded target_branch} |
 ```
 
 Sections marked "filled after Step N" must not be pre-baked with values at Step 0 — write placeholders and fill at the owning step, so file state can witness step ordering.
@@ -60,7 +60,7 @@ Sections marked "filled after Step N" must not be pre-baked with values at Step 
 
 ## §task-map.md
 
-Path: `.claude/execute/{date}-{slug}/execute/task-map.md`
+Path: `.codex/execute/{date}-{slug}/execute/task-map.md`
 
 ```markdown
 # Task Map
@@ -90,7 +90,7 @@ For L/XL runs, task-map.md also carries the group-level integration record writt
 
 ## §impl-checklist
 
-Path: `.claude/execute/{date}-{slug}/execute/impl-checklist-{group}.md`
+Path: `.codex/execute/{date}-{slug}/execute/impl-checklist-{group}.md`
 
 Populated by copying `驗收標準` items verbatim from each task in `task-{group}.md`. One file per group; all tasks for that group are concatenated in document order.
 
@@ -125,7 +125,7 @@ Review 結果：
 
 ## §final-report.md
 
-Path: `.claude/execute/{date}-{slug}/execute/final-report.md`
+Path: `.codex/execute/{date}-{slug}/execute/final-report.md`
 
 ```markdown
 # Final Report — /baransu:execute

@@ -16,7 +16,7 @@ UI/UX design specification skill. This body is English (agent-facing). All user-
 ## Outcome Contract
 
 - **Outcome**: The requested mode delivers a complete design-system artifact set, a lint verdict, or a cross-tool brief.
-- **Done when**: gen/preset — the five artifacts (`tokens.css` / `DESIGN.md` / `DESIGN.html` / `design-cores/` / `slide-cores/`) are atomically written at project root; lint — `python3 scripts/check.py` exits 0 (clean) or 1 with violations listed; export-brief — `.claude/design/brief-{preset}-{date}.md` is written (or printed with `--stdout`).
+- **Done when**: gen/preset — the five artifacts (`tokens.css` / `DESIGN.md` / `DESIGN.html` / `design-cores/` / `slide-cores/`) are atomically written at project root; lint — `python3 scripts/check.py` exits 0 (clean) or 1 with violations listed; export-brief — `.codex/design/brief-{preset}-{date}.md` is written (or printed with `--stdout`).
 - **Evidence**: The mode's completion message (「✅ 已套用…」 / lint pass-fail line with violation list / 「Brief 已寫入…」) and `check.py` exit code.
 - **Output**: Project-root design artifacts, a lint report, or a prompt-ready brief markdown file.
 - **Automation**: ultracode=neutral, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
@@ -395,7 +395,7 @@ Cross-tool brief packaging — package the current preset's DESIGN.md + tokens.c
 ### Invocation
 
 ```
-/baransu:design export-brief            # 寫到 {project_root}/.claude/design/brief-{preset}-{date}.md
+/baransu:design export-brief            # 寫到 {project_root}/.codex/design/brief-{preset}-{date}.md
 /baransu:design export-brief --stdout   # 印到 stdout，不寫檔
 ```
 
@@ -406,7 +406,7 @@ Cross-tool brief packaging — package the current preset's DESIGN.md + tokens.c
 
 ### Output
 
-- **Default**: markdown written to `{project_root}/.claude/design/brief-{preset}-{date}.md` (`{date}` is ISO `YYYY-MM-DD`); auto-created if `.claude/design/` does not exist.
+- **Default**: markdown written to `{project_root}/.codex/design/brief-{preset}-{date}.md` (`{date}` is ISO `YYYY-MM-DD`); auto-created if `.codex/design/` does not exist.
 - **`--stdout`**: the plain markdown block is printed directly to stdout, not persisted.
 
 ### Step-by-step assembly
@@ -444,7 +444,7 @@ All `§N` references below resolve against the canonical nine-section DESIGN.md 
   ```
 
 #### Step 4 — Output
-- **Default**: write to `{project_root}/.claude/design/brief-{preset}-{date}.md`, `{date}` is ISO `YYYY-MM-DD`; `mkdir -p` automatically if the directory does not exist.
+- **Default**: write to `{project_root}/.codex/design/brief-{preset}-{date}.md`, `{date}` is ISO `YYYY-MM-DD`; `mkdir -p` automatically if the directory does not exist.
 - **`--stdout`**: print to stdout, no file written.
 - **Success message** (file-write mode): 「Brief 已寫入 {path}（{word_count} 詞）。可餵 Codex CLI 端做 image-gen prompt。」
 

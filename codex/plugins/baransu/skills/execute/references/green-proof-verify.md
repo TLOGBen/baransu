@@ -7,7 +7,7 @@ verbatim from SKILL.md; semantics unchanged.
 **Pre-SWITCH guard — verify green_proof**: Before entering the SWITCH below and `mark task ✅`, the main skill
 must first verify that the `green_proof` field reported by review-agent conforms to the 5-tier
 required matrix in `agents/review-agent.md` §3. Durability: `green_proof.output_tail` and `red_proof`
-must live in durable locations — the impl-checklist entry or any file under `.claude/execute/` —
+must live in durable locations — the impl-checklist entry or any file under `.codex/execute/` —
 evidence parked only in `/tmp` does not satisfy the gate. Verify rules:
 
 ```

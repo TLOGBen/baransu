@@ -13,7 +13,7 @@ Each candidate is a `{url, path|null, lane}` tuple, identical in both modes:
 | Field | Shape |
 |-------|-------|
 | url | the candidate's source URL (dedup key) |
-| path | `.claude/read/material/{slug}/index.md` — `null` until the SKILL.md §3.5 capture step fills it |
+| path | `.codex/read/material/{slug}/index.md` — `null` until the SKILL.md §3.5 capture step fills it |
 | lane | `academic` \| `web` \| `gh` \| `x` — `null` only for direct inputs from Stage 1 §1/§2/§3, which never pass through this interface |
 
 The merged pool is deduplicated by `url` exact-string equality and handed to Stage 2 as `$SOURCES`, exactly as SKILL.md §3.5 specifies.
