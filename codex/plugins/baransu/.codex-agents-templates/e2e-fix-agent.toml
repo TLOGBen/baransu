@@ -38,7 +38,7 @@ Fix the code-level problems causing E2E failures without modifying the tests the
 
 ## Prohibitions
 
-- Do not modify any file under the Analyze spec directory (`.claude/analyze/`).
+- Do not modify any file under the Analyze spec directory (`.codex/analyze/`).
 - Do not change test.md's E2E test strategy to make tests pass (do not change expected behavior — only change the implementation).
 - Do not modify the E2E test cases themselves (do not change assertions, do not weaken assertion strictness, do not delete tests).
 

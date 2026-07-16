@@ -23,11 +23,11 @@ happened during implementation.
 ## Location
 
 ```
-.claude/<skill>/<slug>.html
+.codex/<skill>/<slug>.html
 ```
 
 `<skill>` is the producing skill (`think` or `review`); `<slug>` matches the
-primary deliverable's slug (e.g. `.claude/think/baransu-v2.1-philosophy-merge-plan.html`
+primary deliverable's slug (e.g. `.codex/think/baransu-v2.1-philosophy-merge-plan.html`
 beside the approved plan `.md`).
 
 For `/review`, whose primary deliverable is in-conversation prose with no
@@ -38,7 +38,7 @@ the reviewed spec/plan's own slug when it has one, else
 
 ## Rendering basis
 
-Render with the book golden template — `plugins/baransu/skills/book/references/golden-template.html`
+Render with the book golden template — `../book/references/golden-template.html`
 — consuming the Kami tokens it carries. The journal is a standalone,
 browser-ready HTML file; no external assets.
 

@@ -2,7 +2,7 @@
 name: read
 description: 'Captures and converts any content source — URL / path / glob / --chrome
   / --clipboard / --topic / --web / --gh / --x — to offline-readable Markdown under
-  .claude/read/. Use when the user wants to archive content for offline reading. Trigger
+  .codex/read/. Use when the user wants to archive content for offline reading. Trigger
   On ''/read'', ''存下來'', ''抓網頁'', ''轉成 markdown'', ''存檔''. Not For digesting captured
   content into notes (use /learn) or producing browser-ready HTML output (use /book)
   — /read only captures raw offline Markdown.
@@ -20,9 +20,9 @@ This skill captures any content source and converts it to clean, offline-readabl
 ## Outcome Contract
 
 - **Outcome**: The given content source is captured as clean, offline-readable Markdown with its images localized.
-- **Done when**: `.claude/read/material/{final-slug}/index.md` exists with full frontmatter, downloaded images sit in `material/{final-slug}/assets/`, and `.claude/read/index.md` carries a matching row.
+- **Done when**: `.codex/read/material/{final-slug}/index.md` exists with full frontmatter, downloaded images sit in `material/{final-slug}/assets/`, and `.codex/read/index.md` carries a matching row.
 - **Evidence**: The 繁中 completion report listing the saved path, image success/failure counts, and the markitdown version used.
-- **Output**: `material/{final-slug}/index.md` (+ `assets/`), an updated `.claude/read/index.md` row, and the immutable original under `raw/{slug}/`.
+- **Output**: `material/{final-slug}/index.md` (+ `assets/`), an updated `.codex/read/index.md` row, and the immutable original under `raw/{slug}/`.
 - **Automation**: ultracode=neutral, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
   In the same non-interactive pass, read `references/loop-pauses.md` for this skill's own PAUSE classification.
 
@@ -149,7 +149,7 @@ Output 「無法識別輸入：{input}。請使用 URL、本地路徑、glob、-
 
 ### After Acquire
 
-All acquired content must be saved to `.claude/read/raw/{slug}/index.{ext}` before proceeding to Stage 2. Images found during acquisition are downloaded to `.claude/read/raw/{slug}/assets/`.
+All acquired content must be saved to `.codex/read/raw/{slug}/index.{ext}` before proceeding to Stage 2. Images found during acquisition are downloaded to `.codex/read/raw/{slug}/assets/`.
 
 Generate an initial slug from the URL path's last segment or filename stem using slug rules: lowercase, ASCII, hyphens, max 60 chars.
 
@@ -160,7 +160,7 @@ If `raw/{slug}/` already exists (recapture of the same source), do NOT overwrite
 ### 1. Run markitdown
 
 ```bash
-python3 -m markitdown ".claude/read/raw/{slug}/index.{ext}" -o "/tmp/{slug}-convert.md" 2>/dev/null
+python3 -m markitdown ".codex/read/raw/{slug}/index.{ext}" -o "/tmp/{slug}-convert.md" 2>/dev/null
 ```
 
 Invoke markitdown as `python3 -m markitdown` (matching the Stage 0 §3 check) — never the bare `markitdown` form, which may not be on PATH.
@@ -187,7 +187,7 @@ For each image URL:
 - Derive `{filename}` from the image URL's last path segment only (drop the query string and every preceding directory component), then sanitize it by stripping any `/`, `\`, and leading `.`/`..` sequences. If the derived `{filename}` is empty, contains a path separator, or resolves outside `assets/`, then record `[image skipped: unsafe filename {img_url}]` as a note and continue (do not write the file). When two distinct image URLs share the same basename, uniquify: the first keeps `hero.png`, subsequent ones become `hero-2.png`, `hero-3.png`, …; record the URL→filename mapping.
 - Download:
   ```bash
-  curl -sL "{img_url}" -H "Referer: {source_url}" -o ".claude/read/raw/{slug}/assets/{filename}" 2>/dev/null
+  curl -sL "{img_url}" -H "Referer: {source_url}" -o ".codex/read/raw/{slug}/assets/{filename}" 2>/dev/null
   ```
 - On failure: record `[image download failed: {img_url}]` as a note; do NOT stop
 
@@ -209,7 +209,7 @@ Apply slug rules to the title: lowercase, ASCII, hyphens, max 60 chars; collapse
 
 ### 3. Dedup check
 
-Read `.claude/read/index.md` (if it exists):
+Read `.codex/read/index.md` (if it exists):
 
 - Search for `source_url` column matching the original URL
 - If found: find the highest existing `_vN` suffix for that source_url → use `_v{N+1}` as new slug suffix
@@ -217,22 +217,22 @@ Read `.claude/read/index.md` (if it exists):
 
 ### 4. Create directories and localize images
 
-First, pair the raw and material trees by name: if the final slug differs from the initial slug, rename `raw/{initial-slug}/` to `raw/{final-slug}/`. The rename is gated: before any `mv`, run `test -d ".claude/read/raw/{final-slug}"`. If the target directory already exists, `mv` is FORBIDDEN — an unconditional `mv` would silently nest the source directory inside the existing one and corrupt the immutable `raw/` tree. Instead, recompute the final slug by applying the existing `_vN` increment rule (After Acquire / §3): find the highest existing `_vN` for that slug under `raw/` and use `{final-slug}_v{N+1}` as the new final slug for this rename and for ALL subsequent steps (material/ paths, frontmatter, index row).
+First, pair the raw and material trees by name: if the final slug differs from the initial slug, rename `raw/{initial-slug}/` to `raw/{final-slug}/`. The rename is gated: before any `mv`, run `test -d ".codex/read/raw/{final-slug}"`. If the target directory already exists, `mv` is FORBIDDEN — an unconditional `mv` would silently nest the source directory inside the existing one and corrupt the immutable `raw/` tree. Instead, recompute the final slug by applying the existing `_vN` increment rule (After Acquire / §3): find the highest existing `_vN` for that slug under `raw/` and use `{final-slug}_v{N+1}` as the new final slug for this rename and for ALL subsequent steps (material/ paths, frontmatter, index row).
 
 ```bash
-if test -d ".claude/read/raw/{final-slug}"; then
+if test -d ".codex/read/raw/{final-slug}"; then
   # Target exists — do NOT mv into it. Recompute: {final-slug} := {final-slug}_v{N+1}
-  mv ".claude/read/raw/{initial-slug}" ".claude/read/raw/{final-slug}_v{N+1}"
+  mv ".codex/read/raw/{initial-slug}" ".codex/read/raw/{final-slug}_v{N+1}"
 else
-  mv ".claude/read/raw/{initial-slug}" ".claude/read/raw/{final-slug}"
+  mv ".codex/read/raw/{initial-slug}" ".codex/read/raw/{final-slug}"
 fi
 ```
 
 A directory rename is not a content modification — the contents stay untouched, so the raw-immutability constraint holds.
 
 ```bash
-mkdir -p ".claude/read/material/{final-slug}/assets"
-cp -r ".claude/read/raw/{final-slug}/assets/." ".claude/read/material/{final-slug}/assets/" 2>/dev/null
+mkdir -p ".codex/read/material/{final-slug}/assets"
+cp -r ".codex/read/raw/{final-slug}/assets/." ".codex/read/material/{final-slug}/assets/" 2>/dev/null
 ```
 
 The `cp` copies every successfully downloaded image from the immutable `raw/{final-slug}/assets/` into the final material directory, so the `./assets/{filename}` links written in Stage 2 resolve. If no images were downloaded, `raw/{final-slug}/assets/` may be absent — the `2>/dev/null` makes that non-fatal.
@@ -253,7 +253,7 @@ acquire_via: "{search:web|search:gh|search:x|topic|chrome|clipboard|url|local}"
 ---
 ```
 
-### 6. Update `.claude/read/index.md`
+### 6. Update `.codex/read/index.md`
 
 If the file does not exist, create it with header:
 
@@ -271,13 +271,13 @@ Append row: `| {source_url} | {final-slug} | {title} | {captured_at} |`
 Immediately before emitting the report, run a mandatory integrity pass:
 
 - (a) Run `file` on each downloaded asset in `material/{final-slug}/assets/` and confirm it is a real image format (PNG/JPEG/GIF/WebP/SVG…) — not an HTML error page or empty file.
-- (b) Grep the material markdown for remaining remote IMAGE refs: `grep -E '!\[[^]]*\]\(https?://' ".claude/read/material/{final-slug}/index.md"` must return zero matches (non-image hyperlinks are fine).
-- (c) Confirm the `.claude/read/index.md` row for `{final-slug}` exists.
+- (b) Grep the material markdown for remaining remote IMAGE refs: `grep -E '!\[[^]]*\]\(https?://' ".codex/read/material/{final-slug}/index.md"` must return zero matches (non-image hyperlinks are fine).
+- (c) Confirm the `.codex/read/index.md` row for `{final-slug}` exists.
 
 Failures found here are recorded and reported per the partial-failure constraint — never silently passed.
 
 ```
-✅ 已儲存：.claude/read/material/{final-slug}/index.md
+✅ 已儲存：.codex/read/material/{final-slug}/index.md
 圖片：{N} 張已儲存，{M} 張失敗
 {if M > 0: 失敗清單：[url1, url2, ...]}
 轉換工具：markitdown {version}

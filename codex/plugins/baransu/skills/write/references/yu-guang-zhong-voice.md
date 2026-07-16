@@ -141,7 +141,7 @@ note: |
 ## 來源
 
 - 〈聽聽那冷雨〉(1974)，余光中
-- 本地 raw：`.claude/read/material/ygzsw007/index.md`
+- 本地 raw：`.codex/read/material/ygzsw007/index.md`
 - 線上原始：http://www.ccview.net/htm/xiandai/ygz/ygzsw007.htm
 - 取於：2026-05-07 via `/baransu:read --web`
 

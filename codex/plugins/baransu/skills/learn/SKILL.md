@@ -19,9 +19,9 @@ This skill takes any content source and produces structured learning output via 
 ## Outcome Contract
 
 - **Outcome**: Collected sources are scored, filtered, and turned into a structured learning output for the topic.
-- **Done when**: `--brief` path — `.claude/learn/briefs/{$BRIEF_SLUG}.md` exists with the five-column body per Stage 2 §4; full path — `.claude/learn/digests/{$DIGEST_SLUG}.md` exists with the Stage 5 §5 frontmatter schema and the refined body, whose body ends with the 批判層 block containing all four sections（來源矛盾點 / 缺少資訊與盲點 / 各來源信度評分 / 建議後續調查角度）.
+- **Done when**: `--brief` path — `.codex/learn/briefs/{$BRIEF_SLUG}.md` exists with the five-column body per Stage 2 §4; full path — `.codex/learn/digests/{$DIGEST_SLUG}.md` exists with the Stage 5 §5 frontmatter schema and the refined body, whose body ends with the 批判層 block containing all four sections（來源矛盾點 / 缺少資訊與盲點 / 各來源信度評分 / 建議後續調查角度）.
 - **Evidence**: The 繁中 completion notice naming the written file path; the file's frontmatter lists every surviving `$FILTERED_SOURCES` entry (and, for digests, `phases_completed`).
-- **Output**: A brief under `.claude/learn/briefs/` or a digest under `.claude/learn/digests/`.
+- **Output**: A brief under `.codex/learn/briefs/` or a digest under `.codex/learn/digests/`.
 - **Automation**: ultracode=overlap, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
   In the same non-interactive pass, read `references/loop-pauses.md` for this skill's own PAUSE classification.
 
@@ -42,33 +42,33 @@ candidate-pool `{url, path|null, lane}` shape; the depth invariant is restated p
 
 ## Stage 1 — Collect
 
-Parse the argument(s) passed to `/learn`. Build a source list `$SOURCES` (ordered list of `.claude/read/material/{slug}/index.md` paths) to pass to Stage 2.
+Parse the argument(s) passed to `/learn`. Build a source list `$SOURCES` (ordered list of `.codex/read/material/{slug}/index.md` paths) to pass to Stage 2.
 
 Route each argument as follows (check in order per argument):
 
 ### 1. URL input (`http://` or `https://` prefix)
 
-Call `/read <url>` for each URL sequentially. After `/read` completes, the material is available at `.claude/read/material/{slug}/index.md` where `{slug}` is the slug assigned by `/read`. Append that path to `$SOURCES`.
+Call `/read <url>` for each URL sequentially. After `/read` completes, the material is available at `.codex/read/material/{slug}/index.md` where `{slug}` is the slug assigned by `/read`. Append that path to `$SOURCES`.
 
 Process multiple URLs one at a time, not in parallel.
 
 ### 2. `--topic "keyword"`
 
-Call `/read --topic "keyword"`. The paper-list display and user-selection prompt from `/read` **must surface to the user as-is** — do not hide, automate, or skip the selection step. After the user selects a paper and `/read` completes acquisition, append the resulting `.claude/read/material/{slug}/index.md` path to `$SOURCES`.
+Call `/read --topic "keyword"`. The paper-list display and user-selection prompt from `/read` **must surface to the user as-is** — do not hide, automate, or skip the selection step. After the user selects a paper and `/read` completes acquisition, append the resulting `.codex/read/material/{slug}/index.md` path to `$SOURCES`.
 
 Note: the paper selection UI is shown to the user, not performed silently inside /learn.
 
 ### 3. Slug input (no `http://`, `https://`, `./`, `/`, `*`, `?` prefix and no `--` prefix)
 
-Do NOT call `/read`. Read `.claude/read/material/{slug}/index.md` directly.
+Do NOT call `/read`. Read `.codex/read/material/{slug}/index.md` directly.
 
-If the file exists: append `.claude/read/material/{slug}/index.md` to `$SOURCES`.
+If the file exists: append `.codex/read/material/{slug}/index.md` to `$SOURCES`.
 
 If the file does not exist: do NOT stop. **Fall through to §3.5 — Bare Topic fan-out fallback** (the input is treated as a bare topic, not a slug typo).
 
 ### 3.5. Bare Topic — fan-out fallback
 
-Triggered when §3 matches the syntactic shape of a slug but `.claude/read/material/{slug}/index.md` does not exist. The input is interpreted as a research topic; `/learn` runs an automatic fan-out across four search lanes.
+Triggered when §3 matches the syntactic shape of a slug but `.codex/read/material/{slug}/index.md` does not exist. The input is interpreted as a research topic; `/learn` runs an automatic fan-out across four search lanes.
 
 **Lanes** (parallel where possible):
 
@@ -109,7 +109,7 @@ Triggered when §3 matches the syntactic shape of a slug but `.claude/read/mater
 - Each lane's candidates are written into `$SOURCES` as `{url, path|null, lane}` tuples (the `lane` field carries `academic|web|gh|x`; `path` is `null` until the capture step below fills it; for inputs from §1/§2/§3, the `lane` field is `null` and `path` is already resolved).
 - Deduplicate across lanes by the candidate's `url` field, exact-string equality (no fuzzy normalization; trailing slash / query string differences are kept distinct, Stage 2 will surface them and the user can drop duplicates during the trim step).
 
-**Capture step (main flow, after merging, before Stage 2)**: the MAIN flow — never the lanes themselves — routes each surviving candidate URL through the Stage 1 §1 `/read` route to produce `.claude/read/material/{slug}/index.md`, filling the tuple's `path` field. Only those captured paths enter Stage 2 scoring. A candidate whose capture fails is dropped from `$SOURCES` with a one-line 繁中 notice naming the URL.
+**Capture step (main flow, after merging, before Stage 2)**: the MAIN flow — never the lanes themselves — routes each surviving candidate URL through the Stage 1 §1 `/read` route to produce `.codex/read/material/{slug}/index.md`, filling the tuple's `path` field. Only those captured paths enter Stage 2 scoring. A candidate whose capture fails is dropped from `$SOURCES` with a one-line 繁中 notice naming the URL.
 
 **Disambiguation note** (slug vs topic):
 - `/learn react` (single word, slug shape, slug-file exists) → §3 reads existing material.
@@ -224,7 +224,7 @@ Using only `$FILTERED_SOURCES`, populate each of the five columns:
 
 **d. Write the output file.**
 
-Write to `.claude/learn/briefs/{$BRIEF_SLUG}.md`. If a file with the same slug already exists at the target path, first rename it to `{$BRIEF_SLUG}.{existing created_at ISO timestamp}.bak` in the same directory, then write the new file.
+Write to `.codex/learn/briefs/{$BRIEF_SLUG}.md`. If a file with the same slug already exists at the target path, first rename it to `{$BRIEF_SLUG}.{existing created_at ISO timestamp}.bak` in the same directory, then write the new file.
 
 File structure (YAML frontmatter followed by the five-column body):
 
@@ -244,7 +244,7 @@ Followed by the five-column Markdown body defined in step c.
 **e. Print completion message and stop.**
 
 Output (繁中):
-「brief 已儲存至 .claude/learn/briefs/{$BRIEF_SLUG}.md」
+「brief 已儲存至 .codex/learn/briefs/{$BRIEF_SLUG}.md」
 
 Stage 2 returns here. Do NOT continue to Stage 3, Stage 4, or Stage 5.
 
@@ -396,7 +396,7 @@ Derive `$DIGEST_SLUG` from `$TOPIC` by applying the `$BRIEF_SLUG` derivation in 
 
 The frontmatter block below is the authoritative YAML schema — do not deviate from it. `references/digest-frontmatter.md` carries per-field prose and a complete example; consult it only if a field's meaning is in doubt.
 
-Write to `.claude/learn/digests/{$DIGEST_SLUG}.md`. If a file with the same slug already exists at the target path, first rename it to `{$DIGEST_SLUG}.{existing created_at ISO timestamp}.bak` in the same directory, then write the new file.
+Write to `.codex/learn/digests/{$DIGEST_SLUG}.md`. If a file with the same slug already exists at the target path, first rename it to `{$DIGEST_SLUG}.{existing created_at ISO timestamp}.bak` in the same directory, then write the new file.
 
 File structure:
 
@@ -421,9 +421,9 @@ Followed by `$REFINED_BODY` as the Markdown body: the refined prose sections end
 
 The `sources` array must list every source in `$FILTERED_SOURCES` (the sources that survived Stage 2 scoring). For sources acquired from local files, the `url` value takes the form `local:{path}`. The `language` field must be exactly `"zh"` or `"en"` — the value of `$LANG`.
 
-Never leave a draft duplicate beside the digest — cleanup is tracked, never judged after the fact: whenever Stage 4 or Stage 5 writes an intermediate draft file to disk, immediately record that file's absolute path in the named list `$TEMP_FILES` at the moment of writing. After the digest file is written, apply this explicit gate to cleanup: if a path is in `$TEMP_FILES` AND the path lies under `.claude/learn/`, then delete it; any path not in `$TEMP_FILES`, or located outside `.claude/learn/`, must never be deleted.
+Never leave a draft duplicate beside the digest — cleanup is tracked, never judged after the fact: whenever Stage 4 or Stage 5 writes an intermediate draft file to disk, immediately record that file's absolute path in the named list `$TEMP_FILES` at the moment of writing. After the digest file is written, apply this explicit gate to cleanup: if a path is in `$TEMP_FILES` AND the path lies under `.codex/learn/`, then delete it; any path not in `$TEMP_FILES`, or located outside `.codex/learn/`, must never be deleted.
 
 ### 6. Completion notice
 
 Output (繁中):
-「digest 已儲存至 .claude/learn/digests/{$DIGEST_SLUG}.md」
+「digest 已儲存至 .codex/learn/digests/{$DIGEST_SLUG}.md」

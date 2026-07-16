@@ -52,7 +52,7 @@ Produce a Coverage Report identifying any REQ-XXX not covered by tests and any g
 
 ## Prohibitions
 
-- Do not modify any file under the Analyze spec directory (`.claude/analyze/`).
+- Do not modify any file under the Analyze spec directory (`.codex/analyze/`).
 - Do not modify existing tests to make coverage appear to pass (do not add assertion-free empty tests).
 - Do not skip any REQ-XXX — you must accept each one individually, and must not assume "no explicit failure means it passes."
 

@@ -30,7 +30,7 @@ rules/ checks: SIMPLE — optional. STANDARD+ — language-specific rules belong
 
 Skill checks: SIMPLE — 0-1 skills is fine. ALL tiers: if skills exist, descriptions should be concise, triggerable, include `Use when`, include `Not for`, and avoid overlapping triggers. STANDARD+: low-frequency skills may use `disable-model-invocation: true`, but plugin skills should not rely on it until upstream invocation bugs are fixed.
 
-MEMORY.md checks, STANDARD+: check for `.claude/projects/.../memory/MEMORY.md`; verify CLAUDE.md points to it for architecture decisions; ensure key decisions, models, contracts, and tradeoffs are documented; weight urgency by conversation count — 10+ conversations with no MEMORY.md is [!].
+MEMORY.md checks, STANDARD+: check for `.codex/projects/.../memory/MEMORY.md`; verify CLAUDE.md points to it for architecture decisions; ensure key decisions, models, contracts, and tradeoffs are documented; weight urgency by conversation count — 10+ conversations with no MEMORY.md is [!].
 
 AGENTS.md checks, COMPLEX multi-module only: verify CLAUDE.md includes an "AGENTS.md usage guide" section explaining when to consult each AGENTS.md, not just links.
 

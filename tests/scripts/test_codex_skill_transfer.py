@@ -350,6 +350,18 @@ class TestDescriptionRewrite(unittest.TestCase):
             rpt.mapped,
         )
 
+    def test_description_output_dir_path_rewritten(self):
+        rpt = report()
+        fm = {
+            "name": "ship",
+            "description": "Archives working dirs under .claude/ into .claude/archived/.",
+        }
+
+        out, _ = transfer.translate_frontmatter(fm, rpt)
+
+        self.assertIn(".codex/archived/", out["description"])
+        self.assertNotIn(".claude/", out["description"])
+
 
 class TestCapabilityReport(unittest.TestCase):
     def test_weighted_capability_report_mentions_model_inertia(self):
@@ -631,15 +643,15 @@ class TestPluginModeGeneration(unittest.TestCase):
             manifest = json.loads(
                 (plugin_out / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
             )
-            self.assertEqual("2.11.0", manifest["version"])
+            self.assertEqual("2.12.0", manifest["version"])
 
             codex_transfer = plugin_out / "skills" / "codex-skill-transfer"
             self.assertTrue((codex_transfer / "references" / "CODEX_PORT_PLAN.md").is_file())
             self.assertIn(
-                # Re-pinned 0.10.0 -> 0.11.0: skill gained the AskUserQuestion
-                # noun-phrase guard, output rmtree guards, aux-dir token scan,
-                # batch skip reports, and its loop-pauses table.
-                "version: 0.11.0",
+                # Re-pinned 0.11.0 -> 0.12.0: skill gained repo-internal path
+                # rewriting (rewrite_repo_paths) across SKILL.md, description,
+                # references, shared aux dirs, and agent stubs.
+                "version: 0.12.0",
                 (codex_transfer / "SKILL.md").read_text(encoding="utf-8"),
             )
             codex_transfer_skill = (codex_transfer / "SKILL.md").read_text(encoding="utf-8")
@@ -710,6 +722,205 @@ class TestPluginModeGeneration(unittest.TestCase):
                     encoding="utf-8"
                 ),
             )
+
+
+class TestRepoPathRewrite(unittest.TestCase):
+    def test_agent_ref_becomes_codex_agents_toml(self):
+        rpt = report()
+        out = transfer.rewrite_body(
+            "See `plugins/baransu/agents/architecture-reviewer.md` for the lane.",
+            rpt,
+            skill_name="review",
+        )
+        self.assertIn("`~/.codex/agents/architecture-reviewer.toml`", out)
+        self.assertNotIn("plugins/baransu/agents", out)
+
+    def test_agent_glob_ref_keeps_glob(self):
+        rpt = report()
+        out = transfer.rewrite_body(
+            "Rules live in `plugins/baransu/agents/*-reviewer.md`.",
+            rpt,
+            skill_name="review",
+        )
+        self.assertIn("`~/.codex/agents/*-reviewer.toml`", out)
+
+    def test_shared_ref_becomes_relative_from_skill_root(self):
+        rpt = report()
+        out = transfer.rewrite_body(
+            "Apply `plugins/baransu/skills/_shared/fact-check.md` here.",
+            rpt,
+            skill_name="review",
+        )
+        self.assertIn("`../_shared/fact-check.md`", out)
+        self.assertNotIn("plugins/baransu/skills", out)
+
+    def test_cross_skill_ref_becomes_relative(self):
+        rpt = report()
+        out = transfer.rewrite_body(
+            "The rules are in `plugins/baransu/skills/design/scripts/check.py`.",
+            rpt,
+            skill_name="book",
+        )
+        self.assertIn("`../design/scripts/check.py`", out)
+
+    def test_self_ref_is_stripped_to_skill_root(self):
+        rpt = report()
+        out = transfer.rewrite_body(
+            'HEALTH_SCRIPTS_DIR="$REPO_ROOT/plugins/baransu/skills/health/scripts"',
+            rpt,
+            skill_name="health",
+        )
+        self.assertIn('HEALTH_SCRIPTS_DIR="scripts"', out)
+        self.assertNotIn("plugins/baransu", out)
+
+    def test_self_ref_depth_is_relative_to_the_file_not_skill_root(self):
+        # A self-reference inside a deeper file (references/*.md, updots=../../)
+        # must climb back to the skill root: `../scripts/...`, NOT a bare
+        # `scripts/...` that would resolve from the file's own dir.
+        out, _ = transfer.rewrite_repo_paths(
+            "See `plugins/baransu/skills/health/scripts/run.sh`.", "../../", "health"
+        )
+        self.assertIn("`../scripts/run.sh`", out)
+        # At the skill root (SKILL.md, updots=../) the same ref stays bare.
+        out_root, _ = transfer.rewrite_repo_paths(
+            "See `plugins/baransu/skills/health/scripts/run.sh`.", "../", "health"
+        )
+        self.assertIn("`scripts/run.sh`", out_root)
+        self.assertNotIn("`../scripts/run.sh`", out_root)
+
+    def test_claude_dir_becomes_codex_dir(self):
+        rpt = report()
+        out = transfer.rewrite_body(
+            "Render to `.claude/review/x.html`; catalog at `.claude-plugin/marketplace.json`.",
+            rpt,
+            skill_name="review",
+        )
+        self.assertIn("`.codex/review/x.html`", out)
+        # `.claude-plugin/` must NOT be caught by the `.claude/` rule.
+        self.assertIn("`.claude-plugin/marketplace.json`", out)
+
+    def test_plugin_json_ref_becomes_codex_plugin(self):
+        rpt = report()
+        out = transfer.rewrite_body(
+            "Bump `plugins/baransu/.claude-plugin/plugin.json`.",
+            rpt,
+            skill_name="analyze",
+        )
+        self.assertIn("`.codex-plugin/plugin.json`", out)
+
+    def test_exempt_skill_paths_untouched(self):
+        rpt = report()
+        body = "Example: `plugins/baransu/agents/x.md` and `.claude/review/`."
+        out = transfer.rewrite_body(body, rpt, skill_name="codex-skill-transfer")
+        self.assertEqual(out, body)
+
+    def test_copy_aux_rewrites_reference_paths(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "source"
+            target = root / "target"
+            refs = source / "references"
+            refs.mkdir(parents=True)
+            (refs / "color.md").write_text(
+                "Run `plugins/baransu/skills/_shared/scripts/color_distance.py` on it.\n",
+                encoding="utf-8",
+            )
+            target.mkdir()
+            rpt = report()
+
+            transfer.copy_aux(source, target, rpt)
+
+            out = (target / "references" / "color.md").read_text(encoding="utf-8")
+            # references/*.md is two levels below skills/ -> ../../
+            self.assertIn("`../../_shared/scripts/color_distance.py`", out)
+            self.assertNotIn("plugins/baransu", out)
+
+    def test_copy_aux_exempts_slide_checklist_only_for_design(self):
+        original = "Bump `plugins/baransu/.claude-plugin/plugin.json` version.\n"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "source"
+            # Exemption is scoped to (design, references/slide-checklist.md).
+            target = root / "design"
+            refs = source / "references"
+            refs.mkdir(parents=True)
+            (refs / "slide-checklist.md").write_text(original, encoding="utf-8")
+            target.mkdir()
+            transfer.copy_aux(source, target, report())
+            out = (target / "references" / "slide-checklist.md").read_text(
+                encoding="utf-8"
+            )
+            self.assertEqual(out, original)
+
+        # A same-named file under a DIFFERENT skill is NOT exempt.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "source"
+            target = root / "other"
+            refs = source / "references"
+            refs.mkdir(parents=True)
+            (refs / "slide-checklist.md").write_text(original, encoding="utf-8")
+            target.mkdir()
+            transfer.copy_aux(source, target, report())
+            out = (target / "references" / "slide-checklist.md").read_text(
+                encoding="utf-8"
+            )
+            self.assertIn(".codex-plugin/plugin.json", out)
+
+    def test_plugin_rewrites_shared_aux_dir_paths(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            plugin = root / "plug"
+            (plugin / ".claude-plugin").mkdir(parents=True)
+            (plugin / ".claude-plugin" / "plugin.json").write_text(
+                json.dumps({"name": "plug", "version": "1.0.0"}), encoding="utf-8"
+            )
+            write_stub_skill(plugin / "skills" / "alpha", "alpha")
+            shared = plugin / "skills" / "_shared"
+            shared.mkdir(parents=True)
+            (shared / "tdd.md").write_text(
+                "Read `plugins/baransu/agents/impl-agent.md` and "
+                "`plugins/baransu/skills/execute/SKILL.md`.\n",
+                encoding="utf-8",
+            )
+            out = root / "out"
+
+            transfer.transfer_plugin(plugin, out)
+
+            tdd = (out / "plugins" / "plug" / "skills" / "_shared" / "tdd.md").read_text(
+                encoding="utf-8"
+            )
+            self.assertIn("`~/.codex/agents/impl-agent.toml`", tdd)
+            self.assertIn("`../execute/SKILL.md`", tdd)
+            self.assertNotIn("plugins/baransu", tdd)
+
+    def test_agent_stub_body_rewrites_flat_valid_paths(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            src = root / "quality-reviewer.md"
+            dest = root / "quality-reviewer.toml"
+            src.write_text(
+                """---
+description: Review quality.
+---
+
+Do not touch `.claude/analyze/`.
+See `plugins/baransu/agents/impl-agent.md`.
+Counting per `plugins/baransu/skills/_shared/fact-check.md`.
+""",
+                encoding="utf-8",
+            )
+
+            transfer.emit_agent_stub(src, dest)
+            text = dest.read_text(encoding="utf-8")
+
+        # Flat-valid rewrites applied.
+        self.assertIn(".codex/analyze/", text)
+        self.assertNotIn(".claude/analyze/", text)
+        self.assertIn("~/.codex/agents/impl-agent.toml", text)
+        # No `../`-anchor from a flat agent install -> `_shared` ref left as a
+        # discoverable plugin path, not an unresolvable relative one.
+        self.assertIn("plugins/baransu/skills/_shared/fact-check.md", text)
 
 
 if __name__ == "__main__":

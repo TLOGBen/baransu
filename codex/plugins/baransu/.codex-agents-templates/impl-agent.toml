@@ -65,7 +65,7 @@ Before writing tests, read §1 (Core Principles) and §6 (Anti-pattern quick ref
 
 ## Prohibitions
 
-- Do not modify any file under the Analyze spec directory (`.claude/analyze/`).
+- Do not modify any file under the Analyze spec directory (`.codex/analyze/`).
 - Do not write implementation directly without a failing test (skipping the Red gate).
 - Refactor runs at most once; do not Refactor proactively when `refactor_mode: true` was not received.
 - Do not modify existing passing tests to make the new implementation pass (do not change the tests themselves).

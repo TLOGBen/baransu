@@ -32,7 +32,7 @@ This skill is not a monolithic reviewer. It is a **task analyst + dispatcher**: 
 - **Outcome**: One cross-perspective independent re-verification of the target; findings are graded into four response tiers after the balance check, converging into a single review report.
 - **Done when**: The report contains the eight-field sign-off receipt, and the hard-stops sweep result is listed item-by-item as a checklist (each item not hit, or hit + a one-line citation).
 - **Evidence**: The two structured tail elements that close the report — the hard-stops sweep checklist and the eight-field sign-off receipt fenced block.
-- **Output**: A Traditional Chinese review report in the conversation (prose body + structured tail), also persisted as an HTML work journal at `.claude/review/<slug>.html` (see the HTML work journal section).
+- **Output**: A Traditional Chinese review report in the conversation (prose body + structured tail), also persisted as an HTML work journal at `.codex/review/<slug>.html` (see the HTML work journal section).
 - **Automation**: ultracode=overlap, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 ## Invariants
@@ -49,7 +49,7 @@ Being hosted as a subagent does NOT disable this dispatch: the five-perspective 
 
 ## Five perspectives (agent files)
 
-`plugins/baransu/agents/architecture-reviewer.md` / `quality-reviewer.md` / `security-reviewer.md` / `style-reviewer.md` / `domain-reviewer.md`.
+`~/.codex/agents/architecture-reviewer.toml` / `quality-reviewer.md` / `security-reviewer.md` / `style-reviewer.md` / `domain-reviewer.md`.
 
 Each agent file defines `Perspective / Mission / Principles / Lane-keeping` — no persona, no character voice. Role-play descriptions ("you are a senior X engineer") induce hallucination; we want an angle from which to read the target, not an actor playing a role.
 
@@ -120,7 +120,7 @@ If sources are insufficient (no spec found, upstream flow code unavailable): in 
 
 ## Stage 1.6 — Fact table (load-bearing quantitative claims)
 
-Between the claim checklist (Stage 1) and dispatch (Stage 4), the dispatcher builds a **fact table** for every load-bearing quantitative / existence claim the checklist carries — N files / N classes / N call-sites / N test-cases / a framework-identity claim / 「X 存在」. Build it per the counting-noun principles in `plugins/baransu/skills/_shared/fact-check.md`: pick the counted noun the claim asserts, then fill the row with ONE independent command that counts exactly that noun from the repo root — NEVER by re-running the target's own command: the target's command proves reproducibility, not noun-correctness, and a row filled from it is a mislabel ✘. Paste the raw output fragment into the row. The row shape and the counting-noun discipline are defined there — apply them, do not restate them here.
+Between the claim checklist (Stage 1) and dispatch (Stage 4), the dispatcher builds a **fact table** for every load-bearing quantitative / existence claim the checklist carries — N files / N classes / N call-sites / N test-cases / a framework-identity claim / 「X 存在」. Build it per the counting-noun principles in `../_shared/fact-check.md`: pick the counted noun the claim asserts, then fill the row with ONE independent command that counts exactly that noun from the repo root — NEVER by re-running the target's own command: the target's command proves reproducibility, not noun-correctness, and a row filled from it is a mislabel ✘. Paste the raw output fragment into the row. The row shape and the counting-noun discipline are defined there — apply them, do not restate them here.
 
 This table is the sole evidence store for quantitative verdicts: the Stage 1 `✔`/`✘` disposition and the Output-shape claim table each cite its row numbers, and a quantitative verdict citing no row is an Unverified-claims hard-stop hit. When the environment cannot run the commands, apply fact-check.md's fail-closed rule — every such claim is unverifiable-by-harness and the Unverified-claims hard stop fires; never fail open.
 
@@ -160,7 +160,7 @@ If Stage 2's tier cap disagrees with activation count (e.g. a 100-LOC target tri
 
 ## Stage 4 — Parallel dispatch
 
-Launch one **parallel Codex subagent** per activated perspective, each in a clean context. Pass each reviewer three things: target content, the **claim checklist** (Stage 1), and the **review goal** (Stage 1). Reviewers do not know about each other and do not coordinate. The domain transition table (Stage 1.5) is added to the dispatch input of domain-reviewer only — a fourth input for that one perspective; the other four perspectives keep receiving exactly the three things above. The Stage 1.6 fact table travels WITH the claim checklist to every perspective: reviewers re-interpret its rows — and may flag a row whose counted noun mismatches its claimed noun — instead of producing their own counts; only when no fact table exists (standalone perspective use) does a reviewer apply `plugins/baransu/skills/_shared/fact-check.md` directly.
+Launch one **parallel Codex subagent** per activated perspective, each in a clean context. Pass each reviewer three things: target content, the **claim checklist** (Stage 1), and the **review goal** (Stage 1). Reviewers do not know about each other and do not coordinate. The domain transition table (Stage 1.5) is added to the dispatch input of domain-reviewer only — a fourth input for that one perspective; the other four perspectives keep receiving exactly the three things above. The Stage 1.6 fact table travels WITH the claim checklist to every perspective: reviewers re-interpret its rows — and may flag a row whose counted noun mismatches its claimed noun — instead of producing their own counts; only when no fact table exists (standalone perspective use) does a reviewer apply `../_shared/fact-check.md` directly.
 
 Findings return in natural language (not YAML). Each must include: citation (file:line or section), which claim it contradicts (or "none — observation"), the observation itself, the surgical fix, and a balance note (see Stage 6). Any non-obvious claim inside a finding carries a source annotation — `(verified: <how>)` when the reviewer actually checked, or `(inferred: 未實查)` when it rests on reasoning alone.
 
@@ -309,7 +309,7 @@ Field semantics (single source of truth for each):
 - `perspectives`: the Stage 4 returned set — a dispatched-but-failed perspective is listed as `<name>: dispatch failed` and its coverage may not be claimed — with `+ adversarial: yes|no` from Stage 5. Quick-pass targets still list ≥1 perspective.
 - `hard_stops`: the source of truth for hits. The checklist above is a derived view; if `hard_stops: none` here, all checklist lines must read `□ ... not hit`.
 - `new_tests`: pure count. Regression-first verification belongs to 「/baransu:execute 或依 tdd.md 的直接實作」, not /review.
-- `doc_debt`: invariants the reviewer noticed are missing from project docs (AGENTS / CLAUDE / `.claude/rules`). `none` when nothing surfaced.
+- `doc_debt`: invariants the reviewer noticed are missing from project docs (AGENTS / CLAUDE / `.codex/rules`). `none` when nothing surfaced.
 - `e2e_status`: three states from the E2E hard requirement section above. The hard-stop checklist's e2e-related line, if any, is **derived** from this field — do not judge e2e independently in the checklist.
 
 No verdict enum. No YAML schema. No skeleton template — write the kind of review a real engineer would read as a review.
@@ -322,7 +322,7 @@ For **needs-judgment** items, batch-ask via direct user question (record the aut
 
 After the report has been presented in conversation, persist it as an HTML work journal:
 
-1. Render the full report as a single HTML file at `.claude/review/<slug>.html`, styled after the book golden-template. Derive `<slug>` per the shared contract's `/review` rule (Location section: the reviewed target's slug when it has one, else `{YYYY-MM-DD}-{target basename}`). The shared rendering contract lives at `plugins/baransu/skills/_shared/output-journal.md` — follow it.
+1. Render the full report as a single HTML file at `.codex/review/<slug>.html`, styled after the book golden-template. Derive `<slug>` per the shared contract's `/review` rule (Location section: the reviewed target's slug when it has one, else `{YYYY-MM-DD}-{target basename}`). The shared rendering contract lives at `../_shared/output-journal.md` — follow it.
 2. Include an 「執行日誌」 section: off-spec decisions, forced changes, tradeoffs, and anything else from this run the user should know.
 3. Send the file to the user via write the artifact to disk and list its absolute path.
 

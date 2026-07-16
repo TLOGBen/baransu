@@ -172,6 +172,24 @@ The subagent rewrite is intentionally explicit because Codex does not infer suba
 
 `/execute` also receives an adapter note: red/green decisions must come from real test runner exit codes, not model self-report, and compile errors still do not increment `failure_count`.
 
+### 6.1 Repo-internal path references (`rewrite_repo_paths`)
+
+Skill bodies cite sibling material by baransu-repo-root path (`plugins/baransu/agents/quality-reviewer.md`, `plugins/baransu/skills/_shared/fact-check.md`). Those prefixes do not exist in the Codex output tree, so left alone they dangle — a dispatched reviewer told to read `plugins/baransu/agents/foo.md` finds nothing. `rewrite_repo_paths` maps each to its Codex-layout equivalent:
+
+| Claude repo path | Codex-layout rewrite |
+|---|---|
+| `plugins/baransu/agents/<name>.md` (glob `<name>` allowed, e.g. `*-reviewer`) | `~/.codex/agents/<name>.toml` — agent defs install flat into the user's Codex config (see [`agent-mapping.md`](agent-mapping.md) §1) |
+| `plugins/baransu/skills/<other>/…` | `<updots><other>/…` — sibling skill under `skills/` (`_shared` is just `<other>=_shared`); `<updots>` reaches the `skills/` dir from the file being rewritten (SKILL.md → `../`, `references/*.md` → `../../`) |
+| `[$VAR/]plugins/baransu/skills/<self>/…` | skill-root-relative — a self-reference drops the prefix (and any `$VAR/` bash anchor), e.g. health's `$REPO_ROOT/plugins/baransu/skills/health/scripts` → `scripts` |
+| `plugins/baransu/.claude-plugin/plugin.json` | `.codex-plugin/plugin.json` |
+| `.claude/<dir>` (output/config dirs; never `.claude-plugin`) | `.codex/<dir>` |
+
+Applied to: SKILL.md bodies, the `description` frontmatter field, copied `references/*.md`, and verbatim-copied shared aux dirs (`_shared/*.md`).
+
+**Flat-install exception for agent stubs.** Agent-stub TOML bodies (`emit_agent_stub`) install flat at `~/.codex/agents/*.toml`, which has NO `../`-anchor into `skills/`. The `skills/<other>/…` rule is therefore skipped there (`skills_relative=False`): a `_shared/*` reference is left as a discoverable plugin path rather than an unresolvable relative one. Agent→agent and `.claude/`→`.codex/` rewrites (which have valid flat/project-relative targets) still apply.
+
+**Exemptions.** Files whose baransu paths are documentation *about* the repo or the mapping itself — not live cross-references — are skipped (rewriting corrupts meaning) and stay Claude-token-scanned only: the whole `codex-skill-transfer` skill (`REPO_PATH_REWRITE_EXEMPT_SKILLS`, its own mapping tables) and design's `references/slide-checklist.md` version-bump example (`REPO_PATH_REWRITE_EXEMPT_RELPATHS`). Scripts/assets (`.sh`/`.css`/`.py` fallback-probing and self-describing comments) are not path-rewritten — they carry their own multi-fallback discovery logic; only the `$CLAUDE_SKILL_DIR` rewrite touches `scripts/`.
+
 ### 7. Output format invariants
 
 The output `SKILL.md` must:
@@ -186,8 +204,8 @@ The output `SKILL.md` must:
 
 ### 8. Auxiliary content handling (`copy_aux`)
 
-- `scripts/`, `references/`, `assets/` are copied. `scripts/` gets the `$CLAUDE_SKILL_DIR` → `.` rewrite; `references/` stays verbatim.
-- **`references/*.md` bodies are never rewritten.** Instead, each copied reference is scanned for Claude-only tokens (`AskUserQuestion`, `Task tool`, `TodoWrite`, `EnterPlanMode`, `$ARGUMENTS`, `` !`cmd` `` injection, `CLAUDE_SKILL_DIR`, `CLAUDE.md`, `parallel Tasks`, `clean Task contexts`, `via Task`, `TaskCreate`, `TaskUpdate`, `Dispatch **...**`) and one 需人工檢視 report line per affected file lists what was found. Rationale: references may quote these tokens *as documentation* (this skill's own mapping tables are the canonical example) — a blind rewrite would corrupt them.
+- `scripts/`, `references/`, `assets/` are copied. `scripts/` gets the `$CLAUDE_SKILL_DIR` → `.` rewrite; `references/` gets the §6.1 repo-internal path rewrite (below) but no tool/API-token rewrite.
+- **`references/*.md` bodies are rewritten only for repo-internal path references** (§6.1: `plugins/baransu/…`, `.claude/…`), which would otherwise dangle in the Codex tree. They are NOT rewritten for Claude-only tool/API tokens. Instead, each copied reference is scanned for those tokens (`AskUserQuestion`, `Task tool`, `TodoWrite`, `EnterPlanMode`, `$ARGUMENTS`, `` !`cmd` `` injection, `CLAUDE_SKILL_DIR`, `CLAUDE.md`, `parallel Tasks`, `clean Task contexts`, `via Task`, `TaskCreate`, `TaskUpdate`, `Dispatch **...**`) and one 需人工檢視 report line per affected file lists what was found. Rationale: tokens may be quoted *as documentation* (this skill's own mapping tables are the canonical example) — a blind token rewrite would corrupt them — whereas a repo path is unambiguously a broken pointer once the tree is relaid out. The `codex-skill-transfer` skill and design's `slide-checklist.md` are exempt from the path rewrite too (§6.1).
 - `SendUserFile` is also scanned in references so delivery-only gaps are visible without rewriting quoted documentation.
 - Skill-root orphan **files** are copied and reported (翻譯處理).
 - Skill-root orphan **directories** (any subdir other than `scripts` / `references` / `assets` / `agents`) are NOT copied; each is listed under 已捨棄 so the omission is visible.

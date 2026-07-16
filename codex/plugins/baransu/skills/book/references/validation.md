@@ -6,8 +6,8 @@ After Stage 4 §1 GATE PASS, render the HTML in headless Chromium via the bundle
 
 ```bash
 PROBE=$(python3 "$CLAUDE_SKILL_DIR/scripts/verify-render.py" \
-  ".claude/book/{$SLUG}.html" \
-  ".claude/book/{$SLUG}-preview.png")
+  ".codex/book/{$SLUG}.html" \
+  ".codex/book/{$SLUG}-preview.png")
 echo "$PROBE"
 ```
 
@@ -19,9 +19,9 @@ echo "$PROBE"
 
 Interpretation:
 
-- `overflow` is `true` → 「⚠ 跑版偵測：有橫向溢出，請開啟 .claude/book/{$SLUG}-preview.png 手動確認。」
+- `overflow` is `true` → 「⚠ 跑版偵測：有橫向溢出，請開啟 .codex/book/{$SLUG}-preview.png 手動確認。」
 - any of `has_paper` / `has_h1` / `has_h2` is `false` → 「⚠ 結構元素缺失：{element} 未出現在頁面中。」
-- script non-zero exit (Playwright launch / navigation failure) → 「⚠ 視覺驗證無法執行，請手動開啟 .claude/book/{$SLUG}.html。」 and continue to the completion report
+- script non-zero exit (Playwright launch / navigation failure) → 「⚠ 視覺驗證無法執行，請手動開啟 .codex/book/{$SLUG}.html。」 and continue to the completion report
 - all pass → 「✅ 視覺驗證通過」
 
 > **Why Playwright (not browser-use)**: browser-use's headless Chromium silently fails to load `file://` URLs (readyState reports complete but the DOM is empty). Playwright handles `file://` correctly and is the project-standard E2E driver.
@@ -32,11 +32,11 @@ Final output (繁中):
 
 ```
 ✅ 已儲存：
-  HTML：.claude/book/{$SLUG}.html
-  PDF： .claude/book/{$SLUG}.pdf        （若 $FORMAT 包含 pdf，且生成成功）
-  PPT： .claude/book/{$SLUG}.pptx       （若 $FORMAT 包含 ppt，且生成成功）
+  HTML：.codex/book/{$SLUG}.html
+  PDF： .codex/book/{$SLUG}.pdf        （若 $FORMAT 包含 pdf，且生成成功）
+  PPT： .codex/book/{$SLUG}.pptx       （若 $FORMAT 包含 ppt，且生成成功）
         PPT：失敗（詳見上方錯誤）         （若 html2pptx.js 回傳非零 exit code）
-  預覽：.claude/book/{$SLUG}-preview.png
+  預覽：.codex/book/{$SLUG}-preview.png
 內容類型：{$CONTENT_TYPE}
 SVG 圖解：{N} 張
 字數：約 {word_count} 詞
@@ -76,7 +76,7 @@ The soft range judges whether a hard-floor-passing output is *stylistically with
 ### Gate-internal trust boundary
 
 - `scripts/validate-output.ts`: responsible for the output layer's (output HTML) set membership and prefix consistency, including GATE A-E (existing SVG rules) / GATE-F (class prefix `kami-*` / `swiss-*` not mixed + tokens.css preset tie-break) / GATE-G (`data-layout` must correspond to a real file under `{project_root}/slide-cores/`) / GATE-J node-width whitelist / GATE-K chevron-strict / GATE-L viewBox containment (rect/line/circle/ellipse/text all fall within the viewBox, 0.5px tolerance; skips defs/marker/pattern/clipPath/mask/symbol and transformed groups). **Trusts** that the `/design` side's `check.py` has already linted the slide-core artifact's internal structure; this validation does not redo per-file lint.
-- The corresponding `/design`-side rules are in `plugins/baransu/skills/design/scripts/check.py`'s artifact-internal lint rules.
+- The corresponding `/design`-side rules are in `../../design/scripts/check.py`'s artifact-internal lint rules.
 
 ## REQ-003 Scenario 2 automated evidence
 

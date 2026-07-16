@@ -33,12 +33,12 @@ Produce an 8-field YAML summary (ctx.md) for the impl-agent to use as execution 
 
 3. **Output format**: YAML format, written to `context/{group}-{id}-ctx.md`, relative to the execution working directory.
 
-4. **Output path rule**: the path format is `.claude/execute/{date}-{slug}/execute/context/{group}-{task-id}-ctx.md`. The path is provided by the main skill at dispatch time.
+4. **Output path rule**: the path format is `.codex/execute/{date}-{slug}/execute/context/{group}-{task-id}-ctx.md`. The path is provided by the main skill at dispatch time.
 
 ## Prohibitions
 
 - Do not pass in the entire document; extract only the passages directly related to the current task ID, to avoid an oversized context.
-- Do not modify any file under the Analyze spec directory (`.claude/analyze/`).
+- Do not modify any file under the Analyze spec directory (`.codex/analyze/`).
 - Do not make any judgment or evaluation of the code — only summarize documents, do not make technical decisions.
 - Do not decide on your own which REQs are related to this task; defer to the task document's 「需求追溯」 field.
 

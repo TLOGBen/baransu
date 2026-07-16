@@ -48,7 +48,7 @@ done
 3. For each matched file, run the full pipeline independently:
    - Each file gets its own slug derived from its filename stem.
    - Each file produces its own `raw/{slug}/` and `material/{slug}/` directories.
-   - Each file appends its own row to `.claude/read/index.md`.
+   - Each file appends its own row to `.codex/read/index.md`.
 
 Process files sequentially to avoid index append collisions.
 

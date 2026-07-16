@@ -1,6 +1,6 @@
 # output-contract — the evolution package
 
-Every run writes its working artifacts under `.claude/evolve/<slug>/`, where `<slug>` is derived from the target skill name. The package is the durable, user-visible record of what changed and why.
+Every run writes its working artifacts under `.codex/evolve/<slug>/`, where `<slug>` is derived from the target skill name. The package is the durable, user-visible record of what changed and why.
 
 ## Artifacts
 
@@ -11,7 +11,7 @@ Every run writes its working artifacts under `.claude/evolve/<slug>/`, where `<s
 | `convergence.svg` | Score-over-rounds curve. Effective-baseline line steps up only on keeps; restored rounds show as dips that do not lower the baseline. |
 | `held-out.md` | Held-out comparison: pre-evolution vs post-evolution score on the held-out prompt set, plus the **evidence-strength** label (see below). |
 | `report.md` | Run summary: start/end score, dimensions improved, convergence reason, **effectiveness_mode** (`real-exec` \| `offline-同源` \| `no-benchmark` — one value per run; Gate 3 decides once per run, so this is an enum, not a ratio) plus the Gate 3 reason, and per-axis evidence source. |
-| `card.html` | Kami-styled result card. Copy drafted through `/write`, then rendered **only through the `/book` entry** (`--text` / slug mode) — never hand-assembled, never reaching into `book`'s `references/` internals; copy the `/book` output HTML to `.claude/evolve/<slug>/card.html` (`/book` emits HTML, not PNG). Omitted on zero-adoption runs via SKILL.md Stage 7's lighter exit (noted in `report.md`). See §Human-readable delivery. |
+| `card.html` | Kami-styled result card. Copy drafted through `/write`, then rendered **only through the `/book` entry** (`--text` / slug mode) — never hand-assembled, never reaching into `book`'s `references/` internals; copy the `/book` output HTML to `.codex/evolve/<slug>/card.html` (`/book` emits HTML, not PNG). Omitted on zero-adoption runs via SKILL.md Stage 7's lighter exit (noted in `report.md`). See §Human-readable delivery. |
 | `snapshot/<round>.md` | File-level snapshots (see `safety-gates.md` Gate 2). |
 
 ## Human-readable delivery (the output is for a human)

@@ -6,7 +6,7 @@
 # Digest Frontmatter Spec
 
 This document adds per-field prose and a complete example for the YAML frontmatter
-of digest output files produced by `/baransu:learn` (`.claude/learn/digests/{slug}.md`).
+of digest output files produced by `/baransu:learn` (`.codex/learn/digests/{slug}.md`).
 The authoritative schema is the inline frontmatter block in SKILL.md Stage 5 §5 —
 consult this file only when a field's meaning is in doubt. If this file and SKILL.md
 ever disagree, SKILL.md wins; keep this file in sync when the skill changes.

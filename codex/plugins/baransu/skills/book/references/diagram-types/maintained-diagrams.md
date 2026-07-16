@@ -9,7 +9,7 @@ disposable — the diagram lives on as an editable source artifact bound to
 the delivery contract below. This file is NOT
 a diagram type — it is never routed to from §4.9/§4.10; the Render stage
 reads it only when the output destination is the user's repository rather
-than `.claude/book/` (see svg-rendering-rules §4.11).
+than `.codex/book/` (see svg-rendering-rules §4.11).
 
 ## The three artifacts
 

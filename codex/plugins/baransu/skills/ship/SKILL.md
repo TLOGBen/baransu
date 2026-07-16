@@ -1,7 +1,7 @@
 ---
 name: ship
-description: 'Wraps up a session: archives every baransu working dir under .claude/
-  except the read/learn/book products into .claude/archived/, commits, pushes (optionally
+description: 'Wraps up a session: archives every baransu working dir under .codex/
+  except the read/learn/book products into .codex/archived/, commits, pushes (optionally
   landing the work on a target branch via `/ship BRANCH`), and tears down the worktree
   once its work is safely on origin. Trigger On ''/ship'', ''收工'', ''上傳收尾'', ''結束這輪''.
   Not For writing or refining copy (use /write); not for reviewing code or model output
@@ -22,9 +22,9 @@ No user confirmation required. The steps below run automatically.
 ## Outcome Contract
 
 - **Outcome**: The session's working files are archived and all pending changes are committed and pushed — optionally landed on a specified target branch.
-- **Done when**: Archivable items are moved into `.claude/archived/`, `git status --porcelain` is empty after the commit, and the work is on origin (the current branch pushed, or — when a target branch is given — the current branch merged into it and that branch pushed); when run inside a worktree whose work is confirmed on origin, the worktree is removed and its branch deleted.
+- **Done when**: Archivable items are moved into `.codex/archived/`, `git status --porcelain` is empty after the commit, and the work is on origin (the current branch pushed, or — when a target branch is given — the current branch merged into it and that branch pushed); when run inside a worktree whose work is confirmed on origin, the worktree is removed and its branch deleted.
 - **Evidence**: The session end output reporting the archived item count, the commit message (or 「跳過」), the push target (`origin/{branch}` or `{branch} → {target}`), and the worktree cleanup status.
-- **Output**: Archived directories under `.claude/archived/`, a pushed git commit, and the 繁中 session end report.
+- **Output**: Archived directories under `.codex/archived/`, a pushed git commit, and the 繁中 session end report.
 - **Automation**: ultracode=neutral, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
   In the same non-interactive pass, read `references/loop-pauses.md` for this skill's own PAUSE classification.
 
@@ -48,7 +48,7 @@ The optional target-branch argument may be written as `<branch>`, `到 <branch>`
 
 ## Step 1 — Detect
 
-Git probe first — run `git rev-parse --git-dir 2>/dev/null`. If it fails (the project is not a git repo), output 「此專案不是 git repo：/ship 的 commit／push／worktree 流程無法執行，已停止。如需歸檔請手動處理 .claude/ 工作目錄。」 and stop. The probe MUST run before any archive move: without git there is no commit to anchor moved files, so archiving first would strand them — and every later git step (commit, push, worktree teardown) would wedge.
+Git probe first — run `git rev-parse --git-dir 2>/dev/null`. If it fails (the project is not a git repo), output 「此專案不是 git repo：/ship 的 commit／push／worktree 流程無法執行，已停止。如需歸檔請手動處理 .codex/ 工作目錄。」 and stop. The probe MUST run before any archive move: without git there is no commit to anchor moved files, so archiving first would strand them — and every later git step (commit, push, worktree teardown) would wedge.
 
 Check both whether the workspace dirs hold archivable items AND whether the git working tree has pending changes. Stop only when **both** are empty — otherwise there is still work to ship even when one side is empty.
 
@@ -69,20 +69,20 @@ Decision:
 
 ## Step 2 — Archive
 
-Create `.claude/archived/` if it does not exist.
+Create `.codex/archived/` if it does not exist.
 
 **Archive allowlist** (the baransu working dirs): `tmp`, `analyze`, `execute`, `think`, `design`, `hunt-report`, `evolve`, `review`.
 
 **Never archived**: the `read`, `learn`, and `book` dirs are kept products and stay in place. Claude Code infrastructure (`worktrees/`, `projects/`, `jobs/`, `plugins/`, `settings*.json`, …) is never touched — the allowlist is explicit precisely so infra is never swept up.
 
 For each dir in the allowlist, for each item directly inside the source directory:
-- Destination: `.claude/archived/{item_name}`
-- If destination already exists: rename it to `.claude/archived/{item_name}-{unix_timestamp}` first
+- Destination: `.codex/archived/{item_name}`
+- If destination already exists: rename it to `.codex/archived/{item_name}-{unix_timestamp}` first
 - Move item to destination
 
 Source directories are left empty (not deleted).
 
-Output: 「已歸檔：{N} 個項目 → .claude/archived/（read/learn/book 產物保留）」
+Output: 「已歸檔：{N} 個項目 → .codex/archived/（read/learn/book 產物保留）」
 
 If any move fails → output 「歸檔失敗：{reason}」 and stop.
 

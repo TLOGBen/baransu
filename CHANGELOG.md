@@ -2,6 +2,17 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.12.0 (2026-07-15)
+
+**codex-skill-transfer 修懸空 repo 路徑參照**。plugin version 2.11.0 → 2.12.0；skill 0.11.0 → 0.12.0。移植到 Codex 後，skill body 內以 `plugins/baransu/…` 開頭的 repo 根相對參照（reviewer/inspector agent 檔、`_shared` 共享文件、跨 skill 腳本）與 `.claude/` 輸出目錄在 Codex 佈局下懸空——被派的 subagent 被叫去讀不存在的路徑而失去目標。新增 `rewrite_repo_paths`：
+
+- **agent 參照** `plugins/baransu/agents/<name>.md` → `~/.codex/agents/<name>.toml`（含 glob，如 `*-reviewer`）
+- **`_shared`／跨 skill** `plugins/baransu/skills/<seg>/…` → 依檔案深度的相對路徑（SKILL.md `../`、references `../../`）；自我參照塌成 skill-root 相對（含剝除 `$VAR/` bash 錨點，如 health collector）
+- **`.claude/<dir>` → `.codex/<dir>`**（輸出/設定目錄；`.claude-plugin` 不誤傷）與 `.claude-plugin/plugin.json` → `.codex-plugin/plugin.json`
+- 作用面：SKILL.md body、`description` frontmatter、`references/*.md`、逐字複製的 `_shared/*.md`、agent stub TOML（扁平安裝，跳過無錨點的 `_shared` 相對化）
+- **豁免**：`codex-skill-transfer` 自身（mapping 文件）與 design `slide-checklist.md`（版本紀律範例）——這些 `plugins/baransu/…` 是描述 repo 本身、非 live 參照
+- 重生 `codex/`（Layout A 已提交產物）使修復對 Codex 使用者生效
+
 ## v2.11.0 (2026-07-12)
 
 **全席 evolve ratchet 第一輪(v2.10.0 基準)——七席採納**。plugin version 2.10.0 → 2.11.0。nightly-evolve 盲測提案輪(14 skill × 診斷+變異+3 盲評,margin 2.0 守衛;採納走 Gate 1b standing-auth,結構閘 write-verify-restore 全過):

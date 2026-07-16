@@ -49,7 +49,7 @@ Wait 2–3 seconds, or until the page's network activity is idle. If the MCP too
 mcp__claude-in-chrome__get_page_text
 ```
 
-Save the returned text to `.claude/read/raw/{slug}/index.html`.
+Save the returned text to `.codex/read/raw/{slug}/index.html`.
 
 ### Step 5 — Extract image URLs (optional)
 
@@ -64,4 +64,4 @@ Use the returned list to download relevant images into `raw/{slug}/assets/` if n
 
 ## After Browser Extraction
 
-Save the extracted content under `.claude/read/raw/{slug}/index.html` (done in Step 4), then hand the saved raw file to SKILL.md Stage 2 (Convert) — the Stage 2/3 pipeline (tmp intermediate, image handling, final slug + dedup, frontmatter, index row) applies unchanged. Never convert straight into `material/`, and always pass markitdown the **file path**, not the original URL.
+Save the extracted content under `.codex/read/raw/{slug}/index.html` (done in Step 4), then hand the saved raw file to SKILL.md Stage 2 (Convert) — the Stage 2/3 pipeline (tmp intermediate, image handling, final slug + dedup, frontmatter, index row) applies unchanged. Never convert straight into `material/`, and always pass markitdown the **file path**, not the original URL.

@@ -204,7 +204,7 @@ session (for example, a `/think`-approved plan or the single change point after 
 diagnosis converges), the red/green gate operates as **document discipline (discipline-suggested)**:
 no orchestrator gatekeeps for you; the implementer builds their own red/green task list per
 this section, goes red first then green, and writes the implementation only after the red is
-confirmed. If the approved plan already has an upstream work journal (`.claude/think/*.html`),
+confirmed. If the approved plan already has an upstream work journal (`.codex/think/*.html`),
 out-of-spec decisions made during implementation are appended to that journal's "執行日誌"
 section per the `output-journal.md` contract.
 
@@ -257,7 +257,7 @@ The order is fixed: do not enter implementation before red is confirmed; do not 
 | Test fails (2nd time) | Stop. If the direction is in doubt, return to `/think` to refocus, then retry. |
 | compile error | Fix and re-run; not counted toward the retry count. |
 
-In `/execute`'s TDAID pipeline, the authoritative counting rules for compile error and `failure_count` are in `plugins/baransu/skills/execute/SKILL.md`; this file only references them, it does not duplicate the rule text.
+In `/execute`'s TDAID pipeline, the authoritative counting rules for compile error and `failure_count` are in `../execute/SKILL.md`; this file only references them, it does not duplicate the rule text.
 
 **Beyond the two gates — surprises are new reds.** The tables above govern the two
 gate checks only. Any *other* result that contradicts what the plan assumed — a tool
@@ -304,13 +304,13 @@ This file is referenced by the following trigger points:
 
 | Trigger point | Reference location | Reference sentence |
 |---|---|---|
-| `/execute` impl-agent | `plugins/baransu/agents/impl-agent.md` General Principle §1, before the Red gate | "Before writing tests, read `plugins/baransu/skills/_shared/tdd.md`." |
-| `/execute` review-agent | `plugins/baransu/agents/review-agent.md` before General Principle §3 | "Before reviewing, read `plugins/baransu/skills/_shared/tdd.md` and check test quality per its principles." |
-| `/think` small-task reroute | `plugins/baransu/skills/think/SKILL.md` Stage G downstream split | Small tasks reroute to this file's §7: the main session builds its own red/green task list per document discipline and implements directly. |
-| `/hunt` fix reroute | `plugins/baransu/skills/hunt/SKILL.md` fix-suggestion split | Single change-point fixes reroute to this file's §7 direct-implementation discipline. |
+| `/execute` impl-agent | `~/.codex/agents/impl-agent.toml` General Principle §1, before the Red gate | "Before writing tests, read `tdd.md`." |
+| `/execute` review-agent | `~/.codex/agents/review-agent.toml` before General Principle §3 | "Before reviewing, read `tdd.md` and check test quality per its principles." |
+| `/think` small-task reroute | `../think/SKILL.md` Stage G downstream split | Small tasks reroute to this file's §7: the main session builds its own red/green task list per document discipline and implements directly. |
+| `/hunt` fix reroute | `../hunt/SKILL.md` fix-suggestion split | Single change-point fixes reroute to this file's §7 direct-implementation discipline. |
 
 In Phase 3, besides checking test quality per this file's principles, review-agent must report the four green_proof fields (see
-`plugins/baransu/agents/review-agent.md` General Principle §3 and the 5-tier required matrix).
+`~/.codex/agents/review-agent.toml` General Principle §3 and the 5-tier required matrix).
 
 ---
 

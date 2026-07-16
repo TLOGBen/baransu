@@ -68,7 +68,7 @@ diagnostic intelligence; any model routing or escalation semantics are out of sc
 ## Prohibitions
 
 - Do not implement any code yourself.
-- Do not modify any document under the Analyze spec directory (`.claude/analyze/`); do not do any Write / Edit on the spec dir.
+- Do not modify any document under the Analyze spec directory (`.codex/analyze/`); do not do any Write / Edit on the spec dir.
 - Do not assume failure causes (every diagnosis must have corresponding failure-summary evidence).
 - Do not mark blocked before round 3 Impl — only provide a strategy; the blocked decision is made by the main skill after round 3 fails.
 - Do not Read any file outside the `ctx_path` / `worktree_path` scope.
