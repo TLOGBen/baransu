@@ -2,6 +2,10 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v2.13.0 (2026-07-17)
+
+**/think Stage G 交接產物改為七段執行 prompt**。plugin version 2.12.0 → 2.13.0。原本 Option 2 批准後的交接物是「一段話 handoff summary」，下游實作方實際上還得回頭消化五段計畫與審議紀錄。改為直接產出執行者導向的七段骨架 prompt（Role / Goal / Success criteria / Constraints / Tools / Output / Stop rules，不適用的段落省略）：Building → Goal、驗收標準 → Success criteria、約束＋Key decisions＋Not building → Constraints、Unknowns → Stop rules 的 ask-or-stop 觸發。審議紀錄（Stage 記錄、PAUSE/批准軌跡）留在五段計畫作人審軌跡，不進交接物。依據：四管線 A/B 實驗（同一模糊需求 × 4 條規格化路徑 × 隱藏 fixture 盲評）——七段格式與五段計畫執行品質相同（16/17 打平），但產物縮 ~40%（120 行 → 74 行）、規格化省 44% 時間、下游執行 token 也較低。codex 變體同步鏡像。
+
 ## v2.12.0 (2026-07-15)
 
 **codex-skill-transfer 修懸空 repo 路徑參照**。plugin version 2.11.0 → 2.12.0；skill 0.11.0 → 0.12.0。移植到 Codex 後，skill body 內以 `plugins/baransu/…` 開頭的 repo 根相對參照（reviewer/inspector agent 檔、`_shared` 共享文件、跨 skill 腳本）與 `.claude/` 輸出目錄在 Codex 佈局下懸空——被派的 subagent 被叫去讀不存在的路徑而失去目標。新增 `rewrite_repo_paths`：

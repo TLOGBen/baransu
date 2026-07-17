@@ -415,7 +415,19 @@ options:
    - **Medium-to-large task** — otherwise (touches > 8 files, OR introduces ≥ 1 new service/process, OR has > 3 Key decisions): invoke `/baransu:analyze`.
    - **KD-bound relaxation (mechanical, prevents ping-pong)**: when the plan touches a single file — or a single layer with no cross-module dependency, /analyze's own Not-for boundary — the Key-decisions bound relaxes from ≤ 3 to ≤ 5 (the Stage F ceiling): such a plan implements directly regardless of a 4th or 5th Key decision, because /analyze would reject it back to /think.
    - If no path fits, say so — 「沒有完美接手的 skill，建議直接進入手寫實作」.
-2. Produce a one-paragraph **handoff summary** in 繁體中文: what was approved, the key constraints, the first concrete step of implementation. Immediately continue with this summary as input — invoke `/baransu:analyze` for medium-to-large tasks, or begin the direct implementation for small tasks. Execute autonomously; do not ask the user for further confirmation during implementation — except for high-risk actions, where the following gate applies: **if** the handoff implementation would touch any of these named actions — deleting files / `rm`, `git reset --hard` / force push, irreversible DB changes (DROP / TRUNCATE / destructive migration), overwriting an existing file, handling or writing secrets / credentials, or making an irreversible call to an external service — **then** stop, return to the user, and obtain explicit confirmation before proceeding.
+2. Produce a **handoff prompt** in 繁體中文 — the implementer-facing artifact, in the seven-section skeleton below. (Why a prompt, not the plan: A/B-tested against handing over the five-section plan with its deliberation records — execution quality was identical while the artifact shrank ~40% and the implementation side ran measurably cheaper and faster. Stage records, PAUSE/approval logs, and the plan narrative are the human audit trail; the implementer needs conclusions only.)
+
+   ```
+   Role:             <one line: implementer role + language/runtime>
+   Goal:             <from Building — the observable outcome>
+   Success criteria: <from Building's completion bar + Stage A round-3 成功 — each item mechanically checkable>
+   Constraints:      <from Stage A 約束 + settled Key decisions + Not building (as explicit out-of-scope) + assumptions the plan committed to>
+   Tools:            <only when the plan names tool/environment requirements; omit otherwise>
+   Output:           <deliverables and their format>
+   Stop rules:       <from Unknowns (each becomes an ask-or-stop trigger) + the high-risk gate below + "done only when Success criteria are verified">
+   ```
+
+   Omit any section that doesn't apply — never pad for symmetry. Immediately continue with this handoff prompt as input — invoke `/baransu:analyze` for medium-to-large tasks, or begin the direct implementation for small tasks. Execute autonomously; do not ask the user for further confirmation during implementation — except for high-risk actions, where the following gate applies: **if** the handoff implementation would touch any of these named actions — deleting files / `rm`, `git reset --hard` / force push, irreversible DB changes (DROP / TRUNCATE / destructive migration), overwriting an existing file, handling or writing secrets / credentials, or making an irreversible call to an external service — **then** stop, return to the user, and obtain explicit confirmation before proceeding.
 
 **Option 3 — 還有地方要對焦.** Call `AskUserQuestion` to find out what needs re-alignment. Then determine whether the new concern is an **extension** of the current direction or a **different concern**:
 
@@ -432,7 +444,7 @@ Once the plan is approved — Option 2 selected, a free-text approval closed wit
 - [ ] Render an HTML work journal at `.claude/think/<slug>.html`, based on the book golden-template, per the shared contract in `plugins/baransu/skills/_shared/output-journal.md`. It contains the original skill output (the five-section plan) plus an 「執行日誌」 section, initially seeded with the approval record (who approved, which option, when).
 - [ ] Send both files via `SendUserFile` with a one-line 繁中 caption（例：「計畫已落檔；執行日誌將隨實作持續追記」）.
 
-During subsequent implementation, the 「執行日誌」 section MUST be continuously appended with off-spec decisions, forced changes, trade-offs, and anything else the user should know. **The implementing party owns the appending** — `/execute` on the medium-to-large path, or the main session implementing directly per `_shared/tdd.md` §7. /think's responsibility ends at creating the journal and naming this ownership in the handoff summary.
+During subsequent implementation, the 「執行日誌」 section MUST be continuously appended with off-spec decisions, forced changes, trade-offs, and anything else the user should know. **The implementing party owns the appending** — `/execute` on the medium-to-large path, or the main session implementing directly per `_shared/tdd.md` §7. /think's responsibility ends at creating the journal and naming this ownership in the handoff prompt (Stop rules section).
 
 ---
 
