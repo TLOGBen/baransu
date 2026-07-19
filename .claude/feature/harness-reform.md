@@ -2,7 +2,7 @@
 
 > 維護章程：每次階段轉換、每場實驗結束、每月遙測回看後更新本檔。
 > 「當前階段」段落永遠反映最新狀態；歷史只增不改。
-> 最後更新：2026-07-19（Phase 1 完成——v3.0.0 已 merge main；下一步＝Phase 2 大型複雜系統實驗）
+> 最後更新：2026-07-19 深夜（Phase 1 完結 v3.0.0→v3.0.1；等待 Phase 2 ／ 月回看 2026-08-19）
 
 ---
 
@@ -57,20 +57,46 @@
 - 選用穩健性：不追求選得準，追求選錯便宜＋選漏可偵測（seal-guard hook 設計已完成，見對談）。
 - 混用代數：規格層×審查層各挑一個尺寸；同層雙容器＝雙真相源（禁）；審查堆疊＝責任稀釋+1（禁）。
 
+## 二b、Phase 1 落地記錄（2026-07-19，已完結）
+
+**決策鏈**：/think Full mode 對焦 → 五節計畫 → /review（兩席＋對抗輪：F1 分段自鎖／F2 量測循環／
+F3 機件去留／F5「0 bug」hard-stop 等 4+4+1）→ 使用者四裁定全採推薦 → 修訂版 v2 即 Stage G 批准。
+過程中使用者三次即時再裁定，逐步激進化：hook 範本 → 直接隨 plugin 出貨 → **預設阻擋模式**；
+遙測 log 由 per-project 散落改為**集中 user scope**（v3.0.1）。
+
+**三段 count-neutral 手術**（branch `feat/phase1-restructure`，fork 執行者＋主迴圈每段獨立複驗）：
+- `93d775f` 段①：execute 併入 analyze（R8 裁剪文本降 `references/execution-pipeline.md`，body 455 行）
+  ＋/contract＋`_shared/contract-gate.md` 單一實作＋Gates 10/11 錨同段遷移——14 進 14 出全綠。
+- `6c094dd` 段②：/seal（五點任務書＋直接修正權＋target-pin off-ramp）＋修憲 14→15
+  （verify-skills×3＋CLAUDE.md×2 含 falsifiable 條款＋README×2＋測試×2）——15 對 15 全綠。
+- `edc67cf` 段③：v3.0.0＋三頻段路由表＋CHANGELOG breaking（/execute 移除）＋seal-guard hook
+  出貨即生效（`stop_hook_active` 防迴圈、`SEAL_GUARD=log|off` 降級、任何模式落 jsonl）
+  ＋`_shared/selection-telemetry.md`＋listing 8007→6857。
+
+**品質鏈 dogfood**：/seal 五點跑在全 branch diff 上——雙突變抽查真做（刪 /seal 表列→測試叫；
+破壞防迴圈→測試叫）。最終 /review 兩席（98 檔 deep）：**兩席獨立收斂 seal-log 生產端懸空**
+（hook/測試/文件三方都預期 /seal 寫證據檔，唯獨 SKILL.md 沒這條指令——不修則合規使用者收工必被
+誤擋、污染月回看數據）＋Phase 3 懸空錨×8＋⚠️ 路徑漏歸零 compile 計數＋AGENTS.md fourteen 殘留
+＋5 advisory；全數直修於 `68df868`（含 G9/G10 補測試釘死）。merge `70b1438` → main，全綠 push。
+
+**v3.0.1 補丁**（`a07da46`）：遙測帳本集中 `~/.claude/baransu/telemetry/{專案}/{類型}-{YYYY-MM}.jsonl`
+——專案切分（git-root basename，無 git 取資料夾名）、月切檔即輪替、回收＝讀一個目錄、
+`BARANSU_TELEMETRY_DIR` 測試覆蓋。user-scope 規則檔 `~/.claude/rules/common/baransu-telemetry.md` 同步。
+
+**過程教訓（值得留給 Phase 2）**：
+1. T5 守護段對 HEAD 零 diff 的設計實地驗證——審查修正落地時先紅（未提交的守護段改動）、commit 即綠，「守護段改動必須經審查」的機制語意成立。
+2. make mirror 會洗掉直接寫進鏡像的內容——分發面差異必須寫進單一來源隨 mirror 出貨（Distribution note 事件）。
+3. zsh 空 glob（nomatch）第二次咬人（/ship 歸檔迴圈）——與 RUNBOOK 已知坑同族，shell 迴圈一律改 python。
+4. 兩位獨立審查員對同一結構缺口收斂（seal-log 生產端）＝「consumer 齊備、producer 缺席」是合成系統的高發縫型，Phase 2 跨系統實驗直接把它列為檢查面。
+
 ## 三、當前階段
 
-**Phase 1 — 版圖重組落地（手術進行中，2026-07-19 Stage G 已批准）**
+**Phase 1 已完結（v3.0.1 在 origin/main）——目前處於遙測累積期**
 
-- /think Full mode 已跑完（對焦：觸發體驗優先／上限可鬆綁＋可大拆／成功＝觸發正確率可觀測）。
-- /review 完成（arch+quality＋對抗輪）：4 需判斷＋4 packaged＋1 hard-stop（「0 bug」名詞不符），
-  使用者四項全採推薦——F1 count-neutral 分段重切／F2 hook 預設僅記錄模式（KD5 機制錨；後經使用者再裁定升級為出貨即生效＋預設阻擋）／
-  F3 保留四機件（worktree/三振/coverage-riding/收尾 agents，R8 只裁儀式）／修訂即批准。
-  審查日誌：`.claude/review/2026-07-19-phase1-restructure-plan.html`。
-- **批准版計畫：`.claude/feature/phase1-restructure-plan.md`（修訂版 v2）**。
-  核心：`/contract` `/seal` 雙釘獨立＋analyze/execute 合併（保留 /analyze 名，execute 流程文本
-  降入 references/）＋上限 14→15（三處錨）＋count-neutral 三段落地（①合併＋contract＋Gate 錨遷移
-  14進14出→②seal＋修憲 15對15→③版本/路由/CHANGELOG），每段 make test 全綠，feature branch + PR。
-- **狀態：三段手術完成（`93d775f` 合併＋contract → `6c094dd` seal＋修憲 15 → `edc67cf` 3.0.0＋路由＋CHANGELOG＋seal-guard 出貨即生效預設阻擋），每段 make test 全綠並經主迴圈獨立複驗；seal dogfood PASS（五點＋雙突變全叫）＋最終 /review 兩席（Issue 4＋advisory 5 全數直修於 68df868：seal-log 生產端閉環、Phase 錨正名、compile 計數歸零、修憲殘留）→ 已 merge main（v3.0.0）並 push。遙測起算日 2026-07-19（.claude/harness/selection-log.jsonl 首批記錄已落）。**
+- 落地全程見 §二b。使用者側下一動作：`git pull` ＋ 重裝 plugin 吃 3.0.1。
+- 遙測累積中：起算 2026-07-19，帳本在 `~/.claude/baransu/telemetry/`；月回看 2026-08-19 前後
+  （三個決策：雙釘假設驗證／seal-guard 阻擋去留／codex-skill-transfer 退役條款）。
+- Phase 2（大型複雜系統實驗）擇期開跑——方法論與腳本備妥於 RUNBOOK。
 
 ## 四、之後階段
 
@@ -100,6 +126,7 @@
 | 跨機重跑手冊（方法論＋workflow 腳本＋已知坑） | baransu `.claude/experiments/2026-07-19-harness-matrix/RUNBOOK.md` ＋ `workflows/`（6 支腳本正本） |
 | 記憶鏡像（機器本地 memory 的 repo 副本） | baransu `.claude/feature/memory-mirror/`（正本在各機 `~/.claude/projects/.../memory/`；每次 ship 時同步） |
 | 優勝程式碼（第一輪 p3-f） | NovelReader `origin/legado-parity-p3f` 分支（等與 origin/main 新進展 reconcile） |
+| /review 日誌（計畫審＋終審） | baransu `.claude/archived/2026-07-19-phase1-{restructure-plan,final-diff}.html`（/ship 歸檔，local） |
 | 記憶錨點 | `~/.claude/projects/-home-vakarve-project-clis-baransu/memory/harness-matrix-experiment-findings.md` |
 
 ## 七、未結事項（非本線但實驗發現）
