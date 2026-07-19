@@ -94,6 +94,8 @@
 | 改革條款 R1–R9 | 同上 `06-reform-spec.md` |
 | 三冊 book | baransu `.claude/book/{harness-model-matrix-experiment,contract-seal-reform,validation-verdict-plain}.html` |
 | Phase 1 計畫草稿 | baransu `.claude/feature/phase1-restructure-plan.md` |
+| 跨機重跑手冊（方法論＋workflow 腳本＋已知坑） | baransu `.claude/experiments/2026-07-19-harness-matrix/RUNBOOK.md` ＋ `workflows/`（6 支腳本正本） |
+| 記憶鏡像（機器本地 memory 的 repo 副本） | baransu `.claude/feature/memory-mirror/`（正本在各機 `~/.claude/projects/.../memory/`；每次 ship 時同步） |
 | 優勝程式碼（第一輪 p3-f） | NovelReader `origin/legado-parity-p3f` 分支（等與 origin/main 新進展 reconcile） |
 | 記憶錨點 | `~/.claude/projects/-home-vakarve-project-clis-baransu/memory/harness-matrix-experiment-findings.md` |
 

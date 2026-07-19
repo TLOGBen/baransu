@@ -1,0 +1,3 @@
+- [One workflow at a time, few agents](one-workflow-at-a-time.md) — sequential workflows, lean agent counts in experiments
+- [Baransu optimization roadmap](baransu-optimization-roadmap.md) — 跑到 2026-07-13 週日的慣性帳本優化路線;喚醒後先讀「當前狀態與路徑」
+- [Harness matrix experiment findings](harness-matrix-experiment-findings.md) — 10-arm 實驗:條文可測性>流程重量;review 窄化為無測試表面掃描
