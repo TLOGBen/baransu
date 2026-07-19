@@ -59,8 +59,9 @@ fi
 # --- miss: telemetry in every mode -------------------------------------------
 mkdir -p "$HARNESS" 2>/dev/null || exit 0
 N_SURFACES="$(printf '%s\n' "$TOUCHED" | wc -l | tr -d ' ')"
+SAFE_ROOT=${ROOT//\\/\\\\}; SAFE_ROOT=${SAFE_ROOT//\"/\\\"}
 printf '{"ts":"%s","event":"seal-miss","mode":"%s","repo":"%s","surfaces":%s}\n' \
-  "$(date -Is)" "$MODE" "$ROOT" "$N_SURFACES" >> "$HARNESS/seal-guard.jsonl" 2>/dev/null || true
+  "$(date -Is)" "$MODE" "$SAFE_ROOT" "$N_SURFACES" >> "$HARNESS/seal-guard.jsonl" 2>/dev/null || true
 
 # --- verdict -----------------------------------------------------------------
 case "$MODE" in

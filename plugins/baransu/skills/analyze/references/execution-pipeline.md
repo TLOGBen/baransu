@@ -22,7 +22,7 @@ continue unblocked work.
 ## Hard Constraints
 
 - **The review ROLE is never optional; its host varies by mode.** Every task — documentation, scripts, config, code — goes through review-agent after each impl-agent attempt (serial-absorbed mode: the orchestrator hosts the role, mechanical gates still enforced). `TaskUpdate status=completed` is only reachable as the result of a review outcome for the current impl attempt.
-- **Analyze spec directory is read-only during execution** — with ONE sanctioned exception: the R7 loose-criterion patch path (§4b Phase 3) may append a criteria patch to goal.md ONLY via the orchestrator, logged in final-report.md. Leaf agents never write the spec dir.
+- **Analyze spec directory is read-only during execution** — with ONE sanctioned exception: the R7 loose-criterion patch path (§4b Phase 2) may append a criteria patch to goal.md ONLY via the orchestrator, logged in final-report.md. Leaf agents never write the spec dir.
 - **Subagent depth = 1.** Agents in `agents/*.md` are stateless leaf nodes; they never dispatch further subagents. Dispatch-tool presence is decided by the Step 0 tool-list probe (inspection, never attempt-and-catch); when absent, enter serial-absorbed mode.
 - **All Task Tools created before execution begins** (Step 2). No mid-execution task creation.
 - **Working files live under `.claude/execute/`.** (Directory name kept across the merge — it names the execution phase, and /ship's archive rules key on it.)
@@ -126,6 +126,7 @@ LOOP:
     # finding for the reviewer (test may pin existing, not new, behavior);
     # proceed to Phase 2 review of the delivered implementation.
     note advisory "red-gate ⚠️: {detail}" → attach to the review dispatch
+    compile_error_count = 0            # non-compile return resets the consecutive counter
     → proceed to Phase 2
 
   CASE status == ❌ AND failure detail mentions compile error:

@@ -27,7 +27,7 @@ Before writing tests, read §1 (Core Principles) and §6 (Anti-pattern quick ref
 
 2. **Compile error handling**:
    - **Red phase**: if a compile error appears, treat it as a test syntax problem, fix it, then re-confirm Red.
-   - **Green phase**: if a compile error appears during implementation, attempt to fix it and re-run the tests. If it cannot be fixed, report `status: ❌` with `failure_detail` beginning with `[compile error]` so the main skill can identify it (the main skill does not count it toward failure_count, but the cap is tracked once smart-friend is triggered).
+   - **Green phase**: if a compile error appears during implementation, attempt to fix it and re-run the tests. If it cannot be fixed, report `status: ❌` with `failure_detail` beginning with `[compile error]` so the main skill can identify it (the main skill does not count it toward failure_count; it is counted on the separate `compile_error_count` channel, capped at 3 consecutive).
 
 3. **Green gate**: after implementation, run the tests; all tests related to this task must pass (exit code = 0).
 

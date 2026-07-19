@@ -24,6 +24,7 @@ This body is English (agent-facing). All user-visible output is
 - **Output**: A Traditional Chinese seal report in the conversation (五點結果＋修正清單＋突變抽查記錄); fixes land as working-tree edits with their pinning tests.
 - **Automation**: ultracode=neutral, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 - **Telemetry**: on invocation, append one selection record per `../_shared/selection-telemetry.md`.
+- **Seal evidence**: on completion, append one JSON line `{"ts":"<ISO8601>","skill":"seal","result":"pass|fixed","target":"<one-phrase>"}` to `{project_root}/.claude/harness/seal-log.jsonl` — this is the evidence the shipped seal-guard Stop hook checks; skipping it causes a false block at session end.
 
 PAUSE classification for non-interactive drivers: `references/loop-pauses.md`.
 

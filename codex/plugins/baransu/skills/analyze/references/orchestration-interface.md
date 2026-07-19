@@ -43,6 +43,6 @@ When Step 0 pinned `workflow`, express the same dispatch as Workflow primitives:
 1. **Dispatch**: run the pipeline with the same per-agent inputs as §1.
 2. **Collect**: return the review-agent result in the §1 shape to the orchestrator unchanged.
 
-Nothing else. The Phase 3 SWITCH, `verify_green_proof`, the Goal-Alignment Filter, `failure_count` accounting, smart-friend dispatch, and merge logic stay in execution-pipeline.md §4b–§4d untouched — the pipeline never short-circuits them.
+Nothing else. The Phase 2 SWITCH, `verify_green_proof`, the Goal-Alignment Filter, `failure_count` accounting, smart-friend dispatch, and merge logic stay in execution-pipeline.md §4b–§4d untouched — the pipeline never short-circuits them.
 
 Depth invariant (restated for this adapter): pipeline steps are leaf agents — agents must not invoke skills or dispatch further subagents; no step may add review rounds, self-dispatch, or mark tasks ✅ on its own.

@@ -1,5 +1,7 @@
 # seal-guard hook — shipped Stop hook, blocking by default
 
+> Distribution note: the Stop hook ships with the Claude Code plugin only. Distributions without a Stop-hook system (e.g. the Codex mirror) get this document as description, not mechanism — there, run /seal manually before ending a session.
+
 The plugin ships a real Stop hook (`plugins/baransu/hooks/seal-guard.sh`, registered in
 `plugins/baransu/hooks/hooks.json`) — installing the plugin activates it. It is the
 mechanism anchor for the selection-telemetry blind spot: when `/seal` *should* have fired

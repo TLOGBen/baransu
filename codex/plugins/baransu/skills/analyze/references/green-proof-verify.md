@@ -60,4 +60,4 @@ Verify-result handling:
        "re-dispatch review-agent and require a complete green_proof"}` to review_result.findings.
     3. Re-dispatch impl-agent + review-agent (following the §4b failure-escalation logic: the single
        retry carries smart-friend's correction_strategy; a second failure blocks the task at the R8 cap).
-    4. Do not enter the SWITCH below; this round's Phase 3 ends.
+    4. Do not enter the SWITCH below; this round's Phase 2 ends.

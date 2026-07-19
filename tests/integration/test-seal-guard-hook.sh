@@ -97,6 +97,19 @@ EOF
 then ok "G8 hooks.json registers Stop → seal-guard.sh via CLAUDE_PLUGIN_ROOT"
 else bad "G8 hooks.json registration"; fi
 
+# G9 — producer side: seal SKILL.md must instruct writing the evidence file the hook reads
+if grep -q 'seal-log\.jsonl' "$REPO_ROOT/plugins/baransu/skills/seal/SKILL.md"; then
+  ok "G9 seal SKILL.md contains seal-log.jsonl write instruction (producer side pinned)"
+else bad "G9 seal SKILL.md lacks seal-log.jsonl instruction — hook evidence chain dangling"; fi
+
+# G10 — SEAL_GUARD=off still appends telemetry and exits 0
+R="$(mkrepo)"; touch_surface "$R"
+printf '{"stop_hook_active": false}' | CLAUDE_PROJECT_DIR="$R" SEAL_GUARD=off bash "$HOOK"; rc=$?
+if [ "$rc" -eq 0 ] && grep -q '"mode":"off"' "$R/.claude/harness/seal-guard.jsonl" 2>/dev/null; then
+  ok "G10 SEAL_GUARD=off appends jsonl and exits 0"
+else bad "G10 off-mode telemetry path (rc=$rc)"; fi
+rm -rf "$R"
+
 echo ""
 echo "=== test-seal-guard-hook: $PASS passed, $FAIL failed ==="
 [ "$FAIL" -eq 0 ]

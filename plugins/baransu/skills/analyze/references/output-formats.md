@@ -128,7 +128,7 @@ Review 結果：
 Path: `.claude/execute/{date}-{slug}/execute/final-report.md`
 
 ```markdown
-# Final Report — /baransu:execute
+# Final Report — /baransu:analyze 執行段
 
 session: {date}-{slug}
 spec_dir: {path}
