@@ -2,6 +2,19 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## v3.0.0 (2026-07-19)
+
+**版圖重組：三頻段路由落地——雙塔合一＋雙釘獨立＋修憲 15**。plugin version 2.13.0 → 3.0.0。依據：10-arm harness×model 矩陣實驗＋R1–R9 改革驗證輪（完整記錄與判決在 `.claude/experiments/2026-07-19-harness-matrix/`；核心結論——品質槓桿是驗收條文的可斷言性，不是流程重量；改革版全套 p3-os′ 以 59% 成本追平頂級模型冠軍，一頁合約＋單次 seal 以 22% 成本達成行為面全數達標）。
+
+- **BREAKING：`/baransu:execute` 移除**。其觸發詞（「開始執行」「跑 execute」「依照 analyze 執行」）與全流程併入 `/baransu:analyze`——spec 完成後直通內建執行管線（`analyze/references/execution-pipeline.md`）。舊 `/analyze` spec 要接續執行：改喚 `/baransu:analyze` 即可，Stage 0 會偵測既有 spec 直接進入執行段。
+- **新增 `/contract`**：中頻段開工釘——一頁合約四節（目標／可斷言條文／錯不起表面清單／照抄常數塊），判準單一實作於 `_shared/contract-gate.md`（G1–G4＋R7）。
+- **新增 `/seal`**：中頻段收工釘——單次窄域審查＋直接修正權，五點任務書（條文逐核／未釘 user-facing 表面掃描／cross-UI 一致性／常數 byte-diff／突變抽查），含 target-pin off-ramp。
+- **執行管線 R8 裁剪**：summarize 派發與逐 task ctx 檔移除（agents 直讀 spec）、Red gate 降 advisory、審查退件重派上限 1；worktree 平行組、compile/failure 雙計數不變量、coverage-riding、merge/e2e-fix/final-fixer 收尾鏈全數保留。
+- **修憲 14→15**（三處錨同步），附 falsifiable 條款：`/codex-skill-transfer` 遙測三個月零使用即退役回 14。
+- **CLAUDE.md 三頻段路由表**：小＝直接實作（tdd.md §7）／中＝contract＋seal／大＝analyze 全管線；不得強迫任務升降頻段。
+- **seal-guard hook 隨 plugin 出貨、安裝即生效**（`hooks/seal-guard.sh`＋`hooks/hooks.json` 註冊 Stop）：偵測「本 session 碰了 user-facing 表面卻無 seal 記錄」——**預設阻擋模式**（exit 2 擋停止並回饋繁中指示；`stop_hook_active` 防迴圈早退），`SEAL_GUARD=log|off` 可降級；無論何種模式都 append `.claude/harness/seal-guard.jsonl`（遙測不中斷）。falsifiable 條款：月回看誤擋率過高即把出貨預設降為 log。
+- **選用遙測慣例**（`_shared/selection-telemetry.md`）：skill 選用決策記入 `.claude/harness/selection-log.jsonl`，月回看計算誤觸發／漏觸發率——觸發正確率可觀測是本次重組的成功判準。
+
 ## v2.13.0 (2026-07-17)
 
 **/think Stage G 交接產物改為七段執行 prompt**。plugin version 2.12.0 → 2.13.0。原本 Option 2 批准後的交接物是「一段話 handoff summary」，下游實作方實際上還得回頭消化五段計畫與審議紀錄。改為直接產出執行者導向的七段骨架 prompt（Role / Goal / Success criteria / Constraints / Tools / Output / Stop rules，不適用的段落省略）：Building → Goal、驗收標準 → Success criteria、約束＋Key decisions＋Not building → Constraints、Unknowns → Stop rules 的 ask-or-stop 觸發。審議紀錄（Stage 記錄、PAUSE/批准軌跡）留在五段計畫作人審軌跡，不進交接物。依據：四管線 A/B 實驗（同一模糊需求 × 4 條規格化路徑 × 隱藏 fixture 盲評）——七段格式與五段計畫執行品質相同（16/17 打平），但產物縮 ~40%（120 行 → 74 行）、規格化省 44% 時間、下游執行 token 也較低。codex 變體同步鏡像。

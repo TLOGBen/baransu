@@ -28,6 +28,7 @@ This body is English (agent-facing). All user-visible output is
 - **Evidence**: The written CONTRACT.md plus the per-criterion G1 disposition list shown at confirmation (each criterion marked 可斷言 / 已改寫).
 - **Output**: `CONTRACT.md` (~35 lines) in the conversation and on disk; operational messages in Traditional Chinese.
 - **Automation**: ultracode=neutral, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
+- **Telemetry**: on invocation, append one selection record per `../_shared/selection-telemetry.md`.
 
 PAUSE classification for non-interactive drivers: `references/loop-pauses.md`.
 

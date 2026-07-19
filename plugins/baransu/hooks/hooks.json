@@ -1,5 +1,5 @@
 {
-  "description": "Wiki sync on session end — computes slug diff and updates .claude/wiki/ for projects that have it",
+  "description": "baransu hooks — wiki sync on session end; seal-guard on stop (blocks when a user-facing surface was touched without a /baransu:seal record; SEAL_GUARD=log|off degrades)",
   "hooks": {
     "SessionEnd": [
       {
@@ -7,6 +7,17 @@
           {
             "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/wiki-sync.sh\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/seal-guard.sh\"",
+            "timeout": 10
           }
         ]
       }

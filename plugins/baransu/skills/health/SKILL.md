@@ -1,7 +1,7 @@
 ---
 name: health
 description: >
-  Audits a project's agent configuration and AI-coding maintainability — instruction drift, hooks/MCP, verifier surfaces, code-rot signals. Runs a budget-aware five-layer audit (agent config → instruction surfaces → tools/runtime → verifiers → maintainability): classifies the project tier, collects data via scripts, escalates to inspector subagents only for deep audits. Trigger On '/health', '健康檢查', '配置體檢', '檢查配置', 'AI 可維護性', 'agents ignoring instructions'. Not for verifying baransu's own skill structure (scripts/verify-skills.py), reviewing a single model output (/review), or substituting for lint/typecheck. 繁體中文輸出。
+  Audits a project's agent configuration and AI-coding maintainability — instruction drift, hooks/MCP, verifier surfaces, code-rot signals — via a budget-aware five-layer audit; escalates to inspector subagents only for deep audits. Trigger On '/health', '健康檢查', '配置體檢', '檢查配置', 'AI 可維護性', 'agents ignoring instructions'. Not for verifying baransu's own skill structure (scripts/verify-skills.py), reviewing a single model output (/review), or substituting for lint/typecheck. 繁體中文輸出。
 when_to_use: "檢查 claude, 檢查 codex, 配置對不對, 健康度, AI coding 腐化, 程式碼變爛, 上下文混亂, 驗證缺失, hooks 沒生效, MCP 壞了, AGENTS.md, agent instructions, check config, audit config, health check, config drift"
 metadata:
   version: "1.1.0"

@@ -29,6 +29,7 @@ This body is English (agent-facing). All user-visible output is
 - **Evidence**: The five-point report (each point: finding or 「乾淨」), the mutation probe record (what was broken → which test fired / failed to fire → revert confirmation), and the green run output tail for applied fixes.
 - **Output**: A Traditional Chinese seal report in the conversation (五點結果＋修正清單＋突變抽查記錄); fixes land as working-tree edits with their pinning tests.
 - **Automation**: ultracode=neutral, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
+- **Telemetry**: on invocation, append one selection record per `../_shared/selection-telemetry.md`.
 
 PAUSE classification for non-interactive drivers: `references/loop-pauses.md`.
 

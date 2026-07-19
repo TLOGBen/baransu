@@ -76,7 +76,7 @@
 
 | 階段 | 內容 | 觸發條件 |
 |------|------|----------|
-| Phase 1（本階段） | 版圖重組手術＋seal-guard hook 範本（opt-in）＋遙測慣例落 _shared | /review 過＋Stage G 批准 |
+| Phase 1（本階段） | 版圖重組手術＋seal-guard hook 出貨即生效（預設阻擋，SEAL_GUARD 可降級）＋遙測慣例落 _shared | /review 過＋Stage G 批准 |
 | Phase 2 | 大頻段實驗：拿**大型複雜系統**開刀（使用者已定調；候選形態＝跨雙系統同改 wire format 的 E2E 情境），「分形合約＋邊界所有人」對打「改革版全套」；復用盲評基建與事前預測紀律 | Phase 1 落地後擇期 |
 | Phase 3 | 遙測月回看：skill 選用誤觸發／漏觸發率、codex-skill-transfer 使用率（三個月零使用則退役回 14）、seal-guard 是否轉預設 | 落地滿一個月 |
 

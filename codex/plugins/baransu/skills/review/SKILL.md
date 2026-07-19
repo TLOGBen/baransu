@@ -1,12 +1,11 @@
 ---
 name: review
 description: Dispatches isolated architecture / quality / security / style / domain
-  perspective agents in clean Codex subagent contexts, surfacing hallucinations, drift,
-  and over-engineering. Use when the user wants an independent second opinion on a
-  model's output, or after a model declares something done. Trigger On 「看一下」「看看」「幫我看」「check
-  一下」「review 一下」, or casual "take a look at X". Not For auditing the user's own project
-  agent-config / AI-maintainability (route to /health), nor verifying baransu's own
-  skill structure (route to scripts/verify-skills.py). 繁體中文輸出。
+  perspectives in clean Codex subagent contexts, surfacing hallucinations, drift,
+  and over-engineering. Use for an independent second opinion after a model declares
+  something done. Trigger On 「看一下」「看看」「幫我看」「check 一下」「review 一下」, or casual "take
+  a look at X". Not For auditing the user's own project agent-config (route to /health),
+  nor verifying baransu's own skill structure (scripts/verify-skills.py). 繁體中文輸出。
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex

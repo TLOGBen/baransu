@@ -2,12 +2,11 @@
 name: analyze
 description: 'Large-band pipeline: builds a goal→requirement→design→test→task spec
   under .codex/analyze/, then runs it to green through the built-in execution pipeline
-  (impl/review subagent loops, E2E, final review, final-report.md). Use when task
-  scope spans ≥2 interdependent modules. Trigger On ''/analyze'', ''分析需求'', ''展開規格'',
-  ''開始執行'', ''跑 execute'', ''依照 analyze 執行'', ''execute the spec''. Not for single-file
-  changes with no cross-module dependency (use /think or implement directly); not
-  for a medium task needing only pinned criteria (use /contract); not for worth-it
-  judgments (/think Evaluation Mode). 繁體中文輸出。'
+  (impl/review loops, E2E, final review). Use when scope spans ≥2 interdependent modules.
+  Trigger On ''/analyze'', ''分析需求'', ''展開規格'', ''開始執行'', ''跑 execute'', ''依照 analyze
+  執行'', ''execute the spec''. Not for single-file changes (/think or implement directly);
+  medium tasks needing only pinned criteria (/contract); worth-it judgments (/think
+  Evaluation Mode). 繁體中文輸出。'
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex
@@ -36,6 +35,7 @@ Use `task-map.md` as the durable source of truth for TaskCreate/TaskUpdate seman
 - **Evidence**: The `ls` output of the spec dir captured in the Stage 7 declaring turn, plus a clean template-placeholder scan and the Stage 6 checklist result; on the execution path, final-report.md's {N}/{M} REQ achievement rate.
 - **Output**: Spec directory `.codex/analyze/{YYYY-MM-DD}-{slug}/` holding the five spec documents; execution working documents plus `final-report.md` under `.codex/execute/{date}-{slug}/execute/`.
 - **Automation**: ultracode=assist, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
+- **Telemetry**: on invocation, append one selection record per `../_shared/selection-telemetry.md`.
 
 PAUSE classification for non-interactive drivers: `references/loop-pauses.md` — read it alongside `../_shared/loop-contract.md` when driven by /loop, cron, or Workflow, or hosted as a subagent.
 

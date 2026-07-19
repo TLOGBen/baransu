@@ -3,7 +3,7 @@
 #
 # Asserts (behavioral, against release surfaces only):
 #   D1) plugin.json version is semver with major >= 2 (not pinned to a string)
-#   D2) plugin.json description describes fourteen skills (no "16"/"sixteen")
+#   D2) plugin.json description describes fifteen skills (no "16"/"sixteen", no stale "14"/"fourteen")
 #   D3) plugin.json keywords contain none of: dev, tdd, harness, grade, triage, bridge
 #   D4) marketplace.json plugin description synced (no "16"/"sixteen");
 #       metadata.version identical to plugin.json version
@@ -60,12 +60,12 @@ fi
 
 # --- D2: plugin.json description ---
 PLUGIN_DESC=$(python3 -c "import json;print(json.load(open('$PLUGIN_JSON'))['description'])" 2>/dev/null)
-if echo "$PLUGIN_DESC" | grep -qiE '\b16\b|sixteen'; then
-  bad "D2 plugin.json description still says 16/sixteen: $PLUGIN_DESC"
-elif echo "$PLUGIN_DESC" | grep -qiE '\b14\b|fourteen'; then
-  ok "D2 plugin.json description describes fourteen skills"
+if echo "$PLUGIN_DESC" | grep -qiE '\b16\b|sixteen|\b14\b|fourteen'; then
+  bad "D2 plugin.json description says a stale count (14/fourteen/16/sixteen): $PLUGIN_DESC"
+elif echo "$PLUGIN_DESC" | grep -qiE '\b15\b|fifteen'; then
+  ok "D2 plugin.json description describes fifteen skills"
 else
-  bad "D2 plugin.json description does not mention fourteen/14: $PLUGIN_DESC"
+  bad "D2 plugin.json description does not mention fifteen/15: $PLUGIN_DESC"
 fi
 
 # --- D3: plugin.json keywords ---

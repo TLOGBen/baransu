@@ -71,7 +71,15 @@ Invoke with `/baransu:<name>`. To edit a skill, read its `SKILL.md` — design c
 
 **15 is the skill-count ceiling** — adding a 16th requires retiring one first (以裁換建). Mechanism anchor: the skill-count check in `scripts/verify-skills.py`. Falsifiable amendment clause (2026-07-19, 14→15): if selection telemetry shows `/codex-skill-transfer` at zero use for three consecutive months, retire it and restore the ceiling to 14.
 
-Small tasks with clear scope no longer route through a dedicated skill: implement directly under the red/green discipline in `plugins/baransu/skills/_shared/tdd.md` §7.
+**Three-band routing** (evidence anchor: `.claude/experiments/2026-07-19-harness-matrix/` — the 10-arm harness×model matrix plus its validation round):
+
+| Band | Route | Closure evidence |
+|------|-------|------------------|
+| Small — single-file, clear scope | Implement directly under the red/green discipline in `_shared/tdd.md` §7; no skill ceremony | red → green run |
+| Medium — one feature, few files | `/contract` pins a one-page contract before work; `/seal` closes with one narrow verification pass (direct-fix rights) | seal five-point mandate result |
+| Large — ≥2 interdependent modules, context rot is real | `/analyze` full pipeline: five-layer spec → built-in execution to green | `final-report.md` |
+
+Never force a task up-band (a small fix does not deserve a spec) or down-band (a cross-module change does not get to skip criteria pinning).
 
 **English-body convention.** All agent-facing prose — every `SKILL.md` body, every file under `references/`, the cross-skill docs in `skills/_shared/`, `rules/`, and the agent system prompts in `agents/` — MUST be written in English. The only sanctioned Traditional Chinese is: (1) user-facing output — completion / error / status messages, output-template content, 「」-quoted user strings, sample rendered output; (2) trigger keywords and routing cues in the frontmatter `description` and 易混淆 tables; (3) example artifacts demonstrating Chinese content; (4) the `/write` skill's bilingual-writing content (rules, before/after samples, voice presets). Instructional prose, conditions, branching logic, rationale, and internal headings are English everywhere. Do not change this convention in any skill.
 
@@ -84,7 +92,7 @@ These have each caused regressions — do not "optimize" them away:
 - **`/ship` branch deletion uses `-D` not `-d`**: after push the branch is unmerged locally, so `-d` always fails. Both steps need `git -C "$MAIN_REPO" branch -D`.
 - **`failure_count` excludes compile errors**: compile errors do NOT count toward the TDAID failure block limit — they cap on their own `compile_error_count` channel (3 consecutive); review-rejection `failure_count` caps at 2 under the R8 retry rule. Merging these two counters breaks retry behavior.
 - **`DESIGN.md` ≠ `design.md`**: uppercase at project root = UI visual spec (from `/design`); lowercase in `.claude/analyze/` = technical architecture layer (from `/analyze`). Never confuse them.
-- **Execute worktrees live under `.claude/worktrees/`**: checkouts go to `.claude/worktrees/execute-{date}-{slug}-{group}` — NEVER `.git/worktrees/` (git's per-worktree metadata lives there; a checkout there is permanently dirty and `git add -A` commits git internals — empirically verified).
+- **Execution-stage worktrees live under `.claude/worktrees/`** (analyze execution pipeline; the `execute-` filename prefix names the stage, not a skill): checkouts go to `.claude/worktrees/execute-{date}-{slug}-{group}` — NEVER `.git/worktrees/` (git's per-worktree metadata lives there; a checkout there is permanently dirty and `git add -A` commits git internals — empirically verified).
 - **goal.md 驗收標準 C{n} is the top acceptance authority** in the analyze spec→execution chain: a criterion satisfied only in test scaffolding while its production path is inert is NOT met (anchors: `analyze/references/execution-pipeline.md` Step 6 literal cross-check + final-review-agent §1b).
 - **Coverage-riding is a gate-time decision**: the test tier is recorded in task-map.md at Step 3; impl-agent may never self-authorize riding (it only receives the dispatch field `test_weight`).
 - **learn's full digest ends with the 批判層 four sections** (來源矛盾點／盲點／信度評分／後續角度): silence is non-compliant — 「查無矛盾」 must be stated affirmatively.
