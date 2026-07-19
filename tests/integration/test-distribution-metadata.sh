@@ -110,10 +110,10 @@ fi
 
 # --- D7: CLAUDE.md skills table ---
 ROW_COUNT=$(grep -cE '^\| `/' "$CLAUDE_MD")
-if [ "$ROW_COUNT" -eq 14 ]; then
-  ok "D7a CLAUDE.md skills table has 14 rows"
+if [ "$ROW_COUNT" -eq 15 ]; then
+  ok "D7a CLAUDE.md skills table has 15 rows"
 else
-  bad "D7a CLAUDE.md skills table has $ROW_COUNT rows, expected 14"
+  bad "D7a CLAUDE.md skills table has $ROW_COUNT rows, expected 15"
 fi
 if grep -E '^\| `/' "$CLAUDE_MD" | grep -qE '`/(dev|grade|triage|bridge)`'; then
   bad "D7b CLAUDE.md skills table still has /dev, /grade, /triage, or /bridge row"

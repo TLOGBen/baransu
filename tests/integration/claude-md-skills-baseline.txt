@@ -1,6 +1,7 @@
 | `/think` | Before any new feature, architecture decision, or non-trivial design choice | 「判斷一下」＋報錯屬除錯 → `/hunt`；存廢/價值判斷走 Evaluation Mode，不出五段計畫 |
 | `/review` | After any model output — code, plan, claim — for independent re-verification | 審「使用者專案」的 agent 配置與 AI 可維護性 → `/health` |
-| `/contract` | Medium tasks: pins a one-page work contract (goal / assertable criteria / surface inventory / verbatim constants) before implementing | 跨模組大任務 → `/analyze`；事後驗收 → 待 Phase 1 段② 的 `/seal` |
+| `/contract` | Medium tasks: pins a one-page work contract (goal / assertable criteria / surface inventory / verbatim constants) before implementing | 跨模組大任務 → `/analyze`；事後驗收 → `/seal` |
+| `/seal` | After implementation: single-pass narrow verification with direct-fix rights — criteria audit / unpinned-surface scan / cross-UI / constants byte-diff / mutation spot-check | 跨視角獨立重驗證 → `/review`；開工前釘條文 → `/contract` |
 | `/analyze` | Large tasks: builds goal→requirement→design→test→task spec, then runs it to green through the built-in execution pipeline (`開始執行` also enters here) | 單一 session 收得掉的小任務不展 spec → `_shared/tdd.md` §7；中型任務只要釘條文 → `/contract` |
 | `/write` | Bilingual copywriting: `zh`/`en` prefix; Refine (existing text), Generate (new), or Proofread (findings table → `錯字修改.html`) | 寫完要 commit/push 的收尾 → `/ship` |
 | `/ship` | Session cleanup: archive `.claude/` dirs, commit, push, optional worktree removal | 只收尾；不寫作、不審查 |

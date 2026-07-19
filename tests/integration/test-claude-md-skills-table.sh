@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
-# Test suite for the CLAUDE.md Skills table after the v2 slim-down (16 -> 12 -> 13, v2.1.0 adds /health; 14 adds /evolve).
+# Test suite for the CLAUDE.md Skills table after the v2 slim-down (16 -> 12 -> 13, v2.1.0 adds /health; 14 adds /evolve;
+# 15 = v3.0.0 Phase 1: /execute merged into /analyze, /contract + /seal added).
 #
 # Asserts (4 check groups):
 #   B1) Project root CLAUDE.md exists.
-#   B2) Skills table contains exactly 14 rows (count of "| `/" lines).
-#   B3) Removed skills are absent from the table: /dev, /grade, /triage, /bridge.
-#   B4) The 14 surviving skill names are present.
+#   B2) Skills table contains exactly 15 rows (count of "| `/" lines).
+#   B3) Removed skills are absent from the table: /dev, /grade, /triage, /bridge, /execute.
+#   B4) The 15 surviving skill names are present.
 #   B5) Each surviving skill row has a non-empty "When to invoke" description column.
-#   B6) The 14 skill descriptions match the baseline
+#   B6) The 15 skill descriptions match the baseline
 #       (regenerated post-slim and persisted alongside this script).
 #
 # Exit 0 on all pass; non-zero on any fail.
@@ -53,19 +54,19 @@ else
 fi
 
 # -------------------------------------------------------------------------
-# B2: Skills table has 13 rows
+# B2: Skills table has 15 rows
 # -------------------------------------------------------------------------
 ROW_COUNT=$(extract_skill_rows | wc -l | tr -d ' ')
-if [ "$ROW_COUNT" -eq 14 ]; then
-  ok "B2 Skills table has 14 rows"
+if [ "$ROW_COUNT" -eq 15 ]; then
+  ok "B2 Skills table has 15 rows"
 else
-  bad "B2 Skills table row count is $ROW_COUNT, expected 14"
+  bad "B2 Skills table row count is $ROW_COUNT, expected 15"
 fi
 
 # -------------------------------------------------------------------------
 # B3: removed skills are absent from the table
 # -------------------------------------------------------------------------
-REMOVED_SKILLS=(dev grade triage bridge)
+REMOVED_SKILLS=(dev grade triage bridge execute)
 for s in "${REMOVED_SKILLS[@]}"; do
   if extract_skill_rows | grep -qF "\`/$s\`"; then
     bad "B3 removed skill /$s still present in Skills table"
@@ -75,9 +76,9 @@ for s in "${REMOVED_SKILLS[@]}"; do
 done
 
 # -------------------------------------------------------------------------
-# B4: 13 surviving skill names present
+# B4: 15 surviving skill names present
 # -------------------------------------------------------------------------
-SURVIVING_SKILLS=(think review contract analyze write ship hunt health read design learn book codex-skill-transfer evolve)
+SURVIVING_SKILLS=(think review contract seal analyze write ship hunt health read design learn book codex-skill-transfer evolve)
 for s in "${SURVIVING_SKILLS[@]}"; do
   if extract_skill_rows | grep -qF "\`/$s\`"; then
     ok "B4 surviving skill /$s present"
@@ -108,16 +109,16 @@ for s in "${SURVIVING_SKILLS[@]}"; do
 done
 
 # -------------------------------------------------------------------------
-# B6: 13 skill descriptions match the regenerated baseline
+# B6: 15 skill descriptions match the regenerated baseline
 # -------------------------------------------------------------------------
 if [ ! -f "$BASELINE" ]; then
   bad "B6 baseline file missing at $BASELINE (cannot verify descriptions)"
 else
   BASELINE_ROWS=$(grep -cE '^\| `/' "$BASELINE" | tr -d ' ')
-  if [ "$BASELINE_ROWS" -eq 14 ]; then
-    ok "B6 baseline has 14 rows"
+  if [ "$BASELINE_ROWS" -eq 15 ]; then
+    ok "B6 baseline has 15 rows"
   else
-    bad "B6 baseline row count is $BASELINE_ROWS, expected 14"
+    bad "B6 baseline row count is $BASELINE_ROWS, expected 15"
   fi
   while IFS= read -r line; do
     [ -z "$line" ] && continue

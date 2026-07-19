@@ -6,7 +6,7 @@ When working on any UI/UX content, read the design system at the project root an
 - design-cores/ — 21 component skeletons consuming the tokens (long-form / gallery / dashboard + 6 bilingual document types + 6 elements)
 - slide-cores/ — slide layouts (4 cover variants + 17 non-cover layouts)
 
-`baransu` is a Claude Code plugin distributing fourteen governance skills. Theme: バランス — deliberate before executing, verify after.
+`baransu` is a Claude Code plugin distributing fifteen governance skills. Theme: バランス — deliberate before executing, verify after.
 
 ## Philosophy — バランス (Balance)
 
@@ -55,7 +55,8 @@ Invoke with `/baransu:<name>`. To edit a skill, read its `SKILL.md` — design c
 |-------|---------------|------------------|
 | `/think` | Before any new feature, architecture decision, or non-trivial design choice | 「判斷一下」＋報錯屬除錯 → `/hunt`；存廢/價值判斷走 Evaluation Mode，不出五段計畫 |
 | `/review` | After any model output — code, plan, claim — for independent re-verification | 審「使用者專案」的 agent 配置與 AI 可維護性 → `/health` |
-| `/contract` | Medium tasks: pins a one-page work contract (goal / assertable criteria / surface inventory / verbatim constants) before implementing | 跨模組大任務 → `/analyze`；事後驗收 → 待 Phase 1 段② 的 `/seal` |
+| `/contract` | Medium tasks: pins a one-page work contract (goal / assertable criteria / surface inventory / verbatim constants) before implementing | 跨模組大任務 → `/analyze`；事後驗收 → `/seal` |
+| `/seal` | After implementation: single-pass narrow verification with direct-fix rights — criteria audit / unpinned-surface scan / cross-UI / constants byte-diff / mutation spot-check | 跨視角獨立重驗證 → `/review`；開工前釘條文 → `/contract` |
 | `/analyze` | Large tasks: builds goal→requirement→design→test→task spec, then runs it to green through the built-in execution pipeline (`開始執行` also enters here) | 單一 session 收得掉的小任務不展 spec → `_shared/tdd.md` §7；中型任務只要釘條文 → `/contract` |
 | `/write` | Bilingual copywriting: `zh`/`en` prefix; Refine (existing text), Generate (new), or Proofread (findings table → `錯字修改.html`) | 寫完要 commit/push 的收尾 → `/ship` |
 | `/ship` | Session cleanup: archive `.claude/` dirs, commit, push, optional worktree removal | 只收尾；不寫作、不審查 |
@@ -68,7 +69,7 @@ Invoke with `/baransu:<name>`. To edit a skill, read its `SKILL.md` — design c
 | `/codex-skill-transfer` | One-way port Claude Code skill / plugin / marketplace material to Codex format. Auto-detects single-skill / batch / plugin mode. Refuses `context: fork` skills (cross-boundary; surfaces three Codex paths). | 單向 Claude→Codex；不做反向移植 |
 | `/evolve` | Improve a SKILL.md against a fixed 9-dim rubric: forward-only ratchet, blind multi-judge, held-out validation | 寫新 skill 是 authoring 非演化 → 直接撰寫；存廢/價值判斷 → `/think` Evaluation Mode |
 
-**14 is the skill-count ceiling** — adding a 15th requires retiring one first (以裁換建). Mechanism anchor: the skill-count check in `scripts/verify-skills.py`.
+**15 is the skill-count ceiling** — adding a 16th requires retiring one first (以裁換建). Mechanism anchor: the skill-count check in `scripts/verify-skills.py`. Falsifiable amendment clause (2026-07-19, 14→15): if selection telemetry shows `/codex-skill-transfer` at zero use for three consecutive months, retire it and restore the ceiling to 14.
 
 Small tasks with clear scope no longer route through a dedicated skill: implement directly under the red/green discipline in `plugins/baransu/skills/_shared/tdd.md` §7.
 

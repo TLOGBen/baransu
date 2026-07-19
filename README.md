@@ -2,7 +2,7 @@
 
 > バランス。動手前先想，做完後驗證。
 
-baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重的決策不省思考」這套平衡哲學，包成一個 Claude Code plugin。共 14 個 skill，每個都有清楚的觸發界線——什麼能省、什麼一定要做。
+baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重的決策不省思考」這套平衡哲學，包成一個 Claude Code plugin。共 15 個 skill，每個都有清楚的觸發界線——什麼能省、什麼一定要做。
 
 ---
 
@@ -13,7 +13,7 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 | 理念 | 一句話 | 機制錨點 |
 |---|---|---|
 | 規則是天花板 | 只寫防真實翻車的規則；容器只能變深、不能變長 | `plugins/baransu/rules/anti-patterns.md` |
-| 結構是地板 | 確定性檢查全走腳本閘門，不靠模型自律；14 個技能是上限 | `scripts/verify-skills.py` |
+| 結構是地板 | 確定性檢查全走腳本閘門，不靠模型自律；15 個技能是上限（2026-07 修憲，附 codex-skill-transfer 三個月零使用即退役回 14 的可證偽條款） | `scripts/verify-skills.py` |
 | 人在授權點 | Input PAUSE 可走預設；Authorization PAUSE 不可覆寫 | `plugins/baransu/skills/_shared/loop-contract.md` |
 | 證據優先 | 非顯然主張依賴前先引查證來源；乾淨的 review 也是有效的 review | `plugins/baransu/skills/review/SKILL.md` |
 | 狀態落盤 | 長流程的結論落檔交付、不賭終端顯示 | `plugins/baransu/skills/_shared/output-journal.md` |
