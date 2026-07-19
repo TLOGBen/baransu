@@ -1,31 +1,33 @@
 ---
 name: analyze
-description: "Builds a goal→requirement→design→test→task spec under .claude/analyze/, then hands off to /execute. Use when task scope spans ≥2 interdependent modules and context rot is real. Trigger On '/analyze', '分析需求', '展開規格'. Not for single-file or single-layer changes with no cross-module dependency (use /think or implement directly); not for deciding whether a task is worth doing (/think Evaluation Mode). 繁體中文輸出。"
+description: "Large-band pipeline: builds a goal→requirement→design→test→task spec under .claude/analyze/, then runs it to green through the built-in execution pipeline (impl/review loops, E2E, final review). Use when scope spans ≥2 interdependent modules. Trigger On '/analyze', '分析需求', '展開規格', '開始執行', '跑 execute', '依照 analyze 執行', 'execute the spec'. Not for single-file changes (/think or implement directly); medium tasks needing only pinned criteria (/contract); worth-it judgments (/think Evaluation Mode). 繁體中文輸出。"
 ---
 
-# analyze — define done before execution
+# analyze — define done, then run to green
 
-- Define completion first: write goal, requirements, design, tests, and tasks in that order, each layer anchored to the one above, then hand the spec to a fresh execution session.
-- This skill produces the five spec documents only — it never executes code.
-- Definition and execution should never share the same context.
+- Define completion first: write goal, requirements, design, tests, and tasks in that order, each layer anchored to the one above. Criteria are written to rejection strength per `../_shared/contract-gate.md` — that is the quality lever the 2026-07 experiments proved.
+- Then execute: the spec runs to green through `references/execution-pipeline.md` (the merged former /execute skill — impl/review subagent loops, E2E, final review).
+- Spec authoring (Stages 1–6) never writes production code. A multi-group spec executes in a fresh session — definition and execution should not share a loaded context.
 - The body below is English (agent-facing); all user-visible output is in **Traditional Chinese (繁體中文)**.
 
 ---
 
 ## Outcome Contract
 
-- **Outcome**: A five-layer spec (goal → requirement → design → test → task) exists for the stated goal, ready for /execute handoff.
-- **Done when**: `.claude/analyze/{date}-{slug}/` contains `goal.md`, `requirement.md`, `design.md`, `test.md`, and at least one `task-{group}.md`, and the Stage 6 cross-layer review round (3 subagents + one auto-correct round) has completed.
-- **Evidence**: The `ls` output of the spec dir captured in the Stage 7 declaring turn, plus a clean template-placeholder scan; Stage 6 findings and the auto-corrections applied to the design / test / task layers.
-- **Output**: Spec directory `.claude/analyze/{YYYY-MM-DD}-{slug}/` holding the five spec documents.
+- **Outcome**: A five-layer spec (goal → requirement → design → test → task) exists for the stated goal, criteria pinned to rejection strength; on the execution path, the spec has been run to green through the execution pipeline.
+- **Done when**: Spec phase — `.claude/analyze/{date}-{slug}/` contains `goal.md`, `requirement.md`, `design.md`, `test.md`, and at least one `task-{group}.md`, and the Stage 6 self-review pass (contract-gate checklist + one correction round) has completed. Execution phase — `final-report.md` exists per `references/execution-pipeline.md` Step 7.
+- **Evidence**: The `ls` output of the spec dir captured in the Stage 7 declaring turn, plus a clean template-placeholder scan and the Stage 6 checklist result; on the execution path, final-report.md's {N}/{M} REQ achievement rate.
+- **Output**: Spec directory `.claude/analyze/{YYYY-MM-DD}-{slug}/` holding the five spec documents; execution working documents plus `final-report.md` under `.claude/execute/{date}-{slug}/execute/`.
 - **Automation**: ultracode=assist, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
+- **Telemetry**: on invocation, append one selection record per `../_shared/selection-telemetry.md`.
 
 PAUSE classification for non-interactive drivers: `references/loop-pauses.md` — read it alongside `../_shared/loop-contract.md` when driven by /loop, cron, or Workflow, or hosted as a subagent.
 
 ## Constraints
 
-- Do not write production code, scaffolding, or config files during Stages 1-6. The only output is the five spec documents.
-- Do not call `/review` from within Stages 1-6. Cross-layer subagents answer alignment questions ("are these two layers consistent?"), not per-layer quality questions ("what's wrong with this layer?"). These are different questions. The sole exception is the test-quality checks explicitly embedded in Agent 1's Stage 6 review question (reachability / assertion validity / redundancy) - those are part of Agent 1's mandate, not an invitation to general per-layer critique. Stage 7 may offer /review as a handoff option — that is a post-spec quality check, not an in-spec alignment check.
+- Do not write production code, scaffolding, or config files during Stages 1-6 (the spec phase). The five spec documents are the only spec-phase output; production code is written exclusively inside the execution pipeline (Stage 8).
+- Read `../_shared/contract-gate.md` before Stage 1 — its G1–G4 rules (criteria assertability, trap promotion, verbatim constants, surface inventory) govern how goal.md, design.md, and test.md are written. Do not restate its rules; apply them.
+- Do not call `/review` from within Stages 1-6. Stage 6 is a structured self-review pass against the contract-gate checklist — not an invitation to general per-layer critique. Stage 7 may offer /review as a handoff option — that is a post-spec quality check, not an in-spec alignment check.
 - Auto-correction is one round. No silent looping.
 - On a same-day same-slug directory collision (Stage 0.C), never silently overwrite: branch via the AskUserQuestion among resume / overwrite-rebuild / new -N-suffixed directory before writing any spec file. The overwrite-rebuild branch may delete only the computed spec dir `{repo_root}/.claude/analyze/{date}-{slug}/`; if the resolved delete target does not string-equal that path (or contains `..`, or falls outside `{repo_root}` from `git rev-parse --show-toplevel`), abort the deletion and fall back to the `-N`-suffixed branch instead.
 - `goal.md` and `requirement.md` are user-intent layers. Do not modify their semantics during auto-correct. Only design / test / task layers are auto-correctable.
@@ -35,7 +37,16 @@ PAUSE classification for non-interactive drivers: `references/loop-pauses.md` �
 
 ## Stage 0 — Lightweight alignment + scope gate
 
-Two steps before any file is written.
+### Execution-entry detection (absorbed /execute triggers)
+
+Before anything else: if the invocation intent is to RUN an existing spec —
+the argument is an existing `.claude/analyze/{date}-{slug}/` directory, or the
+trigger was 「開始執行」／「跑 execute」／「依照 analyze 執行」 — skip the spec
+stages entirely and jump to Stage 8 (execution pipeline) with that spec dir.
+If no spec dir exists for an execution-intent invocation, output
+「找不到 Analyze spec 目錄，請先跑 /baransu:analyze 展開規格」 and stop.
+
+Otherwise (spec-building intent), two steps before any file is written.
 
 ### Design.md soft-read
 
@@ -114,6 +125,14 @@ Write `goal.md`. Fill every section — do not leave template placeholders.
 ### 不包含（Out of scope）
 - {item — and why it's excluded}
 ```
+
+**Criteria assertability gate (G1/G2, from `../_shared/contract-gate.md`)**:
+before showing goal.md, audit every C{n} against G1 — a criterion about
+user-facing text must prescribe the EXACT format or carry a prohibition list;
+substring-contains wording is a spec bug, rewrite it now. Every hidden
+invariant or data-shape trap discovered while grounding (G2) must appear here
+as a prohibition-style criterion, not as a warning sentence in prose. Show the
+per-criterion disposition (可斷言 ✓ / 已改寫) alongside the file.
 
 After writing, show the `goal.md` content to the user. Then call `AskUserQuestion`:
 
@@ -225,7 +244,23 @@ flowchart TD
 
 ## 錯誤處理策略
 {各層如何處理、傳遞、最終向使用者呈現錯誤}
+
+## 層次配置表
+{每個變更落在哪個檔案／哪一層；一列一變更}
+
+## Verbatim Constants
+{G3（contract-gate.md）：所有 regex／格式字串／字元類／magic literal 的照抄區塊；
+實作者只能複製貼上、審查者逐字 byte-diff}
+
+## User-Facing Surface Inventory
+{G4（contract-gate.md）：本次變更觸及的每個使用者可見輸出表面一列——
+表面 → 精確格式（依 G1）→ 釘死測試名；含跨 UI 一致性列（共用 formatting helper、雙呼叫路徑各有釘死測試）}
 ```
+
+The three sections above (層次配置表 / Verbatim Constants / Surface Inventory)
+are mandatory whenever the change touches any user-facing output or carries
+any fixed algorithm string; the diagram sections stay conditional per the
+include/skip table.
 
 ---
 
@@ -331,38 +366,25 @@ After all task files are written — and before dispatching the Stage 6 review �
 
 ---
 
-## Stage 6 — Cross-layer subagent review
+## Stage 6 — Contract-gate self-review (single pass)
 
-Dispatch 3 subagents in parallel Tasks, each in a clean context. Pass each agent: the spec_dir path, its required file list (below), and its specific review question. Each agent reads its required files independently via Read tool — do not pass all spec content inline. Each agent must return a verdict per review question from 「對齊 / 未對齊 / 未檢查」, and each finding as {file, section anchor, one-line claim, quoted evidence}. An empty finding list under explicit 「對齊」 verdicts is a legal, completed return — do not invent findings to fill the list.
+One structured self-review pass against the contract-gate checklist (R5 reform
+— the 2026-07 validation round proved a single checklist pass with pinned
+criteria outperforms ritual multi-agent spec review). Walk the five checks and
+record each verdict inline:
 
-> In an ultracode session, this stage's 3-way review may be dispatched to Workflow parallel-research primitives instead; the returned data shape is unchanged.
-> When loop-driven, the loop-mode default is assisted: if unresolved findings remain after auto-correct, report back to the driver rather than adjudicating on your own.
+1. **G1 criteria audit** — every goal.md C{n} is assertable per `../_shared/contract-gate.md` G1 (exact format or prohibition list for user-facing text; no substring-contains).
+2. **G2 trap promotion** — every trap noted during Stages 1–5 exists as BOTH a prohibition-style criterion and a named pinning test in test.md.
+3. **G3 constants complete** — every fixed algorithm string appearing anywhere in the spec is in design.md's Verbatim Constants block.
+4. **G4 surface inventory complete** — every user-facing surface the tasks touch has an inventory row with exact format + pinning test name; cross-UI rows require the shared-helper clause.
+5. **Cross-layer back-references** — every task REQ-XXX exists in requirement.md; every test.md C{n} back-reference exists in goal.md; every task-produced edge case traces to a test.md anchor; no leftover placeholder braces.
 
-**Agent 1 — task ↔ test alignment**
+> In an ultracode session, this self-review pass may be dispatched to a Workflow verification agent in a clean context instead; the checklist and returned verdict shape are unchanged.
+> When loop-driven, the loop-mode default is assisted: if unresolved findings remain after the correction round, report back to the driver rather than adjudicating on your own.
 
-Required files: `task-*.md`, `test.md`, `requirement.md`, `goal.md`
-
-Review question: 「task-*.md 的每個 task 是否都有 test.md 裡對應的測試覆蓋錨點？task 產生的邊界條件（例如空值、並發、超時）是否在 test.md 的邊界條件清單中被覆蓋，且每條邊界條件都回指到產生該風險的 task？有沒有 task 產出了一個功能，但 test.md 裡找不到驗證它的策略？requirement.md 的每個 Given-When-Then 情境，是否都能在 test.md 找到對應的覆蓋錨點（E2E 列、整合測試列、或邊界條件項）？沒有錨點的情境即為 finding。再檢查測試品質三點，任一不過即為 finding：(1) 可達性與語意正確性——每條 E2E 列的真實入口（端點或方法）是否經 grep/read 驗證存在，且斷言指向該操作自身的真實結果、未張冠李戴到另一個互斥操作上；主路徑分支盤點是否完整——每個互斥的主路徑情境各佔一列、未被折疊，凡同一條件在兩側產生不同結果者兩側各算一列——缺任一分支或誤標即為 finding；(2) 斷言有效性——關鍵驗證點是否為具名可斷言值（具名 ReturnCode／狀態轉換／回調觸發或不觸發），凡「有回應／回傳成功／全綠」這類同義反覆即為 finding；(3) 冗餘與首要交付——是否有重複或不對應任何 task 風險的多餘測試，且本次首要交付物是否有一條測試把『達成』釘死。最後檢查 goal 準則錨定，任一不過即為 finding：goal.md 的每條 C{n} 是否至少有一列 test.md 錨點回指？test.md 每個 C{n} 回指是否都存在於 goal.md（不得杜撰編號）？字面含持久化語意的準則（例如「重啟後仍在」）是否有一列 reopen 形狀的測試（關閉後重開／process 重入），而非僅結構性推論？」
-
-The goal-criteria clause mirrors /execute's final-review goal-criteria cross-check (final-review-agent §1b) so C{n} gaps die at spec time, not at execute time.
-
-**Agent 2 — test ↔ design alignment**
-
-Required files: `test.md`, `design.md`
-
-Review question: 「test.md 的整合測試策略是否對應到 design.md 架構圖中的跨層邊界？test.md 列出的關鍵邊界條件，design.md 有沒有對應的錯誤處理策略？E2E 測試流程能不能在 design.md 的操作流程圖上走通？」
-
-**Agent 3 — design ↔ requirement ↔ goal alignment**
-
-Required files: `design.md`, `requirement.md`, `goal.md`
-
-Review question: 「design.md 的架構和資料流是否能支撐 requirement.md 的所有情境（Given-When-Then）？requirement.md 的每條需求是否都能追溯到 goal.md 的 Criteria？有沒有 Criteria 在 requirement.md 裡沒有任何需求對應？」
-
-### Subagent-failure path
-
-If any of the 3 review subagents returns without per-question verdicts, errors out, or does not complete, then re-dispatch that single agent once. If it fails again, skip that agent's lane and record in the Stage 7 handoff output the line 「Stage 6 第N位審查員未完成，該層交叉審查略過」 (substituting the agent's number for N) — so the Done-when review round is never silently reported as complete.
-
-A 「未檢查」 verdict is the same incompleteness in a softer coat: a lane that returns 「未檢查」 for any of its review questions is treated as incomplete — apply the same single re-dispatch to that agent. If any question is still 「未檢查」 after the re-dispatch, record the same Stage 7 skip line extended to name the unchecked question(s): 「Stage 6 第N位審查員未完成，該層交叉審查略過（未檢查：[問題摘要]）」. A lane that answered 未檢查 is never silently treated as reviewed.
+The 5th check's goal-criteria clause mirrors the execution pipeline's
+final-review goal-criteria cross-check (final-review-agent §1b) so C{n} gaps
+die at spec time, not at execution time.
 
 ### After receiving findings
 
@@ -393,20 +415,41 @@ header:   "下一步"
 options:
   1. label: "送 /review 再決定 【推薦】"
      description: "用 /baransu:review 對完成的 spec 文件做整體品質複審，review 完成後再決定執行方式。"
-  2. label: "直接交接 execute（完全授權）"
-     description: "找出 execute skill 並傳入 spec 目錄路徑，自主執行，不再過問使用者。"
+  2. label: "進入執行段（完全授權）"
+     description: "以本 spec 目錄進入 Stage 8 執行管線，自主執行到全綠，不再過問使用者。"
   3. label: "手動決定"
-     description: "列出 spec 路徑，讓使用者自行決定下一步（新 session 逐一執行，或呼叫 execute）。"
+     description: "列出 spec 路徑，讓使用者自行決定下一步（新 session 執行，或稍後再進執行段）。"
 ```
 
 **Option 1 — 送 /review 再決定.** Invoke `/baransu:review` on the generated spec files. Review goal: 「確認五層 spec 的品質與一致性，找出任何可能影響執行的遺漏或矛盾」. After review, the user naturally loops back to this gate.
 
-**Option 2 — 直接交接 execute（完全授權）.** Inline same-session execution contradicts this skill's never-share-context premise, so gate it on spec size: **if** the spec dir contains ≥2 `task-*.md` group files or a `wave.md`, **then** stop at the handoff and tell the user to run /execute in a fresh session instead of continuing in the loaded context (see /think Stage E, Mechanism necessity), outputting: 「spec 規模跨多個 task 群組，請在新 session 執行：/baransu:execute .claude/analyze/{date}-{slug}/」. Only a single-group spec — exactly one `task-*.md` and no `wave.md` — may continue inline: find the execute skill and pass the spec directory path, executing autonomously without asking the user for further confirmation.
+**Option 2 — 進入執行段（完全授權）.** Inline same-session execution contradicts the never-share-loaded-context premise, so gate it on spec size: **if** the spec dir contains ≥2 `task-*.md` group files or a `wave.md`, **then** stop at the handoff and tell the user to run the execution phase in a fresh session instead of continuing in the loaded context (see /think Stage E, Mechanism necessity), outputting: 「spec 規模跨多個 task 群組，請在新 session 執行：/baransu:analyze .claude/analyze/{date}-{slug}/（會直接進入執行段）」. Only a single-group spec — exactly one `task-*.md` and no `wave.md` — may continue inline: enter Stage 8 with the spec directory path, executing autonomously without asking the user for further confirmation.
 
 **Option 3 — 手動決定.**
 
 「spec 已完成，路徑：`.claude/analyze/{date}-{slug}/`
 
 下一步選擇：
-1. 在新 session 中開始依 task-*.md 逐一執行（建議：每個 task 獨立 session）
-2. 呼叫你的 execute skill 並以上述路徑作為輸入」
+1. 在新 session 執行：/baransu:analyze .claude/analyze/{date}-{slug}/（直接進入執行段）
+2. 在新 session 中依 task-*.md 逐一手動執行（每個 task 獨立 session）」
+
+---
+
+## Stage 8 — Execution pipeline
+
+Read `references/execution-pipeline.md` and drive it end-to-end with the spec
+directory as input. It defines the whole execution half: probes, DAG
+classification, worktrees, the per-task Impl → Review loop (R8 discipline:
+no summarize phase, no ctx files, red gate advisory, retry cap 1 with
+smart-friend on the single retry), green_proof verification, merge points,
+E2E, Final-Review + Final-Fixer, and final-report.md + cleanup. Entry
+conditions: a validated spec dir (from Stage 7 option 2, from the Stage 0
+execution-entry detection, or invoked in a fresh session).
+
+### Orchestration interface
+
+When — and only when — the run is Workflow-driven or a system-reminder
+confirms ultracode, read `references/orchestration-interface.md` before the
+pipeline's Step 0 and apply its adapter contract; on the default interactive
+path, skip the read and write no mode record — the absence of a mode record
+means the current (subagent-loop) adapter.

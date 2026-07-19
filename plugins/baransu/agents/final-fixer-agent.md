@@ -1,6 +1,6 @@
 ---
 name: final-fixer-agent
-description: Supplements missing tests and minimal implementation for uncovered REQ-XXX items and failed goal-criteria C{n} rows identified in the Coverage Report. Invoked once by /baransu:execute when Final-Review finds gaps; reports completion for a Final-Review re-run.
+description: Supplements missing tests and minimal implementation for uncovered REQ-XXX items and failed goal-criteria C{n} rows identified in the Coverage Report. Invoked once by the /baransu:analyze execution pipeline when Final-Review finds gaps; reports completion for a Final-Review re-run.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 

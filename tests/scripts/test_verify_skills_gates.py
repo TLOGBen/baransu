@@ -41,9 +41,9 @@ VERIFY = REPO_ROOT / "scripts" / "verify-skills.py"
 
 GREEN_PROOF_FILES = (
     "plugins/baransu/agents/review-agent.md",
-    "plugins/baransu/skills/execute/references/green-proof-verify.md",
-    "plugins/baransu/skills/execute/references/orchestration-interface.md",
-    "plugins/baransu/skills/execute/references/output-formats.md",
+    "plugins/baransu/skills/analyze/references/green-proof-verify.md",
+    "plugins/baransu/skills/analyze/references/orchestration-interface.md",
+    "plugins/baransu/skills/analyze/references/output-formats.md",
 )
 
 
@@ -103,17 +103,17 @@ GREEN_OK = {
         "  output_tail: {tail}\n"
         "  tests_correspondence: {map}\n"
     ),
-    "plugins/baransu/skills/execute/references/green-proof-verify.md": (
+    "plugins/baransu/skills/analyze/references/green-proof-verify.md": (
         "REQUIRE green_proof.test_command present\n"
         "REQUIRE green_proof.exit_code == 0\n"
         "REQUIRE green_proof.output_tail non-empty\n"
         "REQUIRE green_proof.tests_correspondence declared\n"
     ),
-    "plugins/baransu/skills/execute/references/orchestration-interface.md": (
+    "plugins/baransu/skills/analyze/references/orchestration-interface.md": (
         "| green_proof | `test_command`, `exit_code`, `output_tail`, "
         "`tests_correspondence` |\n"
     ),
-    "plugins/baransu/skills/execute/references/output-formats.md": (
+    "plugins/baransu/skills/analyze/references/output-formats.md": (
         "green_proof: `{test_command}` exit {exit_code}\n"
         "output_tail and tests_correspondence cited\n"
         "e2e_evidence:\n"
@@ -244,7 +244,7 @@ class TestGreenProofGate(unittest.TestCase):
 
     def test_missing_key_flagged(self):
         overrides = {
-            "plugins/baransu/skills/execute/references/orchestration-interface.md":
+            "plugins/baransu/skills/analyze/references/orchestration-interface.md":
                 "| green_proof | `test_command`, `exit_code`, `output_tail` |\n",
         }
         result, out = self._run(overrides)
@@ -254,8 +254,8 @@ class TestGreenProofGate(unittest.TestCase):
 
     def test_run_command_flagged_anywhere(self):
         overrides = {
-            "plugins/baransu/skills/execute/references/green-proof-verify.md":
-                GREEN_OK["plugins/baransu/skills/execute/references/green-proof-verify.md"]
+            "plugins/baransu/skills/analyze/references/green-proof-verify.md":
+                GREEN_OK["plugins/baransu/skills/analyze/references/green-proof-verify.md"]
                 + "legacy prose mentioning run_command here\n",
         }
         result, out = self._run(overrides)
@@ -279,8 +279,8 @@ class TestGreenProofGate(unittest.TestCase):
 
     def test_dotted_stale_reference_flagged(self):
         overrides = {
-            "plugins/baransu/skills/execute/references/green-proof-verify.md":
-                GREEN_OK["plugins/baransu/skills/execute/references/green-proof-verify.md"]
+            "plugins/baransu/skills/analyze/references/green-proof-verify.md":
+                GREEN_OK["plugins/baransu/skills/analyze/references/green-proof-verify.md"]
                 + "REQUIRE green_proof.collected > 0\n",
         }
         result, out = self._run(overrides)
@@ -292,8 +292,8 @@ class TestGreenProofGate(unittest.TestCase):
         # legitimate — the default output-formats fixture carries them and
         # the clean run must stay green.
         overrides = {
-            "plugins/baransu/skills/execute/references/green-proof-verify.md":
-                GREEN_OK["plugins/baransu/skills/execute/references/green-proof-verify.md"]
+            "plugins/baransu/skills/analyze/references/green-proof-verify.md":
+                GREEN_OK["plugins/baransu/skills/analyze/references/green-proof-verify.md"]
                 + "# else Green failed, not a passed review\n",
         }
         result, out = self._run(overrides)

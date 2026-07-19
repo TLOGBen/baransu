@@ -1,13 +1,11 @@
 ---
 name: write
 description: Refines existing text, generates a piece from a prompt, or proofreads
-  a document into an error-report HTML. Auto-classifies input as Refine (Before/After
-  + rule annotations), Generate (finished piece with format/tone note), or Proofread
-  (scan for 錯別字／用語不妥／語句不通順 and emit a book-styled 錯字修改.html table); follows language
-  prefix or auto-detects. Use when the user wants bilingual zh/en writing help. Trigger
-  On '/write', '潤稿', '寫一篇', '改寫這段', '校對', '找錯字', '抓錯字', 'proofread'. Not for committing
-  or pushing finished text (use /ship) or digesting source material into notes (use
-  /learn or /read).
+  a document into an error-report HTML (book-styled 錯字修改.html findings table). Auto-classifies
+  input as Refine / Generate / Proofread; follows language prefix or auto-detects.
+  Use for bilingual zh/en writing help. Trigger On '/write', '潤稿', '寫一篇', '改寫這段',
+  '校對', '找錯字', '抓錯字', 'proofread'. Not for committing finished text (/ship) or digesting
+  sources into notes (/learn, /read).
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex

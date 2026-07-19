@@ -33,3 +33,8 @@ F/OS/FOS，同一簡報三工作項，盲評）。完整記錄正本已歸檔至
 驗證輪補記（2026-07-19）：R1–R9 改革讓 p3-os′ 翻身 20/20/0bug/6-6 突變（$19.29＝冠軍 59%）；
 p-min 一頁合約+seal 行為面 20/20/$7.27。Phase 1 版圖重組（contract/seal 獨立＋雙塔合一＋15 上限）
 計畫在 /review 中。
+
+**Phase 1 已落地（2026-07-19）**：baransu 3.0.0 於 branch feat/phase1-restructure 三段手術完成——
+/contract＋/seal 新增、execute 併入 analyze（execution-pipeline.md，R8 裁剪＋四機件保留）、
+修憲 15（falsifiable）、三頻段路由、seal-guard hook 出貨即生效**預設阻擋**（SEAL_GUARD=log|off 降級、
+stop_hook_active 防迴圈）、遙測慣例 _shared/selection-telemetry.md。使用者重裝 plugin 後生效。

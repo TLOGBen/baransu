@@ -2,7 +2,7 @@
 
 > 維護章程：每次階段轉換、每場實驗結束、每月遙測回看後更新本檔。
 > 「當前階段」段落永遠反映最新狀態；歷史只增不改。
-> 最後更新：2026-07-19（Phase 1 計畫送 /review 複審中）
+> 最後更新：2026-07-19（Phase 1 三段手術完成於 feat/phase1-restructure，seal＋review 收尾中）
 
 ---
 
@@ -23,13 +23,13 @@
 **實驗場**：NovelReader（Rust 終端小說閱讀器，legado 3.0 CLI port）。
 **題目**：同一份三工作項簡報（A: rule DSL `&` bug／B: 換源進度遷移／C: 搜尋結果摺疊），
 基線 bfa0f46，獨立 worktree，Fable 盲評（四維：釘死條數/bug/架構/測試有效率＋突變抽查）。
-**完整資料**：NovelReader repo `origin/legado-parity-p3f` 分支
-`.claude/experiments/2026-07-19-harness-matrix/`（00–10 號文件＋決策日誌 1,180 行＋diffs＋判決 JSON）。
+**完整資料（正本）**：baransu `.claude/experiments/2026-07-19-harness-matrix/`（00–10 號文件＋決策日誌
+1,180 行＋diffs＋判決 JSON＋RUNBOOK＋workflows；NovelReader `origin/legado-parity-p3f` 留歷史快照）。
 **三冊 book**：baransu `.claude/book/`（harness-model-matrix-experiment / contract-seal-reform / validation-verdict-plain）。
 
 ### 第一輪（10 arm 矩陣）判決
 
-- 冠軍 p3-f（Fable 全套）20 釘死/0 bug/$32.64；亞軍 p3-fos；**墊底 p3-os**（17 釘、全場唯一 HIGH、$11.84）
+- 冠軍 p3-f（Fable 全套）20 釘死/0 引入 med·high/$32.64；亞軍 p3-fos；**墊底 p3-os**（17 釘、全場唯一 HIGH、$11.84）
   輸給 $4.92 的 Opus 裸跑（p1-o，第 4 名）。
 - idx+1 章數陷阱抓到 5/10 arm（含 p1-f Fable 單體——自盲實證）；「节」常數轉抄缺陷（p3-os）。
 - 核心發現：**品質槓桿是驗收條文的可斷言性，不是流程重量**。p3-fos vs p3-os 同儀式不同結局，
@@ -39,11 +39,11 @@
 
 ### 驗證輪（3 arm，R1–R9 改革條款）判決
 
-- **p3-os′（改革全套）：20/20 全釘、0 bug、突變 6/6 全殺、arch 9.5、$19.29**——原墊底翻身
+- **p3-os′（改革全套）：20/20 全釘、0 引入 med·high、突變 6/6 全殺、arch 9.5、$19.29**——原墊底翻身
   追平冠軍、test_eff 反超、成本 59%。改革成功判準達成（事前預測完全命中）。
-- **p-min（無 skill：35 行合約＋Sonnet 實作＋單次 seal）：行為面 20/20、0 bug、$7.27（22%）**
+- **p-min（無 skill：35 行合約＋Sonnet 實作＋單次 seal）：行為面 20/20、0 引入 med·high、$7.27（22%）**
   ——seal 突變抽查當場抓到未釘表面並自修。一頁紙路線實測成立，殘餘缺口＝呼叫點耦合釘死深度。
-- p2-os′（純前饋）：18 釘、0 bug、$5.01——零缺陷但突變殺率 5/8 暴露無審查的深度極限。
+- p2-os′（純前饋）：18 釘、0 引入 med·high、$5.01——零缺陷但突變殺率 5/8 暴露無審查的深度極限。
 - **類別滅絕證據**：idx+1 與常數轉抄兩類缺陷在驗證輪零出現（結構性消滅，非機率壓低）。
 - 改革條款全文：實驗目錄 06-reform-spec.md（R1 條文可斷言性閘門／R2 陷阱昇華／R3 常數塊／
   R4 表面清單／R5 儀式裁減／R6 審查任務書／R7 鬆條文升級／R8 執行裁減／R9 final 補強）。
@@ -63,20 +63,20 @@
 
 - /think Full mode 已跑完（對焦：觸發體驗優先／上限可鬆綁＋可大拆／成功＝觸發正確率可觀測）。
 - /review 完成（arch+quality＋對抗輪）：4 需判斷＋4 packaged＋1 hard-stop（「0 bug」名詞不符），
-  使用者四項全採推薦——F1 count-neutral 分段重切／F2 hook 預設僅記錄模式（KD5 機制錨）／
+  使用者四項全採推薦——F1 count-neutral 分段重切／F2 hook 預設僅記錄模式（KD5 機制錨；後經使用者再裁定升級為出貨即生效＋預設阻擋）／
   F3 保留四機件（worktree/三振/coverage-riding/收尾 agents，R8 只裁儀式）／修訂即批准。
   審查日誌：`.claude/review/2026-07-19-phase1-restructure-plan.html`。
 - **批准版計畫：`.claude/feature/phase1-restructure-plan.md`（修訂版 v2）**。
   核心：`/contract` `/seal` 雙釘獨立＋analyze/execute 合併（保留 /analyze 名，execute 流程文本
   降入 references/）＋上限 14→15（三處錨）＋count-neutral 三段落地（①合併＋contract＋Gate 錨遷移
   14進14出→②seal＋修憲 15對15→③版本/路由/CHANGELOG），每段 make test 全綠，feature branch + PR。
-- **狀態：手術開始——branch `feat/phase1-restructure`。**
+- **狀態：三段手術完成（`93d775f` 合併＋contract → `6c094dd` seal＋修憲 15 → `edc67cf` 3.0.0＋路由＋CHANGELOG＋seal-guard 出貨即生效預設阻擋），每段 make test 全綠並經主迴圈獨立複驗；seal dogfood＋最終 /review 後 merge main。**
 
 ## 四、之後階段
 
 | 階段 | 內容 | 觸發條件 |
 |------|------|----------|
-| Phase 1（本階段） | 版圖重組手術＋seal-guard hook 範本（opt-in）＋遙測慣例落 _shared | /review 過＋Stage G 批准 |
+| Phase 1（本階段） | 版圖重組手術＋seal-guard hook 出貨即生效（預設阻擋，SEAL_GUARD 可降級）＋遙測慣例落 _shared | /review 過＋Stage G 批准 |
 | Phase 2 | 大頻段實驗：拿**大型複雜系統**開刀（使用者已定調；候選形態＝跨雙系統同改 wire format 的 E2E 情境），「分形合約＋邊界所有人」對打「改革版全套」；復用盲評基建與事前預測紀律 | Phase 1 落地後擇期 |
 | Phase 3 | 遙測月回看：skill 選用誤觸發／漏觸發率、codex-skill-transfer 使用率（三個月零使用則退役回 14）、seal-guard 是否轉預設 | 落地滿一個月 |
 
@@ -96,7 +96,7 @@
 | 實驗全記錄（兩輪，正本） | baransu `.claude/experiments/2026-07-19-harness-matrix/`（00–10 號文件＋decision-logs＋diffs＋winner-spec；NovelReader `origin/legado-parity-p3f` 分支留歷史快照） |
 | 改革條款 R1–R9 | 同上 `06-reform-spec.md` |
 | 三冊 book | baransu `.claude/book/{harness-model-matrix-experiment,contract-seal-reform,validation-verdict-plain}.html` |
-| Phase 1 計畫草稿 | baransu `.claude/feature/phase1-restructure-plan.md` |
+| Phase 1 批准版計畫（v2＋阻擋修正案） | baransu `.claude/feature/phase1-restructure-plan.md` |
 | 跨機重跑手冊（方法論＋workflow 腳本＋已知坑） | baransu `.claude/experiments/2026-07-19-harness-matrix/RUNBOOK.md` ＋ `workflows/`（6 支腳本正本） |
 | 記憶鏡像（機器本地 memory 的 repo 副本） | baransu `.claude/feature/memory-mirror/`（正本在各機 `~/.claude/projects/.../memory/`；每次 ship 時同步） |
 | 優勝程式碼（第一輪 p3-f） | NovelReader `origin/legado-parity-p3f` 分支（等與 origin/main 新進展 reconcile） |

@@ -453,7 +453,6 @@ ASK_USER_CAPABILITY_BY_SKILL: dict[str, str] = {
     # phrases about the tool (fan-out clauses), never a call site. Rewrite to
     # a plain noun; NEVER inject a stop instruction into these sentences.
     "evolve": "AskUserQuestion:descriptive",
-    "execute": "AskUserQuestion:descriptive",
     "health": "AskUserQuestion:descriptive",
 }
 
@@ -568,7 +567,7 @@ Do not simulate independent review by asking the same conversation context sever
 This skill is countering the model's inertia to treat same-context self-audit as independent evidence. Before using inspector subagents for deep audits, run or consult a `codex-isolation-probe.md` conclusion for this Codex runtime. If native Codex subagents are isolated, use them directly. If not, run each inspector perspective in an independent Codex invocation or session, write the raw findings to files, then merge from those artifacts.
 
 Do not treat same-context sequential prompts as independent inspection. Authorization PAUSE remains a hard stop; only input-selection PAUSE may degrade to direct text questions.""",
-    "execute": """## Codex Port Adapter - Machine Gates and Task Map
+    "analyze": """## Codex Port Adapter - Machine Gates and Task Map
 
 This skill is countering the model's inertia to declare progress without machine proof or durable state. Red/green decisions must come from actual command exit codes. Model self-report is never green proof. Keep the existing invariant that compile errors do not increment `failure_count`.
 
@@ -580,7 +579,7 @@ CODEX_SKILL_ADAPTER_CAPABILITIES: dict[str, tuple[str, ...]] = {
     "think": ("AskUserQuestion:think",),
     "review": ("Task tool",),
     "health": ("Task tool",),
-    "execute": ("test-runner", "TaskCreate", "TaskUpdate"),
+    "analyze": ("test-runner", "TaskCreate", "TaskUpdate"),
 }
 
 

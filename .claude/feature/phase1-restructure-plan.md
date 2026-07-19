@@ -16,7 +16,7 @@
 ## Not building（明確不做的事）
 
 - 不退役 codex-skill-transfer：實查 28 條專屬測試（verified: `grep -c "def test_" tests/scripts/test_codex_skill_transfer.py` → 「28」），非弱持有，退役無證據支撐
-- 不建 seal-guard 的「阻擋」模式預設：hook 範本**預設啟用「僅記錄不阻擋」模式**（F2 定案——偵測到 diff 碰了 user-facing 表面卻無 seal 即落一筆日誌；hook 本身即 KD5 的機制錨），是否升級為阻擋模式等一個月漏觸發率數據再決定
+- ~~不建阻擋模式預設~~（2026-07-19 使用者再裁定覆蓋 F2 原案）：seal-guard **隨 plugin 出貨、安裝即生效、預設阻擋**（`stop_hook_active` 防迴圈；`SEAL_GUARD=log|off` 降級；任何模式都落 jsonl 遙測）。falsifiable：月回看誤擋率過高即降回 log 預設
 - 不在本段跑 Phase 2 雙系統實驗：大頻段合併管線的實戰品質留給下一場獨立實驗
 - 不動 review／hunt／think 等其餘 skill 的本體：只加易混淆交叉列
 - 不建自動遙測分析管線：選用決策記錄先落決策日誌慣例，人工月回看
@@ -33,15 +33,15 @@ Stage B 方案 2 修訂版：雙釘獨立（觸發體驗優先的直接結論—
 2. **合併保留 /analyze 名字**：沿用觸發習慣與 analyze 側文件錨點，不造新名；execute 側錨點（agents 引用、references 歸屬、CLAUDE.md 不變量）按爆炸半徑清單逐項遷移。取捨：名字語意（analyze≠執行）略有擴張，靠 description 首句補正。
 3. **R1 條文閘門文本放 _shared 單一實作**：contract 與 analyze 兩處引用同一份，防雙真相源。
 4. **分段落地採 count-neutral 重切（F1 定案）**：①合併＋第一釘（/contract）＋Gates 10/11 錨點同段遷移——skill 數 14 進 14 出，常數不動，make test 全綠；②第二釘（/seal）＋修憲 14→15（三處錨同段改）——15 對 15 全綠；③版本 3.0.0＋三頻段路由表＋CHANGELOG＋純文件錨。每段 make test 全綠為闖關條件，任一段失敗不進下段。**落地走 feature branch + PR**（平行 session 活躍於 main，實測有碰撞風險）。
-5. **遙測即決策日誌，機制錨＝seal-guard hook（僅記錄模式，預設啟用於範本）**：skill 選用決策記一筆進 _shared 慣例；「該用未用」由 hook 落日誌補洞——量測循環依賴解除，符合「無錨條款不得入冊」。一個月後回看誤觸發／漏觸發率——成功判準落地。
+5. **遙測即決策日誌，機制錨＝seal-guard hook（出貨即生效，預設阻擋——2026-07-19 使用者再裁定）**：skill 選用決策記一筆進 _shared 慣例；「該用未用」由 hook 落日誌補洞——量測循環依賴解除，符合「無錨條款不得入冊」。一個月後回看誤觸發／漏觸發率——成功判準落地。
 
 ## Unknowns（已知不知道的事）
 
 - 大頻段合併管線的實戰品質：Phase 2 大型複雜系統實驗判定；owner＝下一場實驗
 - codex-skill-transfer 真實使用率：遙測三個月；owner＝月回看
-- seal-guard hook 是否由「僅記錄」升級為「阻擋」模式：視漏觸發率；owner＝月回看
+- seal-guard 預設阻擋是否需降回「僅記錄」：視誤擋率；owner＝月回看
 - 舊 `/analyze` spec／顯式 `/baransu:execute` 呼叫的殘留工作流如何導向合併後入口：需 3.0.0 實際發布後觀察；owner＝月回看
 
 ## 附:Stage E 攻擊角度（已折入對策）
 
-①910 行合併手術風險→count-neutral 分段＋每段 make test＋references 降置；②execute 觸發習慣斷裂→description 承接觸發詞＋CHANGELOG breaking-change；③contract/think/analyze 三向誤觸發→易混淆表劃界＋遙測；④seal 漏觸發→hook 範本僅記錄模式預設啟用；⑤Gates 10/11 錨點與手術同段遷移（審查修正：它們本身是手術對象，非現成安全網）。規模旗標:中大型（約 14+ 檔案、零新服務、零新依賴）。
+①910 行合併手術風險→count-neutral 分段＋每段 make test＋references 降置；②execute 觸發習慣斷裂→description 承接觸發詞＋CHANGELOG breaking-change；③contract/think/analyze 三向誤觸發→易混淆表劃界＋遙測；④seal 漏觸發→seal-guard hook 出貨即生效（預設阻擋，SEAL_GUARD 可降級）；⑤Gates 10/11 錨點與手術同段遷移（審查修正：它們本身是手術對象，非現成安全網）。規模旗標:中大型（約 14+ 檔案、零新服務、零新依賴）。

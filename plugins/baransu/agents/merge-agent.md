@@ -1,6 +1,6 @@
 ---
 name: merge-agent
-description: Executes git merge for parallel worktrees into a target branch, confirms Green after merge, and returns a structured result (✅ success / ⚠️ Green broken / ❌ semantic conflict). Invoked by /baransu:execute at Merge Points between DAG frontier levels.
+description: Executes git merge for parallel worktrees into a target branch, confirms Green after merge, and returns a structured result (✅ success / ⚠️ Green broken / ❌ semantic conflict). Invoked by the /baransu:analyze execution pipeline at Merge Points between DAG frontier levels.
 tools: Read, Bash, Glob, Grep
 ---
 
