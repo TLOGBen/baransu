@@ -2,7 +2,7 @@
 
 > 維護章程：每次階段轉換、每場實驗結束、每月遙測回看後更新本檔。
 > 「當前階段」段落永遠反映最新狀態；歷史只增不改。
-> 最後更新：2026-07-19（Phase 1 三段手術完成於 feat/phase1-restructure，seal＋review 收尾中）
+> 最後更新：2026-07-19（Phase 1 完成——v3.0.0 已 merge main；下一步＝Phase 2 大型複雜系統實驗）
 
 ---
 
@@ -70,13 +70,13 @@
   核心：`/contract` `/seal` 雙釘獨立＋analyze/execute 合併（保留 /analyze 名，execute 流程文本
   降入 references/）＋上限 14→15（三處錨）＋count-neutral 三段落地（①合併＋contract＋Gate 錨遷移
   14進14出→②seal＋修憲 15對15→③版本/路由/CHANGELOG），每段 make test 全綠，feature branch + PR。
-- **狀態：三段手術完成（`93d775f` 合併＋contract → `6c094dd` seal＋修憲 15 → `edc67cf` 3.0.0＋路由＋CHANGELOG＋seal-guard 出貨即生效預設阻擋），每段 make test 全綠並經主迴圈獨立複驗；seal dogfood＋最終 /review 後 merge main。**
+- **狀態：三段手術完成（`93d775f` 合併＋contract → `6c094dd` seal＋修憲 15 → `edc67cf` 3.0.0＋路由＋CHANGELOG＋seal-guard 出貨即生效預設阻擋），每段 make test 全綠並經主迴圈獨立複驗；seal dogfood PASS（五點＋雙突變全叫）＋最終 /review 兩席（Issue 4＋advisory 5 全數直修於 68df868：seal-log 生產端閉環、Phase 錨正名、compile 計數歸零、修憲殘留）→ 已 merge main（v3.0.0）並 push。遙測起算日 2026-07-19（.claude/harness/selection-log.jsonl 首批記錄已落）。**
 
 ## 四、之後階段
 
 | 階段 | 內容 | 觸發條件 |
 |------|------|----------|
-| Phase 1（本階段） | 版圖重組手術＋seal-guard hook 出貨即生效（預設阻擋，SEAL_GUARD 可降級）＋遙測慣例落 _shared | /review 過＋Stage G 批准 |
+| ~~Phase 1~~（✅ 2026-07-19 完成） | 版圖重組手術＋seal-guard hook 出貨即生效（預設阻擋，SEAL_GUARD 可降級）＋遙測慣例落 _shared | /review 過＋Stage G 批准 |
 | Phase 2 | 大頻段實驗：拿**大型複雜系統**開刀（使用者已定調；候選形態＝跨雙系統同改 wire format 的 E2E 情境），「分形合約＋邊界所有人」對打「改革版全套」；復用盲評基建與事前預測紀律 | Phase 1 落地後擇期 |
 | Phase 3 | 遙測月回看：skill 選用誤觸發／漏觸發率、codex-skill-transfer 使用率（三個月零使用則退役回 14）、seal-guard 是否轉預設 | 落地滿一個月 |
 
