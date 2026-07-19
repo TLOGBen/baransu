@@ -12,14 +12,9 @@ metadata:
 
 # contract — pin acceptance before you build
 
-Validated form: the 2026-07-19 experiment's p-min arm — a 35-line contract plus
-one independent seal — matched a full-pipeline champion on behavior (20/20
-criteria, 0 introduced med/high) at 22% of the cost. The contract is the
-quality lever: criteria written to rejection strength kill whole defect
-classes before implementation starts.
-
-This body is English (agent-facing). All user-visible output is
-**Traditional Chinese (繁體中文)**.
+Criteria written to rejection strength kill whole defect classes before
+implementation starts — the contract is the quality lever, not the process
+around it. All user-visible output is **Traditional Chinese (繁體中文)**.
 
 ## Outcome Contract
 

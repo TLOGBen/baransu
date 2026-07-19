@@ -13,14 +13,9 @@ metadata:
 
 # seal — one cold-eyed pass before you call it done
 
-Validated form: the 2026-07-19 experiment's p-min arm — its single seal pass
-mutation-probed a CLI success message, found no test firing (the same unpinned
-class that hurt five round-1 arms), fixed it on the spot and added two pinning
-tests (commit 65f0b20). The seal is the last line that actually caught the
-ball. Teeth live in the criteria and the mandate, not in the reviewer's model.
-
-This body is English (agent-facing). All user-visible output is
-**Traditional Chinese (繁體中文)**.
+Teeth live in the criteria and the mandate, not in the reviewer's model: the
+same reviewer that waves a defect through under a loose contract rejects it
+under an assertable one. All user-visible output is **Traditional Chinese (繁體中文)**.
 
 ## Outcome Contract
 
