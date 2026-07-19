@@ -39,6 +39,12 @@ touches (entry points, the data shapes involved, existing output formats).
 Note every trap found (non-dense indexes, encoding quirks, abort semantics) —
 each MUST surface as a criterion per G2.
 
+If the task touches NO existing code surface (greenfield — no entry point, no
+existing output format to read) → do not silently skip G2: the 可斷言條文
+section MUST open with one affirmative line — 「G2：本任務無既有程式面可讀，
+查無陷阱；條文僅由需求推導」 — and criteria derive from the requirement text
+alone under G1/G3/G4; Steps 2–3 proceed unchanged. Silence is non-compliant.
+
 ### Step 2 — Write CONTRACT.md (four sections)
 
 ```markdown

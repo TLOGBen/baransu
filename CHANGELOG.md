@@ -2,6 +2,11 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [3.0.2] - 2026-07-19
+
+### Changed
+- `/contract`, `/seal`: structure pass per official skill-authoring best practices (narrative provenance cut, maintainer boilerplate trimmed) + one evolve ratchet round each (blind 3/3, held-out clean): contract gains the greenfield no-code branch (affirmative G2 declaration, silence non-compliant); seal gains the Baseline suite pre-flight (no-suite degradation to static pin-audit; red-baseline relative attribution).
+
 ## [3.0.1] - 2026-07-19
 
 ### Changed

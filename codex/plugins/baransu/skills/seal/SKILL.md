@@ -39,6 +39,24 @@ Materialize the target from disk BEFORE anything else, in this order:
 Seal is designed for cold eyes: re-ground every claim from disk even when this
 session wrote the code. What this session remembers is a claim, not evidence.
 
+## Baseline suite pre-flight
+
+After the target is pinned and before mandate point 1, run the project's full
+test suite once and record the result as the baseline.
+
+- **No runnable suite** → mandate point 5 degrades to a static pin-audit
+  (surface → pinning-test mapping check, no probe injection), and 「無可執行
+  測試套件」 is itself a top-level finding; direct-fix rights narrow to
+  constant-drift corrections — an in-band finding that cannot be paired with
+  a pinning test is reported, not fixed.
+- **Baseline already red** → record the pre-existing red tests; mutation-probe
+  attribution counts only tests that turn red RELATIVE to the baseline, and
+  "green" for applied fixes means green relative to the baseline (the
+  pre-existing red set unchanged, listed in the report).
+
+Both branches keep the report template and seal-log JSONL unchanged — the
+degraded path records 突變 0/0（靜態核對）in the closing line.
+
 ## The five-point mandate
 
 Run all five, in order. The gate rules are the shared single implementation in
