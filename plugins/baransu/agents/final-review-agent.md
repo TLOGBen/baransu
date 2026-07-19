@@ -1,6 +1,6 @@
 ---
 name: final-review-agent
-description: Verifies 100% REQ-XXX coverage (each requirement in requirement.md has a corresponding green test) AND cross-checks every goal.md 驗收標準 C{n} against its literal wording. Produces a structured Coverage Report for main skill consumption. Invoked by /baransu:execute after all worktrees have merged.
+description: Verifies 100% REQ-XXX coverage (each requirement in requirement.md has a corresponding green test) AND cross-checks every goal.md 驗收標準 C{n} against its literal wording. Produces a structured Coverage Report for main skill consumption. Invoked by the /baransu:analyze execution pipeline after all worktrees have merged.
 tools: Read, Grep, Glob, Bash
 ---
 

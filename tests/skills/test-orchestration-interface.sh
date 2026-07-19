@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Tests for TASK-automation-02: dual-mode orchestration interface references
-# for review / execute / learn / evolve (REQ-004 Scenario 3 / 4).
+# for review / analyze (execution pipeline) / learn / evolve (REQ-004 Scenario 3 / 4).
 #
 # Asserts (structural, behavior-level checks stay with spec review):
 #   T1  references/orchestration-interface.md exists for each of the 3 skills
@@ -33,7 +33,7 @@ fail() {
 # ---------------------------------------------------------------------------
 # T1 + T2 + T3 + T4 per skill
 # ---------------------------------------------------------------------------
-for skill in review execute learn evolve; do
+for skill in review analyze learn evolve; do
   REF="$SKILLS_DIR/$skill/references/orchestration-interface.md"
   SKILL_MD="$SKILLS_DIR/$skill/SKILL.md"
 
@@ -78,51 +78,49 @@ for skill in review execute learn evolve; do
 done
 
 # ---------------------------------------------------------------------------
-# T5: execute/SKILL.md guarded sections — zero diff vs HEAD
-#     (a) Phase 2 failure_count loop   (b) Goal-Alignment Filter
+# T5: execution-pipeline guarded sections — zero diff vs HEAD
+#     (a) Phase 1 failure_count loop   (b) Goal-Alignment Filter (reference file)
 #     (c) Failure escalation logic (failure_count accounting)
+#     Bootstrap rule: a guarded file absent from HEAD (first commit after the
+#     analyze+execute merge) passes with a bootstrap note; from the next commit
+#     on, any drift in these sections fails.
 # ---------------------------------------------------------------------------
-EXEC_REL="plugins/baransu/skills/execute/SKILL.md"
-EXEC_MD="$ROOT/$EXEC_REL"
+PIPE_REL="plugins/baransu/skills/analyze/references/execution-pipeline.md"
+FILT_REL="plugins/baransu/skills/analyze/references/goal-alignment-filter.md"
 
-extract_phase2()  { awk '/^\*\*Phase 2 — Impl\*\*/{found=1} found && /^\*\*Phase 3 — Review\*\*/{exit} found{print}'; }
-extract_filter()  { awk '/^\*\*Goal-Alignment Filter\*\*/{found=1} found && /^\*\*Failure escalation logic\*\*/{exit} found{print}'; }
-extract_escal()   { awk '/^\*\*Failure escalation logic\*\*/{found=1} found && /^\*\*Composite /{exit} found{print}'; }
+extract_phase1()  { awk '/^\*\*Phase 1 — Impl\*\*/{found=1} found && /^\*\*Phase 2 — Review\*\*/{exit} found{print}'; }
+extract_filter()  { awk '/^\*\*Goal-Alignment Filter\*\*/{found=1} found{print}'; }
+extract_escal()   { awk '/^\*\*Failure escalation\*\*/{found=1} found && /^### 4c/{exit} found{print}'; }
 
-if git -C "$ROOT" show "HEAD:$EXEC_REL" > /tmp/exec-head.$$ 2>/dev/null; then
-  for section in phase2 filter escal; do
-    case "$section" in
-      phase2) LABEL="Phase 2 failure_count loop";    EXTRACT=extract_phase2 ;;
-      filter) LABEL="Goal-Alignment Filter section"; EXTRACT=extract_filter ;;
-      escal)  LABEL="Failure escalation (failure_count) section"; EXTRACT=extract_escal ;;
-    esac
-    echo "T5[$section]: execute/SKILL.md $LABEL zero diff vs HEAD..."
-    HEAD_SEC=$("$EXTRACT" < /tmp/exec-head.$$)
-    WORK_SEC=$("$EXTRACT" < "$EXEC_MD")
-    # v2.1.0 slimming moved the filter section verbatim into
-    # execute/references/goal-alignment-filter.md (a pointer stays in
-    # SKILL.md). When the working-tree section is shorter than HEAD's,
-    # compare HEAD's section against the reference file instead.
-    if [ "$section" = "filter" ] && [ "$HEAD_SEC" != "$WORK_SEC" ] \
-       && [ -f "$ROOT/plugins/baransu/skills/execute/references/goal-alignment-filter.md" ]; then
-      REF_SEC=$("$EXTRACT" < "$ROOT/plugins/baransu/skills/execute/references/goal-alignment-filter.md")
-      if [ -n "$REF_SEC" ]; then
-        WORK_SEC="$REF_SEC"
-      fi
-    fi
-    if [ -z "$WORK_SEC" ]; then
-      fail "T5[$section]: $LABEL not found in working copy of execute/SKILL.md"
-    elif [ "$HEAD_SEC" = "$WORK_SEC" ]; then
-      pass "T5[$section]: $LABEL unchanged"
+check_guarded() {
+  local section="$1" rel="$2" extract="$3" label="$4"
+  local work="$ROOT/$rel"
+  echo "T5[$section]: $label zero diff vs HEAD..."
+  if [ ! -f "$work" ]; then
+    fail "T5[$section]: $rel missing from working tree"
+    return
+  fi
+  if git -C "$ROOT" show "HEAD:$rel" > /tmp/guard-head.$$ 2>/dev/null; then
+    local head_sec work_sec
+    head_sec=$("$extract" < /tmp/guard-head.$$)
+    work_sec=$("$extract" < "$work")
+    rm -f /tmp/guard-head.$$
+    if [ -z "$work_sec" ]; then
+      fail "T5[$section]: $label not found in working copy of $rel"
+    elif [ "$head_sec" = "$work_sec" ]; then
+      pass "T5[$section]: $label unchanged"
     else
-      fail "T5[$section]: $LABEL differs from HEAD" \
-           "Pointer-section insertion must not touch this section"
+      fail "T5[$section]: $label differs from HEAD" \
+           "Edits must not touch this guarded section without review"
     fi
-  done
-  rm -f /tmp/exec-head.$$
-else
-  fail "T5: cannot read $EXEC_REL from git HEAD"
-fi
+  else
+    pass "T5[$section]: $rel not in HEAD yet (bootstrap — guarded from next commit)"
+  fi
+}
+
+check_guarded phase1 "$PIPE_REL" extract_phase1 "Phase 1 failure_count loop"
+check_guarded filter "$FILT_REL" extract_filter "Goal-Alignment Filter section"
+check_guarded escal  "$PIPE_REL" extract_escal  "Failure escalation (failure_count) section"
 
 # ---------------------------------------------------------------------------
 echo ""

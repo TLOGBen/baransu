@@ -121,7 +121,7 @@ After the plan is presented, call `AskUserQuestion` with four options.
         # inside a "never gated" sentence inverts the invariant.
         for skill_name, body, expected in [
             (
-                "execute",
+                "health",
                 "Fan-out is released unconditionally — it is never gated "
                 "behind an AskUserQuestion proxy.",
                 "never gated behind a user-question proxy",
@@ -154,10 +154,10 @@ After the plan is presented, call `AskUserQuestion` with four options.
                 self.assertNotIn("AskUserQuestion", out)
 
     def test_descriptive_skills_fall_back_to_plain_noun_not_unclassified(self):
-        # evolve/execute/health are mapped descriptive-only: even a bare
+        # evolve/health are mapped descriptive-only: even a bare
         # occurrence outside the noun-phrase shapes must not inherit the
         # unclassified "(stop; ...)" rewrite.
-        for skill_name in ("evolve", "execute", "health"):
+        for skill_name in ("evolve", "health"):
             with self.subTest(skill_name=skill_name):
                 rpt = transfer.TransferReport(
                     skill_name=skill_name,
@@ -209,14 +209,14 @@ After the plan is presented, call `AskUserQuestion` with four options.
             rpt.capability_risks["AskUserQuestion:authorization"].codex_level,
         )
 
-    def test_execute_adapter_requires_machine_gate_and_task_map(self):
+    def test_analyze_adapter_requires_machine_gate_and_task_map(self):
         rpt = transfer.TransferReport(
-            skill_name="execute",
+            skill_name="analyze",
             source=Path("source"),
             target=Path("target"),
         )
 
-        out = transfer.inject_codex_port_adapter("# Execute\n\nBody.", rpt)
+        out = transfer.inject_codex_port_adapter("# Analyze\n\nBody.", rpt)
 
         self.assertIn("Codex Port Adapter - Machine Gates and Task Map", out)
         self.assertIn("actual command exit codes", out)
@@ -237,7 +237,7 @@ After the plan is presented, call `AskUserQuestion` with four options.
 
     def test_tool_rewrites_do_not_break_inline_code_spans(self):
         rpt = transfer.TransferReport(
-            skill_name="execute",
+            skill_name="analyze",
             source=Path("source"),
             target=Path("target"),
         )
@@ -297,11 +297,11 @@ python3 "$CLAUDE_SKILL_DIR/references/hunt-search.py"
                 self.assertIn(expected, out)
                 self.assertIn(token, rpt.capability_risks)
 
-    def test_transfer_one_pipeline_injects_review_health_execute_adapters(self):
+    def test_transfer_one_pipeline_injects_review_health_analyze_adapters(self):
         cases = {
             "review": ("Codex Port Adapter - Review Isolation", "Task tool"),
             "health": ("Codex Port Adapter - Inspector Isolation", "Task tool"),
-            "execute": ("Codex Port Adapter - Machine Gates and Task Map", "test-runner"),
+            "analyze": ("Codex Port Adapter - Machine Gates and Task Map", "test-runner"),
         }
 
         for skill_name, (heading, capability) in cases.items():
@@ -683,14 +683,15 @@ class TestPluginModeGeneration(unittest.TestCase):
             self.assertIn("codex-isolation-probe.md", health)
             self.assertIn("independent Codex invocation or session", health)
 
-            execute = (plugin_out / "skills" / "execute" / "SKILL.md").read_text(encoding="utf-8")
-            self.assertIn("Codex Port Adapter - Machine Gates and Task Map", execute)
-            self.assertIn("actual command exit codes", execute)
-            self.assertIn("Model self-report is never green proof", execute)
-            self.assertIn("`task-map.md` as the durable source of truth", execute)
-            self.assertIn("create a `task-map.md` record", execute)
-            self.assertIn("update `task-map.md` task state", execute)
-            self.assertNotIn("create a task-tracking record", execute)
+            analyze_out = (plugin_out / "skills" / "analyze" / "SKILL.md").read_text(encoding="utf-8")
+            self.assertIn("Codex Port Adapter - Machine Gates and Task Map", analyze_out)
+            self.assertIn("actual command exit codes", analyze_out)
+            self.assertIn("Model self-report is never green proof", analyze_out)
+            self.assertIn("`task-map.md` as the durable source of truth", analyze_out)
+            pipeline_out = (
+                plugin_out / "skills" / "analyze" / "references" / "execution-pipeline.md"
+            ).read_text(encoding="utf-8")
+            self.assertIn("task-map.md", pipeline_out)
 
             read_skill = (plugin_out / "skills" / "read" / "SKILL.md").read_text(encoding="utf-8")
             self.assertIn('bash "./scripts/install-deps.sh"', read_skill)
@@ -704,7 +705,6 @@ class TestPluginModeGeneration(unittest.TestCase):
                 for line in text.splitlines():
                     if "never gated" in line:
                         self.assertNotIn("(stop;", line, skill_md)
-            self.assertIn("never gated behind a user-question proxy", execute)
             self.assertIn("never gated behind a user-question proxy", health)
             evolve = (plugin_out / "skills" / "evolve" / "SKILL.md").read_text(encoding="utf-8")
             self.assertIn("0 user-question calls", evolve)

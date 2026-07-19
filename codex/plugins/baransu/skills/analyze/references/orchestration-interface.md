@@ -1,0 +1,48 @@
+# Orchestration Interface — execution-pipeline dual-mode dispatch
+
+Single internal interface for the Step 4 per-task agent dispatch (execution pipeline). Two adapters implement it — the current subagent-loop adapter (§3) and a thin Workflow adapter (§4). Both return the identical review-agent shape, so downstream consumers (the §4b Phase 2 SWITCH, the Goal-Alignment Filter, and `failure_count` accounting) never sense which mode produced it. This is an annotation layer only: the subagent loop logic in execution-pipeline.md §4b is not modified.
+
+## 1. Interface contract
+
+```
+dispatch(task) → review_result   # fixed sequence: impl → review (R8: no summarize phase)
+```
+
+The unit of dispatch is one task's agent sequence (impl-agent → review-agent), with the per-agent inputs execution-pipeline.md §4b already defines. The return value is the review-agent result, unchanged and mode-invariant:
+
+| Field | Shape |
+|-------|-------|
+| tier | one of the five tiers: `direct fix` / `advisory` / `packaged confirm (quality)` / `packaged confirm (correctness)` / `needs judgment` |
+| findings[] | citation + observation + fix (the shape the Goal-Alignment Filter walks) |
+| green_proof | the 4 mandatory keys per `agents/review-agent.md` §3: `test_command`, `exit_code`, `output_tail`, `tests_correspondence` |
+| refactor_signal | boolean, consumed by the §4b quality-tier branch |
+| spec_contradiction | false or details, consumed by failure escalation |
+
+**Goal-Alignment Filter consumption contract**: the filter walks `review.findings` exactly as returned. Field names, tier vocabulary, and `green_proof` keys are mode-invariant, so the pre-SWITCH `verify_green_proof` gate, the hard invariant (驗收標準 findings never downgraded), and `failure_count` accounting in execution-pipeline.md §4b Phase 2 apply unchanged in both modes.
+
+Business rules — `failure_count` / `compile_error_count` accounting, smart-friend trigger at 1, R8 retry cap (block at 2), compile_error_count 3-cap, cascade-blocked propagation, merge retry caps — live only in execution-pipeline.md §4b–§4d. This document cites them and never copies them.
+
+## 2. Stage 0 mode pinning
+
+This file is read only when the run is Workflow-driven or a system-reminder explicitly confirms a Workflow-capable (ultracode) environment — never inferred. At Step 0 (alongside spec validation):
+
+1. Record `mode: workflow` into `confirm.md` before Step 1 begins. On the default interactive path this file is not read and no mode record is written — the absence of a mode record means the current adapter.
+2. The mode is pinned for the entire run. Never switch adapters mid-run — not between frontier levels, not after a blocked task.
+3. Degraded path: if the confirmation is unreliable or ambiguous, use the Workflow adapter only when the user explicitly declares it. The default is always the current adapter (non-ultracode behavior identical to the interactive default).
+
+## 3. Current adapter — subagent loop
+
+The orchestrator-driven loop exactly as execution-pipeline.md §4b specifies: dispatch impl-agent and review-agent as stateless leaf Tasks per task, groups at the same frontier level in parallel (L/XL via gitworktrees), merge points per §4d. All routing (SWITCH, filter, escalation) happens in the orchestrator after collection.
+
+Depth invariant (restated for this adapter): subagent depth = 1 — dispatched agents must not invoke skills or dispatch further subagents; review-agent never calls `/baransu:review`, and impl-agent never spawns its own helpers. This depth invariant constrains the leaf agents the pipeline dispatches; it does not constrain the pipeline's own worker fan-out when hosted as a subagent — fan-out proceeds whenever the Step 0 tool-list probe finds a subagent-dispatch tool (inspection, never attempt-and-catch); when none exists, the run enters serial-absorbed mode per execution-pipeline.md Step 0 instead of blocking. The release is orthogonal to interactive-capability detection — never gated behind an AskUserQuestion proxy.
+
+## 4. Workflow thin adapter — pinned-workflow mode only
+
+When Step 0 pinned `workflow`, express the same dispatch as Workflow primitives: a `pipeline` of impl → review per task, and `parallel` across same-frontier-level groups. The adapter does exactly two things:
+
+1. **Dispatch**: run the pipeline with the same per-agent inputs as §1.
+2. **Collect**: return the review-agent result in the §1 shape to the orchestrator unchanged.
+
+Nothing else. The Phase 3 SWITCH, `verify_green_proof`, the Goal-Alignment Filter, `failure_count` accounting, smart-friend dispatch, and merge logic stay in execution-pipeline.md §4b–§4d untouched — the pipeline never short-circuits them.
+
+Depth invariant (restated for this adapter): pipeline steps are leaf agents — agents must not invoke skills or dispatch further subagents; no step may add review rounds, self-dispatch, or mark tasks ✅ on its own.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # TASK-contract-01 gate (REQ-003 Scenario 1): the eight verifiable skills
-# (analyze/execute/ship/read/learn/hunt/design/codex-skill-transfer) each
+# (analyze/contract/ship/read/learn/hunt/design/codex-skill-transfer) each
 # carry an Outcome Contract block — placed after frontmatter and before the
 # first pre-existing H2 — with four ordered, non-empty lines:
 #   - **Outcome**:  - **Done when**:  - **Evidence**:  - **Output**:
@@ -14,7 +14,7 @@ import sys
 
 root = sys.argv[1]
 skills = [
-    "analyze", "execute", "ship", "read",
+    "analyze", "contract", "ship", "read",
     "learn", "hunt", "design", "codex-skill-transfer",
 ]
 fields = ["Outcome", "Done when", "Evidence", "Output"]

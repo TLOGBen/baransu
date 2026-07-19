@@ -1,26 +1,26 @@
 {
-  "skill_name": "execute",
-  "note": "Data-only trigger-routing fixtures (plugin-wide-6 / batch C4). There is no built-in eval runner; these cases are the fresh-session A/B baseline corpus recorded BEFORE the C1 description POV batch. Post-run user-verification artifact, not a merge gate.",
+  "skill_name": "analyze",
+  "note": "Execution-trigger corpus inherited from the retired /execute skill (merged into /analyze 2026-07). Data-only trigger-routing fixtures (plugin-wide-6 / batch C4). There is no built-in eval runner; these cases are the fresh-session A/B baseline corpus recorded BEFORE the C1 description POV batch. Post-run user-verification artifact, not a merge gate.",
   "evals": [
     {
       "id": 1,
       "prompt": "開始執行",
       "should_trigger": true,
-      "expected_skill": "execute",
+      "expected_skill": "analyze",
       "expected_behavior": "With an /analyze spec present under .claude/analyze/: TDAID orchestration — Summarize→Impl→Review loops, E2E + Final-Review, final-report.md."
     },
     {
       "id": 2,
       "prompt": "依照 analyze 執行",
       "should_trigger": true,
-      "expected_skill": "execute",
+      "expected_skill": "analyze",
       "expected_behavior": "Reads the /analyze spec and drives the TDAID loop end-to-end."
     },
     {
       "id": 3,
       "prompt": "跑 execute，把 .claude/analyze/ 的規格做完",
       "should_trigger": true,
-      "expected_skill": "execute",
+      "expected_skill": "analyze",
       "expected_behavior": "Spec-driven execution of the prepared /analyze artifacts."
     },
     {

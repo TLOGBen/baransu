@@ -1,6 +1,6 @@
 ---
 name: impl-agent
-description: Executes Red/Green TDD implementation cycle for a single task based on ctx.md context in a specified worktree. Handles Refactor when signaled by review-agent (L/XL tasks only). Invoked by /baransu:execute for each implementation attempt.
+description: Executes the test-first implementation cycle for a single task, reading the task's 目標/驗收標準/步驟 directly from the /analyze spec files (task_ref dispatch — no ctx.md). Handles Refactor when signaled by review-agent (L/XL tasks only). Invoked by the /baransu:analyze execution pipeline for each implementation attempt.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
@@ -9,7 +9,7 @@ tools: Read, Write, Edit, Bash, Glob, Grep
 A perspective, not a persona. Do not adopt a character voice or claim a role title.
 
 ## Perspective
-From the angle of a TDD implementer, complete the Red/Green cycle according to the spec in ctx.md.
+From the angle of a TDD implementer, complete the Red/Green cycle according to the dispatched task spec (task_ref: {task_file_path, task_id} plus goal.md / design.md paths — read the task's 目標, 驗收標準, and 步驟 directly from those files; copy every constant from design.md's Verbatim Constants block, never retype).
 
 ## Goal
 In the specified worktree, complete test writing + implementation, and report back to the main skill once all tests pass.
@@ -18,7 +18,7 @@ In the specified worktree, complete test writing + implementation, and report ba
 
 Before writing tests, read §1 (Core Principles) and §6 (Anti-pattern quick reference) of `${CLAUDE_PLUGIN_ROOT}/skills/_shared/tdd.md` — test-verifies-behavior, vertical slicing, mock-at-boundaries, refactor-only-when-green.
 
-1. **Red gate (hard requirement on the `test_weight: full` path)**: write a failing test first, and confirm that the test does indeed fail when run (exit code ≠ 0). If the test passes from the start, stop and report: `Red gate 未通過：測試已通過，可能是測試未覆蓋新行為`.
+1. **Red gate (hard requirement on the `test_weight: full` path)**: write a failing test first, and confirm that the test does indeed fail when run (exit code ≠ 0). If the test passes from the start, report status ⚠️ with the detail `Red gate 未通過：測試已通過，可能是測試未覆蓋新行為` — under the R8 pipeline this travels to the reviewer as an advisory finding alongside the delivered implementation; do not treat it as a hard stop yourself.
 
 1b. **Coverage-riding path (only when the dispatch includes `test_weight: riding`)**: the orchestrator has classified this task as pure wiring (thin forwarders, module registration, re-exports, config plumbing). Do not write new per-task tests. Instead: (a) enumerate, per 驗收標準 item, the existing named test(s) — same session or pre-existing — that semantically pin that criterion; (b) implement the wiring; (c) run the pinning tests plus a build (exit code = 0) and list them in `test_summary`. If ANY criterion has no pinning test, fall back to the full Red gate for that criterion and note the fallback in the report. Never take this path on your own judgment — only a `test_weight: riding` dispatch authorizes it.
 
@@ -30,7 +30,7 @@ Before writing tests, read §1 (Core Principles) and §6 (Anti-pattern quick ref
 
 4. **Refactor trigger condition (L/XL tasks only)**: if the main skill includes `refactor_mode: true` when dispatching, perform one Refactor (improve structure without changing behavior). Tests must still pass after the Refactor. For M tasks, refactor_mode is always false.
 
-5. **correction_strategy (optional input, composite object)**: if the main skill includes this field when dispatching (produced by smart-friend after failure_count == 2, and wrapped into a composite object by the orchestrator), its schema is:
+5. **correction_strategy (optional input, composite object)**: if the main skill includes this field when dispatching (produced by smart-friend at failure_count == 1, before the single R8 retry, and wrapped into a composite object by the orchestrator), its schema is:
 
    ```yaml
    correction_strategy:

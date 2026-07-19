@@ -28,9 +28,9 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 | `/review` | 在乾淨 context 重讀已完成的工作，抓邊界沒守住、邏輯跳格、宣稱與實作對不上。 |
 | `/hunt` | 從症狀追到根因：選對觀測層、log 二分法定位，指到 file:line 才動手修。 |
 | `/health` | 體檢專案的 agent 配置與 AI 可維護性：五層審計，預算姿態先行。 |
-| `/analyze` | 把一句需求展開成目標→需求→設計→測試→任務五層 spec，交給實作端。 |
+| `/analyze` | 大頻段全管線：把需求展開成五層 spec（條文釘到可退件），再經內建執行段跑到全綠、產出 final-report。 |
 | `/design` | 寫 UI/UX 設計規格：`gen` 引導生成、`lint` 挑違規、`preset` 套內建模板。 |
-| `/execute` | 吃 `/analyze` 的 spec，開多 worktree 並行跑 TDAID 迴圈到全綠，產出 final-report。 |
+| `/contract` | 中頻段開工合約：一頁釘死目標、可斷言條文、錯不起表面、照抄常數，實作前先立約。 |
 | `/write` | 雙語寫作／潤色：套排版與風格規則，輸出 Before/After 與每處改動理由。 |
 | `/evolve` | 把既有 SKILL.md 對著固定標準一輪輪磨好，只保留確有改進的改動。 |
 | `/read` | 萬用擷取：URL／路徑／glob／Chrome／剪貼簿轉成離線 Markdown。 |

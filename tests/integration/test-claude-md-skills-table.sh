@@ -77,7 +77,7 @@ done
 # -------------------------------------------------------------------------
 # B4: 13 surviving skill names present
 # -------------------------------------------------------------------------
-SURVIVING_SKILLS=(think review analyze execute write ship hunt health read design learn book codex-skill-transfer evolve)
+SURVIVING_SKILLS=(think review contract analyze write ship hunt health read design learn book codex-skill-transfer evolve)
 for s in "${SURVIVING_SKILLS[@]}"; do
   if extract_skill_rows | grep -qF "\`/$s\`"; then
     ok "B4 surviving skill /$s present"

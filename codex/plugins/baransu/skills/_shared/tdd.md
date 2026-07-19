@@ -257,7 +257,7 @@ The order is fixed: do not enter implementation before red is confirmed; do not 
 | Test fails (2nd time) | Stop. If the direction is in doubt, return to `/think` to refocus, then retry. |
 | compile error | Fix and re-run; not counted toward the retry count. |
 
-In `/execute`'s TDAID pipeline, the authoritative counting rules for compile error and `failure_count` are in `../execute/SKILL.md`; this file only references them, it does not duplicate the rule text.
+In `/analyze`'s execution pipeline, the authoritative counting rules for compile error and `failure_count` are in `../analyze/references/execution-pipeline.md`; this file only references them, it does not duplicate the rule text.
 
 **Beyond the two gates — surprises are new reds.** The tables above govern the two
 gate checks only. Any *other* result that contradicts what the plan assumed — a tool

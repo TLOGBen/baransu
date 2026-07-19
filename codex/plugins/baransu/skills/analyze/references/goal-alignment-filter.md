@@ -1,9 +1,9 @@
 # Goal-Alignment Filter — finding-level governance procedure
 
-Invoked from SKILL.md §4b Phase 3, when the review-tier SWITCH lands on
+Invoked from execution-pipeline.md §4b Phase 2, when the review-tier SWITCH lands on
 `packaged confirm (correctness)` or `needs judgment`. "failure escalation
-logic below" in this file refers to the failure escalation logic in SKILL.md
-§4b Phase 3. Content moved verbatim from SKILL.md; semantics unchanged —
+logic below" in this file refers to the failure escalation logic in execution-pipeline.md
+§4b Phase 3. Semantics unchanged from the pre-merge /execute skill —
 the `failure_count` accounting and the hard invariant are authoritative here.
 
 **Goal-Alignment Filter** (applies to: `packaged confirm (correctness)`, `needs judgment`)
@@ -22,8 +22,8 @@ all-findings-downgraded ✅ path below must never absorb it.
 Purpose. review-agent is a finding-producing perspective; governance lives
 here. Some findings reviewer raises are **off-goal observations** (style,
 unrelated polish) that should not block the task. The filter walks each
-finding and decides whether it serves `ctx.md → Task.目標` / corresponds
-to a `Task.驗收標準` failure. Off-goal findings are downgraded to advisory
+finding and decides whether it serves the tasks 目標 (read from task-{group}.md) / corresponds
+to a task 驗收標準 failure. Off-goal findings are downgraded to advisory
 and do not contribute to `failure_count`.
 
 Finding-level loop:
@@ -31,9 +31,9 @@ Finding-level loop:
 ```
 FOR each finding F in review.findings:
   # Step 1 — does F correspond to a 驗收標準 failure (semantic coverage)?
-  is_acceptance_failure = semantic_match(F.observation, ctx.Task.驗收標準)
+  is_acceptance_failure = semantic_match(F.observation, task.驗收標準)
   # Step 2 — does F serve Task.目標?
-  serves_goal           = semantic_match(F.observation, ctx.Task.目標)
+  serves_goal           = semantic_match(F.observation, task.目標)
 
   IF is_acceptance_failure:
     # Hard invariant — see below. F keeps its original tier; never downgraded.

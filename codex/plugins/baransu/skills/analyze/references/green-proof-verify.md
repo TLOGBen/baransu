@@ -1,8 +1,8 @@
 # Pre-SWITCH guard — verify green_proof
 
-Invoked from SKILL.md §4b Phase 3, before the review-tier SWITCH. "The SWITCH below"
-in this file refers to that SWITCH in SKILL.md §4b Phase 3. Content moved
-verbatim from SKILL.md; semantics unchanged.
+Invoked from execution-pipeline.md §4b Phase 2, before the review-tier SWITCH. "The SWITCH below"
+in this file refers to that SWITCH in execution-pipeline.md §4b Phase 2. Content moved
+from the pre-merge /execute skill; semantics unchanged except the R8 retry cap.
 
 **Pre-SWITCH guard — verify green_proof**: Before entering the SWITCH below and `mark task ✅`, the main skill
 must first verify that the `green_proof` field reported by review-agent conforms to the 5-tier
@@ -54,10 +54,10 @@ Verify-result handling:
   observation and downgraded to advisory, causing the task to be marked ✅ without real test evidence;
   this hole is handled explicitly by this section). Take the following path directly:
     1. `failure_count += 1` (verify-fail counts toward the task-level failure_count, unlike the
-       compile-error exclusion rule in §4b Phase 2 — a compile error goes through `compile_error_count`
+       compile-error exclusion rule in §4b Phase 1 — a compile error goes through `compile_error_count`
        and does not count; verify-fail is a process failure at the review stage and counts toward failure_count).
     2. Append the finding `{citation: "green_proof", observation: "<verify reason>", fix:
        "re-dispatch review-agent and require a complete green_proof"}` to review_result.findings.
-    3. Re-dispatch impl-agent + review-agent (following the §4b Phase 2 retry logic: the 1st retry
-       re-dispatches directly; the 2nd failure triggers smart-friend to add a correction_strategy).
+    3. Re-dispatch impl-agent + review-agent (following the §4b failure-escalation logic: the single
+       retry carries smart-friend's correction_strategy; a second failure blocks the task at the R8 cap).
     4. Do not enter the SWITCH below; this round's Phase 3 ends.

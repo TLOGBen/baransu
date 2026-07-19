@@ -2,7 +2,7 @@
 """Tests for scripts/verify-skills.py — structure verifier (REQ-005 Scenario 2).
 
 Positive: the current repo passes every check (exit 0); the per-skill pass
-list covers all 14 skills; no >500-line advisory remains (execute was slimmed
+list covers all 14 skills; no >500-line advisory remains (the former execute was slimmed
 under the cap in v2.1.0).
 
 Negative: a fixture SKILL.md stub missing the Outcome Contract block makes
@@ -40,8 +40,8 @@ EXPECTED_SKILLS = [
     "book",
     "codex-skill-transfer",
     "design",
+    "contract",
     "evolve",
-    "execute",
     "health",
     "hunt",
     "learn",
@@ -96,8 +96,8 @@ class TestCurrentRepoPasses(unittest.TestCase):
             self.assertIn(name, self.out, f"per-skill pass list missing: {name}")
 
     def test_no_oversize_advisory_remains(self):
-        # v2.1.0 slimmed execute/SKILL.md under the 500-line official cap
-        # (sections moved verbatim to execute/references/). No skill should
+        # v2.1.0 slimmed the former execute/SKILL.md under the 500-line cap;
+        # v3 merged it into analyze/references/execution-pipeline.md. No skill should
         # trigger the ADVISORY list any more; a reappearing line means a
         # SKILL.md regressed past the cap.
         advisory_lines = [

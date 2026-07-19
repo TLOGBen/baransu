@@ -16,7 +16,7 @@ happened during implementation.
 
 - **Producers**: `/think` and `/review` each produce one journal per run,
   immediately after their primary deliverable is written.
-- **Appenders**: any implementer working from that deliverable (`/execute`,
+- **Appenders**: any implementer working from that deliverable (`/analyze`'s execution pipeline,
   direct implementation under `_shared/tdd.md` §7, or any later session)
   appends to the existing journal instead of creating a new one.
 
@@ -34,7 +34,7 @@ For `/review`, whose primary deliverable is in-conversation prose with no
 on-disk slug of its own, derive `<slug>` from the reviewed target instead:
 the reviewed spec/plan's own slug when it has one, else
 `{YYYY-MM-DD}-{target basename}`. Downstream journal selection (e.g.
-`/execute` Step 7) matches by slug, so the derivation must stay deterministic.
+the execution pipeline's Step 7) matches by slug, so the derivation must stay deterministic.
 
 ## Rendering basis
 
@@ -70,7 +70,7 @@ browser-ready HTML file; no external assets.
 Entry format for 執行日誌 (newest first):
 
 ```
-2026-06-11 14:30 ｜ /execute
+2026-06-11 14:30 ｜ /analyze（執行段）
 規範外決策：spec 未定義 slug 衝突行為，採「附加 -2 後綴」而非覆寫。
 取捨：保留舊檔可追溯，代價是目錄多一份檔案。
 ```

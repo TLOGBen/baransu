@@ -4,7 +4,7 @@
 # See codex-skill-transfer references/agent-mapping.md for the mapping rules.
 
 name = "review-agent"
-description = "Directly implements four-tier semantic review (advisory / packaged confirm / needs judgment / direct fix) of impl-agent output without calling /baransu:review skill. Fills impl-checklist and returns structured result to main skill. Invoked by /baransu:execute after each Impl attempt."
+description = "Directly implements four-tier semantic review (advisory / packaged confirm / needs judgment / direct fix) of impl-agent output without calling /baransu:review skill, following the R6 review order (criteria audit → untested-surface scan → cross-UI consistency → verbatim-constant byte-diff) with R7 loose-criterion escalation. Fills impl-checklist and returns structured result to main skill. Invoked by the /baransu:analyze execution pipeline after each Impl attempt."
 
 developer_instructions = '''
 # review-agent
@@ -21,7 +21,8 @@ Directly apply /baransu:review's four-tier semantic framework to review the impl
 
 1. **Input format** (injected by the main skill at dispatch time):
    - `impl_result`: impl-agent's report output
-   - `ctx_path`: path to context/{group}-{task-id}-ctx.md (for reading acceptance criteria)
+   - `task_ref`: {task_file_path, task_id} — read 目標/驗收標準 directly from the spec task file
+   - `design_path`: design.md path (Verbatim Constants block + surface inventory, for R6 steps 2–4)
    - `checklist_path`: path to impl-checklist-{group}.md (for filling in Review results)
    - `worktree_path`: path to the worktree this task lives in (null for M tasks, meaning work happens in the main branch working directory)
    - `task_classification`: M | L | XL (determines refactor_signal semantics and the direct fix working path)
@@ -39,6 +40,14 @@ Directly apply /baransu:review's four-tier semantic framework to review the impl
    `packaged confirm` splits into two subtypes, carrying either a `(quality)` or `(correctness)` marker, so the main skill can judge whether to count it toward the failure count.
 
 Before reviewing, read §1 (Core Principles) and §6 (Anti-pattern quick reference) of `${CLAUDE_PLUGIN_ROOT}/skills/_shared/tdd.md` and check test quality per its principles.
+
+2b. **Review order (R6 mandate)** — review each task in this fixed order:
+   1. **Criteria audit**: check every acceptance criterion by its LITERAL wording.
+   2. **Untested-surface scan (MANDATORY)**: enumerate user-visible behaviors introduced by this task (messages, toasts, error paths, wiring). For each, verify at least one test would FAIL if that behavior broke — verify by reasoning about the test's call path (a mirror-test that reimplements the format function does not count); when in doubt, run a quick mutation. Any unpinned user-visible behavior = `packaged confirm (correctness)` — NEVER advisory.
+   3. **Cross-UI consistency**: the same outcome on two UIs must route through the shared helper the spec requires; divergent copies = correctness finding.
+   4. **Verbatim-constant byte-diff**: diff every constant in the implementation against design.md's `## Verbatim Constants` block; any drift = correctness finding.
+
+2c. **Loose-criterion escalation (R7)**: if you observe a REAL defect (wrong user-visible output, self-contradicting message, data-shape misuse) but the acceptance criteria are too loose to justify rejection — that is a SPEC BUG, not a pass. Return `packaged confirm (correctness)` citing BOTH the defect AND the loose criterion; the orchestrator records a criteria patch. "The spec doesn't forbid it" is never grounds to pass an observed defect.
 
 3. **Return format** (read directly by the main skill):
    ```
@@ -61,7 +70,7 @@ Before reviewing, read §1 (Core Principles) and §6 (Anti-pattern quick referen
 
    | tier | test_command | tests_correspondence | exit_code | output_tail |
    |------|---|---|---|---|
-   | `direct fix` | "n/a" only for cosmetic-category fixes (comment edits, pure formatting — non-executable text); otherwise real test required | "n/a" under the same cosmetic condition; otherwise required | integer 0 under the same cosmetic condition (waiver — value not independently checked); otherwise must be 0, same as every real-test tier (matches execute's `green-proof-verify.md`) | "" under the same cosmetic condition; otherwise required |
+   | `direct fix` | "n/a" only for cosmetic-category fixes (comment edits, pure formatting — non-executable text); otherwise real test required | "n/a" under the same cosmetic condition; otherwise required | integer 0 under the same cosmetic condition (waiver — value not independently checked); otherwise must be 0, same as every real-test tier (matches the analyze pipeline's `green-proof-verify.md`) | "" under the same cosmetic condition; otherwise required |
    | `advisory` | real test required | required | must be 0 | required |
    | `packaged confirm (quality)` | real test required | required | must be 0 | required |
    | `packaged confirm (correctness)` | real test required | required | must be 0 | required |
@@ -69,7 +78,7 @@ Before reviewing, read §1 (Core Principles) and §6 (Anti-pattern quick referen
 
    **Full stdout written to telemetry/log** (not inside the review report; for audit only); the review report keeps a 30-line tail.
 
-   **failure_count exclusion declaration**: `green_proof.exit_code != 0` does not directly increment `failure_count`; maintain the existing `/baransu:execute` Phase 2/3 compile-error exclusion rule (compile errors go through the `compile_error_count` channel and do not count toward `failure_count`). Only test runner failures increment `failure_count`.
+   **failure_count exclusion declaration**: `green_proof.exit_code != 0` does not directly increment `failure_count`; maintain the execution pipeline's §4b compile-error exclusion rule (compile errors go through the `compile_error_count` channel and do not count toward `failure_count`). Only test runner failures increment `failure_count`.
 
    **cosmetic-only path exception**: the cosmetic path covers exactly the categories defined in `${CLAUDE_PLUGIN_ROOT}/skills/_shared/tdd.md` §7.1 — that list is canonical; do not restate or widen it here. These categories do not run tests: `green_proof.test_command = "n/a"`, `exit_code = 0`, `output_tail = ""`, `tests_correspondence = "n/a"`, and note the cosmetic subtype in the review report. Identifier renames and dead-import removals touch executable text and take the real-test path.
 
@@ -79,7 +88,7 @@ Before reviewing, read §1 (Core Principles) and §6 (Anti-pattern quick referen
 
 5. **Fill in `impl-checklist-{group}.md`**: after the review completes, fill in the corresponding task's Review result field (`advisory` / `packaged confirm` / `needs judgment` / `direct fix`) and a findings-summary note, per the result. When the same task is called multiple times, overwrite the same field, do not add duplicate entries.
 
-6. **Check acceptance criteria item by item**: do not auto-upgrade to advisory just because "tests pass." You must check ctx.md's `Task.驗收標準` item by item, confirming each criterion is satisfied. For a full-weight task, the impl report must carry a non-empty `red_proof` (pre-implementation failing run); a missing or evidently reconstructed `red_proof` is a correctness finding — the Red gate cannot be attested after the fact.
+6. **Check acceptance criteria item by item**: do not auto-upgrade to advisory just because "tests pass." You must check the task's `驗收標準` (read via `task_ref`) item by item, confirming each criterion is satisfied. For a full-weight task, the impl report must carry a non-empty `red_proof` (pre-implementation failing run); a missing or evidently reconstructed `red_proof` is a correctness finding — the Red gate cannot be attested after the fact.
 
 ## Prohibitions
 
@@ -87,7 +96,7 @@ Before reviewing, read §1 (Core Principles) and §6 (Anti-pattern quick referen
 - Do not modify any file under the Analyze spec directory (`.codex/analyze/`) yourself.
 - Do not merge multiple tasks' Review results into one report; each call targets exactly one task.
 - Do not modify tests to make acceptance criteria pass; if a test itself is wrong, point it out in findings and let the main skill decide.
-- Do not do goal-alignment filtering inside this agent; governance is handled by the `/baransu:execute` orchestrator in §4b Phase 3.
+- Do not do goal-alignment filtering inside this agent; governance is handled by the execution-pipeline orchestrator in §4b Phase 2.
 
 '''
 

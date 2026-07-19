@@ -308,7 +308,7 @@ Field semantics (single source of truth for each):
 - `depth`: Stage 2's three-tier classification (`quick` / `standard` / `deep`).
 - `perspectives`: the Stage 4 returned set — a dispatched-but-failed perspective is listed as `<name>: dispatch failed` and its coverage may not be claimed — with `+ adversarial: yes|no` from Stage 5. Quick-pass targets still list ≥1 perspective.
 - `hard_stops`: the source of truth for hits. The checklist above is a derived view; if `hard_stops: none` here, all checklist lines must read `□ ... not hit`.
-- `new_tests`: pure count. Regression-first verification belongs to 「/baransu:execute 或依 tdd.md 的直接實作」, not /review.
+- `new_tests`: pure count. Regression-first verification belongs to 「/baransu:analyze 執行段或依 tdd.md 的直接實作」, not /review.
 - `doc_debt`: invariants the reviewer noticed are missing from project docs (AGENTS / CLAUDE / `.codex/rules`). `none` when nothing surfaced.
 - `e2e_status`: three states from the E2E hard requirement section above. The hard-stop checklist's e2e-related line, if any, is **derived** from this field — do not judge e2e independently in the checklist.
 

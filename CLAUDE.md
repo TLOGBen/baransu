@@ -24,13 +24,13 @@ plugins/
     .claude-plugin/
       plugin.json              # plugin manifest (v2.8.0)
     skills/
-      think/ review/ analyze/ write/ execute/ ship/ hunt/ health/ read/ learn/ book/ design/ codex-skill-transfer/ evolve/
-      _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md, fact-check.md) + evals/ scripts/
+      think/ review/ contract/ analyze/ write/ ship/ hunt/ health/ read/ learn/ book/ design/ codex-skill-transfer/ evolve/
+      _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md, fact-check.md, contract-gate.md) + evals/ scripts/
     rules/
       anti-patterns.md         # cross-skill behavioral guardrails
     agents/
       # Perspective: architecture-reviewer.md  quality-reviewer.md  security-reviewer.md  style-reviewer.md  domain-reviewer.md
-      # Execute:     summarize-agent.md  impl-agent.md  review-agent.md  smart-friend-agent.md
+      # Pipeline:    impl-agent.md  review-agent.md  smart-friend-agent.md
       #              e2e-fix-agent.md  final-review-agent.md  final-fixer-agent.md  merge-agent.md
       # Health:      health-inspector-context.md  health-inspector-control.md  health-inspector-maintainability.md
       # Evolve:      evolve-diagnostician.md  evolve-judge.md
@@ -55,8 +55,8 @@ Invoke with `/baransu:<name>`. To edit a skill, read its `SKILL.md` — design c
 |-------|---------------|------------------|
 | `/think` | Before any new feature, architecture decision, or non-trivial design choice | 「判斷一下」＋報錯屬除錯 → `/hunt`；存廢/價值判斷走 Evaluation Mode，不出五段計畫 |
 | `/review` | After any model output — code, plan, claim — for independent re-verification | 審「使用者專案」的 agent 配置與 AI 可維護性 → `/health` |
-| `/analyze` | Medium-to-large tasks: builds goal→requirement→design→test→task spec | 單一 session 收得掉的小任務不展 spec → `_shared/tdd.md` §7 |
-| `/execute` | Run an `/analyze` spec: drives TDAID loop, produces `final-report.md` | 無 `/analyze` spec 不入；小任務直接實作 |
+| `/contract` | Medium tasks: pins a one-page work contract (goal / assertable criteria / surface inventory / verbatim constants) before implementing | 跨模組大任務 → `/analyze`；事後驗收 → 待 Phase 1 段② 的 `/seal` |
+| `/analyze` | Large tasks: builds goal→requirement→design→test→task spec, then runs it to green through the built-in execution pipeline (`開始執行` also enters here) | 單一 session 收得掉的小任務不展 spec → `_shared/tdd.md` §7；中型任務只要釘條文 → `/contract` |
 | `/write` | Bilingual copywriting: `zh`/`en` prefix; Refine (existing text), Generate (new), or Proofread (findings table → `錯字修改.html`) | 寫完要 commit/push 的收尾 → `/ship` |
 | `/ship` | Session cleanup: archive `.claude/` dirs, commit, push, optional worktree removal | 只收尾；不寫作、不審查 |
 | `/hunt` | Bug diagnosis: symptom → root cause via observability-first investigation | 「值不值得修」是價值判斷 → `/think` Evaluation Mode |
@@ -81,15 +81,15 @@ These have each caused regressions — do not "optimize" them away:
 - **No `skills` array in `plugin.json`**: Claude Code discovers skills from the filesystem. Adding one was done in v0.3.0 and immediately reverted.
 - **`review-agent` must NOT call `/baransu:review`**: `/review` is not currently subagent-safe — per `skills/review/references/loop-pauses.md` (the classification authority), its Stage 1 target-pin is an Input point whose non-interactive default is stop-and-report (a human must name the target; no default can substitute a target that doesn't exist), and its Stage 7 needs-judgment checkpoints are Authorization hard stops. Implement four-tier semantics directly in `review-agent.md`.
 - **`/ship` branch deletion uses `-D` not `-d`**: after push the branch is unmerged locally, so `-d` always fails. Both steps need `git -C "$MAIN_REPO" branch -D`.
-- **`failure_count` excludes compile errors**: compile errors do NOT count toward the 3-strike TDAID block limit. Merging these two counters breaks retry behavior.
+- **`failure_count` excludes compile errors**: compile errors do NOT count toward the TDAID failure block limit — they cap on their own `compile_error_count` channel (3 consecutive); review-rejection `failure_count` caps at 2 under the R8 retry rule. Merging these two counters breaks retry behavior.
 - **`DESIGN.md` ≠ `design.md`**: uppercase at project root = UI visual spec (from `/design`); lowercase in `.claude/analyze/` = technical architecture layer (from `/analyze`). Never confuse them.
 - **Execute worktrees live under `.claude/worktrees/`**: checkouts go to `.claude/worktrees/execute-{date}-{slug}-{group}` — NEVER `.git/worktrees/` (git's per-worktree metadata lives there; a checkout there is permanently dirty and `git add -A` commits git internals — empirically verified).
-- **goal.md 驗收標準 C{n} is the top acceptance authority** in the analyze→execute chain: a criterion satisfied only in test scaffolding while its production path is inert is NOT met (anchors: execute Step 6 literal cross-check + final-review-agent §1b).
+- **goal.md 驗收標準 C{n} is the top acceptance authority** in the analyze spec→execution chain: a criterion satisfied only in test scaffolding while its production path is inert is NOT met (anchors: `analyze/references/execution-pipeline.md` Step 6 literal cross-check + final-review-agent §1b).
 - **Coverage-riding is a gate-time decision**: the test tier is recorded in task-map.md at Step 3; impl-agent may never self-authorize riding (it only receives the dispatch field `test_weight`).
 - **learn's full digest ends with the 批判層 four sections** (來源矛盾點／盲點／信度評分／後續角度): silence is non-compliant — 「查無矛盾」 must be stated affirmatively.
 - **read `raw/` is immutable by construction**: recaptures version to `raw/{slug}_vN`, cascade fetches go through `/tmp` then move — never write `raw/` twice.
 - **verify-skills.py Gates 10/11 are the contract** for loop-pauses registry completeness and `green_proof` field-name consistency: adding or revising a skill's Automation line or green_proof surface must clear these gates.
-- **No-git projects degrade one-way**: execute falls back to in-place serialized execution (never wedges); ship fast-fails BEFORE any archive move (archiving without git would strand the moved files with no commit to anchor them).
+- **No-git projects degrade one-way**: the analyze execution pipeline falls back to in-place serialized execution (never wedges); ship fast-fails BEFORE any archive move (archiving without git would strand the moved files with no commit to anchor them).
 - **Cross-skill guardrails**: behavioral anti-patterns that apply across skills live in `plugins/baransu/rules/anti-patterns.md`; the skill-specific invariants above stay here.
 
 ## Install

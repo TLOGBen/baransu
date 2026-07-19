@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # test_tdd_trigger.sh — structural verification for TDD trigger plan v4
 # (pruned for the v2 slim-down: /dev was removed; surviving triggers are
-#  /execute impl-agent and /execute review-agent)
+#  the /analyze execution pipeline's impl-agent and review-agent)
 #
 # Greps that the surviving deliverables are in place. Each check is
 # deterministic; first failure prints reason and exits 1.
@@ -9,7 +9,7 @@
 # CLI: test_tdd_trigger.sh
 # Exit codes:
 #   0 — all checks pass (TDD trigger reference + impl-agent/review-agent
-#       citations + green_proof schema + 5-tier matrix + execute verify rule
+#       citations + green_proof schema + 5-tier matrix + pipeline verify rule
 #       + fixture all present)
 #   1 — at least one check failed; stdout names the failing check
 
@@ -25,7 +25,7 @@ cd "$REPO_ROOT"
 TDD_REF="plugins/baransu/skills/_shared/tdd.md"
 IMPL_AGENT="plugins/baransu/agents/impl-agent.md"
 REVIEW_AGENT="plugins/baransu/agents/review-agent.md"
-EXECUTE_SKILL="plugins/baransu/skills/execute/SKILL.md"
+PIPELINE_REF="plugins/baransu/skills/analyze/references/execution-pipeline.md"
 FIXTURE_DIR="tests/scripts/fixtures/tdd-trigger"
 
 fail_count=0
@@ -88,12 +88,12 @@ fi
 # ---------------------------------------------------------------------------
 # Check 4: execute SKILL.md SWITCH verify rule for green_proof
 # ---------------------------------------------------------------------------
-echo "[4] execute SKILL.md verify rule"
-if [[ ! -f "$EXECUTE_SKILL" ]]; then
-  fail "$EXECUTE_SKILL does not exist"
+echo "[4] execution-pipeline verify rule"
+if [[ ! -f "$PIPELINE_REF" ]]; then
+  fail "$PIPELINE_REF does not exist"
 else
-  grep -q "green_proof" "$EXECUTE_SKILL" && pass "green_proof referenced in execute SKILL.md" || fail "green_proof not referenced in execute SKILL.md"
-  grep -qi "verify.*green_proof\|green_proof.*驗證\|green_proof.*verify" "$EXECUTE_SKILL" && pass "verify rule present" || fail "verify rule missing in execute SKILL.md"
+  grep -q "green_proof" "$PIPELINE_REF" && pass "green_proof referenced in execution-pipeline.md" || fail "green_proof not referenced in execution-pipeline.md"
+  grep -qi "verify.*green_proof\|green_proof.*驗證\|green_proof.*verify" "$PIPELINE_REF" && pass "verify rule present" || fail "verify rule missing in execution-pipeline.md"
 fi
 
 # ---------------------------------------------------------------------------

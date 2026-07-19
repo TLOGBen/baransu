@@ -1,8 +1,8 @@
 # Composite correction_strategy — schema and assembly rules
 
-Built by the orchestrator in SKILL.md §4b failure escalation (at
-`failure_count == 2`, from smart-friend output) and passed to the next
-impl-agent dispatch. Content moved verbatim from SKILL.md; semantics unchanged.
+Built by the orchestrator in execution-pipeline.md §4b failure escalation (at
+`failure_count == 1`, from smart-friend output) and passed to the next
+impl-agent dispatch. Semantics unchanged from the pre-merge /execute skill except the trigger point (R8 cap).
 
 **Composite `correction_strategy`** (built by orchestrator from smart-friend output for the next impl dispatch):
 

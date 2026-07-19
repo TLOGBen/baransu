@@ -24,8 +24,7 @@ Repo mode（無參數）執行全部檢查：
  11. green_proof 欄位名跨檔一致（四鍵 × 四發行面；stale 變體
      run_command 全面禁、passed/collected 僅在 green_proof 語境內禁）
 
-Advisory（不影響 exit code）：SKILL.md 本文 >500 行清單（官方上限；
-execute 為既有超限戶）；repo mode 另印 14 skill description+when_to_use
+Advisory（不影響 exit code）：SKILL.md 本文 >500 行清單（官方上限）；repo mode 另印 14 skill description+when_to_use
 總量，超過 LISTING_TOTAL_ADVISORY 時印警示行（見 LISTING_* 常數註記）。
 
 Skills-root mode（一個位置參數 = 含技能目錄的根目錄）：只跑 per-skill 檢查
@@ -105,9 +104,9 @@ LOOP_ROW_CANON_RE = re.compile(
 GREEN_PROOF_KEYS = ("test_command", "exit_code", "output_tail", "tests_correspondence")
 GREEN_PROOF_FILES = (
     "plugins/baransu/agents/review-agent.md",
-    "plugins/baransu/skills/execute/references/green-proof-verify.md",
-    "plugins/baransu/skills/execute/references/orchestration-interface.md",
-    "plugins/baransu/skills/execute/references/output-formats.md",
+    "plugins/baransu/skills/analyze/references/green-proof-verify.md",
+    "plugins/baransu/skills/analyze/references/orchestration-interface.md",
+    "plugins/baransu/skills/analyze/references/output-formats.md",
 )
 # stale 變體：run_command 夠特定 → 四檔內任何位置皆禁；passed / collected 太
 # 泛用（output-formats.md 的 e2e_evidence 區塊合法使用、green-proof-verify.md
