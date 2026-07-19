@@ -34,12 +34,13 @@ if bash -n "$HOOK" 2>/dev/null; then ok "G1 seal-guard.sh syntax clean"; else ba
 
 # G2
 R="$(mkrepo)"; touch_surface "$R"
+T="$(mktemp -d)"
 printf '{"hook_event_name":"Stop","stop_hook_active": true}' \
-  | CLAUDE_PROJECT_DIR="$R" bash "$HOOK"; rc=$?
-if [ "$rc" -eq 0 ] && [ ! -f "$R/.claude/harness/seal-guard.jsonl" ]; then
+  | CLAUDE_PROJECT_DIR="$R" BARANSU_TELEMETRY_DIR="$T" bash "$HOOK"; rc=$?
+if [ "$rc" -eq 0 ] && [ -z "$(find "$T" -name 'seal-guard-*.jsonl' 2>/dev/null)" ]; then
   ok "G2 stop_hook_active=true exits 0 without telemetry"
 else bad "G2 loop-protection path (rc=$rc)"; fi
-rm -rf "$R"
+rm -rf "$R" "$T"
 
 # G3
 D="$(mktemp -d)"
@@ -55,35 +56,37 @@ rm -rf "$R"
 
 # G5
 R="$(mkrepo)"; touch_surface "$R"
-ERR="$(printf '{"stop_hook_active": false}' | CLAUDE_PROJECT_DIR="$R" bash "$HOOK" 2>&1 >/dev/null)"; rc=$?
-LINE="$(tail -1 "$R/.claude/harness/seal-guard.jsonl" 2>/dev/null)"
+T="$(mktemp -d)"
+ERR="$(printf '{"stop_hook_active": false}' | CLAUDE_PROJECT_DIR="$R" BARANSU_TELEMETRY_DIR="$T" bash "$HOOK" 2>&1 >/dev/null)"; rc=$?
+LINE="$(tail -1 "$T/$(basename "$R")/seal-guard-$(date +%Y-%m).jsonl" 2>/dev/null)"
 if [ "$rc" -eq 2 ] \
    && printf '%s' "$ERR" | grep -q "baransu:seal" \
    && printf '%s' "$ERR" | grep -q "SEAL_GUARD=log" \
    && printf '%s' "$LINE" | python3 -c 'import json,sys; d=json.loads(sys.stdin.read()); assert d["mode"]=="block" and d["event"]=="seal-miss"' 2>/dev/null; then
   ok "G5 blocking path: exit 2 + 繁中 instruction + block-mode telemetry"
 else bad "G5 blocking path (rc=$rc, err=$ERR, line=$LINE)"; fi
-rm -rf "$R"
+rm -rf "$R" "$T"
 
 # G6
 R="$(mkrepo)"; touch_surface "$R"
-printf '{"stop_hook_active": false}' | CLAUDE_PROJECT_DIR="$R" SEAL_GUARD=log bash "$HOOK"; rc=$?
-LINE="$(tail -1 "$R/.claude/harness/seal-guard.jsonl" 2>/dev/null)"
+T="$(mktemp -d)"
+printf '{"stop_hook_active": false}' | CLAUDE_PROJECT_DIR="$R" BARANSU_TELEMETRY_DIR="$T" SEAL_GUARD=log bash "$HOOK"; rc=$?
+LINE="$(tail -1 "$T/$(basename "$R")/seal-guard-$(date +%Y-%m).jsonl" 2>/dev/null)"
 if [ "$rc" -eq 0 ] \
    && printf '%s' "$LINE" | python3 -c 'import json,sys; d=json.loads(sys.stdin.read()); assert d["mode"]=="log"' 2>/dev/null; then
   ok "G6 SEAL_GUARD=log degrades to exit 0 with log-mode telemetry"
 else bad "G6 log mode (rc=$rc, line=$LINE)"; fi
-rm -rf "$R"
+rm -rf "$R" "$T"
 
 # G7
 R="$(mkrepo)"; touch_surface "$R"
-mkdir -p "$R/.claude/harness"
-printf '{"ts":"%sT00:00:00","skill":"seal","result":"pass"}\n' "$(date +%F)" > "$R/.claude/harness/seal-log.jsonl"
-printf '{"stop_hook_active": false}' | CLAUDE_PROJECT_DIR="$R" bash "$HOOK"; rc=$?
-if [ "$rc" -eq 0 ] && [ ! -f "$R/.claude/harness/seal-guard.jsonl" ]; then
+T="$(mktemp -d)"; mkdir -p "$T/$(basename "$R")"
+printf '{"ts":"%sT00:00:00","skill":"seal","result":"pass"}\n' "$(date +%F)" > "$T/$(basename "$R")/seal-log-$(date +%Y-%m).jsonl"
+printf '{"stop_hook_active": false}' | CLAUDE_PROJECT_DIR="$R" BARANSU_TELEMETRY_DIR="$T" bash "$HOOK"; rc=$?
+if [ "$rc" -eq 0 ] && [ -z "$(find "$T" -name 'seal-guard-*.jsonl' 2>/dev/null)" ]; then
   ok "G7 same-day seal evidence exits 0 without telemetry"
 else bad "G7 seal evidence path (rc=$rc)"; fi
-rm -rf "$R"
+rm -rf "$R" "$T"
 
 # G8
 if python3 - "$HOOKS_JSON" <<'EOF' 2>/dev/null
@@ -98,17 +101,18 @@ then ok "G8 hooks.json registers Stop → seal-guard.sh via CLAUDE_PLUGIN_ROOT"
 else bad "G8 hooks.json registration"; fi
 
 # G9 — producer side: seal SKILL.md must instruct writing the evidence file the hook reads
-if grep -q 'seal-log\.jsonl' "$REPO_ROOT/plugins/baransu/skills/seal/SKILL.md"; then
+if grep -q 'seal-log-{YYYY-MM}\.jsonl' "$REPO_ROOT/plugins/baransu/skills/seal/SKILL.md"; then
   ok "G9 seal SKILL.md contains seal-log.jsonl write instruction (producer side pinned)"
 else bad "G9 seal SKILL.md lacks seal-log.jsonl instruction — hook evidence chain dangling"; fi
 
 # G10 — SEAL_GUARD=off still appends telemetry and exits 0
 R="$(mkrepo)"; touch_surface "$R"
-printf '{"stop_hook_active": false}' | CLAUDE_PROJECT_DIR="$R" SEAL_GUARD=off bash "$HOOK"; rc=$?
-if [ "$rc" -eq 0 ] && grep -q '"mode":"off"' "$R/.claude/harness/seal-guard.jsonl" 2>/dev/null; then
+T="$(mktemp -d)"
+printf '{"stop_hook_active": false}' | CLAUDE_PROJECT_DIR="$R" BARANSU_TELEMETRY_DIR="$T" SEAL_GUARD=off bash "$HOOK"; rc=$?
+if [ "$rc" -eq 0 ] && grep -q '"mode":"off"' "$T/$(basename "$R")/seal-guard-$(date +%Y-%m).jsonl" 2>/dev/null; then
   ok "G10 SEAL_GUARD=off appends jsonl and exits 0"
 else bad "G10 off-mode telemetry path (rc=$rc)"; fi
-rm -rf "$R"
+rm -rf "$R" "$T"
 
 echo ""
 echo "=== test-seal-guard-hook: $PASS passed, $FAIL failed ==="

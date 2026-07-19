@@ -18,7 +18,18 @@ monthly review.
 
 ## What to write
 
-Append one JSON line to `.codex/harness/selection-log.jsonl` in the user project:
+Append one JSON line to the central user-scope ledger — NOT a per-project file:
+
+```
+~/.codex/baransu/telemetry/{project}/selection-log-{YYYY-MM}.jsonl
+```
+
+`{project}` = the git-root basename; when there is no git repo, simply the cwd
+folder name. `{YYYY-MM}` = current month (monthly files are the time rotation —
+no other rotation mechanism exists or is needed). The seal-guard hook writes its
+`seal-guard-{YYYY-MM}.jsonl` and reads `/seal`'s `seal-log-{YYYY-MM}.jsonl` in the
+same directory, so the monthly review is one directory read per project under a
+single root. Example record:
 
 ```json
 {"ts":"2026-07-19T21:40:00+08:00","skill":"contract","task":"換源進度遷移 CLI 訊息","band":"medium","why":"one feature, few files, user-facing surfaces","miss":false}
@@ -32,7 +43,7 @@ Keep it to one line; this is telemetry, not a journal.
 
 - **False-trigger rate** = records where the band/skill chosen was wrong for the task
   (judged in hindsight) ÷ total records.
-- **Miss rate** = (`"miss": true` records + seal-guard.jsonl confirmed lines) ÷
+- **Miss rate** = (`"miss": true` records + seal-guard-\{month\}.jsonl confirmed lines) ÷
   (those + total records).
 - Review outcomes feed three standing decisions: seal-guard default de-escalation
   (blocking → log, if the false-block rate is material), the `/codex-skill-transfer` retirement clause

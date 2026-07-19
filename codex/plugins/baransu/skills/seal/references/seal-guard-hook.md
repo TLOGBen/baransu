@@ -25,10 +25,10 @@ At `Stop`, the hook:
    patterns (`println!` / `console.log` / `printf(` / `print(` …, tunable via
    `SEAL_GUARD_PATTERNS`). The heuristic is deliberately conservative: misses are
    acceptable, false blocks are the expensive failure mode.
-3. **Seal evidence** (exit 0): a same-day line in `.codex/harness/seal-log.jsonl`
+3. **Seal evidence** (exit 0): a same-day line in `~/.codex/baransu/telemetry/{project}/seal-log-{YYYY-MM}.jsonl`
    (written by `/seal` on completion), or a `SEAL:` trailer in the latest commit.
 4. **On miss — telemetry in every mode**: appends one JSON line to
-   `.codex/harness/seal-guard.jsonl`
+   `~/.codex/baransu/telemetry/{project}/seal-guard-{YYYY-MM}.jsonl`（central user scope, split by project and month; `BARANSU_TELEMETRY_DIR` overrides the root）
    (`{"ts":…,"event":"seal-miss","mode":…,"repo":…,"surfaces":N}`), so the monthly
    review keeps its data even when blocking is degraded.
 5. **Verdict**: default → exit 2 with the Traditional Chinese instruction on stderr

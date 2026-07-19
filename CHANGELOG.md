@@ -2,6 +2,11 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [3.0.1] - 2026-07-19
+
+### Changed
+- **Telemetry centralized to user scope**: all telemetry ledgers move from per-project `.claude/harness/` to `~/.claude/baransu/telemetry/{project}/{type}-{YYYY-MM}.jsonl` — split by project (git-root basename; cwd folder name when no git) and by month (monthly files are the rotation). Collection is one directory read; `BARANSU_TELEMETRY_DIR` overrides the root. seal-guard hook, `/seal` evidence obligation, and `_shared/selection-telemetry.md` all point at the central layout.
+
 ## v3.0.0 (2026-07-19)
 
 **版圖重組：三頻段路由落地——雙塔合一＋雙釘獨立＋修憲 15**。plugin version 2.13.0 → 3.0.0。依據：10-arm harness×model 矩陣實驗＋R1–R9 改革驗證輪（完整記錄與判決在 `.claude/experiments/2026-07-19-harness-matrix/`；核心結論——品質槓桿是驗收條文的可斷言性，不是流程重量；改革版全套 p3-os′ 以 59% 成本追平頂級模型冠軍，一頁合約＋單次 seal 以 22% 成本達成行為面全數達標）。

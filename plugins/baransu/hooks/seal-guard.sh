@@ -6,8 +6,12 @@
 # Degrade switches (env):
 #   SEAL_GUARD=log   → detect + append telemetry, never block
 #   SEAL_GUARD=off   → detect + append telemetry, never block, fully silent
-# Telemetry (.claude/harness/seal-guard.jsonl) is appended in EVERY mode so the
-# monthly review keeps its miss-rate data even when blocking is degraded.
+# Telemetry is appended in EVERY mode so the monthly review keeps its miss-rate
+# data even when blocking is degraded. Logs live centrally in the USER scope —
+# ~/.claude/baransu/telemetry/{project}/{type}-{YYYY-MM}.jsonl — split by project
+# (git-root basename; conventions use the cwd folder name when there is no git)
+# and by month, so collection is one directory read, no per-project scatter.
+# Override root with BARANSU_TELEMETRY_DIR (tests use this).
 #
 # Exit contract: 0 = allow stop; 2 = block stop (stderr fed back to Claude).
 # Any detection failure degrades to exit 0 — a heuristic guard must never wedge
@@ -47,9 +51,11 @@ TOUCHED="$(printf '%s\n' "$DIFF" \
 [ -n "$TOUCHED" ] || exit 0
 
 # --- seal evidence ----------------------------------------------------------
-HARNESS="$ROOT/.claude/harness"
+TROOT="${BARANSU_TELEMETRY_DIR:-$HOME/.claude/baransu/telemetry}"
+TDIR="$TROOT/$(basename "$ROOT")"
+MONTH="$(date +%Y-%m)"
 TODAY="$(date +%F)"
-if [ -f "$HARNESS/seal-log.jsonl" ] && grep -q "$TODAY" "$HARNESS/seal-log.jsonl" 2>/dev/null; then
+if [ -f "$TDIR/seal-log-$MONTH.jsonl" ] && grep -q "$TODAY" "$TDIR/seal-log-$MONTH.jsonl" 2>/dev/null; then
   exit 0
 fi
 if git -C "$ROOT" log -1 --format=%B 2>/dev/null | grep -q '^SEAL:'; then
@@ -57,11 +63,11 @@ if git -C "$ROOT" log -1 --format=%B 2>/dev/null | grep -q '^SEAL:'; then
 fi
 
 # --- miss: telemetry in every mode -------------------------------------------
-mkdir -p "$HARNESS" 2>/dev/null || exit 0
+mkdir -p "$TDIR" 2>/dev/null || exit 0
 N_SURFACES="$(printf '%s\n' "$TOUCHED" | wc -l | tr -d ' ')"
 SAFE_ROOT=${ROOT//\\/\\\\}; SAFE_ROOT=${SAFE_ROOT//\"/\\\"}
 printf '{"ts":"%s","event":"seal-miss","mode":"%s","repo":"%s","surfaces":%s}\n' \
-  "$(date -Is)" "$MODE" "$SAFE_ROOT" "$N_SURFACES" >> "$HARNESS/seal-guard.jsonl" 2>/dev/null || true
+  "$(date -Is)" "$MODE" "$SAFE_ROOT" "$N_SURFACES" >> "$TDIR/seal-guard-$MONTH.jsonl" 2>/dev/null || true
 
 # --- verdict -----------------------------------------------------------------
 case "$MODE" in
