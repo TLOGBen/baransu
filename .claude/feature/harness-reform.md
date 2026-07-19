@@ -59,15 +59,18 @@
 
 ## 三、當前階段
 
-**Phase 1 — 版圖重組落地（進行中）**
+**Phase 1 — 版圖重組落地（手術進行中，2026-07-19 Stage G 已批准）**
 
 - /think Full mode 已跑完（對焦：觸發體驗優先／上限可鬆綁＋可大拆／成功＝觸發正確率可觀測）。
-- 五節計畫草稿：baransu `.claude/think/skill-restructure-phase1-draft.md`。
-  核心：新增 `/contract` `/seal` 獨立微型 skill＋analyze/execute 合併為單一大頻段管線（保留
-  /analyze 名）＋上限 14→15 小幅修憲（不退役 codex-skill-transfer——實查 28 專屬測試非弱持有）＋
-  R1 文本進 _shared 單一實作＋分段落地（雙釘→合併→憲法→版本 3.0.0，每段 make test 全綠）。
-- **狀態：Stage G 選項 1——計畫已送 /review，architecture + quality 兩視角審查員執行中**；
-  審後回 Stage G 閘由使用者裁決。dispatcher==author 規則生效（相牴 findings 不得自降級）。
+- /review 完成（arch+quality＋對抗輪）：4 需判斷＋4 packaged＋1 hard-stop（「0 bug」名詞不符），
+  使用者四項全採推薦——F1 count-neutral 分段重切／F2 hook 預設僅記錄模式（KD5 機制錨）／
+  F3 保留四機件（worktree/三振/coverage-riding/收尾 agents，R8 只裁儀式）／修訂即批准。
+  審查日誌：`.claude/review/2026-07-19-phase1-restructure-plan.html`。
+- **批准版計畫：`.claude/feature/phase1-restructure-plan.md`（修訂版 v2）**。
+  核心：`/contract` `/seal` 雙釘獨立＋analyze/execute 合併（保留 /analyze 名，execute 流程文本
+  降入 references/）＋上限 14→15（三處錨）＋count-neutral 三段落地（①合併＋contract＋Gate 錨遷移
+  14進14出→②seal＋修憲 15對15→③版本/路由/CHANGELOG），每段 make test 全綠，feature branch + PR。
+- **狀態：手術開始——branch `feat/phase1-restructure`。**
 
 ## 四、之後階段
 
