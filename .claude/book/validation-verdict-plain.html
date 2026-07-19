@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>墊底翻身記——驗證輪判決白話版</title>
+  <style>
+/* preset: kami; schema: 43 */
+/* 紙 (Kami) Preset — v1.3 baransu canonical token schema
+   ────────────────────────────────────────────────────────
+   Visual language: warm parchment background, deep ink-blue accent, serif typography.
+   All HTML骨架 (design-cores/, slide-cores/) consume tokens by their canonical names.
+   See plugins/baransu/skills/design/SKILL.md §Canonical Token Schema for the v1.3 spec.
+*/
+
+:root {
+  /* ── Surface ─────────────────────────────── */
+  --paper:          #f5f4ed;  /* page background — warm parchment, never pure white */
+  --surface:        #faf9f5;  /* cards, lifted containers — ivory */
+  --surface-strong: #e8e6dc;  /* buttons, interactive surfaces — warm sand */
+  --dark-surface:   #30302e;  /* dark containers */
+  --deep-dark:      #141413;  /* dark page background */
+
+  /* ── Accent (sole chromatic, ≤5% surface — Kami invariant #2) ── */
+  --accent:    #1B365D;  /* deep ink-blue */
+  --accent-on: #faf9f5;  /* foreground on --accent fills — ivory, not pure white */
+
+  /* ── Text hierarchy ──────────────────────── */
+  --ink:            #141413;  /* structural ink alias for primary text */
+  --text-primary:   #141413;  /* body and headings */
+  --text-secondary: #3d3d3a;  /* secondary text, table headers, link rest */
+  --text-muted:     #504e49;  /* tertiary, captions */
+  --text-faint:     #6b6a64;  /* metadata, placeholder */
+
+  /* ── Borders ─────────────────────────────── */
+  --border:      #e8e6dc;  /* primary border / divider */
+  --border-soft: #e5e3d8;  /* secondary border / row separator */
+
+  /* ── Typography ──────────────────────────── */
+  --font-serif: Charter, Georgia, Palatino, "Times New Roman", serif;
+  --font-sans:  var(--font-serif);   /* intentional: sans aliases serif (Kami) */
+  --font-mono:  "JetBrains Mono", "SF Mono", "Fira Code", Consolas, Monaco, monospace;
+
+  /* Chinese override — paste inside :lang(zh) or .lang-zh:
+     --font-serif: "TsangerJinKai02", "Source Han Serif SC", "Noto Serif CJK SC",
+                   "Songti SC", "STSong", Georgia, serif;                          */
+
+  /* ── Depth (ring / whisper only — no hard shadows; Kami inv #9) ── */
+  --shadow-ring:    0 0 0 1px var(--border);
+  --shadow-whisper: 0 4px 24px rgba(0, 0, 0, 0.05);
+
+  /* ── Spacing (Kami print scale — not a strict 4pt grid; the 3/5/10 steps are intentional hand-tuned values) ── */
+  --space-xs:  3px;
+  --space-sm:  5px;
+  --space-md: 10px;
+  --space-lg: 20px;
+  --space-xl: 32px;
+  --space-2xl:56px;
+  --space-3xl:96px;
+
+  /* ── Radius scale ────────────────────────── */
+  --radius-xs:  4px;
+  --radius-sm:  6px;
+  --radius-md:  8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl:24px;
+  --radius-hero:32px;
+
+  /* ── Layout (preset-specific overrides) ── */
+  --cover-title-align: center;   /* Kami covers center; Swiss flushes left */
+  --grid-columns: 12;
+  --grid-gutter:  24px;
+
+  /* ── Semantic (metric.html consumer) ── */
+  --delta-up:   #2a6c45;  /* warm dark green */
+  --delta-down: #7a2e2e;  /* warm dark red */
+
+  /* ── Capability (gen-power; Kami's committed extreme is restrained — drama stays low-key) ── */
+  --ease:         cubic-bezier(0.4, 0, 0.2, 1);  /* gentle standard ease */
+  --duration:     200ms;                          /* unhurried, print-calm */
+  --stagger-step: 40ms;                           /* slow sequential reveal */
+  --font-display: var(--font-serif);              /* display = the serif voice */
+  --shadow-drama: 0 12px 40px rgba(0, 0, 0, 0.08);/* even "drama" is a whisper */
+}
+
+/* ── Base reset (minimal, Kami-safe) ─────────────────────── */
+body {
+  background: var(--paper);
+  color: var(--text-primary);
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Heading weight locked at 500 — Kami invariant #5 */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+/* Modular scale: perfect fourth r=1.333 (anchor body=16px) — see canonical-tokens.md */
+h1 { font-size: 2.375rem;  line-height: 1.15; }  /* 38px ≈ 16 × 1.333³ */
+h2 { font-size: 1.75rem;   line-height: 1.20; }  /* 28px ≈ 16 × 1.333² */
+h3 { font-size: 1.3125rem; line-height: 1.30; }  /* 21px ≈ 16 × 1.333  */
+
+/* No italics — Kami invariant #10 */
+em, i { font-style: normal; font-weight: 500; }
+
+/* Links */
+a { color: var(--text-secondary); text-decoration-color: var(--border); }
+a:hover { color: var(--accent); }
+
+code, pre {
+  font-family: var(--font-mono);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+code { padding: 0.1em 0.4em; font-size: 0.875em; }
+pre  { padding: 1rem 1.25rem; font-size: 0.875em; line-height: 1.55; overflow-x: auto; }
+
+  </style>
+  <style>
+    * { box-sizing: border-box; }
+    body { background: var(--paper); color: var(--text-primary); font-family: "TsangerJinKai02", "Source Han Serif TC", "Noto Serif CJK TC", "Songti TC", Charter, Georgia, serif; margin: 0; text-wrap: pretty; }
+    .kami-page { max-width: 1200px; margin: 0 auto; padding: 56px 24px; display: grid; grid-template-columns: 220px 1fr; gap: 56px; }
+    .kami-toc { position: sticky; top: 24px; align-self: start; border-left: 3px solid var(--accent); padding-left: 16px; }
+    .kami-toc .kami-toc-label { font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.08em; }
+    .kami-toc h1 { font-size: 18px; margin: 8px 0 24px; font-weight: 500; }
+    .kami-toc ol { list-style: none; padding: 0; margin: 0; }
+    .kami-toc a { display: block; font-size: 13px; color: var(--text-secondary); text-decoration: none; padding: 4px 0; }
+    .kami-toc a:hover { color: var(--accent); }
+    .kami-h1 { font-size: 30px; font-weight: 500; line-height: 1.2; margin: 0 0 16px; text-wrap: pretty; }
+    .kami-h2 { font-size: 24px; font-weight: 500; line-height: 1.25; border-left: 3px solid var(--accent); padding-left: 12px; margin: 0 0 16px; text-wrap: pretty; }
+    .kami-lead { font-size: 17px; line-height: 1.55; margin: 16px 0; max-width: 680px; }
+    .kami-body { font-size: 15px; line-height: 1.55; margin: 12px 0; max-width: 680px; text-wrap: pretty; }
+    .kami-dropcap { float: left; font-size: 4.65em; line-height: 1; font-weight: 500; color: var(--accent); padding-right: 8px; padding-top: 2px; }
+    .kami-caption { font-size: 12px; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; }
+    .kami-quote { border-left: 2px solid var(--accent); padding: 8px 0 8px 16px; color: var(--text-secondary); margin: 24px 0; line-height: 1.55; max-width: 680px; }
+    .kami-code { font-family: var(--font-mono); font-size: 13px; background: var(--surface); padding: 2px 6px; border-radius: var(--radius-sm); border: 0.5px solid var(--border-soft); }
+    figure.kami-figure { margin: 32px 0; }
+    figure.kami-figure svg { display: block; max-width: 100%; }
+    figcaption.kami-figcaption { font-size: 12px; color: var(--text-muted); margin-top: 8px; text-align: center; }
+    .kami-footer { font-size: 12px; color: var(--text-faint); border-top: 0.5px solid var(--border); padding-top: 16px; margin-top: 96px; }
+    em, i { font-style: normal; font-weight: 500; }
+    section.kami-sec { margin-bottom: 96px; }
+    ul.kami-list { list-style: none; padding: 0; margin: 12px 0; max-width: 680px; }
+    ul.kami-list li { position: relative; padding-left: 20px; margin-bottom: 10px; font-size: 15px; line-height: 1.55; }
+    ul.kami-list li::before { content: ""; position: absolute; left: 0; top: 0.72em; width: 8px; height: 1.5px; background: var(--accent); }
+    table.kami-table { border-collapse: collapse; width: 100%; font-size: 13px; line-height: 1.45; margin: 20px 0; }
+    table.kami-table th { color: var(--text-secondary); font-weight: 500; text-align: left; border-bottom: 1px solid var(--border); padding: 8px 10px; }
+    table.kami-table td { border-bottom: 1px solid var(--border-soft); padding: 8px 10px; vertical-align: top; }
+    .sec-num { font-family: var(--font-mono); font-size: 13px; color: var(--text-faint); margin-right: 10px; }
+    @media (max-width: 900px) { .kami-page { grid-template-columns: 1fr; gap: 24px; padding: 24px; } .kami-toc { position: static; } }
+  </style>
+</head>
+<body class="kami-paper-body">
+<div class="kami-page">
+  <aside class="kami-toc">
+    <div class="kami-toc-label">Contents</div>
+    <h1>墊底翻身記</h1>
+    <ol>
+      <li><a href="#s1">01 這輪在測什麼</a></li>
+      <li><a href="#s2">02 只改三件事</a></li>
+      <li><a href="#s3">03 墊底翻身記</a></li>
+      <li><a href="#s4">04 一頁紙的成績</a></li>
+      <li><a href="#s5">05 兩類 bug 絕種了</a></li>
+      <li><a href="#s6">06 以後怎麼用＋帳本</a></li>
+    </ol>
+  </aside>
+  <main class="kami-main">
+    <header class="kami-cover">
+      <p class="kami-caption">Verdict · Plain Edition · 2026-07-19 · Vol.3</p>
+      <h1 class="kami-h1">墊底翻身記——驗證輪判決白話版</h1>
+      <p class="kami-lead">同樣的人馬再上場，只改一件事：把合約寫死。然後上一輪的最後一名，追平了冠軍。</p>
+    </header>
+    <section data-slot="long-form-body">
+
+      <section id="s1" class="kami-sec">
+        <h2 class="kami-h2"><span class="sec-num">01</span>這輪在測什麼</h2>
+        <p class="kami-body"><span class="kami-dropcap">上</span>一輪實驗留下一個尷尬結果：花最多錢、開最多 agent 的完整流程組合墊底，什麼流程都不給的單模型裸做反而排在前面。診斷出的病因不是流程本身，是規格太鬆——像驗收房子時合約只寫「牆壁應該好看」，監工看到牆歪了，翻合約也找不到條文退件，只能寫個「建議改善」放行。</p>
+        <p class="kami-body">上一輪的審查員正是如此：它看到了 bug（畫面印出自相矛盾的章節編號），但條文只要求「訊息裡要有某幾個字」，bug 沒違反條文，按規矩只能放行。這一輪把同樣的人馬（Opus 規劃、Sonnet 實作）再派上場，只改合約的鬆緊。</p>
+      </section>
+
+      <section id="s2" class="kami-sec">
+        <h2 class="kami-h2"><span class="sec-num">02</span>只改三件事</h2>
+        <ul class="kami-list">
+          <li><em>條文寫到能退件。</em>以前寫「要顯示遷移結果」；現在寫「訊息必須一字不差是『進度已遷移：{章節名}』，不准出現任何從編號算出來的數字」。監工看到違規，條文就是尚方寶劍。</li>
+          <li><em>固定的東西用抄的，不准用背的。</em>上次一個正規表達式經兩手轉抄，簡體「节」默默消失，整條功能靜默失效。這次規格放一個原文照抄區，寫的人複製貼上，驗的人逐字比對。</li>
+          <li><em>審查員的工作說明書換掉。</em>四個具體動作：逐條對合約、專掃沒測試保護又給使用者看的東西、檢查兩個介面有沒有各寫各的、常數逐字比對。外加新規矩：合約沒禁止不是放行的理由——看到真 bug 但條文管不到，那是合約的 bug，一樣退件。</li>
+        </ul>
+      </section>
+
+      <section id="s3" class="kami-sec">
+        <h2 class="kami-h2"><span class="sec-num">03</span>墊底翻身記</h2>
+        <p class="kami-body">同樣的 Opus 加 Sonnet，這次 20 條驗收全部有測試釘死、零 bug、架構滿級。盲評做了破壞測試——故意把六個功能各弄壞一次看測試會不會叫——六次全部被抓到。測試不是裝飾品，是真的在站崗。</p>
+        <blockquote class="kami-quote">值得放大的一個瞬間：Sonnet 第一版有缺陷，審查員直接退件附具體理由，第二版修好。上一輪同位置的審查員看到同型缺陷，是寫個建議就放行的。同一個模型當審查員，合約鬆緊不同，行為完全不同——牙齒長在條文上，不長在模型上。</blockquote>
+        <figure class="kami-figure">
+          <svg viewBox="0 0 640 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="p3-os 改革前後對比">
+            <rect width="100%" height="100%" fill="#f5f4ed"/>
+            <text x="320" y="32" fill="#141413" font-size="15" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">同一組人馬，改革前後</text>
+            <rect x="80" y="64" width="160" height="64" rx="4" fill="#faf9f5" stroke="#7a2e2e" stroke-width="1.5"/>
+            <text x="160" y="88" fill="#7a2e2e" font-size="13" font-family="'JetBrains Mono', monospace" text-anchor="middle">改革前（墊底）</text>
+            <text x="160" y="110" fill="#504e49" font-size="10" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">17 條釘死・1 重大＋1 中缺陷</text>
+            <rect x="400" y="64" width="160" height="64" rx="4" data-role="focal" fill="#EEF2F7" stroke="#1B365D" stroke-width="1.5"/>
+            <text x="480" y="88" fill="#1B365D" font-size="13" font-family="'JetBrains Mono', monospace" text-anchor="middle">改革後（冠軍級）</text>
+            <text x="480" y="110" fill="#504e49" font-size="10" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">20 條全釘死・零缺陷・6/6 突變全殺</text>
+            <rect x="80" y="176" width="160" height="32" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1" stroke-dasharray="4,3"/>
+            <text x="160" y="196" fill="#141413" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">審查看到缺陷 → 放行</text>
+            <rect x="400" y="176" width="160" height="32" rx="4" fill="#faf9f5" stroke="#1B365D" stroke-width="1" stroke-dasharray="4,3"/>
+            <text x="480" y="196" fill="#1B365D" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">審查看到缺陷 → 退件重做</text>
+            <text x="320" y="256" fill="#504e49" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">改變行為的不是換模型，是把條文從「建議」升級成「尚方寶劍」</text>
+            <text x="320" y="280" fill="#504e49" font-size="11" font-family="'JetBrains Mono', monospace" text-anchor="middle">$11.84 → $19.29（冠軍配置的 59%）</text>
+          </svg>
+          <figcaption class="kami-figcaption">下次選配置時，先問合約寫死了沒——再決定要不要加人加流程。</figcaption>
+        </figure>
+      </section>
+
+      <section id="s4" class="kami-sec">
+        <h2 class="kami-h2"><span class="sec-num">04</span>一頁紙的成績</h2>
+        <p class="kami-body">另一個極簡實驗：不要任何 skill，只有三步——Opus 讀完任務寫一頁 35 行的合約，Sonnet 照做，最後 Opus 開一個乾淨腦袋回來驗一次收。結果：功能行為全對、零 bug、$7.27（冠軍的兩成二）。</p>
+        <p class="kami-body">最精彩的是驗收那步：它故意弄壞 CLI 的成功訊息，發現測試沒亮紅燈——上輪害死五個組合的同款漏洞——當場自己修好、補上兩條測試。最後一道防線真的接住了球。唯一輸給完整流程的地方：有兩處接線沒釘到最深，行為是對的，但未來有人改壞時測試不一定會叫。一頁紙和全套的差距不在會不會出 bug，在保護網織得多密。</p>
+      </section>
+
+      <section id="s5" class="kami-sec">
+        <h2 class="kami-h2"><span class="sec-num">05</span>兩類 bug 絕種了</h2>
+        <ul class="kami-list">
+          <li>編號加一的章數缺陷：上輪十組五組中招 → 這輪三組<em>零出現</em></li>
+          <li>常數轉抄缺陷：三組正規表達式逐字比對全乾淨 → <em>零出現</em></li>
+          <li>條文寫死＋原文照抄是結構性消滅——讓錯誤無處生長，不是賭它少發生</li>
+          <li>共同舊病重申：閱讀器把資料庫編號當陣列位置的既有缺陷，三位盲評全數再度標記，修它排待辦第一位</li>
+        </ul>
+      </section>
+
+      <section id="s6" class="kami-sec">
+        <h2 class="kami-h2"><span class="sec-num">06</span>以後怎麼用＋帳本</h2>
+        <table class="kami-table">
+          <tr><th>情境</th><th>做法</th><th>代價與回報</th></tr>
+          <tr><td>小改動</td><td>直接做，零儀式</td><td>約一個小缺陷的稅</td></tr>
+          <tr><td>一般功能</td><td>開工一頁合約＋收工一次驗收</td><td>成本＋兩三成，換掉九成低級 bug</td></tr>
+          <tr><td>大工程／錯不起</td><td>條文寫死的全套流程</td><td>冠軍品質、六成價</td></tr>
+          <tr><td>禁忌</td><td>條文鬆的全套流程</td><td>最差選擇——一排綠燈的假安心</td></tr>
+        </table>
+        <p class="kami-body">你原本的直覺「流程太重，想裸跑看看」，數據說對了一半：重不是罪，鬆才是罪。帳本：驗證輪三組 $31.57＋盲評約 $10；兩輪實驗合計約 $240。換到三種用法的實測分數，和兩類 bug 的絕種證明。</p>
+      </section>
+
+    </section>
+    <footer class="kami-footer">墊底翻身記 · Vol.3 · 2026-07-19 · 前兩冊與完整判決見 <span class="kami-code">.claude/experiments/2026-07-19-harness-matrix/</span></footer>
+  </main>
+</div>
+</body>
+</html>

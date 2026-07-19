@@ -1,0 +1,23 @@
+# Impl Checklist: shared
+
+## TASK-shared-01
+- [x] Cargo.toml 含 tui-textarea (與 ratatui 0.28 相容版本)
+- [x] cargo build 成功
+- [x] cargo build --tests 成功
+- Review 結果：advisory
+- 備註：commit a4e6dca — Cargo.toml +1 行 (`tui-textarea = "0.6"`)，Cargo.lock 新增 tui-textarea 0.6.1 (transitive: crossterm/ratatui/unicode-width，皆已存在或無衝突)。ratatui 0.28 / crossterm 0.28 版本未動。`cargo build --bin novel-looker` exit 0；`cargo build --tests` exit 0；`cargo test` 4/4 passed (C10 既有測試全綠)。dead_code warning 仍是預期的 `BackupReceipt.filename` + `select_within` 兩條，未新增 warning。`cargo audit` 未跑（spec 標為可選）。
+
+## TASK-shared-02
+- [x] src/presentation/handlers/tui/mod.rs 存在
+- [x] Transition / EntryMode / Screen trait / App / run_loop 框架
+- [x] RawTerm RAII + panic hook + Drop 三重保險
+- [x] cargo build 過（搭配 stub MenuScreen）
+- Review 結果：advisory
+- 備註：retry commit 865b814（取代 33bb3b2）。前次兩條 finding 已落實 — App 改回三欄位 owned `{ current, entry_mode, ctx: AppContext }`（mod.rs:92-97），`pub fn new(current, entry_mode, ctx)` ctor 對應（mod.rs:101-103）；`run_loop` 簽名改為單參數 `pub async fn run_loop(app: App) -> Result<()>`（mod.rs:166），內部 `let mut app = app` 後用 `app.current.handle_event` / `app.current = next` 走 Transition dispatch。其餘 AC PASS：Screen trait 簽名 `draw(&mut self, &mut Frame)` + `handle_event(&mut self, KeyEvent) -> Transition`（mod.rs:77-80），Transition 三變體 `To(Box<dyn Screen>) / Stay / Quit`（mod.rs:65-69），EntryMode `Copy + Clone + PartialEq + Eq + Debug`（mod.rs:52-56）；RawTerm RAII 進入時 `enable_raw_mode + EnterAlternateScreen + EnableMouseCapture`（mod.rs:118-125）、Drop 反序 best-effort 三步清理（mod.rs:128-140）；`install_panic_hook` chain original hook 並在 panic 前清理 terminal（mod.rs:147-154）— RawTerm::Drop（run_loop stack）+ panic hook 共同達成「雙保險」safety contract（AC 文字提及 App::Drop，但 RawTerm 已 own terminal，App 不持有 terminal 物件、無需自 impl Drop；功能等價且更乾淨，記為 advisory 觀察）。`pub mod tui;` 在 handlers/mod.rs:13；v1 `handle(novel_id, &mut AppContext)` 入口保留（mod.rs:37-39），cli.rs:101 dispatch 路徑無破壞。Stub MenuScreen `q→Quit / _→Stay`（mod.rs:202-215）。itemized `#[allow(dead_code)]` 對齊 catalog/rule::select_within + backup::BackupReceipt.filename 既有 precedent。`cargo build --bin novel-looker` exit 0、2 warnings = baseline；`cargo test catalog::` 4/4 pass、`cargo test` 全套 4/4 pass。Commit body 仍寫舊版 `App { current, entry_mode } + run_loop(app, ctx)`（commit message 落後一步），但 tree state 為修正後版本，屬可接受文檔不一致（不影響行為）。
+
+## TASK-shared-03
+- [x] widgets.rs: toast / SingleLineInput / error_line
+- [x] UNIT-6 SingleLineInput 行為測試
+- [x] cargo build 過
+- Review 結果：advisory
+- 備註：worktree shared commit `1f7792f`。widgets.rs +210 lines、mod.rs +1 (`pub mod widgets;` line 33)。API 全對齊 ctx.md Constraints（lines 121-138）：`toast(frame, area, msg, ToastKind::{Info,Error})`（widgets.rs:45、Info→Blue fg、Error→White-on-Red）；`SingleLineInput { new(impl Into<String>), handle_event(KeyEvent)→SingleLineEvent, text()→&str, draw(&self,&mut Frame,Rect) }`（widgets.rs:87-156）；`SingleLineEvent::{Submit(String), Cancel, Edit}`（widgets.rs:70-77）；`error_line(&str)→Paragraph<'_>` 紅字（widgets.rs:165）。`new` 簽名從 spec 的 `&str` 放寬為 `impl Into<String>`，向下相容、可接 `&str`/`String` 二者（advisory observation：doc comment line 93 仍寫 `&str`，cosmetic 不影響行為）。tui_textarea 不外洩 — grep `tui_textarea` / `TextArea` 整個 src/ 樹僅 widgets.rs:24 一處 `use tui_textarea::TextArea;`，沒有任何 `pub use` 或在 public signature 出現。單行限制走 structural intercept：`handle_event` match `KeyCode::Enter→Submit` / `KeyCode::Esc→Cancel` 兩個 arm 都直接 return 不呼叫 `textarea.input(key)`，只有 `_=>` 才 forward，故 textarea 永遠不會收到 `\n`。UNIT-6 三條全綠且映射對齊：(1) `single_line_input_enter_submits_text` 'h''i'Enter→assert `Submit(ref s) if s=="hi"`（widgets.rs:179-185）；(2) `single_line_input_esc_cancels` Esc→assert `Cancel`（widgets.rs:188-192）；(3) `single_line_input_no_newline_on_multiple_enter` 'a'+Enter+'b'+Enter→assert `!Submit.contains('\n')`（widgets.rs:195-207）。Test 3 只 assert payload 無 '\n' 而不 assert `textarea.lines().len()==1`，前者就是公開合約上要保的；後者是 defense-in-depth，未來可加但非必要（advisory）。`toast` / `error_line` 純畫面副作用、無 UT — 與測試光譜「Unit 層、不需網路 / sqlite」一致、需 Backend mock 才能行為驗證，spec 也只要求 UNIT-6 覆蓋 SingleLineInput，acceptable。itemized `#[allow(dead_code)]` 全函數 / struct / enum / variant 對齊 catalog/rule::select_within + BackupReceipt.filename precedent（ctx.md:15）。`LIBCLANG_PATH=/usr/lib/llvm-18/lib cargo test --bin novel-looker` exit 0：7/7 pass（3 新 UNIT-6 + 4 既有 catalog::rule tests 無回歸），baseline 2 個 dead_code warning 未增。最小觀察（advisory，未阻塞）：(a) `SingleLineInput::draw` 每 frame clone textarea 來 attach block（widgets.rs:152），對 0.6 的 `TextArea<'static>` 是 Vec<String>+cursor 小物件、cost 可忽略，未來 hot path 可移到 `new`；(b) `handle_event` 只 match `key.code`、不審 `KeyModifiers`，未來若有嚴格輸入白名單需求再處理；(c) `new` 文檔字串說 `&str` 但實際是 `impl Into<String>`、cosmetic。

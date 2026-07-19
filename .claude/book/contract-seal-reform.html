@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>雙塔換雙釘——十格實驗之後的改革設計</title>
+  <style>
+/* preset: kami; schema: 43 */
+/* 紙 (Kami) Preset — v1.3 baransu canonical token schema
+   ────────────────────────────────────────────────────────
+   Visual language: warm parchment background, deep ink-blue accent, serif typography.
+   All HTML骨架 (design-cores/, slide-cores/) consume tokens by their canonical names.
+   See plugins/baransu/skills/design/SKILL.md §Canonical Token Schema for the v1.3 spec.
+*/
+
+:root {
+  /* ── Surface ─────────────────────────────── */
+  --paper:          #f5f4ed;  /* page background — warm parchment, never pure white */
+  --surface:        #faf9f5;  /* cards, lifted containers — ivory */
+  --surface-strong: #e8e6dc;  /* buttons, interactive surfaces — warm sand */
+  --dark-surface:   #30302e;  /* dark containers */
+  --deep-dark:      #141413;  /* dark page background */
+
+  /* ── Accent (sole chromatic, ≤5% surface — Kami invariant #2) ── */
+  --accent:    #1B365D;  /* deep ink-blue */
+  --accent-on: #faf9f5;  /* foreground on --accent fills — ivory, not pure white */
+
+  /* ── Text hierarchy ──────────────────────── */
+  --ink:            #141413;  /* structural ink alias for primary text */
+  --text-primary:   #141413;  /* body and headings */
+  --text-secondary: #3d3d3a;  /* secondary text, table headers, link rest */
+  --text-muted:     #504e49;  /* tertiary, captions */
+  --text-faint:     #6b6a64;  /* metadata, placeholder */
+
+  /* ── Borders ─────────────────────────────── */
+  --border:      #e8e6dc;  /* primary border / divider */
+  --border-soft: #e5e3d8;  /* secondary border / row separator */
+
+  /* ── Typography ──────────────────────────── */
+  --font-serif: Charter, Georgia, Palatino, "Times New Roman", serif;
+  --font-sans:  var(--font-serif);   /* intentional: sans aliases serif (Kami) */
+  --font-mono:  "JetBrains Mono", "SF Mono", "Fira Code", Consolas, Monaco, monospace;
+
+  /* Chinese override — paste inside :lang(zh) or .lang-zh:
+     --font-serif: "TsangerJinKai02", "Source Han Serif SC", "Noto Serif CJK SC",
+                   "Songti SC", "STSong", Georgia, serif;                          */
+
+  /* ── Depth (ring / whisper only — no hard shadows; Kami inv #9) ── */
+  --shadow-ring:    0 0 0 1px var(--border);
+  --shadow-whisper: 0 4px 24px rgba(0, 0, 0, 0.05);
+
+  /* ── Spacing (Kami print scale — not a strict 4pt grid; the 3/5/10 steps are intentional hand-tuned values) ── */
+  --space-xs:  3px;
+  --space-sm:  5px;
+  --space-md: 10px;
+  --space-lg: 20px;
+  --space-xl: 32px;
+  --space-2xl:56px;
+  --space-3xl:96px;
+
+  /* ── Radius scale ────────────────────────── */
+  --radius-xs:  4px;
+  --radius-sm:  6px;
+  --radius-md:  8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl:24px;
+  --radius-hero:32px;
+
+  /* ── Layout (preset-specific overrides) ── */
+  --cover-title-align: center;   /* Kami covers center; Swiss flushes left */
+  --grid-columns: 12;
+  --grid-gutter:  24px;
+
+  /* ── Semantic (metric.html consumer) ── */
+  --delta-up:   #2a6c45;  /* warm dark green */
+  --delta-down: #7a2e2e;  /* warm dark red */
+
+  /* ── Capability (gen-power; Kami's committed extreme is restrained — drama stays low-key) ── */
+  --ease:         cubic-bezier(0.4, 0, 0.2, 1);  /* gentle standard ease */
+  --duration:     200ms;                          /* unhurried, print-calm */
+  --stagger-step: 40ms;                           /* slow sequential reveal */
+  --font-display: var(--font-serif);              /* display = the serif voice */
+  --shadow-drama: 0 12px 40px rgba(0, 0, 0, 0.08);/* even "drama" is a whisper */
+}
+
+/* ── Base reset (minimal, Kami-safe) ─────────────────────── */
+body {
+  background: var(--paper);
+  color: var(--text-primary);
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Heading weight locked at 500 — Kami invariant #5 */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+/* Modular scale: perfect fourth r=1.333 (anchor body=16px) — see canonical-tokens.md */
+h1 { font-size: 2.375rem;  line-height: 1.15; }  /* 38px ≈ 16 × 1.333³ */
+h2 { font-size: 1.75rem;   line-height: 1.20; }  /* 28px ≈ 16 × 1.333² */
+h3 { font-size: 1.3125rem; line-height: 1.30; }  /* 21px ≈ 16 × 1.333  */
+
+/* No italics — Kami invariant #10 */
+em, i { font-style: normal; font-weight: 500; }
+
+/* Links */
+a { color: var(--text-secondary); text-decoration-color: var(--border); }
+a:hover { color: var(--accent); }
+
+code, pre {
+  font-family: var(--font-mono);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+code { padding: 0.1em 0.4em; font-size: 0.875em; }
+pre  { padding: 1rem 1.25rem; font-size: 0.875em; line-height: 1.55; overflow-x: auto; }
+
+  </style>
+  <style>
+    * { box-sizing: border-box; }
+    body { background: var(--paper); color: var(--text-primary); font-family: "TsangerJinKai02", "Source Han Serif TC", "Noto Serif CJK TC", "Songti TC", Charter, Georgia, serif; margin: 0; text-wrap: pretty; }
+    .kami-page { max-width: 1200px; margin: 0 auto; padding: 56px 24px; display: grid; grid-template-columns: 220px 1fr; gap: 56px; }
+    .kami-toc { position: sticky; top: 24px; align-self: start; border-left: 3px solid var(--accent); padding-left: 16px; }
+    .kami-toc .kami-toc-label { font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.08em; }
+    .kami-toc h1 { font-size: 18px; margin: 8px 0 24px; font-weight: 500; }
+    .kami-toc ol { list-style: none; padding: 0; margin: 0; }
+    .kami-toc a { display: block; font-size: 13px; color: var(--text-secondary); text-decoration: none; padding: 4px 0; }
+    .kami-toc a:hover { color: var(--accent); }
+    .kami-h1 { font-size: 30px; font-weight: 500; line-height: 1.2; margin: 0 0 16px; text-wrap: pretty; }
+    .kami-h2 { font-size: 24px; font-weight: 500; line-height: 1.25; border-left: 3px solid var(--accent); padding-left: 12px; margin: 0 0 16px; text-wrap: pretty; }
+    .kami-lead { font-size: 17px; line-height: 1.55; margin: 16px 0; max-width: 680px; }
+    .kami-body { font-size: 15px; line-height: 1.55; margin: 12px 0; max-width: 680px; text-wrap: pretty; }
+    .kami-dropcap { float: left; font-size: 4.65em; line-height: 1; font-weight: 500; color: var(--accent); padding-right: 8px; padding-top: 2px; }
+    .kami-caption { font-size: 12px; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; }
+    .kami-quote { border-left: 2px solid var(--accent); padding: 8px 0 8px 16px; color: var(--text-secondary); margin: 24px 0; line-height: 1.55; max-width: 680px; }
+    .kami-code { font-family: var(--font-mono); font-size: 13px; background: var(--surface); padding: 2px 6px; border-radius: var(--radius-sm); border: 0.5px solid var(--border-soft); }
+    figure.kami-figure { margin: 32px 0; }
+    figure.kami-figure svg { display: block; max-width: 100%; }
+    figcaption.kami-figcaption { font-size: 12px; color: var(--text-muted); margin-top: 8px; text-align: center; }
+    .kami-footer { font-size: 12px; color: var(--text-faint); border-top: 0.5px solid var(--border); padding-top: 16px; margin-top: 96px; }
+    em, i { font-style: normal; font-weight: 500; }
+    section.kami-sec { margin-bottom: 96px; }
+    ul.kami-list { list-style: none; padding: 0; margin: 12px 0; max-width: 680px; }
+    ul.kami-list li { position: relative; padding-left: 20px; margin-bottom: 10px; font-size: 15px; line-height: 1.55; }
+    ul.kami-list li::before { content: ""; position: absolute; left: 0; top: 0.72em; width: 8px; height: 1.5px; background: var(--accent); }
+    table.kami-table { border-collapse: collapse; width: 100%; font-size: 13px; line-height: 1.45; margin: 20px 0; }
+    table.kami-table th { color: var(--text-secondary); font-weight: 500; text-align: left; border-bottom: 1px solid var(--border); padding: 8px 10px; }
+    table.kami-table td { border-bottom: 1px solid var(--border-soft); padding: 8px 10px; vertical-align: top; }
+    .sec-num { font-family: var(--font-mono); font-size: 13px; color: var(--text-faint); margin-right: 10px; }
+    @media (max-width: 900px) { .kami-page { grid-template-columns: 1fr; gap: 24px; padding: 24px; } .kami-toc { position: static; } }
+  </style>
+</head>
+<body class="kami-paper-body">
+<div class="kami-page">
+  <aside class="kami-toc">
+    <div class="kami-toc-label">Contents</div>
+    <h1>雙塔換雙釘</h1>
+    <ol>
+      <li><a href="#s1">01 Skill 的解剖：三種假肢</a></li>
+      <li><a href="#s2">02 contract 與 seal</a></li>
+      <li><a href="#s3">03 尺度外推：跨系統與 SA 文件</a></li>
+      <li><a href="#s4">04 三頻段路由與裸跑的價值</a></li>
+      <li><a href="#s5">05 選用會不會選對</a></li>
+      <li><a href="#s6">06 驗證輪：大膽舉動、小心測試</a></li>
+    </ol>
+  </aside>
+  <main class="kami-main">
+    <header class="kami-cover">
+      <p class="kami-caption">Reform Design · 2026-07-19 · Vol.2</p>
+      <h1 class="kami-h1">雙塔換雙釘——十格實驗之後的改革設計</h1>
+      <p class="kami-lead">第一輪判出了冠軍與墊底；判決落定後浮出更難的問題：被告是在設計射程之外受審的。這一冊記錄改革怎麼從這個張力裡長出來——以及正在進行的驗證。</p>
+    </header>
+    <section data-slot="long-form-body">
+
+      <section id="s1" class="kami-sec">
+        <h2 class="kami-h2"><span class="sec-num">01</span>Skill 的解剖：三種假肢</h2>
+        <p class="kami-body"><span class="kami-dropcap">把</span>兩個 skill 拆開看，它們同時承載三種假肢，實驗給了三種判決。知識假肢——怎麼分析、怎麼測試先行、陷阱長什麼樣——十組規格作者全部自己推導出來，已內化進模型，可以蒸發。流程假肢——五層文件、逐任務上下文檔、Red gate 儀式、DAG 編排——實測零效果，退役。注意力假肢——「現在該把陷阱寫成條文」「收尾前該開審查」——正是模型還做不到的事：p1-f 知道 idx 陷阱，fixture 全用非連續索引，卻在寫 CLI 訊息那一刻沒想起來。</p>
+        <p class="kami-body">這不是知識缺口，是時機缺口。結論跟著出來：skill 不會死，但身分要換——它的殘餘本體是「在正確時機喚起正確行為」的具名觸發點，一個注意力假肢，內容物從四百行流程縮到二三十行。</p>
+        <figure class="kami-figure">
+          <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="skill 三種假肢的判決">
+            <defs>
+              <marker id="arrow-v1" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+                <path d="M2 1 L8 5 L2 9" fill="none" stroke="#504e49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </marker>
+              <marker id="arrow-accent-v1" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+                <path d="M2 1 L8 5 L2 9" fill="none" stroke="#1B365D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </marker>
+            </defs>
+            <rect width="100%" height="100%" fill="#f5f4ed"/>
+            <text x="320" y="36" fill="#141413" font-size="15" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">一個 skill ＝ 三種假肢的疊合</text>
+            <rect x="64" y="64" width="144" height="64" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="136" y="92" fill="#141413" font-size="13" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">知識假肢</text>
+            <text x="136" y="112" fill="#504e49" font-size="10" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">方法、紀律、陷阱庫</text>
+            <rect x="248" y="64" width="144" height="64" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="320" y="92" fill="#141413" font-size="13" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">流程假肢</text>
+            <text x="320" y="112" fill="#504e49" font-size="10" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">五層文件、儀式、編排</text>
+            <rect x="432" y="64" width="144" height="64" rx="4" data-role="focal" fill="#EEF2F7" stroke="#1B365D" stroke-width="1.5"/>
+            <text x="504" y="92" fill="#1B365D" font-size="13" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">注意力假肢</text>
+            <text x="504" y="112" fill="#504e49" font-size="10" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">正確時機喚起正確行為</text>
+            <line x1="136" y1="128" x2="136" y2="200" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow-v1)"/>
+            <line x1="320" y1="128" x2="320" y2="200" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow-v1)"/>
+            <line x1="504" y1="128" x2="504" y2="200" stroke="#1B365D" stroke-width="1.4" marker-end="url(#arrow-accent-v1)"/>
+            <rect x="64" y="204" width="144" height="32" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1" stroke-dasharray="4,3"/>
+            <text x="136" y="224" fill="#141413" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">已內化 → 蒸發</text>
+            <rect x="248" y="204" width="144" height="32" rx="4" fill="#faf9f5" stroke="#7a2e2e" stroke-width="1" stroke-dasharray="4,3"/>
+            <text x="320" y="224" fill="#7a2e2e" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">實測零效果 → 退役</text>
+            <rect x="432" y="204" width="144" height="32" rx="4" fill="#EEF2F7" stroke="#1B365D" stroke-width="1.5"/>
+            <text x="504" y="224" fill="#1B365D" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">殘餘本體 → 微型 skill</text>
+            <text x="320" y="284" fill="#504e49" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">證據：十組規格作者全數自行挖到陷阱（知識已內化）；</text>
+            <text x="320" y="304" fill="#504e49" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">p1-f 知道陷阱卻在錯的時機忘記（注意力未內化）</text>
+          </svg>
+          <figcaption class="kami-figcaption">拆解決定去留——下一代模型再內化一層時，同一張圖可重新量測哪格該再蒸發。</figcaption>
+        </figure>
+      </section>
+
+      <section id="s2" class="kami-sec">
+        <h2 class="kami-h2"><span class="sec-num">02</span>contract 與 seal</h2>
+        <p class="kami-body">改革落點是兩個微型 skill。<code class="kami-code">/contract</code> 取代 analyze：動手前先產出一頁合約——每條驗收條文具名可斷言、使用者可見文字給精確格式或禁止清單、錯不起的表面逐列配釘死測試、固定常數照抄不重打。<code class="kami-code">/seal</code> 取代 execute：宣告完成前開一個乾淨 context 的審查者，帶五行任務書——逐條驗收、掃無測試釘住的表面、跨端一致性、常數逐字比對、殺不死突變就打槍。</p>
+        <blockquote class="kami-quote">支撐設計的是實驗最硬的因果鏈：六個引入 bug 有五個同類，擋住它的三組各用一招——警語靠運氣、精確格式靠結構、死條文加審查靠授權。一頁合約把後兩招制度化，一次 seal 把第三招的成本從八個 agent 壓到一個。</blockquote>
+        <p class="kami-body">觸發問題同時解掉：微型化讓誤觸發從三十分鐘變兩分鐘；seal 預設開啟、配機械 hook 偵測「diff 碰了表面卻沒 seal」——漏觸發從語意問題降級成機械問題。skill 名字本身是人機共享詞彙，「/contract 這個任務」六個字同時告訴雙方進入什麼模式。</p>
+      </section>
+
+      <section id="s3" class="kami-sec">
+        <h2 class="kami-h2"><span class="sec-num">03</span>尺度外推：跨系統與 SA 文件</h2>
+        <p class="kami-body">雙塔的設計射程另外處理。跨系統情境裡舊失敗模式全部升維：責任稀釋變成「兩側 mock 互相同意、卻都不同意現實」；常數轉抄變成 schema 靜默漂移；再加三個新怪物——context rot 讓外部記憶從冗餘變成腦本身、E2E 分鐘級回饋摧毀突變紀律、部署時序帶來相容性條文這個全新類別。</p>
+        <p class="kami-body">一頁紙在這裡不塞爆，它分形。關鍵換座標：系統間邊界就是彼此的 user-facing 表面，「使用者」是對面那個系統。最日常的版本是「完成前後端整頁功能、對 SA 文件宣稱完成」——SA 文件天生是鬆條文，「宣稱完成」因此是不可證偽的修辭。改革加一個 ingestion 階段：實作前把 SA 文件逐句翻譯，可斷言的進合約、隱性需求補條文或明文排除、翻譯不了的退回 SA。宣稱完成從一句話換成一包證據：條文對測試對綠燈、表面四態對截圖、schema 零漂移證明。</p>
+        <figure class="kami-figure">
+          <svg viewBox="0 0 640 384" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="分形合約結構">
+            <defs>
+              <marker id="arrow-v3" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+                <path d="M2 1 L8 5 L2 9" fill="none" stroke="#504e49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </marker>
+            </defs>
+            <rect width="100%" height="100%" fill="#f5f4ed"/>
+            <text x="320" y="32" fill="#141413" font-size="15" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">合約分形：邊界即表面</text>
+            <rect x="240" y="56" width="160" height="64" rx="4" data-role="focal" fill="#EEF2F7" stroke="#1B365D" stroke-width="1.5"/>
+            <text x="320" y="84" fill="#1B365D" font-size="13" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">總合約（一頁）</text>
+            <text x="320" y="104" fill="#504e49" font-size="10" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">wire format・錯誤語意・相容矩陣</text>
+            <line x1="272" y1="120" x2="160" y2="184" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow-v3)"/>
+            <line x1="368" y1="120" x2="480" y2="184" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow-v3)"/>
+            <line x1="320" y1="120" x2="320" y2="184" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow-v3)"/>
+            <rect x="80" y="188" width="160" height="64" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="160" y="216" fill="#141413" font-size="12" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">A 系統子合約（一頁）</text>
+            <text x="160" y="236" fill="#504e49" font-size="10" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">前端：UI 四態表面清單</text>
+            <rect x="240" y="188" width="160" height="64" rx="4" data-role="focal" fill="#EEF2F7" stroke="#1B365D" stroke-width="1.5"/>
+            <text x="320" y="216" fill="#1B365D" font-size="12" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">共享 schema 工件</text>
+            <text x="320" y="236" fill="#504e49" font-size="10" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">兩側測試同源 import</text>
+            <rect x="400" y="188" width="160" height="64" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="480" y="216" fill="#141413" font-size="12" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">B 系統子合約（一頁）</text>
+            <text x="480" y="236" fill="#504e49" font-size="10" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">後端：API 錯誤路徑清單</text>
+            <rect x="80" y="284" width="160" height="32" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1" stroke-dasharray="4,3"/>
+            <text x="160" y="304" fill="#141413" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">sealer A</text>
+            <rect x="240" y="284" width="160" height="32" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1" stroke-dasharray="4,3"/>
+            <text x="320" y="304" fill="#141413" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">邊界所有人（雙向契約測試）</text>
+            <rect x="400" y="284" width="160" height="32" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1" stroke-dasharray="4,3"/>
+            <text x="480" y="304" fill="#141413" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">sealer B</text>
+            <text x="320" y="352" fill="#504e49" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">E2E 縮到三五條 smoke；信任壓給共享工件的契約測試層</text>
+          </svg>
+          <figcaption class="kami-figcaption">兩個 mock 再也無法互相說謊——漂移發生時，是編譯與契約測試先知道，不是深夜的 E2E。</figcaption>
+        </figure>
+      </section>
+
+      <section id="s4" class="kami-sec">
+        <h2 class="kami-h2"><span class="sec-num">04</span>三頻段路由與裸跑的價值</h2>
+        <table class="kami-table">
+          <tr><th>頻段</th><th>情境</th><th>形式</th><th>證據狀態</th></tr>
+          <tr><td>小</td><td>單檔、範圍明確</td><td>直接實作</td><td>既有共識</td></tr>
+          <tr><td>中</td><td>單 session、跨數模組</td><td>/contract 一頁合約 ＋ /seal 單次審查</td><td>本輪實驗（p-min 驗證中）</td></tr>
+          <tr><td>大</td><td>跨 session／跨系統／E2E</td><td>改革版雙塔：分形合約＋邊界所有人＋編排復役</td><td>外推——待第三輪雙系統實驗</td></tr>
+        </table>
+        <p class="kami-body">裸跑在這張圖裡不是缺席的方法，是自帶性質的方法。它是量尺：沒有 $4.92 的對照組，模型原生就會的東西全會記進流程的功勞簿。它有結構防護：四大失敗模式裡的轉抄鏈和責任稀釋，在單一心智全責下根本不存在。它是校準儀：模型每換一代，定期裸跑是唯一能測出「又內化了什麼、哪些鷹架該拆」的儀器——不做定期裸跑的 plugin 必然單調增肥，因為減法永遠拿不到證據。</p>
+      </section>
+
+      <section id="s5" class="kami-sec">
+        <h2 class="kami-h2"><span class="sec-num">05</span>選用會不會選對</h2>
+        <p class="kami-body">誠實答案：不會總是選對，而且無法讓它總是選對——選用是模型讀 description 做的語意判斷。改革換了目標：不追求選得準，追求選錯很便宜、選漏抓得到。</p>
+        <ul class="kami-list">
+          <li>微型化改變錯誤成本的不對稱——誤觸發從三十分鐘的五層規格，變成兩分鐘的一頁紙</li>
+          <li>觸發條件過可斷言性閘門——「跨 session？碰 user-facing 表面？」是可觀測特徵，「任務夠不夠大」不是</li>
+          <li>seal 預設開啟＋機械 hook 後盾——「diff 碰了表面卻沒 seal」用 grep 就能判，hook 敲鐘、不做決定</li>
+          <li>頻段詞彙縮到三個詞——小＝直接做、中＝/contract、大＝/analyze；人腦路由在邊界上永遠比模型可靠</li>
+          <li>選用決策納入遙測——誤觸發率按月回看，餵給演化迴圈修 description</li>
+        </ul>
+      </section>
+
+      <section id="s6" class="kami-sec">
+        <h2 class="kami-h2"><span class="sec-num">06</span>驗證輪：大膽舉動、小心測試</h2>
+        <p class="kami-body">改革不空談。三個驗證 arm 在原基線、原簡報、原盲評協定上開跑：p2-os′ 測改革後規格（可斷言性閘門、陷阱昇華、常數塊、表面清單）的純前饋上限；p3-os′ 測死條文加窄域審查任務書能否讓原墊底配置翻身；p-min 直接下注無 skill 世界——Opus 一頁合約、Sonnet 實作、Opus 單次審查，三個 agent 零管線。</p>
+        <figure class="kami-figure">
+          <svg viewBox="0 0 640 352" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="驗證輪三 arm 與判準">
+            <rect width="100%" height="100%" fill="#f5f4ed"/>
+            <text x="320" y="32" fill="#141413" font-size="15" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">驗證輪：同基線、同簡報、同盲評</text>
+            <rect x="48" y="64" width="160" height="64" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="128" y="88" fill="#141413" font-size="12" font-family="'JetBrains Mono', monospace" text-anchor="middle">p2-os&#x2032;</text>
+            <text x="128" y="108" fill="#504e49" font-size="10" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">改革規格・純前饋上限</text>
+            <rect x="240" y="64" width="160" height="64" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="320" y="88" fill="#141413" font-size="12" font-family="'JetBrains Mono', monospace" text-anchor="middle">p3-os&#x2032;</text>
+            <text x="320" y="108" fill="#504e49" font-size="10" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">死條文＋窄域審查・翻身戰</text>
+            <rect x="432" y="64" width="160" height="64" rx="4" data-role="focal" fill="#EEF2F7" stroke="#1B365D" stroke-width="1.5"/>
+            <text x="512" y="88" fill="#1B365D" font-size="12" font-family="'JetBrains Mono', monospace" text-anchor="middle">p-min</text>
+            <text x="512" y="108" fill="#504e49" font-size="10" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">無 skill・一頁合約＋一次 seal</text>
+            <rect x="48" y="176" width="160" height="64" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1" stroke-dasharray="4,3"/>
+            <text x="128" y="200" fill="#141413" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">預測 19–21／0 bug</text>
+            <text x="128" y="220" fill="#504e49" font-size="10" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">風險：未釘表面存活</text>
+            <rect x="240" y="176" width="160" height="64" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1" stroke-dasharray="4,3"/>
+            <text x="320" y="200" fill="#141413" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">預測 ≥20／0 bug</text>
+            <text x="320" y="220" fill="#504e49" font-size="10" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">失敗即改革失敗</text>
+            <rect x="432" y="176" width="160" height="64" rx="4" fill="#EEF2F7" stroke="#1B365D" stroke-width="1"/>
+            <text x="512" y="200" fill="#1B365D" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">預測 20±1／0 bug</text>
+            <text x="512" y="220" fill="#504e49" font-size="10" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">成本 ≤ 冠軍四成則假說成立</text>
+            <text x="320" y="288" fill="#504e49" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">改革成功 ＝ p3-os&#x2032; 追平 p3-f（20/21、0 bug）</text>
+            <text x="320" y="308" fill="#504e49" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">激進假說成立 ＝ p-min 同分且成本 ≤ 40%・結果出爐即回填本冊</text>
+          </svg>
+          <figcaption class="kami-figcaption">預測先於結果落筆——本段落成書後結果出爐，判決如下表回填。</figcaption>
+        </figure>
+        <table class="kami-table">
+          <tr><th>arm</th><th class="num">釘死/20</th><th>引入 bug</th><th class="num">突變殺率</th><th class="num">成本</th><th>判決</th></tr>
+          <tr><td>p3-os′</td><td class="num">20 全釘</td><td>0</td><td class="num">6/6</td><td class="num">$19.29</td><td>原墊底翻身，追平冠軍、test_eff 反超、成本 59%——改革成功判準達成</td></tr>
+          <tr><td>p-min</td><td class="num">18＋2 未釘</td><td>0</td><td class="num">高</td><td class="num">$7.27</td><td>行為面 20/20、零缺陷、22% 成本；殘餘缺口＝呼叫點耦合未釘</td></tr>
+          <tr><td>p2-os′</td><td class="num">18＋1 未釘</td><td>0</td><td class="num">5/8</td><td class="num">$5.01</td><td>純前饋零缺陷，但突變殺率暴露無審查的釘死深度極限</td></tr>
+        </table>
+        <p class="kami-body">類別滅絕證據：idx+1 章數缺陷在三格中零出現（第一輪 5/10），常數轉抄缺陷零出現（regex byte-diff 全乾淨，含「节／節」）。條文改革對這兩個錯誤類別是結構性消滅，不是機率性壓低。三位盲評也全數再度標記了 pre-existing 的 reader idx 缺陷——backlog 首位不變。
+      </section>
+
+    </section>
+    <footer class="kami-footer">雙塔換雙釘 · Vol.2 · 2026-07-19 · 第一冊（十格實驗判決）與完整決策日誌見 NovelReader repo <span class="kami-code">.claude/experiments/2026-07-19-harness-matrix/</span></footer>
+  </main>
+</div>
+</body>
+</html>

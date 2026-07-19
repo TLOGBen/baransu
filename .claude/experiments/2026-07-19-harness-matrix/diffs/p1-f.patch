@@ -1,0 +1,1185 @@
+diff --git a/src/catalog/service/rule.rs b/src/catalog/service/rule.rs
+index f34ca23..77699c4 100644
+--- a/src/catalog/service/rule.rs
++++ b/src/catalog/service/rule.rs
+@@ -43,6 +43,11 @@ pub enum Accessor {
+     Attr(String),
+ }
+ 
++/// The self-selector token: "the current element itself". Within an element
++/// context (`*_within`) it resolves to that element; at document level it
++/// resolves to the document's root element.
++const SELF_SELECTOR: &str = "&";
++
+ pub fn parse_rule(raw: &str) -> Result<Rule> {
+     let mut alternatives = Vec::new();
+     for piece in raw.split("||") {
+@@ -92,11 +97,27 @@ fn parse_accessor(tok: &str) -> Accessor {
+     }
+ }
+ 
++/// Resolve one alternative's matches within an element scope.
++/// `&` (self-selector) yields the scope element itself — checked BEFORE any
++/// CSS parse, because `Selector::parse("&")` is an `EmptySelector` error.
++fn matches_within<'a>(scope: ElementRef<'a>, alt: &RuleAlt) -> Result<Vec<ElementRef<'a>>> {
++    if alt.selector == SELF_SELECTOR {
++        return Ok(vec![scope]);
++    }
++    let sel = Selector::parse(&alt.selector)
++        .map_err(|e| anyhow::anyhow!("bad selector {:?}: {e:?}", alt.selector))?;
++    Ok(scope.select(&sel).collect())
++}
++
+ /// Select multiple elements within `ctx` using the first alternative's selector.
+ /// Used for list rules (bookList, chapterList) — accessor/regex ignored.
++/// `&` yields the document root element (single-item list).
+ pub fn select_nodes<'a>(ctx: &'a Html, rule_str: &str) -> Result<Vec<ElementRef<'a>>> {
+     let rule = parse_rule(rule_str)?;
+     for alt in &rule.alternatives {
++        if alt.selector == SELF_SELECTOR {
++            return Ok(vec![ctx.root_element()]);
++        }
+         let sel = Selector::parse(&alt.selector)
+             .map_err(|e| anyhow::anyhow!("bad selector {:?}: {e:?}", alt.selector))?;
+         let nodes: Vec<_> = ctx.select(&sel).collect();
+@@ -108,12 +129,11 @@ pub fn select_nodes<'a>(ctx: &'a Html, rule_str: &str) -> Result<Vec<ElementRef<
+ }
+ 
+ /// Like `select_nodes` but operates on an already-selected element.
++/// `&` yields `vec![ctx]` (the element itself).
+ pub fn select_within<'a>(ctx: ElementRef<'a>, rule_str: &str) -> Result<Vec<ElementRef<'a>>> {
+     let rule = parse_rule(rule_str)?;
+     for alt in &rule.alternatives {
+-        let sel = Selector::parse(&alt.selector)
+-            .map_err(|e| anyhow::anyhow!("bad selector {:?}: {e:?}", alt.selector))?;
+-        let nodes: Vec<_> = ctx.select(&sel).collect();
++        let nodes = matches_within(ctx, alt)?;
+         if !nodes.is_empty() {
+             return Ok(nodes);
+         }
+@@ -122,12 +142,18 @@ pub fn select_within<'a>(ctx: ElementRef<'a>, rule_str: &str) -> Result<Vec<Elem
+ }
+ 
+ /// Extract a single string from the document.
++/// `&` reads from the document's root element.
+ pub fn extract_doc(doc: &Html, rule_str: &str) -> Result<Option<String>> {
+     let rule = parse_rule(rule_str)?;
+     for alt in &rule.alternatives {
+-        let sel = Selector::parse(&alt.selector)
+-            .map_err(|e| anyhow::anyhow!("bad selector {:?}: {e:?}", alt.selector))?;
+-        if let Some(node) = doc.select(&sel).next() {
++        let candidate = if alt.selector == SELF_SELECTOR {
++            Some(doc.root_element())
++        } else {
++            let sel = Selector::parse(&alt.selector)
++                .map_err(|e| anyhow::anyhow!("bad selector {:?}: {e:?}", alt.selector))?;
++            doc.select(&sel).next()
++        };
++        if let Some(node) = candidate {
+             let raw = read_accessor(node, &alt.accessor);
+             let out = apply_replace(raw, &alt.replace)?;
+             if !out.trim().is_empty() {
+@@ -139,18 +165,12 @@ pub fn extract_doc(doc: &Html, rule_str: &str) -> Result<Option<String>> {
+ }
+ 
+ /// Extract a single string from within an element.
++/// `&` reads from `ctx` itself (self-selector) — accessor and `##regex##`
++/// replacement apply to the self-extracted value as usual.
+ pub fn extract_within(ctx: ElementRef<'_>, rule_str: &str) -> Result<Option<String>> {
+     let rule = parse_rule(rule_str)?;
+     for alt in &rule.alternatives {
+-        let sel = Selector::parse(&alt.selector)
+-            .map_err(|e| anyhow::anyhow!("bad selector {:?}: {e:?}", alt.selector))?;
+-        // A leading match against `ctx` itself: if selector is e.g. "&", treat as self.
+-        let candidate = if alt.selector == "&" {
+-            Some(ctx)
+-        } else {
+-            ctx.select(&sel).next()
+-        };
+-        if let Some(node) = candidate {
++        if let Some(node) = matches_within(ctx, alt)?.into_iter().next() {
+             let raw = read_accessor(node, &alt.accessor);
+             let out = apply_replace(raw, &alt.replace)?;
+             if !out.trim().is_empty() {
+@@ -162,13 +182,19 @@ pub fn extract_within(ctx: ElementRef<'_>, rule_str: &str) -> Result<Option<Stri
+ }
+ 
+ /// Extract all matches as strings.
++/// `&` reads a single value from the document's root element.
+ pub fn extract_all_doc(doc: &Html, rule_str: &str) -> Result<Vec<String>> {
+     let rule = parse_rule(rule_str)?;
+     let mut out = Vec::new();
+     for alt in &rule.alternatives {
+-        let sel = Selector::parse(&alt.selector)
+-            .map_err(|e| anyhow::anyhow!("bad selector {:?}: {e:?}", alt.selector))?;
+-        for node in doc.select(&sel) {
++        let nodes: Vec<ElementRef<'_>> = if alt.selector == SELF_SELECTOR {
++            vec![doc.root_element()]
++        } else {
++            let sel = Selector::parse(&alt.selector)
++                .map_err(|e| anyhow::anyhow!("bad selector {:?}: {e:?}", alt.selector))?;
++            doc.select(&sel).collect()
++        };
++        for node in nodes {
+             let raw = read_accessor(node, &alt.accessor);
+             let val = apply_replace(raw, &alt.replace)?;
+             if !val.trim().is_empty() {
+@@ -235,4 +261,94 @@ mod tests {
+         let v = extract_doc(&html, ".missing || h1").unwrap();
+         assert_eq!(v.as_deref(), Some("Hello"));
+     }
++
++    // ------------------------------------------------------------------
++    // `&` self-selector (Item A)
++    // ------------------------------------------------------------------
++
++    /// Parse a fragment and return the first element matching `sel`.
++    /// Test-only convenience; leaks the Html so ElementRef can outlive it.
++    fn first_el(html: &'static str, sel: &str) -> ElementRef<'static> {
++        let doc: &'static Html = Box::leak(Box::new(Html::parse_fragment(html)));
++        let selector = Selector::parse(sel).unwrap();
++        doc.select(&selector).next().expect("test fixture must match")
++    }
++
++    /// A1: `&` alone returns the element's own text.
++    #[test]
++    fn a1_self_selector_returns_own_text() {
++        let li = first_el(r#"<li class="c"><a href="/c1">第1章 起風</a></li>"#, "li");
++        let v = extract_within(li, "&").unwrap();
++        assert_eq!(v.as_deref(), Some("第1章 起風"));
++    }
++
++    /// A2: `&@<attr>` / `&@html` / `&@outerHtml` read from the element itself.
++    #[test]
++    fn a2_self_selector_with_accessors() {
++        let a = first_el(r#"<a href="/book/9" class="t">Hello</a>"#, "a");
++        assert_eq!(extract_within(a, "&@href").unwrap().as_deref(), Some("/book/9"));
++        assert_eq!(extract_within(a, "&@html").unwrap().as_deref(), Some("Hello"));
++        let outer = extract_within(a, "&@outerHtml").unwrap().expect("outerHtml non-empty");
++        assert!(outer.starts_with("<a"), "outerHtml should include the tag itself: {outer}");
++        assert!(outer.contains(r#"href="/book/9""#), "outerHtml keeps attributes: {outer}");
++    }
++
++    /// A3: `&##regex##repl` applies the replace to the self-extracted value.
++    #[test]
++    fn a3_self_selector_with_regex_replace() {
++        let li = first_el(r#"<li>第1章 起風</li>"#, "li");
++        // NOTE: parse_rule trims each `||` piece, so replacements can't end in
++        // whitespace — use a non-space-terminal replacement here.
++        let v = extract_within(li, r"&##^第(\d+)章\s##Ch$1:").unwrap();
++        assert_eq!(v.as_deref(), Some("Ch1:起風"));
++        // attr + replace combined
++        let a = first_el(r#"<a href="/c/42.html">x</a>"#, "a");
++        let v = extract_within(a, r"&@href##\.html$##").unwrap();
++        assert_eq!(v.as_deref(), Some("/c/42"));
++    }
++
++    /// A4: `||` fallback with `&` in any position.
++    #[test]
++    fn a4_self_selector_in_fallback_chains() {
++        let li = first_el(r#"<li>本章名</li>"#, "li");
++        // `&` as the fallback: first alt misses, self wins.
++        assert_eq!(
++            extract_within(li, "em.missing || &").unwrap().as_deref(),
++            Some("本章名")
++        );
++        // `&` first: self is non-empty so it wins over the later alt.
++        let li2 = first_el(r#"<li>自身<em class="x">child</em></li>"#, "li");
++        assert_eq!(
++            extract_within(li2, "& || em.x").unwrap().as_deref(),
++            Some("自身child"),
++            "`&` first must use self text, not fall through to em.x"
++        );
++    }
++
++    /// A5: `select_within(el, "&")` returns exactly the element itself.
++    #[test]
++    fn a5_select_within_self_returns_the_element() {
++        let li = first_el(r#"<li id="me"><a>x</a></li>"#, "li");
++        let nodes = select_within(li, "&").unwrap();
++        assert_eq!(nodes.len(), 1);
++        assert_eq!(nodes[0].id(), li.id(), "returned node must be the ctx element itself");
++    }
++
++    /// A7 (bonus): document-level entry points treat `&` as the root element.
++    #[test]
++    fn a7_doc_level_self_selector_is_document_root() {
++        let doc = Html::parse_fragment("<p>Hi</p>");
++        // extract_doc
++        assert_eq!(extract_doc(&doc, "&").unwrap().as_deref(), Some("Hi"));
++        let outer = extract_doc(&doc, "&@outerHtml").unwrap().expect("root outerHtml");
++        assert!(outer.contains("<p>Hi</p>"), "root outerHtml contains the fragment: {outer}");
++        // select_nodes
++        let nodes = select_nodes(&doc, "&").unwrap();
++        assert_eq!(nodes.len(), 1);
++        assert_eq!(nodes[0].id(), doc.root_element().id());
++        // extract_all_doc
++        assert_eq!(extract_all_doc(&doc, "&").unwrap(), vec!["Hi".to_string()]);
++        // fallback position at doc level too
++        assert_eq!(extract_doc(&doc, ".missing || &").unwrap().as_deref(), Some("Hi"));
++    }
+ }
+diff --git a/src/library/dao.rs b/src/library/dao.rs
+index d3350fe..bbc46dc 100644
+--- a/src/library/dao.rs
++++ b/src/library/dao.rs
+@@ -264,7 +264,41 @@ impl LibraryDb {
+         new_book_url: &str,
+         new_chapters: &[ChapterMeta],
+     ) -> Result<i64> {
+-        self.update_book_source_tx_inner(novel_id, new_src_url, new_book_url, new_chapters, None)
++        self.update_book_source_tx_inner(novel_id, new_src_url, new_book_url, new_chapters, None, None)
++    }
++
++    /// Same atomic swap as [`update_book_source_tx`] but sets
++    /// `progress.chapter_index` to `progress_idx` (a migrated position) instead
++    /// of the new TOC's first idx. Everything happens in the SAME single
++    /// transaction — the migrated progress write is step 4, not a follow-up
++    /// statement, so atomicity is identical to the reset path.
++    ///
++    /// Defensive: `progress_idx` must be an idx present in `new_chapters`,
++    /// otherwise `Err` (and nothing is written).
++    ///
++    /// Returns the written `progress.chapter_index` (= `progress_idx`).
++    pub fn update_book_source_tx_with_progress(
++        &mut self,
++        novel_id: i64,
++        new_src_url: &str,
++        new_book_url: &str,
++        new_chapters: &[ChapterMeta],
++        progress_idx: i64,
++    ) -> Result<i64> {
++        if !new_chapters.iter().any(|c| c.index == progress_idx) {
++            return Err(anyhow!(
++                "update_book_source_tx_with_progress: progress_idx {} not in new_chapters",
++                progress_idx
++            ));
++        }
++        self.update_book_source_tx_inner(
++            novel_id,
++            new_src_url,
++            new_book_url,
++            new_chapters,
++            Some(progress_idx),
++            None,
++        )
+     }
+ 
+     /// Test-only: same as `update_book_source_tx` but injects an `Err` after the
+@@ -284,6 +318,7 @@ impl LibraryDb {
+             new_src_url,
+             new_book_url,
+             new_chapters,
++            None,
+             Some(fault_step),
+         )
+     }
+@@ -294,6 +329,7 @@ impl LibraryDb {
+         new_src_url: &str,
+         new_book_url: &str,
+         new_chapters: &[ChapterMeta],
++        progress_idx: Option<i64>,
+         fault_step: Option<u8>,
+     ) -> Result<i64> {
+         if new_chapters.is_empty() {
+@@ -301,7 +337,8 @@ impl LibraryDb {
+                 "update_book_source_tx: empty new_chapters — caller should have aborted"
+             ));
+         }
+-        let first_idx = new_chapters.first().unwrap().index;
++        // Progress target: migrated idx when given, else new TOC's first idx.
++        let first_idx = progress_idx.unwrap_or(new_chapters.first().unwrap().index);
+         let now = chrono::Utc::now().to_rfc3339();
+ 
+         let tx = self.conn.transaction()?;
+@@ -687,6 +724,50 @@ mod tests {
+         assert_eq!(p.chapter_index, 5);
+     }
+ 
++    // ---- INT-5: migrated progress idx (Item B) ----
++
++    #[test]
++    fn int5_update_book_source_tx_with_progress_sets_migrated_idx() {
++        let mut f = setup_fixture();
++        // new TOC idx 3..7; migrate progress to idx 5 (NOT the first idx 3).
++        let new_chapters = new_toc(3, 4);
++
++        let returned = f
++            .db
++            .update_book_source_tx_with_progress(
++                f.novel_id,
++                "https://new-source.example/",
++                "https://new-book.example/1",
++                &new_chapters,
++                5,
++            )
++            .expect("with_progress happy path should succeed");
++
++        assert_eq!(returned, 5, "returned value is the migrated idx");
++        let p = f.db.get_progress(f.novel_id).unwrap().unwrap();
++        assert_eq!(p.chapter_index, 5, "progress must be the migrated idx, not first idx 3");
++        assert_eq!(p.scroll_offset, 0, "scroll_offset resets on migration");
++    }
++
++    #[test]
++    fn int5b_with_progress_rejects_idx_not_in_new_toc() {
++        let mut f = setup_fixture();
++        let before = snapshot(&f.db, f.novel_id);
++        let new_chapters = new_toc(3, 4); // idx 3..7
++
++        let res = f.db.update_book_source_tx_with_progress(
++            f.novel_id,
++            "https://new-source.example/",
++            "https://new-book.example/1",
++            &new_chapters,
++            99,
++        );
++        assert!(res.is_err(), "progress_idx outside new TOC must be rejected");
++
++        let after = snapshot(&f.db, f.novel_id);
++        assert_eq!(before, after, "rejected call must not modify DB");
++    }
++
+     // ---- get_novel_by_book_url ----
+ 
+     #[test]
+diff --git a/src/library/facade.rs b/src/library/facade.rs
+index 8f5220f..a2d0a63 100644
+--- a/src/library/facade.rs
++++ b/src/library/facade.rs
+@@ -41,15 +41,30 @@ pub fn get_novel_by_book_url(db: &LibraryDb, book_url: &str) -> Result<Option<No
+ /// five-class pre-checks. This facade only wraps the atomic dao step —
+ /// never imports `catalog::*` (REQ-007 layer invariant).
+ ///
+-/// Returns the new `progress.chapter_index` (= first idx of `new_chapters`).
++/// `progress_idx`: `Some(idx)` = best-effort migrated reading position (must
++/// be an idx present in `new_chapters`); `None` = reset to the new TOC's
++/// first idx (the original behavior). Either way the progress write happens
++/// inside the same single transaction.
++///
++/// Returns the new `progress.chapter_index`.
+ pub fn switch_source_tx(
+     db: &mut LibraryDb,
+     novel_id: i64,
+     new_src_url: &str,
+     new_book_url: &str,
+     new_chapters: &[ChapterMeta],
++    progress_idx: Option<i64>,
+ ) -> Result<i64> {
+-    db.update_book_source_tx(novel_id, new_src_url, new_book_url, new_chapters)
++    match progress_idx {
++        Some(idx) => db.update_book_source_tx_with_progress(
++            novel_id,
++            new_src_url,
++            new_book_url,
++            new_chapters,
++            idx,
++        ),
++        None => db.update_book_source_tx(novel_id, new_src_url, new_book_url, new_chapters),
++    }
+ }
+ 
+ /// TUI reader — list chapters for a novel.
+diff --git a/src/presentation/handlers/switch_source.rs b/src/presentation/handlers/switch_source.rs
+index a685b2c..3090b29 100644
+--- a/src/presentation/handlers/switch_source.rs
++++ b/src/presentation/handlers/switch_source.rs
+@@ -13,7 +13,7 @@
+ 
+ use anyhow::Result;
+ 
+-use crate::presentation::handlers::switch_source_core;
++use crate::presentation::handlers::switch_source_core::{self, ProgressOutcome};
+ use crate::presentation::AppContext;
+ 
+ pub async fn handle(
+@@ -24,14 +24,22 @@ pub async fn handle(
+ ) -> Result<()> {
+     match switch_source_core::run(ctx, novel_id, &source, &new_book_url).await {
+         Ok(outcome) => {
+-            // `new_progress_idx` 是 0-based DB 內部欄位；訊息給人類看以 1-based。
+-            println!(
+-                "✓ 已換源 #{} 至 {}，進度重置到第 {} 章: {}",
+-                novel_id,
+-                new_book_url,
+-                outcome.new_progress_idx + 1,
+-                outcome.new_first_chapter_name,
+-            );
++            // Item B (B6): surface migrated-vs-reset on the CLI path.
++            match &outcome.progress {
++                ProgressOutcome::Migrated { chapter_idx, chapter_name } => println!(
++                    "✓ 已換源 #{} 至 {}（共 {} 章），進度已遷移：{}（新目錄 idx {}）",
++                    novel_id, new_book_url, outcome.chapter_count, chapter_name, chapter_idx,
++                ),
++                // `new_progress_idx` 是 0-based DB 內部欄位；訊息給人類看以 1-based。
++                ProgressOutcome::Reset => println!(
++                    "✓ 已換源 #{} 至 {}（共 {} 章），進度重置到第 {} 章: {}",
++                    novel_id,
++                    new_book_url,
++                    outcome.chapter_count,
++                    outcome.new_progress_idx + 1,
++                    outcome.new_first_chapter_name,
++                ),
++            }
+             Ok(())
+         }
+         Err(e) => {
+diff --git a/src/presentation/handlers/switch_source_core.rs b/src/presentation/handlers/switch_source_core.rs
+index 2990d2c..a5590c9 100644
+--- a/src/presentation/handlers/switch_source_core.rs
++++ b/src/presentation/handlers/switch_source_core.rs
+@@ -16,11 +16,13 @@ use std::time::Duration;
+ 
+ use anyhow::{anyhow, Context, Result};
+ 
++use regex::Regex;
++
+ use crate::catalog;
+ use crate::catalog::service::scraper::fallback_chapter_name;
+ use crate::catalog::BookSource;
+ use crate::library;
+-use crate::library::{ChapterMeta, Novel};
++use crate::library::{ChapterMeta, Novel, ReadProgress};
+ use crate::presentation::AppContext;
+ 
+ /// Why a source-switch attempt aborted. Each variant maps 1:1 to a REQ-005
+@@ -61,13 +63,90 @@ pub fn evaluate_toc(toc: &[ChapterMeta]) -> std::result::Result<(), AbortReason>
+     Ok(())
+ }
+ 
++/// How the reading position was handled by a successful source-switch (Item B).
++#[derive(Debug, Clone, PartialEq, Eq)]
++pub enum ProgressOutcome {
++    /// Best-effort migration matched the old current chapter in the new TOC.
++    Migrated {
++        chapter_idx: i64,
++        chapter_name: String,
++    },
++    /// No match (or no old progress) — reset to the new TOC's first idx,
++    /// exactly the pre-migration behavior.
++    Reset,
++}
++
+ /// Outcome of a successful source-switch — surfaces what the caller needs to
+-/// rebuild its UI (`new_progress_idx`, `chapter_count`, `new_first_chapter_name`).
++/// rebuild its UI. `new_progress_idx` is the ACTUAL written progress
++/// (migrated idx when `progress` is `Migrated`, else the new first idx).
+ #[derive(Debug)]
+ pub struct SwitchOutcome {
+     pub new_progress_idx: i64,
+     pub chapter_count: usize,
+     pub new_first_chapter_name: String,
++    pub progress: ProgressOutcome,
++}
++
++// ---------------------------------------------------------------------------
++// Item B — best-effort progress migration (pure helpers)
++// ---------------------------------------------------------------------------
++
++/// Chapter-number token regex (fixed by spec): captures the numeral run in
++/// e.g. 「第12章」「第 一百零三 回」. First capture group is the token.
++const CHAPTER_NO_PATTERN: &str =
++    r"第\s*([0-9０-９一二三四五六七八九十百千零〇两兩]+)\s*[章回節节卷]";
++
++/// Strip ALL Unicode whitespace (rule b normalization).
++fn strip_unicode_ws(s: &str) -> String {
++    s.chars().filter(|c| !c.is_whitespace()).collect()
++}
++
++/// Normalize full-width digits (０-９) to ASCII; other chars pass through.
++/// Arabic-vs-Chinese-numeral cross-matching is intentionally NOT done (spec:
++/// tokens compare as strings after this normalization only).
++fn normalize_fullwidth_digits(s: &str) -> String {
++    s.chars()
++        .map(|c| match c {
++            '０'..='９' => char::from_u32(c as u32 - '０' as u32 + '0' as u32).unwrap_or(c),
++            other => other,
++        })
++        .collect()
++}
++
++/// Extract the normalized chapter-number token from a chapter name, if any.
++fn chapter_number_token(re: &Regex, name: &str) -> Option<String> {
++    re.captures(name)
++        .and_then(|c| c.get(1))
++        .map(|m| normalize_fullwidth_digits(m.as_str()))
++}
++
++/// Best-effort migration target lookup (Item B step 2). Scans `new_toc` in
++/// order (ascending idx as stored); the first chapter satisfying the
++/// HIGHEST-precedence rule wins:
++///   a. exact name equality
++///   b. equality after stripping all Unicode whitespace from both names
++///   c. chapter-number token equality (regex above, full-width normalized)
++///
++/// Returns `None` when no rule matches → caller falls back to reset.
++pub fn find_migration_target<'a>(
++    old_name: &str,
++    new_toc: &'a [ChapterMeta],
++) -> Option<&'a ChapterMeta> {
++    // rule a: exact equality
++    if let Some(c) = new_toc.iter().find(|c| c.name == old_name) {
++        return Some(c);
++    }
++    // rule b: whitespace-stripped equality
++    let old_stripped = strip_unicode_ws(old_name);
++    if let Some(c) = new_toc.iter().find(|c| strip_unicode_ws(&c.name) == old_stripped) {
++        return Some(c);
++    }
++    // rule c: chapter-number token equality
++    let re = Regex::new(CHAPTER_NO_PATTERN).expect("CHAPTER_NO_PATTERN is a valid regex");
++    let old_token = chapter_number_token(&re, old_name)?;
++    new_toc
++        .iter()
++        .find(|c| chapter_number_token(&re, &c.name).as_deref() == Some(old_token.as_str()))
+ }
+ 
+ /// Dependency boundary for `run_with_deps`. Local trait — not exported. The
+@@ -84,12 +163,17 @@ trait SwitchSourceDeps {
+         toc_url: &str,
+         deadline: Duration,
+     ) -> Result<Vec<ChapterMeta>>;
++    /// Item B: current reading progress of the novel (pre-switch), if any.
++    fn get_progress(&self, novel_id: i64) -> Result<Option<ReadProgress>>;
++    /// Item B: the OLD TOC as stored in the DB (read BEFORE the tx replaces it).
++    fn list_old_chapters(&self, novel_id: i64) -> Result<Vec<ChapterMeta>>;
+     fn switch_source_tx(
+         &mut self,
+         novel_id: i64,
+         new_src_url: &str,
+         new_book_url: &str,
+         new_chapters: &[ChapterMeta],
++        progress_idx: Option<i64>,
+     ) -> Result<i64>;
+ }
+ 
+@@ -115,12 +199,19 @@ impl<'a> SwitchSourceDeps for RealDeps<'a> {
+     ) -> Result<Vec<ChapterMeta>> {
+         catalog::facade::fetch_toc_with_timeout(&self.ctx.scraper, src, toc_url, deadline).await
+     }
++    fn get_progress(&self, novel_id: i64) -> Result<Option<ReadProgress>> {
++        library::facade::get_progress(&self.ctx.db, novel_id)
++    }
++    fn list_old_chapters(&self, novel_id: i64) -> Result<Vec<ChapterMeta>> {
++        library::facade::list_chapters(&self.ctx.db, novel_id)
++    }
+     fn switch_source_tx(
+         &mut self,
+         novel_id: i64,
+         new_src_url: &str,
+         new_book_url: &str,
+         new_chapters: &[ChapterMeta],
++        progress_idx: Option<i64>,
+     ) -> Result<i64> {
+         library::facade::switch_source_tx(
+             &mut self.ctx.db,
+@@ -128,6 +219,7 @@ impl<'a> SwitchSourceDeps for RealDeps<'a> {
+             new_src_url,
+             new_book_url,
+             new_chapters,
++            progress_idx,
+         )
+     }
+ }
+@@ -194,14 +286,51 @@ async fn run_with_deps<D: SwitchSourceDeps>(
+     let first_name = first.name.clone();
+     let chapter_count = toc.len();
+ 
++    // step 4.5 (Item B): resolve the OLD current chapter's name BEFORE the tx
++    // (the tx deletes the old TOC). Best-effort by spec: no progress row,
++    // unresolvable name, or a DB read error all degrade to the reset fallback
++    // — a broken progress read must never abort an otherwise valid switch.
++    let old_name: Option<String> = deps
++        .get_progress(novel_id)
++        .ok()
++        .flatten()
++        .and_then(|p| {
++            deps.list_old_chapters(novel_id).ok().and_then(|old_toc| {
++                old_toc
++                    .into_iter()
++                    .find(|c| c.index == p.chapter_index)
++                    .map(|c| c.name)
++            })
++        });
++    let target: Option<ChapterMeta> = old_name
++        .as_deref()
++        .and_then(|n| find_migration_target(n, &toc))
++        .cloned();
++
+     // step 5: library tx — five-class checks all passed, safe to mutate state。
+-    deps.switch_source_tx(novel_id, new_src_url, new_book_url, &toc)
+-        .with_context(|| "換源失敗：寫入 DB tx 失敗".to_string())?;
++    // Migrated idx (if any) is written by the SAME single tx (step 4 inside).
++    deps.switch_source_tx(
++        novel_id,
++        new_src_url,
++        new_book_url,
++        &toc,
++        target.as_ref().map(|c| c.index),
++    )
++    .with_context(|| "換源失敗：寫入 DB tx 失敗".to_string())?;
++
++    let (new_progress_idx, progress) = match target {
++        Some(c) => (
++            c.index,
++            ProgressOutcome::Migrated { chapter_idx: c.index, chapter_name: c.name },
++        ),
++        None => (first_idx, ProgressOutcome::Reset),
++    };
+ 
+     Ok(SwitchOutcome {
+-        new_progress_idx: first_idx,
++        new_progress_idx,
+         chapter_count,
+         new_first_chapter_name: first_name,
++        progress,
+     })
+ }
+ 
+@@ -276,6 +405,27 @@ mod tests {
+         toc_ok: Option<Vec<ChapterMeta>>,
+         toc_err: Option<&'static str>,
+         switch_tx_called: Mutex<bool>,
++        /// Item B fixtures: pre-switch progress row + old TOC in the DB.
++        progress: Option<ReadProgress>,
++        old_toc: Vec<ChapterMeta>,
++        /// Records the `progress_idx` argument the tx was called with.
++        tx_progress_arg: Mutex<Option<Option<i64>>>,
++    }
++
++    impl FakeDeps {
++        /// Baseline fake: happy scraper, no progress row, empty old TOC.
++        fn new() -> Self {
++            Self {
++                novel_info_ok: Some(dummy_novel()),
++                novel_info_err: None,
++                toc_ok: None,
++                toc_err: None,
++                switch_tx_called: Mutex::new(false),
++                progress: None,
++                old_toc: vec![],
++                tx_progress_arg: Mutex::new(None),
++            }
++        }
+     }
+ 
+     #[async_trait::async_trait(?Send)]
+@@ -306,14 +456,22 @@ mod tests {
+                 Ok(self.toc_ok.clone().expect("test must set toc_ok or _err"))
+             }
+         }
++        fn get_progress(&self, _novel_id: i64) -> Result<Option<ReadProgress>> {
++            Ok(self.progress.clone())
++        }
++        fn list_old_chapters(&self, _novel_id: i64) -> Result<Vec<ChapterMeta>> {
++            Ok(self.old_toc.clone())
++        }
+         fn switch_source_tx(
+             &mut self,
+             _novel_id: i64,
+             _new_src_url: &str,
+             _new_book_url: &str,
+             _new_chapters: &[ChapterMeta],
++            progress_idx: Option<i64>,
+         ) -> Result<i64> {
+             *self.switch_tx_called.lock().unwrap() = true;
++            *self.tx_progress_arg.lock().unwrap() = Some(progress_idx);
+             Ok(0)
+         }
+     }
+@@ -324,8 +482,7 @@ mod tests {
+             novel_info_ok: None,
+             novel_info_err: Some("HTTP 503 from new source"),
+             toc_ok: Some(vec![mk(0, "ignored")]),
+-            toc_err: None,
+-            switch_tx_called: Mutex::new(false),
++            ..FakeDeps::new()
+         };
+         let r = run_with_deps(&mut deps, 1, "src", "book").await;
+         assert!(r.is_err(), "fetch_novel_info Err should propagate");
+@@ -347,11 +504,8 @@ mod tests {
+         // anyhow!("fetch_toc timeout after {:?}", deadline)（見 catalog::facade）；
+         // 這裡直接餵同型訊息給 fake 模擬該包裝結果。
+         let mut deps = FakeDeps {
+-            novel_info_ok: Some(dummy_novel()),
+-            novel_info_err: None,
+-            toc_ok: None,
+             toc_err: Some("fetch_toc timeout after 8s"),
+-            switch_tx_called: Mutex::new(false),
++            ..FakeDeps::new()
+         };
+         let r = run_with_deps(&mut deps, 1, "src", "book").await;
+         assert!(r.is_err(), "fetch_toc_with_timeout Err should propagate");
+@@ -366,4 +520,131 @@ mod tests {
+             "REQ-005 S3: switch_source_tx MUST NOT be called when fetch_toc times out"
+         );
+     }
++
++    // -----------------------------------------------------------------
++    // Item B — find_migration_target pure-logic tests (B1..B4)
++    // -----------------------------------------------------------------
++
++    /// B1: exact-name match wins, on NON-dense idx values (第3章 lives at idx 7).
++    #[test]
++    fn b1_exact_name_match_non_dense_idx() {
++        let new_toc = vec![mk(1, "第1章 開端"), mk(2, "第2章 相遇"), mk(7, "第3章 風起")];
++        let hit = find_migration_target("第3章 風起", &new_toc).expect("must match");
++        assert_eq!(hit.index, 7, "matched idx is the stored idx, NOT 第N章→N-1");
++        assert_eq!(hit.name, "第3章 風起");
++    }
++
++    /// B2: whitespace-variant names match after stripping all Unicode whitespace.
++    #[test]
++    fn b2_whitespace_variant_match() {
++        let new_toc = vec![mk(0, "第1章　風　起"), mk(1, "第2章 雲湧")];
++        // old name uses ASCII spaces; new uses full-width spaces (U+3000).
++        let hit = find_migration_target("第1章 風 起", &new_toc).expect("must match");
++        assert_eq!(hit.index, 0);
++    }
++
++    /// B3: same 第N章 number token, different tail text → rule c matches.
++    #[test]
++    fn b3_chapter_number_token_match() {
++        let new_toc = vec![mk(4, "第11章 舊事"), mk(5, "第12章 風起（修）"), mk(6, "第13章")];
++        let hit = find_migration_target("第12章 風起", &new_toc).expect("must match");
++        assert_eq!(hit.index, 5);
++        // full-width digits normalize: 「第１２章」 token == 「第12章」 token
++        let hit2 = find_migration_target("第１２章 別名", &new_toc).expect("fullwidth must match");
++        assert_eq!(hit2.index, 5);
++        // Chinese numerals compare as strings (第十二章 ≠ 第12章 — cross-match not required)
++        let toc_cn = vec![mk(9, "第十二章 風起")];
++        assert!(find_migration_target("第十二章 某某", &toc_cn).is_some());
++        assert!(find_migration_target("第12章 某某", &toc_cn).is_none());
++    }
++
++    /// Precedence: exact (a) beats whitespace (b) beats number token (c),
++    /// even when a lower-precedence candidate appears EARLIER in the TOC.
++    #[test]
++    fn b_precedence_a_over_b_over_c() {
++        let new_toc = vec![
++            mk(0, "第5章 風起（新版）"), // rule c candidate, earliest
++            mk(1, "第5章風起"),          // rule b candidate
++            mk(2, "第5章 風起"),         // rule a candidate, latest
++        ];
++        let hit = find_migration_target("第5章 風起", &new_toc).expect("must match");
++        assert_eq!(hit.index, 2, "exact equality must beat earlier b/c candidates");
++
++        let toc_bc = vec![
++            mk(0, "第5章 風起（新版）"), // rule c candidate, earliest
++            mk(1, "第5章風起"),          // rule b candidate
++        ];
++        let hit = find_migration_target("第5章 風起", &toc_bc).expect("must match");
++        assert_eq!(hit.index, 1, "whitespace-stripped equality must beat number-token");
++    }
++
++    /// B4: nothing matches → None (caller resets to first idx).
++    #[test]
++    fn b4_no_match_returns_none() {
++        let new_toc = vec![mk(0, "楔子"), mk(1, "第2章 雲湧")];
++        assert!(find_migration_target("第99章 無蹤", &new_toc).is_none());
++        // old name with no 第N章 token and no name twin → None
++        assert!(find_migration_target("後記", &new_toc).is_none());
++    }
++
++    // -----------------------------------------------------------------
++    // Item B — run_with_deps migration wiring (B1/B4/B6 at use-case level)
++    // -----------------------------------------------------------------
++
++    /// Migrated path: old current chapter (idx 2 「第3章 風起」) exists in the
++    /// new TOC at idx 9 → tx receives Some(9), outcome is Migrated{9, name}.
++    #[tokio::test]
++    async fn b_run_migrates_progress_via_single_tx_arg() {
++        let mut deps = FakeDeps {
++            toc_ok: Some(vec![mk(3, "第1章 開端"), mk(9, "第3章 風起"), mk(10, "第4章")]),
++            progress: Some(ReadProgress { novel_id: 1, chapter_index: 2, scroll_offset: 55 }),
++            old_toc: vec![mk(0, "第1章 開端"), mk(2, "第3章 風起")],
++            ..FakeDeps::new()
++        };
++        let out = run_with_deps(&mut deps, 1, "src", "book").await.expect("switch ok");
++
++        assert_eq!(
++            *deps.tx_progress_arg.lock().unwrap(),
++            Some(Some(9)),
++            "tx must be called with the migrated idx (single-tx atomicity)"
++        );
++        assert_eq!(out.new_progress_idx, 9);
++        assert_eq!(
++            out.progress,
++            ProgressOutcome::Migrated { chapter_idx: 9, chapter_name: "第3章 風起".into() }
++        );
++        assert_eq!(out.new_first_chapter_name, "第1章 開端");
++    }
++
++    /// Reset path (B4): no old progress row → tx receives None, outcome Reset,
++    /// progress idx = new first idx (non-dense: 3).
++    #[tokio::test]
++    async fn b_run_resets_when_no_progress_row() {
++        let mut deps = FakeDeps {
++            toc_ok: Some(vec![mk(3, "第1章 開端"), mk(4, "第2章")]),
++            ..FakeDeps::new()
++        };
++        let out = run_with_deps(&mut deps, 1, "src", "book").await.expect("switch ok");
++
++        assert_eq!(*deps.tx_progress_arg.lock().unwrap(), Some(None));
++        assert_eq!(out.progress, ProgressOutcome::Reset);
++        assert_eq!(out.new_progress_idx, 3, "reset targets the new TOC's first idx");
++    }
++
++    /// Reset path (B4): progress row exists but no chapter in the new TOC
++    /// matches the old name under any rule.
++    #[tokio::test]
++    async fn b_run_resets_when_no_name_match() {
++        let mut deps = FakeDeps {
++            toc_ok: Some(vec![mk(0, "楔子"), mk(1, "第2章 雲湧")]),
++            progress: Some(ReadProgress { novel_id: 1, chapter_index: 5, scroll_offset: 0 }),
++            old_toc: vec![mk(5, "第99章 無蹤")],
++            ..FakeDeps::new()
++        };
++        let out = run_with_deps(&mut deps, 1, "src", "book").await.expect("switch ok");
++
++        assert_eq!(*deps.tx_progress_arg.lock().unwrap(), Some(None));
++        assert_eq!(out.progress, ProgressOutcome::Reset);
++        assert_eq!(out.new_progress_idx, 0);
++    }
+ }
+diff --git a/src/presentation/handlers/tui/search.rs b/src/presentation/handlers/tui/search.rs
+index 3376340..855db26 100644
+--- a/src/presentation/handlers/tui/search.rs
++++ b/src/presentation/handlers/tui/search.rs
+@@ -13,11 +13,15 @@
+ //!    - None → `catalog::facade::fetch_novel_info` + `library::facade::add_novel`
+ //!      → `Transition::To(MenuScreen::with_toast("已入架 #ID 書名"))`。
+ //!
++//! 多源結果摺疊（Item C）：同一本書（`(name.trim(), author-or-empty.trim())`
++//! 相同）在多源命中時摺疊為一行，顯示源數與全部源名；Enter 作用於第一個
++//! 源的 hit。摺疊由 pure post-pass [`fold_rows`] 完成。
++//!
+ //! Out-of-scope（spec 已宣告）：
+ //! - 真正的 per-source redraw（受 Screen trait 簽名所限：handle_event 內 await
+ //!   只在 source 之間更新 state，下一輪 run_loop tick 才會 redraw — 與 spec
+ //!   `從_user_prompt_實作取捨` 一致）。
+-//! - 多源結果摺疊 / dedup（同一本書在 N 源出現顯示 N 行）。
++//! - 摺疊行的 source-picker UI（C4 bonus）—— Enter 一律作用於第一源。
+ 
+ use std::time::{Duration, Instant};
+ 
+@@ -46,6 +50,9 @@ pub enum HitOrStatus {
+     Hit { hit: SearchHit, source_name: String },
+     /// 狀態訊息列（紅字）：「源 X：錯誤」/「源 Y：逾時」/「源 Z 未查（時間預算用盡）」。
+     StatusLine(String),
++    /// Item C：同一本書（name+author 相同）跨 ≥2 源的摺疊行。
++    /// `hits` 依源迭代順序排列；`hits[0]` 是第一個出現的源（Enter 的作用對象）。
++    Folded { hits: Vec<(SearchHit, String)> },
+ }
+ 
+ #[allow(dead_code)]
+@@ -117,14 +124,9 @@ impl Screen for SearchScreen {
+                 let items: Vec<ListItem> = rows
+                     .iter()
+                     .map(|r| match r {
+-                        HitOrStatus::Hit { hit, source_name } => ListItem::new(format!(
+-                            "{} / {} [{}]",
+-                            hit.name,
+-                            hit.author.as_deref().unwrap_or("-"),
+-                            source_name
+-                        )),
+-                        HitOrStatus::StatusLine(s) => ListItem::new(s.as_str())
++                        HitOrStatus::StatusLine(_) => ListItem::new(row_label(r))
+                             .style(Style::default().fg(Color::Red)),
++                        _ => ListItem::new(row_label(r)),
+                     })
+                     .collect();
+                 let list = List::new(items)
+@@ -158,7 +160,9 @@ impl Screen for SearchScreen {
+                     // 把第一個 Hit 預選；若全是 StatusLine 則選 0（仍能 j/k 移動）。
+                     let first_hit_idx = rows
+                         .iter()
+-                        .position(|r| matches!(r, HitOrStatus::Hit { .. }))
++                        .position(|r| {
++                            matches!(r, HitOrStatus::Hit { .. } | HitOrStatus::Folded { .. })
++                        })
+                         .unwrap_or(0);
+                     if !rows.is_empty() {
+                         list_state.select(Some(first_hit_idx));
+@@ -183,9 +187,11 @@ impl Screen for SearchScreen {
+                 KeyCode::Enter => {
+                     // Extract selected hit data (cloned) so we can release the
+                     // &mut borrow on self.state before calling helpers / facades.
++                    // Item C (C4): a Folded row acts on its FIRST source's hit.
+                     let selected_hit = list_state.selected().and_then(|i| {
+                         rows.get(i).and_then(|r| match r {
+                             HitOrStatus::Hit { hit, .. } => Some(hit.clone()),
++                            HitOrStatus::Folded { hits } => hits.first().map(|(h, _)| h.clone()),
+                             HitOrStatus::StatusLine(_) => None,
+                         })
+                     });
+@@ -262,6 +268,88 @@ pub fn assemble_rows(per_source: Vec<(String, SourceOutcome)>) -> Vec<HitOrStatu
+     rows
+ }
+ 
++/// Item C fold key: `(name.trim(), author-or-empty.trim())`.
++fn fold_key(hit: &SearchHit) -> (String, String) {
++    (
++        hit.name.trim().to_string(),
++        hit.author.as_deref().unwrap_or("").trim().to_string(),
++    )
++}
++
++/// Pure post-pass over [`assemble_rows`] output（Item C）：把 fold key 相同的
++/// `Hit` 行摺疊成一個 [`HitOrStatus::Folded`]。
++///
++/// 規則：
++/// - C1: 相同 `(name.trim(), author.trim())` 的 hit 收斂成一行；
++/// - C2: name 或 author 任一不同 → 各自成行；
++/// - C3: 摺疊行停留在「第一次出現」的位置；單源 hit 維持原樣（仍是 `Hit`）；
++/// - C5: `StatusLine` 行不受影響，相對順序不變。
++///
++/// 純函數：不碰 scraper / db / 時鐘。
++pub fn fold_rows(rows: Vec<HitOrStatus>) -> Vec<HitOrStatus> {
++    use std::collections::HashMap;
++
++    let mut out: Vec<HitOrStatus> = Vec::with_capacity(rows.len());
++    let mut first_pos: HashMap<(String, String), usize> = HashMap::new();
++
++    for row in rows {
++        match row {
++            HitOrStatus::Hit { hit, source_name } => {
++                let key = fold_key(&hit);
++                if let Some(&i) = first_pos.get(&key) {
++                    // Upgrade the first occurrence in place (position preserved).
++                    let prev = std::mem::replace(
++                        &mut out[i],
++                        HitOrStatus::StatusLine(String::new()), // placeholder, replaced below
++                    );
++                    out[i] = match prev {
++                        HitOrStatus::Hit { hit: h0, source_name: s0 } => HitOrStatus::Folded {
++                            hits: vec![(h0, s0), (hit, source_name)],
++                        },
++                        HitOrStatus::Folded { mut hits } => {
++                            hits.push((hit, source_name));
++                            HitOrStatus::Folded { hits }
++                        }
++                        other => other, // unreachable: first_pos only indexes Hit/Folded
++                    };
++                } else {
++                    first_pos.insert(key, out.len());
++                    out.push(HitOrStatus::Hit { hit, source_name });
++                }
++            }
++            other => out.push(other),
++        }
++    }
++    out
++}
++
++/// Display text of one result row（pure — unit-testable, used by `draw`）。
++/// - `Hit`   : `書名 / 作者 [源名]`（與摺疊功能之前完全相同，C3）
++/// - `Folded`: `書名 / 作者 [N源: A, B, C]`（N = 摺疊的命中數，含全部源名，C1）
++/// - `StatusLine`: 原文。
++pub fn row_label(row: &HitOrStatus) -> String {
++    match row {
++        HitOrStatus::Hit { hit, source_name } => format!(
++            "{} / {} [{}]",
++            hit.name,
++            hit.author.as_deref().unwrap_or("-"),
++            source_name
++        ),
++        HitOrStatus::Folded { hits } => {
++            let (first, _) = &hits[0];
++            let names: Vec<&str> = hits.iter().map(|(_, s)| s.as_str()).collect();
++            format!(
++                "{} / {} [{}源: {}]",
++                first.name,
++                first.author.as_deref().unwrap_or("-"),
++                hits.len(),
++                names.join(", ")
++            )
++        }
++        HitOrStatus::StatusLine(s) => s.clone(),
++    }
++}
++
+ /// 逐源序列查 — 全局 15s deadline + 單源 timeout（per_source = remaining /
+ /// remaining_count，下限 2s）。單源錯誤 / timeout 不中斷整體 funnel。
+ async fn do_search(ctx: &mut AppContext, keyword: &str) -> Vec<HitOrStatus> {
+@@ -301,7 +389,8 @@ async fn do_search(ctx: &mut AppContext, keyword: &str) -> Vec<HitOrStatus> {
+         };
+         per_source.push((src.book_source_name.clone(), outcome));
+     }
+-    assemble_rows(per_source)
++    // Item C: collapse duplicate books (same name+author across sources).
++    fold_rows(assemble_rows(per_source))
+ }
+ 
+ // ----------------------------------------------------------------------------
+@@ -447,7 +536,9 @@ mod tests {
+                 HitOrStatus::Hit { source_name, .. } => {
+                     assert_eq!(source_name, expected_src);
+                 }
+-                HitOrStatus::StatusLine(s) => panic!("row {} 應為 Hit，得 StatusLine: {}", i, s),
++                // (Item C 機械適配：新增 Folded variant 後 match 需窮盡；
++                // 本測試斷言的行為不變 — 每行都必須是 Hit。)
++                other => panic!("row {} 應為 Hit，得: {}", i, row_label(other)),
+             }
+         }
+     }
+@@ -528,6 +619,128 @@ mod tests {
+         assert!(matches!(rows[0], HitOrStatus::Hit { .. }));
+     }
+ 
++    // ------------------------------------------------------------------
++    // Item C — fold_rows / row_label pure tests (C1/C2/C3/C5)
++    // ------------------------------------------------------------------
++
++    fn hit_row(name: &str, author: Option<&str>, src_name: &str, src_url: &str) -> HitOrStatus {
++        HitOrStatus::Hit {
++            hit: SearchHit {
++                source_url: src_url.into(),
++                name: name.into(),
++                author: author.map(|a| a.into()),
++                book_url: format!("{}/{}", src_url, name.trim()),
++                kind: None,
++                intro: None,
++            },
++            source_name: src_name.into(),
++        }
++    }
++
++    /// C1: 三源同書（name+author 相同）→ 摺疊成一行；label 含書名、作者、
++    /// 源數 3 與全部源名。
++    #[test]
++    fn c1_same_book_three_sources_folds_to_one_row() {
++        let rows = fold_rows(vec![
++            hit_row("超維術士", Some("牧狐"), "源 A", "http://a"),
++            hit_row("超維術士", Some("牧狐"), "源 B", "http://b"),
++            hit_row("超維術士", Some("牧狐"), "源 C", "http://c"),
++        ]);
++        assert_eq!(rows.len(), 1, "三源同書必須摺疊成一行");
++        let label = row_label(&rows[0]);
++        assert!(label.contains("超維術士"), "label 應含書名: {label}");
++        assert!(label.contains("牧狐"), "label 應含作者: {label}");
++        assert!(label.contains("3源"), "label 應含源數: {label}");
++        for s in ["源 A", "源 B", "源 C"] {
++            assert!(label.contains(s), "label 應列出全部源名 ({s}): {label}");
++        }
++    }
++
++    /// C1 邊界：name/author 帶前後空白仍視為同書（trim 後比對）。
++    #[test]
++    fn c1_fold_key_trims_name_and_author() {
++        let rows = fold_rows(vec![
++            hit_row(" 超維術士 ", Some("牧狐"), "源 A", "http://a"),
++            hit_row("超維術士", Some(" 牧狐 "), "源 B", "http://b"),
++        ]);
++        assert_eq!(rows.len(), 1, "trim 後相同 → 摺疊");
++        assert!(matches!(&rows[0], HitOrStatus::Folded { hits } if hits.len() == 2));
++    }
++
++    /// C2: 同名不同作者（含 None author）→ 不摺疊。
++    #[test]
++    fn c2_same_name_different_author_stays_separate() {
++        let rows = fold_rows(vec![
++            hit_row("同名書", Some("作者甲"), "源 A", "http://a"),
++            hit_row("同名書", Some("作者乙"), "源 B", "http://b"),
++            hit_row("同名書", None, "源 C", "http://c"),
++        ]);
++        assert_eq!(rows.len(), 3, "author 不同（或缺）不得摺疊");
++        for r in &rows {
++            assert!(matches!(r, HitOrStatus::Hit { .. }), "全部應維持單源 Hit 行");
++        }
++    }
++
++    /// C3 + C5: 摺疊行停在第一次出現的位置；StatusLine 相對倖存行位置不變；
++    /// 單源 hit 的 label 與摺疊功能之前一致。
++    #[test]
++    fn c3_c5_positions_and_single_row_rendering() {
++        let rows = fold_rows(vec![
++            hit_row("書X", Some("甲"), "源 A", "http://a"),
++            HitOrStatus::StatusLine("源 B：逾時".into()),
++            hit_row("書Y", Some("乙"), "源 C", "http://c"),
++            hit_row("書X", Some("甲"), "源 D", "http://d"),
++        ]);
++        assert_eq!(rows.len(), 3, "書X 兩行摺疊後剩 3 行");
++        // row 0: 摺疊的書X，佔第一次出現的位置。
++        match &rows[0] {
++            HitOrStatus::Folded { hits } => {
++                assert_eq!(hits.len(), 2);
++                assert_eq!(hits[0].1, "源 A", "hits[0] 是第一個出現的源");
++                assert_eq!(hits[1].1, "源 D");
++            }
++            other => panic!("row 0 應為 Folded，得 {}", row_label(other)),
++        }
++        // row 1: StatusLine 原文、位置緊跟在倖存行後（C5）。
++        match &rows[1] {
++            HitOrStatus::StatusLine(s) => assert_eq!(s, "源 B：逾時"),
++            other => panic!("row 1 應為 StatusLine，得 {}", row_label(other)),
++        }
++        // row 2: 單源書Y 維持 Hit、label 格式與既有一致（C3）。
++        assert!(matches!(&rows[2], HitOrStatus::Hit { .. }));
++        assert_eq!(row_label(&rows[2]), "書Y / 乙 [源 C]");
++    }
++
++    /// C4: Enter 落在摺疊行 → 作用於第一個源的 hit。in-memory db 無該書源，
++    /// add 流程會 append「找不到書源：<url>」狀態行 — 斷言其為第一源的 URL。
++    #[tokio::test]
++    async fn c4_enter_on_folded_row_acts_on_first_source_hit() {
++        let mut s = SearchScreen::new();
++        let mut ctx = test_ctx();
++        let folded = fold_rows(vec![
++            hit_row("書X", Some("甲"), "源 A", "http://first.example"),
++            hit_row("書X", Some("甲"), "源 B", "http://second.example"),
++        ]);
++        let mut list_state = ListState::default();
++        list_state.select(Some(0));
++        s.state = SearchState::Results { rows: folded, list_state };
++
++        let t = s.handle_event(press(KeyCode::Enter), &mut ctx).await;
++        assert!(matches!(t, Transition::Stay), "找不到書源 → Stay 並 append 狀態行");
++        let SearchState::Results { rows, .. } = &s.state else {
++            panic!("應仍在 Results 狀態");
++        };
++        let last = row_label(rows.last().expect("應有 append 的狀態行"));
++        assert!(
++            last.contains("找不到書源"),
++            "應走到 add 流程的書源查找: {last}"
++        );
++        assert!(
++            last.contains("http://first.example"),
++            "Enter 必須作用於第一源（源 A）的 hit: {last}"
++        );
++    }
++
+     // ------------------------------------------------------------------
+     // REQ-003 Scenarios 4-5: Esc 在 Input / Results mode 都回 MenuScreen
+     // ------------------------------------------------------------------
+diff --git a/src/presentation/handlers/tui/switch_source.rs b/src/presentation/handlers/tui/switch_source.rs
+index 2be6c85..0321701 100644
+--- a/src/presentation/handlers/tui/switch_source.rs
++++ b/src/presentation/handlers/tui/switch_source.rs
+@@ -175,12 +175,20 @@ impl Screen for SwitchSourceScreen {
+                             Ok(outcome) => {
+                                 // 規格 line 145：成功時用 None highlight + toast。
+                                 // 不再 highlight 新 book_url（即使 UX 上會更友善）。
+-                                let toast = format!(
+-                                    "✓ 已換源至 {}，進度重置到第 {} 章: {}",
+-                                    source_url,
+-                                    outcome.new_progress_idx + 1,
+-                                    outcome.new_first_chapter_name
+-                                );
++                                // Item B (B6): toast 區分「進度已遷移」vs「進度重置」。
++                                let toast = match &outcome.progress {
++                                    switch_source_core::ProgressOutcome::Migrated {
++                                        chapter_name,
++                                        ..
++                                    } => format!(
++                                        "✓ 已換源至 {}，進度已遷移：{}",
++                                        source_url, chapter_name
++                                    ),
++                                    switch_source_core::ProgressOutcome::Reset => format!(
++                                        "✓ 已換源至 {}，進度重置到首章：{}",
++                                        source_url, outcome.new_first_chapter_name
++                                    ),
++                                };
+                                 Transition::To(Box::new(ShelfScreen::with_highlight(
+                                     None,
+                                     Some(toast),

@@ -1,0 +1,18 @@
+p3-fos/spec start 1784445922
+p3-fos/spec end 1784446761
+p3-fos/impl-a start 1784446811
+p3-fos/impl-a end 1784447022
+p3-fos/review-a start 1784447112
+p3-fos/review-a end 1784447112
+p3-fos/impl-b start 1784447333
+p3-fos/impl-b end 1784448244
+2026-07-19T08:08:02Z
+p3-fos/impl-b correction-round done 1784449058
+p3-fos/review-b correction-verify end 2026-07-19T08:21:33Z
+p3-fos/review-b audit-precision correction 2026-07-19T08:25:53Z
+p3-fos/impl-c start 1784449625
+p3-fos/impl-c end 1784449832
+2026-07-19T08:32:51Z p3-fos/review-c review complete: tier=advisory green_proof exit0 (search 17/17, full 84/84), red_proof verified, checklist filled
+p3-fos/final-review start 2026-07-19T08:35:46Z
+p3-fos/final-review suite-run exit0 84/84 2026-07-19T08:36:40Z
+p3-fos/final-review end 2026-07-19T08:39:11Z

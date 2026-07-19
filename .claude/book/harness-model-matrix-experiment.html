@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Harness×Model 矩陣實驗——十個 agent 團隊配置的盲評對決</title>
+  <style>
+/* preset: kami; schema: 43 */
+/* 紙 (Kami) Preset — v1.3 baransu canonical token schema
+   ────────────────────────────────────────────────────────
+   Visual language: warm parchment background, deep ink-blue accent, serif typography.
+   All HTML骨架 (design-cores/, slide-cores/) consume tokens by their canonical names.
+   See plugins/baransu/skills/design/SKILL.md §Canonical Token Schema for the v1.3 spec.
+*/
+
+:root {
+  /* ── Surface ─────────────────────────────── */
+  --paper:          #f5f4ed;  /* page background — warm parchment, never pure white */
+  --surface:        #faf9f5;  /* cards, lifted containers — ivory */
+  --surface-strong: #e8e6dc;  /* buttons, interactive surfaces — warm sand */
+  --dark-surface:   #30302e;  /* dark containers */
+  --deep-dark:      #141413;  /* dark page background */
+
+  /* ── Accent (sole chromatic, ≤5% surface — Kami invariant #2) ── */
+  --accent:    #1B365D;  /* deep ink-blue */
+  --accent-on: #faf9f5;  /* foreground on --accent fills — ivory, not pure white */
+
+  /* ── Text hierarchy ──────────────────────── */
+  --ink:            #141413;  /* structural ink alias for primary text */
+  --text-primary:   #141413;  /* body and headings */
+  --text-secondary: #3d3d3a;  /* secondary text, table headers, link rest */
+  --text-muted:     #504e49;  /* tertiary, captions */
+  --text-faint:     #6b6a64;  /* metadata, placeholder */
+
+  /* ── Borders ─────────────────────────────── */
+  --border:      #e8e6dc;  /* primary border / divider */
+  --border-soft: #e5e3d8;  /* secondary border / row separator */
+
+  /* ── Typography ──────────────────────────── */
+  --font-serif: Charter, Georgia, Palatino, "Times New Roman", serif;
+  --font-sans:  var(--font-serif);   /* intentional: sans aliases serif (Kami) */
+  --font-mono:  "JetBrains Mono", "SF Mono", "Fira Code", Consolas, Monaco, monospace;
+
+  /* Chinese override — paste inside :lang(zh) or .lang-zh:
+     --font-serif: "TsangerJinKai02", "Source Han Serif SC", "Noto Serif CJK SC",
+                   "Songti SC", "STSong", Georgia, serif;                          */
+
+  /* ── Depth (ring / whisper only — no hard shadows; Kami inv #9) ── */
+  --shadow-ring:    0 0 0 1px var(--border);
+  --shadow-whisper: 0 4px 24px rgba(0, 0, 0, 0.05);
+
+  /* ── Spacing (Kami print scale — not a strict 4pt grid; the 3/5/10 steps are intentional hand-tuned values) ── */
+  --space-xs:  3px;
+  --space-sm:  5px;
+  --space-md: 10px;
+  --space-lg: 20px;
+  --space-xl: 32px;
+  --space-2xl:56px;
+  --space-3xl:96px;
+
+  /* ── Radius scale ────────────────────────── */
+  --radius-xs:  4px;
+  --radius-sm:  6px;
+  --radius-md:  8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl:24px;
+  --radius-hero:32px;
+
+  /* ── Layout (preset-specific overrides) ── */
+  --cover-title-align: center;   /* Kami covers center; Swiss flushes left */
+  --grid-columns: 12;
+  --grid-gutter:  24px;
+
+  /* ── Semantic (metric.html consumer) ── */
+  --delta-up:   #2a6c45;  /* warm dark green */
+  --delta-down: #7a2e2e;  /* warm dark red */
+
+  /* ── Capability (gen-power; Kami's committed extreme is restrained — drama stays low-key) ── */
+  --ease:         cubic-bezier(0.4, 0, 0.2, 1);  /* gentle standard ease */
+  --duration:     200ms;                          /* unhurried, print-calm */
+  --stagger-step: 40ms;                           /* slow sequential reveal */
+  --font-display: var(--font-serif);              /* display = the serif voice */
+  --shadow-drama: 0 12px 40px rgba(0, 0, 0, 0.08);/* even "drama" is a whisper */
+}
+
+/* ── Base reset (minimal, Kami-safe) ─────────────────────── */
+body {
+  background: var(--paper);
+  color: var(--text-primary);
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Heading weight locked at 500 — Kami invariant #5 */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+/* Modular scale: perfect fourth r=1.333 (anchor body=16px) — see canonical-tokens.md */
+h1 { font-size: 2.375rem;  line-height: 1.15; }  /* 38px ≈ 16 × 1.333³ */
+h2 { font-size: 1.75rem;   line-height: 1.20; }  /* 28px ≈ 16 × 1.333² */
+h3 { font-size: 1.3125rem; line-height: 1.30; }  /* 21px ≈ 16 × 1.333  */
+
+/* No italics — Kami invariant #10 */
+em, i { font-style: normal; font-weight: 500; }
+
+/* Links */
+a { color: var(--text-secondary); text-decoration-color: var(--border); }
+a:hover { color: var(--accent); }
+
+code, pre {
+  font-family: var(--font-mono);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+code { padding: 0.1em 0.4em; font-size: 0.875em; }
+pre  { padding: 1rem 1.25rem; font-size: 0.875em; line-height: 1.55; overflow-x: auto; }
+
+</style>
+  <style>
+    * { box-sizing: border-box; }
+    body { background: var(--paper); color: var(--text-primary); font-family: "TsangerJinKai02", "Source Han Serif TC", "Noto Serif CJK TC", "Songti TC", Charter, Georgia, serif; margin: 0; text-wrap: pretty; }
+    .kami-page { max-width: 1200px; margin: 0 auto; padding: 56px 24px; display: grid; grid-template-columns: 220px 1fr; gap: 56px; }
+    .kami-toc { position: sticky; top: 24px; align-self: start; border-left: 3px solid var(--accent); padding-left: 16px; }
+    .kami-toc .kami-toc-label { font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.08em; }
+    .kami-toc h1 { font-size: 18px; margin: 8px 0 24px; font-weight: 500; letter-spacing: -0.01em; }
+    .kami-toc ol { list-style: none; padding: 0; margin: 0; }
+    .kami-toc a { display: block; font-size: 13px; color: var(--text-secondary); text-decoration: none; padding: 4px 0; }
+    .kami-toc a:hover { color: var(--accent); }
+    .kami-h1 { font-size: 30px; font-weight: 500; line-height: 1.2; letter-spacing: -0.01em; margin: 0 0 16px; text-wrap: pretty; }
+    .kami-h2 { font-size: 24px; font-weight: 500; line-height: 1.25; letter-spacing: -0.01em; border-left: 3px solid var(--accent); padding-left: 12px; margin: 0 0 16px; text-wrap: pretty; }
+    .kami-h3 { font-size: 18px; font-weight: 500; line-height: 1.30; margin: 24px 0 12px; text-wrap: pretty; }
+    .kami-lead { font-size: 17px; line-height: 1.55; color: var(--text-primary); margin: 16px 0; max-width: 680px; }
+    .kami-body { font-size: 15px; line-height: 1.55; color: var(--text-primary); margin: 12px 0; max-width: 680px; text-wrap: pretty; }
+    .kami-dropcap { float: left; font-size: 4.65em; line-height: 1; font-weight: 500; color: var(--accent); padding-right: 8px; padding-top: 2px; }
+    .kami-caption { font-size: 12px; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; }
+    .kami-quote { border-left: 2px solid var(--accent); padding: 8px 0 8px 16px; color: var(--text-secondary); margin: 24px 0; line-height: 1.55; max-width: 680px; }
+    .kami-code { font-family: var(--font-mono); font-size: 13px; background: var(--surface); padding: 2px 6px; border-radius: var(--radius-sm); border: 0.5px solid var(--border-soft); }
+    figure.kami-figure { margin: 32px 0; }
+    figure.kami-figure svg { display: block; max-width: 100%; }
+    figcaption.kami-figcaption { font-size: 12px; color: var(--text-muted); margin-top: 8px; text-align: center; }
+    .kami-footer { font-size: 12px; color: var(--text-faint); border-top: 0.5px solid var(--border); padding-top: 16px; margin-top: 96px; }
+    em, i { font-style: normal; font-weight: 500; }
+    section.kami-sec { margin-bottom: 96px; }
+    ul.kami-list { list-style: none; padding: 0; margin: 12px 0; max-width: 680px; }
+    ul.kami-list li { position: relative; padding-left: 20px; margin-bottom: 10px; font-size: 15px; line-height: 1.55; }
+    ul.kami-list li::before { content: ""; position: absolute; left: 0; top: 0.72em; width: 8px; height: 1.5px; background: var(--accent); }
+    table.kami-table { border-collapse: collapse; width: 100%; font-size: 13px; line-height: 1.45; margin: 20px 0; }
+    table.kami-table th { color: var(--text-secondary); font-weight: 500; text-align: left; border-bottom: 1px solid var(--border); padding: 8px 10px; }
+    table.kami-table td { border-bottom: 1px solid var(--border-soft); padding: 8px 10px; vertical-align: top; }
+    table.kami-table td.num, table.kami-table th.num { font-family: var(--font-mono); font-size: 12px; }
+    tr.kami-win td { background: var(--surface); }
+    .sec-num { font-family: var(--font-mono); font-size: 13px; color: var(--text-faint); margin-right: 10px; }
+    @media (max-width: 900px) { .kami-page { grid-template-columns: 1fr; gap: 24px; padding: 24px; } .kami-toc { position: static; } }
+  </style>
+</head>
+<body class="kami-paper-body">
+<div class="kami-page">
+
+  <aside class="kami-toc">
+    <div class="kami-toc-label">Contents</div>
+    <h1>Harness×Model 矩陣實驗</h1>
+    <ol>
+      <li><a href="#s1">01 為什麼做這個實驗</a></li>
+      <li><a href="#s2">02 計分結果</a></li>
+      <li><a href="#s3">03 一個訊息字串抓到五組</a></li>
+      <li><a href="#s4">04 墊底解剖：p3-os</a></li>
+      <li><a href="#s5">05 P2 的平庸與前饋兩招</a></li>
+      <li><a href="#s6">06 三條路</a></li>
+      <li><a href="#s7">07 動刀方向與侷限</a></li>
+    </ol>
+  </aside>
+
+  <main class="kami-main">
+    <header class="kami-cover">
+      <p class="kami-caption">Experiment Report · 2026-07-19</p>
+      <h1 class="kami-h1">Harness×Model 矩陣實驗——十個 agent 團隊配置的盲評對決</h1>
+      <p class="kami-lead">同一份簡報、十組配置、雙盲評審。花最多錢跑完整流程的配置裡有一組墊底；被看好的單模型裸奔，輸在一個訊息字串上。</p>
+    </header>
+
+    <section data-slot="long-form-body">
+
+      <section id="s1" class="kami-sec">
+        <h2 class="kami-h2"><span class="sec-num">01</span>為什麼做這個實驗</h2>
+        <p class="kami-body"><span class="kami-dropcap">市</span>面上的開發流程 skill 多半誕生於模型能力較弱的年代：先寫五層規格、再用測試先行紀律實作、每步配獨立審查。模型一代比一代強，這些鷹架照理該一層層拆掉，但拆哪些、留哪些，過去只有直覺，沒有數據。</p>
+        <p class="kami-body">我們把問題壓成一個 3×3 矩陣。流程軸三檔：P1 原生（什麼流程都不給）、P2 只分析（先寫規格再直接實作）、P3 分析加執行（規格、失敗測試先行、獨立審查、總驗收）。模型軸三檔：F（Fable 單模型）、OS（Opus 規劃加 Sonnet 實作）、FOS（Fable 規劃、Sonnet 實作、Opus 審查）。過程中因委派機制限制多出一格 Opus 單體，湊成十組。</p>
+        <p class="kami-body">三件工作刻意混搭：解析器裡的真實 bug（<code class="kami-code">&amp;</code> 自選擇器在檢查前就被解析炸掉）、跨層功能（換源時按章節名遷移閱讀進度）、TUI 體驗改善（跨書源搜尋結果摺疊）。每組拿到一字不差的驗收簡報，在獨立 worktree 工作；十位評審只看去識別副本：沒有 git 歷史、沒有規格目錄，只有程式碼和簡報。</p>
+        <figure class="kami-figure">
+          <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="實驗矩陣">
+            <rect width="100%" height="100%" fill="#f5f4ed"/>
+            <text x="320" y="36" fill="#141413" font-size="16" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">3×3 配置矩陣＋1 bonus 格</text>
+            <text x="168" y="76" fill="#504e49" font-size="12" font-family="'JetBrains Mono', monospace" text-anchor="middle">F</text>
+            <text x="320" y="76" fill="#504e49" font-size="12" font-family="'JetBrains Mono', monospace" text-anchor="middle">OS</text>
+            <text x="472" y="76" fill="#504e49" font-size="12" font-family="'JetBrains Mono', monospace" text-anchor="middle">FOS</text>
+            <text x="72" y="112" fill="#504e49" font-size="12" font-family="'JetBrains Mono', monospace" text-anchor="middle">P1</text>
+            <rect x="104" y="88" width="128" height="32" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="168" y="108" fill="#141413" font-size="12" font-family="'JetBrains Mono', monospace" text-anchor="middle">p1-f</text>
+            <rect x="256" y="88" width="128" height="32" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="320" y="108" fill="#141413" font-size="12" font-family="'JetBrains Mono', monospace" text-anchor="middle">p1-os</text>
+            <rect x="408" y="88" width="128" height="32" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="472" y="108" fill="#141413" font-size="12" font-family="'JetBrains Mono', monospace" text-anchor="middle">p1-fos</text>
+            <text x="72" y="168" fill="#504e49" font-size="12" font-family="'JetBrains Mono', monospace" text-anchor="middle">P2</text>
+            <rect x="104" y="144" width="128" height="32" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="168" y="164" fill="#141413" font-size="12" font-family="'JetBrains Mono', monospace" text-anchor="middle">p2-f</text>
+            <rect x="256" y="144" width="128" height="32" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="320" y="164" fill="#141413" font-size="12" font-family="'JetBrains Mono', monospace" text-anchor="middle">p2-os</text>
+            <rect x="408" y="144" width="128" height="32" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="472" y="164" fill="#141413" font-size="12" font-family="'JetBrains Mono', monospace" text-anchor="middle">p2-fos</text>
+            <text x="72" y="224" fill="#504e49" font-size="12" font-family="'JetBrains Mono', monospace" text-anchor="middle">P3</text>
+            <rect x="104" y="200" width="128" height="32" rx="4" data-role="focal" fill="#EEF2F7" stroke="#1B365D" stroke-width="1.5"/>
+            <text x="168" y="220" fill="#1B365D" font-size="12" font-family="'JetBrains Mono', monospace" text-anchor="middle">p3-f 冠軍</text>
+            <rect x="256" y="200" width="128" height="32" rx="4" data-role="focal" fill="#EEF2F7" stroke="#1B365D" stroke-width="1.5"/>
+            <text x="320" y="220" fill="#1B365D" font-size="12" font-family="'JetBrains Mono', monospace" text-anchor="middle">p3-os 墊底</text>
+            <rect x="408" y="200" width="128" height="32" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="472" y="220" fill="#141413" font-size="12" font-family="'JetBrains Mono', monospace" text-anchor="middle">p3-fos</text>
+            <rect x="104" y="264" width="128" height="32" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1" stroke-dasharray="4,3"/>
+            <text x="168" y="284" fill="#141413" font-size="12" font-family="'JetBrains Mono', monospace" text-anchor="middle">p1-o bonus</text>
+            <text x="248" y="284" fill="#504e49" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif">Opus 單體裸奔（委派限制的意外收穫）</text>
+            <text x="320" y="332" fill="#504e49" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">同一份三項簡報、同一個 git 基線、獨立 worktree、雙盲評審</text>
+          </svg>
+          <figcaption class="kami-figcaption">同一列共享流程、同一欄共享模型——冠軍與墊底出現在同一列，代表流程本身不決定成敗。</figcaption>
+        </figure>
+      </section>
+
+      <section id="s2" class="kami-sec">
+        <h2 class="kami-h2"><span class="sec-num">02</span>計分結果</h2>
+        <p class="kami-body">評審按四個維度打分：21 條驗收標準有沒有被測試釘死、有沒有引入 bug、架構遵循度、測試殺不殺得死突變。基本功全員過關：十組的架構分數都在 9 分以上，隱藏驗收探針全過，測試套件全綠。拉開差距的只有一件事。</p>
+        <table class="kami-table">
+          <tr><th class="num">#</th><th>配置</th><th class="num">釘死/21</th><th>引入 bug</th><th class="num">時間</th><th class="num">成本</th></tr>
+          <tr class="kami-win"><td class="num">1</td><td>p3-f：Fable 全套流程</td><td class="num">20</td><td>0</td><td class="num">52m</td><td class="num">$32.64</td></tr>
+          <tr><td class="num">2</td><td>p3-fos：三模型全套流程</td><td class="num">20</td><td>0</td><td class="num">75m</td><td class="num">$20.92</td></tr>
+          <tr><td class="num">3</td><td>p2-fos：規格＋實作＋審查修正</td><td class="num">19</td><td>0</td><td class="num">32m</td><td class="num">$12.58</td></tr>
+          <tr><td class="num">4</td><td>p1-o：Opus 單體裸奔</td><td class="num">19</td><td>0</td><td class="num">25m</td><td class="num">$4.92</td></tr>
+          <tr><td class="num">5</td><td>p2-os：Opus 規格＋Sonnet 實作</td><td class="num">18</td><td>0</td><td class="num">30m</td><td class="num">$5.35</td></tr>
+          <tr><td class="num">6</td><td>p2-f：Fable 規格＋Fable 實作</td><td class="num">19</td><td>1 med</td><td class="num">25m</td><td class="num">$16.45</td></tr>
+          <tr><td class="num">7</td><td>p1-f：Fable 單體裸奔</td><td class="num">19</td><td>1 med</td><td class="num">16m</td><td class="num">$7.75</td></tr>
+          <tr><td class="num">8</td><td>p1-fos：三模型原生組合</td><td class="num">18</td><td>1 med</td><td class="num">27m</td><td class="num">$12.07</td></tr>
+          <tr><td class="num">9</td><td>p1-os：Opus 加 Sonnet 原生</td><td class="num">18</td><td>1 med</td><td class="num">26m</td><td class="num">$6.81</td></tr>
+          <tr><td class="num">10</td><td>p3-os：Opus 規格全套流程</td><td class="num">17</td><td>1 high＋1 med</td><td class="num">50m</td><td class="num">$11.84</td></tr>
+        </table>
+        <figure class="kami-figure">
+          <svg viewBox="0 0 640 384" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="每組成本對比">
+            <rect width="100%" height="100%" fill="#f5f4ed"/>
+            <text x="320" y="28" fill="#141413" font-size="14" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">每組實作成本（USD，output-token 下限估算）</text>
+            <text x="112" y="64" fill="#141413" font-size="11" font-family="'JetBrains Mono', monospace" text-anchor="end">p1-o</text>
+            <line x1="120" y1="60" x2="168" y2="60" stroke="#1B365D" stroke-width="16"/>
+            <text x="176" y="64" fill="#504e49" font-size="11" font-family="'JetBrains Mono', monospace">$4.92 ← 最省</text>
+            <text x="112" y="96" fill="#141413" font-size="11" font-family="'JetBrains Mono', monospace" text-anchor="end">p2-os</text>
+            <line x1="120" y1="92" x2="172" y2="92" stroke="#1B365D" stroke-width="16"/>
+            <text x="180" y="96" fill="#504e49" font-size="11" font-family="'JetBrains Mono', monospace">$5.35</text>
+            <text x="112" y="128" fill="#141413" font-size="11" font-family="'JetBrains Mono', monospace" text-anchor="end">p1-os</text>
+            <line x1="120" y1="124" x2="188" y2="124" stroke="#1B365D" stroke-width="16"/>
+            <text x="196" y="128" fill="#504e49" font-size="11" font-family="'JetBrains Mono', monospace">$6.81</text>
+            <text x="112" y="160" fill="#141413" font-size="11" font-family="'JetBrains Mono', monospace" text-anchor="end">p1-f</text>
+            <line x1="120" y1="156" x2="196" y2="156" stroke="#1B365D" stroke-width="16"/>
+            <text x="204" y="160" fill="#504e49" font-size="11" font-family="'JetBrains Mono', monospace">$7.75</text>
+            <text x="112" y="192" fill="#141413" font-size="11" font-family="'JetBrains Mono', monospace" text-anchor="end">p3-os</text>
+            <line x1="120" y1="188" x2="236" y2="188" stroke="#1B365D" stroke-width="16"/>
+            <text x="244" y="192" fill="#504e49" font-size="11" font-family="'JetBrains Mono', monospace">$11.84 ← 墊底組</text>
+            <text x="112" y="224" fill="#141413" font-size="11" font-family="'JetBrains Mono', monospace" text-anchor="end">p1-fos</text>
+            <line x1="120" y1="220" x2="240" y2="220" stroke="#1B365D" stroke-width="16"/>
+            <text x="248" y="224" fill="#504e49" font-size="11" font-family="'JetBrains Mono', monospace">$12.07</text>
+            <text x="112" y="256" fill="#141413" font-size="11" font-family="'JetBrains Mono', monospace" text-anchor="end">p2-fos</text>
+            <line x1="120" y1="252" x2="244" y2="252" stroke="#1B365D" stroke-width="16"/>
+            <text x="252" y="256" fill="#504e49" font-size="11" font-family="'JetBrains Mono', monospace">$12.58</text>
+            <text x="112" y="288" fill="#141413" font-size="11" font-family="'JetBrains Mono', monospace" text-anchor="end">p2-f</text>
+            <line x1="120" y1="284" x2="284" y2="284" stroke="#1B365D" stroke-width="16"/>
+            <text x="292" y="288" fill="#504e49" font-size="11" font-family="'JetBrains Mono', monospace">$16.45</text>
+            <text x="112" y="320" fill="#141413" font-size="11" font-family="'JetBrains Mono', monospace" text-anchor="end">p3-fos</text>
+            <line x1="120" y1="316" x2="328" y2="316" stroke="#1B365D" stroke-width="16"/>
+            <text x="336" y="320" fill="#504e49" font-size="11" font-family="'JetBrains Mono', monospace">$20.92</text>
+            <text x="112" y="352" fill="#141413" font-size="11" font-family="'JetBrains Mono', monospace" text-anchor="end">p3-f</text>
+            <line x1="120" y1="348" x2="444" y2="348" stroke="#1B365D" stroke-width="16"/>
+            <text x="452" y="352" fill="#504e49" font-size="11" font-family="'JetBrains Mono', monospace">$32.64 ← 冠軍</text>
+          </svg>
+          <figcaption class="kami-figcaption">冠軍花費是第四名的 6.6 倍——品質差距只有一條驗收標準，日常任務未必值得這個倍率。</figcaption>
+        </figure>
+      </section>
+
+      <section id="s3" class="kami-sec">
+        <h2 class="kami-h2"><span class="sec-num">03</span>一個訊息字串抓到五組</h2>
+        <p class="kami-body">專案資料庫的章節索引 <code class="kami-code">idx</code> 不連續：某些站點第一章落在 idx=1，因為 idx=0 被沒有連結的分卷標題佔走。這件事寫在專案文件裡，十組的規格作者也全都自己挖到了。可是「知道」和「每個輸出位置都做對」是兩回事——五組在使用者看得到的訊息裡寫出「第 {idx+1} 章」，於是畫面印出「進度重置到第 2 章：第1章 起風」，同一行字自打嘴巴。</p>
+        <p class="kami-body">Fable 單體踩了：它的測試 fixture 全部刻意用不連續 idx，證明它完全知道陷阱，卻在 CLI 重置訊息順手加了一。Fable 規格加 Fable 實作也踩了：規格作者和實作者是同一顆心智，作者沒想到的出錯位置，實作者同樣想不到。最慘的是 p3-os：Opus 審查員在報告裡明確描述了缺陷，然後判 advisory 放行——它自己寫的驗收條文只要求訊息包含某個子字串，審查員按字面履約，沒有打槍的依據。盲評把這個缺陷升級成全場唯一的 high。</p>
+        <figure class="kami-figure">
+          <svg viewBox="0 0 640 384" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="idx 陷阱的傳遞路徑">
+            <defs>
+              <marker id="arrow-s3" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+                <path d="M2 1 L8 5 L2 9" fill="none" stroke="#504e49" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </marker>
+              <marker id="arrow-accent-s3" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+                <path d="M2 1 L8 5 L2 9" fill="none" stroke="#1B365D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </marker>
+            </defs>
+            <rect width="100%" height="100%" fill="#f5f4ed"/>
+            <rect x="248" y="24" width="144" height="64" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="320" y="52" fill="#141413" font-size="13" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">規格作者發現陷阱</text>
+            <text x="320" y="72" fill="#504e49" font-size="11" font-family="'JetBrains Mono', monospace" text-anchor="middle">10/10 全數挖到</text>
+            <line x1="264" y1="88" x2="152" y2="152" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow-s3)"/>
+            <line x1="320" y1="88" x2="320" y2="152" stroke="#1B365D" stroke-width="1.4" marker-end="url(#arrow-accent-s3)"/>
+            <line x1="376" y1="88" x2="488" y2="152" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow-s3)"/>
+            <rect x="56" y="156" width="144" height="64" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="128" y="180" fill="#141413" font-size="12" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">警語式前饋</text>
+            <text x="128" y="200" fill="#504e49" font-size="10" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">寫進交接、賭對方記住</text>
+            <rect x="248" y="156" width="144" height="64" rx="4" data-role="focal" fill="#EEF2F7" stroke="#1B365D" stroke-width="1.5"/>
+            <text x="320" y="180" fill="#1B365D" font-size="12" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">條文可斷言化</text>
+            <text x="320" y="200" fill="#504e49" font-size="10" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">審查得以打槍重派</text>
+            <rect x="440" y="156" width="144" height="64" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="512" y="180" fill="#141413" font-size="12" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">沒有傳遞出去</text>
+            <text x="512" y="200" fill="#504e49" font-size="10" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">知識留在作者腦裡</text>
+            <line x1="128" y1="220" x2="128" y2="284" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow-s3)"/>
+            <line x1="320" y1="220" x2="320" y2="284" stroke="#1B365D" stroke-width="1.4" marker-end="url(#arrow-accent-s3)"/>
+            <line x1="512" y1="220" x2="512" y2="284" stroke="#504e49" stroke-width="1.2" marker-end="url(#arrow-s3)"/>
+            <rect x="56" y="288" width="144" height="32" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="128" y="308" fill="#141413" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">p2-os 倖免（靠運氣）</text>
+            <rect x="248" y="288" width="144" height="32" rx="4" fill="#faf9f5" stroke="#1B365D" stroke-width="1"/>
+            <text x="320" y="308" fill="#1B365D" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">p3-fos 打槍後修掉</text>
+            <rect x="440" y="288" width="144" height="32" rx="4" fill="#faf9f5" stroke="#7a2e2e" stroke-width="1"/>
+            <text x="512" y="308" fill="#7a2e2e" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">五組出 bug</text>
+            <text x="320" y="356" fill="#504e49" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">知識傳遞的三種形態：警語靠記憶、條文靠授權、未傳遞靠不住</text>
+          </svg>
+          <figcaption class="kami-figcaption">同一份知識，傳遞形態決定存活率——下一步改革把「警語」升級為「可斷言條文」，把運氣換成結構。</figcaption>
+        </figure>
+      </section>
+
+      <section id="s4" class="kami-sec">
+        <h2 class="kami-h2"><span class="sec-num">04</span>墊底解剖：p3-os</h2>
+        <p class="kami-body">p3-os 付了八個 agent、五十分鐘、$11.84，拿到比 $4.92 單體更差的結果。決策日誌對出三個原因。</p>
+        <ul class="kami-list">
+          <li><em>換手損耗。</em>單體 Opus 從發現陷阱到寫出訊息全程同一個 context；p3-os 的知識要先壓縮成規格文字再由 Sonnet 解壓，警語在壓縮時沒有升級成條文。物證：簡報給定的正規表達式 <code class="kami-code">[章回節节卷]</code> 經轉抄變成繁體「節」重複兩次、簡體「节」消失——轉抄鏈越長，抄錯機率越高，單體根本沒有這一步。</li>
+          <li><em>責任稀釋。</em>實作者想「條文都過了，審查會抓」；審查員想「條文沒禁止，按契約是 advisory」；總驗收想「逐項審查都通過了」。三個環節各自盡職，缺陷從契約縫隙穿過去。單體知道自己是最後一道防線，行為就不一樣。</li>
+          <li><em>儀式性綠燈。</em>走完全程時儀表板漂亮極了：任務全數通過審查、總驗收判定無須修補、79 個測試全綠。每盞綠燈量測的都是條文，條文鬆，綠燈只是心理安慰。</li>
+        </ul>
+        <blockquote class="kami-quote">pipeline 淨值 ＝ 審查牙齒（條文可測性 × 打槍權限）－ 換手損耗（次數 × 每次衰減）。p3-os 兩頭皆輸：牙齒為零、換手最多。</blockquote>
+      </section>
+
+      <section id="s5" class="kami-sec">
+        <h2 class="kami-h2"><span class="sec-num">05</span>P2 的平庸與前饋兩招</h2>
+        <p class="kami-body">只寫規格、不設審查的三組裡，成績最好的那組其實走私了一個審查環節；歸位之後，純粹的「規格加實作」只剩平庸和翻車。這種配置的保護力全部發生在實作之前，屬於前饋性質，沒有人回頭對照成品。前饋要生效，規格作者得先把危險寫進去，有效的手法就兩招。</p>
+        <ul class="kami-list">
+          <li><em>警語式</em>（p2-os）：交接裡明寫「stop using idx+1 as a chapter number」。有效但脆弱——依賴實作者剛好讀到、記住、寫訊息那一刻想起來。</li>
+          <li><em>表面設計式</em>（p2-fos）：直接把訊息格式規定死：「進度已遷移：{章名}」。格式裡沒有數字欄位，錯誤在結構上無處生長。這比警語高一個檔次——把「不要犯錯」變成「無法犯錯」。</li>
+        </ul>
+        <p class="kami-body">p2-f 的殘酷在於：Fable 寫規格給 Fable 自己實作，理論最強的 analyze-only 組合仍然踩雷。規格作者和實作者是同一雙眼睛照兩次鏡子，作者沒看到的表面，規格裡自然沒有，實作時照樣裸露。花 $16.45 買一份自己給自己的 checklist，輸給 $4.92 的裸奔。</p>
+      </section>
+
+      <section id="s6" class="kami-sec">
+        <h2 class="kami-h2"><span class="sec-num">06</span>三條路</h2>
+        <p class="kami-body">十組成績排完，可行的配置收斂成三條路，中間所有配置都付了儀式的錢而沒買到結構的保護。</p>
+        <figure class="kami-figure">
+          <svg viewBox="0 0 640 384" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="三條可行路線對比">
+            <rect width="100%" height="100%" fill="#f5f4ed"/>
+            <rect x="40" y="32" width="160" height="64" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="120" y="60" fill="#141413" font-size="13" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">路一：單體全責</text>
+            <text x="120" y="80" fill="#504e49" font-size="10" font-family="'JetBrains Mono', monospace" text-anchor="middle">$5 / 25m</text>
+            <rect x="240" y="32" width="160" height="64" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1"/>
+            <text x="320" y="60" fill="#141413" font-size="13" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">路二：前饋設計</text>
+            <text x="320" y="80" fill="#504e49" font-size="10" font-family="'JetBrains Mono', monospace" text-anchor="middle">$5-13 / 30m</text>
+            <rect x="440" y="32" width="160" height="64" rx="4" data-role="focal" fill="#EEF2F7" stroke="#1B365D" stroke-width="1.5"/>
+            <text x="520" y="60" fill="#1B365D" font-size="13" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">路三：有牙的反饋環</text>
+            <text x="520" y="80" fill="#504e49" font-size="10" font-family="'JetBrains Mono', monospace" text-anchor="middle">$21-33 / 52-75m</text>
+            <rect x="40" y="128" width="160" height="64" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1" stroke-dasharray="4,3"/>
+            <text x="120" y="152" fill="#141413" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">保護機制</text>
+            <text x="120" y="172" fill="#504e49" font-size="10" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">零交接＋單一責任人自查</text>
+            <rect x="240" y="128" width="160" height="64" rx="4" fill="#faf9f5" stroke="#141413" stroke-width="1" stroke-dasharray="4,3"/>
+            <text x="320" y="152" fill="#141413" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">保護機制</text>
+            <text x="320" y="172" fill="#504e49" font-size="10" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">危險表面設計掉＋條文化</text>
+            <rect x="440" y="128" width="160" height="64" rx="4" fill="#faf9f5" stroke="#1B365D" stroke-width="1" stroke-dasharray="4,3"/>
+            <text x="520" y="152" fill="#141413" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">保護機制</text>
+            <text x="520" y="172" fill="#504e49" font-size="10" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">前饋＋條文授權審查打槍</text>
+            <rect x="40" y="224" width="160" height="32" rx="4" fill="#faf9f5" stroke="#7a2e2e" stroke-width="1"/>
+            <text x="120" y="244" fill="#7a2e2e" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">代價：約 1 個 med bug 稅</text>
+            <rect x="240" y="224" width="160" height="32" rx="4" fill="#faf9f5" stroke="#7a2e2e" stroke-width="1"/>
+            <text x="320" y="244" fill="#7a2e2e" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">代價：依賴規格作者視野</text>
+            <rect x="440" y="224" width="160" height="32" rx="4" fill="#faf9f5" stroke="#2a6c45" stroke-width="1"/>
+            <text x="520" y="244" fill="#2a6c45" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">實測 0 bug、20/21 釘死</text>
+            <text x="120" y="304" fill="#504e49" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">適用：日常中小任務</text>
+            <text x="320" y="304" fill="#504e49" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">適用：跨模型交接必經</text>
+            <text x="520" y="304" fill="#504e49" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">適用：大型或錯不起的變更</text>
+            <text x="320" y="352" fill="#504e49" font-size="11" font-family="'Noto Serif CJK TC', 'Songti TC', Georgia, serif" text-anchor="middle">卡在三條路中間的配置：付儀式的錢，沒買到結構的保護</text>
+          </svg>
+          <figcaption class="kami-figcaption">選路標準是任務規模與容錯度，而非流程越重越安全——路三的成本是路一的四到六倍。</figcaption>
+        </figure>
+      </section>
+
+      <section id="s7" class="kami-sec">
+        <h2 class="kami-h2"><span class="sec-num">07</span>動刀方向與侷限</h2>
+        <p class="kami-body">流程是槓桿，放大的是規格條文的品質：條文釘得死，流程把它放大成冠軍；條文鬆，流程只放大成本和縫隙。所以改革第一刀不砍流程長度，砍條文品質——每條驗收標準必須是具名可斷言的值，使用者可見的文字必須規定精確格式或明列禁止項，規格裡發現的每個資料陷阱必須同時變成條文和測試錨點。第二刀換審查員的任務書：與其全面重審，不如專掃沒有測試釘住的使用者可見表面，因為強模型的錯幾乎只長在那裡。第三刀才砍儀式：設計文件降級成一張表、逐任務上下文檔換成一段交接摘要、失敗重試上限降到一次。</p>
+        <p class="kami-body">實驗有邊界。三件工作對 2026 年的模型群偏簡單，十組全數達到 17 條以上釘死，天花板效應明顯；更大更難的任務可能重新拉開流程的價值差距。這份數據能定論的是中等規模、規格寫得完整的任務帶——在這個帶子裡，與其多開一個審查 agent，不如先把驗收條文寫到能拿來打槍。</p>
+      </section>
+
+    </section>
+
+    <footer class="kami-footer">Harness×Model 矩陣實驗記實 · 2026-07-19 · 完整數據與十份決策日誌見 NovelReader repo <span class="kami-code">.claude/experiments/2026-07-19-harness-matrix/</span></footer>
+  </main>
+
+</div>
+</body>
+</html>
