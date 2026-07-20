@@ -67,9 +67,17 @@ first; judge against it, do not restate it.
 4. **Verbatim constants byte-diff** — diff every constant in the implementation
    against the contract's `## Verbatim Constants` block (G3), byte for byte.
 5. **Mutation spot-check** — deliberately break 1-2 user-facing surfaces, run
-   the test suite, record which test fired (or that none did), then **revert
-   the probe completely** and confirm the revert. A probe that no test catches
-   is a finding, never a shrug.
+   the test suite, and record which test fired (or that none did). Probe
+   revert is a mechanism-level gate, not an intent: BEFORE injecting each
+   probe, save the target file's exact pre-probe content byte for byte (a
+   temp-path copy, or an exact recorded hunk); the ONLY permitted revert is
+   writing that saved content back, and "confirm the revert" is defined as a
+   byte-for-byte comparison against the saved copy that matches. When the
+   audit target includes uncommitted changes (the argument-hint default
+   `none = uncommitted diff`), reverting via `git checkout` / `git restore` /
+   `git stash` is forbidden — those commands destroy the under-audit
+   uncommitted implementation together with the probe. A probe that no test
+   catches is a finding, never a shrug.
 
 ## Direct-fix rights and their boundary
 

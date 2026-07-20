@@ -79,6 +79,10 @@ source of truth}
 
 Show the contract with a per-criterion G1 disposition (可斷言 ✓ / 已改寫自模糊
 表述). Ask the user to confirm or amend — one round, in Traditional Chinese.
+If a CONTRACT.md already exists at the target path: if its content belongs to
+the same task, overwrite it on confirmation; if it belongs to a different
+task, stop and ask the user to name a new path (e.g. `CONTRACT-{slug}.md`) —
+silent overwrite is forbidden.
 On confirmation, write the file and output:
 「合約已釘死：{path}（{N} 條可斷言條文、{M} 個錯不起表面）。實作時照抄
 Verbatim Constants；完工後跑 /baransu:seal 驗收。」

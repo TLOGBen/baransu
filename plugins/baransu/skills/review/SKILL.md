@@ -111,23 +111,7 @@ This table is the sole evidence store for quantitative verdicts: the Stage 1 `�
 
 ---
 
-## Stage 2 — Grade scope
-
-| scale | configuration | adversarial |
-|---|---|---|
-| ≤ 100 LOC | one perspective, selected by the Stage 3 activation rule that matches the target type (executable code → quality; multi-file/contract change → architecture; rendered visual artifact → style); if two activation rules match, pick the one whose criterion the target hits most directly — quick pass | skip* |
-| 100–500 LOC | dispatch exactly the perspectives whose Stage 3 activation criterion the target hits; if the count is 0, default to quality; if ≥3, keep all that activate (the tier cap is a ceiling, not a target) | run if change crosses layers |
-| > 500 LOC | assign applicable perspectives by file spread / layer span | one round |
-
-*Any semantic risk signal (auth/session/JWT, data mutation, external API integration, payments) overrides skip and adds an adversarial pass regardless of LOC tier.
-
-**Domain exception**: when the target claims business behavior (Stage 1.5 / Stage 3 Domain criterion), domain activation is not compressed by the LOC tier — the ≤ 100 LOC single-perspective quick-pass cap does not squeeze it out; domain dispatches in addition to the tier's selection.
-
-On borderline cases, round up. For plan-type targets, use "independent decision points × section count" as the LOC analog.
-
----
-
-## Stage 3 — Activation (target behavior, not invocation keywords)
+## Stage 2 — Activation (target behavior, not invocation keywords)
 
 Whether a perspective activates depends on what the target actually **does**, not which words appear in the user's invocation text:
 
@@ -139,7 +123,23 @@ Whether a perspective activates depends on what the target actually **does**, no
 
 Plan- or claim-type targets default to architecture + quality; security activates only when the plan materially describes one of the behaviors above; style activates only when target is rendered visual output with a project-root preset present.
 
-If Stage 2's tier cap disagrees with activation count (e.g. a 100-LOC target triggers two perspectives), follow activation; the tier column is a guideline ceiling, not a hard limit.
+---
+
+## Stage 3 — Grade scope
+
+| scale | configuration | adversarial |
+|---|---|---|
+| ≤ 100 LOC | one perspective, selected by the Stage 2 activation rule that matches the target type (executable code → quality; multi-file/contract change → architecture; rendered visual artifact → style); if two activation rules match, pick the one whose criterion the target hits most directly — quick pass | skip* |
+| 100–500 LOC | dispatch exactly the perspectives whose Stage 2 activation criterion the target hits; if the count is 0, default to quality; if ≥3, keep all that activate | run if change crosses layers |
+| > 500 LOC | assign applicable perspectives by file spread / layer span | one round |
+
+*Any semantic risk signal (auth/session/JWT, data mutation, external API integration, payments) overrides skip and adds an adversarial pass regardless of LOC tier.
+
+If the tier cap disagrees with activation count (e.g. a 100-LOC target triggers two perspectives), follow activation; the tier column is a guideline ceiling, not a target and not a hard limit.
+
+**Domain exception**: when the target claims business behavior (Stage 1.5 / Stage 2 Domain criterion), domain activation is not compressed by the LOC tier — the ≤ 100 LOC single-perspective quick-pass cap does not squeeze it out; domain dispatches in addition to the tier's selection.
+
+On borderline cases, round up. For plan-type targets, use "independent decision points × section count" as the LOC analog.
 
 ---
 
@@ -222,7 +222,7 @@ Run after Stage 6 consolidation, per the hard-stop ordering paragraph above. Eac
 - **Destructive auto-execution** — the target marks any operation that modifies user-visible state (history files, config, preferences, installed software, remote state) as "safe" or "auto-run" without explicit confirmation gating. Pin to needs-judgment.
 - **Unknown identifier in target** — any function / variable / type / module referenced in the target that does not exist in the codebase (verify by Read / Grep, not by memory). Pin to needs-judgment.
 - **Dependency changes** — additions, version bumps, or removals in package.json / Cargo.toml / go.mod / requirements.txt / lockfiles not obviously required by the target's stated goal. Pin to needs-judgment.
-- **Domain grounding missing** — the target claims business behavior (per the Stage 1.5 / Stage 3 Domain criteria) but the report carries no domain transition table (never built, or sources still insufficient after the one-question round); a hit forces the verdict to 需判斷 or 未完成 and the report may not claim domain coverage, while non-business targets (no business-state claim) never hit this entry. Pin the relevant findings to needs-judgment — not balance-downgradable.
+- **Domain grounding missing** — the target claims business behavior (per the Stage 1.5 / Stage 2 Domain criteria) but the report carries no domain transition table (never built, or sources still insufficient after the one-question round); a hit forces the verdict to 需判斷 or 未完成 and the report may not claim domain coverage, while non-business targets (no business-state claim) never hit this entry. Pin the relevant findings to needs-judgment — not balance-downgradable.
 
 **Optional (1)** — list unless `security-reviewer` returned usable findings in Stage 4; when it did, omit, since the perspective already enforces this and listing it here would duplicate the gate:
 
@@ -288,9 +288,9 @@ e2e_status:    完成 | 未完成等 e2e | n/a
 
 Field semantics (single source of truth for each):
 
-- `files`: Stage 2's LOC / file-count classification, measured via `git diff --stat` / `wc -l` at Stage 2 — never estimated. Plan-type targets: `N/A`.
+- `files`: Stage 3's LOC / file-count classification, measured via `git diff --stat` / `wc -l` at Stage 3 — never estimated. Plan-type targets: `N/A`.
 - `scope`: scope drift vs claim checklist. Vocabulary: `on target` / `drift: [one-phrase summary]` / `incomplete`.
-- `depth`: Stage 2's three-tier classification (`quick` / `standard` / `deep`).
+- `depth`: Stage 3's three-tier classification (`quick` / `standard` / `deep`).
 - `perspectives`: the Stage 4 returned set — a dispatched-but-failed perspective is listed as `<name>: dispatch failed` and its coverage may not be claimed — with `+ adversarial: yes|no` from Stage 5. Quick-pass targets still list ≥1 perspective.
 - `hard_stops`: the source of truth for hits. The checklist above is a derived view; if `hard_stops: none` here, all checklist lines must read `□ ... not hit`.
 - `new_tests`: pure count. Regression-first verification belongs to 「/baransu:analyze 執行段或依 tdd.md 的直接實作」, not /review.

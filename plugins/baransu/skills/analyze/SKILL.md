@@ -266,7 +266,7 @@ include/skip table.
 
 ## Stage 4 — Test layer → `test.md`
 
-Define the testing strategy that verifies the implementation satisfies requirements. This layer participates in the subagent review chain: Agent 1 (Stage 6) checks that task boundaries produce testable seams and that test.md's edge cases cover the conditions task-*.md creates.
+Define the testing strategy that verifies the implementation satisfies requirements. This layer is verified by Stage 6 checklist item 5 (cross-layer back-references), which checks that task boundaries produce testable seams and that test.md's edge cases cover the conditions task-*.md creates.
 
 ```markdown
 # Test Strategy
@@ -362,7 +362,7 @@ The optional 「測試重量建議」 line lets the spec author mark wiring-only
 
 ### Backfill test.md task references
 
-After all task files are written — and before dispatching the Stage 6 review — reopen `test.md` and replace the placeholder task back-references left in Stage 4's 「關鍵邊界條件」 and 「冗餘與首要交付掃描」 sections with the actual `TASK-{group}-NN` numbers now defined in the task files. Any edge case that cannot be traced to a risk produced by a real task is deleted, per Stage 4's existing rule. This backfill is the sanctioned in-process write point for task references in `test.md`, so Agent 1's Stage 6 back-reference audit checks a chain the flow itself completed rather than relying on auto-correct to repair it.
+After all task files are written — and before running the Stage 6 self-review — reopen `test.md` and replace the placeholder task back-references left in Stage 4's 「關鍵邊界條件」 and 「冗餘與首要交付掃描」 sections with the actual `TASK-{group}-NN` numbers now defined in the task files. Any edge case that cannot be traced to a risk produced by a real task is deleted, per Stage 4's existing rule. This backfill is the sanctioned in-process write point for task references in `test.md`, so the Stage 6 check-5 back-reference audit checks a chain the flow itself completed rather than relying on auto-correct to repair it.
 
 ---
 
@@ -393,7 +393,7 @@ Report skipped findings in the Stage 7 handoff output with the line 「已略過
 
 Changes not allowed during auto-correct: modify `goal.md` or `requirement.md` semantics (those represent user intent; changing them requires user confirmation).
 
-After the single auto-correct round, the author session does not certify its own corrections as resolved. For each lane whose findings were corrected, re-dispatch that lane's agent once in a clean context (same dispatch protocol as above), passing the corrected files, the original finding, and one question: 「此發現是否已解決？」. Only a verifier-returned resolved counts; a failed re-dispatch or an ambiguous answer leaves the finding open — an unverifiable resolution counts as unresolved.
+After the single auto-correct round, the author session does not certify its own corrections as resolved. Each corrected finding is re-verified once in a clean context: in an ultracode session, dispatch the Workflow verification agent per the ultracode clause above; on the default interactive path, run a single clean-context re-check of that finding — in both cases passing the corrected files, the original finding, and one question: 「此發現是否已解決？」. Only a verifier-returned resolved counts; a failed re-verification or an ambiguous answer leaves the finding open — an unverifiable resolution counts as unresolved.
 
 Classify each still-open finding as either wording-only or structural, where structural means any of: a broken REQ reference, a task-produced feature with no test-coverage anchor in test.md, or a cross-layer contradiction. Pause for user confirmation if-and-only-if at least one structural finding remains:
 

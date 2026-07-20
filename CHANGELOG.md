@@ -2,6 +2,23 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [3.0.4] - 2026-07-20
+
+### Changed
+- **週更本機自動演化（結構軸單軸，standing-auth）**：14/15 skill 體積合格（book 480 行達上限跳過），全數走 diagnostician → 單變因 mutation → 3 盲評收斂護欄（keep = 3/3 strict 且每位 judge delta ≥ 2.0）。**10 採納、0 gate-退回、4 收斂擋下**；`verify-skills.py` + `make test` 全綠。
+- 採納曲線（min delta）：seal +5、analyze +4、learn +4、contract +3、evolve +2、health +2、read +2、review +2、ship +2、think +2。
+  - `analyze`（dim2 階段連貫）：改寫三處殘留的 pre-R5 多代理審查孤兒引用，Stage 4/5/6 對齊現行 Stage 6 單次 checklist 自審。
+  - `contract`（dim3 失敗路徑）：Step 3 寫檔前補 CONTRACT.md 已存在分支——同任務確認後覆寫、異任務停下改名，禁止靜默覆寫。
+  - `evolve`（dim4 可執行具體性）：Stage 7 held-out 釘為 Stage 5 盲評機制的逐字重跑（byte-identical panel 副本＋奇偶輪派位），回歸觸發改為可判定投票語言（≥2/3 判舊版較佳）。
+  - `health`（dim4）：Step 3 跨 runtime instruction-drift 的 hedge 觸發改為可判定規則。
+  - `learn`（dim4）：收窄三處未釘決策規則的 hedge（lane timeout 具約束力、無來源支撐一律排除等）。
+  - `read`（dim2）：兩處跨節引用由位置索引改為具名錨點，零增行。
+  - `review`（dim2）：Stage 2/3 對調，Grade-scope 表三處前向引用全部轉為後向。
+  - `seal`（dim6 高風險紀律）：突變抽查第 5 點升為機制級 gate——注入前留存前像、revert 後逐 byte 確認。
+  - `ship`（dim6）：`git add -A` 前插入具名 secret gate，untracked/modified 路徑逐一比對封閉字面 pattern 清單（.env、*.pem、*.key、id_rsa* 等）。
+  - `think`（dim1 觸發清晰）：frontmatter description 開頭宣告補上 Evaluation Mode 的 Kill/Keep 單行判決出口。
+- 收斂擋下（不採納）：`codex-skill-transfer`（min 1 < 2）、`design`（min 1 < 2）、`write`（min 1 < 2）、`hunt`（非全票，2 位判退步）。
+
 ## [3.0.3] - 2026-07-20
 
 ### Changed

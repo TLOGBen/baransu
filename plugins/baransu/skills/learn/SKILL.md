@@ -82,7 +82,7 @@ Triggered when §3 matches the syntactic shape of a slug but `.claude/read/mater
 - X lane proceeds in turn 2 (`navigate` to `https://x.com/search?q={url-encoded-topic}`) and turn 3 (`get_page_text` + schema check + candidate regex extract).
 - Other 3 lanes return candidates in turn 1; X lane returns in turn 3. Accept the +3 turn startup delay for X — do not spawn sub-agents to flatten it.
 
-**Per-lane timeout** (defaults; implementation may adjust based on observed latency):
+**Per-lane timeout** (binding — a lane that exceeds its value maps to `{lane}: failed (timeout)` on the three-state status surface below):
 - `academic`: 60s (search-papers.py latency)
 - `web`: 30s
 - `gh`: 30s
@@ -292,7 +292,7 @@ Receives `$OUTLINE`, `$FILTERED_SOURCES`, and `$TOPIC` from Stage 3. Writes pros
 
 ### 1. Write prose section by section
 
-For each section in `$OUTLINE`, write a paragraph or set of paragraphs that expand the bullet points into coherent prose. Use only information grounded in `$FILTERED_SOURCES`. Unsupported claims (marked `⚠️ 需補充調查` in the outline) may be excluded or noted as areas requiring additional research.
+For each section in `$OUTLINE`, write a paragraph or set of paragraphs that expand the bullet points into coherent prose. Use only information grounded in `$FILTERED_SOURCES`. Claims marked `⚠️ 需補充調查` in the outline follow a binary rule: a claim with no supporting entry in `$FILTERED_SOURCES` at all is always excluded from the prose; a claim with partial support is kept, accompanied by a one-sentence note that it requires additional research.
 
 The prose MUST retain source attribution at paragraph level minimum, carrying the outline's `[source: {slug}]` tags (or an equivalent inline tag the note defines once, near the top). Converting a tagged outline into untagged prose is a contract violation.
 
@@ -304,7 +304,7 @@ After completing each section's prose, check all three gap triggers. If **any** 
 
 **Trigger 1 — Repeated edits**: the same section has been reworked ≥ 2 times (same content revised repeatedly without settling). Reset rule: after a gap-fill supplies new sources and the section is rewritten with them, reset that section's revision count to 0.
 
-**Trigger 2 — Single-source dependency**: a critical claim in the section is supported by only one source (only one entry in `$FILTERED_SOURCES` backs it). Scoping rule: when `|$FILTERED_SOURCES| ≤ 2`, this trigger fires at most ONCE per run — one batch supplementation offer covering the whole digest, not one per section; the sections it would otherwise have flagged get a `⚠️ 單一來源` annotation instead.
+**Trigger 2 — Single-source dependency**: a critical claim in the section is supported by only one source (only one entry in `$FILTERED_SOURCES` backs it). Observable definition: any claim in the section that carries a `[source: {slug}]` citation tag in `$OUTLINE` is a critical claim — no further judgment call. Scoping rule: when `|$FILTERED_SOURCES| ≤ 2`, this trigger fires at most ONCE per run — one batch supplementation offer covering the whole digest, not one per section; the sections it would otherwise have flagged get a `⚠️ 單一來源` annotation instead.
 
 **Trigger 3 — Core concept opacity**: after writing the section, you cannot explain the core concept in one sentence.
 

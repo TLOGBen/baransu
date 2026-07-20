@@ -130,7 +130,7 @@ Starts with `http://` or `https://`. Apply URL pattern routing:
 
 - `github.com` or `raw.githubusercontent.com` in hostname → Read `references/acquisition/web-static.md` (GitHub section)
 - URL ends with `.pdf` → Read `references/acquisition/web-static.md` (PDF URL section)
-- Other URLs → local-first fetch per Constraints bullet 1 and `references/acquisition/web-static.md` (Local-First Fetch section). No standalone HEAD pre-flight: do the local-first GET and inspect the response Content-Type (capture headers with `curl -sL -D`, or use `-w '%{content_type}'`). If it reports `application/pdf`, reroute to the PDF URL section (web-static.md), reusing the already-fetched body.
+- Other URLs → local-first fetch per the **Local-first fetch** constraint (Constraints section) and `references/acquisition/web-static.md` (Local-First Fetch section). No standalone HEAD pre-flight: do the local-first GET and inspect the response Content-Type (capture headers with `curl -sL -D`, or use `-w '%{content_type}'`). If it reports `application/pdf`, reroute to the PDF URL section (web-static.md), reusing the already-fetched body.
   Otherwise, run web-static.md's quality checks on the fetched result FIRST. Only when the quality checks FAIL do the SPA signals (body < 500 bytes, or feature strings `<app-root`, `<div id="root"`, `__NEXT_DATA__`, `window.__NUXT__`) decide escalation: if a signal matches → Read `references/acquisition/web-dynamic.md`. A page that passes the quality checks never escalates, even if it contains a feature string.
   Before escalating, probe Chrome lazily (Stage 0 §4). If `$CHROME_AVAILABLE=false`: report 「此頁需 JS 渲染但 Chrome 未連線，請連線 Chrome 後重試，或改用 --use-proxy」 and record the item as failed — this is the defined exit for that item; do not leave the flow undefined.
 
@@ -162,7 +162,7 @@ Always use quoted paths. Suppress onnxruntime warnings with `2>/dev/null`.
 
 ### 2. Check output
 
-If `/tmp/{slug}-convert.md` is empty (0 bytes) or missing: consult `references/conversion/markitdown-guide.md` (supported formats, OCR/audio extras, `--keep-data-uris` flag) before giving up; if still failing, record 「{slug}: markitdown 轉換失敗，raw/ 已保留」; skip to report; do NOT create a `material/` entry for this item. Non-empty output whose inline data-URI images come out truncated also counts as a failure here — rerun with `--keep-data-uris` per the same guide.
+If `/tmp/{slug}-convert.md` is empty (0 bytes) or missing: consult `references/conversion/markitdown-guide.md` (supported formats, OCR/audio extras, `--keep-data-uris` flag) before giving up; if still failing, record 「{slug}: markitdown 轉換失敗，raw/ 已保留」; skip Stage 3 §§1–6 and go directly to Stage 3 §7 (Completion report); do NOT create a `material/` entry for this item. Non-empty output whose inline data-URI images come out truncated also counts as a failure here — rerun with `--keep-data-uris` per the same guide.
 
 ### 3. Image handling
 

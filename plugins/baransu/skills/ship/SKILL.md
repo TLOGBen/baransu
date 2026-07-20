@@ -30,6 +30,7 @@ Named red-lines, each enforced by the step in parentheses; none is optional. The
 - **INV-4 — No worktree teardown until the work is on origin.** A worktree is destroyed only after `git merge-base --is-ancestor` confirms the branch is on `$SAFE_REF`. (Step 5)
 - **INV-5 — Branch deletion uses `-D`, not `-d`.** After a merge the branch may read as unmerged locally, so `-d` fails. (Step 5)
 - **INV-6 — `rm -rf` is only run on a validated worktree path.** The third-tier `rm -rf "$WORKTREE_PATH"` fallback runs only after a precondition guard confirms `$WORKTREE_PATH` is non-empty, is not `/`, and carries `.git`/`.git/worktrees` lineage; if the guard fails, `rm -rf` is skipped and the worktree is left intact. (Step 5)
+- **INV-7 — No blind staging of secret-pattern files.** Before `git add -A`, every untracked/modified path from `git status --porcelain` is matched against the Step 3 closed pattern list; any match stops the commit before staging. (Step 3)
 
 ## Step 0 — Parse target branch
 
@@ -81,6 +82,8 @@ If any move fails → output 「歸檔失敗：{reason}」 and stop.
 ---
 
 ## Step 3 — Commit
+
+**Secret gate (INV-7)** — run immediately before `git add -A`: run `git status --porcelain` and match each untracked/modified path's filename against this fixed, closed pattern list: `.env`, `.env.*`, `*.pem`, `*.key`, `id_rsa*`, `*.p12`, `credentials*.json`. If any path matches → output 「偵測到疑似機敏檔案：{列出檔名}，已停止 commit；請確認內容、加入 .gitignore 或手動處理後再重跑 /ship。」 and stop. If none match → proceed to `git add -A` unchanged.
 
 ```bash
 git add -A
