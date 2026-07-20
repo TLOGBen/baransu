@@ -631,6 +631,192 @@ class TestAuxDirScan(unittest.TestCase):
 
 
 class TestPluginModeGeneration(unittest.TestCase):
+    def _write_plugin_fixture(self, root: Path, manifest: dict | None = None) -> Path:
+        plugin = root / "plug"
+        (plugin / ".claude-plugin").mkdir(parents=True)
+        (plugin / ".claude-plugin" / "plugin.json").write_text(
+            json.dumps(manifest or {"name": "plug", "version": "1.0.0"}),
+            encoding="utf-8",
+        )
+        write_stub_skill(plugin / "skills" / "alpha", "alpha")
+        return plugin
+
+    def test_plugin_without_hooks_does_not_emit_hook_surface(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            plugin = self._write_plugin_fixture(root)
+            out = root / "codex"
+
+            transfer.transfer_plugin(plugin, out)
+
+            plugin_out = out / "plugins" / "plug"
+            manifest = json.loads(
+                (plugin_out / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
+            )
+            self.assertNotIn("hooks", manifest)
+            self.assertFalse((plugin_out / "hooks").exists())
+
+    def test_plugin_hooks_are_ported_without_inventing_session_end(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            plugin = root / "plug"
+            (plugin / ".claude-plugin").mkdir(parents=True)
+            (plugin / ".claude-plugin" / "plugin.json").write_text(
+                json.dumps({"name": "plug", "version": "1.0.0"}), encoding="utf-8"
+            )
+            write_stub_skill(plugin / "skills" / "alpha", "alpha")
+            hooks = plugin / "hooks"
+            hooks.mkdir()
+            (hooks / "guard.sh").write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+            (hooks / "hooks.json").write_text(
+                json.dumps(
+                    {
+                        "description": "fixture hooks",
+                        "hooks": {
+                            "SessionEnd": [
+                                {"hooks": [{"type": "command", "command": "echo end"}]}
+                            ],
+                            "Stop": [
+                                {
+                                    "hooks": [
+                                        {
+                                            "type": "command",
+                                            "command": 'bash "${CLAUDE_PLUGIN_ROOT}/hooks/guard.sh"',
+                                            "timeout": 10,
+                                        }
+                                    ]
+                                }
+                            ],
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            out = root / "codex"
+            _, summary = transfer.transfer_plugin(plugin, out)
+            plugin_out = out / "plugins" / "plug"
+            manifest = json.loads(
+                (plugin_out / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual("./hooks/hooks.json", manifest["hooks"])
+            self.assertTrue((plugin_out / "hooks" / "guard.sh").is_file())
+            hook_doc = json.loads(
+                (plugin_out / "hooks" / "hooks.json").read_text(encoding="utf-8")
+            )
+            self.assertNotIn("SessionEnd", hook_doc["hooks"])
+            self.assertEqual(10, hook_doc["hooks"]["Stop"][0]["hooks"][0]["timeout"])
+            self.assertIn("${CLAUDE_PLUGIN_ROOT}", hook_doc["hooks"]["Stop"][0]["hooks"][0]["command"])
+            manual = "\n".join(summary["manifest_manual"])
+            self.assertIn("不支援事件：SessionEnd", manual)
+            self.assertIn("/hooks", manual)
+            self.assertIn("trust", manual)
+            self.assertNotIn("預設關閉", manual)
+
+    def test_plugin_hook_drops_non_command_handler(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            plugin = root / "plug"
+            (plugin / ".claude-plugin").mkdir(parents=True)
+            (plugin / ".claude-plugin" / "plugin.json").write_text(
+                json.dumps({"name": "plug", "version": "1.0.0"}), encoding="utf-8"
+            )
+            write_stub_skill(plugin / "skills" / "alpha", "alpha")
+            hooks = plugin / "hooks"
+            hooks.mkdir()
+            (hooks / "hooks.json").write_text(
+                json.dumps(
+                    {
+                        "hooks": {
+                            "Stop": [
+                                {
+                                    "hooks": [
+                                        {"type": "prompt", "prompt": "check it"},
+                                        {"type": "command", "command": "true"},
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            out = root / "codex"
+            _, summary = transfer.transfer_plugin(plugin, out)
+            hook_doc = json.loads(
+                (out / "plugins" / "plug" / "hooks" / "hooks.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            handlers = hook_doc["hooks"]["Stop"][0]["hooks"]
+            self.assertEqual(["command"], [handler["type"] for handler in handlers])
+            self.assertIn(
+                "不支援 handler：Stop/prompt", "\n".join(summary["manifest_manual"])
+            )
+
+    def test_malformed_hook_shapes_are_reported_without_crashing(self):
+        cases = [
+            ("not-json", "{", "無法解析"),
+            ("hooks-not-object", json.dumps({"hooks": []}), "`hooks` 必須是 object"),
+            (
+                "groups-not-array",
+                json.dumps({"hooks": {"Stop": {}}}),
+                "event `Stop` 不是 array",
+            ),
+            (
+                "group-not-object",
+                json.dumps({"hooks": {"Stop": ["bad"]}}),
+                "event `Stop` 含非 object matcher group",
+            ),
+            (
+                "handlers-not-array",
+                json.dumps({"hooks": {"Stop": [{"hooks": {}}]}}),
+                "event `Stop` 的 handler 列表不是 array",
+            ),
+        ]
+        for label, hook_text, expected in cases:
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                plugin = self._write_plugin_fixture(root)
+                hooks = plugin / "hooks"
+                hooks.mkdir()
+                (hooks / "hooks.json").write_text(hook_text, encoding="utf-8")
+                out = root / "codex"
+
+                _, summary = transfer.transfer_plugin(plugin, out)
+
+                self.assertIn(expected, "\n".join(summary["manifest_manual"]))
+                plugin_out = out / "plugins" / "plug"
+                manifest = json.loads(
+                    (plugin_out / ".codex-plugin" / "plugin.json").read_text(
+                        encoding="utf-8"
+                    )
+                )
+                self.assertNotIn("hooks", manifest)
+                self.assertFalse((plugin_out / "hooks").exists())
+
+    def test_manifest_only_hook_shape_is_reported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            plugin = self._write_plugin_fixture(
+                root,
+                {"name": "plug", "version": "1.0.0", "hooks": "./custom/hooks.json"},
+            )
+            out = root / "codex"
+
+            _, summary = transfer.transfer_plugin(plugin, out)
+
+            self.assertIn(
+                "自訂來源形狀需人工映射", "\n".join(summary["manifest_manual"])
+            )
+            manifest = json.loads(
+                (out / "plugins" / "plug" / ".codex-plugin" / "plugin.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertNotIn("hooks", manifest)
+
     def test_baransu_plugin_generation_includes_inertia_adapters(self):
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp) / "codex"
@@ -643,15 +829,14 @@ class TestPluginModeGeneration(unittest.TestCase):
             manifest = json.loads(
                 (plugin_out / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
             )
-            self.assertEqual("3.0.2", manifest["version"])
+            self.assertEqual("3.0.3", manifest["version"])
 
             codex_transfer = plugin_out / "skills" / "codex-skill-transfer"
             self.assertTrue((codex_transfer / "references" / "CODEX_PORT_PLAN.md").is_file())
             self.assertIn(
-                # Re-pinned 0.11.0 -> 0.12.0: skill gained repo-internal path
-                # rewriting (rewrite_repo_paths) across SKILL.md, description,
-                # references, shared aux dirs, and agent stubs.
-                "version: 0.12.0",
+                # Re-pinned 0.12.0 -> 0.13.0: plugin mode gained outcome-level
+                # lifecycle hook transfer with explicit lossy reporting.
+                "version: 0.13.0",
                 (codex_transfer / "SKILL.md").read_text(encoding="utf-8"),
             )
             codex_transfer_skill = (codex_transfer / "SKILL.md").read_text(encoding="utf-8")

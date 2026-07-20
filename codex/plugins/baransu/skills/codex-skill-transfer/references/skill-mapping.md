@@ -27,7 +27,7 @@ Authoritative translation table from Claude Code SKILL.md frontmatter to Codex s
 | `effort` | — | Drop. No Codex equivalent. |
 | `context: fork` | `.codex/agents/{name}.toml` (user-side) | **Manual review required.** Three Codex paths exist (see §5); choice depends on isolation needs. |
 | `agent` | `.codex/agents/{name}.toml` `name` field | **Manual review required.** Coupled with `context: fork`. |
-| `hooks` | — | Drop from frontmatter (correct — Codex skills have no frontmatter hooks). But Codex DOES have experimental lifecycle hooks: `~/.codex/hooks.json` or `[hooks]` in `config.toml`; events mirror Claude Code (SessionStart, PreToolUse, PostToolUse, Stop, …). Off by default, trust-gated, only `type="command"` executes. Report reads 手動遷移至 `.codex/hooks.json`（experimental，預設關閉）. Source: developers.openai.com/codex/hooks |
+| `hooks` | — | Drop from skill frontmatter (Codex skills have no frontmatter hooks). Codex lifecycle hooks belong in `~/.codex/hooks.json`, project `.codex/hooks.json`, config TOML, or a plugin's `hooks/hooks.json`. Hooks are enabled by default but non-managed command definitions are trust-gated through `/hooks`; only `type="command"` executes. A whole-plugin transfer handles bundled hooks at the plugin layer; a single-skill transfer reports the field for manual relocation. Source: developers.openai.com/codex/hooks |
 | `paths` | — | Drop. No Codex equivalent for glob-scoped activation. Note in report. |
 | `shell` | — | Drop. Codex skills run shell via tool calls, not a pre-declared shell. |
 

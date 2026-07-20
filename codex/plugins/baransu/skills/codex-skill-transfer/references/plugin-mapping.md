@@ -31,12 +31,16 @@ For each component directory present on the Claude side, add the matching pointe
 |----|----|
 | `skills/<name>/SKILL.md` | `"skills": "./skills/"` |
 | `mcp.json` (or any MCP server config) | `"mcpServers": "./.mcp.json"` (verify path) — **manual review**; see below |
-| `hooks/hooks.json` | `"hooks": "./hooks/hooks.json"` — **manual review**; see below |
+| `hooks/hooks.json` | `"hooks": "./hooks/hooks.json"` — supported command handlers are copied; unsupported events/types are reported |
 | App connector config (none in baransu today) | `"apps": "./.app.json"` |
 
-baransu skills today only use the `skills/` pointer. The transfer script reflects that focus; other pointers are documented for completeness but require manual review.
+baransu now uses both the `skills/` and `hooks/` pointers. The transfer script handles those two package-local surfaces; MCP and apps remain manual-review surfaces.
 
-**Hooks / MCP are never auto-ported.** When the source plugin ships `hooks/hooks.json` or `mcp.json` / `.mcp.json`, the script emits a 需人工檢視 report line instead of writing the pointers. Reason: Codex hooks are **experimental** (`[features].hooks` is off by default), trust-gated via `/hooks` approval, and only `type="command"` hooks execute — a blindly emitted pointer would look ported while never firing. Port by hand and verify against a live Codex CLI.
+**Hooks are outcome-ported; MCP remains manual.** Current Codex loads plugin-bundled hooks from the default `hooks/hooks.json` path (or a manifest pointer), enables hooks by default, and provides `PLUGIN_ROOT` plus compatibility aliases `CLAUDE_PLUGIN_ROOT` / `CLAUDE_PLUGIN_DATA`. The transfer therefore copies the hook directory, adds the manifest pointer, retains supported events with `type="command"`, and names every rejected event or handler in the report. It never invents lifecycle equivalence: Claude `SessionEnd` is dropped and reported, not rewritten to Codex `Stop`. Installation does not imply trust; the user must review changed plugin hooks in `/hooks` before they execute.
+
+Hook scripts still own runtime result translation. In particular, a Claude Stop script that blocks with a non-zero exit must emit Codex's structured `{"continue":false,"stopReason":"..."}` result when running under Codex. A dual-runtime script can detect Codex through `PLUGIN_ROOT`; transfer preserves the script bytes because generic shell-semantic rewriting would be unsafe.
+
+MCP config is still report-only. Server startup, authentication, and trust are external runtime concerns, so `mcp.json` / `.mcp.json` is not copied automatically yet.
 
 ## 4. UI metadata (`interface`)
 

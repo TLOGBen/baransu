@@ -1,0 +1,16 @@
+{
+  "description": "baransu hooks — wiki sync on session end; seal-guard on stop (blocks when a user-facing surface was touched without a /baransu:seal record; SEAL_GUARD=log|off degrades) [Codex transfer omitted unsupported events: SessionEnd]",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/seal-guard.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

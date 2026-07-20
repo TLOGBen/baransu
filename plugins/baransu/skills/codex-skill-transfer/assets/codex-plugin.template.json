@@ -3,6 +3,7 @@
   "version": "$version",
   "description": "$description",
   "skills": "./skills/",
+  "hooks": "$hooks",
   "interface": {
     "displayName": "$display_name",
     "shortDescription": "$short_description"

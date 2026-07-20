@@ -1,9 +1,10 @@
 # seal-guard hook — shipped Stop hook, blocking by default
 
-> Distribution note: the Stop hook ships with the Claude Code plugin only. Distributions without a Stop-hook system (e.g. the Codex mirror) get this document as description, not mechanism — there, run /seal manually before ending a session.
+> Distribution note: both Claude Code and Codex plugin packages ship the Stop hook. Codex users must review and trust the installed definition through `/hooks`; until then Codex skips it.
 
 The plugin ships a real Stop hook (`plugins/baransu/hooks/seal-guard.sh`, registered in
-`plugins/baransu/hooks/hooks.json`) — installing the plugin activates it. It is the
+`plugins/baransu/hooks/hooks.json`) — installation loads the definition; Claude activates
+it directly, while Codex waits for `/hooks` trust. It is the
 mechanism anchor for the selection-telemetry blind spot: when `/seal` *should* have fired
 but nothing invoked it, no skill is running to log the miss. The hook detects that state
 mechanically at session stop.
@@ -31,10 +32,11 @@ At `Stop`, the hook:
    `~/.codex/baransu/telemetry/{project}/seal-guard-{YYYY-MM}.jsonl`（central user scope, split by project and month; `BARANSU_TELEMETRY_DIR` overrides the root）
    (`{"ts":…,"event":"seal-miss","mode":…,"repo":…,"surfaces":N}`), so the monthly
    review keeps its data even when blocking is degraded.
-5. **Verdict**: default → exit 2 with the Traditional Chinese instruction on stderr
+5. **Verdict**: default → the same Traditional Chinese instruction on both runtimes
    (「偵測到 user-facing 變更尚未 /baransu:seal——請執行 seal 收尾，或設 SEAL_GUARD=log
-   降級」), which per the Stop-hook contract prevents the stop and feeds the instruction
-   back to Claude. `SEAL_GUARD=log` or `off` → exit 0 (never block).
+   降級」). Claude receives exit 2 + stderr; Codex receives exit 0 + structured
+   `{"continue":false,"stopReason":"...","systemMessage":"..."}`. `SEAL_GUARD=log`
+   or `off` → exit 0 with no block.
 
 ## Degrade / disable
 
@@ -44,8 +46,9 @@ loading mechanism):
 - `SEAL_GUARD=log` — detect + record, never block.
 - `SEAL_GUARD=off` — same as `log` but reserved for "I have read the miss data and
   opted out"; telemetry still appends so the review stays honest.
-- Per-user hard disable: override the `Stop` hook in your own `settings.json`
-  (user hooks merge with plugin hooks; see Claude Code hooks docs).
+- Claude per-user hard disable: override the `Stop` hook in `settings.json`.
+- Codex per-user hard disable: disable the installed hook in `/hooks`, or set
+  `[features] hooks = false` to disable all non-managed hooks.
 
 ## Monthly review
 

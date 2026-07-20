@@ -105,6 +105,19 @@ CLAUDE_ONLY_DROP = {
 
 OPEN_STANDARD = {"name", "description", "license", "compatibility", "metadata", "allowed-tools"}
 
+CODEX_HOOK_EVENTS = {
+    "SessionStart",
+    "PreToolUse",
+    "PermissionRequest",
+    "PostToolUse",
+    "PreCompact",
+    "PostCompact",
+    "UserPromptSubmit",
+    "SubagentStart",
+    "SubagentStop",
+    "Stop",
+}
+
 INLINE_BACKTICK_CMD = re.compile(r"!`([^`]+)`")
 BLOCK_BACKTICK_CMD = re.compile(r"^```!\s*\n(.*?)^```\s*$", re.MULTILINE | re.DOTALL)
 ARGS_FULL = re.compile(r"\$ARGUMENTS\b")
@@ -716,11 +729,12 @@ def translate_frontmatter(fm: dict, report: TransferReport) -> tuple[dict, dict 
         if k in fm:
             if k == "hooks":
                 # Codex skills have no frontmatter hooks, but Codex DOES have
-                # experimental lifecycle hooks (~/.codex/hooks.json or [hooks]
-                # in config.toml) — off by default, trust-gated, command-type
-                # only. See references/skill-mapping.md hooks row.
+                # lifecycle hooks in config layers and plugins. They are
+                # enabled by default but trust-gated; only command handlers
+                # run today. See references/skill-mapping.md hooks row.
                 report.dropped.append(
-                    "`hooks` 手動遷移至 .codex/hooks.json（experimental，預設關閉）"
+                    "skill frontmatter `hooks` 無直接目標；請移至 plugin `hooks/hooks.json` "
+                    "或 Codex config layer，並以 `/hooks` review and trust"
                 )
             else:
                 report.dropped.append(f"`{k}` (no Codex equivalent)")
@@ -1664,18 +1678,82 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
 
     manual: list[str] = summary["manifest_manual"]
 
-    # Plugin-level hooks / MCP config: never silently lose, never auto-port.
-    # Codex pointers exist (`"hooks": "./hooks/hooks.json"`,
-    # `"mcpServers": "./.mcp.json"`) but Codex hooks are experimental
-    # ([features].hooks off by default), trust-gated via /hooks approval,
-    # and only type="command" executes. The report flags the loss; pointers
-    # are NOT auto-emitted.
-    if (plugin_root / "hooks" / "hooks.json").is_file() or "hooks" in claude_pj:
+    # Plugin-level lifecycle hooks now have a first-class Codex package
+    # surface. Preserve supported command handlers and report every rejected
+    # event/handler explicitly; never invent an event mapping (notably,
+    # Claude SessionEnd is NOT Codex Stop).
+    source_hooks_path = plugin_root / "hooks" / "hooks.json"
+    codex_hooks_doc: dict | None = None
+    if source_hooks_path.is_file():
+        try:
+            source_hooks_doc = json.loads(source_hooks_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            manual.append(f"`hooks/hooks.json` 無法解析：{exc}")
+        else:
+            codex_hooks_doc = {
+                key: value
+                for key, value in source_hooks_doc.items()
+                if key != "hooks"
+            }
+            codex_events: dict[str, list[dict]] = {}
+            raw_events = source_hooks_doc.get("hooks", {})
+            if not isinstance(raw_events, dict):
+                manual.append("`hooks/hooks.json` 的 `hooks` 必須是 object；本次未輸出 hooks")
+                codex_hooks_doc = None
+            else:
+                dropped_events: list[str] = []
+                for event, groups in raw_events.items():
+                    if event not in CODEX_HOOK_EVENTS:
+                        dropped_events.append(event)
+                        manual.append(f"Codex hooks 不支援事件：{event}；未偷換成其他 lifecycle event")
+                        continue
+                    if not isinstance(groups, list):
+                        manual.append(f"Codex hooks event `{event}` 不是 array；已捨棄")
+                        continue
+                    kept_groups: list[dict] = []
+                    for group in groups:
+                        if not isinstance(group, dict):
+                            manual.append(f"Codex hooks event `{event}` 含非 object matcher group；已捨棄")
+                            continue
+                        handlers = group.get("hooks", [])
+                        if not isinstance(handlers, list):
+                            manual.append(f"Codex hooks event `{event}` 的 handler 列表不是 array；已捨棄")
+                            continue
+                        kept_handlers: list[dict] = []
+                        for handler in handlers:
+                            handler_type = handler.get("type") if isinstance(handler, dict) else None
+                            if handler_type != "command":
+                                manual.append(
+                                    f"Codex hooks 不支援 handler：{event}/{handler_type or 'unknown'}；已捨棄"
+                                )
+                                continue
+                            kept_handlers.append(handler)
+                        if kept_handlers:
+                            kept_group = dict(group)
+                            kept_group["hooks"] = kept_handlers
+                            kept_groups.append(kept_group)
+                    if kept_groups:
+                        codex_events[event] = kept_groups
+                if dropped_events and isinstance(codex_hooks_doc.get("description"), str):
+                    codex_hooks_doc["description"] += (
+                        " [Codex transfer omitted unsupported events: "
+                        + ", ".join(dropped_events)
+                        + "]"
+                    )
+                if codex_events:
+                    codex_hooks_doc["hooks"] = codex_events
+                    codex_pj["hooks"] = "./hooks/hooks.json"
+                    mapped.append("hooks/hooks.json → plugin-bundled Codex lifecycle hooks")
+                    manual.append(
+                        "Codex plugin hooks 已輸出；安裝或變更後仍須在 `/hooks` review and trust，"
+                        "未 trust 前不會執行"
+                    )
+                else:
+                    codex_hooks_doc = None
+    elif "hooks" in claude_pj:
         manual.append(
-            "來源 plugin 帶 `hooks/hooks.json`：Codex 有對應指標"
-            "（`\"hooks\": \"./hooks/hooks.json\"`），但 Codex hooks 為 experimental"
-            "（`[features].hooks` 預設關閉）、需 `/hooks` 信任授權、且僅 "
-            "`type=\"command\"` 會執行——請人工移植，勿假設會自動生效；本次未自動輸出指標"
+            "來源 manifest 宣告 `hooks` 但沒有預設 `hooks/hooks.json`；"
+            "自訂來源形狀需人工映射，本次未輸出 hooks pointer"
         )
     if (
         (plugin_root / "mcp.json").is_file()
@@ -1727,7 +1805,7 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
     # leak as empty entries.
     STANDARD_PLUGIN_KEYS = {
         "name", "version", "description", "skills", "interface",
-        "author", "homepage", "repository", "license", "keywords",
+        "author", "homepage", "repository", "license", "keywords", "hooks",
     }
     if has_skills and set(codex_pj.keys()) <= STANDARD_PLUGIN_KEYS:
         rendered = render_template(
@@ -1741,13 +1819,14 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
                 "homepage": codex_pj.get("homepage") or "",
                 "repository": codex_pj.get("repository") or "",
                 "license": codex_pj.get("license") or "",
+                "hooks": codex_pj.get("hooks") or "",
             },
             mode="json",
         )
         parsed = json.loads(rendered)
         # Drop empty-string pass-through scalars (template includes them so
         # the canonical shape stays visible; runtime omits them when absent).
-        for k in ("homepage", "repository", "license"):
+        for k in ("homepage", "repository", "license", "hooks"):
             if parsed.get(k) == "":
                 parsed.pop(k)
         # Merge complex fields directly from the translated manifest.
@@ -1762,6 +1841,18 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
     else:
         (cp_dir / "plugin.json").write_text(
             json.dumps(codex_pj, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+
+    if codex_hooks_doc is not None:
+        hooks_out = plugin_out / "hooks"
+        shutil.copytree(
+            plugin_root / "hooks",
+            hooks_out,
+            ignore=shutil.ignore_patterns("__pycache__"),
+        )
+        (hooks_out / "hooks.json").write_text(
+            json.dumps(codex_hooks_doc, indent=2, ensure_ascii=False) + "\n",
             encoding="utf-8",
         )
 

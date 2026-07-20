@@ -1,8 +1,9 @@
 {
   "name": "baransu",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "バランス — deliberate before executing, verify after. Fifteen governance skills covering the full development lifecycle.",
   "skills": "./skills/",
+  "hooks": "./hooks/hooks.json",
   "interface": {
     "displayName": "Baransu",
     "shortDescription": "バランス — deliberate before executing, verify after. Fifteen governance skills covering the full development lifecycle."

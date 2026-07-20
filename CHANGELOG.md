@@ -2,6 +2,12 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [3.0.3] - 2026-07-20
+
+### Changed
+- `/codex-skill-transfer` 0.13.0：依最新版 Codex hooks/plugin 官方規格，把 plugin-bundled `hooks/hooks.json` 從「只報告、不輸出」升級成 outcome-level mirror。支援的 lifecycle event + `type="command"` handler 會連同 hook scripts、manifest `"hooks": "./hooks/hooks.json"` 一起產出；`SessionEnd` 等無對應事件與非 command handler 逐名報告，絕不偷換語意。報告同步提醒 `/hooks` review/trust。
+- `seal-guard` 改為 Claude/Codex 雙 runtime：Claude 維持 exit 2 + stderr；Codex 以官方 `continue:false` JSON 阻擋 Stop。Codex mirror 因此第一次實際攜帶週末新增的 seal miss 機械守衛，而不再只有說明文件。
+
 ## [3.0.2] - 2026-07-19
 
 ### Changed

@@ -9,6 +9,8 @@
 #   G6) SEAL_GUARD=log same state → exit 0, telemetry line mode "log"
 #   G7) same-day seal-log.jsonl evidence → exit 0, no new telemetry line
 #   G8) hooks.json valid JSON, registers Stop → seal-guard.sh via ${CLAUDE_PLUGIN_ROOT}
+#   G11) Codex runtime miss → exit 0 + structured continue:false JSON
+#   G12) Codex runtime defaults telemetry to ~/.codex, never ~/.claude
 set -u
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -113,6 +115,31 @@ if [ "$rc" -eq 0 ] && grep -q '"mode":"off"' "$T/$(basename "$R")/seal-guard-$(d
   ok "G10 SEAL_GUARD=off appends jsonl and exits 0"
 else bad "G10 off-mode telemetry path (rc=$rc)"; fi
 rm -rf "$R" "$T"
+
+# G11 — Codex Stop hooks block with structured JSON, not Claude's exit-2 contract
+R="$(mkrepo)"; touch_surface "$R"
+T="$(mktemp -d)"
+OUT="$(printf '{"hook_event_name":"Stop"}' \
+  | PLUGIN_ROOT="$REPO_ROOT/plugins/baransu" CLAUDE_PROJECT_DIR="$R" \
+    BARANSU_TELEMETRY_DIR="$T" bash "$HOOK" 2>/dev/null)"; rc=$?
+if [ "$rc" -eq 0 ] \
+   && printf '%s' "$OUT" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["continue"] is False; assert "baransu:seal" in d["stopReason"]; assert d["systemMessage"] == d["stopReason"]' 2>/dev/null; then
+  ok "G11 Codex miss returns continue:false JSON and exits 0"
+else bad "G11 Codex blocking contract (rc=$rc, out=$OUT)"; fi
+rm -rf "$R" "$T"
+
+# G12 — no override: Codex consumer and /seal producer share ~/.codex root
+R="$(mkrepo)"; touch_surface "$R"
+H="$(mktemp -d)"
+printf '{"hook_event_name":"Stop"}' \
+  | HOME="$H" PLUGIN_ROOT="$REPO_ROOT/plugins/baransu" CLAUDE_PROJECT_DIR="$R" \
+    SEAL_GUARD=log bash "$HOOK" >/dev/null 2>&1; rc=$?
+if [ "$rc" -eq 0 ] \
+   && [ -f "$H/.codex/baransu/telemetry/$(basename "$R")/seal-guard-$(date +%Y-%m).jsonl" ] \
+   && [ ! -e "$H/.claude/baransu/telemetry" ]; then
+  ok "G12 Codex default telemetry root is ~/.codex only"
+else bad "G12 Codex telemetry root (rc=$rc)"; fi
+rm -rf "$R" "$H"
 
 echo ""
 echo "=== test-seal-guard-hook: $PASS passed, $FAIL failed ==="
