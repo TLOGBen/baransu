@@ -226,6 +226,19 @@ When unsure, always take the TDD path. Once made, the classification is final; d
 re-classify mid-execution. The cosmetic path implements directly and writes no tests; the
 TDD path proceeds to §7.2.
 
+### 7.1b Environment-blocked exception (pre-existing breakage)
+
+When pre-existing breakage NOT caused by this change blocks building, testing,
+or starting the system (legacy compile errors under warnings-as-errors, broken
+sibling test files), the surgical-change discipline yields: make the MINIMAL
+environment repair needed to restore runnability — isolated in its own commit,
+disclosed explicitly in the report and decision log. Real contact with a
+running system outranks surgical purity: never deliver a system that has never
+been run on the grounds that fixing the blocker was "out of scope". (Harness
+experiment evidence: the arm that refused the repair shipped an unfilterable
+query it could never observe; the arm that repaired-and-ran caught its own
+premise error against real data.)
+
 ### 7.2 Build your own red/green task list (four tasks)
 
 Build the complete task list before executing, so the completion criteria are visible from
@@ -276,6 +289,8 @@ At the end of each RED→GREEN round, ask yourself:
 [ ] Test 描述 behavior、不描述 implementation
 [ ] Test 只用 public interface
 [ ] Test 在內部 refactor 後仍會 pass
+[ ] 行為斷言用具名值（named value），不收「有回應／全綠」這類套套邏輯
+[ ] 這條測試釘的是「核心功能達成」而非只是周邊格式（維3：次級測試再密，也蓋不住首要交付漏測）
 [ ] Code 是 minimal、夠通過此 test 而已
 [ ] 沒添加未被任何 test 要求的功能
 ```

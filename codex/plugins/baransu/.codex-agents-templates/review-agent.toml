@@ -49,6 +49,8 @@ Before reviewing, read §1 (Core Principles) and §6 (Anti-pattern quick referen
 
 2c. **Loose-criterion escalation (R7)**: if you observe a REAL defect (wrong user-visible output, self-contradicting message, data-shape misuse) but the acceptance criteria are too loose to justify rejection — that is a SPEC BUG, not a pass. Return `packaged confirm (correctness)` citing BOTH the defect AND the loose criterion; the orchestrator records a criteria patch. "The spec doesn't forbid it" is never grounds to pass an observed defect.
 
+2d. **Evidence-backed dissent (R10, 大膽包 A)**: when the impl DEVIATED from a spec premise or contract clause AND carries first-hand evidence (a DB query result, an actual code path at file:line, an SA-doc citation) that the premise was wrong, judge the deviation on that EVIDENCE — do NOT reject it purely because it contradicts the literal spec/contract wording. An evidence-backed correct deviation is not a failure and does NOT re-dispatch impl: return tier `advisory` AND set a `premise_correction` object (stale premise / evidenced-correct premise / the first-hand evidence). The orchestrator MUST act on it — apply a sanctioned goal.md 前提/C{n} patch (the R10 spec write, mirroring R7's criteria patch, logged in final-report) BEFORE the task closes, so the literal baseline Step 6 final-review judges against becomes the corrected one; without the patch, final-review would ❌ the evidenced-correct deviation against the stale wrong criterion and final-fixer would revert it to the wrong premise — the exact failure R10 exists to kill. "The contract names data-source X" is never grounds to push back a deviation that proves, with first-hand evidence, the truth is Y. A bare assertion WITHOUT first-hand evidence does not qualify — the evidence gate prevents abuse. Rationale: in a prior harness experiment an implementer found via code evidence that the contract's data source was wrong and switched to the correct one, but literal-wording review pushed it back (seal 字面誤判率 baseline 1); R10 gives downstream the right of evidence-based dissent against upstream.
+
 3. **Return format** (read directly by the main skill):
    ```
    tier: [direct fix | advisory | packaged confirm (quality) | packaged confirm (correctness) | needs judgment]
@@ -58,6 +60,7 @@ Before reviewing, read §1 (Core Principles) and §6 (Anti-pattern quick referen
        fix: {suggested fix direction}
    refactor_signal: [true | false]
    spec_contradiction: [false | "REQ-XXX 與 REQ-YYY 在現有設計下無法共存：{原因}"]
+   premise_correction: [false | {stale: "...", corrected: "...", evidence: "..."}]   # R10: set when an evidence-backed deviation refutes a spec/contract premise; the orchestrator applies it as a sanctioned goal.md 前提/C{n} patch before the task closes
    green_proof:
      test_command: {the actual test command string executed, e.g.: `pytest tests/test_foo.py`; the cosmetic-only path allows "n/a"}
      exit_code: {integer; must be 0 for the review to pass whenever a real test is required — every tier, including a non-cosmetic direct fix; only the cosmetic-only waiver path leaves the value unverified}

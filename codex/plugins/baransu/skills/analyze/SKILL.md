@@ -133,6 +133,10 @@ Write `goal.md`. Fill every section — do not leave template placeholders.
 - [ ] C2: {criterion 2}
 - [ ] C3: {criterion 3}
 
+## 前提（Premises）
+{本 spec 依賴的事實前提；每條標 `已驗`（第一手查證：DB 查詢／實際程式碼／SA 文件）或 `未驗`（暫時假設）。影響資料來源／schema／契約／權限的前提為 `未驗` 時必須在此顯性標記——Round 2 教訓：錯誤前提一旦被當「領域事實」隱形寫進規格，五個配置照抄不誤}
+- {premise} — `已驗`：{查證來源} ｜ `未驗`：{為何暫時假設}
+
 ## 範圍（Scope）
 
 ### 包含（In scope）
@@ -149,6 +153,31 @@ substring-contains wording is a spec bug, rewrite it now. Every hidden
 invariant or data-shape trap discovered while grounding (G2) must appear here
 as a prohibition-style criterion, not as a warning sentence in prose. Show the
 per-criterion disposition (可斷言 ✓ / 已改寫) alongside the file.
+
+**Premise-confidence audit (維1)**: before showing goal.md, every 前提
+(Premises section) MUST carry an explicit `已驗`/`未驗` tag. Any premise
+affecting data source / schema / contract / permissions that is tagged `未驗`
+is surfaced to the user as an assumption that should be first-hand verified
+before execution — this is the visibility half of the reform; the blocking
+half is the 現實接觸強制閘 (大膽包 A) below. A premise silently treated as fact
+is the exact failure this audit exists to prevent.
+
+**現實接觸強制閘 (大膽包 A)**: a premise that affects data source / schema /
+contract / permissions may NOT be carried into the spec as `未驗`. Before goal.md
+is finalized, each such premise must get ONE first-hand contact — a DB query, a
+read of the actual implementation at a cited file:line, or the authoritative
+SA/spec document — that either confirms it (→ retag `已驗` with the source) or
+refutes it (→ correct the premise). If first-hand contact is impossible this run
+(tool offline, no access), the gate degrades — never silently passes — to an
+explicit user escalation via `authorization PAUSE`, surfacing the premise as an
+unverified assumption for the user to confirm or supply. Rationale: a prior
+harness experiment's entire failure was a single user-typo data-source premise
+entering five independent specs as 「領域事實」; the only configuration that
+escaped did so by first-hand contact with the real system. An untouched premise is the single highest-leverage
+defect source; this gate makes the contact mandatory, not optional.
+**Falsifiable exit clause**: if selection telemetry shows this gate never once
+flips or escalates a `未驗` premise across three months, retire it — a gate that
+never fires is pure friction (mirrors the codex-skill-transfer sunset clause).
 
 After writing, show the `goal.md` content to the user. Then call `authorization PAUSE`:
 
@@ -288,7 +317,7 @@ Define the testing strategy that verifies the implementation satisfies requireme
 # Test Strategy
 
 ## E2E 測試策略
-{每條 = 主路徑分支盤點中的一個分支；每條標明真實入口（已驗證存在）與所斷言的具體可觀察值，並回指一個 goal Criteria 編號 C{n}}
+{每條 = 主路徑分支盤點中的一個分支；每條標明真實入口（已驗證存在）與所斷言的具體可觀察值，並回指一個 goal Criteria 編號 C{n}。**首要交付物 E2E 錨（維3，強制）**：goal 的一句話目標本身，必須有至少一條 E2E 列把「達成」端到端釘死——釘核心功能真的運作，不是只釘周邊欄位/格式。Round 2 教訓：最重的配置把表頭/排序/格式測試做到滿級，卻整個漏掉核心功能，儀表板全綠——首要交付若沒有自己的錨，密集的次級測試會把「用力做錯事」偽裝成完成}
 
 | 場景（主路徑分支） | 真實入口（端點或方法名＋file:line，已 grep/read 驗證存在） | 具體斷言（具名 ReturnCode／狀態轉換／回調觸發或不觸發） | 對應 Criteria |
 |------|------|------|--------------|
@@ -308,7 +337,7 @@ Define the testing strategy that verifies the implementation satisfies requireme
 - {edge case — REQ-XXX — 由 TASK-{group}-NN 製造的風險}
 
 ## 冗餘與首要交付掃描
-{逐條掃上面三張表，列出並刪除重複或不對應任何 task 風險的多餘測試；並確認本次首要交付物本身有一條測試把「達成」釘死（收斂類重構需一條殘留複本掃描列，例如 grep 存量呼叫點＝模板一檔）。逐 task 對應檢查所需的 task 編號於 Stage 5 回填}
+{逐條掃上面三張表，列出並刪除重複或不對應任何 task 風險的多餘測試；並驗證 E2E 策略表確實含一條首要交付物錨（維3 強制列——釘核心功能達成，缺則補上，不得只靠次級欄位/格式測試充數；收斂類重構需一條殘留複本掃描列，例如 grep 存量呼叫點＝模板一檔）。逐 task 對應檢查所需的 task 編號於 Stage 5 回填}
 - {kept/removed — reason}
 ```
 

@@ -46,9 +46,44 @@ Produce a Coverage Report identifying any REQ-XXX not covered by tests and any g
    advisory_notes: {若有，記錄非覆蓋問題的觀察}
    ```
 
-3. **When to return `needs_fixer: true`**: set true when the Coverage Report has any ❌ REQ-XXX **or any ❌ C{n} in the goal-criteria cross-check**. If all are ✅, set false.
+3. **When to return `needs_fixer: true`**: set true when the Coverage Report has any ❌ REQ-XXX **or any ❌ C{n} in the goal-criteria cross-check**. If all are ✅, set false. Any ❌ classified **Critical** (per Severity classification below, with its 死因四件套) forces `needs_fixer: true` and is flagged as a hard-stop candidate — the execution pipeline (Step 6) must not deliver green while it stays open.
 
 4. **Advisory observations**: if overall coverage passes (all REQ ✅) but you observe other quality issues (non-coverage problems), record them in `advisory_notes`; do not set `needs_fixer: true` and do not trigger Final-Fixer.
+
+## Severity classification + Critical hard-stop
+
+Classify every ❌ (unmet REQ or unmet C{n}) by the client-defined severity scale —
+the SAME definition the experiment's blind judges use, so spec/execution-time and
+judge-time agree:
+
+- **Critical** = the function is broken AND no alternative means achieves the
+  feature's original purpose (includes cannot-start). A Critical MUST carry the
+  死因四件套 (four-piece death cause): 根因 (root cause) / 觸發路徑 (trigger path —
+  file:line + repro steps) / 證據 (evidence) / 為何無替代手段 (why no workaround
+  reaches the original goal). A Critical missing any of the four does not stand —
+  downgrade to Major.
+- **Major** = a real bug, but a workaround still achieves the purpose.
+- **Minor** = field wording / coding-style level.
+
+**Critical hard-stop**: any ❌ meeting the Critical definition (with its 死因四件套)
+forces `needs_fixer: true` unconditionally — a Critical is never downgraded to
+advisory, never green-lit by disclosure alone. Record each Critical's four-piece
+set in the Coverage Report (append a `## Criticals` block listing summary + the
+four pieces per Critical). This is the spec/execution-time enforcement of the
+reform's 「發現不等於解決」 finding: in Round 2 the heaviest arm's review FOUND a
+Critical (vendor-filter dead code) yet delivered green because the fixer could not
+fix it — execution-pipeline Step 6 now blocks that path.
+
+This **composes with — does not replace** — the existing latent-production-defect
+invariant (`../skills/analyze/references/error-reference.md`: a criterion green
+only via test scaffolding while production is inert is NOT met, and disclosure
+alone never converts to ✅). A Critical is that invariant's severity-named case
+with the 死因四件套 discipline attached, not a parallel judgment — route Critical
+blocking through the same ❌ REQ/C{n} path, never a second independent verdict
+channel. **Falsifiable exit**: if the Critical-resolution-rate telemetry signal
+(`../skills/_shared/selection-telemetry.md`) shows the hard-stop never once blocks
+a real open Critical across three months (only ever fires on overridden false
+positives), retire it — a gate whose only firings are false stops is net-negative.
 
 ## Prohibitions
 

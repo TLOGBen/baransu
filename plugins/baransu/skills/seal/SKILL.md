@@ -62,6 +62,19 @@ first; judge against it, do not restate it.
 2. **Unpinned-surface scan** — enumerate every user-facing output the diff
    touches (CLI println, TUI toast, error path); flag each surface no test
    pins at rejection strength (G4 judgment, including the cross-UI shared-helper rule).
+   **Zero-test layers are the PRIMARY scan target, never an exempt zone** — a
+   layer with no tests (DAO SQL, controller parameter mapping) is where unpinned
+   defects live, and the mutation spot-check (point 5) can only fire where tests
+   exist, so at least one probe or manual line-by-line check goes into a
+   zero-test layer. Two mechanical sub-checks whenever the diff contains
+   parameterized queries: (a) **parameter-usage reconciliation** — the set of
+   parameters added to the command equals the set referenced in the SQL text
+   (an added-but-unreferenced parameter is a correctness finding: the filter
+   silently does not filter); (b) **condition-effectiveness** — every query
+   condition the contract names (vendor / date-range / permission scopes) is
+   confirmed present in the WHERE clause; "the parameter is passed" never
+   substitutes for "the condition takes effect", and a criterion resting on an
+   unverified premise does not exempt its adjacent verifiable conditions.
 3. **Cross-UI consistency** — when two UIs express the same outcome, confirm a
    single shared helper pinned on BOTH real call paths; mirror tests do not count.
 4. **Verbatim constants byte-diff** — diff every constant in the implementation
@@ -87,6 +100,16 @@ paired with a pinning test, and the suite re-run to green. Per the shared
 Loose-Criterion Escalation rule: a real defect the criteria are too loose to
 reject is a SPEC BUG — fix the defect AND record the criteria patch;
 "the contract doesn't forbid it" is never grounds to pass.
+
+**Evidence-backed dissent (R10, 大膽包 A)**: if the implementation DEVIATED from
+a contract premise or clause AND carries first-hand evidence (a DB query result,
+actual code at file:line, an SA-doc citation) that the premise was wrong, judge
+the deviation on that EVIDENCE — a correct evidence-backed deviation is 符合,
+never 違反 on literal contract wording; record a premise/criteria patch. In a prior
+harness experiment, seal rejected an implementer's evidence-backed correct
+data-source switch on literal contract wording (seal 字面誤判率 baseline 1) —
+R10 forbids that pushback.
+A bare assertion WITHOUT first-hand evidence does not qualify (evidence gate).
 
 Out of band — architectural rework, behavior redesign, anything touching files
 the diff never touched — is reported, not fixed: route to `/baransu:review`

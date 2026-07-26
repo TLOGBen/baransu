@@ -75,7 +75,7 @@ Invoke with `/baransu:<name>`. To edit a skill, read its `SKILL.md` — design c
 
 | Band | Route | Closure evidence |
 |------|-------|------------------|
-| Small — single-file, clear scope | Implement directly under the red/green discipline in `_shared/tdd.md` §7; no skill ceremony | red → green run |
+| Small — single-file, clear scope | Implement directly under the red/green discipline in `_shared/tdd.md` §7 (維5: behavior tests assert named values, never tautological "responds/all-green"; a broken feature MUST turn a test red); no skill ceremony | red → green run |
 | Medium — one feature, few files | `/contract` pins a one-page contract before work; `/seal` closes with one narrow verification pass (direct-fix rights) | seal five-point mandate result |
 | Large — ≥2 interdependent modules, context rot is real | `/analyze` full pipeline: five-layer spec → built-in execution to green | `final-report.md` |
 

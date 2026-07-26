@@ -49,3 +49,29 @@ Keep it to one line; this is telemetry, not a journal.
   (blocking → log, if the false-block rate is material), the `/codex-skill-transfer` retirement clause
   (three consecutive zero-use months → retire, ceiling back to 14), and routing-table
   wording fixes for whichever confusion pair actually fired.
+
+## Reform gate signals (Phase 3 — 2026-07)
+
+The Phase 3 gates (現實接觸強制閘 / Critical 硬停 / R10 證據異議) each carry a
+falsifiable exit clause; those need firing records to evaluate, so a gate firing
+appends one supplementary line with an `event` field (other fields as above,
+`miss:false`):
+
+- `"event":"reality_contact_flip"` — the 現實接觸強制閘 flipped a `未驗` premise to
+  `已驗`, or escalated it to the user (analyze Stage 1 / contract Ground).
+- `"event":"critical_hard_stop"` — final-review's Critical hard-stop blocked a green
+  delivery on an open Critical (carrying its 死因四件套).
+- `"event":"r10_premise_patch"` — an R10 evidence-backed dissent triggered a
+  sanctioned goal.md 前提/C{n} patch.
+
+Three monthly reform signals (reform-proposal §5), from the month's records:
+- **錯誤前提穿透率** — tasks whose delivered data source / premise was wrong ÷ tasks
+  with a premise-bearing spec.
+- **Critical 發現後解決率** — `critical_hard_stop` events resolved before delivery ÷
+  total Criticals found.
+- **seal 字面誤判率** — evidence-backed correct deviations wrongly rejected on literal
+  wording (should trend to 0 as R10 + `r10_premise_patch` land).
+
+Falsifiable-exit evaluation: a Phase 3 gate with zero firing events (or only
+overridden false-positive firings) across three months is a retirement candidate —
+the same forward-only discipline as the `/codex-skill-transfer` sunset.

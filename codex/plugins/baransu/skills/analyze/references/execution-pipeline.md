@@ -22,7 +22,7 @@ continue unblocked work.
 ## Hard Constraints
 
 - **The review ROLE is never optional; its host varies by mode.** Every task — documentation, scripts, config, code — goes through review-agent after each impl-agent attempt (serial-absorbed mode: the orchestrator hosts the role, mechanical gates still enforced). `TaskUpdate status=completed` is only reachable as the result of a review outcome for the current impl attempt.
-- **Analyze spec directory is read-only during execution** — with ONE sanctioned exception: the R7 loose-criterion patch path (§4b Phase 2) may append a criteria patch to goal.md ONLY via the orchestrator, logged in final-report.md. Leaf agents never write the spec dir.
+- **Analyze spec directory is read-only during execution** — with exactly TWO sanctioned exceptions, both ONLY via the orchestrator and logged in final-report.md: the R7 loose-criterion criteria patch (§4b Phase 2) and the R10 evidence-dissent 前提/C{n} patch (SWITCH advisory case). Leaf agents never write the spec dir.
 - **Subagent depth = 1.** Agents in `agents/*.md` are stateless leaf nodes; they never dispatch further subagents. Dispatch-tool presence is decided by the Step 0 tool-list probe (inspection, never attempt-and-catch); when absent, enter serial-absorbed mode.
 - **All Task Tools created before execution begins** (Step 2). No mid-execution task creation.
 - **Working files live under `.codex/execute/`.** (Directory name kept across the merge — it names the execution phase, and /ship's archive rules key on it.)
@@ -154,6 +154,14 @@ path, skip the SWITCH this round.
 ```
 SWITCH review_tier:
   CASE "direct fix" | "advisory":
+    # R10 (大膽包 A): if the advisory carries a `premise_correction` (evidence-backed
+    # dissent refuted a spec/contract premise), the orchestrator FIRST applies it as a
+    # sanctioned goal.md 前提/C{n} patch — the R10 spec write, mirroring the R7 criteria
+    # patch below, logged in final-report — so the corrected literal baseline is what
+    # Step 6 final-review judges against; else final-review ❌s the evidenced-correct
+    # deviation and final-fixer reverts it to the wrong premise (the failure R10 kills).
+    if review.premise_correction != false:
+      orchestrator applies the goal.md 前提/C{n} patch (R10 spec write); log in final-report
     mark task ✅; TaskUpdate completed; break LOOP
   CASE "packaged confirm (quality)":
     if (L or XL) AND review.refactor_signal:
@@ -170,8 +178,9 @@ SWITCH review_tier:
 
 **R7 loose-criterion patch path**: when review returns a correctness finding
 citing BOTH a real defect AND a too-loose criterion, the orchestrator appends
-the criteria patch to goal.md (sole sanctioned spec write), logs it in
-final-report.md, and the re-dispatch judges against the patched criterion.
+the criteria patch to goal.md (one of the two sanctioned spec writes — the
+other is the R10 前提 patch), logs it in final-report.md, and the re-dispatch
+judges against the patched criterion.
 
 **Failure escalation** (correctness/judgment, post-filter):
 
@@ -222,7 +231,18 @@ counts, verbatim output tail) — exit 0 with 0 tests collected is NOT a pass.
 Fail → cluster failures, dispatch one **e2e-fix-agent** per cluster in
 parallel, re-run once; still failing → record ❌, proceed to Step 6.
 
-## Step 6 — Final-Review + Final-Fixer
+## Step 6 — Purpose end-to-end check + Final-Review + Final-Fixer
+
+**目的終檢 (大膽包 B — before coverage review)**: take goal.md's one-sentence
+goal and walk it end-to-end once the most naive way a user would — pick a real
+input, exercise the primary deliverable, observe the ACTUAL output. This catches
+core-function holes that sit in no checklist row: Round 2's heaviest arm shipped
+vendor-filter dead code (a Critical) that a full green dashboard hid but one
+naive end-to-end walk exposes. Any hole found here is registered as a ❌ of its
+corresponding REQ (or the 首要交付 C{n}) in the Coverage Report — a core hole
+sitting in no checklist row is attached to the REQ its feature belongs to, never
+left unclassified — so it flows through the existing ❌ → needs_fixer → severity
+path rather than being a dead-end observation.
 
 Dispatch **final-review-agent** with requirement_path, goal_path, test_dir,
 design_path (for the R9 whole-tree verbatim-constant byte-diff and the R4
@@ -234,7 +254,11 @@ audit (every row's pinning test exists, is green, pins the REAL call path).
 
 `needs_fixer: true` → dispatch **final-fixer-agent** once (coverage_report +
 requirement/design/goal excerpts), re-run final-review once. Still true →
-record remaining gaps as BLOCKED, proceed. **Never a second fixer pass.**
+record remaining gaps as BLOCKED, proceed. **Critical hard-stop (大膽包 B): if any
+finding still open at close is a Critical (final-review-agent severity, with its
+死因四件套), the run MUST NOT report green/complete delivery — final-report.md
+records 「交付受阻：未解 Critical」 naming the four-piece death cause; a Critical open
+at close is a delivery block, never a green completion.** **Never a second fixer pass.**
 
 ## Step 7 — final-report.md + Cleanup
 

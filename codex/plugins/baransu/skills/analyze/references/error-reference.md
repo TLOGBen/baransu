@@ -13,13 +13,15 @@ Semantics follow the R8-reformed pipeline (retry cap 1, red gate advisory).
 | failure_count == 1 | §4b escalation | Dispatch smart-friend (once per task); single retry with correction_strategy |
 | failure_count == 2 | §4b escalation | BLOCKED (R8 retry cap 1) |
 | Spec contradiction | review-agent output | BLOCKED; escalate |
-| Real defect + too-loose criterion (R7) | review-agent output | Orchestrator appends criteria patch to goal.md (sole sanctioned spec write), logs in final-report; re-dispatch judges against patched criterion |
+| Real defect + too-loose criterion (R7) | review-agent output | Orchestrator appends criteria patch to goal.md (a sanctioned spec write — R7 and R10 are the only two), logs in final-report; re-dispatch judges against patched criterion |
+| Evidence-backed dissent (R10) | review-agent `premise_correction` | Orchestrator applies a sanctioned goal.md 前提/C{n} patch (R10 spec write, mirrors R7), logs in final-report; task ✅ without re-dispatch; Step 6 final-review then judges the corrected baseline (final-fixer must not revert it to the stale premise) |
 | Merge semantic conflict ❌ | §4d | BLOCKED downstream; escalate |
 | Merge Green broken × 3 | §4d | BLOCKED downstream; escalate |
 | E2E fails | Step 5 | e2e-fix-agents (one cluster per agent); one re-run |
 | E2E still fails after fix | Step 5 | Record ❌; continue to Step 6 |
+| 目的終檢 finds a core hole | Step 6 (pre-review) | Register as ❌ of its corresponding REQ / 首要交付 C{n} → flows through needs_fixer/severity; never a dead-end observation |
 | Final-Review needs_fixer: true | Step 6 | final-fixer once; one re-review |
-| Final-Review still needs_fixer: true | Step 6 | Record remaining gaps as BLOCKED; proceed |
+| Final-Review still needs_fixer: true | Step 6 | Record remaining gaps as BLOCKED; proceed. Open Critical (severity + 死因四件套) → MUST NOT report green; final-report records 「交付受阻：未解 Critical」 (composes with the latent-production-defect row, not a parallel judgment) |
 | Write attempt to analyze dir | All steps | Immediate structural blocker; escalate |
 | Filter downgraded finding to advisory | §4b Phase 2 | Normal path; does not increment failure_count |
 | Invariant violation: 驗收標準失敗 finding wrongly downgraded | §4b Phase 2 filter sub-step | Structural blocker; escalate (hard invariant breach) |

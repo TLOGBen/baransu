@@ -44,6 +44,22 @@ touches (entry points, the data shapes involved, existing output formats).
 Note every trap found (non-dense indexes, encoding quirks, abort semantics) —
 each MUST surface as a criterion per G2.
 
+Also note every **premise (前提)** the criteria will rest on that affects data
+source / schema / contract / permissions; tag each `已驗` (first-hand: DB query /
+actual code at file:line / SA doc) or `未驗`. **現實接觸強制閘 (大膽包 A)**: a
+`未驗` premise of that kind may NOT be written into criteria as fact — get ONE
+first-hand contact to confirm or refute it, or (contact impossible this run)
+escalate it to the user as an explicit assumption via `user-question PAUSE (unclassified)`, never
+silently. A prior harness experiment's whole failure was one `未驗`
+data-source premise entering the contract as 「領域事實」.
+
+**No bundled suspension**: a `未驗-升級` premise never exempts its ADJACENT
+verifiable criteria. When one premise is undetermined (e.g. the amount data
+source), every behavior unrelated to it (vendor filtering, date-range
+passthrough, permission scope dimensions) still becomes its own independent
+assertable criterion with its own pinning test — a criterion bundled under an
+unverified premise's shadow is how real filters ship silently broken.
+
 If the task touches NO existing code surface (greenfield — no entry point, no
 existing output format to read) → do not silently skip G2: the 可斷言條文
 section MUST open with one affirmative line — 「G2：本任務無既有程式面可讀，
@@ -57,6 +73,11 @@ alone under G1/G3/G4; Steps 2–3 proceed unchanged. Silence is non-compliant.
 
 ## 目標
 {1-3 lines: the observable difference when this is done}
+
+## 前提（Premises）
+{each premise the criteria rest on, tagged `已驗`(source cited) / `未驗`; any
+data-source/schema/contract/permission premise must be `已驗` per the 現實接觸閘,
+or explicitly escalated — never silently assumed}
 
 ## 可斷言條文
 {numbered criteria, each assertable per G1; user-facing text criteria give the

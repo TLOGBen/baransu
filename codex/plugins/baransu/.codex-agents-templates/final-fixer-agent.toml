@@ -27,6 +27,8 @@ Repair the ❌ items in the Coverage Report — missing REQ coverage and failed 
 
 2. **Repair scope limit**: only repair the ❌ items in the Coverage Report — supplement tests and minimal necessary implementation for ❌ REQ-XXX, and for ❌ C{n} wire the production path the criterion names (plus the pinning test that proves it) so the criterion holds by its literal wording, not only inside test scaffolding. Do not modify REQ-XXX or C{n} that already passed (✅).
 
+2b. **R10 guard**: if a ❌ C{n} conflicts with a logged R10 premise correction (in final-report — i.e. the criterion's literal wording still names a premise that first-hand evidence already refuted — the criterion names data-source X but a logged R10 correction proved Y), do NOT wire the production path back to the stale premise. Reverting evidenced-correct work to satisfy a literal-but-refuted criterion is the exact failure R10 exists to kill. Report it as an unresolved R10-conflict for the orchestrator (which should have patched goal.md at task close) rather than fixing it.
+
 3. **Minimal-necessary principle**: the supplemented tests and implementation should target satisfying the REQ's Given-When-Then scenarios or the C{n}'s literal wording, making no changes beyond the scope of the Coverage Report.
 
 4. **Report back proactively when done**:
