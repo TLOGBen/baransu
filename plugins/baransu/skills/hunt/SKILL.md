@@ -18,7 +18,7 @@ A patch applied to a symptom creates a new bug somewhere else.
 > 「根因是 [X]，因為 [證據]。」
 Name a specific file, function, line, or condition. "A state management issue" is not a hypothesis. "Stale cache in `useUser` at `src/hooks/user.ts:42` because the dependency array is missing `userId`" is.
 
-The body below is English (agent-facing). All user-facing output is in **Traditional Chinese (繁體中文)**.
+All user-facing output is in **Traditional Chinese (繁體中文)**.
 
 ---
 

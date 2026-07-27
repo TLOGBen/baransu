@@ -5,7 +5,7 @@ argument-hint: "[lint | preset <name> | <description>]"
 user-invocable: true
 ---
 
-UI/UX design specification skill. This body is English (agent-facing). All user-visible output is **Traditional Chinese (繁體中文)**.
+UI/UX design specification skill. All user-visible output is **Traditional Chinese (繁體中文)**.
 
 ## Outcome Contract
 

@@ -7,7 +7,7 @@ description: Improves, scores, or evolves a SKILL.md via a forward-only ratchet 
 
 The deliverable is an **evolution package**: a target SKILL.md made measurably better through a ratchet that can only turn forward. The rubric is the fixed selection environment, the target SKILL.md is the gene, and an external benchmark is the yardstick. The single most important property is **evaluation independence** — the model that mutates the skill never also judges whether the mutation was an improvement.
 
-The body below is English (agent-facing). All user-visible output is in **Traditional Chinese (繁體中文)**.
+All user-visible output is in **Traditional Chinese (繁體中文)**.
 
 ## Outcome Contract
 

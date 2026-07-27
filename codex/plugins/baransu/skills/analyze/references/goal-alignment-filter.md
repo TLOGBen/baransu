@@ -3,8 +3,7 @@
 Invoked from execution-pipeline.md §4b Phase 2, when the review-tier SWITCH lands on
 `packaged confirm (correctness)` or `needs judgment`. "failure escalation
 logic below" in this file refers to the failure escalation logic in execution-pipeline.md
-§4b Phase 2. Semantics unchanged from the pre-merge /execute skill —
-the `failure_count` accounting and the hard invariant are authoritative here.
+§4b Phase 2. The `failure_count` accounting and the hard invariant are authoritative here.
 
 **Goal-Alignment Filter** (applies to: `packaged confirm (correctness)`, `needs judgment`)
 

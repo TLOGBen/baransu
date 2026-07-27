@@ -2,7 +2,7 @@
 
 Built by the orchestrator in execution-pipeline.md §4b failure escalation (at
 `failure_count == 1`, from smart-friend output) and passed to the next
-impl-agent dispatch. Semantics unchanged from the pre-merge /execute skill except the trigger point (R8 cap).
+impl-agent dispatch. It is armed at most once per task, under the R8 retry cap.
 
 **Composite `correction_strategy`** (built by orchestrator from smart-friend output for the next impl dispatch):
 

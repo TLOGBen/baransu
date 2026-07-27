@@ -89,7 +89,7 @@ The prefix simultaneously determines the **rule set** and the **output language*
 
 **Voice cue (optional, Refine mode)**: alongside the prefix, the user may pass an optional `voice="..."` cue:
 
-- preset name (e.g. `voice="yu-guang-zhong"`) → if `references/{name}-voice.md` exists, read it as a stylistic reference
+- preset name (e.g. `voice="yu-guang-zhong"`) → if `references/{name}-voice.md` exists, read it as a stylistic reference; if it does not exist, do not abort and do not silently drop the voice — fall through to the descriptor rule immediately below, using the preset string itself as the stylistic descriptor, and emit the operational notification 「找不到 voice preset {name}，改以字面風格描述套用」. Never substitute a different preset and never ask the user to pick one; the fallback target is fixed. A voice applied via this fallback is bound by exactly the same two semantic classes stated below — the must-not-override floor still applies at every match, and the voice-overridable class remains zh rule 10 only.
 - named author or descriptor (e.g. `voice="和菜頭"` or `voice="像和菜頭那種口語部落格"`) → use the string directly as a stylistic reference
 
 When provided, Refine adjusts wording toward the voice while still applying the rule set. Voice cue is **optional**; when omitted, Refine behaves as before. In Generate and Proofread modes, voice cue is silently ignored.

@@ -1,13 +1,13 @@
 {
   "skill_name": "analyze",
-  "note": "Execution-trigger corpus inherited from the retired /execute skill (merged into /analyze 2026-07). Data-only trigger-routing fixtures (plugin-wide-6 / batch C4). There is no built-in eval runner; these cases are the fresh-session A/B baseline corpus recorded BEFORE the C1 description POV batch. Post-run user-verification artifact, not a merge gate.",
+  "note": "Execution-entry trigger corpus for /analyze — the cases that must land on the execution half rather than spec authoring. Data-only trigger-routing fixtures (plugin-wide-6 / batch C4). There is no built-in eval runner; these cases are the fresh-session A/B baseline corpus recorded BEFORE the C1 description POV batch. Post-run user-verification artifact, not a merge gate.",
   "evals": [
     {
       "id": 1,
       "prompt": "開始執行",
       "should_trigger": true,
       "expected_skill": "analyze",
-      "expected_behavior": "With an /analyze spec present under .claude/analyze/: TDAID orchestration — Summarize→Impl→Review loops, E2E + Final-Review, final-report.md."
+      "expected_behavior": "With an /analyze spec present under .claude/analyze/: TDAID orchestration — Impl→Review loops, E2E + Final-Review, final-report.md."
     },
     {
       "id": 2,
@@ -42,7 +42,7 @@
       "prompt": "分析需求：這個功能要跨三個模組",
       "should_trigger": false,
       "expected_skill": "analyze",
-      "expected_behavior": "Spec does not exist yet — build it with /analyze before /execute."
+      "expected_behavior": "Not an execution entry — no spec exists yet, so /analyze starts at the spec-authoring stage."
     }
   ]
 }

@@ -2,6 +2,37 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [3.1.6] - 2026-07-27
+
+### Fixed
+- **3.0.0 裁撤 `/execute` 的殘留全面清除**。裁撤時沒把名字加進殘留掃描，Gate 4 一路綠燈，發行面因此帶著一個不存在的 skill 活到 3.1.5。
+  - `_shared/tdd.md`：8 處把 `/execute` 當現存 skill 的敘述改為執行管線；**§8 引用表兩列與實際 agent 檔對不上**（宣稱的參照句與路徑形式皆為舊版），改為與 `impl-agent.md` / `review-agent.md` 逐字相符。
+  - `_shared/tdd.md` 另有 5 處指向 `review-agent` 的 **Phase 3 / test_quality 觀察維度**——該結構在現行 review-agent 已不存在，改綁現行四層級語義（`packaged confirm (quality)` / `advisory`）與 R6 審查順序。
+  - `analyze/SKILL.md`：`/execute` 作為行為主體的兩句（`wave.md` 讀取權責、test-weight 最終裁量權）改為執行管線；移除「absorbed /execute triggers」標題註記。觸發詞「跑 execute」屬使用者輸入比對，保留。
+  - `execution-pipeline.md` / `green-proof-verify.md` / `goal-alignment-filter.md` / `correction-strategy.md`：移除「formerly the standalone /execute skill」「pre-merge /execute skill」等遷移敘述，改為直述；`.claude/execute/` 目錄名保留（命名執行階段，`/ship` 歸檔規則以它為 key），但理由句不再以「合併後保留」表述。
+  - `analyze/evals/`：兩份語料的 expected_behavior 仍寫「hand off to /execute」「build it with /analyze before /execute」，且提及 R8 已裁掉的 summarize-agent——修正為現行預期，避免 A/B 基準失真。
+  - `codex-skill-transfer/references/`：adapter note 表改指 `/analyze`（與 `transfer.py` 的 `CODEX_SKILL_ADAPTERS` key 一致）；`agent-mapping.md` 移除 `/triage` investigator-agent 例句；`CODEX_PORT_PLAN.md` T1-1／T1-2 標題改為執行管線。
+  - 三個 design preset 的 `design-cores/dashboard.html` 示範表格改用現行 skill（原列 `/grade`、`/triage`、`/bridge`、`/execute`、`/dev`）；`google-design-preset/tokens.css` 移除指向已不存在檔案的 spike 註解。
+
+### Changed
+- **殘留掃描（Gate 4）擴充為「被裁名稱＋被裁指令」**：`REMOVED_NAMES_RE` 加入 `full_review` 與 slash 形式的 `/execute`。裸 `execute` 不可用 word-boundary 掃（本倉常用動詞，且 `.claude/execute/` 是刻意保留的階段目錄名），故採 `\B/execute\b(?!/)`——命中指令形式，放行 `.claude/execute/`、`{slug}/execute/x.md`、`worktrees/execute-{date}`、`-b execute/{date}`。同時移除因來源已清而失效的 `investigator-agent` 白名單。
+- **`test_design_typography_expression_axes.py` 的 optionality guard 改釘 commit range**：原以 `git diff HEAD` 判定 preset 是否被動過，實際語義是「preset 不得與 HEAD 有任何差異」，等於永久禁止後續任何 preset 編輯；改為比對該 cluster 的 `87ebbd4..2dab598`，讓「這個 cluster 沒動 preset」回到可驗證的歷史事實（沿用 dataviz E2E 套件既有的 base-commit 釘法）。
+- **移除 8 處自述句「This body is English (agent-facing)」**：描述模型自己看得到的事實、不改變任何行為，只保留承重的「使用者輸出用繁體中文」指令。
+
+## [3.1.5] - 2026-07-27
+
+### Changed
+- **週更本機自動演化（結構軸單軸，standing-auth）**：12/15 skill 體積合格（`analyze` 480、`design` 485、`book` 488 達 480 行上限跳過），全數走 diagnostician → 單變因 mutation → 3 盲評收斂護欄（keep = 3/3 strict 且每位 judge delta ≥ 2.0）。**7 採納、0 gate-退回、5 收斂擋下**；`verify-skills.py` + `make test` 全綠。
+- 採納曲線（min delta）：contract +4.0、think +3.5、learn +3.0、health +2.5、ship +2.5、write +2.5、read +2.2。
+  - `contract`（dim5 約束明確性）：`## Constraints` 五條各冠上具名短稱（一頁上限／閘則外置／只釘 WHAT／先讀碼再寫條文／只寫不驗），並把原本只藏在 Flow 散文裡的三條紅線升為具名條款——現實接觸強制閘、無捆綁停權、禁止靜默覆寫，各自標註所屬步驟。
+  - `think`（dim6 高風險紀律）：Stage G 落檔補上防覆寫閘——`<slug>.md` / `<slug>.html` 若在開跑前已存在則一律不得覆寫或刪除，改用遞增後綴 `-2`、`-3` 直到兩個路徑都空，並在 SendUserFile caption 點名既有檔；全 skill 唯一可覆寫或刪除的檔案收斂為本回合自己產生的 `<slug>-draft.md`。
+  - `learn`（dim4 可執行具體性）：Stage 4 Trigger 3「核心概念不透明」由自評式判斷（「你無法用一句話解釋」）改為可觀察測試——對每個由 `[source: {slug}]` 標記帶入的核心術語，嘗試僅用 `$FILTERED_SOURCES` 寫出一句定義並置入正文；寫不出即觸發，寫得出即不觸發，自評不再是判準。
+  - `health`（dim2 階段連貫）：Step 2/3 標題改為描述實際行為（Route analysis depth／Classify findings and report）；Step 1c 移除對 Step 2 的前向引用並改用 Step 3 的三級嚴重度字彙（`[!] 嚴重`／`[~] 結構性`／`[-] 漸進`），不再使用只有 Step 3 才定義的英文別名。
+  - `ship`（dim2）：Step 2 的 Archive allowlist 補上 `write`，與 Step 1 `ARCHIVE_DIRS` 對齊——原本 Step 1 偵測得到 `.claude/write/` 但 Step 2 不歸檔，偵測結果無人消費；並明寫兩份清單必須逐字一致。
+  - `write`（dim3 失敗路徑）：Stage 0 voice preset 補上檔案不存在分支——不中止、不靜默丟棄，落到下一條 descriptor 規則並以 preset 字串本身當風格描述，發出固定通知；禁止改用其他 preset、禁止反問使用者，且 fallback 套用的 voice 仍受同樣的 must-not-override floor 約束。
+  - `read`（dim4）：Stage 3 標題擷取的「明顯不是標題」模糊判斷改為三條可判定否決測試（章節編號 regex／去標點後長度 ≤ 2／固定 boilerplate 清單），任一命中才否決，否則該標題即為標題；fallback 順序明確化為 HTML `<title>` → URL path stem。
+- 收斂擋下（不採納）：`evolve`（min 1.8 < 2.0）、`hunt`（min 1.5 < 2.0）、`codex-skill-transfer`（非全票，2/3）、`review`（非全票，2/3）、`seal`（非全票，2/3）。
+
 ## [3.1.4] - 2026-07-27
 
 ### Changed

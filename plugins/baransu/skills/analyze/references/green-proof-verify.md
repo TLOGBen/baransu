@@ -1,8 +1,7 @@
 # Pre-SWITCH guard — verify green_proof
 
 Invoked from execution-pipeline.md §4b Phase 2, before the review-tier SWITCH. "The SWITCH below"
-in this file refers to that SWITCH in execution-pipeline.md §4b Phase 2. Content moved
-from the pre-merge /execute skill; semantics unchanged except the R8 retry cap.
+in this file refers to that SWITCH in execution-pipeline.md §4b Phase 2.
 
 **Pre-SWITCH guard — verify green_proof**: Before entering the SWITCH below and `mark task ✅`, the main skill
 must first verify that the `green_proof` field reported by review-agent conforms to the 5-tier

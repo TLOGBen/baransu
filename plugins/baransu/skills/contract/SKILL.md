@@ -24,11 +24,14 @@ PAUSE classification for non-interactive drivers: `references/loop-pauses.md`.
 
 ## Constraints
 
-- One page. Target ~35 lines, hard cap 60. A contract that needs more is a signal the task belongs to `/analyze` — say so and stop instead of writing a long contract.
-- The gate rules live in `../_shared/contract-gate.md` (G1 assertability, G2 trap promotion, G3 verbatim constants, G4 surface inventory). Read it before writing any criterion; do not restate its rules here or in the contract.
-- The contract pins WHAT must hold, never HOW to implement. No file-by-file plans, no pseudo-code.
-- Read the relevant code before writing criteria — G2 requires promoting discovered traps into criteria, which is impossible without looking.
-- This skill writes the contract only. Implementation follows in the same or next session under `_shared/tdd.md` §7 discipline; verification is `/seal`'s job.
+- **一頁上限**: One page. Target ~35 lines, hard cap 60. A contract that needs more is a signal the task belongs to `/analyze` — say so and stop instead of writing a long contract.
+- **閘則外置**: The gate rules live in `../_shared/contract-gate.md` (G1 assertability, G2 trap promotion, G3 verbatim constants, G4 surface inventory). Read it before writing any criterion; do not restate its rules here or in the contract.
+- **只釘 WHAT**: The contract pins WHAT must hold, never HOW to implement. No file-by-file plans, no pseudo-code.
+- **先讀碼再寫條文**: Read the relevant code before writing criteria — G2 requires promoting discovered traps into criteria, which is impossible without looking.
+- **只寫不驗**: This skill writes the contract only. Implementation follows in the same or next session under `_shared/tdd.md` §7 discipline; verification is `/seal`'s job.
+- **現實接觸強制閘**: a 未驗 data-source / schema / contract / permission premise may never be written into criteria as fact (procedure: Step 1).
+- **無捆綁停權**: an undetermined premise never exempts its adjacent verifiable criteria from becoming independent assertable criteria (procedure: Step 1).
+- **禁止靜默覆寫**: never overwrite an existing CONTRACT.md belonging to a different task (procedure: Step 3).
 
 ## Flow
 

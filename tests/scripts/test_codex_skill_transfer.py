@@ -964,7 +964,7 @@ class TestPluginModeGeneration(unittest.TestCase):
             manifest = json.loads(
                 (plugin_out / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
             )
-            self.assertEqual("3.1.4", manifest["version"])
+            self.assertEqual("3.1.6", manifest["version"])
 
             codex_transfer = plugin_out / "skills" / "codex-skill-transfer"
             self.assertTrue((codex_transfer / "references" / "CODEX_PORT_PLAN.md").is_file())
@@ -1276,7 +1276,7 @@ class TestRepoPathRewrite(unittest.TestCase):
             shared.mkdir(parents=True)
             (shared / "tdd.md").write_text(
                 "Read `plugins/baransu/agents/impl-agent.md` and "
-                "`plugins/baransu/skills/execute/SKILL.md`.\n",
+                "`plugins/baransu/skills/analyze/SKILL.md`.\n",
                 encoding="utf-8",
             )
             agents = plugin / "agents"
@@ -1293,7 +1293,7 @@ class TestRepoPathRewrite(unittest.TestCase):
                 encoding="utf-8"
             )
             self.assertIn("`../../.codex-agents/impl-agent.toml`", tdd)
-            self.assertIn("`../execute/SKILL.md`", tdd)
+            self.assertIn("`../analyze/SKILL.md`", tdd)
             self.assertNotIn("plugins/baransu", tdd)
 
     def test_agent_stub_body_rewrites_flat_valid_paths(self):

@@ -14,7 +14,7 @@
       "prompt": "展開規格，這個通知系統橫跨排程器、推播服務和使用者偏好設定",
       "should_trigger": true,
       "expected_skill": "analyze",
-      "expected_behavior": "展開規格 on a multi-module task: full spec expansion, then hand off to /execute."
+      "expected_behavior": "展開規格 on a multi-module task: full spec expansion, then straight into the execution pipeline."
     },
     {
       "id": 3,

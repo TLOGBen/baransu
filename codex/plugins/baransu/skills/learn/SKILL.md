@@ -312,7 +312,7 @@ After completing each section's prose, check all three gap triggers. If **any** 
 
 **Trigger 2 — Single-source dependency**: a critical claim in the section is supported by only one source (only one entry in `$FILTERED_SOURCES` backs it). Observable definition: any claim in the section that carries a `[source: {slug}]` citation tag in `$OUTLINE` is a critical claim — no further judgment call. Scoping rule: when `|$FILTERED_SOURCES| ≤ 2`, this trigger fires at most ONCE per run — one batch supplementation offer covering the whole digest, not one per section; the sections it would otherwise have flagged get a `⚠️ 單一來源` annotation instead.
 
-**Trigger 3 — Core concept opacity**: after writing the section, you cannot explain the core concept in one sentence.
+**Trigger 3 — Core concept opacity**: the section's prose leans on a core term it cannot define from the sources. Observable definition: for each core term the section's prose carries over from an outline point tagged `[source: {slug}]`, attempt to write a one-sentence definition of that term using only `$FILTERED_SOURCES` content and place that sentence into the prose; if the sentence cannot be written and placed, the trigger fires; if it is written and placed, the trigger does not fire — your own assessment of how well you understand the concept is never the test, no further judgment call.
 
 ### 3. Gap handling — Stage 2 fallback
 

@@ -59,16 +59,16 @@ Common principle: **the model cannot talk its way through, because the next step
 
 ## Tier 1 — Good Cases Where the Tooth Doesn't Rely on UI: low port cost, don't over-engineer
 
-### T1-1　`/execute` Red-Green Gate → confirm the runner actually runs and the gate actually reads the exit code
+### T1-1　Execution-pipeline Red-Green Gate → confirm the runner actually runs and the gate actually reads the exit code
 
 | Field | Content |
 |------|------|
 | **Counters** | The model's inertia of "claiming done without tests" |
 | **Why** | This cell's tooth is a deterministic fact (tests red / green), which holds in both runtimes, **so no relocation is needed**. The only risk is whether the Codex-side gate actually executes the tests, rather than reading the LLM's self-report. |
-| **Codex action** | Ensure the Codex version of `/execute` derives its red-green verdict from the actual test runner's exit code (machine gate), with network / dependencies runnable inside the sandbox. Preserve the semantics of `failure_count` excluding compile errors (an existing invariant; do not merge the counters). |
+| **Codex action** | Ensure the Codex version of `/analyze`'s execution pipeline derives its red-green verdict from the actual test runner's exit code (machine gate), with network / dependencies runnable inside the sandbox. Preserve the semantics of `failure_count` excluding compile errors (an existing invariant; do not merge the counters). |
 | **Done when** | Run a failing test on the Codex side; the gate indeed exits ≠0 and blocks "claiming done". |
 
-### T1-2　`/execute` Task State → TaskCreate/Update changed to durable `task-map.md`
+### T1-2　Execution-pipeline Task State → TaskCreate/Update changed to durable `task-map.md`
 
 | Field | Content |
 |------|------|

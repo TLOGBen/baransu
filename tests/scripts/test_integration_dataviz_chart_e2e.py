@@ -89,7 +89,7 @@ AMBIENT_ROOT_ARTIFACTS_PRESENT = all(
 CHEERIO_PRESENT = (BOOK_SKILL_DIR / "scripts" / "node_modules" / "cheerio").exists()
 
 # Commit immediately before this feature's work started (main HEAD when the
-# dataviz-chart-integration /execute run began). The "purely additive" /
+# dataviz-chart-integration execution run began). The "purely additive" /
 # "zero diff" claims below are historical facts about how THIS feature was
 # introduced — they must stay pinned to that base commit, not to "working
 # tree vs index": once the feature lands in a normal /ship commit, a
@@ -816,7 +816,7 @@ class TestBoundaryDeclaredThreePresetsRegressionSummary(unittest.TestCase):
 # class that re-read `.claude/analyze/2026-07-02-dataviz-chart-integration/
 # test.md` live at test-run time, to guard against row-count drift while
 # task-integration.md's spec was still being actively worked. That guard's
-# job was fully served during /execute (confirmed 6 E2E rows / 7 integration
+# job was fully served during execution (confirmed 6 E2E rows / 7 integration
 # rows / 9 boundary items, independently re-verified twice). `.claude/
 # analyze/` is a session-scoped working directory that `/baransu:ship`
 # archives away by design (see ship's Outcome Contract) — a permanent

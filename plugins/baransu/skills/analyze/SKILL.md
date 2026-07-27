@@ -6,9 +6,9 @@ description: "Large-band pipeline: builds a goal→requirement→design→test�
 # analyze — define done, then run to green
 
 - Define completion first: write goal, requirements, design, tests, and tasks in that order, each layer anchored to the one above. Criteria are written to rejection strength per `../_shared/contract-gate.md` — that is the quality lever the 2026-07 experiments proved.
-- Then execute: the spec runs to green through `references/execution-pipeline.md` (the merged former /execute skill — impl/review subagent loops, E2E, final review).
+- Then execute: the spec runs to green through `references/execution-pipeline.md` — impl/review subagent loops, E2E, final review.
 - Spec authoring (Stages 1–6) never writes production code. A multi-group spec executes in a fresh session — definition and execution should not share a loaded context.
-- The body below is English (agent-facing); all user-visible output is in **Traditional Chinese (繁體中文)**.
+- All user-visible output is in **Traditional Chinese (繁體中文)**.
 
 ---
 
@@ -37,7 +37,7 @@ PAUSE classification for non-interactive drivers: `references/loop-pauses.md` �
 
 ## Stage 0 — Lightweight alignment + scope gate
 
-### Execution-entry detection (absorbed /execute triggers)
+### Execution-entry detection
 
 Before anything else: if the invocation intent is to RUN an existing spec —
 the argument is an existing `.claude/analyze/{date}-{slug}/` directory, or the
@@ -350,7 +350,7 @@ If a natural task fails the above, split it.
 
 **Full-stack**: use both, innermost backend first.
 
-Cap at 8 group files. If work exceeds 8 groups, add `wave.md` that divides groups into Wave 1 / Wave 2 with explicit dependency notes between waves. `wave.md` is presentational only — /execute never reads it; the `前置群組` field is the sole authoritative dependency channel, so every inter-wave dependency noted in `wave.md` MUST also appear as `前置群組` entries in the affected group files.
+Cap at 8 group files. If work exceeds 8 groups, add `wave.md` that divides groups into Wave 1 / Wave 2 with explicit dependency notes between waves. `wave.md` is presentational only — the execution pipeline never reads it; the `前置群組` field is the sole authoritative dependency channel, so every inter-wave dependency noted in `wave.md` MUST also appear as `前置群組` entries in the affected group files.
 
 Before writing task files, note which groups must complete before another can start. Capture this as the `前置群組` field at the top of each file.
 
@@ -387,7 +387,7 @@ Before writing task files, note which groups must complete before another can st
 
 Every task must have at least one requirement reference (`REQ-XXX`). Do not invent requirement numbers not defined in `requirement.md`.
 
-The optional 「測試重量建議」 line lets the spec author mark wiring-only tasks (thin pass-through forwarders, module registration, re-exports, config plumbing) as `riding` at decomposition time, when that knowledge is freshest. It is advisory input only — /execute's §4b test-weight tier rule keeps final decision authority (when in doubt, full). Omit the line when unsure.
+The optional 「測試重量建議」 line lets the spec author mark wiring-only tasks (thin pass-through forwarders, module registration, re-exports, config plumbing) as `riding` at decomposition time, when that knowledge is freshest. It is advisory input only — the execution pipeline's §4b test-weight tier rule keeps final decision authority (when in doubt, full). Omit the line when unsure.
 
 ### Backfill test.md task references
 

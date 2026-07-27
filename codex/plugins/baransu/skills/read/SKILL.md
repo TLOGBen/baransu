@@ -201,7 +201,7 @@ In the converted markdown, replace each original image ref (absolute or relative
 
 Find the first `# ` heading in `/tmp/{slug}-convert.md`. If none, use the URL path's last segment or filename stem.
 
-If the first `# ` heading is a numbered/section artifact (e.g. "1. Overview") or otherwise clearly not the document title, fall back to the HTML `<title>` from `raw/`, then to the URL path stem — a section number must never become the slug.
+If a first `# ` heading exists, take its text with the `# ` marker stripped and run these three rejection tests; the heading is REJECTED if ANY one matches — (a) the text matches the regex `^\s*\d+([.)]\d*)*[.):]?\s` (a leading section number, e.g. "1. Overview", "2.3) Setup", "4 Results"); (b) after removing all punctuation its length is ≤ 2 characters; (c) it equals, case-insensitively, one member of this fixed boilerplate set: Introduction / Overview / Contents / Table of Contents / README / 目錄 / 簡介 / 前言. If no test matches, that heading IS the title — never override it on any further judgment. If the heading is rejected, fall back in this order: (i) the HTML `<title>` from `raw/`; (ii) if that `<title>` is missing or empty after trimming, the URL path stem — a section number must never become the slug.
 
 ### 2. Generate final slug
 

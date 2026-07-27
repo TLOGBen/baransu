@@ -18,7 +18,8 @@ covers:
   5. Expression-axes rung shape (texture x4 with flat default, motion x3),
      prefers-reduced-motion floor, I3 restatement, INFORM framing.
   6. No new token DEFINITIONS smuggled into either reference file.
-  7. Optionality guard: the three shipped presets and check.py untouched.
+  7. Optionality guard: this cluster left the three shipped presets and
+     check.py untouched (pinned to the cluster's commit range).
   8. The Slide Layout Registry sentence upgraded to 15 slide-embeddable types.
 """
 
@@ -94,11 +95,22 @@ def gen_step2_region(text: str) -> str:
     )
 
 
-def git_diff_touched(path: Path) -> bool:
-    """True if `path` differs from HEAD (tracked-file regression guard)."""
+# The design-axes cluster landed as 2dab598; its parent is the pre-cluster base.
+# The optionality claim below ("this cluster left the presets alone") is a
+# historical fact about that closed commit range, so the diff is pinned to it.
+# A working-tree-relative diff would instead assert "the presets never differ
+# from HEAD" — which tests nothing about this cluster and forbids every later
+# preset edit by unrelated work.
+CLUSTER_BASE_SHA = "87ebbd4f7ce48eec434e27acda79afe23b441b23"
+CLUSTER_SHA = "2dab5985cc081c19f025c83dc5b5f3750d10e26b"
+
+
+def touched_by_cluster(path: Path) -> bool:
+    """True if the design-axes cluster commit modified `path`."""
     rel = path.relative_to(WORKTREE_ROOT)
     result = subprocess.run(
-        ["git", "-C", str(WORKTREE_ROOT), "diff", "--name-only", "HEAD", "--", str(rel)],
+        ["git", "-C", str(WORKTREE_ROOT), "diff", "--name-only",
+         CLUSTER_BASE_SHA, CLUSTER_SHA, "--", str(rel)],
         capture_output=True, text=True, check=True,
     )
     return bool(result.stdout.strip())
@@ -269,7 +281,7 @@ class TestOptionalityGuard(unittest.TestCase):
         for preset_dir in self.PRESET_DIRS:
             with self.subTest(preset=preset_dir.name):
                 self.assertFalse(
-                    git_diff_touched(preset_dir),
+                    touched_by_cluster(preset_dir),
                     f"{preset_dir.name} must not be touched by this cluster",
                 )
 

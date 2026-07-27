@@ -11,7 +11,7 @@ metadata:
   version: 0.1.0-codex
 ---
 
-UI/UX design specification skill. This body is English (agent-facing). All user-visible output is **Traditional Chinese (繁體中文)**.
+UI/UX design specification skill. All user-visible output is **Traditional Chinese (繁體中文)**.
 
 ## Outcome Contract
 

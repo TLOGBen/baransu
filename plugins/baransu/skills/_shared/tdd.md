@@ -1,9 +1,9 @@
 # Test-Driven Development — TDD reference (authoritative for baransu)
 
 > **Scope**: Every trigger point that writes, modifies, or reviews tests under the
-> baransu framework (`/execute`'s `impl-agent`, `/execute`'s `review-agent`, and the
-> small tasks implemented directly by the main session after `/think`／`/hunt`
-> reroute) treats this document as the **single source of knowledge for "how to design a Test"**.
+> baransu framework (the `impl-agent` and `review-agent` dispatched by `/analyze`'s
+> execution pipeline, and the small tasks implemented directly by the main session after
+> `/think`／`/hunt` reroute) treats this document as the **single source of knowledge for "how to design a Test"**.
 > This file is translated/localized from mattpocock/skills' TDD skill, with baransu's
 > existing RED / GREEN / TDAID vocabulary as inline gloss.
 >
@@ -15,8 +15,9 @@
 > §7.3's beyond-the-gates note and §7.5 are baransu-original additions (2026-07-06),
 > not derived from the upstream skill.
 >
-> **Trigger points**: before `impl-agent.md` General Principle §1, before `review-agent.md`
-> General Principle §3, and the small-task reroute sentences of `/think`／`/hunt`
+> **Trigger points**: at the top of `impl-agent.md`'s General Principles (before the Red gate),
+> at the top of `review-agent.md`'s General Principles (before the R6 review order), and the
+> small-task reroute sentences of `/think`／`/hunt`
 > (pointing at this file's §7 direct-implementation discipline). All point to this file via passive reference sentences.
 
 ---
@@ -37,9 +38,9 @@ the test verifies implementation, not behavior.
   must describe "behavior" rather than "implementation". A test named
   `test_user_can_checkout_with_valid_cart` is behavior; one named
   `test_processOrder_calls_validateInventory` is implementation.
-- In `/execute`'s TDAID cycle, the tests written by `impl-agent` are checked in
-  `review-agent` Phase 3's test_quality observation dimension for whether they survive a
-  hypothetical refactor.
+- In the execution pipeline's TDAID cycle, `review-agent` reads this section before reviewing
+  and checks whether the tests written by `impl-agent` survive a hypothetical refactor;
+  one that does not is a `packaged confirm (quality)` finding.
 - BAD example: `expect(mockPayment.process).toHaveBeenCalledWith(cart.total)` — verifies an internal
   call; breaks the moment you refactor the payment flow.
 - GOOD example: `const result = await checkout(cart, payment); expect(result.status).toBe("confirmed")` —
@@ -55,10 +56,10 @@ decided by what the previous round taught you**.
 **baransu context mapping**:
 - The four tasks of §7.2 (red-light test → confirm red → green-light impl → confirm green)
   are themselves one vertical slice.
-- `/execute`'s TDAID cycle is **per-task**; if one task has multiple acceptance criteria
+- The execution pipeline's TDAID cycle is **per-task**; if one task has multiple acceptance criteria
   (AC), `/analyze`'s design layer should have already split the cardinality. `impl-agent`
-  does not re-split; it writes per design.md. review-agent catches the process advisory
-  "does the diff add ≥ 2 test functions at once without a corresponding split cycle" in Phase 3.
+  does not re-split; it writes per design.md. review-agent raises "does the diff add ≥ 2 test
+  functions at once without a corresponding split cycle" as an `advisory` finding.
 - BAD example: one task contains "add endpoints A, B, C", and impl-agent writes 3 tests in one
   go and runs red, then writes 3 impls and runs green — with no tracer bullet learning anything in between.
 - GOOD example: one task maps to one AC in design.md, and impl-agent writes one test, runs red,
@@ -71,7 +72,7 @@ randomness, the file system (sometimes). **Do not mock a class / internal collab
 module you own.**
 
 **baransu context mapping**:
-- In Phase 3's test_quality observation dimension, review-agent greps the test body for:
+- When checking test quality, review-agent greps the test body for:
   `jest.mock(...)` against a project-internal path, `unittest.mock.patch(...)` against a
   project-internal path, or `expect(internal.method).toHaveBeenCalled`-type assertions.
   A hit yields the advisory "mocking an internal collaborator; consider verifying the
@@ -88,13 +89,13 @@ module you own.**
 - The §7.2 task 3 (write green-light impl) rule "write the minimal implementation sufficient
   to make the red-light test pass, adding nothing the test did not require" directly
   enforces this principle.
-- `/execute` `impl-agent.md` General Principle §4 already mandates: "Refactor runs at most once;
+- `impl-agent.md` General Principle §4 already mandates: "Refactor runs at most once;
   do not refactor proactively unless `refactor_mode: true` is received". Refactor is triggered
-  by a second dispatch carrying `refactor_mode: true` after review-agent's Phase 3 assessment.
+  by a second dispatch carrying `refactor_mode: true` after review-agent's quality-tier assessment.
 - BAD example: in the RED phase, modifying the test and the existing impl structure at the same
   time, confusing the source of failure.
 - GOOD example: in the RED phase, modify only the test file; in the GREEN phase, write only the
-  impl sufficient to pass; refactor is started only after `review-agent` assesses the quality tier.
+  impl sufficient to pass; refactor is started only after `review-agent` returns `packaged confirm (quality)`.
 
 ---
 
@@ -199,7 +200,7 @@ Cross-skill behavioral anti-patterns (including the red/green discipline items) 
 
 ## 7. The red/green gate for direct implementation (document discipline)
 
-When a small task bypasses the `/execute` pipeline and is implemented directly by the main
+When a small task bypasses `/analyze`'s execution pipeline and is implemented directly by the main
 session (for example, a `/think`-approved plan or the single change point after `/hunt`
 diagnosis converges), the red/green gate operates as **document discipline (discipline-suggested)**:
 no orchestrator gatekeeps for you; the implementer builds their own red/green task list per
@@ -216,8 +217,8 @@ cosmetic = the change has no semantic impact on runtime behavior, limited to two
 - pure formatting (pure formatting adjustments) — changes confined to
   non-executable documentation files (markdown-only) count as pure formatting
 
-This list is canonical: every consumer (including `/execute`'s review-agent
-cosmetic waiver) cites it; none restates or widens it.
+This list is canonical: every consumer (including `review-agent`'s cosmetic
+waiver) cites it; none restates or widens it.
 
 Dead-import removal and identifier rename touch executable text: they take the TDD path
 (§7.2), not the cosmetic path.
@@ -319,13 +320,13 @@ This file is referenced by the following trigger points:
 
 | Trigger point | Reference location | Reference sentence |
 |---|---|---|
-| `/execute` impl-agent | `plugins/baransu/agents/impl-agent.md` General Principle §1, before the Red gate | "Before writing tests, read `plugins/baransu/skills/_shared/tdd.md`." |
-| `/execute` review-agent | `plugins/baransu/agents/review-agent.md` before General Principle §3 | "Before reviewing, read `plugins/baransu/skills/_shared/tdd.md` and check test quality per its principles." |
+| execution-pipeline impl-agent | `plugins/baransu/agents/impl-agent.md`, top of General Principles, before the Red gate | "Before writing tests, read §1 (Core Principles) and §6 (Anti-pattern quick reference) of `${CLAUDE_PLUGIN_ROOT}/skills/_shared/tdd.md` — test-verifies-behavior, vertical slicing, mock-at-boundaries, refactor-only-when-green." |
+| execution-pipeline review-agent | `plugins/baransu/agents/review-agent.md`, General Principles, before the R6 review order | "Before reviewing, read §1 (Core Principles) and §6 (Anti-pattern quick reference) of `${CLAUDE_PLUGIN_ROOT}/skills/_shared/tdd.md` and check test quality per its principles." |
 | `/think` small-task reroute | `plugins/baransu/skills/think/SKILL.md` Stage G downstream split | Small tasks reroute to this file's §7: the main session builds its own red/green task list per document discipline and implements directly. |
 | `/hunt` fix reroute | `plugins/baransu/skills/hunt/SKILL.md` fix-suggestion split | Single change-point fixes reroute to this file's §7 direct-implementation discipline. |
 
-In Phase 3, besides checking test quality per this file's principles, review-agent must report the four green_proof fields (see
-`plugins/baransu/agents/review-agent.md` General Principle §3 and the 5-tier required matrix).
+Besides checking test quality per this file's principles, review-agent must report the four green_proof fields (see
+`plugins/baransu/agents/review-agent.md` General Principle §3 return format and its 5-tier required-fields matrix).
 
 ---
 

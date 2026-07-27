@@ -9,7 +9,8 @@ Repo mode（無參數）執行全部檢查：
      （anthropic/claude）、description 非空 ≤1024、第三人稱啟發式、
      description/when_to_use 無 XML tags、兩者合計 ≤1536 字元（listing 預算）
   3. SKILL.md 引用的 references/ 檔存在，且 references/ 內不得再巢狀 references/
-  4. 被裁名稱（grade/triage/bridge/dev）word-boundary 零功能殘留
+  4. 被裁名稱（grade/triage/bridge/dev/full_review）word-boundary ＋ 被裁指令
+     （/execute）slash 形式，零功能殘留
      （掃描面與排除規則內嵌於本腳本，見 RESIDUE_* 常數；git 歷史不掃）
   5. 三發行面（plugin.json / marketplace.json / codex 鏡像）version 一致
   6. Outcome Contract 四行（Outcome / Done when / Evidence / Output）齊備且值非空
@@ -143,7 +144,17 @@ REF_DEPRECATION_LINE_RE = re.compile(r"已廢除|已移除|deprecated|removed")
 #   命中行若符合任一規則即排除並計數；分類計數隨輸出落盤，
 #   不以「grep 無輸出」單獨作為 C2 證據。
 # ---------------------------------------------------------------------------
-REMOVED_NAMES_RE = re.compile(r"\b(?:grade|triage|bridge|dev)\b")
+# 兩類命中：
+#   (a) 被裁「名稱」word-boundary —— grade / triage / bridge / dev / full_review
+#   (b) 被裁「指令」slash 形式 —— `/execute`。不能用 word-boundary 掃裸 execute：
+#       execute 是本倉常用動詞，且 `.claude/execute/` 是刻意保留的執行階段目錄名
+#       （execution-pipeline.md Hard Constraints、/ship 歸檔規則以它為 key）。
+#       `\B/` 只在斜線前方不是字元邊界時成立，`(?!/)` 再排除路徑段形式，故
+#       `/execute` 命中，而 `.claude/execute/`、`{slug}/execute/confirm.md`、
+#       `worktrees/execute-{date}`、`-b execute/{date}` 皆不命中。
+REMOVED_NAMES_RE = re.compile(
+    r"\b(?:grade|triage|bridge|dev|full_review)\b|\B/execute\b(?!/)"
+)
 RESIDUE_SCAN_EXTS = {".md", ".py", ".json"}
 
 # (label, path-suffix 或 None=不限路徑, line regex)
@@ -154,11 +165,6 @@ RESIDUE_WHITELIST = (
     ("color grade 攝影詞", None, re.compile(r"color grade")),
     ("可變字型 grade 軸", None, re.compile(r"\bgrade \(")),
     ("Codex CLI bridge 一般詞", None, re.compile(r"Codex CLI bridge")),
-    (
-        "agent-mapping.md 歷史例句",
-        "codex-skill-transfer/references/agent-mapping.md",
-        re.compile(r"investigator-agent"),
-    ),
     (
         "transfer.py 歷史註解",
         "codex-skill-transfer/scripts/transfer.py",
@@ -686,7 +692,7 @@ def main(argv: list[str]) -> int:
                     "、".join(f"{k} ×{n}" for k, n in sorted(excluded.items()))
                     or "無白名單命中"
                 )
-                print(f"✅ 殘留掃描（被裁名稱 word-boundary）零功能命中；白名單排除：{detail}")
+                print(f"✅ 殘留掃描（被裁名稱＋被裁指令）零功能命中；白名單排除：{detail}")
             mv, version = check_manifest_versions()
             violations += mv
             if not mv:

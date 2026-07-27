@@ -43,7 +43,7 @@ Officially confirmed by the Codex Subagents docs (2026-07):
 - Subagents inherit the parent sandbox and approval policy; live parent runtime overrides take precedence over custom-agent TOML defaults.
 - In non-interactive flows, a subagent action that needs fresh approval fails and surfaces the error back to the parent workflow.
 
-**Best for**: heavy-IO forks where context isolation is the *reason* the original used `context: fork` — e.g. baransu `/execute`'s impl-agent, `/triage`'s investigator-agent.
+**Best for**: heavy-IO forks where context isolation is the *reason* the original used `context: fork` — e.g. baransu's impl-agent and the `/review` perspective reviewers.
 
 ### Path 2: Skill chain (lightweight)
 

@@ -11,8 +11,6 @@
    - Text muted/faint borrow --md-outline / --md-outline-variant (semantic overload)
    - shadow-whisper carries Material elevation rgba (M3 essence; preset exception)
    - --font-serif aliases sans (Material is sans-only)
-
-   See .claude/execute/baransu-design-v1.3/execute/spike-material-canonical-mapping.md
 */
 
 :root {

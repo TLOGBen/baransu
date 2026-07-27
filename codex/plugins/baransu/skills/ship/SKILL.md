@@ -12,7 +12,7 @@ metadata:
 
 # /baransu:ship — session cleanup
 
-The body below is English (agent-facing). All user-visible output is in **Traditional Chinese (繁體中文)**.
+All user-visible output is in **Traditional Chinese (繁體中文)**.
 
 No user confirmation required. The steps below run automatically.
 
@@ -72,7 +72,7 @@ Decision:
 
 Create `.codex/archived/` if it does not exist.
 
-**Archive allowlist** (the baransu working dirs): `tmp`, `analyze`, `execute`, `think`, `design`, `hunt-report`, `evolve`, `review`.
+**Archive allowlist** — exactly the Step 1 `ARCHIVE_DIRS` value, in the same order: `tmp`, `analyze`, `execute`, `think`, `design`, `hunt-report`, `evolve`, `review`, `write`. The two lists MUST stay identical; a dir detected in Step 1 but absent here would leave Step 1's detect output unconsumed.
 
 **Never archived**: the `read`, `learn`, and `book` dirs are kept products and stay in place. Claude Code infrastructure (`worktrees/`, `projects/`, `jobs/`, `plugins/`, `settings*.json`, …) is never touched — the allowlist is explicit precisely so infra is never swept up.
 

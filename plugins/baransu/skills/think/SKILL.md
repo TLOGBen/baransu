@@ -41,7 +41,7 @@ Why so strict: a premature code artefact anchors the user — they argue about i
 
 ## User-facing language
 
-All output shown to the user — alignment questions, proposals, the final plan, `AskUserQuestion` labels — must be in **Traditional Chinese (繁體中文)**. The body of this SKILL.md is in English because it is agent-facing.
+All output shown to the user — alignment questions, proposals, the final plan, `AskUserQuestion` labels — must be in **Traditional Chinese (繁體中文)**.
 
 ---
 
@@ -406,7 +406,7 @@ options:
 
 ### Handling each choice
 
-**Option 1 — 送 /review 再決定.** First materialize the plan on disk — /review's iron rule refuses targets that exist only in conversation: write the current five-section plan verbatim to `.claude/think/<slug>-draft.md` and pass that path as the review target. The post-approval Work-journal persistence supersedes this draft (rename or overwrite it into `.claude/think/<slug>.md`). Then invoke `/baransu:review` on the draft file. Derive the review goal from the user's invocation context (typically: 「確認這份計畫邏輯自洽、沒有設計矛盾、KD 無遺漏 unknown」). After /review presents its findings: if findings point to substantive gaps — missing decisions, logic contradictions, underspecified Unknowns — treat them as Option 3 input and revise the affected section with the finding folded in, then re-present this gate. If findings are advisory or minor, return to this gate and let the user choose Option 2 or 3. The full loop is: `/think → /review → /think (revision) → gate → downstream`.
+**Option 1 — 送 /review 再決定.** First materialize the plan on disk — /review's iron rule refuses targets that exist only in conversation: write the current five-section plan verbatim to `.claude/think/<slug>-draft.md` and pass that path as the review target. The post-approval Work-journal persistence supersedes this draft (rename the draft this run itself created into the plan path the Work-journal step resolves; that draft is the only file `/think` may overwrite or delete). Then invoke `/baransu:review` on the draft file. Derive the review goal from the user's invocation context (typically: 「確認這份計畫邏輯自洽、沒有設計矛盾、KD 無遺漏 unknown」). After /review presents its findings: if findings point to substantive gaps — missing decisions, logic contradictions, underspecified Unknowns — treat them as Option 3 input and revise the affected section with the finding folded in, then re-present this gate. If findings are advisory or minor, return to this gate and let the user choose Option 2 or 3. The full loop is: `/think → /review → /think (revision) → gate → downstream`.
 
 **Option 2 — 批准實作（完全授權）.** You are done with the deliberation phase. Do two things:
 
@@ -440,9 +440,9 @@ options:
 
 Once the plan is approved — Option 2 selected, a free-text approval closed with 「收到，把這當成批准實作」, or the plan sent onward after Option 1's review loop ends in approval — produce the persistent artifacts before handing off:
 
-- [ ] Write the five-section plan verbatim to `.claude/think/<slug>.md` (slug: short kebab-case derived from the plan topic). If Option 1 produced `.claude/think/<slug>-draft.md`, this persistence supersedes it — rename or fold the draft into `<slug>.md`; do not leave both.
-- [ ] Render an HTML work journal at `.claude/think/<slug>.html`, based on the book golden-template, per the shared contract in `plugins/baransu/skills/_shared/output-journal.md`. It contains the original skill output (the five-section plan) plus an 「執行日誌」 section, initially seeded with the approval record (who approved, which option, when).
-- [ ] Send both files via `SendUserFile` with a one-line 繁中 caption（例：「計畫已落檔；執行日誌將隨實作持續追記」）.
+- [ ] Write the five-section plan verbatim to `.claude/think/<slug>.md` (slug: short kebab-case derived from the plan topic). **If** `.claude/think/<slug>.md` or `.claude/think/<slug>.html` already exists as of the start of this run, **then** neither of those two files may be overwritten or deleted: write the plan to `.claude/think/<slug>-2.md` and the journal of the next checklist item to `.claude/think/<slug>-2.html`, incrementing the numeric suffix — `-3`, `-4`, and so on — until both suffixed paths are unoccupied, and name the already-existing file in the SendUserFile caption below. If Option 1 produced `.claude/think/<slug>-draft.md`, this persistence supersedes it — rename that draft, which this run itself created, into the `.md` path resolved above; do not leave both. The `<slug>-draft.md` this run wrote under Option 1 is the only file `/think` may overwrite or delete.
+- [ ] Render an HTML work journal at `.claude/think/<slug>.html` — or at the suffixed path resolved in the previous item — based on the book golden-template, per the shared contract in `plugins/baransu/skills/_shared/output-journal.md`. It contains the original skill output (the five-section plan) plus an 「執行日誌」 section, initially seeded with the approval record (who approved, which option, when).
+- [ ] Send both files via `SendUserFile` with a one-line 繁中 caption（例：「計畫已落檔；執行日誌將隨實作持續追記」；走遞增後綴時，caption 需點名該既有檔，例：「既有 `<slug>.md` 未更動，本回合落檔為 `<slug>-2.md`」）.
 
 During subsequent implementation, the 「執行日誌」 section MUST be continuously appended with off-spec decisions, forced changes, trade-offs, and anything else the user should know. **The implementing party owns the appending** — `/analyze`'s execution pipeline on the medium-to-large path, or the main session implementing directly per `_shared/tdd.md` §7. /think's responsibility ends at creating the journal and naming this ownership in the handoff prompt (Stop rules section).
 

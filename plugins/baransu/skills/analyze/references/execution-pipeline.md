@@ -1,13 +1,11 @@
 # Execution Pipeline — run the spec to green (large band)
 
-The execution half of `/analyze` (formerly the standalone `/execute` skill,
-merged 2026-07 after the harness×model matrix experiment; the R8 reform cuts
-the rituals the experiment condemned — summarize-agent dispatch, per-task ctx
-files, the blocking Red-gate ritual, retry depth — and keeps the four proven
-mechanisms: worktree parallel groups, the compile-error-excluded failure
-counter, coverage-riding dispatch, and the merge / e2e-fix / final-fixer
-closing agents). This body is English (agent-facing); all user-visible output
-is **Traditional Chinese (繁體中文)**.
+The execution half of `/analyze`. It rests on four mechanisms the harness×model
+matrix experiment validated: worktree parallel groups, the compile-error-excluded
+failure counter, coverage-riding dispatch, and the merge / e2e-fix / final-fixer
+closing agents. The rituals that same experiment condemned — per-task context
+files, a blocking Red-gate stop, deep retry chains — are deliberately absent.
+All user-visible output is **Traditional Chinese (繁體中文)**.
 
 Entry: `/analyze` Stage 8 (execution handoff) reads this file and drives it,
 in the same session (single-group spec) or a fresh session (multi-group spec).
@@ -25,7 +23,7 @@ continue unblocked work.
 - **Analyze spec directory is read-only during execution** — with exactly TWO sanctioned exceptions, both ONLY via the orchestrator and logged in final-report.md: the R7 loose-criterion criteria patch (§4b Phase 2) and the R10 evidence-dissent 前提/C{n} patch (SWITCH advisory case). Leaf agents never write the spec dir.
 - **Subagent depth = 1.** Agents in `agents/*.md` are stateless leaf nodes; they never dispatch further subagents. Dispatch-tool presence is decided by the Step 0 tool-list probe (inspection, never attempt-and-catch); when absent, enter serial-absorbed mode.
 - **All Task Tools created before execution begins** (Step 2). No mid-execution task creation.
-- **Working files live under `.claude/execute/`.** (Directory name kept across the merge — it names the execution phase, and /ship's archive rules key on it.)
+- **Working files live under `.claude/execute/`.** (The directory names the execution phase — not a skill; /ship's archive rules key on it.)
 - **goal.md criteria are the top acceptance authority.** A criterion satisfied only inside test scaffolding while its production path stays inert is NOT met. Step 6 cross-checks every C{n} against its literal wording.
 - **Process artifacts are a closed list**: confirm.md, task-map.md, impl-checklist-{group}.md, final-report.md (plus task-registry.md only when Task tools are unavailable). No per-task ctx files — the handoff is the spec itself.
 - **Goal-Alignment Filter is hard governance** (`references/goal-alignment-filter.md`): off-goal findings downgrade to advisory and do not increment `failure_count`; findings tied to an 驗收標準直接失敗 keep their tier and count.
