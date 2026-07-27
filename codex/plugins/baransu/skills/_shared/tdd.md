@@ -319,13 +319,13 @@ This file is referenced by the following trigger points:
 
 | Trigger point | Reference location | Reference sentence |
 |---|---|---|
-| `/execute` impl-agent | `~/.codex/agents/impl-agent.toml` General Principle §1, before the Red gate | "Before writing tests, read `tdd.md`." |
-| `/execute` review-agent | `~/.codex/agents/review-agent.toml` before General Principle §3 | "Before reviewing, read `tdd.md` and check test quality per its principles." |
+| `/execute` impl-agent | `../../.codex-agents/impl-agent.toml` General Principle §1, before the Red gate | "Before writing tests, read `tdd.md`." |
+| `/execute` review-agent | `../../.codex-agents/review-agent.toml` before General Principle §3 | "Before reviewing, read `tdd.md` and check test quality per its principles." |
 | `/think` small-task reroute | `../think/SKILL.md` Stage G downstream split | Small tasks reroute to this file's §7: the main session builds its own red/green task list per document discipline and implements directly. |
 | `/hunt` fix reroute | `../hunt/SKILL.md` fix-suggestion split | Single change-point fixes reroute to this file's §7 direct-implementation discipline. |
 
 In Phase 3, besides checking test quality per this file's principles, review-agent must report the four green_proof fields (see
-`~/.codex/agents/review-agent.toml` General Principle §3 and the 5-tier required matrix).
+`../../.codex-agents/review-agent.toml` General Principle §3 and the 5-tier required matrix).
 
 ---
 

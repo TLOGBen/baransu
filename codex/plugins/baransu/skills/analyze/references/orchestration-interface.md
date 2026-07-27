@@ -14,7 +14,7 @@ The unit of dispatch is one task's agent sequence (impl-agent → review-agent),
 |-------|-------|
 | tier | one of the five tiers: `direct fix` / `advisory` / `packaged confirm (quality)` / `packaged confirm (correctness)` / `needs judgment` |
 | findings[] | citation + observation + fix (the shape the Goal-Alignment Filter walks) |
-| green_proof | the 4 mandatory keys per `agents/review-agent.md` §3: `test_command`, `exit_code`, `output_tail`, `tests_correspondence` |
+| green_proof | the 4 mandatory keys per `../../../.codex-agents/review-agent.toml` §3: `test_command`, `exit_code`, `output_tail`, `tests_correspondence` |
 | refactor_signal | boolean, consumed by the §4b quality-tier branch |
 | spec_contradiction | false or details, consumed by failure escalation |
 

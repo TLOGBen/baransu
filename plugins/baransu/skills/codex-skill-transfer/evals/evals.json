@@ -14,7 +14,7 @@
       "prompt": "Port this plugin to codex so my teammate can use it",
       "should_trigger": true,
       "expected_skill": "codex-skill-transfer",
-      "expected_behavior": "Plugin mode: plugin → agent-stub TOMLs."
+      "expected_behavior": "Plugin mode: every Claude agent becomes a reachable package-local Codex TOML, consuming skills use a fail-closed resolver, and rules/hooks/skills become equivalent package artifacts."
     },
     {
       "id": 3,

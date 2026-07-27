@@ -497,3 +497,22 @@ Verification splits into two tiers with opposite authority — **the hard floor 
 - **Hard floor — blocking boundary**: **token-only / no-rgba (in SVG) / accent ≤5% / PDF-safe**. `scripts/validate-output.ts` mechanically enforces the gated subset — token-only via GATE-F class-prefix (PPT mode only; SKIPs on long-form html), PDF-safe via GATE-K + the html2pptx pre-checks (likewise PPT-mode); any gate violation = GATE FAIL (blocking). **No gate scans no-rgba, accent ≤5%, or bare-hex color literals today** — those hard-floor items are caught only by the Stage 3 §3 pre-write checklist, so self-check them before writing (coverage table: `references/validation.md`).
 - **Soft range — non-blocking opinion**: `style-reviewer` plus mechanical heuristics (**bare hex**, a **second accent**, **column width** past the §9 欄寬上限 ceiling) — advisory, recorded in the review, never blocks output.
 - Full detail (hard-floor→gate coverage mapping, follow-up note, gate-internal trust boundary, REQ-003 Scenario 2 automated evidence) → read `references/validation.md`.
+
+
+## Codex Port Adapter - Bundled Agent Resolution
+
+This plugin does not assume package-local TOMLs are auto-registered as custom
+agents. The required definitions for this skill are bundled at
+`../../.codex-agents/<agent-name>.toml`: `impl-agent`, `style-reviewer`.
+
+Before every named-agent dispatch:
+
+1. Resolve the exact bundled TOML from this `SKILL.md` directory (strip a
+   leading `baransu:` namespace from the requested name).
+2. Verify the file exists, then pass its absolute path and the task input to a
+   generic Codex subagent. The first instruction to that subagent is to read
+   the TOML's `developer_instructions` completely before doing any task work
+   and to treat relative paths as relative to the TOML file.
+3. If the TOML is missing or unreadable, stop with
+   `AGENT_DEFINITION_MISSING: <path>`. Never invent, summarize, or substitute a
+   role from the agent name.

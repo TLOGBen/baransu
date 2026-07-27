@@ -13,6 +13,25 @@ metadata:
 
 # review — cross-perspective re-verification
 
+## Codex Port Adapter - Bundled Agent Resolution
+
+This plugin does not assume package-local TOMLs are auto-registered as custom
+agents. The required definitions for this skill are bundled at
+`../../.codex-agents/<agent-name>.toml`: `architecture-reviewer`, `domain-reviewer`, `quality-reviewer`, `security-reviewer`, `style-reviewer`.
+
+Before every named-agent dispatch:
+
+1. Resolve the exact bundled TOML from this `SKILL.md` directory (strip a
+   leading `baransu:` namespace from the requested name).
+2. Verify the file exists, then pass its absolute path and the task input to a
+   generic Codex subagent. The first instruction to that subagent is to read
+   the TOML's `developer_instructions` completely before doing any task work
+   and to treat relative paths as relative to the TOML file.
+3. If the TOML is missing or unreadable, stop with
+   `AGENT_DEFINITION_MISSING: <path>`. Never invent, summarize, or substitute a
+   role from the agent name.
+
+
 ## Codex Port Adapter - Review Isolation
 
 This skill is countering the model's inertia to rubber-stamp its own prior work. Before relying on spawned reviewers as anti-hallucination evidence, run or consult a `codex-isolation-probe.md` conclusion for this Codex runtime. If native Codex subagents receive clean independent context, spawn the perspective agents directly. If they inherit enough parent context to rubber-stamp the current answer, run each perspective in an independent Codex invocation or session, write each result to an artifact file, then synthesize from those files.
@@ -48,7 +67,7 @@ Being hosted as a subagent does NOT disable this dispatch: the five-perspective 
 
 ## Five perspectives (agent files)
 
-`~/.codex/agents/architecture-reviewer.toml` / `quality-reviewer.md` / `security-reviewer.md` / `style-reviewer.md` / `domain-reviewer.md`.
+`../../.codex-agents/architecture-reviewer.toml` / `../../.codex-agents/quality-reviewer.toml` / `../../.codex-agents/security-reviewer.toml` / `../../.codex-agents/style-reviewer.toml` / `../../.codex-agents/domain-reviewer.toml`.
 
 Each agent file defines `Perspective / Mission / Principles / Lane-keeping` — no persona, no character voice. Role-play descriptions ("you are a senior X engineer") induce hallucination; we want an angle from which to read the target, not an actor playing a role.
 

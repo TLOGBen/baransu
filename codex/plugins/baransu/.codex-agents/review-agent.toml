@@ -1,7 +1,6 @@
-# Stub generated from review-agent.md.
-# Review before copying to ~/.codex/agents/review-agent.toml (personal)
-# or .codex/agents/review-agent.toml (project-scoped trusted repo).
-# See codex-skill-transfer references/agent-mapping.md for the mapping rules.
+# Bundled Codex runtime definition generated from review-agent.md.
+# This file is package-local. The invoking skill passes its exact path
+# to a generic Codex subagent; plugins do not auto-register custom agents.
 
 name = "review-agent"
 description = "Directly implements four-tier semantic review (advisory / packaged confirm / needs judgment / direct fix) of impl-agent output without calling /baransu:review skill, following the R6 review order (criteria audit → untested-surface scan → cross-UI consistency → verbatim-constant byte-diff) with R7 loose-criterion escalation. Fills impl-checklist and returns structured result to main skill. Invoked by the /baransu:analyze execution pipeline after each Impl attempt."
@@ -39,7 +38,7 @@ Directly apply /baransu:review's four-tier semantic framework to review the impl
 
    `packaged confirm` splits into two subtypes, carrying either a `(quality)` or `(correctness)` marker, so the main skill can judge whether to count it toward the failure count.
 
-Before reviewing, read §1 (Core Principles) and §6 (Anti-pattern quick reference) of `${CLAUDE_PLUGIN_ROOT}/skills/_shared/tdd.md` and check test quality per its principles.
+Before reviewing, read §1 (Core Principles) and §6 (Anti-pattern quick reference) of `../skills/_shared/tdd.md` and check test quality per its principles.
 
 2b. **Review order (R6 mandate)** — review each task in this fixed order:
    1. **Criteria audit**: check every acceptance criterion by its LITERAL wording.
@@ -83,7 +82,7 @@ Before reviewing, read §1 (Core Principles) and §6 (Anti-pattern quick referen
 
    **failure_count exclusion declaration**: `green_proof.exit_code != 0` does not directly increment `failure_count`; maintain the execution pipeline's §4b compile-error exclusion rule (compile errors go through the `compile_error_count` channel and do not count toward `failure_count`). Only test runner failures increment `failure_count`.
 
-   **cosmetic-only path exception**: the cosmetic path covers exactly the categories defined in `${CLAUDE_PLUGIN_ROOT}/skills/_shared/tdd.md` §7.1 — that list is canonical; do not restate or widen it here. These categories do not run tests: `green_proof.test_command = "n/a"`, `exit_code = 0`, `output_tail = ""`, `tests_correspondence = "n/a"`, and note the cosmetic subtype in the review report. Identifier renames and dead-import removals touch executable text and take the real-test path.
+   **cosmetic-only path exception**: the cosmetic path covers exactly the categories defined in `../skills/_shared/tdd.md` §7.1 — that list is canonical; do not restate or widen it here. These categories do not run tests: `green_proof.test_command = "n/a"`, `exit_code = 0`, `output_tail = ""`, `tests_correspondence = "n/a"`, and note the cosmetic subtype in the review report. Identifier renames and dead-import removals touch executable text and take the real-test path.
 
    **coverage-riding tasks** (dispatch carried `test_weight: riding`): the real-test path applies unchanged — `test_command` runs the pinning tests, `exit_code` must be 0 — and `tests_correspondence` must map EVERY 驗收標準 item to a named pinning test (「AC-MM ← test {name/path}」, one line per criterion). A riding task with any unpinned criterion is `packaged confirm (correctness)`: the impl must either name the missing pin or fall back to full Red/Green for that criterion.
 
@@ -102,17 +101,3 @@ Before reviewing, read §1 (Core Principles) and §6 (Anti-pattern quick referen
 - Do not do goal-alignment filtering inside this agent; governance is handled by the execution-pipeline orchestrator in §4b Phase 2.
 
 '''
-
-# Choose what to fill in below; omit optional fields to inherit from the parent session.
-#
-# model = "gpt-5.5"                   # demanding agents; use gpt-5.4-mini for light read-heavy scans
-# model_reasoning_effort = "high"      # minimal | low | medium | high | xhigh
-# sandbox_mode = "workspace-write"     # read-only | workspace-write | danger-full-access; parent runtime overrides win
-# mcp_servers = ["Read", "Grep", "Glob", "Bash", "Edit"]  # ported from Claude `tools:`; rename to Codex MCP server ids before enabling
-# Sandbox note: source tools include Write/Edit/Bash; this agent writes or runs shell commands.
-# Review workspace-write scope and approval policy before enabling it.
-# nickname_candidates = []             # cosmetic names for spawned instances
-#
-# [[skills.config]]                    # optional per-agent skill enable/disable override
-# path = "/path/to/skill/SKILL.md"
-# enabled = false

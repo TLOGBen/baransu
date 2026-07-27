@@ -149,7 +149,7 @@ Requirements 達成率：N/M（N 個 REQ-XXX 有對應綠燈測試）
 
 Every ✅ row must fill the 證據 column by citing that task's Pre-SWITCH green_proof
 fields (test_command / exit_code / output_tail / tests_correspondence — the exact
-schema of `agents/review-agent.md` §3) — the report carries the evidence
+schema of `../../../.codex-agents/review-agent.toml` §3) — the report carries the evidence
 reference; the gate itself stays at Pre-SWITCH (this step still only serializes,
 it does not recompute). A ✅ row with an empty 證據 column is a claim, not a
 confirmation.

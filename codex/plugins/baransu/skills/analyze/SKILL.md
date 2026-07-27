@@ -14,6 +14,25 @@ metadata:
 
 # analyze — define done, then run to green
 
+## Codex Port Adapter - Bundled Agent Resolution
+
+This plugin does not assume package-local TOMLs are auto-registered as custom
+agents. The required definitions for this skill are bundled at
+`../../.codex-agents/<agent-name>.toml`: `e2e-fix-agent`, `final-fixer-agent`, `final-review-agent`, `impl-agent`, `merge-agent`, `review-agent`, `smart-friend-agent`.
+
+Before every named-agent dispatch:
+
+1. Resolve the exact bundled TOML from this `SKILL.md` directory (strip a
+   leading `baransu:` namespace from the requested name).
+2. Verify the file exists, then pass its absolute path and the task input to a
+   generic Codex subagent. The first instruction to that subagent is to read
+   the TOML's `developer_instructions` completely before doing any task work
+   and to treat relative paths as relative to the TOML file.
+3. If the TOML is missing or unreadable, stop with
+   `AGENT_DEFINITION_MISSING: <path>`. Never invent, summarize, or substitute a
+   role from the agent name.
+
+
 ## Codex Port Adapter - Machine Gates and Task Map
 
 This skill is countering the model's inertia to declare progress without machine proof or durable state. Red/green decisions must come from actual command exit codes. Model self-report is never green proof. Keep the existing invariant that compile errors do not increment `failure_count`.

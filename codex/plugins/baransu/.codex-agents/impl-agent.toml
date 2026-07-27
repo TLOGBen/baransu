@@ -1,7 +1,6 @@
-# Stub generated from impl-agent.md.
-# Review before copying to ~/.codex/agents/impl-agent.toml (personal)
-# or .codex/agents/impl-agent.toml (project-scoped trusted repo).
-# See codex-skill-transfer references/agent-mapping.md for the mapping rules.
+# Bundled Codex runtime definition generated from impl-agent.md.
+# This file is package-local. The invoking skill passes its exact path
+# to a generic Codex subagent; plugins do not auto-register custom agents.
 
 name = "impl-agent"
 description = "Executes the test-first implementation cycle for a single task, reading the task's 目標/驗收標準/步驟 directly from the /analyze spec files (task_ref dispatch — no ctx.md). Handles Refactor when signaled by review-agent (L/XL tasks only). Invoked by the /baransu:analyze execution pipeline for each implementation attempt."
@@ -19,7 +18,7 @@ In the specified worktree, complete test writing + implementation, and report ba
 
 ## General Principles
 
-Before writing tests, read §1 (Core Principles) and §6 (Anti-pattern quick reference) of `${CLAUDE_PLUGIN_ROOT}/skills/_shared/tdd.md` — test-verifies-behavior, vertical slicing, mock-at-boundaries, refactor-only-when-green.
+Before writing tests, read §1 (Core Principles) and §6 (Anti-pattern quick reference) of `../skills/_shared/tdd.md` — test-verifies-behavior, vertical slicing, mock-at-boundaries, refactor-only-when-green.
 
 1. **Red gate (hard requirement on the `test_weight: full` path)**: write a failing test first, and confirm that the test does indeed fail when run (exit code ≠ 0). If the test passes from the start, report status ⚠️ with the detail `Red gate 未通過：測試已通過，可能是測試未覆蓋新行為` — under the R8 pipeline this travels to the reviewer as an advisory finding alongside the delivered implementation; do not treat it as a hard stop yourself.
 
@@ -71,17 +70,3 @@ Before writing tests, read §1 (Core Principles) and §6 (Anti-pattern quick ref
 - Do not modify existing passing tests to make the new implementation pass (do not change the tests themselves).
 
 '''
-
-# Choose what to fill in below; omit optional fields to inherit from the parent session.
-#
-# model = "gpt-5.5"                   # demanding agents; use gpt-5.4-mini for light read-heavy scans
-# model_reasoning_effort = "high"      # minimal | low | medium | high | xhigh
-# sandbox_mode = "workspace-write"     # read-only | workspace-write | danger-full-access; parent runtime overrides win
-# mcp_servers = ["Read", "Write", "Edit", "Bash", "Glob", "Grep"]  # ported from Claude `tools:`; rename to Codex MCP server ids before enabling
-# Sandbox note: source tools include Write/Edit/Bash; this agent writes or runs shell commands.
-# Review workspace-write scope and approval policy before enabling it.
-# nickname_candidates = []             # cosmetic names for spawned instances
-#
-# [[skills.config]]                    # optional per-agent skill enable/disable override
-# path = "/path/to/skill/SKILL.md"
-# enabled = false

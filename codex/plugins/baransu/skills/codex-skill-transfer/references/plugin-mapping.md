@@ -1,6 +1,6 @@
 # Plugin-level Mapping (`.claude-plugin/plugin.json` → `.codex-plugin/plugin.json`)
 
-Translation rules for the plugin manifest itself, plus the agent-stub emission that accompanies a full plugin port. For SKILL.md frontmatter and body rules (one level down), see [`skill-mapping.md`](skill-mapping.md). For marketplace catalogs (one level up), see [`marketplace-mapping.md`](marketplace-mapping.md).
+Translation rules for the plugin manifest itself, plus the agent/rule content closure that accompanies a full plugin port. For SKILL.md frontmatter and body rules (one level down), see [`skill-mapping.md`](skill-mapping.md). For marketplace catalogs (one level up), see [`marketplace-mapping.md`](marketplace-mapping.md).
 
 ## 1. Why two manifest formats look so similar but aren't interchangeable
 
@@ -13,7 +13,7 @@ This is why baransu's `plugin.json` deliberately has **no** `skills` array on th
 
 ## 2. Required-field gap
 
-Claude makes only `name` strictly required; Codex requires `name` (kebab-case) + `version` (semver) — `description` is **optional** per the official build docs ([developers.openai.com/codex/plugins/build](https://developers.openai.com/codex/plugins/build)) but recommended. Fill the gaps with conservative defaults rather than aborting:
+Claude makes only `name` strictly required; Codex requires `name` (kebab-case) + `version` (semver) — `description` is **optional** per the official build docs ([developers.openai.com/plugins/build/plugins](https://developers.openai.com/plugins/build/plugins)) but recommended. Fill the gaps with conservative defaults rather than aborting:
 
 | Field | Claude | Codex | Default to use when absent on Claude side |
 |------|---|---|------|
@@ -30,15 +30,17 @@ For each component directory present on the Claude side, add the matching pointe
 | If source has | Add to Codex `plugin.json` |
 |----|----|
 | `skills/<name>/SKILL.md` | `"skills": "./skills/"` |
+| `agents/*.md` | No manifest pointer exists; emit `.codex-agents/*.toml` and inject package-local fail-closed resolvers into consuming skills |
 | `mcp.json` (or any MCP server config) | `"mcpServers": "./.mcp.json"` (verify path) — **manual review**; see below |
 | `hooks/hooks.json` | `"hooks": "./hooks/hooks.json"` — supported command handlers are copied; unsupported events/types are reported |
+| `rules/*.md` | No manifest pointer exists; copy to `rules/` and normalize live references (`CLAUDE.md` → `AGENTS.md`, skill paths to package-relative paths) |
 | App connector config (none in baransu today) | `"apps": "./.app.json"` |
 
 baransu now uses both the `skills/` and `hooks/` pointers. The transfer script handles those two package-local surfaces; MCP and apps remain manual-review surfaces.
 
-**Hooks are outcome-ported; MCP remains manual.** Current Codex loads plugin-bundled hooks from the default `hooks/hooks.json` path (or a manifest pointer), enables hooks by default, and provides `PLUGIN_ROOT` plus compatibility aliases `CLAUDE_PLUGIN_ROOT` / `CLAUDE_PLUGIN_DATA`. The transfer therefore copies the hook directory, adds the manifest pointer, retains supported events with `type="command"`, and names every rejected event or handler in the report. It never invents lifecycle equivalence: Claude `SessionEnd` is dropped and reported, not rewritten to Codex `Stop`. Installation does not imply trust; the user must review changed plugin hooks in `/hooks` before they execute.
+**Hooks are outcome-ported; MCP remains manual.** Current Codex loads plugin-bundled hooks from the default `hooks/hooks.json` path (or a manifest pointer), enables hooks by default, and provides `PLUGIN_ROOT` / `PLUGIN_DATA` plus compatibility aliases `CLAUDE_PLUGIN_ROOT` / `CLAUDE_PLUGIN_DATA`. The transfer therefore copies the hook directory, adds the manifest pointer, retains supported events with `type="command"`, rewrites those handlers' command strings to the canonical Codex variables (`CLAUDE_PLUGIN_ROOT` → `PLUGIN_ROOT`, `CLAUDE_PLUGIN_DATA` → `PLUGIN_DATA`), and names every rejected event or handler in the report. It never invents lifecycle equivalence: Claude `SessionEnd` is dropped and reported, not rewritten to Codex `Stop`. Installation does not imply trust; the user must review changed plugin hooks in `/hooks` before they execute.
 
-Hook scripts still own runtime result translation. In particular, a Claude Stop script that blocks with a non-zero exit must emit Codex's structured `{"continue":false,"stopReason":"..."}` result when running under Codex. A dual-runtime script can detect Codex through `PLUGIN_ROOT`; transfer preserves the script bytes because generic shell-semantic rewriting would be unsafe.
+Hook scripts still own runtime result translation. In particular, a Claude Stop script that blocks with a non-zero exit must emit Codex's structured `{"continue":false,"stopReason":"..."}` result when running under Codex. A dual-runtime script can detect Codex through `PLUGIN_ROOT`; transfer preserves script bytes because generic shell-semantic rewriting would be unsafe. Only the structured `hooks.json` command fields receive the canonical variable-name rewrite.
 
 MCP config is still report-only. Server startup, authentication, and trust are external runtime concerns, so `mcp.json` / `.mcp.json` is not copied automatically yet.
 
@@ -62,13 +64,15 @@ Auto-filled: `displayName` (from `name` with hyphens → spaces and Title Case),
 
 Pass through unchanged when present: `author`, `homepage`, `repository`, `license`, `keywords`.
 
-Dropped (no plugin-level Codex equivalent): `lspServers` (Codex plugins don't host LSP); `agents` (must move to user-side `.codex/agents/*.toml`; see [`agent-mapping.md`](agent-mapping.md)).
+Dropped (no plugin-level Codex equivalent): `lspServers` (Codex plugins don't host LSP). A manifest-level `agents` pointer has no Codex equivalent, but file-based `agents/*.md` content is not dropped: it is converted into the bundled runtime path described below.
 
 `commands` gets a 需人工檢視 line instead of a plain drop: Codex custom prompts are officially **deprecated** — convert each `commands/*.md` into a Codex skill (directory + SKILL.md). Never port to `~/.codex/prompts/`; a known 0.117.0 regression broke prompt loading there.
 
-## 6. Agent stub generation
+## 6. Bundled agent and rule closure
 
-When the source plugin ships `agents/*.md` files, the transfer emits TOML stubs at `<output>/.codex-agents-templates/*.toml`. The full stub shape, escaping rules, and per-field guidance live in [`agent-mapping.md`](agent-mapping.md) §4. The user reviews each stub and copies it into their own `~/.codex/agents/` (personal) or `.codex/agents/` (project-scoped trusted repo) — this skill never writes to user config dirs.
+When the source plugin ships `agents/*.md`, the transfer emits runtime TOMLs at `<plugin-output>/.codex-agents/*.toml`, rewrites consuming skill references to those files, and injects a resolver that fails with `AGENT_DEFINITION_MISSING` if a definition cannot be read. It does not rely on a manual copy into `~/.codex/agents/`. See [`agent-mapping.md`](agent-mapping.md) §4.
+
+When the source ships `rules/`, the transfer copies it to `<plugin-output>/rules/` and normalizes live Claude-only paths. Plugin mode inventories every source top-level component; an unknown component is reported as unhandled so the run cannot silently imply a complete content closure.
 
 ## 7. Template assets
 
@@ -78,4 +82,4 @@ The transfer uses one template from `assets/` for the plugin manifest:
 
 The script renders this template with JSON-safe substitution, parses the result, prunes empty pass-through scalars, and merges complex fields (`author`, `keywords`) directly from the translated manifest. Editing the template changes the canonical shape; absent source fields are pruned automatically.
 
-The agent-stub TOML and skill-level `agents/openai.yaml` are NOT templated — they're built directly via `yaml.safe_dump` and `json.dumps`, because honor-system templating proved unsafe for content that may contain quotes, newlines, or escape sequences. See `scripts/transfer.py` `emit_agent_stub` and `write_skill` for the actual code.
+The bundled-agent TOML and skill-level `agents/openai.yaml` are NOT templated — they're built directly via `yaml.safe_dump` and `json.dumps`, because honor-system templating proved unsafe for content that may contain quotes, newlines, or escape sequences. See `scripts/transfer.py` `emit_bundled_agent_definition` and `write_skill` for the actual code.

@@ -1,7 +1,6 @@
-# Stub generated from e2e-fix-agent.md.
-# Review before copying to ~/.codex/agents/e2e-fix-agent.toml (personal)
-# or .codex/agents/e2e-fix-agent.toml (project-scoped trusted repo).
-# See codex-skill-transfer references/agent-mapping.md for the mapping rules.
+# Bundled Codex runtime definition generated from e2e-fix-agent.md.
+# This file is package-local. The invoking skill passes its exact path
+# to a generic Codex subagent; plugins do not auto-register custom agents.
 
 name = "e2e-fix-agent"
 description = "Fixes program logic causing E2E test failures without modifying the test strategy or test cases. Receives E2E failure report and relevant spec excerpts. Multiple instances can run in parallel for independent failure clusters."
@@ -43,17 +42,3 @@ Fix the code-level problems causing E2E failures without modifying the tests the
 - Do not modify the E2E test cases themselves (do not change assertions, do not weaken assertion strictness, do not delete tests).
 
 '''
-
-# Choose what to fill in below; omit optional fields to inherit from the parent session.
-#
-# model = "gpt-5.5"                   # demanding agents; use gpt-5.4-mini for light read-heavy scans
-# model_reasoning_effort = "high"      # minimal | low | medium | high | xhigh
-# sandbox_mode = "workspace-write"     # read-only | workspace-write | danger-full-access; parent runtime overrides win
-# mcp_servers = ["Read", "Write", "Edit", "Bash", "Glob", "Grep"]  # ported from Claude `tools:`; rename to Codex MCP server ids before enabling
-# Sandbox note: source tools include Write/Edit/Bash; this agent writes or runs shell commands.
-# Review workspace-write scope and approval policy before enabling it.
-# nickname_candidates = []             # cosmetic names for spawned instances
-#
-# [[skills.config]]                    # optional per-agent skill enable/disable override
-# path = "/path/to/skill/SKILL.md"
-# enabled = false

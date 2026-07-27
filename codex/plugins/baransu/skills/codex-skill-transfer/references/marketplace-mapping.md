@@ -11,7 +11,7 @@
 
 # Marketplace Mapping (`.claude-plugin/marketplace.json` → `.agents/plugins/marketplace.json`)
 
-⚠️ **Not script-automated.** Marketplace publication is a deliberate act and the converted catalog should be reviewed by hand. The schema below comes from the official Codex plugin build docs ([developers.openai.com/codex/plugins/build](https://developers.openai.com/codex/plugins/build), primary) and the Codex `plugin-creator` system skill (`~/.codex/skills/.system/plugin-creator/references/plugin-json-spec.md`, secondary), not guesswork.
+⚠️ **Not script-automated.** Marketplace publication is a deliberate act and the converted catalog should be reviewed by hand. The schema below comes from the official Codex plugin build docs ([developers.openai.com/plugins/build/plugins](https://developers.openai.com/plugins/build/plugins), primary) and the Codex `plugin-creator` system skill (`~/.codex/skills/.system/plugin-creator/references/plugin-json-spec.md`, secondary), not guesswork.
 
 For automated layers, see [`skill-mapping.md`](skill-mapping.md) (skill files) and [`plugin-mapping.md`](plugin-mapping.md) (plugin manifests).
 
@@ -93,7 +93,8 @@ codex/                                  ← marketplace root
 ├── .agents/plugins/marketplace.json
 └── plugins/baransu/                    ← plugin tree (was at codex/ root)
     ├── .codex-plugin/plugin.json
-    ├── .codex-agents-templates/
+    ├── .codex-agents/
+    ├── rules/
     └── skills/
 ```
 
@@ -166,7 +167,7 @@ test -f codex/plugins/<plugin-name>/.codex-plugin/plugin.json || echo "MISSING p
 
 Plus options: `--ref <REF>` (pin to branch/tag/commit), `--sparse <PATH>` (filter checkout — see below), `--enable / --disable` (feature flags), `-c key=value` (TOML override).
 
-`marketplace add` is the install — Codex has no separate `plugin install` subcommand.
+`marketplace add` only registers or refreshes the marketplace source. Install the plugin in a second step with `codex plugin add <plugin>@<marketplace>`.
 
 ### Critical: where Codex looks for `marketplace.json`
 
@@ -194,7 +195,12 @@ The published Claude+Codex monorepo keeps a Codex catalog at repo root pointing 
 <repo>/codex/plugins/<plugin-name>/skills/...
 ```
 
-End-user install: just `codex plugin marketplace add <git-url>` — no flags needed.
+End-user install:
+
+```bash
+codex plugin marketplace add <git-url>
+codex plugin add <plugin-name>@<marketplace-name>
+```
 
 **Layout B — marketplace inside the variant subtree (local-path or dedicated branch)**
 
@@ -205,7 +211,14 @@ The codex/ subtree is also self-contained as its own marketplace root:
 <repo>/codex/plugins/<plugin-name>/.codex-plugin/plugin.json
 ```
 
-End-user install: `codex plugin marketplace add /local/path/to/codex` (or push the codex/ subtree as a dedicated branch and use `--ref <branch>`).
+End-user install:
+
+```bash
+codex plugin marketplace add /local/path/to/codex
+codex plugin add <plugin-name>@<marketplace-name>
+```
+
+Alternatively, push the codex/ subtree as a dedicated branch and register it with `--ref <branch>` before the `plugin add` step.
 
 ### What transfer.py emits
 
@@ -214,10 +227,13 @@ End-user install: `codex plugin marketplace add /local/path/to/codex` (or push t
 ```bash
 # Layout A end-user install
 codex plugin marketplace add https://example.com/owner/repo.git
+codex plugin add baransu@baransu
 codex plugin marketplace add https://example.com/owner/repo.git --ref v1.2.3   # pinned
+codex plugin add baransu@baransu
 
 # Layout B end-user install (requires local clone or codex-only branch)
 codex plugin marketplace add /local/path/to/repo/codex
+codex plugin add baransu@baransu
 ```
 
 Document the chosen layout's exact incantation in the consuming project's README — `codex plugin marketplace add --help` does not describe these path conventions and `--sparse` does not do what its name suggests.

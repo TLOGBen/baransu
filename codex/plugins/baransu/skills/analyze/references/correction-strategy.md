@@ -25,7 +25,7 @@ Rules:
 - If `smart-friend.broader_guidance` is empty (`""` or absent), still wrap the
   empty string with the paired markers — downstream parsing relies on the pair.
 - `investigate_files` is forwarded verbatim; orchestrator does not filter it.
-- This composite schema is consumed by **`agents/impl-agent.md` 通用原則 5
+- This composite schema is consumed by **`../../../.codex-agents/impl-agent.toml` 通用原則 5
   (`correction_strategy`)**, which mandates Read-before-Red-gate on every
   path in `investigate_files`. Field names here MUST match that schema
   exactly; any drift is a cross-file invariant violation.

@@ -5,8 +5,10 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import sys
 import tempfile
+import tomllib
 import unittest
 from pathlib import Path
 
@@ -377,6 +379,20 @@ class TestCapabilityReport(unittest.TestCase):
         self.assertIn("counters=skipping alignment", text)
         self.assertIn("T0-1", text)
         self.assertIn("T2-2", text)
+        self.assertIn("### Next-port follow-ups", text)
+        self.assertIn("- none", text)
+
+    def test_followups_classify_dropped_and_manual_items(self):
+        rpt = report()
+        rpt.dropped.append("unsupported source field")
+        rpt.manual_review.append("reference still needs a Codex mapping")
+
+        text = rpt.render()
+
+        self.assertIn("unsupported source field — `accept-as-lossy`", text)
+        self.assertIn(
+            "reference still needs a Codex mapping — `refresh-mapping`", text
+        )
 
 
 class TestAgentStub(unittest.TestCase):
@@ -403,7 +419,8 @@ Return concise findings.
 
         self.assertIn("~/.codex/agents/review-agent.toml", text)
         self.assertIn(".codex/agents/review-agent.toml", text)
-        self.assertIn('# model = "gpt-5.5"', text)
+        self.assertIn('# model = "gpt-5.6"', text)
+        self.assertIn("gpt-5.6-terra", text)
         self.assertIn("# model_reasoning_effort = \"high\"", text)
         self.assertIn("minimal | low | medium | high | xhigh", text)
         self.assertIn("# [[skills.config]]", text)
@@ -433,6 +450,37 @@ Implement a task.
         self.assertIn("writes or runs shell commands", text)
         self.assertIn("workspace-write", text)
         self.assertIn("approval policy", text)
+
+    def test_bundled_agent_definition_is_runtime_consumable_and_package_local(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            src = root / "impl-agent.md"
+            dest = root / "impl-agent.toml"
+            src.write_text(
+                """---
+description: Implement from the exact contract.
+tools: Read, Write, Edit, Bash
+---
+
+Read `${CLAUDE_PLUGIN_ROOT}/skills/_shared/tdd.md` and `CLAUDE.md`.
+Dispatch through the Task tool only when required.
+""",
+                encoding="utf-8",
+            )
+
+            transfer.emit_bundled_agent_definition(src, dest)
+            text = dest.read_text(encoding="utf-8")
+            parsed = tomllib.loads(text)
+
+        self.assertEqual("impl-agent", parsed["name"])
+        self.assertEqual(
+            "Implement from the exact contract.", parsed["description"]
+        )
+        instructions = parsed["developer_instructions"]
+        self.assertIn("../skills/_shared/tdd.md", instructions)
+        self.assertIn("AGENTS.md", instructions)
+        self.assertNotIn("CLAUDE_PLUGIN_ROOT", instructions)
+        self.assertNotIn("Task tool", instructions)
 
 
 class TestReferenceScan(unittest.TestCase):
@@ -681,7 +729,11 @@ class TestPluginModeGeneration(unittest.TestCase):
                                     "hooks": [
                                         {
                                             "type": "command",
-                                            "command": 'bash "${CLAUDE_PLUGIN_ROOT}/hooks/guard.sh"',
+                                            "command": (
+                                                'ROOT="${CLAUDE_PLUGIN_ROOT}" '
+                                                'DATA="${CLAUDE_PLUGIN_DATA}" '
+                                                'bash "$ROOT/hooks/guard.sh"'
+                                            ),
                                             "timeout": 10,
                                         }
                                     ]
@@ -706,7 +758,13 @@ class TestPluginModeGeneration(unittest.TestCase):
             )
             self.assertNotIn("SessionEnd", hook_doc["hooks"])
             self.assertEqual(10, hook_doc["hooks"]["Stop"][0]["hooks"][0]["timeout"])
-            self.assertIn("${CLAUDE_PLUGIN_ROOT}", hook_doc["hooks"]["Stop"][0]["hooks"][0]["command"])
+            command = hook_doc["hooks"]["Stop"][0]["hooks"][0]["command"]
+            self.assertIn("${PLUGIN_ROOT}", command)
+            self.assertIn("${PLUGIN_DATA}", command)
+            self.assertNotIn("CLAUDE_PLUGIN_ROOT", command)
+            self.assertNotIn("CLAUDE_PLUGIN_DATA", command)
+            mapped = "\n".join(summary["manifest_mapped"])
+            self.assertIn("2 處 Claude plugin env", mapped)
             manual = "\n".join(summary["manifest_manual"])
             self.assertIn("不支援事件：SessionEnd", manual)
             self.assertIn("/hooks", manual)
@@ -829,14 +887,14 @@ class TestPluginModeGeneration(unittest.TestCase):
             manifest = json.loads(
                 (plugin_out / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
             )
-            self.assertEqual("3.1.0", manifest["version"])
+            self.assertEqual("3.1.1", manifest["version"])
 
             codex_transfer = plugin_out / "skills" / "codex-skill-transfer"
             self.assertTrue((codex_transfer / "references" / "CODEX_PORT_PLAN.md").is_file())
             self.assertIn(
-                # Re-pinned 0.12.0 -> 0.13.0: plugin mode gained outcome-level
-                # lifecycle hook transfer with explicit lossy reporting.
-                "version: 0.13.0",
+                # Re-pinned 0.13.0 -> 0.14.0: current Codex subagent guidance,
+                # two-step plugin install, and actionable report follow-ups.
+                "version: 0.14.0",
                 (codex_transfer / "SKILL.md").read_text(encoding="utf-8"),
             )
             codex_transfer_skill = (codex_transfer / "SKILL.md").read_text(encoding="utf-8")
@@ -859,17 +917,27 @@ class TestPluginModeGeneration(unittest.TestCase):
 
             review = (plugin_out / "skills" / "review" / "SKILL.md").read_text(encoding="utf-8")
             self.assertIn("Codex Port Adapter - Review Isolation", review)
+            self.assertIn(
+                "Codex Port Adapter - Bundled Agent Resolution", review
+            )
+            self.assertIn("AGENT_DEFINITION_MISSING", review)
             self.assertIn("codex-isolation-probe.md", review)
             self.assertIn("independent Codex invocation or session", review)
             self.assertIn("record the authorization decision", review)
 
             health = (plugin_out / "skills" / "health" / "SKILL.md").read_text(encoding="utf-8")
             self.assertIn("Codex Port Adapter - Inspector Isolation", health)
+            self.assertIn(
+                "Codex Port Adapter - Bundled Agent Resolution", health
+            )
             self.assertIn("codex-isolation-probe.md", health)
             self.assertIn("independent Codex invocation or session", health)
 
             analyze_out = (plugin_out / "skills" / "analyze" / "SKILL.md").read_text(encoding="utf-8")
             self.assertIn("Codex Port Adapter - Machine Gates and Task Map", analyze_out)
+            self.assertIn(
+                "Codex Port Adapter - Bundled Agent Resolution", analyze_out
+            )
             self.assertIn("actual command exit codes", analyze_out)
             self.assertIn("Model self-report is never green proof", analyze_out)
             self.assertIn("`task-map.md` as the durable source of truth", analyze_out)
@@ -892,8 +960,50 @@ class TestPluginModeGeneration(unittest.TestCase):
                         self.assertNotIn("(stop;", line, skill_md)
             self.assertIn("never gated behind a user-question proxy", health)
             evolve = (plugin_out / "skills" / "evolve" / "SKILL.md").read_text(encoding="utf-8")
+            self.assertIn(
+                "Codex Port Adapter - Bundled Agent Resolution", evolve
+            )
             self.assertIn("0 user-question calls", evolve)
             self.assertIn("never gated behind a user-question proxy", evolve)
+
+            # Every Claude agent is a package-local runtime definition. Skills
+            # reference those exact files; no install-time copy to user config
+            # is required, and a missing file cannot degrade into improvisation.
+            agent_defs = sorted((plugin_out / ".codex-agents").glob("*.toml"))
+            self.assertEqual(17, len(agent_defs))
+            self.assertEqual(17, summary["agent_definitions"])
+            self.assertTrue(summary["content_closure_verified"])
+            self.assertFalse((plugin_out / ".codex-agents-templates").exists())
+            for agent_def in agent_defs:
+                parsed = tomllib.loads(agent_def.read_text(encoding="utf-8"))
+                self.assertTrue(parsed["developer_instructions"].strip(), agent_def)
+                self.assertNotIn("CLAUDE.md", parsed["description"], agent_def)
+                self.assertNotIn(
+                    "CLAUDE_PLUGIN_ROOT", parsed["developer_instructions"], agent_def
+                )
+
+            for markdown in sorted((plugin_out / "skills").rglob("*.md")):
+                if "codex-skill-transfer" in markdown.parts:
+                    continue
+                text = markdown.read_text(encoding="utf-8")
+                refs = re.findall(
+                    r"`([^`]*\\.codex-agents/[A-Za-z0-9_-]+\\.toml)`", text
+                )
+                for ref in refs:
+                    resolved = (markdown.parent / ref).resolve()
+                    self.assertTrue(
+                        resolved.is_file(),
+                        f"{markdown.relative_to(plugin_out)} -> {ref}",
+                    )
+
+            rules = (plugin_out / "rules" / "anti-patterns.md").read_text(
+                encoding="utf-8"
+            )
+            self.assertEqual(1, summary["rules_copied"])
+            self.assertIn("AGENTS.md", rules)
+            self.assertIn("../skills/_shared/tdd.md", rules)
+            self.assertNotIn("CLAUDE.md", rules)
+            self.assertEqual([], summary["unhandled_components"])
 
             # Shared aux dirs are copied verbatim AND token-scanned: the real
             # _shared/loop-contract.md carries Claude-only tokens and must be
@@ -908,6 +1018,30 @@ class TestPluginModeGeneration(unittest.TestCase):
                 ),
             )
 
+    def test_content_closure_rejects_missing_bundled_agent(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            plugin_out = Path(tmp) / "plugin"
+            agents = plugin_out / ".codex-agents"
+            skills = plugin_out / "skills" / "review"
+            agents.mkdir(parents=True)
+            skills.mkdir(parents=True)
+            (agents / "reviewer.toml").write_text(
+                'name = "reviewer"\ndescription = "review"\n'
+                "developer_instructions = '''review'''\n",
+                encoding="utf-8",
+            )
+            (skills / "SKILL.md").write_text(
+                "Read `../../.codex-agents/missing.toml`.\n",
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(
+                transfer.OutputGuardError, "missing\\.toml is missing"
+            ):
+                transfer.validate_plugin_content_closure(
+                    plugin_out, ["reviewer"], 0
+                )
+
 
 class TestRepoPathRewrite(unittest.TestCase):
     def test_agent_ref_becomes_codex_agents_toml(self):
@@ -917,7 +1051,7 @@ class TestRepoPathRewrite(unittest.TestCase):
             rpt,
             skill_name="review",
         )
-        self.assertIn("`~/.codex/agents/architecture-reviewer.toml`", out)
+        self.assertIn("`../../.codex-agents/architecture-reviewer.toml`", out)
         self.assertNotIn("plugins/baransu/agents", out)
 
     def test_agent_glob_ref_keeps_glob(self):
@@ -927,7 +1061,7 @@ class TestRepoPathRewrite(unittest.TestCase):
             rpt,
             skill_name="review",
         )
-        self.assertIn("`~/.codex/agents/*-reviewer.toml`", out)
+        self.assertIn("`../../.codex-agents/*-reviewer.toml`", out)
 
     def test_shared_ref_becomes_relative_from_skill_root(self):
         rpt = report()
@@ -1068,6 +1202,12 @@ class TestRepoPathRewrite(unittest.TestCase):
                 "`plugins/baransu/skills/execute/SKILL.md`.\n",
                 encoding="utf-8",
             )
+            agents = plugin / "agents"
+            agents.mkdir()
+            (agents / "impl-agent.md").write_text(
+                "---\ndescription: Implement.\n---\n\nImplement the task.\n",
+                encoding="utf-8",
+            )
             out = root / "out"
 
             transfer.transfer_plugin(plugin, out)
@@ -1075,7 +1215,7 @@ class TestRepoPathRewrite(unittest.TestCase):
             tdd = (out / "plugins" / "plug" / "skills" / "_shared" / "tdd.md").read_text(
                 encoding="utf-8"
             )
-            self.assertIn("`~/.codex/agents/impl-agent.toml`", tdd)
+            self.assertIn("`../../.codex-agents/impl-agent.toml`", tdd)
             self.assertIn("`../execute/SKILL.md`", tdd)
             self.assertNotIn("plugins/baransu", tdd)
 

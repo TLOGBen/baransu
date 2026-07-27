@@ -35,7 +35,7 @@ Authoritative translation table from Claude Code SKILL.md frontmatter to Codex s
 
 ### 1. Open-standard fields
 
-`name`, `description`, `license`, `compatibility`, `metadata`, `allowed-tools` are defined by [agentskills.io/specification](https://agentskills.io/specification); the official Codex skills docs ([developers.openai.com/codex/skills](https://developers.openai.com/codex/skills)) confirm the same set. Both Claude and Codex are supersets of this standard. Note the `compatibility` field caps at 500 chars — keep pass-through values within that limit.
+`name`, `description`, `license`, `compatibility`, `metadata`, `allowed-tools` are defined by [agentskills.io/specification](https://agentskills.io/specification); the official Codex skills docs ([developers.openai.com/plugins/build/skills](https://developers.openai.com/plugins/build/skills)) confirm the core `SKILL.md` shape and optional `agents/openai.yaml` metadata. Both Claude and Codex are supersets of this standard. Note the `compatibility` field caps at 500 chars — keep pass-through values within that limit.
 
 Pass these through unchanged. If `compatibility` is absent, set:
 
@@ -130,7 +130,7 @@ The intent is preserved (the model gets the same factual context); only the *who
 
 Codex **does** have an equivalent for forked subagents — native Subagents at `.codex/agents/{name}.toml` — but the mapping crosses the skill-package boundary into the user's Codex configuration. The transfer refuses to auto-port skills with `context: fork` and surfaces three viable Codex paths (native Subagents / skill chain / Codex-as-MCP).
 
-For the full decision matrix, frontmatter mapping table, and body-rewrite pattern, see [`agent-mapping.md`](agent-mapping.md). That file owns this layer end-to-end so per-skill rules and per-plugin agent-stub generation stay co-located.
+For the full decision matrix, frontmatter mapping table, and body-rewrite pattern, see [`agent-mapping.md`](agent-mapping.md). That file owns this layer end-to-end so per-skill rules and per-plugin bundled-agent generation stay co-located.
 
 ### 6. Tool / API references in the body
 
@@ -178,7 +178,7 @@ Skill bodies cite sibling material by baransu-repo-root path (`plugins/baransu/a
 
 | Claude repo path | Codex-layout rewrite |
 |---|---|
-| `plugins/baransu/agents/<name>.md` (glob `<name>` allowed, e.g. `*-reviewer`) | `~/.codex/agents/<name>.toml` — agent defs install flat into the user's Codex config (see [`agent-mapping.md`](agent-mapping.md) §1) |
+| `plugins/baransu/agents/<name>.md` (glob `<name>` allowed, e.g. `*-reviewer`) | Package-relative `.codex-agents/<name>.toml` (`SKILL.md` → `../../.codex-agents/…`, `references/*.md` → `../../../.codex-agents/…`); see [`agent-mapping.md`](agent-mapping.md) §4 |
 | `plugins/baransu/skills/<other>/…` | `<updots><other>/…` — sibling skill under `skills/` (`_shared` is just `<other>=_shared`); `<updots>` reaches the `skills/` dir from the file being rewritten (SKILL.md → `../`, `references/*.md` → `../../`) |
 | `[$VAR/]plugins/baransu/skills/<self>/…` | skill-root-relative — a self-reference drops the prefix (and any `$VAR/` bash anchor), e.g. health's `$REPO_ROOT/plugins/baransu/skills/health/scripts` → `scripts` |
 | `plugins/baransu/.claude-plugin/plugin.json` | `.codex-plugin/plugin.json` |
@@ -186,7 +186,7 @@ Skill bodies cite sibling material by baransu-repo-root path (`plugins/baransu/a
 
 Applied to: SKILL.md bodies, the `description` frontmatter field, copied `references/*.md`, and verbatim-copied shared aux dirs (`_shared/*.md`).
 
-**Flat-install exception for agent stubs.** Agent-stub TOML bodies (`emit_agent_stub`) install flat at `~/.codex/agents/*.toml`, which has NO `../`-anchor into `skills/`. The `skills/<other>/…` rule is therefore skipped there (`skills_relative=False`): a `_shared/*` reference is left as a discoverable plugin path rather than an unresolvable relative one. Agent→agent and `.claude/`→`.codex/` rewrites (which have valid flat/project-relative targets) still apply.
+**Bundled-agent base.** A runtime definition at `.codex-agents/<name>.toml` resolves its own live references from that directory: skills become `../skills/...`, rules become `../rules/...`, and sibling agents become `../.codex-agents/<name>.toml`. `emit_agent_stub(..., skills_relative=False)` remains only as an optional flat-export helper for users who explicitly want a global/project custom-agent install; plugin operation does not depend on it.
 
 **Exemptions.** Files whose baransu paths are documentation *about* the repo or the mapping itself — not live cross-references — are skipped (rewriting corrupts meaning) and stay Claude-token-scanned only: the whole `codex-skill-transfer` skill (`REPO_PATH_REWRITE_EXEMPT_SKILLS`, its own mapping tables) and design's `references/slide-checklist.md` version-bump example (`REPO_PATH_REWRITE_EXEMPT_RELPATHS`). Scripts/assets (`.sh`/`.css`/`.py` fallback-probing and self-describing comments) are not path-rewritten — they carry their own multi-fallback discovery logic; only the `$CLAUDE_SKILL_DIR` rewrite touches `scripts/`.
 
@@ -212,7 +212,7 @@ The output `SKILL.md` must:
 
 ## See also
 
-- [`plugin-mapping.md`](plugin-mapping.md) — `.claude-plugin/plugin.json` → `.codex-plugin/plugin.json` and agent stubs.
+- [`plugin-mapping.md`](plugin-mapping.md) — `.claude-plugin/plugin.json` → `.codex-plugin/plugin.json` plus bundled agents/rules.
 - [`marketplace-mapping.md`](marketplace-mapping.md) — `.claude-plugin/marketplace.json` → `.agents/plugins/marketplace.json` (manual).
 - [`CODEX_PORT_PLAN.md`](CODEX_PORT_PLAN.md) — behavior-weight plan for preserving counterweights against model inertia.
 

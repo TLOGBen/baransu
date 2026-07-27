@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/seal-guard.sh\"",
+            "command": "bash \"${PLUGIN_ROOT}/hooks/seal-guard.sh\"",
             "timeout": 10
           }
         ]

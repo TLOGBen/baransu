@@ -23,7 +23,7 @@ continue unblocked work.
 
 - **The review ROLE is never optional; its host varies by mode.** Every task — documentation, scripts, config, code — goes through review-agent after each impl-agent attempt (serial-absorbed mode: the orchestrator hosts the role, mechanical gates still enforced). `TaskUpdate status=completed` is only reachable as the result of a review outcome for the current impl attempt.
 - **Analyze spec directory is read-only during execution** — with exactly TWO sanctioned exceptions, both ONLY via the orchestrator and logged in final-report.md: the R7 loose-criterion criteria patch (§4b Phase 2) and the R10 evidence-dissent 前提/C{n} patch (SWITCH advisory case). Leaf agents never write the spec dir.
-- **Subagent depth = 1.** Agents in `agents/*.md` are stateless leaf nodes; they never dispatch further subagents. Dispatch-tool presence is decided by the Step 0 tool-list probe (inspection, never attempt-and-catch); when absent, enter serial-absorbed mode.
+- **Subagent depth = 1.** Agents in `../../../.codex-agents/*.toml` are stateless leaf nodes; they never dispatch further subagents. Dispatch-tool presence is decided by the Step 0 tool-list probe (inspection, never attempt-and-catch); when absent, enter serial-absorbed mode.
 - **All Task Tools created before execution begins** (Step 2). No mid-execution task creation.
 - **Working files live under `.codex/execute/`.** (Directory name kept across the merge — it names the execution phase, and /ship's archive rules key on it.)
 - **goal.md criteria are the top acceptance authority.** A criterion satisfied only inside test scaffolding while its production path stays inert is NOT met. Step 6 cross-checks every C{n} against its literal wording.
@@ -145,7 +145,7 @@ Dispatch **review-agent** with: `impl_result`, `task_ref` (acceptance-criteria
 source), `checklist_path`, `worktree_path`, `task_classification`, plus the
 spec's design.md path for the R6 verbatim-constant byte-diff. review-agent's
 job description (R6 four-point order + R7 loose-criterion escalation) lives in
-`agents/review-agent.md`.
+`../../../.codex-agents/review-agent.toml`.
 
 **Pre-SWITCH guard — verify green_proof** (mandatory):
 `references/green-proof-verify.md`. PASS → SWITCH; FAIL → that file's failure

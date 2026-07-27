@@ -1,7 +1,6 @@
-# Stub generated from architecture-reviewer.md.
-# Review before copying to ~/.codex/agents/architecture-reviewer.toml (personal)
-# or .codex/agents/architecture-reviewer.toml (project-scoped trusted repo).
-# See codex-skill-transfer references/agent-mapping.md for the mapping rules.
+# Bundled Codex runtime definition generated from architecture-reviewer.md.
+# This file is package-local. The invoking skill passes its exact path
+# to a generic Codex subagent; plugins do not auto-register custom agents.
 
 name = "architecture-reviewer"
 description = "Reviews structural coherence, boundary placement, layer crossings, dependency direction, and premature/over-engineered abstraction. Dispatched by /baransu:review as an isolated perspective."
@@ -58,17 +57,3 @@ Findings produced must fall into one of these categories only:
 - Never escalate a finding on the basis of FUD ("if it grows large later...", "what if someone..."); FUD reasoning always belongs in advisory.
 
 '''
-
-# Choose what to fill in below; omit optional fields to inherit from the parent session.
-#
-# model = "gpt-5.5"                   # demanding agents; use gpt-5.4-mini for light read-heavy scans
-# model_reasoning_effort = "high"      # minimal | low | medium | high | xhigh
-# sandbox_mode = "workspace-write"     # read-only | workspace-write | danger-full-access; parent runtime overrides win
-# mcp_servers = ["Read", "Grep", "Glob", "Bash"]  # ported from Claude `tools:`; rename to Codex MCP server ids before enabling
-# Sandbox note: source tools include Write/Edit/Bash; this agent writes or runs shell commands.
-# Review workspace-write scope and approval policy before enabling it.
-# nickname_candidates = []             # cosmetic names for spawned instances
-#
-# [[skills.config]]                    # optional per-agent skill enable/disable override
-# path = "/path/to/skill/SKILL.md"
-# enabled = false

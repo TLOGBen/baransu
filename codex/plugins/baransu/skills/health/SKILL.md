@@ -16,6 +16,25 @@ compatibility: Designed for Claude Code; ported to Codex.
 
 # health — agent-assisted engineering health audit
 
+## Codex Port Adapter - Bundled Agent Resolution
+
+This plugin does not assume package-local TOMLs are auto-registered as custom
+agents. The required definitions for this skill are bundled at
+`../../.codex-agents/<agent-name>.toml`: `health-inspector-context`, `health-inspector-control`, `health-inspector-maintainability`.
+
+Before every named-agent dispatch:
+
+1. Resolve the exact bundled TOML from this `SKILL.md` directory (strip a
+   leading `baransu:` namespace from the requested name).
+2. Verify the file exists, then pass its absolute path and the task input to a
+   generic Codex subagent. The first instruction to that subagent is to read
+   the TOML's `developer_instructions` completely before doing any task work
+   and to treat relative paths as relative to the TOML file.
+3. If the TOML is missing or unreadable, stop with
+   `AGENT_DEFINITION_MISSING: <path>`. Never invent, summarize, or substitute a
+   role from the agent name.
+
+
 ## Codex Port Adapter - Inspector Isolation
 
 This skill is countering the model's inertia to treat same-context self-audit as independent evidence. Before using inspector subagents for deep audits, run or consult a `codex-isolation-probe.md` conclusion for this Codex runtime. If native Codex subagents are isolated, use them directly. If not, run each inspector perspective in an independent Codex invocation or session, write the raw findings to files, then merge from those artifacts.
@@ -153,9 +172,9 @@ Confirm the tier. Then route:
 - **Simple:** Analyze locally. No subagents.
 - **Standard:** Analyze locally from the summary output. Do not launch subagents by default. If the user asks for a deep/full/thorough audit, or if local analysis cannot classify a security/control issue, escalate to a deep audit and explain the likely token cost.
 - **Complex, remembered deep preference, explicit deep audit, or explicit AI maintainability audit:** Re-run collection with `bash "$HEALTH_SCRIPTS_DIR/collect-data.sh" auto deep`, then launch the relevant inspector subagents in parallel by spawning Codex subagents. Redact credentials to `[REDACTED]`.
-  - **Inspector 1** (Context + Security): dispatch Task with agent `baransu:health-inspector-context` (repo-layout fallback: `~/.codex/agents/health-inspector-context.toml`). Feed the detected tier plus the sections its Input bundle names — in practice the full collector output (AGENTS.md global/local, NESTED AGENTS.md, rules/, skill descriptions, STARTUP CONTEXT ESTIMATE, MCP, hooks/settings, HANDOFF.md, MEMORY.md, SKILL INVENTORY, SKILL FRONTMATTER, SKILL SYMLINK PROVENANCE, SKILL FULL CONTENT, CONVERSATION SIGNALS) — and paste the Step 1b probe results as an `MCP Live Status` section (or `live=not-probed`). Inspectors work from pasted data and may not re-crawl the repo, so an under-fed inspector has no sanctioned recovery.
-  - **Inspector 2** (Control + Behavior): dispatch Task with agent `baransu:health-inspector-control` (repo-layout fallback: `~/.codex/agents/health-inspector-control.toml`). Feed the detected tier plus the sections its Input bundle names: settings.local.json, GITIGNORE, AGENTS.md (global/local), hooks, MCP FILESYSTEM, MCP ACCESS DENIALS, allowedTools count, skill descriptions, and CONVERSATION EXTRACT.
-  - **Inspector 3** (AI Maintainability): dispatch Task with agent `baransu:health-inspector-maintainability` (repo-layout fallback: `~/.codex/agents/health-inspector-maintainability.toml`). Feed only `TIER METRICS`, `AI MAINTAINABILITY SUMMARY` or `AI MAINTAINABILITY DETAIL`, and the script hotspot lists. Launch this inspector only for deep audits, Complex projects, or explicit code-rot/AI-maintainability requests.
+  - **Inspector 1** (Context + Security): dispatch Task with agent `baransu:health-inspector-context` (repo-layout fallback: `../../.codex-agents/health-inspector-context.toml`). Feed the detected tier plus the sections its Input bundle names — in practice the full collector output (AGENTS.md global/local, NESTED AGENTS.md, rules/, skill descriptions, STARTUP CONTEXT ESTIMATE, MCP, hooks/settings, HANDOFF.md, MEMORY.md, SKILL INVENTORY, SKILL FRONTMATTER, SKILL SYMLINK PROVENANCE, SKILL FULL CONTENT, CONVERSATION SIGNALS) — and paste the Step 1b probe results as an `MCP Live Status` section (or `live=not-probed`). Inspectors work from pasted data and may not re-crawl the repo, so an under-fed inspector has no sanctioned recovery.
+  - **Inspector 2** (Control + Behavior): dispatch Task with agent `baransu:health-inspector-control` (repo-layout fallback: `../../.codex-agents/health-inspector-control.toml`). Feed the detected tier plus the sections its Input bundle names: settings.local.json, GITIGNORE, AGENTS.md (global/local), hooks, MCP FILESYSTEM, MCP ACCESS DENIALS, allowedTools count, skill descriptions, and CONVERSATION EXTRACT.
+  - **Inspector 3** (AI Maintainability): dispatch Task with agent `baransu:health-inspector-maintainability` (repo-layout fallback: `../../.codex-agents/health-inspector-maintainability.toml`). Feed only `TIER METRICS`, `AI MAINTAINABILITY SUMMARY` or `AI MAINTAINABILITY DETAIL`, and the script hotspot lists. Launch this inspector only for deep audits, Complex projects, or explicit code-rot/AI-maintainability requests.
 - **Fallback:** If a subagent fails, analyze that layer locally and note 「（本層由主代理人就地分析）」.
 
 Each inspector file defines `Perspective / Mission / Principles / Lane-keeping` — no persona, no character voice. Depth rule per INV-3: inspectors are leaves; health's own inspector fan-out by spawning Codex subagents remains available even when health is itself hosted as a subagent.

@@ -15,6 +15,25 @@ metadata:
 
 # evolve — optimize a SKILL.md like you train a model
 
+## Codex Port Adapter - Bundled Agent Resolution
+
+This plugin does not assume package-local TOMLs are auto-registered as custom
+agents. The required definitions for this skill are bundled at
+`../../.codex-agents/<agent-name>.toml`: `evolve-diagnostician`, `evolve-judge`.
+
+Before every named-agent dispatch:
+
+1. Resolve the exact bundled TOML from this `SKILL.md` directory (strip a
+   leading `baransu:` namespace from the requested name).
+2. Verify the file exists, then pass its absolute path and the task input to a
+   generic Codex subagent. The first instruction to that subagent is to read
+   the TOML's `developer_instructions` completely before doing any task work
+   and to treat relative paths as relative to the TOML file.
+3. If the TOML is missing or unreadable, stop with
+   `AGENT_DEFINITION_MISSING: <path>`. Never invent, summarize, or substitute a
+   role from the agent name.
+
+
 The deliverable is an **evolution package**: a target SKILL.md made measurably better through a ratchet that can only turn forward. The rubric is the fixed selection environment, the target SKILL.md is the gene, and an external benchmark is the yardstick. The single most important property is **evaluation independence** — the model that mutates the skill never also judges whether the mutation was an improvement.
 
 The body below is English (agent-facing). All user-visible output is in **Traditional Chinese (繁體中文)**.

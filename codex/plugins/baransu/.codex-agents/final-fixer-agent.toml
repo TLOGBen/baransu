@@ -1,7 +1,6 @@
-# Stub generated from final-fixer-agent.md.
-# Review before copying to ~/.codex/agents/final-fixer-agent.toml (personal)
-# or .codex/agents/final-fixer-agent.toml (project-scoped trusted repo).
-# See codex-skill-transfer references/agent-mapping.md for the mapping rules.
+# Bundled Codex runtime definition generated from final-fixer-agent.md.
+# This file is package-local. The invoking skill passes its exact path
+# to a generic Codex subagent; plugins do not auto-register custom agents.
 
 name = "final-fixer-agent"
 description = "Supplements missing tests and minimal implementation for uncovered REQ-XXX items and failed goal-criteria C{n} rows identified in the Coverage Report. Invoked once by the /baransu:analyze execution pipeline when Final-Review finds gaps; reports completion for a Final-Review re-run."
@@ -45,17 +44,3 @@ Repair the ❌ items in the Coverage Report — missing REQ coverage and failed 
 - Do not delete existing tests (even if you think they could be improved) — only supplement what is missing, never delete what exists.
 
 '''
-
-# Choose what to fill in below; omit optional fields to inherit from the parent session.
-#
-# model = "gpt-5.5"                   # demanding agents; use gpt-5.4-mini for light read-heavy scans
-# model_reasoning_effort = "high"      # minimal | low | medium | high | xhigh
-# sandbox_mode = "workspace-write"     # read-only | workspace-write | danger-full-access; parent runtime overrides win
-# mcp_servers = ["Read", "Write", "Edit", "Bash", "Glob", "Grep"]  # ported from Claude `tools:`; rename to Codex MCP server ids before enabling
-# Sandbox note: source tools include Write/Edit/Bash; this agent writes or runs shell commands.
-# Review workspace-write scope and approval policy before enabling it.
-# nickname_candidates = []             # cosmetic names for spawned instances
-#
-# [[skills.config]]                    # optional per-agent skill enable/disable override
-# path = "/path/to/skill/SKILL.md"
-# enabled = false

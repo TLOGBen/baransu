@@ -1,11 +1,11 @@
 ---
 name: codex-skill-transfer
-description: "Ports Claude Code skills, plugins, or marketplaces one-way to OpenAI Codex format (SKILL.md / batches / plugin → agent-stub TOMLs). Trigger on 「轉成 codex 版」「給 codex 用」「port to codex」, or questions about Claude→Codex field mapping (disable-model-invocation, context fork, ARGUMENTS, plugin.json). Not for reverse porting (Codex→Claude) or authoring a brand-new Codex skill from scratch that isn't a port of an existing Claude source."
+description: "Ports Claude Code skills, plugins, or marketplaces one-way to OpenAI Codex format (SKILL.md / batches / complete plugin content including bundled agent TOMLs). Trigger on 「轉成 codex 版」「給 codex 用」「port to codex」, or questions about Claude→Codex field mapping (disable-model-invocation, context fork, ARGUMENTS, plugin.json). Not for reverse porting (Codex→Claude) or authoring a brand-new Codex skill from scratch that isn't a port of an existing Claude source."
 license: Apache-2.0
 compatibility: Designed for Claude Code; output targets Codex CLI. Optional `skills-ref` CLI for validation.
 metadata:
   author: baransu
-  version: "0.13.0"
+  version: "0.14.0"
 ---
 
 # Codex Skill Transfer
@@ -14,8 +14,8 @@ One-way port from Claude Code → Codex. Claude is canonical; this skill produce
 
 ## Outcome Contract
 
-- **Outcome**: A derived Codex-format copy of the Claude Code skill / batch / plugin source exists in a separate output directory, with every lossy decision surfaced.
-- **Done when**: `python3 scripts/transfer.py <claude-source> <codex-output>` completes (or the equivalent inline port is written), the output directory contains the detected mode's expected shape, and the transfer report is printed.
+- **Outcome**: A derived Codex-format copy of the Claude Code skill / batch / plugin source exists in a separate output directory, with every executable Claude-side component represented by a reachable Codex artifact and every lossy decision surfaced.
+- **Done when**: `python3 scripts/transfer.py <claude-source> <codex-output>` completes (or the equivalent inline port is written), the output directory contains the detected mode's expected shape, every generated live reference resolves inside that shape, and the transfer report is printed.
 - **Evidence**: The 繁中 transfer report enumerating 完整保留 / 翻譯處理 / 動態注入改寫 / 已捨棄 / Capability 降級風險 / 需人工檢視 items; the source tree is untouched.
 - **Output**: The Codex output directory (single skill dir, batch subdirs, or marketplace root) plus the transfer report.
 - **Automation**: ultracode=assist, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
@@ -30,7 +30,7 @@ Look at the source path the user gave you. Pick the matching mode:
 
 | Source path looks like | Mode | What it produces |
 |---|---|---|
-| `<dir>/.claude-plugin/plugin.json` exists | **Plugin** | `<output>/` as marketplace root: `<output>/.agents/plugins/marketplace.json` + `<output>/plugins/<name>/{.codex-plugin, skills, hooks (when supported), .codex-agents-templates}` |
+| `<dir>/.claude-plugin/plugin.json` exists | **Plugin** | `<output>/` as marketplace root: `<output>/.agents/plugins/marketplace.json` + `<output>/plugins/<name>/{.codex-plugin, skills, hooks (when supported), rules, .codex-agents}` |
 | `<dir>/SKILL.md` exists at the top level | **Single skill** | One `<output>/<skill-name>/` |
 | `<dir>` has children that each contain `SKILL.md` | **Skills batch** | One subdir per child |
 
@@ -63,7 +63,7 @@ When changing the mapping rules themselves, refresh the current OpenAI Codex doc
 - [`references/CODEX_PORT_PLAN.md`](references/CODEX_PORT_PLAN.md) — behavior-weight survival plan. Read this before changing lossy rewrites: the question is not "which Codex API matches this Claude API", but "which model shortcut/inertia did the original mechanism counter, and is the Codex replacement still hard enough?" Strong-inertia soft-prompt downgrades must move to an artifact/phase/sandbox gate instead.
 - [`references/skill-mapping.md`](references/skill-mapping.md) — SKILL.md frontmatter + body rewrites. Covers `disable-model-invocation` → `agents/openai.yaml`, `$ARGUMENTS` → natural language, bang-backtick shell injection → imperative TODO, and tool-API rewrites. **Read this for any per-skill question.**
 - [`references/plugin-mapping.md`](references/plugin-mapping.md) — `.claude-plugin/plugin.json` → `.codex-plugin/plugin.json`. Read when porting a whole plugin.
-- [`references/agent-mapping.md`](references/agent-mapping.md) — Claude `context: fork` / `agent: ...` → Codex Subagents (`.codex/agents/*.toml`), and `agents/*.md` → `.codex-agents-templates/*.toml` stubs. Read whenever agents are involved at either layer. Co-locates per-skill rules with per-plugin stub generation so you don't bounce between files.
+- [`references/agent-mapping.md`](references/agent-mapping.md) — Claude `context: fork` / `agent: ...` → Codex Subagents (`.codex/agents/*.toml`), and plugin `agents/*.md` → package-local `.codex-agents/*.toml` runtime definitions plus a fail-closed resolver. Read whenever agents are involved at either layer.
 - [`references/marketplace-mapping.md`](references/marketplace-mapping.md) — `.claude-plugin/marketplace.json` → `.agents/plugins/marketplace.json`. Plugin mode auto-emits Layout B (catalog inside `<output>/`); §8 covers Layout A (monorepo repo-root catalog) which stays manual.
 
 ## Step 4 — Produce output by copying golden templates
@@ -73,7 +73,7 @@ All output shapes live in `assets/`. The script reads them; if you're working in
 - [`assets/codex-plugin.template.json`](assets/codex-plugin.template.json) — canonical `.codex-plugin/plugin.json` shape for plugins that bundle skills. The script renders this template, prunes empty pass-through fields, and merges complex fields (`author`, `keywords`) from the translated manifest. Edit this file to change the canonical shape.
 - [`assets/codex-marketplace.template.json`](assets/codex-marketplace.template.json) — schema-aligned starter for the repo-root Layout A catalog (the script writes Layout B inline; this template is for the monorepo case where you also need a root-level catalog).
 
-The skill-level `<skill>/agents/openai.yaml` and the agent-stub TOML output are NOT templated — they're built directly via `yaml.safe_dump` and `json.dumps` so escape correctness is ironclad regardless of source content. Earlier versions templated them but had to retire that approach when v0.4.0 review found honor-system escape bugs (description containing `"`, agent body containing `"""`).
+The skill-level `<skill>/agents/openai.yaml` and bundled-agent TOML output are NOT templated — they're built directly via `yaml.safe_dump` and `json.dumps` so escape correctness is ironclad regardless of source content. Earlier versions templated them but had to retire that approach when v0.4.0 review found honor-system escape bugs (description containing `"`, agent body containing `"""`).
 
 ## Step 5 — Print a transfer report
 
@@ -109,7 +109,8 @@ After emitting the report body, you MUST append a final `### Next-port follow-up
 ## Boundaries
 
 - **Never mutate the source.** Always write to a separate directory. The script refuses overlapping paths; inline work follows the same rule.
-- **Never auto-write to user config dirs.** Agent stubs land in `<output>/.codex-agents-templates/` — the user copies them into `~/.codex/agents/` (personal) or `.codex/agents/` (project-scoped trusted repo) themselves. The plugin package has no business reaching into the user's home directory.
+- **Never auto-write to user config dirs.** Plugin agents stay inside `<output>/plugins/<name>/.codex-agents/`. Because Codex does not auto-register that private directory, generated skills resolve the exact TOML and require the spawned generic subagent to read it completely. Missing or unreadable definitions stop with `AGENT_DEFINITION_MISSING`; never improvise a role from its name.
+- **Never claim content closure while silently dropping a component.** Plugin mode inventories source top-level components, converts skills / agents / hooks / rules, and names every unsupported or manual boundary in the report.
 - **Never invent fields the user didn't author.** When a Claude field has no Codex target and no rewrite preserves intent, document it in the report. Silent fabrication is worse than an obvious gap.
 - **Never translate domain-specific instructions or examples** in skill bodies — only the structural elements (frontmatter, dynamic injection, argument substitution, Claude-specific tool references). The author's voice stays.
 - **Flag aggressively when in doubt.** A noisy report is cheaper than a silently wrong port.

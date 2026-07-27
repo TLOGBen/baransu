@@ -10,13 +10,14 @@ detected:
 
   - **Plugin** (source has `.claude-plugin/plugin.json`):
         Translates the plugin manifest via assets/codex-plugin.template.json,
-        batch-transfers all skills under `<source>/skills/`, and emits TOML
-        stubs (built via json.dumps + TOML literal strings, not templated)
-        for each `<source>/agents/*.md`.
+        batch-transfers all skills under `<source>/skills/`, emits package-local
+        runtime TOMLs for every `<source>/agents/*.md`, wires named-agent
+        dispatch to those exact definitions, and copies normalized rules.
         Output tree:
           <output>/.codex-plugin/plugin.json
           <output>/skills/<name>/...
-          <output>/.codex-agents-templates/*.toml
+          <output>/.codex-agents/*.toml
+          <output>/rules/...
 
   - **Single skill** (source has SKILL.md directly):
         Transfers one skill into <output>/<skill-name>/.
@@ -24,10 +25,10 @@ detected:
   - **Skills batch** (source's children each have SKILL.md):
         Transfers every child into <output>/<skill-name>/.
 
-Skills containing `context: fork` are skipped with a clear warning. Codex has
-a real equivalent (native Subagents at `~/.codex/agents/{name}.toml`) but the
-mapping crosses the skill-package boundary into the user's Codex config; see
-references/skill-mapping.md §5 for the three viable paths.
+Skills containing `context: fork` are skipped with a clear warning. Claude
+agent definitions used by plugin skills are bundled under `.codex-agents/`;
+the generated skill adapters resolve and pass the exact TOML to a generic
+Codex subagent, failing closed when a definition cannot be read.
 
 Marketplace catalog conversion is NOT automated; see
 references/marketplace-mapping.md for the inline rules and
@@ -37,14 +38,16 @@ The script is intentionally conservative: when a rewrite is ambiguous, it
 emits a `<!-- TODO(codex-transfer): ... -->` marker rather than guessing.
 
 The plugin.json output shape lives in assets/codex-plugin.template.json —
-editing it changes the output without touching the script. agents/openai.yaml
-and the agent-stub TOMLs are NOT templated: they're built via yaml.safe_dump /
-json.dumps so escape correctness is ironclad (see SKILL.md Step 4).
+editing it changes the output without touching the script. agents/openai.yaml,
+bundled runtime-agent TOMLs, and optional flat-export stubs are NOT templated:
+they're built via yaml.safe_dump / json.dumps so escape correctness is
+ironclad (see SKILL.md Step 4).
 """
 
 from __future__ import annotations
 
 import json
+import os
 import re
 import shutil
 import string
@@ -446,6 +449,13 @@ class TransferReport:
             lines += ["### ⚠️ 需人工檢視 (manual review)"]
             lines += [f"- {x}" for x in self.manual_review]
             lines += [""]
+        lines += ["### Next-port follow-ups"]
+        if self.dropped or self.manual_review:
+            lines += [f"- {x} — `accept-as-lossy`" for x in self.dropped]
+            lines += [f"- {x} — `refresh-mapping`" for x in self.manual_review]
+        else:
+            lines += ["- none"]
+        lines += [""]
         return "\n".join(lines)
 
 
@@ -750,7 +760,8 @@ def translate_frontmatter(fm: dict, report: TransferReport) -> tuple[dict, dict 
 # prefixes do not exist in the Codex output tree, so left alone they dangle —
 # a dispatched reviewer told to read `plugins/baransu/agents/foo.md` finds
 # nothing. The Codex layout equivalents:
-#   - agents/*.md          -> `~/.codex/agents/<name>.toml` (agent-mapping §1)
+#   - agents/*.md          -> bundled `.codex-agents/<name>.toml`
+#                             (or `~/.codex/agents/...` only for flat manual stubs)
 #   - skills/<other>/...    -> `<updots><other>/...` (sibling skill under skills/)
 #   - skills/<self>/...     -> skill-root-relative (strip any `$VAR/` prefix)
 #   - .claude-plugin/plugin.json -> `.codex-plugin/plugin.json`
@@ -767,9 +778,12 @@ REPO_PATH_REWRITE_EXEMPT_RELPATHS = frozenset(
     {("design", "references/slide-checklist.md")}
 )
 
-# Agent name may carry a glob (`*-reviewer`); the class excludes `/` and `.`
-# so it never swallows a nested path or a bare `agents/**` glob (no `.md`).
-_AGENT_REF = re.compile(r"plugins/baransu/agents/([A-Za-z0-9*_-]+)\.md")
+# Agent name may carry a glob (`*-reviewer`). Accept both repo-root and
+# plugin-root spellings because references commonly shorten
+# `plugins/baransu/agents/foo.md` to `agents/foo.md`.
+_AGENT_REF = re.compile(
+    r"(?<![A-Za-z0-9_./-])(?:plugins/baransu/)?agents/([A-Za-z0-9*_-]+)\.md"
+)
 # Optional leading `$VAR/` lets a self-reference like
 # `$REPO_ROOT/plugins/baransu/skills/health/scripts` collapse to skill-root.
 _SKILLS_REF = re.compile(
@@ -791,7 +805,7 @@ def rewrite_repo_paths(
     `updots` is the `../`-prefix that reaches the skills/ dir from the file
     being rewritten (SKILL.md -> `../`, references/*.md -> `../../`).
 
-    `skills_relative=False` is for agent-stub bodies, which install flat at
+    `skills_relative=False` is for optional flat agent-stub bodies, which install at
     `~/.codex/agents/*.toml` and therefore have NO `../`-anchor into the
     plugin's skills/ tree: the `skills/<other>/...` rule is skipped so a
     `_shared/*` ref is left as a discoverable plugin path rather than an
@@ -803,6 +817,10 @@ def rewrite_repo_paths(
     def agent_sub(m: re.Match[str]) -> str:
         nonlocal n
         n += 1
+        if skills_relative:
+            # `updots` reaches `skills/`; one more `../` reaches the plugin
+            # root where package-local runtime agent definitions live.
+            return f"{updots}../.codex-agents/{m.group(1)}.toml"
         return f"~/.codex/agents/{m.group(1)}.toml"
 
     text = _AGENT_REF.sub(agent_sub, text)
@@ -1097,7 +1115,7 @@ def rewrite_body(
         if path_n:
             report.rewrites.append(
                 f"{path_n} 處 repo 內部路徑參照改寫為 Codex 佈局"
-                "（agents→`~/.codex/agents/*.toml`、_shared/跨 skill→相對路徑、"
+                "（agents→plugin `.codex-agents/*.toml`、_shared/跨 skill→相對路徑、"
                 "`.claude/`→`.codex/`）"
             )
 
@@ -1257,11 +1275,11 @@ def copy_aux(source: Path, target: Path, report: TransferReport) -> None:
             f"skill-root 子目錄 `{d}/` 未複製（非 scripts/references/assets/agents 標準目錄）"
         )
 
-    # A skill-root agents/ dir is also not copied (agent stubs are generated
-    # only from PLUGIN-level agents/ in plugin mode) — say so, never silent.
+    # A skill-root agents/ dir is also not copied (bundled runtime definitions
+    # come from PLUGIN-level agents/ in plugin mode) — say so, never silent.
     if (source / "agents").is_dir():
         report.dropped.append(
-            "skill-root 子目錄 `agents/` 未複製（TOML stub 僅由 plugin 層級 agents/ 產生；skill 內附 agents/ 需手動遷移）"
+            "skill-root 子目錄 `agents/` 未複製（bundled TOML 僅由 plugin 層級 agents/ 產生；skill 內附 agents/ 需手動遷移）"
         )
 
     # `$CLAUDE_SKILL_DIR` rewrite for copied scripts only. References are
@@ -1444,9 +1462,11 @@ def transfer_one(source: Path, output_root: Path) -> TransferReport:
 # Plugin mode produces:
 #   <out>/.codex-plugin/plugin.json     ← translated manifest
 #   <out>/skills/<name>/...               ← each skill via existing pipeline
-#   <out>/.codex-agents-templates/*.toml  ← stubs for each agents/*.md (manual)
-# It does NOT emit `.codex/agents/*.toml` directly — that lives in the user's
-# config dir, outside the plugin package boundary (see mapping.md §5).
+#   <out>/.codex-agents/*.toml          ← bundled runtime definitions
+#   <out>/rules/...                     ← normalized package rules
+# Package-local TOMLs are not auto-registered by Codex. Generated skills carry
+# a resolver adapter that gives a generic subagent the exact definition path
+# and fails closed instead of improvising a missing role.
 
 
 def detect_mode(source: Path) -> str:
@@ -1537,7 +1557,7 @@ def emit_agent_stub(agent_md: Path, dest: Path) -> None:
             fm = yaml.safe_load(body[4:fm_end]) or {}
             if isinstance(fm, dict):
                 # Take first line only (TOML basic string is single-line),
-                # no length cap: agent stubs are runtime-consumed by Codex
+                # no length cap: optional flat agent exports are consumed by Codex
                 # spawn_agent reading ~/.codex/agents/*.toml, so truncating the
                 # description corrupts the agent's load-time metadata
                 # (architecture-reviewer F2, 2026-05-14). json.dumps below
@@ -1612,7 +1632,7 @@ def emit_agent_stub(agent_md: Path, dest: Path) -> None:
         f"\n"
         f"# Choose what to fill in below; omit optional fields to inherit from the parent session.\n"
         f"#\n"
-        f"# model = \"gpt-5.5\"                   # demanding agents; use gpt-5.4-mini for light read-heavy scans\n"
+        f"# model = \"gpt-5.6\"                   # demanding agents; use gpt-5.6-terra for light read-heavy scans\n"
         f"# model_reasoning_effort = \"high\"      # minimal | low | medium | high | xhigh\n"
         f"# sandbox_mode = \"workspace-write\"     # read-only | workspace-write | danger-full-access; parent runtime overrides win\n"
         f"{mcp_line}\n"
@@ -1643,6 +1663,255 @@ def _toml_multiline(text: str) -> str:
     return f'"""\n{escaped}\n"""'
 
 
+def rewrite_bundled_agent_instructions(text: str) -> str:
+    """Translate one Claude agent body into a package-local Codex definition.
+
+    The generated TOML lives at `<plugin>/.codex-agents/<name>.toml`.
+    Relative references therefore resolve from that directory: `../skills`,
+    `../rules`, and sibling agent TOMLs under `../.codex-agents`.
+    """
+    text = text.replace("${CLAUDE_PLUGIN_ROOT}/", "../")
+    text = text.replace("$CLAUDE_PLUGIN_ROOT/", "../")
+    text = text.replace("${CLAUDE_PLUGIN_DATA}", "${PLUGIN_DATA}")
+    text = text.replace("$CLAUDE_PLUGIN_DATA", "$PLUGIN_DATA")
+    text = re.sub(
+        r"plugins/baransu/skills/([A-Za-z0-9_-]+)/",
+        r"../skills/\1/",
+        text,
+    )
+    text = re.sub(
+        r"plugins/baransu/rules/",
+        "../rules/",
+        text,
+    )
+    text = re.sub(
+        r"(?:plugins/baransu/)?agents/([A-Za-z0-9*_-]+)\.md",
+        r"../.codex-agents/\1.toml",
+        text,
+    )
+    text = text.replace("CLAUDE.md", "AGENTS.md")
+    text = text.replace(".claude/", ".codex/")
+    text, _ = normalize_codex_subagent_terms(text)
+    text = re.sub(r"\bTask tool\b", "subagent dispatch", text, flags=re.IGNORECASE)
+    return text
+
+
+def emit_bundled_agent_definition(agent_md: Path, dest: Path) -> None:
+    """Emit a runtime-consumable Codex agent TOML inside the plugin package."""
+    name = agent_md.stem
+    body = agent_md.read_text(encoding="utf-8")
+    desc = ""
+    fm_end = body.find("\n---", 4) if body.startswith("---\n") else -1
+    if fm_end > 0:
+        try:
+            fm = yaml.safe_load(body[4:fm_end]) or {}
+            if isinstance(fm, dict):
+                desc = str(fm.get("description") or "").splitlines()[0]
+        except yaml.YAMLError:
+            pass
+    desc = rewrite_bundled_agent_instructions(desc)
+    instructions = body[fm_end + 4 :].lstrip("\n") if fm_end > 0 else body
+    instructions = rewrite_bundled_agent_instructions(instructions)
+    dest.write_text(
+        "\n".join(
+            [
+                f"# Bundled Codex runtime definition generated from {agent_md.name}.",
+                "# This file is package-local. The invoking skill passes its exact path",
+                "# to a generic Codex subagent; plugins do not auto-register custom agents.",
+                "",
+                f"name = {json.dumps(name, ensure_ascii=False)}",
+                f"description = {json.dumps(desc, ensure_ascii=False)}",
+                "",
+                f"developer_instructions = {_toml_multiline(instructions)}",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+
+BUNDLED_AGENT_ADAPTER_HEADING = "## Codex Port Adapter - Bundled Agent Resolution"
+
+
+def _inject_bundled_agent_adapter(
+    skill_md: Path, agent_names: list[str], report: TransferReport
+) -> None:
+    """Make named-agent dispatch fail closed and package-local."""
+    if not agent_names:
+        return
+    text = skill_md.read_text(encoding="utf-8")
+    if BUNDLED_AGENT_ADAPTER_HEADING in text:
+        return
+    names = ", ".join(f"`{name}`" for name in agent_names)
+    adapter = f"""
+
+{BUNDLED_AGENT_ADAPTER_HEADING}
+
+This plugin does not assume package-local TOMLs are auto-registered as custom
+agents. The required definitions for this skill are bundled at
+`../../.codex-agents/<agent-name>.toml`: {names}.
+
+Before every named-agent dispatch:
+
+1. Resolve the exact bundled TOML from this `SKILL.md` directory (strip a
+   leading `baransu:` namespace from the requested name).
+2. Verify the file exists, then pass its absolute path and the task input to a
+   generic Codex subagent. The first instruction to that subagent is to read
+   the TOML's `developer_instructions` completely before doing any task work
+   and to treat relative paths as relative to the TOML file.
+3. If the TOML is missing or unreadable, stop with
+   `AGENT_DEFINITION_MISSING: <path>`. Never invent, summarize, or substitute a
+   role from the agent name.
+"""
+    body_start = text.find("\n# ", text.find("\n---", 4) + 4)
+    if body_start < 0:
+        text = text + adapter
+    else:
+        heading_end = text.find("\n", body_start + 1)
+        if heading_end < 0:
+            heading_end = len(text)
+        text = text[:heading_end] + adapter + text[heading_end:]
+    skill_md.write_text(text, encoding="utf-8")
+    report.rewrites.append(
+        "注入 bundled agent resolver（定義缺失即 `AGENT_DEFINITION_MISSING`，禁止臨場杜撰）"
+    )
+
+
+def wire_bundled_agent_references(
+    plugin_out: Path,
+    skill_reports: list[TransferReport],
+    agent_names: list[str],
+) -> None:
+    """Rewrite every live agent reference to a package-local TOML and add guards."""
+    bundle_dir = plugin_out / ".codex-agents"
+    for report in skill_reports:
+        if report.skill_name == "codex-skill-transfer" or report.skipped:
+            continue
+        used: set[str] = set()
+        for path in sorted(report.target.rglob("*.md")):
+            text = path.read_text(encoding="utf-8")
+            rel_bundle = Path(os.path.relpath(bundle_dir, path.parent)).as_posix()
+            for name in agent_names:
+                if re.search(rf"(?<![A-Za-z0-9_-])(?:baransu:)?{re.escape(name)}(?![A-Za-z0-9_-])", text):
+                    used.add(name)
+                patterns = (
+                    rf"plugins/baransu/agents/{re.escape(name)}\.md",
+                    rf"(?<![A-Za-z0-9_./-])agents/{re.escape(name)}\.md",
+                    rf"(?<![A-Za-z0-9_./-]){re.escape(name)}\.md",
+                )
+                for pattern in patterns:
+                    text = re.sub(pattern, f"{rel_bundle}/{name}.toml", text)
+            if "*-reviewer.md" in text:
+                text = text.replace(
+                    "plugins/baransu/agents/*-reviewer.md",
+                    f"{rel_bundle}/*-reviewer.toml",
+                ).replace(
+                    "agents/*-reviewer.md",
+                    f"{rel_bundle}/*-reviewer.toml",
+                )
+            path.write_text(text, encoding="utf-8")
+        _inject_bundled_agent_adapter(report.target / "SKILL.md", sorted(used), report)
+
+
+def copy_plugin_rules(plugin_root: Path, plugin_out: Path) -> int:
+    """Copy and Codex-normalize package-level rule documents."""
+    source = plugin_root / "rules"
+    if not source.is_dir():
+        return 0
+    target = plugin_out / "rules"
+    shutil.copytree(source, target)
+    count = 0
+    for path in sorted(target.rglob("*.md")):
+        text = path.read_text(encoding="utf-8")
+        new = text.replace("CLAUDE.md", "AGENTS.md")
+        new = re.sub(r"(?<![./])skills/", "../skills/", new)
+        new = new.replace(".claude/", ".codex/")
+        if new != text:
+            path.write_text(new, encoding="utf-8")
+        count += 1
+    return count
+
+
+def validate_plugin_content_closure(
+    plugin_out: Path,
+    source_agent_names: list[str],
+    source_rule_count: int,
+) -> None:
+    """Fail closed when generated package content has missing live artifacts."""
+    errors: list[str] = []
+    bundle_dir = plugin_out / ".codex-agents"
+    generated_agents = (
+        sorted(path.stem for path in bundle_dir.glob("*.toml"))
+        if bundle_dir.is_dir()
+        else []
+    )
+    if generated_agents != sorted(source_agent_names):
+        errors.append(
+            "agent definitions mismatch: "
+            f"source={sorted(source_agent_names)!r}, generated={generated_agents!r}"
+        )
+
+    generated_rules = (
+        sum(1 for _ in (plugin_out / "rules").rglob("*") if _.is_file())
+        if (plugin_out / "rules").is_dir()
+        else 0
+    )
+    if generated_rules != source_rule_count:
+        errors.append(
+            f"rules mismatch: source={source_rule_count}, generated={generated_rules}"
+        )
+
+    forbidden_runtime_tokens = (
+        "CLAUDE_PLUGIN_ROOT",
+        "CLAUDE_PLUGIN_DATA",
+        "plugins/baransu/agents/",
+    )
+    for path in sorted(
+        list(bundle_dir.glob("*.toml")) + list((plugin_out / "rules").rglob("*.md"))
+    ):
+        text = path.read_text(encoding="utf-8")
+        found = [token for token in forbidden_runtime_tokens if token in text]
+        if found:
+            errors.append(
+                f"{path.relative_to(plugin_out)} retains runtime token(s): "
+                + ", ".join(found)
+            )
+
+    # Validate every concrete or globbed package-local agent reference from
+    # the file that contains it. This catches the exact regression where a
+    # variable/path rewrite succeeded textually but the corresponding file was
+    # never moved into the Codex package.
+    agent_ref = re.compile(
+        r"(?P<path>(?:\.\./)*\.codex-agents/"
+        r"(?P<name>[A-Za-z0-9_-]+|\*-[A-Za-z0-9_-]+)\.toml)"
+    )
+    scan_roots = [plugin_out / "skills", bundle_dir, plugin_out / "rules"]
+    for root in scan_roots:
+        if not root.is_dir():
+            continue
+        for path in sorted(root.rglob("*")):
+            if path.suffix not in {".md", ".toml"} or not path.is_file():
+                continue
+            text = path.read_text(encoding="utf-8")
+            for match in agent_ref.finditer(text):
+                ref = match.group("path")
+                target = path.parent / ref
+                if "*" in ref:
+                    if not list(target.parent.glob(target.name)):
+                        errors.append(
+                            f"{path.relative_to(plugin_out)} -> {ref} matches no file"
+                        )
+                elif not target.resolve().is_file():
+                    errors.append(
+                        f"{path.relative_to(plugin_out)} -> {ref} is missing"
+                    )
+
+    if errors:
+        raise OutputGuardError(
+            "generated plugin content closure failed:\n  - " + "\n  - ".join(errors)
+        )
+
+
 def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[TransferReport], dict]:
     """Plugin-mode entry point. Returns (skill_reports, plugin_summary).
 
@@ -1652,15 +1921,20 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
       output_root/.agents/plugins/marketplace.json
       output_root/plugins/<name>/.codex-plugin/plugin.json
       output_root/plugins/<name>/skills/<skill>/...
-      output_root/plugins/<name>/.codex-agents-templates/*.toml
+      output_root/plugins/<name>/.codex-agents/*.toml
+      output_root/plugins/<name>/rules/...
     """
     summary: dict = {
         "manifest_mapped": [],
         "manifest_dropped": [],
         "manifest_manual": [],
-        "agent_stubs": 0,
+        "agent_definitions": 0,
+        "rules_copied": 0,
         "skill_count": 0,
         "plugin_name": "",
+        "source_components": [],
+        "unhandled_components": [],
+        "content_closure_verified": False,
     }
 
     pj_path = plugin_root / ".claude-plugin" / "plugin.json"
@@ -1702,6 +1976,7 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
                 codex_hooks_doc = None
             else:
                 dropped_events: list[str] = []
+                hook_env_rewrites = 0
                 for event, groups in raw_events.items():
                     if event not in CODEX_HOOK_EVENTS:
                         dropped_events.append(event)
@@ -1727,7 +2002,18 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
                                     f"Codex hooks 不支援 handler：{event}/{handler_type or 'unknown'}；已捨棄"
                                 )
                                 continue
-                            kept_handlers.append(handler)
+                            kept_handler = dict(handler)
+                            command = kept_handler.get("command")
+                            if isinstance(command, str):
+                                command, root_count = re.subn(
+                                    r"\bCLAUDE_PLUGIN_ROOT\b", "PLUGIN_ROOT", command
+                                )
+                                command, data_count = re.subn(
+                                    r"\bCLAUDE_PLUGIN_DATA\b", "PLUGIN_DATA", command
+                                )
+                                kept_handler["command"] = command
+                                hook_env_rewrites += root_count + data_count
+                            kept_handlers.append(kept_handler)
                         if kept_handlers:
                             kept_group = dict(group)
                             kept_group["hooks"] = kept_handlers
@@ -1744,6 +2030,11 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
                     codex_hooks_doc["hooks"] = codex_events
                     codex_pj["hooks"] = "./hooks/hooks.json"
                     mapped.append("hooks/hooks.json → plugin-bundled Codex lifecycle hooks")
+                    if hook_env_rewrites:
+                        mapped.append(
+                            f"hooks command {hook_env_rewrites} 處 Claude plugin env "
+                            "改寫為 Codex canonical `PLUGIN_ROOT` / `PLUGIN_DATA`"
+                        )
                     manual.append(
                         "Codex plugin hooks 已輸出；安裝或變更後仍須在 `/hooks` review and trust，"
                         "未 trust 前不會執行"
@@ -1775,6 +2066,24 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
         )
     plugin_name = codex_pj["name"]
     summary["plugin_name"] = plugin_name
+
+    # Inventory the source before writing output. The converter must not imply
+    # a complete port while silently ignoring a new plugin component.
+    known_components = {".claude-plugin", "agents", "hooks", "rules", "skills"}
+    source_components = sorted(p.name for p in plugin_root.iterdir())
+    unhandled_components = [
+        name
+        for name in source_components
+        if name not in known_components
+        and name not in {"commands", "mcp.json", ".mcp.json"}
+    ]
+    summary["source_components"] = source_components
+    summary["unhandled_components"] = unhandled_components
+    for name in unhandled_components:
+        manual.append(
+            f"來源頂層 component `{name}` 沒有 Codex 轉換規則；"
+            "本次不宣稱內容閉包完整"
+        )
 
     # Clear and rewrite the entire output (same rerun-correctness principle
     # as transfer_one). output_root is the marketplace root. Guard first:
@@ -1907,12 +2216,28 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
         summary["aux_manual"] = aux_manual
 
     agents_dir = plugin_root / "agents"
+    agent_names: list[str] = []
     if agents_dir.is_dir():
-        stub_dir = plugin_out / ".codex-agents-templates"
-        stub_dir.mkdir()
+        agent_dir = plugin_out / ".codex-agents"
+        agent_dir.mkdir()
         for md in sorted(agents_dir.glob("*.md")):
-            emit_agent_stub(md, stub_dir / f"{md.stem}.toml")
-            summary["agent_stubs"] += 1
+            emit_bundled_agent_definition(md, agent_dir / f"{md.stem}.toml")
+            agent_names.append(md.stem)
+            summary["agent_definitions"] += 1
+
+    # Agent refs in skills and copied shared material must resolve to the
+    # package-local definitions above. Relevant SKILL.md files also receive a
+    # fail-closed dispatch adapter so a missing definition can never degrade
+    # into an improvised agent.
+    wire_bundled_agent_references(plugin_out, skill_reports, agent_names)
+    summary["rules_copied"] = copy_plugin_rules(plugin_root, plugin_out)
+    source_rule_count = (
+        sum(1 for path in (plugin_root / "rules").rglob("*") if path.is_file())
+        if (plugin_root / "rules").is_dir()
+        else 0
+    )
+    validate_plugin_content_closure(plugin_out, agent_names, source_rule_count)
+    summary["content_closure_verified"] = True
 
     # Marketplace catalog. See references/marketplace-mapping.md §3 for the
     # required shape: source is an object, policy.installation +
@@ -2002,11 +2327,24 @@ def main(argv: list[str]) -> int:
             print(f"- Manifest ⚠️ 需人工檢視：")
             for n in summary["manifest_manual"]:
                 print(f"    - {n}")
-        if summary["agent_stubs"]:
+        if summary["agent_definitions"]:
             print(
-                f"- Agent stubs 已產出 {summary['agent_stubs']} 份至 "
-                f"`.codex-agents-templates/`（請人工檢視後複製至 `~/.codex/agents/` "
-                "或專案 `.codex/agents/`）"
+                f"- Bundled agent definitions 已產出 "
+                f"{summary['agent_definitions']} 份至 `.codex-agents/`；"
+                "相關 skills 已注入 package-local fail-closed resolver"
+            )
+        if summary["rules_copied"]:
+            print(f"- Rules 已轉換：{summary['rules_copied']} 份至 `rules/`")
+        if summary.get("unhandled_components"):
+            print(
+                "- Content closure ⚠️ 未完成："
+                + ", ".join(summary["unhandled_components"])
+            )
+        else:
+            print(
+                "- Content closure：來源頂層 components 均已映射或明確列為"
+                "既有 manual boundary；agent/rule 數量與所有 bundled agent "
+                "references 已驗證可達"
             )
         print(f"- Skills 處理：{summary['skill_count']} 個")
         if summary.get("aux_dirs_copied"):
@@ -2022,7 +2360,8 @@ def main(argv: list[str]) -> int:
             "- End-user install (記得寫進 README)：\n"
             f"    本輸出為 Layout B（自含 marketplace root）：\n"
             f"    `codex plugin marketplace add /local/path/to/{output_root.name}`\n"
-            "    （`marketplace add` 即安裝；Codex 沒有獨立的 `plugin install` 子指令。）\n"
+            f"    `codex plugin add {summary['plugin_name']}@{summary['plugin_name']}`\n"
+            "    （`marketplace add` 註冊來源；`plugin add` 才安裝 plugin。）\n"
             "    若要走 git URL 安裝，需在 repo 根目錄另維護 Layout A catalog —\n"
             f"    `<repo>/.agents/plugins/marketplace.json`，其 `source.path` 指向 "
             f"`./{output_root.name}/plugins/{summary['plugin_name']}`。\n"

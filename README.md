@@ -65,6 +65,7 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 
 ```
 codex plugin marketplace add https://github.com/TLOGBen/baransu.git
+codex plugin add baransu@baransu
 ```
 
 Codex 版是 Claude 的單向衍生產物，放在 `codex/` 子樹；不要直接編輯，會在下次 `/codex-skill-transfer` 轉換時被覆蓋。
