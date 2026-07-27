@@ -204,11 +204,11 @@ The output `SKILL.md` must:
 
 ### 8. Auxiliary content handling (`copy_aux`)
 
-- `scripts/`, `references/`, `assets/` are copied. `scripts/` gets the `$CLAUDE_SKILL_DIR` → `.` rewrite; `references/` gets the §6.1 repo-internal path rewrite (below) but no tool/API-token rewrite.
+- `scripts/`, `references/`, `assets/`, and `evals/` are copied. `scripts/` gets the `$CLAUDE_SKILL_DIR` → `.` rewrite; `references/` gets the §6.1 repo-internal path rewrite (below) but no tool/API-token rewrite. Evaluation corpora are data artifacts, so `evals/` is preserved byte-for-byte rather than interpreted as runtime instructions.
 - **`references/*.md` bodies are rewritten only for repo-internal path references** (§6.1: `plugins/baransu/…`, `.claude/…`), which would otherwise dangle in the Codex tree. They are NOT rewritten for Claude-only tool/API tokens. Instead, each copied reference is scanned for those tokens (`AskUserQuestion`, `Task tool`, `TodoWrite`, `EnterPlanMode`, `$ARGUMENTS`, `` !`cmd` `` injection, `CLAUDE_SKILL_DIR`, `CLAUDE.md`, `parallel Tasks`, `clean Task contexts`, `via Task`, `TaskCreate`, `TaskUpdate`, `Dispatch **...**`) and one 需人工檢視 report line per affected file lists what was found. Rationale: tokens may be quoted *as documentation* (this skill's own mapping tables are the canonical example) — a blind token rewrite would corrupt them — whereas a repo path is unambiguously a broken pointer once the tree is relaid out. The `codex-skill-transfer` skill and design's `slide-checklist.md` are exempt from the path rewrite too (§6.1).
 - `SendUserFile` is also scanned in references so delivery-only gaps are visible without rewriting quoted documentation.
 - Skill-root orphan **files** are copied and reported (翻譯處理).
-- Skill-root orphan **directories** (any subdir other than `scripts` / `references` / `assets` / `agents`) are NOT copied; each is listed under 已捨棄 so the omission is visible.
+- Skill-root orphan **directories** (any subdir other than `scripts` / `references` / `assets` / `evals` / `agents`) are NOT copied; each is listed under 已捨棄 so the omission is visible.
 
 ## See also
 

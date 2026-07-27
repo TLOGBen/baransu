@@ -1,0 +1,34 @@
+{
+  "skill_name": "seal",
+  "note": "Data-only trigger-routing fixtures (same corpus convention as sibling skills). No built-in eval runner; post-run user-verification artifact, not a merge gate.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "幫我驗收剛剛做完的改動",
+      "should_trigger": true,
+      "expected_skill": "seal",
+      "expected_behavior": "Pins the diff + CONTRACT.md, runs the five-point mandate, fixes in-band findings with pinning tests, reverts mutation probes."
+    },
+    {
+      "id": 2,
+      "prompt": "封緘",
+      "should_trigger": true,
+      "expected_skill": "seal",
+      "expected_behavior": "Single cold-eyed pass: criteria audit, unpinned-surface scan, cross-UI, constants byte-diff, mutation spot-check."
+    },
+    {
+      "id": 3,
+      "prompt": "幫我看一下這份計畫有沒有問題",
+      "should_trigger": false,
+      "expected_skill": "review",
+      "expected_behavior": "Cross-perspective re-verification of a plan routes to /review, not seal."
+    },
+    {
+      "id": 4,
+      "prompt": "開工前先把驗收條文釘死",
+      "should_trigger": false,
+      "expected_skill": "contract",
+      "expected_behavior": "Pre-work criteria pinning routes to /contract; seal runs after implementation."
+    }
+  ]
+}

@@ -1241,7 +1241,7 @@ def copy_aux(source: Path, target: Path, report: TransferReport) -> None:
     # Standard auxiliary dirs. node_modules / __pycache__ are runtime-
     # regenerated install artifacts (never distributed); copying them bloats
     # the mirror by thousands of files for no consumer.
-    for sub in ("scripts", "references", "assets"):
+    for sub in ("scripts", "references", "assets", "evals"):
         src = source / sub
         if src.is_dir():
             shutil.copytree(
@@ -1263,16 +1263,17 @@ def copy_aux(source: Path, target: Path, report: TransferReport) -> None:
             f"複製 skill-root 零散檔案：{', '.join(orphan_files)}"
         )
 
-    # Skill-root orphan DIRECTORIES (anything beyond the standard four). These
+    # Skill-root orphan DIRECTORIES (anything beyond the standard dirs). These
     # are NOT copied — list each so the omission is visible, not silent.
     orphan_dirs = [
         p.name
         for p in sorted(source.iterdir())
-        if p.is_dir() and p.name not in ("scripts", "references", "assets", "agents")
+        if p.is_dir()
+        and p.name not in ("scripts", "references", "assets", "evals", "agents")
     ]
     for d in orphan_dirs:
         report.dropped.append(
-            f"skill-root 子目錄 `{d}/` 未複製（非 scripts/references/assets/agents 標準目錄）"
+            f"skill-root 子目錄 `{d}/` 未複製（非 scripts/references/assets/evals/agents 標準目錄）"
         )
 
     # A skill-root agents/ dir is also not copied (bundled runtime definitions
@@ -1833,6 +1834,7 @@ def copy_plugin_rules(plugin_root: Path, plugin_out: Path) -> int:
 
 
 def validate_plugin_content_closure(
+    plugin_root: Path,
     plugin_out: Path,
     source_agent_names: list[str],
     source_rule_count: int,
@@ -1860,6 +1862,33 @@ def validate_plugin_content_closure(
         errors.append(
             f"rules mismatch: source={source_rule_count}, generated={generated_rules}"
         )
+
+    # Every authored skill/hook file must have an output artifact at the same
+    # package-relative path. Generated dependency/cache trees are the only
+    # exclusions. Evals are compared byte-for-byte because they are data, not
+    # runtime instructions to reinterpret.
+    for component in ("skills", "hooks"):
+        source_root = plugin_root / component
+        target_root = plugin_out / component
+        if not source_root.is_dir():
+            continue
+        # A malformed/unsupported hook surface is already an explicit manual
+        # boundary in the transfer report; closure only validates components
+        # that were eligible for generation.
+        if component == "hooks" and not target_root.is_dir():
+            continue
+        for source_path in sorted(source_root.rglob("*")):
+            if not source_path.is_file():
+                continue
+            rel = source_path.relative_to(source_root)
+            if any(part in {"node_modules", "__pycache__"} for part in rel.parts):
+                continue
+            target_path = target_root / rel
+            if not target_path.is_file():
+                errors.append(f"{component}/{rel} has no generated artifact")
+                continue
+            if "evals" in rel.parts and source_path.read_bytes() != target_path.read_bytes():
+                errors.append(f"{component}/{rel} eval data changed during transfer")
 
     forbidden_runtime_tokens = (
         "CLAUDE_PLUGIN_ROOT",
@@ -2236,7 +2265,9 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
         if (plugin_root / "rules").is_dir()
         else 0
     )
-    validate_plugin_content_closure(plugin_out, agent_names, source_rule_count)
+    validate_plugin_content_closure(
+        plugin_root, plugin_out, agent_names, source_rule_count
+    )
     summary["content_closure_verified"] = True
 
     # Marketplace catalog. See references/marketplace-mapping.md §3 for the
@@ -2343,8 +2374,8 @@ def main(argv: list[str]) -> int:
         else:
             print(
                 "- Content closure：來源頂層 components 均已映射或明確列為"
-                "既有 manual boundary；agent/rule 數量與所有 bundled agent "
-                "references 已驗證可達"
+                "既有 manual boundary；所有 authored skill/hook 檔案、agent/rule "
+                "數量與 bundled agent references 已驗證可達"
             )
         print(f"- Skills 處理：{summary['skill_count']} 個")
         if summary.get("aux_dirs_copied"):

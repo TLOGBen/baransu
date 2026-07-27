@@ -524,6 +524,23 @@ Call SendUserFile with the report.
 
 
 class TestCopyAuxExclusions(unittest.TestCase):
+    def test_copy_aux_preserves_evals_as_data(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "source"
+            target = root / "target"
+            evals = source / "evals"
+            evals.mkdir(parents=True)
+            payload = b'{"prompt":"literal CLAUDE.md example"}\n'
+            (evals / "evals.json").write_bytes(payload)
+            target.mkdir()
+            rpt = report()
+
+            transfer.copy_aux(source, target, rpt)
+
+            self.assertEqual(payload, (target / "evals" / "evals.json").read_bytes())
+            self.assertNotIn("evals/", "\n".join(rpt.dropped))
+
     def test_copy_aux_excludes_node_modules_and_pycache(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -887,14 +904,14 @@ class TestPluginModeGeneration(unittest.TestCase):
             manifest = json.loads(
                 (plugin_out / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
             )
-            self.assertEqual("3.1.1", manifest["version"])
+            self.assertEqual("3.1.2", manifest["version"])
 
             codex_transfer = plugin_out / "skills" / "codex-skill-transfer"
             self.assertTrue((codex_transfer / "references" / "CODEX_PORT_PLAN.md").is_file())
             self.assertIn(
-                # Re-pinned 0.13.0 -> 0.14.0: current Codex subagent guidance,
-                # two-step plugin install, and actionable report follow-ups.
-                "version: 0.14.0",
+                # Re-pinned 0.14.0 -> 0.14.1: complete plugin-content closure,
+                # including byte-preserved evaluation corpora.
+                "version: 0.14.1",
                 (codex_transfer / "SKILL.md").read_text(encoding="utf-8"),
             )
             codex_transfer_skill = (codex_transfer / "SKILL.md").read_text(encoding="utf-8")
@@ -1039,7 +1056,7 @@ class TestPluginModeGeneration(unittest.TestCase):
                 transfer.OutputGuardError, "missing\\.toml is missing"
             ):
                 transfer.validate_plugin_content_closure(
-                    plugin_out, ["reviewer"], 0
+                    Path(tmp) / "source", plugin_out, ["reviewer"], 0
                 )
 
 

@@ -1,0 +1,48 @@
+{
+  "skill_name": "read",
+  "note": "Data-only trigger-routing fixtures (plugin-wide-6 / batch C4). There is no built-in eval runner; these cases are the fresh-session A/B baseline corpus recorded BEFORE the C1 description POV batch. Post-run user-verification artifact, not a merge gate.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "幫我把這篇存下來 https://example.com/post",
+      "should_trigger": true,
+      "expected_skill": "read",
+      "expected_behavior": "Capture the URL to offline Markdown under .claude/read/."
+    },
+    {
+      "id": 2,
+      "prompt": "抓網頁轉成 markdown",
+      "should_trigger": true,
+      "expected_skill": "read",
+      "expected_behavior": "Capture-and-convert intent: raw offline Markdown, no digestion."
+    },
+    {
+      "id": 3,
+      "prompt": "/read --topic \"vector databases\"",
+      "should_trigger": true,
+      "expected_skill": "read",
+      "expected_behavior": "Academic topic mode: paper search (academic-search lane) with a user-selection prompt, then capture the selected paper's PDF/DOI to offline Markdown."
+    },
+    {
+      "id": 4,
+      "prompt": "整理筆記，幫我消化這幾篇",
+      "should_trigger": false,
+      "expected_skill": "learn",
+      "expected_behavior": "Digesting captured content into notes routes to /learn."
+    },
+    {
+      "id": 5,
+      "prompt": "把這篇轉成 book，瀏覽器直接看",
+      "should_trigger": false,
+      "expected_skill": "book",
+      "expected_behavior": "Browser-ready HTML output routes to /book."
+    },
+    {
+      "id": 6,
+      "prompt": "看一下這個 PR",
+      "should_trigger": false,
+      "expected_skill": "review",
+      "expected_behavior": "Second-opinion review routes to /review."
+    }
+  ]
+}

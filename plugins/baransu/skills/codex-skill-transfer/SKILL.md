@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Designed for Claude Code; output targets Codex CLI. Optional `skills-ref` CLI for validation.
 metadata:
   author: baransu
-  version: "0.14.0"
+  version: "0.14.1"
 ---
 
 # Codex Skill Transfer
@@ -34,7 +34,7 @@ Look at the source path the user gave you. Pick the matching mode:
 | `<dir>/SKILL.md` exists at the top level | **Single skill** | One `<output>/<skill-name>/` |
 | `<dir>` has children that each contain `SKILL.md` | **Skills batch** | One subdir per child |
 
-`scripts/transfer.py` auto-detects Plugin / Single skill / Skills batch and dispatches. A Skills-batch child without `SKILL.md` is not silently dropped: the script emits a ⚠️ skipped report entry for it (skip_reason: no SKILL.md in source) and the stderr summary counts it — in plugin mode the same child is instead copied verbatim as a shared aux dir and token-scanned. When porting inline, mirror that contract: name every mismatched child in the report rather than dropping it. If the source matches none of the three shapes — e.g. a marketplace root that has `.claude-plugin/marketplace.json` but no top-level `plugin.json` or `SKILL.md` — `transfer.py` exits 2 without writing; marketplace-catalog conversion is manual, so follow [`references/marketplace-mapping.md`](references/marketplace-mapping.md) by hand rather than forcing a mode. Plugin mode emits a Layout B marketplace catalog (codex/ self-contained); for monorepos that publish via git URL, the repo root needs a separate Layout A catalog — see [`references/marketplace-mapping.md`](references/marketplace-mapping.md) §8.
+`scripts/transfer.py` auto-detects Plugin / Single skill / Skills batch and dispatches. A Skills-batch child without `SKILL.md` is not silently dropped: the script emits a ⚠️ skipped report entry for it (skip_reason: no SKILL.md in source) and the stderr summary counts it — in plugin mode the same child is instead copied verbatim as a shared aux dir and token-scanned. Skill-local `evals/` corpora are copied byte-for-byte as data artifacts. When porting inline, mirror that contract: name every mismatched child in the report rather than dropping it. If the source matches none of the three shapes — e.g. a marketplace root that has `.claude-plugin/marketplace.json` but no top-level `plugin.json` or `SKILL.md` — `transfer.py` exits 2 without writing; marketplace-catalog conversion is manual, so follow [`references/marketplace-mapping.md`](references/marketplace-mapping.md) by hand rather than forcing a mode. Plugin mode emits a Layout B marketplace catalog (codex/ self-contained); for monorepos that publish via git URL, the repo root needs a separate Layout A catalog — see [`references/marketplace-mapping.md`](references/marketplace-mapping.md) §8.
 
 ## Step 2 — Run the transfer
 

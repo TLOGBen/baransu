@@ -1,0 +1,48 @@
+{
+  "skill_name": "evolve",
+  "note": "Data-only trigger-routing fixtures (plugin-wide-6 / batch C4). There is no built-in eval runner; these cases are the fresh-session A/B baseline corpus recorded BEFORE the C1 description POV batch. Post-run user-verification artifact, not a merge gate.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "優化 skill：/hunt 的 SKILL.md",
+      "should_trigger": true,
+      "expected_skill": "evolve",
+      "expected_behavior": "Forward-only ratchet against the fixed 9-dimension rubric; adoption is an Authorization PAUSE."
+    },
+    {
+      "id": 2,
+      "prompt": "Improve skill quality for /read",
+      "should_trigger": true,
+      "expected_skill": "evolve",
+      "expected_behavior": "English trigger: run the ratchet with blind multi-judge voting and held-out validation."
+    },
+    {
+      "id": 3,
+      "prompt": "skill 評分一下 /write",
+      "should_trigger": true,
+      "expected_skill": "evolve",
+      "expected_behavior": "Scoring a SKILL.md against the rubric is in scope."
+    },
+    {
+      "id": 4,
+      "prompt": "寫一個新 skill",
+      "should_trigger": false,
+      "expected_skill": null,
+      "expected_behavior": "Authoring a brand-new SKILL.md from scratch is authoring, not evolution — write it directly."
+    },
+    {
+      "id": 5,
+      "prompt": "這個 skill 該不該留？",
+      "should_trigger": false,
+      "expected_skill": "think",
+      "expected_behavior": "Whether a skill should exist is /think Evaluation Mode."
+    },
+    {
+      "id": 6,
+      "prompt": "檢查我的專案 agent 配置",
+      "should_trigger": false,
+      "expected_skill": "health",
+      "expected_behavior": "Project agent-config audit routes to /health."
+    }
+  ]
+}
