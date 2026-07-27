@@ -1198,6 +1198,7 @@ def check_output_invariants(target: Path, report: TransferReport) -> None:
 
 
 SKILL_DIR_ENV = re.compile(r"\$\{CLAUDE_SKILL_DIR\}|\$CLAUDE_SKILL_DIR\b")
+CLAUDE_PLUGIN_ROOT_ENV = re.compile(r"\bCLAUDE_PLUGIN_ROOT\b")
 
 # Claude-only token scan patterns. Conservative by design: scanned files are
 # NEVER rewritten (they may quote these tokens as documentation — e.g. this
@@ -1224,6 +1225,7 @@ TOKEN_SCAN_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("$ARGUMENTS", re.compile(r"\$ARGUMENTS\b")),
     ("!`cmd` injection", re.compile(r"!`[^`]+`")),
     ("CLAUDE_SKILL_DIR", re.compile(r"\bCLAUDE_SKILL_DIR\b")),
+    ("CLAUDE_PLUGIN_ROOT", CLAUDE_PLUGIN_ROOT_ENV),
     ("CLAUDE.md", re.compile(r"\bCLAUDE\.md\b")),
 ]
 
@@ -1446,6 +1448,11 @@ def transfer_one(source: Path, output_root: Path) -> TransferReport:
         skill_name=name,
     )
     new_body = inject_codex_port_adapter(new_body, report)
+    if CLAUDE_PLUGIN_ROOT_ENV.search(new_body):
+        report.manual_review.append(
+            "`SKILL.md` 含 Claude-only token（CLAUDE_PLUGIN_ROOT）；"
+            "skill 本體不自動改寫，請依實際 Codex package 路徑人工確認"
+        )
     write_skill(target, new_fm, new_body, openai_yaml)
     check_output_invariants(target, report)
     copy_aux(source, target, report)

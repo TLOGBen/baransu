@@ -2,6 +2,11 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [3.1.3] - 2026-07-27
+
+### Fixed
+- `/codex-skill-transfer` 0.14.2：生成的 `SKILL.md` 或複製的 `references/*.md` 若仍含 `CLAUDE_PLUGIN_ROOT`，transfer report 會逐檔列入需人工檢視。Token 保持原文、不盲改成僅由 Codex hook command 保證提供的 `PLUGIN_ROOT`，避免 delegate 等 skill 在移植後靜默引用不存在的 runtime 變數。
+
 ## [3.0.4] - 2026-07-20
 
 ### Changed

@@ -331,6 +331,32 @@ Body.
                     self.assertIn(heading, out)
                     self.assertIn(capability, rpt.capability_risks)
 
+    def test_transfer_one_flags_plugin_root_in_skill_body_without_rewriting_it(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "delegate"
+            source.mkdir()
+            (source / "SKILL.md").write_text(
+                """---
+name: delegate
+description: Fixture.
+---
+
+Read `${CLAUDE_PLUGIN_ROOT}/agents/reviewer.md` before delegating.
+""",
+                encoding="utf-8",
+            )
+
+            rpt = transfer.transfer_one(source, root / "out")
+
+            generated = (root / "out" / "delegate" / "SKILL.md").read_text(
+                encoding="utf-8"
+            )
+            manual = "\n".join(rpt.manual_review)
+            self.assertIn("${CLAUDE_PLUGIN_ROOT}/agents/reviewer.md", generated)
+            self.assertIn("`SKILL.md`", manual)
+            self.assertIn("CLAUDE_PLUGIN_ROOT", manual)
+
 
 class TestDescriptionRewrite(unittest.TestCase):
     def test_description_normalizes_claude_task_contexts(self):
@@ -521,6 +547,40 @@ Call SendUserFile with the report.
         self.assertIn("TaskUpdate", manual)
         self.assertIn("SendUserFile", manual)
         self.assertIn("Dispatch **agent**", manual)
+
+    def test_reference_scan_flags_plugin_root_without_rewriting_it(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "source"
+            target = root / "target"
+            refs = source / "references"
+            refs.mkdir(parents=True)
+            (source / "SKILL.md").write_text(
+                """---
+name: source
+description: Fixture.
+---
+
+Body.
+""",
+                encoding="utf-8",
+            )
+            original = (
+                "Read `${CLAUDE_PLUGIN_ROOT}/agents/reviewer.md` before delegating.\n"
+            )
+            (refs / "delegation.md").write_text(original, encoding="utf-8")
+            target.mkdir()
+            rpt = report()
+
+            transfer.copy_aux(source, target, rpt)
+
+            copied = (target / "references" / "delegation.md").read_text(
+                encoding="utf-8"
+            )
+            manual = "\n".join(rpt.manual_review)
+            self.assertEqual(original, copied)
+            self.assertIn("`references/delegation.md`", manual)
+            self.assertIn("CLAUDE_PLUGIN_ROOT", manual)
 
 
 class TestCopyAuxExclusions(unittest.TestCase):
@@ -904,14 +964,14 @@ class TestPluginModeGeneration(unittest.TestCase):
             manifest = json.loads(
                 (plugin_out / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
             )
-            self.assertEqual("3.1.2", manifest["version"])
+            self.assertEqual("3.1.3", manifest["version"])
 
             codex_transfer = plugin_out / "skills" / "codex-skill-transfer"
             self.assertTrue((codex_transfer / "references" / "CODEX_PORT_PLAN.md").is_file())
             self.assertIn(
-                # Re-pinned 0.14.0 -> 0.14.1: complete plugin-content closure,
-                # including byte-preserved evaluation corpora.
-                "version: 0.14.1",
+                # Re-pinned 0.14.1 -> 0.14.2: unresolved CLAUDE_PLUGIN_ROOT
+                # tokens are surfaced without an unsafe automatic rewrite.
+                "version: 0.14.2",
                 (codex_transfer / "SKILL.md").read_text(encoding="utf-8"),
             )
             codex_transfer_skill = (codex_transfer / "SKILL.md").read_text(encoding="utf-8")
