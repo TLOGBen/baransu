@@ -31,6 +31,7 @@ Named red-lines, each enforced by the step in parentheses; none is optional. The
 - **INV-5 — Branch deletion uses `-D`, not `-d`.** After a merge the branch may read as unmerged locally, so `-d` fails. (Step 5)
 - **INV-6 — `rm -rf` is only run on a validated worktree path.** The third-tier `rm -rf "$WORKTREE_PATH"` fallback runs only after a precondition guard confirms `$WORKTREE_PATH` is non-empty, is not `/`, and carries `.git`/`.git/worktrees` lineage; if the guard fails, `rm -rf` is skipped and the worktree is left intact. (Step 5)
 - **INV-7 — No blind staging of secret-pattern files.** Before `git add -A`, every untracked/modified path from `git status --porcelain` is matched against the Step 3 closed pattern list; any match stops the commit before staging. (Step 3)
+- **INV-8 — The commit subject names the shipped outcome.** Derive one Conventional Commit message from the staged diff; archiving and session cleanup never displace a substantive code, behavior, or documentation outcome. (Step 3)
 
 ## Step 0 — Parse target branch
 
@@ -85,12 +86,34 @@ If any move fails → output 「歸檔失敗：{reason}」 and stop.
 
 **Secret gate (INV-7)** — run immediately before `git add -A`: run `git status --porcelain` and match each untracked/modified path's filename against this fixed, closed pattern list: `.env`, `.env.*`, `*.pem`, `*.key`, `id_rsa*`, `*.p12`, `credentials*.json`. If any path matches → output 「偵測到疑似機敏檔案：{列出檔名}，已停止 commit；請確認內容、加入 .gitignore 或手動處理後再重跑 /ship。」 and stop. If none match → proceed to `git add -A` unchanged.
 
+Stage first, then inspect what will actually ship:
+
 ```bash
 git add -A
-git commit -m "chore: 歸檔工作檔案並提交本次變更"
+git diff --cached --name-status
+git diff --cached --stat
 ```
 
-If commit succeeds → output: 「已提交：chore: 歸檔工作檔案並提交本次變更」
+Set `COMMIT_MESSAGE` from that staged evidence before committing:
+
+```bash
+COMMIT_MESSAGE="chore: 收尾本次工作"
+```
+
+- Use exactly one Conventional Commit type: `feat`, `fix`, `refactor`, `docs`, `test`, or `chore`.
+- Write a concise subject that names the **primary shipped outcome**, not the mechanics of committing, pushing, archiving, or "updating changes". Inspect the relevant staged hunks when filenames and stats are not enough to identify that outcome.
+- If substantive files and archived workflow files are both staged, summarize the substantive change; archived workflow files are supporting evidence, never the subject.
+- If the staged diff contains only archived session records, use `chore: 歸檔本次工作紀錄`.
+- Keep `COMMIT_MESSAGE="chore: 收尾本次工作"` only when the staged evidence genuinely cannot support a more specific summary.
+- Example: a transfer fix plus its generated mirror and hunt record becomes `fix: 偵測 Codex skill 未轉換的 plugin root`, not an archive-oriented message.
+
+Commit using the selected message:
+
+```bash
+git commit -m "$COMMIT_MESSAGE"
+```
+
+If commit succeeds → output: 「已提交：{$COMMIT_MESSAGE}」
 
 If nothing to commit (exit code 1, message contains "nothing to commit") → output 「無待提交的變更，跳過 commit。」 Continue to Step 4.
 

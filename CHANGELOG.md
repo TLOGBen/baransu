@@ -2,6 +2,11 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [3.1.4] - 2026-07-27
+
+### Changed
+- `/ship` 不再每次固定提交 `chore: 歸檔工作檔案並提交本次變更`。它會在 staging 後根據實際 diff 選擇 Conventional Commit type 並摘要主要交付成果；工作紀錄歸檔不會蓋過實質變更，純歸檔與無法判斷時則各有保守 fallback。
+
 ## [3.1.3] - 2026-07-27
 
 ### Fixed
