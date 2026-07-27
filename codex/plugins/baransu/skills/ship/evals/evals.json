@@ -7,7 +7,7 @@
       "prompt": "收工",
       "should_trigger": true,
       "expected_skill": "ship",
-      "expected_behavior": "Session wrap-up: archive .claude/ working dirs, commit, push."
+      "expected_behavior": "Session wrap-up: archive .claude/ working dirs locally under a gitignored archive root, commit non-archive changes, push."
     },
     {
       "id": 2,

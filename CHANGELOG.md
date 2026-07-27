@@ -2,6 +2,11 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [3.1.8] - 2026-07-27
+
+### Fixed
+- **`/ship` archive 改為強制 local-only**。歸檔前先確保 repo root `.gitignore` 含 anchored archive 規則，並以 `git rm --cached` 解除既有 archive 的追蹤但保留本機檔案；ignore 與 zero-tracked 兩道檢查任一失敗即在搬移前停止。`git add -A` 不再把 hunt／review／think 工作紀錄一起送上遠端。
+
 ## [3.1.7] - 2026-07-27
 
 ### Fixed

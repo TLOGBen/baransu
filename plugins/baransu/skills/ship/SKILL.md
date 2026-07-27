@@ -1,6 +1,6 @@
 ---
 name: ship
-description: "Wraps up a session: archives baransu working dirs under .claude/ (except read/learn/book products) into .claude/archived/, commits, pushes (optionally `/ship BRANCH`), and tears down the worktree once work is on origin. Trigger On '/ship', '收工', '上傳收尾', '結束這輪'. Not For writing copy (/write) or reviewing output (/review) — /ship only wraps up a session."
+description: "Wraps up a session: archives baransu working dirs under .claude/ (except read/learn/book products) into the gitignored, local-only .claude/archived/, commits, pushes (optionally `/ship BRANCH`), and tears down the worktree once work is on origin. Trigger On '/ship', '收工', '上傳收尾', '結束這輪'. Not For writing copy (/write) or reviewing output (/review) — /ship only wraps up a session."
 ---
 
 # /baransu:ship — session cleanup
@@ -13,10 +13,10 @@ No user confirmation required. The steps below run automatically.
 
 ## Outcome Contract
 
-- **Outcome**: The session's working files are archived and all pending changes are committed and pushed — optionally landed on a specified target branch.
-- **Done when**: Archivable items are moved into `.claude/archived/`, `git status --porcelain` is empty after the commit, and the work is on origin (the current branch pushed, or — when a target branch is given — the current branch merged into it and that branch pushed); when run inside a worktree whose work is confirmed on origin, the worktree is removed and its branch deleted.
-- **Evidence**: The session end output reporting the archived item count, the commit message (or 「跳過」), the push target (`origin/{branch}` or `{branch} → {target}`), and the worktree cleanup status.
-- **Output**: Archived directories under `.claude/archived/`, a pushed git commit, and the 繁中 session end report.
+- **Outcome**: The session's working files are archived locally without entering Git, and all other pending changes are committed and pushed — optionally landed on a specified target branch.
+- **Done when**: Archivable items are moved into the gitignored `.claude/archived/`, no archive path is tracked, `git status --porcelain` is empty after the commit, and the work is on origin (the current branch pushed, or — when a target branch is given — the current branch merged into it and that branch pushed); when run inside a worktree whose work is confirmed on origin, the worktree is removed and its branch deleted.
+- **Evidence**: The archive ignore/untracked checks, the session end output reporting the archived item count, the commit message (or 「跳過」), the push target (`origin/{branch}` or `{branch} → {target}`), and the worktree cleanup status.
+- **Output**: Local-only archived directories under `.claude/archived/`, a pushed git commit when non-archive changes exist, and the 繁中 session end report.
 - **Automation**: ultracode=neutral, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
   In the same non-interactive pass, read `references/loop-pauses.md` for this skill's own PAUSE classification.
 
@@ -32,6 +32,7 @@ Named red-lines, each enforced by the step in parentheses; none is optional. The
 - **INV-6 — `rm -rf` is only run on a validated worktree path.** The third-tier `rm -rf "$WORKTREE_PATH"` fallback runs only after a precondition guard confirms `$WORKTREE_PATH` is non-empty, is not `/`, and carries `.git`/`.git/worktrees` lineage; if the guard fails, `rm -rf` is skipped and the worktree is left intact. (Step 5)
 - **INV-7 — No blind staging of secret-pattern files.** Before `git add -A`, every untracked/modified path from `git status --porcelain` is matched against the Step 3 closed pattern list; any match stops the commit before staging. (Step 3)
 - **INV-8 — The commit subject names the shipped outcome.** Derive one Conventional Commit message from the staged diff; archiving and session cleanup never displace a substantive code, behavior, or documentation outcome. (Step 3)
+- **INV-9 — Archive is local-only.** The archive root must be ignored and contain no tracked paths before any item is moved into it; existing tracked archives are removed from the index but retained on disk. (Step 2)
 
 ## Step 0 — Parse target branch
 
@@ -64,6 +65,24 @@ Decision:
 ## Step 2 — Archive
 
 Create `.claude/archived/` if it does not exist.
+
+Before moving any item, enforce the local-only boundary:
+
+1. Read the repo-root `.gitignore`. If the exact anchored rule `/.claude/archived/`
+   is absent, add that one line with the available file-editing tool. Do not use
+   shell redirection, and do not replace broader ignore rules.
+2. Remove any legacy archive entries from the Git index while preserving their
+   local files:
+   ```bash
+   git rm -r --cached --ignore-unmatch -- .claude/archived/
+   ```
+3. Verify both halves of INV-9:
+   ```bash
+   git check-ignore -q .claude/archived/.ship-ignore-probe
+   test -z "$(git ls-files .claude/archived/)"
+   ```
+   If either command fails, output 「archive ignore 驗證失敗：已停止歸檔，未移動
+   任何工作檔案。」 and stop.
 
 **Archive allowlist** — exactly the Step 1 `ARCHIVE_DIRS` value, in the same order: `tmp`, `analyze`, `execute`, `think`, `design`, `hunt-report`, `evolve`, `review`, `write`. The two lists MUST stay identical; a dir detected in Step 1 but absent here would leave Step 1's detect output unconsumed.
 
@@ -102,10 +121,8 @@ COMMIT_MESSAGE="chore: 收尾本次工作"
 
 - Use exactly one Conventional Commit type: `feat`, `fix`, `refactor`, `docs`, `test`, or `chore`.
 - Write a concise subject that names the **primary shipped outcome**, not the mechanics of committing, pushing, archiving, or "updating changes". Inspect the relevant staged hunks when filenames and stats are not enough to identify that outcome.
-- If substantive files and archived workflow files are both staged, summarize the substantive change; archived workflow files are supporting evidence, never the subject.
-- If the staged diff contains only archived session records, use `chore: 歸檔本次工作紀錄`.
 - Keep `COMMIT_MESSAGE="chore: 收尾本次工作"` only when the staged evidence genuinely cannot support a more specific summary.
-- Example: a transfer fix plus its generated mirror and hunt record becomes `fix: 偵測 Codex skill 未轉換的 plugin root`, not an archive-oriented message.
+- Archive files are ignored by INV-9 and therefore must never influence the staged outcome or commit subject.
 
 Commit using the selected message:
 

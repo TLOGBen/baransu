@@ -968,7 +968,7 @@ class TestPluginModeGeneration(unittest.TestCase):
             manifest = json.loads(
                 (plugin_out / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
             )
-            self.assertEqual("3.1.7", manifest["version"])
+            self.assertEqual("3.1.8", manifest["version"])
 
             codex_transfer = plugin_out / "skills" / "codex-skill-transfer"
             self.assertTrue((codex_transfer / "references" / "CODEX_PORT_PLAN.md").is_file())
@@ -978,6 +978,15 @@ class TestPluginModeGeneration(unittest.TestCase):
                 "version: 0.14.2",
                 (codex_transfer / "SKILL.md").read_text(encoding="utf-8"),
             )
+            ship_skill = (plugin_out / "skills" / "ship" / "SKILL.md").read_text(
+                encoding="utf-8"
+            )
+            self.assertIn("`/.codex/archived/`", ship_skill)
+            self.assertIn(
+                "git rm -r --cached --ignore-unmatch -- .codex/archived/",
+                ship_skill,
+            )
+            self.assertNotIn("`/.claude/archived/`", ship_skill)
             codex_transfer_skill = (codex_transfer / "SKILL.md").read_text(encoding="utf-8")
             self.assertIn("`$ARGUMENTS` → natural language", codex_transfer_skill)
             self.assertIn(
