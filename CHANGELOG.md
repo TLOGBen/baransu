@@ -2,6 +2,16 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [3.1.7] - 2026-07-27
+
+### Fixed
+- **seal-guard 路徑過濾器可覆寫（`SEAL_GUARD_PATHS`）**。原本來源目錄前綴寫死 `^(src|app|lib|bin|cli|ui)/`——這組假設「應用程式碼在頂層 src/」的佈局，在 plugin tree／monorepo 型 repo（含 baransu 自身）一個都不匹配，hook 因此**從未觸發過而無人知曉**：路徑不匹配時在 telemetry 寫入之前就 exit 0，月回看的「零事件」分不出是「沒漏 seal」還是「過濾器從沒匹配」。實測回報來源：ezBill 之外的三個主要 repo（baransu／common-dev-plugin／ga_agent）符合前綴的頂層目錄數皆為 0。
+  - `seal-guard.sh`：前綴抽成 `SEAL_GUARD_PATHS`（預設值不變，行為零漂移），與既有 `SEAL_GUARD_PATTERNS` 同款式；註解明寫「非標準佈局必須覆寫，否則靜默不觸發」。
+  - `seal-guard-hook.md`：Behavior §2 補 `SEAL_GUARD_PATHS` 與零事件歧義說明。
+  - `selection-telemetry.md` 月回看段補 **Zero-event caveat**：seal-guard 零事件月在確認 `SEAL_GUARD_PATHS` 覆蓋實際佈局前不得讀為成功；只看誤擋率的降級決策看不見這種失效。
+  - `test-seal-guard-hook.sh` 新增 G13：plugins/ 佈局預設不觸發（rc=0）、設 `SEAL_GUARD_PATHS=plugins` 後同一 diff 正確擋下（rc=2）。
+- **Codex Stop hook 改用真正的 continuation 契約**。先前誤把通用輸出欄位 `continue:false` 當成 Stop 阻擋形式；實際上它會優先終止 continuation。Codex 分支改回傳 `decision:"block"`＋必填 `reason`，讓 seal miss 產生新的 continuation prompt；Claude 的 stderr＋exit 2 路徑保持不變。G11 改為逐欄斷言 payload，並明確拒絕 `continue`／`stopReason` 舊欄位。
+
 ## [3.1.6] - 2026-07-27
 
 ### Fixed

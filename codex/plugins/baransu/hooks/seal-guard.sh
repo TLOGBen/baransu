@@ -16,7 +16,7 @@
 #
 # Exit contract:
 #   Claude: 0 = allow stop; 2 = block stop (stderr fed back to Claude).
-#   Codex:  0 + JSON {continue:false,...} = block the Stop hook.
+#   Codex:  0 + JSON {decision:"block",reason:"..."} = continue the turn.
 # Any detection failure degrades to exit 0 — a heuristic guard must never wedge
 # a session on its own bugs. False blocks are the expensive failure mode here;
 # the surface heuristic is deliberately conservative (misses acceptable).
@@ -45,10 +45,17 @@ DIFF="$(git -C "$ROOT" diff HEAD --unified=0 2>/dev/null || true)"
 
 # --- user-facing surface heuristic (tunable) --------------------------------
 # Added lines only; source dirs only; test paths excluded to cut false blocks.
+# Both axes are env-tunable: SEAL_GUARD_PATTERNS (what counts as a user-facing
+# line) and SEAL_GUARD_PATHS (which top-level dirs count as source — an
+# alternation of path prefixes, matched as ^(...)/ ). The default PATHS set
+# assumes an application-code layout; repos with a different layout (plugin
+# trees, monorepos) must set SEAL_GUARD_PATHS or the filter never matches and
+# the hook silently never fires.
 PATTERNS="${SEAL_GUARD_PATTERNS:-println!|eprintln!|console\.(log|error|warn)|printf\(|(^|[^[:alnum:]_])print\(}"
+PATHS="${SEAL_GUARD_PATHS:-src|app|lib|bin|cli|ui}"
 TOUCHED="$(printf '%s\n' "$DIFF" \
   | awk '/^\+\+\+ b\//{f=substr($0,7)} /^\+[^+]/{print f "\t" $0}' \
-  | grep -E "^(src|app|lib|bin|cli|ui)/" \
+  | grep -E "^($PATHS)/" \
   | grep -Ev "^[^\t]*(test|spec)[^\t]*\t" \
   | grep -E "$PATTERNS" 2>/dev/null || true)"
 [ -n "$TOUCHED" ] || exit 0
@@ -85,7 +92,7 @@ case "$MODE" in
   *)
     MESSAGE="偵測到 user-facing 變更尚未 /baransu:seal——請執行 seal 收尾（單次窄域驗收＋直接修正權），或設 SEAL_GUARD=log 降級為僅記錄。"
     if [ -n "${PLUGIN_ROOT:-}" ]; then
-      printf '{"continue":false,"stopReason":"%s","systemMessage":"%s"}\n' "$MESSAGE" "$MESSAGE"
+      printf '{"decision":"block","reason":"%s","systemMessage":"%s"}\n' "$MESSAGE" "$MESSAGE"
       exit 0
     fi
     echo "$MESSAGE" >&2

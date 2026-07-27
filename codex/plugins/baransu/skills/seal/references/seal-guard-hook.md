@@ -22,10 +22,16 @@ At `Stop`, the hook:
    exits 0 immediately. Claude Code additionally force-releases after 8 consecutive
    blocks — the hook never needs its own counter.
 2. **Early exits** (all exit 0): not a git repo; no uncommitted diff; no added line in
-   `src|app|lib|bin|cli|ui` (test paths excluded) matching the user-facing surface
+   the source-dir prefixes (`src|app|lib|bin|cli|ui` by default, tunable via
+   `SEAL_GUARD_PATHS`; test paths excluded) matching the user-facing surface
    patterns (`println!` / `console.log` / `printf(` / `print(` …, tunable via
    `SEAL_GUARD_PATTERNS`). The heuristic is deliberately conservative: misses are
-   acceptable, false blocks are the expensive failure mode.
+   acceptable, false blocks are the expensive failure mode. The default path set
+   assumes an application-code layout — a repo without those top-level dirs
+   (plugin trees, monorepos) MUST set `SEAL_GUARD_PATHS`, or the filter never
+   matches and the hook silently never fires; a zero-event telemetry month is
+   therefore ambiguous (no misses vs. filter never matched) until PATHS is
+   confirmed to fit the repo layout.
 3. **Seal evidence** (exit 0): a same-day line in `~/.codex/baransu/telemetry/{project}/seal-log-{YYYY-MM}.jsonl`
    (written by `/seal` on completion), or a `SEAL:` trailer in the latest commit.
 4. **On miss — telemetry in every mode**: appends one JSON line to
@@ -35,7 +41,8 @@ At `Stop`, the hook:
 5. **Verdict**: default → the same Traditional Chinese instruction on both runtimes
    (「偵測到 user-facing 變更尚未 /baransu:seal——請執行 seal 收尾，或設 SEAL_GUARD=log
    降級」). Claude receives exit 2 + stderr; Codex receives exit 0 + structured
-   `{"continue":false,"stopReason":"...","systemMessage":"..."}`. `SEAL_GUARD=log`
+   `{"decision":"block","reason":"...","systemMessage":"..."}` so Stop creates a
+   continuation prompt from `reason`. `SEAL_GUARD=log`
    or `off` → exit 0 with no block.
 
 ## Degrade / disable

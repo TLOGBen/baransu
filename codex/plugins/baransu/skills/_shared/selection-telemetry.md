@@ -49,6 +49,13 @@ Keep it to one line; this is telemetry, not a journal.
   (blocking → log, if the false-block rate is material), the `/codex-skill-transfer` retirement clause
   (three consecutive zero-use months → retire, ceiling back to 14), and routing-table
   wording fixes for whichever confusion pair actually fired.
+- **Zero-event caveat (seal-guard)**: a month with zero `seal-guard-{month}.jsonl`
+  lines is ambiguous — it means either "no misses" or "the path filter never
+  matched" (the hook writes telemetry only after the filter matches). Before
+  reading zero as success, confirm `SEAL_GUARD_PATHS` covers the repo's actual
+  source layout (default `src|app|lib|bin|cli|ui` assumes application-code
+  top-level dirs; plugin trees and monorepos need the override). A de-escalation
+  decision driven only by false-block rate cannot see this failure.
 
 ## Reform gate signals (Phase 3 — 2026-07)
 

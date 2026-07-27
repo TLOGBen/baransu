@@ -9,8 +9,10 @@
 #   G6) SEAL_GUARD=log same state → exit 0, telemetry line mode "log"
 #   G7) same-day seal-log.jsonl evidence → exit 0, no new telemetry line
 #   G8) hooks.json valid JSON, registers Stop → seal-guard.sh via ${CLAUDE_PLUGIN_ROOT}
-#   G11) Codex runtime miss → exit 0 + structured continue:false JSON
+#   G11) Codex runtime miss → exit 0 + Stop decision:block JSON with reason
 #   G12) Codex runtime defaults telemetry to ~/.codex, never ~/.claude
+#   G13) SEAL_GUARD_PATHS override: default path set misses a non-standard
+#        layout (plugins/); with SEAL_GUARD_PATHS=plugins the same diff blocks
 set -u
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -123,8 +125,8 @@ OUT="$(printf '{"hook_event_name":"Stop"}' \
   | PLUGIN_ROOT="$REPO_ROOT/plugins/baransu" CLAUDE_PROJECT_DIR="$R" \
     BARANSU_TELEMETRY_DIR="$T" bash "$HOOK" 2>/dev/null)"; rc=$?
 if [ "$rc" -eq 0 ] \
-   && printf '%s' "$OUT" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["continue"] is False; assert "baransu:seal" in d["stopReason"]; assert d["systemMessage"] == d["stopReason"]' 2>/dev/null; then
-  ok "G11 Codex miss returns continue:false JSON and exits 0"
+   && printf '%s' "$OUT" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["decision"] == "block"; assert "baransu:seal" in d["reason"]; assert d["systemMessage"] == d["reason"]; assert "continue" not in d; assert "stopReason" not in d' 2>/dev/null; then
+  ok "G11 Codex miss returns decision:block + reason JSON and exits 0"
 else bad "G11 Codex blocking contract (rc=$rc, out=$OUT)"; fi
 rm -rf "$R" "$T"
 
@@ -140,6 +142,24 @@ if [ "$rc" -eq 0 ] \
   ok "G12 Codex default telemetry root is ~/.codex only"
 else bad "G12 Codex telemetry root (rc=$rc)"; fi
 rm -rf "$R" "$H"
+
+# G13 — SEAL_GUARD_PATHS: non-standard layout misses by default, fires once
+# PATHS names the actual source dir (the plugin-tree/monorepo failure shape:
+# without the override the filter never matches and the hook silently never fires)
+R="$(mktemp -d)"
+git -C "$R" init -q -b main
+git -C "$R" -c user.email=t@t -c user.name=t commit -q --allow-empty -m init
+mkdir -p "$R/plugins/demo"
+printf 'fn main() {}\n' > "$R/plugins/demo/main.rs"
+git -C "$R" add -A && git -C "$R" -c user.email=t@t -c user.name=t commit -qm base
+printf 'fn f() { println!("hi user"); }\n' >> "$R/plugins/demo/main.rs"
+T="$(mktemp -d)"
+printf '{"stop_hook_active": false}' | CLAUDE_PROJECT_DIR="$R" BARANSU_TELEMETRY_DIR="$T" bash "$HOOK" >/dev/null 2>&1; rc_default=$?
+printf '{"stop_hook_active": false}' | CLAUDE_PROJECT_DIR="$R" BARANSU_TELEMETRY_DIR="$T" SEAL_GUARD_PATHS="plugins" bash "$HOOK" >/dev/null 2>&1; rc_paths=$?
+if [ "$rc_default" -eq 0 ] && [ "$rc_paths" -eq 2 ]; then
+  ok "G13 SEAL_GUARD_PATHS: default misses non-standard layout, override blocks"
+else bad "G13 SEAL_GUARD_PATHS (default rc=$rc_default, override rc=$rc_paths)"; fi
+rm -rf "$R" "$T"
 
 echo ""
 echo "=== test-seal-guard-hook: $PASS passed, $FAIL failed ==="

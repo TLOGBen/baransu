@@ -23,7 +23,7 @@
 | unsupported handler report | `不支援 handler：{event}/{type}` | `test_plugin_hook_drops_non_command_handler` |
 | malformed hook report | 必須具名 `hooks/hooks.json` 或 event，並說明 `無法解析` / `不是 array` / `不是 object` | `test_malformed_hook_shapes_are_reported_without_crashing` |
 | custom hook source report | 必須含 `自訂來源形狀需人工映射` | `test_manifest_only_hook_shape_is_reported` |
-| Codex Stop block | `{"continue":false,"stopReason":"{message}","systemMessage":"{message}"}` | `G11` |
+| Codex Stop block | `{"decision":"block","reason":"{message}","systemMessage":"{message}"}`；不得含 `continue` 或 `stopReason` | `G11` |
 | Codex telemetry root | `$HOME/.codex/baransu/telemetry`，不得產生 `$HOME/.claude/baransu/telemetry` | `G12` |
 | trust notice | 必須含 `/hooks` 與 `trust`，不得含 `預設關閉` | `test_plugin_hooks_are_ported` |
 
@@ -31,6 +31,6 @@
 ```text
 "hooks": "./hooks/hooks.json"
 不支援事件：SessionEnd
-{"continue":false,"stopReason":"{message}","systemMessage":"{message}"}
+{"decision":"block","reason":"{message}","systemMessage":"{message}"}
 ~/.codex/baransu/telemetry
 ```

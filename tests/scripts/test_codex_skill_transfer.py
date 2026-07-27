@@ -792,7 +792,8 @@ class TestPluginModeGeneration(unittest.TestCase):
             write_stub_skill(plugin / "skills" / "alpha", "alpha")
             hooks = plugin / "hooks"
             hooks.mkdir()
-            (hooks / "guard.sh").write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+            guard_bytes = b'#!/bin/sh\nprintf \'{"decision":"block","reason":"fixture"}\\n\'\n'
+            (hooks / "guard.sh").write_bytes(guard_bytes)
             (hooks / "hooks.json").write_text(
                 json.dumps(
                     {
@@ -829,7 +830,10 @@ class TestPluginModeGeneration(unittest.TestCase):
                 (plugin_out / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
             )
             self.assertEqual("./hooks/hooks.json", manifest["hooks"])
-            self.assertTrue((plugin_out / "hooks" / "guard.sh").is_file())
+            self.assertEqual(
+                guard_bytes,
+                (plugin_out / "hooks" / "guard.sh").read_bytes(),
+            )
             hook_doc = json.loads(
                 (plugin_out / "hooks" / "hooks.json").read_text(encoding="utf-8")
             )
@@ -964,7 +968,7 @@ class TestPluginModeGeneration(unittest.TestCase):
             manifest = json.loads(
                 (plugin_out / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
             )
-            self.assertEqual("3.1.6", manifest["version"])
+            self.assertEqual("3.1.7", manifest["version"])
 
             codex_transfer = plugin_out / "skills" / "codex-skill-transfer"
             self.assertTrue((codex_transfer / "references" / "CODEX_PORT_PLAN.md").is_file())
