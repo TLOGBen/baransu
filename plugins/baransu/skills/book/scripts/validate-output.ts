@@ -9,6 +9,10 @@
  *   - structure         : <main> or <article> present
  *   - svg-balance       : <svg> / </svg> tag counts match, ≥ 1 SVG
  *   - asset-path        : local src="…" files exist on disk
+ *   - self-contained    : no external stylesheet <link>, no @import inside
+ *                         <style> — /book output must inline all CSS
+ *                         (tokens.css is a render-time content source and a
+ *                         validator comparison source, never a runtime dep)
  *
  * New gates (cheerio-based, per REQ-004):
  *   - GATE-A focal-cap          : ≤ 2 [data-role="focal"] per SVG
@@ -157,6 +161,36 @@ while ((match = srcPattern.exec(content)) !== null) {
 const $: CheerioAPI = load(content, {
   xml: { lowerCaseAttributeNames: false, xmlMode: false } as never,
 } as never);
+
+// ── (e) self-contained: /book output must inline all CSS ────────────────────
+// Core check, every mode (long-form + per-slide PPT share this single code
+// path). tokens.css stays a render-time content source (inlined at Stage 3)
+// and the GATE-F comparison source — never a runtime dependency of the output.
+{
+  let scFail = 0;
+  for (const el of $("link").toArray() as DomElement[]) {
+    const rel = ($(el).attr("rel") ?? "").trim().toLowerCase();
+    if (rel !== "stylesheet") continue;
+    const href = $(el).attr("href") ?? "";
+    console.log(
+      `FAIL self-contained: external stylesheet <link href="${href}"> found — /book output must inline all CSS`
+    );
+    scFail = 1;
+  }
+  for (const el of $("style").toArray() as DomElement[]) {
+    if (/@import\b/.test($(el).text())) {
+      console.log(
+        "FAIL self-contained: @import inside <style> — /book output must inline all CSS"
+      );
+      scFail = 1;
+    }
+  }
+  if (scFail) {
+    fail = 1;
+  } else {
+    console.log("OK  self-contained");
+  }
+}
 
 const svgs = $("svg").toArray() as DomElement[];
 

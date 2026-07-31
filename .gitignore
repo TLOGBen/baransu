@@ -4,6 +4,7 @@
 
 # Archived session work files (baransu /ship output — local only).
 .claude/archived/
+/.claude/archived/
 /.codex/archived/
 
 # Transient baransu workspace dirs — local only, archived by /ship into .claude/archived/.

@@ -89,7 +89,7 @@ These apply regardless of content type — they are the standing `book` invarian
 | TOC sidebar | Show at ≥ 1024px viewport; sticky; highlight active section via IntersectionObserver |
 | SVG diagrams | Minimum 1 per document; stroke-based, round linecap, 1.5–2px stroke; no fills heavier than 20% opacity |
 | Left rule | 1px `var(--accent)` hairline at x=52px inside the paper sheet (as in the long-form SSOT / golden-template exemplars) |
-| Max body width | 760px; reading column capped at 680px |
+| Max body width | 880px; reading column capped at 740px |
 | Paper shadow | route through the preset's shadow tokens (`var(--shadow-ring)` / `var(--shadow-whisper)`), not hand-tuned rgba values |
 
 ---

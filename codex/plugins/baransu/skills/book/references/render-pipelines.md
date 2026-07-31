@@ -44,6 +44,8 @@ Write each generated slide to **`.codex/book/slides-{$SLUG}/slide-{NN}.html`** (
 
 If `{project_root}/slide-cores/<layout-id>.html` is missing (consistent with the Stage 2B graceful-degradation behavior): warning「請先跑 `/baransu:design preset <style>` 取得 slide-cores」, and the body slot degrades to the inline skeleton of the hardcoded fallback three layouts (`cover` / `closing` / `content-bullets`); do not abort Stage 3.
 
+**Self-containment (mandatory)**: the slide-cores skeletons carry `<link rel="stylesheet" href="../tokens.css">` — that relative path breaks once the slide is written under `.codex/book/slides-{$SLUG}/`, and the output must be single-file portable regardless. When generating each slide HTML from the skeleton: STRIP every `<link rel="stylesheet" …>` and replace it with an inline `<style>` embedding the FULL content of `{project_root}/tokens.css` (keep its line-1 preset comment verbatim). No `@import` anywhere. validate-output.ts's `self-contained` core check blocks on violations in Stage 4's per-slide loop.
+
 Output spec for each slide (one HTML file per slide):
 
 - `<body style="width:960pt; height:540pt; margin:0; padding:0;">` — the unit is **pt**, not px. html2pptx.js validates the body against `LAYOUT_WIDE` (13.333in × 7.5in): 960**pt** = 1280px = 13.333in passes; 960**px** = 10.0in throws a dimension-mismatch error and the whole PPT run fails (the passing fixture `scripts/validate-fixtures/swiss-positive.html` uses `body { width: 960pt; height: 540pt; }`).
@@ -55,11 +57,12 @@ Output spec for each slide (one HTML file per slide):
 
 **Step 2: Validate the slide HTML**
 
-Before calling html2pptx.js, validate three things:
+Before calling html2pptx.js, validate four things:
 
 1. The `width` style of `<body>` is `960pt` (or the equivalent `1280px`) — the bare number `960` without the `pt` unit does NOT pass; a `960px` body fails html2pptx dimension validation downstream
 2. The document contains at least one `<section data-layout="…">` slide element with a `{prefix}-slide` class
 3. It does not contain `background-image`
+4. It does not contain `<link rel="stylesheet">` — tokens are already embedded as an inline `<style>`; an external stylesheet link means the slide is not self-contained and validate-output.ts's `self-contained` check FAILs it
 
 If any check fails: output `⚠️ Slide HTML 驗證失敗：{失敗原因}`, do not call html2pptx.js, and continue with the other formats.
 

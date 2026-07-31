@@ -15,17 +15,18 @@
   <style>
     * { box-sizing: border-box; }
     body { background: var(--paper); color: var(--text-primary); font-family: var(--font-serif); margin: 0; text-wrap: pretty; }
-    .kami-page { max-width: 1200px; margin: 0 auto; padding: 56px 24px; display: grid; grid-template-columns: 220px 1fr; gap: 56px; }
+    .kami-page { max-width: 1200px; margin: 0 auto; padding: 24px 24px 56px; display: grid; grid-template-columns: 176px minmax(0, 880px); justify-content: center; gap: 32px; }
     .kami-toc { position: sticky; top: 24px; align-self: start; border-left: 3px solid var(--accent); padding-left: 16px; }
     .kami-toc .kami-toc-label { font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.08em; }
     .kami-toc h1 { font-size: 18px; margin: 8px 0 24px; font-weight: 500; letter-spacing: -0.01em; }
     .kami-toc ol { list-style: none; padding: 0; margin: 0; }
     .kami-toc a { display: block; font-size: 13px; color: var(--text-secondary); text-decoration: none; padding: 4px 0; }
     .kami-toc a:hover { color: var(--accent); }
-    .kami-h1 { font-size: 36px; font-weight: 500; line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 16px; text-wrap: pretty; }
+    .kami-h1 { font-size: 36px; font-weight: 500; line-height: 1.15; letter-spacing: -0.01em; margin: 28px 0 16px; text-wrap: pretty; }
     .kami-h2 { font-size: 24px; font-weight: 500; line-height: 1.25; letter-spacing: -0.01em; border-left: 3px solid var(--accent); padding-left: 12px; margin: 32px 0 16px; text-wrap: pretty; }
     .kami-h3 { font-size: 18px; font-weight: 500; line-height: 1.30; margin: 24px 0 12px; text-wrap: pretty; }
-    .kami-paper { background: var(--paper); padding: 56px; border: 0.5px solid var(--border); border-radius: var(--radius-md); }
+    .kami-paper { position: relative; background: var(--paper); padding: 40px 56px 56px 84px; border: 0.5px solid var(--border); border-radius: var(--radius-md); }
+    .kami-paper::after { content: ""; position: absolute; top: 0; bottom: 0; left: 52px; width: 1px; background: var(--accent); opacity: 0.18; pointer-events: none; }
     .kami-lead { font-size: 17px; line-height: 1.55; color: var(--text-primary); margin: 16px 0; }
     .kami-body { font-size: 15px; line-height: 1.55; color: var(--text-primary); margin: 12px 0; text-wrap: pretty; }
     .kami-dropcap { float: left; font-size: 4.65em; line-height: 1; font-weight: 500; color: var(--accent); padding-right: 8px; padding-top: 2px; }
@@ -34,11 +35,19 @@
     .kami-code { font-family: var(--font-mono); font-size: 13px; background: var(--surface); padding: 2px 6px; border-radius: var(--radius-sm); border: 0.5px solid var(--border-soft); }
     pre.kami-pre { background: var(--surface); padding: 20px; border: 0.5px solid var(--border); border-radius: var(--radius-md); overflow-x: auto; font-family: var(--font-mono); font-size: 13px; line-height: 1.55; }
     figure.kami-figure { margin: 32px 0; }
-    figure.kami-figure svg { display: block; max-width: 100%; }
+    figure.kami-figure svg { display: block; max-width: 100%; cursor: zoom-in; }
     figcaption.kami-figcaption { font-size: 12px; color: var(--text-muted); margin-top: 8px; text-align: center; }
+    /* Figure lightbox — click any kami-figure SVG to zoom (vector, stays sharp).
+       Browser-only overlay chrome (display:none until opened; never enters the
+       WeasyPrint PDF path). Kami invariant #8 constrains Tag backgrounds only. */
+    .kami-lightbox { position: fixed; inset: 0; z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 8px; background: rgb(from var(--paper) r g b / 96%); cursor: zoom-out; }
+    .kami-lightbox.is-open { display: flex; }
+    .kami-lightbox-stage { width: 98vw; height: 94vh; }
+    .kami-lightbox-stage svg { display: block; width: 100%; height: 100%; background: var(--paper); border-radius: var(--radius-md); border: 0.5px solid var(--border); cursor: zoom-out; }
+    .kami-lightbox-hint { margin: 0 0 6px; color: var(--text-faint); font-family: var(--font-mono), "Microsoft JhengHei", monospace; font-size: 12px; letter-spacing: 0.08em; }
     .kami-footer { font-size: 12px; color: var(--text-faint); border-top: 0.5px solid var(--border); padding-top: 16px; margin-top: 56px; }
     em, i { font-style: normal; font-weight: 500; }
-    @media (max-width: 900px) { .kami-page { grid-template-columns: 1fr; gap: 24px; padding: 24px; } .kami-toc { position: static; } }
+    @media (max-width: 900px) { .kami-page { grid-template-columns: 1fr; gap: 24px; padding: 24px; } .kami-toc { position: static; } .kami-paper { padding: 32px 24px; } .kami-paper::after { display: none; } }
   </style>
 </head>
 <body class="kami-paper-body">
@@ -93,5 +102,35 @@
   </main>
 
 </div>
+
+<div class="kami-lightbox" id="kami-lightbox" role="dialog" aria-modal="true" aria-label="放大檢視圖表">
+  <p class="kami-lightbox-hint">點擊任意處或按 ESC 關閉</p>
+  <div class="kami-lightbox-stage"></div>
+</div>
+
+<script>
+  (function () {
+    var lightbox = document.getElementById('kami-lightbox');
+    var stage = lightbox.querySelector('.kami-lightbox-stage');
+    function open(svg) {
+      stage.innerHTML = '';
+      stage.appendChild(svg.cloneNode(true));
+      lightbox.classList.add('is-open');
+      document.body.style.overflow = 'hidden';
+    }
+    function close() {
+      lightbox.classList.remove('is-open');
+      stage.innerHTML = '';
+      document.body.style.overflow = '';
+    }
+    document.querySelectorAll('figure.kami-figure svg').forEach(function (svg) {
+      svg.addEventListener('click', function () { open(svg); });
+    });
+    lightbox.addEventListener('click', close);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && lightbox.classList.contains('is-open')) close();
+    });
+  })();
+</script>
 </body>
 </html>

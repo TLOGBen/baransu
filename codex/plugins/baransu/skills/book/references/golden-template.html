@@ -98,9 +98,9 @@
                           underneath (Kami "印刷品堆疊" tactile cue) */
   .paper {
     background: var(--surface);
-    max-width: 760px;
-    margin: 40px auto 80px;
-    padding: 64px 72px;
+    max-width: 880px;
+    margin: 24px auto 80px;
+    padding: 48px 72px 64px 84px;
     box-shadow:
       0 2px 8px rgba(0,0,0,.08),         /* 1. drop */
       0 12px 40px rgba(0,0,0,.06),       /* 2. depth halo */
@@ -121,11 +121,11 @@
   .toc-wrap {
     position: fixed;
     top: 48px;
-    left: calc(50% - 380px - 200px);
+    left: calc(50% - 440px - 200px);
     width: 180px;
     display: none;
   }
-  @media (min-width: 1160px) { .toc-wrap { display: block; } }
+  @media (min-width: 1280px) { .toc-wrap { display: block; } }
   .toc-wrap h3 {
     font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
     color: var(--text-faint); margin-bottom: 10px; font-family: var(--font-mono);
@@ -146,7 +146,7 @@
   /* ── Header ── */
   .kicker {
     font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
-    color: var(--accent); margin-bottom: 14px;
+    color: var(--accent); margin-bottom: 24px;
     font-family: var(--font-mono); font-weight: 500;
   }
   h1 {
@@ -215,6 +215,34 @@
     color: var(--accent); font-weight: 500;
   }
   svg { display: block; margin: 0 auto; max-width: 100%; }
+  figure.diagram svg { cursor: zoom-in; }
+
+  /* ── Figure lightbox — click any diagram SVG to zoom (vector, stays sharp).
+     Browser-only overlay chrome (display:none until opened; never enters the
+     WeasyPrint PDF path). Kami invariant #8 constrains Tag backgrounds only. ── */
+  .lightbox {
+    position: fixed; inset: 0; z-index: 100;
+    display: none; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 8px;
+    background: rgb(from var(--paper) r g b / 96%);
+    cursor: zoom-out;
+  }
+  .lightbox.is-open { display: flex; }
+  .lightbox-stage { width: 98vw; height: 94vh; }
+  .lightbox-stage svg {
+    display: block; width: 100%; height: 100%;
+    background: var(--paper);
+    border-radius: 4px;
+    border: 0.5px solid var(--border);
+    cursor: zoom-out;
+  }
+  .lightbox-hint {
+    margin: 0 0 6px;
+    color: var(--text-faint);
+    font-family: var(--font-mono), "Microsoft JhengHei", monospace;
+    font-size: 12px; letter-spacing: 0.08em;
+  }
 
   /* ── Comparison table ── */
   table.cmp {
@@ -537,6 +565,36 @@
     });
   }, { threshold: 0.35 });
   sections.forEach(s => io.observe(s));
+</script>
+
+<!-- Figure lightbox (frame chrome — keep in every render, like the TOC scrollspy) -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="放大檢視圖表">
+  <p class="lightbox-hint">點擊任意處或按 ESC 關閉</p>
+  <div class="lightbox-stage"></div>
+</div>
+<script>
+  (function () {
+    const lightbox = document.getElementById('lightbox');
+    const stage = lightbox.querySelector('.lightbox-stage');
+    function openLightbox(svg) {
+      stage.innerHTML = '';
+      stage.appendChild(svg.cloneNode(true));
+      lightbox.classList.add('is-open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeLightbox() {
+      lightbox.classList.remove('is-open');
+      stage.innerHTML = '';
+      document.body.style.overflow = '';
+    }
+    document.querySelectorAll('figure.diagram svg').forEach(svg => {
+      svg.addEventListener('click', () => openLightbox(svg));
+    });
+    lightbox.addEventListener('click', closeLightbox);
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && lightbox.classList.contains('is-open')) closeLightbox();
+    });
+  })();
 </script>
 </body>
 </html>

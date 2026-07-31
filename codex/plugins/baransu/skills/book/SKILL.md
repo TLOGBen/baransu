@@ -27,6 +27,7 @@ Converts any content into a Kami-themed, browser-ready HTML book saved to `.code
 ## Constraints
 
 - **Token source = project root**: all visual elements consume tokens from `{project_root}/tokens.css` (written by `/baransu:design preset <style>` or `/baransu:design gen --slug <slug>`) plus the component patterns in `{project_root}/design-cores/long-form.html` (SSOT) or `references/golden-template.html` (fallback). No inline hex colours; use named CSS variables (canonical 38 base names; +5 capability for schema:43).
+- **Single-file self-contained output**: every output HTML (long-form AND each PPT per-slide file) must open correctly when copied anywhere on its own — all CSS is embedded inline in `<style>` blocks. The output MUST NOT contain `<link rel="stylesheet">` and MUST NOT contain `@import` inside any `<style>`. `{project_root}/tokens.css` has exactly two roles — the render-time content source that gets inlined (Stage 3 §1-§2) and the comparison source validate-output.ts reads (GATE-F tie-break + the `self-contained` core check) — it is never a runtime dependency of the output. Mechanical anchor: the `self-contained` check in `scripts/validate-output.ts` (blocking, all modes).
 - **Soft generation inside the hard floor**: the render generates layout within the preset's §9 expression range (Stage 3 §3), using the SSOT template / fallback as reference exemplars rather than a closed class whitelist. The non-negotiable floor is the token boundary — every color routes through the canonical token (38 base names; +5 capability for schema:43), no bare hex. In PPT mode validate-output.ts (GATE-F) mechanically enforces the class-prefix subset of this floor; in html (long-form) mode GATE-F SKIPs, so the floor is guarded by the Stage 3 §3 pre-write checklist instead; the soft §9 range is judged by style-reviewer.
 - **SVG required**: a document with 0 SVG diagrams fails the quality gate and must be fixed before completion.
 - **Length cap**: final HTML body ≤ 1800 words. Excess goes into a 延伸閱讀 link block.
@@ -345,7 +346,8 @@ The long-form.html slot is a show-by-example contract — the slot demonstrates 
 Produce the full HTML document using the SSOT template loaded in §1 step 2:
 
 ```
-<head> with linked tokens.css (use {project_root}/tokens.css; fill {{TITLE}})
+<head> with an inline <style> embedding the FULL content of {project_root}/tokens.css
+       (keep its line-1 preset comment verbatim; fill {{TITLE}}); never a <link rel="stylesheet">
 <nav class="<slug>-toc"> with <a href="#sN"> for each section
 <main>
   <header class="<slug>-cover"> with kicker, h1, subtitle, meta
@@ -372,7 +374,7 @@ For each section from `$STRUCTURE`:
 
 1. **Inter-section vertical gap = 3xl 80–120pt** between long-doc `<section>` blocks — drive it with the existing spacing token at the 3xl step; never inherit the browser-default margin.
 2. **Reading-body line-height locked 1.50–1.55** (CJK on screen may relax to 1.55–1.65); **`≥ 1.70` is banned** (reads as floating web-prose, not print).
-3. **Reading column capped 680px / max body width 760px** — wider than this is a slop signal, not "generous".
+3. **Reading column capped 740px / max body width 880px** — wider than this is a slop signal, not "generous".
 
 **Soft generation within bounds (replaces the old fixed-class-whitelist rule)**: the render reads three inputs — `{project_root}/tokens.css`, the current preset's `DESIGN.md` **§9 expression range** (loaded in Stage 0 §1), and the **current article context** (`$STRUCTURE` + `$RAW_CONTENT` + the Stage 0b interview brief) — and **GENERATES** the layout for each section inside the hard safety floor. The output is **NOT limited to a fixed class whitelist that must pre-exist in the SSOT template**; the SSOT template and `references/golden-template.html` are reference exemplars, not the closed set of permissible classes. Within the §9 expression range (its 不對稱/重疊允許度 soft cap, 空間原則 symmetry/grid basis, 欄寬上限) the render may compose section layout to fit the article context (e.g. an asymmetric or break-grid arrangement when §9 permits it), so two different articles under the same preset can differ in layout while staying stylistically consistent. When composing novel visual structure not covered by preset tokens / SSOT templates, the 構成/獨特性 rules of `../design/references/aesthetics-foundation.md` apply — read that file on demand before improvising the layout.
 
@@ -384,7 +386,7 @@ For each section from `$STRUCTURE`:
 
 1. **Inter-section spacing** — is each pair of adjacent `<section>` driven by the 3xl spacing token (80–120pt), not browser-default margin? (§3 render-time hard rule #1)
 2. **Reading line-height** — is body line-height ∈ [1.50, 1.55] (CJK screens may relax to 1.65), with no `≥ 1.70` anywhere in the text? (§3 render-time hard rule #2)
-3. **Reading column width** — is the reading column ≤ 680px and max body width ≤ 760px? (§3 render-time hard rule #3)
+3. **Reading column width** — is the reading column ≤ 740px and max body width ≤ 880px? (§3 render-time hard rule #3)
 4. **Single accent** — only one chromatic accent (`var(--accent)`) used, accent-painted area ≤ 5% of body, and emphasis is "color OR weight, not both" — with the narrowly-scoped **declared-statistical-chart container exception**: inside a section whose `statistical` chart resolved to the Declared branch of the chart-capability check documented in this file's §4 SVG generation spec below, the chart's own `<figure>`/SVG container may use its multi-color palette without counting against this check; every other element — including that same section's own prose/caption outside the `<figure>` boundary — still must pass unmodified? (perception-guide Anti-Slop #8)
 5. **SVG focal + alignment** — each SVG has ≤ 2 `data-role="focal"`, and all coordinates / widths / spacing are multiples of 4? (svg-rendering-rules §4.7)
 6. **figcaption** — does each `<figcaption>` pass the perception-guide Anti-Slop #5 pass test (carrying one of: trade-off / next step / a dimension the figure doesn't directly show), rather than merely restating the title or node name? (perception-guide Anti-Slop #5)
