@@ -206,6 +206,8 @@ line-height: 1.55;
 
 **Border Radius Scale**：`4pt → 6pt → 8pt（預設）→ 12pt → 16pt → 24pt → 32pt（hero）`
 
+**巢套圓角（advisory，僅適用新的緊貼巢套）**：外圓角＝內圓角＋padding，讓內外輪廓同心；padding > 24px 時兩層視為獨立表面、不強制套公式；§4 既有元件規格不回溯適用。
+
 **網格**：12 欄，column gutter 24px，page margin 48px（桌機）/ 16px（手機）
 
 **留白哲學**：
@@ -225,7 +227,7 @@ line-height: 1.55;
 ## 6. Iconography & Imagery
 
 **圖示風格**：
-- 線條型（outline），stroke-width 1.5–2px
+- 線條型（outline）；筆畫與相鄰文字字重光學配對：400 內文旁 1.5px、500–600 旁 2px；同一表面只用單一筆畫粗細
 - 圓角端點（round linecap / linejoin）
 - 尺寸：16px / 20px / 24px 三種標準尺寸
 - 顏色繼承文字色（currentColor），特殊強調才用 `--accent`
@@ -248,12 +250,15 @@ line-height: 1.55;
 
 **Easing 曲線**：
 - 標準：`ease-out`
-- Spring 感（彈性展開）：`cubic-bezier(0.34, 1.56, 0.64, 1)`
+- 阻尼（展開/收折）：`cubic-bezier(0.4, 0, 0.2, 1)`——與 tokens `--ease` 同值，減速貼齊、無過衝
 
 **動畫限制**：
 - 不使用純粹裝飾性的循環動畫
 - 尊重 `prefers-reduced-motion`：所有動畫在此媒體查詢下降至 0ms
 - 避免大範圍平移；優先使用 opacity + scale 的組合
+- 互動狀態變化用 CSS transition（可中斷、可反向）；keyframe 只用於一次性序列——物件不瞬移、不重播
+- 退場比進場更短更輕：退場時長小於進場，位移用小幅固定值
+- 動效永不是唯一回饋通道：每個動畫狀態變化都配一個靜態線索（顏色、圖示或文字）
 
 ---
 
@@ -280,6 +285,8 @@ line-height: 1.55;
 - ❌ 不使用純無襯線字族做全頁排版
 - ❌ 不使用高飽和度撞色搭配
 - ❌ 不在介面中使用裝飾性循環動畫
+- ❌ 禁用過衝／彈跳 easing（如 `cubic-bezier(0.34, 1.56, 0.64, 1)`）——阻尼到位、不越界
+- ❌ 禁用 `transition: all`——只 transition 實際變化的屬性
 
 ---
 

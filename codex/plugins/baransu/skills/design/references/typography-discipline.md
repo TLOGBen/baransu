@@ -129,3 +129,19 @@ context decides), do NOT introduce a third stance:
   two voices. — Tschichold:字體即立場
 - IF applying display tracking THEN scope negative letter-spacing to Latin runs only —
   never on CJK glyphs (tightened Hanzi reads as a rendering bug, not a style).
+
+## 4. text-wrap boundaries (balance vs pretty)
+
+`text-wrap: pretty` is the baseline plumbing (editorial-sanity Check 1 mechanically
+requires it on long-form body copy); the §3.3 orphan sweep handles the RESIDUAL
+orphans pretty cannot fix. The two are layers, not competing stances.
+
+- IF the element is a heading of six lines or fewer (≤6, the Chromium balancing
+  limit) THEN use `text-wrap: balance` — even line distribution matters more there
+  than last-line rescue.
+- IF short-to-medium body copy (paragraphs, captions, list items) THEN use
+  `text-wrap: pretty` — orphan rescue with no line-count ceiling.
+- IF long-form text far beyond the balancing limit THEN use neither — default
+  wrapping; both properties waste intent there.
+- Existing skeletons that declare `pretty` on headings remain compliant — `balance`
+  is a render-time upgrade for heading surfaces, never a retroactive rule.

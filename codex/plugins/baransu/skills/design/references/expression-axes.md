@@ -93,6 +93,7 @@ motion is allowed to exist at all.
 - Motion that groups elements is a grouping statement — things that move together read
   as one group (Gestalt:共同命運; cross-ref the `aesthetics-foundation.md` §4 motion
   row). Motion that decorates is garnish and gets cut.
+- Motion is never the only feedback channel — every animated state change pairs with a static cue (color, icon, or label).
 
 ### 決策規則（motion）
 

@@ -91,11 +91,13 @@
   }
 
   /* ── Paper sheet ──
-     Shadow stack (three layers, spec-locked per /design § paper-craft):
+     Shadow stack (three layers, spec-locked; self-contained — no external
+     authority). Deliberate exception to Kami inv #9: layer 3 is a hard-edged
+     zero-blur offset by design — it fakes a 2nd sheet underneath (Kami
+     "印刷品堆疊" tactile cue). Do not "normalize" it to ring/whisper:
        1. drop          — directly under sheet, simulates lift off table
        2. depth halo    — soft, wide blur, ambient
-       3. paper-stack   — offset + negative spread, fakes a 2nd sheet
-                          underneath (Kami "印刷品堆疊" tactile cue) */
+       3. paper-stack   — offset + negative spread, hard edge intended */
   .paper {
     background: var(--surface);
     max-width: 880px;
@@ -152,7 +154,7 @@
   h1 {
     font-size: 2.375rem; font-weight: 500; line-height: 1.15;
     letter-spacing: -.01em; margin-bottom: 16px;
-    text-wrap: pretty;
+    text-wrap: balance;
   }
   .subtitle {
     font-size: 15.5px; color: var(--text-secondary);
@@ -174,7 +176,7 @@
     margin-bottom: 16px; padding-bottom: 8px;
     border-bottom: 1px solid var(--border-soft);
     display: flex; align-items: center; gap: 10px;
-    text-wrap: pretty;
+    text-wrap: balance;
   }
   .sec-num {
     font-size: 10px; font-weight: 500; letter-spacing: .08em;

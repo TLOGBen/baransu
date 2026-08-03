@@ -173,6 +173,8 @@ line-height: 1.55;
 
 **Border Radius Scale**：`0px → 2px → 4px（預設）→ 8px → 12px → 16px → 24px（hero）`
 
+**巢套圓角（advisory，僅適用新的緊貼巢套）**：外圓角＝內圓角＋padding，讓內外輪廓同心；padding > 24px 時兩層視為獨立表面、不強制套公式；§4 既有元件規格不回溯適用。
+
 **網格**：12 欄，column gutter 24px，page margin 56px（桌機）/ 16px（手機）
 
 **對齊哲學**（Swiss 核心）：
@@ -197,7 +199,7 @@ line-height: 1.55;
 ## 6. Iconography & Imagery
 
 **圖示風格**：
-- 線條型（outline），stroke-width 1.5–2px
+- 線條型（outline）；筆畫與相鄰文字字重光學配對：400 內文旁 1.5px、500–600 旁 2px；同一表面只用單一筆畫粗細
 - 直角端點（square / round 二選一，全站一致；預設 round linecap / linejoin）
 - 尺寸：16px / 20px / 24px 三種標準尺寸
 - 顏色繼承文字色（currentColor），特殊強調才用 `--accent`
@@ -226,6 +228,9 @@ line-height: 1.55;
 - 不使用裝飾性循環動畫；Swiss 偏好靜態構成
 - 尊重 `prefers-reduced-motion`：所有動畫在此媒體查詢下降至 0ms
 - 避免大範圍平移；優先使用 opacity 與 1–2px 的位移
+- 互動狀態變化用 CSS transition（可中斷、可反向）；keyframe 只用於一次性序列——物件不瞬移、不重播
+- 退場比進場更短更輕：退場時長小於進場，位移用小幅固定值
+- 動效永不是唯一回饋通道：每個動畫狀態變化都配一個靜態線索（顏色、圖示或文字）
 
 ---
 
@@ -251,6 +256,7 @@ line-height: 1.55;
 - ❌ 不使用 italics（模板與 demo 均禁用）
 - ❌ 不引入 serif 字族——本 preset 為純 sans-serif
 - ❌ 不使用裝飾性循環動畫
+- ❌ 禁用 `transition: all`——只 transition 實際變化的屬性
 - ❌ 不使用置中對齊作為預設排版策略——Swiss 偏好 flush-left
 
 ---

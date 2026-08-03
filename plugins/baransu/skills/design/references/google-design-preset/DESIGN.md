@@ -306,6 +306,7 @@ Selected → `background: var(--md-secondary-container); color: var(--md-on-seco
 - Icon button 中：24dp icon + 8dp padding = 40dp tap target
 - 在 navigation rail：`fill=0` 預設、`fill=1` 選中
 - 不要混用三種風格，全站擇一
+- Symbols weight 軸跟隨相鄰文字的 weight（如 label 500 → icon weight 500）；本 preset 不使用 px stroke 配對
 
 **圖片**：
 - Photography 偏向自然光、真實場景，避免過度後製
@@ -349,6 +350,8 @@ Selected → `background: var(--md-secondary-container); color: var(--md-on-seco
 - Container Transform：元件間轉場優先用「容器變形」（Material 簽名動效），如 FAB → Dialog。
 - 尊重 `prefers-reduced-motion`：動畫長度降至 0ms 或極短。
 - 不用純粹裝飾性的循環動畫，progress 例外。
+- 互動狀態變化用可中斷的 transition；keyframe 只用於一次性序列。
+- 離場 duration 短於進場，配 `--md-easing-emphasized-accelerate` 離場曲線。
 
 ---
 
@@ -375,6 +378,7 @@ Selected → `background: var(--md-secondary-container); color: var(--md-on-seco
 - ❌ Tracking 不能憑感覺改，table 內每個 type role 都有預設值
 - ❌ 不要把 primary 大面積鋪滿（CTA / FAB 用就好，大面積用 primary-container）
 - ❌ 不要忽略 `prefers-reduced-motion`
+- ❌ 不要用 `transition: all`——逐屬性指定 transition-property
 - ❌ 不要用純黑陰影 `#000` 高 opacity，用 0.15 / 0.30 雙層
 
 ---
