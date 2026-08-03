@@ -52,7 +52,7 @@ source / schema / contract / permissions; tag each `已驗` (first-hand: DB quer
 actual code at file:line / SA doc) or `未驗`. **現實接觸強制閘 (大膽包 A)**: a
 `未驗` premise of that kind may NOT be written into criteria as fact — get ONE
 first-hand contact to confirm or refute it, or (contact impossible this run)
-escalate it to the user as an explicit assumption via `user-question PAUSE (unclassified)`, never
+escalate it to the user as an explicit assumption via `request_user_input`, never
 silently. A prior harness experiment's whole failure was one `未驗`
 data-source premise entering the contract as 「領域事實」.
 

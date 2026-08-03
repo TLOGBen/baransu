@@ -2,6 +2,13 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [3.1.10] - 2026-08-03
+
+### Changed
+- **`/codex-skill-transfer` 0.15.0 將 Claude `AskUserQuestion` 優先映射到 Codex `request_user_input`**。Default mode 有暴露工具時，輸入與授權 PAUSE 使用結構化提問 UI；未開 `default_mode_request_user_input` 或 runtime 未提供工具時，仍保留文字停點，`/think` 則保留 phase split + `alignment.md` artifact gate，避免生成物只在單一實驗性設定下可用。
+- **`/think` 四選一 Stage G 改為相容 3-option 上限的條件式兩段提問**：先選「送 /review」或「直接決定」，後者再選批准／繼續對焦／放棄；自動附加的 Other 只保留自由輸入，不承擔穩定第四選項。
+- **超出 runtime payload 上限的批次會拆分**：`/book` 四題 pre-interview 轉為 3+1 兩次呼叫；所有功能性 code span 都輸出真實工具名 `request_user_input`，不再生成看似工具名的 `request_user_input authorization PAUSE` 等假 token。
+
 ## [3.1.8] - 2026-07-27
 
 ### Fixed

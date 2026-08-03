@@ -76,7 +76,7 @@ TaskUpdate: status=completed
         self.assertIn("TaskCreate", rpt.capability_risks)
         self.assertIn("TaskUpdate", rpt.capability_risks)
 
-    def test_think_ask_user_becomes_alignment_artifact_gate(self):
+    def test_think_ask_user_prefers_runtime_tool_with_artifact_fallback(self):
         rpt = transfer.TransferReport(
             skill_name="think",
             source=Path("source"),
@@ -86,11 +86,18 @@ TaskUpdate: status=completed
         out = transfer.rewrite_body("Call AskUserQuestion before planning.", rpt)
         out = transfer.inject_codex_port_adapter(out, rpt)
 
-        self.assertIn("Codex Port Adapter - Alignment Gate", out)
+        self.assertIn("Codex Port Adapter - Request User Input Gate", out)
         self.assertIn("model's inertia to skip alignment", out)
+        self.assertIn("`request_user_input`", out)
+        self.assertIn("default_mode_request_user_input", out)
         self.assertIn("require `alignment.md` before planning", out)
+        self.assertIn("four-option Stage G gate", out)
+        self.assertIn("two conditional questions", out)
         self.assertIn("AskUserQuestion:think", rpt.capability_risks)
-        self.assertEqual("artifact-gate", rpt.capability_risks["AskUserQuestion:think"].codex_level)
+        self.assertEqual(
+            "runtime-tool+artifact-fallback",
+            rpt.capability_risks["AskUserQuestion:think"].codex_level,
+        )
 
     def test_think_ask_user_occurrences_are_context_classified(self):
         rpt = transfer.TransferReport(
@@ -109,13 +116,36 @@ After the plan is presented, call `AskUserQuestion` with four options.
 
         out = transfer.rewrite_body(body, rpt)
 
-        self.assertIn("Codex alignment gate requiring alignment.md", out)
-        self.assertIn("authorization PAUSE", out)
-        self.assertIn("input-alignment question PAUSE", out)
+        self.assertIn("Then call `request_user_input` with options", out)
+        self.assertIn("conditional two-question `request_user_input` flow", out)
+        self.assertIn("Call `request_user_input` to find out", out)
         self.assertIn("AskUserQuestion:think", rpt.capability_risks)
         self.assertIn("AskUserQuestion:authorization", rpt.capability_risks)
         self.assertIn("AskUserQuestion:input-gate", rpt.capability_risks)
         self.assertNotIn("`run the Codex alignment gate: output numbered alignment questions, stop, then require `alignment.md` before planning`", out)
+        self.assertIn("conditional two-question `request_user_input` flow", out)
+        self.assertIn("stable semantic outcomes, not one tool-call payload", out)
+        self.assertNotIn(
+            "call `request_user_input` with these four options",
+            out,
+        )
+
+    def test_book_four_question_batch_splits_to_runtime_limit(self):
+        rpt = transfer.TransferReport(
+            skill_name="book",
+            source=Path("source"),
+            target=Path("target"),
+        )
+        body = (
+            "use a **single AskUserQuestion batch** (4 questions presented "
+            "together, not blocking question-by-question) before Stage 1."
+        )
+
+        out = transfer.rewrite_body(body, rpt)
+
+        self.assertIn("two sequential `request_user_input` calls", out)
+        self.assertIn("3 questions in the first call and 1 in the second", out)
+        self.assertNotIn("single `request_user_input`", out)
 
     def test_noun_phrase_mentions_get_plain_noun_no_stop_imperative(self):
         # Negated/noun-phrase mentions must never receive the call-site
@@ -142,6 +172,11 @@ After the plan is presented, call `AskUserQuestion` with four options.
                 "book",
                 "0 results triggers an AskUserQuestion block.",
                 "triggers a user-question block",
+            ),
+            (
+                "review",
+                "One non-AskUserQuestion checkpoint remains.",
+                "One non-user-question checkpoint remains.",
             ),
         ]:
             with self.subTest(skill_name=skill_name):
@@ -175,7 +210,7 @@ After the plan is presented, call `AskUserQuestion` with four options.
         # entry was removed, so hunt falls to unclassified like other skills.
         self.assertNotIn("hunt", transfer.ASK_USER_CAPABILITY_BY_SKILL)
 
-    def test_cosmetic_ask_user_becomes_numbered_text_pause(self):
+    def test_cosmetic_ask_user_prefers_request_user_input_with_text_fallback(self):
         rpt = transfer.TransferReport(
             skill_name="read",
             source=Path("source"),
@@ -185,12 +220,14 @@ After the plan is presented, call `AskUserQuestion` with four options.
         out = transfer.rewrite_body("Call AskUserQuestion to choose a mode.", rpt)
 
         self.assertIn(
-            "direct user question with numbered options (stop for the user's reply)",
+            "`request_user_input` (1-3 questions per call, 2-3 options per question",
             out,
         )
+        self.assertIn("if unavailable", out)
+        self.assertIn("numbered options", out)
         self.assertIn("AskUserQuestion:cosmetic", rpt.capability_risks)
         self.assertEqual(
-            "soft-prompt",
+            "runtime-tool+text-fallback",
             rpt.capability_risks["AskUserQuestion:cosmetic"].codex_level,
         )
 
@@ -203,6 +240,7 @@ After the plan is presented, call `AskUserQuestion` with four options.
 
         out = transfer.rewrite_body("Batch-ask via AskUserQuestion.", rpt)
 
+        self.assertIn("`request_user_input`", out)
         self.assertIn("record the authorization decision", out)
         self.assertIn("stop until the user answers", out)
         self.assertIn("AskUserQuestion:authorization", rpt.capability_risks)
@@ -968,14 +1006,14 @@ class TestPluginModeGeneration(unittest.TestCase):
             manifest = json.loads(
                 (plugin_out / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
             )
-            self.assertEqual("3.1.9", manifest["version"])
+            self.assertEqual("3.1.10", manifest["version"])
 
             codex_transfer = plugin_out / "skills" / "codex-skill-transfer"
             self.assertTrue((codex_transfer / "references" / "CODEX_PORT_PLAN.md").is_file())
             self.assertIn(
-                # Re-pinned 0.14.1 -> 0.14.2: unresolved CLAUDE_PLUGIN_ROOT
-                # tokens are surfaced without an unsafe automatic rewrite.
-                "version: 0.14.2",
+                # Re-pinned 0.14.2 -> 0.15.0: AskUserQuestion now prefers
+                # request_user_input while retaining runtime-safe fallbacks.
+                "version: 0.15.0",
                 (codex_transfer / "SKILL.md").read_text(encoding="utf-8"),
             )
             ship_skill = (plugin_out / "skills" / "ship" / "SKILL.md").read_text(
@@ -1000,10 +1038,17 @@ class TestPluginModeGeneration(unittest.TestCase):
             self.assertNotIn("`.` → `.`", codex_skill_mapping)
 
             think = (plugin_out / "skills" / "think" / "SKILL.md").read_text(encoding="utf-8")
-            self.assertIn("Codex Port Adapter - Alignment Gate", think)
+            self.assertIn("Codex Port Adapter - Request User Input Gate", think)
+            self.assertIn("`request_user_input`", think)
+            self.assertIn("default_mode_request_user_input", think)
             self.assertIn("alignment.md", think)
-            self.assertIn("Phase 1", think)
-            self.assertIn("Phase 2", think)
+            self.assertIn("four-option Stage G gate", think)
+            self.assertIn("two conditional questions", think)
+            self.assertIn("stable semantic outcomes, not one tool-call payload", think)
+            self.assertNotIn(
+                "call `request_user_input` with these four options",
+                think,
+            )
 
             review = (plugin_out / "skills" / "review" / "SKILL.md").read_text(encoding="utf-8")
             self.assertIn("Codex Port Adapter - Review Isolation", review)

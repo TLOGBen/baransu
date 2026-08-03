@@ -112,7 +112,7 @@ If the script does not support `--dry-run` (it exits non-zero with an unknown-fl
 
 2. **IF `$INSTALL_LIST` is empty** → every dependency is already present; skip installation entirely and continue to §7.
 
-3. **IF `$INSTALL_LIST` is non-empty AND the run is interactive** → 🔴 CHECKPOINT — install confirmation: via `numbered-options question`, reveal the exact list before touching the environment: 「本次 --format {$FORMAT} 需要新安裝以下套件：{$INSTALL_LIST}。要安裝並繼續嗎？（安裝並繼續 / 中止本次 /book）」. Only after the user confirms, run the real install:
+3. **IF `$INSTALL_LIST` is non-empty AND the run is interactive** → 🔴 CHECKPOINT — install confirmation: via `request_user_input`, reveal the exact list before touching the environment: 「本次 --format {$FORMAT} 需要新安裝以下套件：{$INSTALL_LIST}。要安裝並繼續嗎？（安裝並繼續 / 中止本次 /book）」. Only after the user confirms, run the real install:
 
 ```bash
 npx tsx "./scripts/install-deps.ts" --format $FORMAT
@@ -139,7 +139,7 @@ mkdir -p ".codex/book"
 
 ## Stage 0b — 🔴 CHECKPOINT — Pre-interview Gate (audience / hard-constraint front-loading)
 
-**Before** Stage 1 acquires `$RAW_CONTENT`, first suppress 50% of the uncertainty. Pattern aligned with /design Gen Mode Step 1: use a **single direct user question with numbered options (stop for the user's reply) batch** (4 questions presented together, not blocking question-by-question) to align audience, purpose, style leaning, and hard constraints.
+**Before** Stage 1 acquires `$RAW_CONTENT`, first suppress 50% of the uncertainty. Pattern aligned with /design Gen Mode Step 1: use **two sequential `request_user_input` calls** (3 questions in the first call and 1 in the second; complete both before Stage 1, rather than blocking after every individual question) to align audience, purpose, style leaning, and hard constraints.
 
 ### Skip conditions (the whole section is skipped if any one holds)
 
@@ -246,7 +246,7 @@ Explanation: the first alternation matches product + versioned-token strings (th
 
 1. **Sanitize `{hit}` before query**: first strip all `"` (`U+0022`) characters inside `{hit}` (the regex captures legitimate identifier/version strings, which normally contain no quote; if present it is noise or adversarial input). The sanitized `{hit_clean}` is then passed to the next step.
 2. Run `search the web`, query template: `"{hit_clean}" release notes` or `"{hit_clean}" announcement` (for person-name hits use `"{hit_clean}" announcement` / `"{hit_clean}" interview` instead).
-3. If search the web returns **0 results** → 🛑 STOP — Fact-verify pending: via `numbered-options question` show: 「Fact-verify pending: '{hit_clean}' 在 search the web 0 結果。選擇：強制繼續 / 改用 `--text` 餵已驗證版本 / 中止本次 /book」. Wait for the user's choice before deciding whether to enter §1. This is an **Input PAUSE** (classification: `references/loop-pauses.md`): under a non-interactive driver, take 強制繼續 and annotate the unverified hit in the completion report.
+3. If search the web returns **0 results** → 🛑 STOP — Fact-verify pending: via `request_user_input` show: 「Fact-verify pending: '{hit_clean}' 在 search the web 0 結果。選擇：強制繼續 / 改用 `--text` 餵已驗證版本 / 中止本次 /book」. Wait for the user's choice before deciding whether to enter §1. This is an **Input PAUSE** (classification: `references/loop-pauses.md`): under a non-interactive driver, take 強制繼續 and annotate the unverified hit in the completion report.
 4. If search the web returns **≥ 1 result** → treat as fact-verifiable, continue, but still add the hit to the 「Sources」 list at the end of `$STRUCTURE` (handled together in the Stage 2A §4 extract phase).
 
 **Flow on no hit**: enter §1 classification directly.

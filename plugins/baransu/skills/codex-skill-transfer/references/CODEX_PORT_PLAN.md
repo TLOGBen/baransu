@@ -25,8 +25,9 @@
 ## General Rule: Relocate the Tooth, Don't Degrade It
 
 When the original execution surface (UI hard-stop) cannot be ported, **do not settle for turning it into a prompt hint** — relocate the tooth to
-a surface that can survive in Codex. Codex offers these usable surfaces:
+a surface that can survive in Codex. Prefer a verified runtime tool before relocating, but keep a fallback because under-development or feature-gated tools are not portable guarantees. Codex offers these usable surfaces:
 
+- **Structured runtime pause** (`request_user_input`): when exposed, the tool suspends the turn for a structured answer. In Default mode it currently depends on `default_mode_request_user_input`; a skill cannot enable that user setting.
 - **File precondition** (artifact-gate): the next step structurally requires the artifact file from the previous step.
 - **phase split**: separate the stage that "would cheat the shortcut" from the stage where "there is no shortcut to cheat".
 - **sandbox / approval gate**: a deterministic machine gate.
@@ -37,14 +38,14 @@ Common principle: **the model cannot talk its way through, because the next step
 
 ## Tier 0 — Strong Inertia × UI Hard-Stop: Must Relocate the Tooth, Cannot Degrade to a Hint
 
-### T0-1　`/think` Alignment Gate → phase-split + alignment artifact
+### T0-1　`/think` Alignment Gate → `request_user_input` + artifact fallback
 
 | Field | Content |
 |------|------|
 | **Counters** | The model's inertia of "starting to write directly without aligning with the user" |
-| **Why** | Claude relies on AskUserQuestion as a hard-stop; Codex degrading it to "list numbered options and wait" is a soft convention, and what `/think` counters is *precisely* the inertia of talking through it — pulling the tooth puts the model right back on the shortcut it most wants. The highest overall risk cell. |
-| **Codex action** | Split `/think` into two segments. **Phase 1 only produces the alignment questions and then stops**; this stage structurally has no exit toward the five-section plan. **Phase 2 takes the user's answer file (`alignment.md`) as a required input**; refuse to produce the plan if the file is missing. Turn "please align" (soft) into "no plan can be produced without an alignment record" (hard). |
-| **Done when** | Feed an ambiguous requirement into the Codex runtime and verify it *cannot* emit the five-section plan without having produced `alignment.md`; and Phase 1's output contains no implementation / scaffolding / pseudo-code. |
+| **Why** | Claude relies on AskUserQuestion as a hard-stop; plain numbered prose is too soft for the exact inertia `/think` counters. Codex now has `request_user_input`, but Default-mode exposure is under development and config-gated, so treating it as universally present would replace one silent downgrade with another. |
+| **Codex action** | When `request_user_input` is exposed, use one sequential structured question per Stage A round. The tool allows only 2-3 authored options, so preserve Stage G's four stable choices through a conditional two-question flow rather than abusing the free-text Other field. When the tool is absent, retain the phase split: Phase 1 asks and stops; Phase 2 requires `alignment.md` and refuses to plan without it. |
+| **Done when** | With the tool exposed, Stage A blocks for each structured answer and Stage G reaches all four original outcomes through the conditional flow. Without the tool, an ambiguous requirement still cannot reach the five-section plan without `alignment.md`, and Phase 1 emits no implementation / scaffolding / pseudo-code. |
 
 ### T0-2　`/review`, `/health` Isolation Tooth → first verify whether the Codex subagent context is truly isolated
 
@@ -90,14 +91,14 @@ Common principle: **the model cannot talk its way through, because the next step
 | **Codex action** | Build a registry mapping each Claude capability token to `{codex level, strategy, strength of inertia countered}`. transfer.py looks up the table and injects when it scans a token. **Any strong-habit × soft-hint cell is sent back to Tier 0 to take the tooth-relocation route**; leaving only a hint is not allowed. |
 | **Done when** | The table exists; any new skill's port inherits the correct level without hand-writing degradation vocabulary; the table can produce a weighted risk list. |
 
-### T2-2　cosmetic AskUser → degrade directly to plain-text numbered options
+### T2-2　cosmetic AskUser → `request_user_input` with text fallback
 
 | Field | Content |
 |------|------|
 | **Counters** | None (these are mode selection, not countering inertia) |
 | **Why** | The AskUser in `/read`, `/book`, `/design` only selects gen/lint/source, with no behavioral ballast, so degrading is harmless. **Clearly mark as low priority to avoid spending effort in the wrong place.** |
-| **Codex action** | Uniformly degrade to "list numbered options, stop and wait for a reply"; no tooth relocation needed. |
-| **Done when** | After porting all three, the menus work; do not invest in an artifact-gate. |
+| **Codex action** | Use `request_user_input` with at most 3 questions per call and 2-3 options per question when exposed; split larger batches sequentially. Otherwise list numbered options, stop, and wait for a reply. No artifact-gate is needed for cosmetic selection. |
+| **Done when** | After porting all three, the structured menus work when the tool is exposed and the plain-text fallback still stops correctly when it is not. |
 
 ---
 
@@ -128,7 +129,7 @@ Common principle: **the model cannot talk its way through, because the next step
 
 | # | Work Item | Inertia Strength | Tooth Source | Nature |
 |----|--------|:---:|------|------|
-| 1 | T0-1　think alignment gate | Strong | UI → relocate to artifact | relocate tooth |
+| 1 | T0-1　think alignment gate | Strong | UI → runtime tool, artifact fallback | preserve tooth |
 | 2 | T0-2　review/health isolation verification | Strong | UI → verify runtime | probe first, then decide |
 | 3 | T1-1　execute red-green runner | Strong | deterministic (no relocation) | low-cost port |
 | 4 | T1-2　execute task-map | Strong | built-in → durable file | relocate to file |

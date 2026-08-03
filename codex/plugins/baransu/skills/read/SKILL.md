@@ -91,19 +91,19 @@ Display paper list and wait for user selection. After selection, continue with t
 
 Read `references/acquisition/web-search.md`.
 
-Use the search the web tool to fetch candidate URLs, present them via direct user question with numbered options (stop for the user's reply) (per `references/acquisition/candidate-selection.md`), then route the selected URL through `/read`'s existing URL routing (§9).
+Use the search the web tool to fetch candidate URLs, present them via `request_user_input` (1-3 questions per call, 2-3 options per question; stop for the user's reply; if unavailable, ask numbered options directly) (per `references/acquisition/candidate-selection.md`), then route the selected URL through `/read`'s existing URL routing (§9).
 
 ### 3. `--gh "keyword"`
 
 Read `references/acquisition/gh-search.md`.
 
-Run `gh search repos` to fetch candidate repos, present them via direct user question with numbered options (stop for the user's reply), then route the selected GitHub URL through web-static.md GitHub section.
+Run `gh search repos` to fetch candidate repos, present them via `request_user_input` (1-3 questions per call, 2-3 options per question; stop for the user's reply; if unavailable, ask numbered options directly), then route the selected GitHub URL through web-static.md GitHub section.
 
 ### 4. `--x "keyword"`
 
 Probe Chrome now if not yet probed (lazy check, Stage 0 §4). If `$CHROME_AVAILABLE=false`: output 「Chrome 未連線，--x 模式無法使用」 and stop.
 
-Otherwise: Read `references/acquisition/x-search.md` and `references/acquisition/web-dynamic.md` (the lane follows web-dynamic's Chrome MCP Path Steps 1–4 for Chrome MCP navigation). The lane runs schema-level health check, extracts tweet URLs via regex, presents them via direct user question with numbered options (stop for the user's reply), then routes the selected tweet URL through existing URL routing.
+Otherwise: Read `references/acquisition/x-search.md` and `references/acquisition/web-dynamic.md` (the lane follows web-dynamic's Chrome MCP Path Steps 1–4 for Chrome MCP navigation). The lane runs schema-level health check, extracts tweet URLs via regex, presents them via `request_user_input` (1-3 questions per call, 2-3 options per question; stop for the user's reply; if unavailable, ask numbered options directly), then routes the selected tweet URL through existing URL routing.
 
 ### 5. `--chrome`
 

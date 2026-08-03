@@ -279,15 +279,15 @@ class CapabilityPort:
 CAPABILITY_REGISTRY: dict[str, CapabilityPort] = {
     "AskUserQuestion:unclassified": CapabilityPort(
         codex_level="manual-classification",
-        strategy="Classify the pause as authorization, input-alignment, or cosmetic before treating it as a soft prompt.",
+        strategy="Classify the pause as authorization, input-alignment, or cosmetic before using `request_user_input`; if the tool is unavailable, preserve the matching stop semantics.",
         habit_strength="unknown",
         countered_inertia="unknown until the pause type is classified",
         tier="T2-1",
         risk=3,
     ),
     "AskUserQuestion:cosmetic": CapabilityPort(
-        codex_level="soft-prompt",
-        strategy="List numbered options and stop for the user's reply.",
+        codex_level="runtime-tool+text-fallback",
+        strategy="Use `request_user_input` with 2-3 options when exposed; otherwise list numbered options and stop for the user's reply.",
         habit_strength="none-or-low selection inertia",
         countered_inertia="choosing between already-bounded options",
         tier="T2-2",
@@ -295,23 +295,23 @@ CAPABILITY_REGISTRY: dict[str, CapabilityPort] = {
     ),
     "AskUserQuestion:authorization": CapabilityPort(
         codex_level="hard-pause",
-        strategy="Ask directly, record the answer, and do not proceed until the user authorizes the next step.",
+        strategy="Use `request_user_input` when exposed, record the answer, and do not proceed until the user authorizes the next step; otherwise ask directly and stop.",
         habit_strength="medium-to-strong premature-continuation inertia",
         countered_inertia="continuing past an authorization boundary without user consent",
         tier="Boundary",
         risk=3,
     ),
     "AskUserQuestion:input-gate": CapabilityPort(
-        codex_level="soft-prompt",
-        strategy="Ask numbered input-alignment options and stop; escalate to artifact/phase gate if the skill would otherwise continue into irreversible work.",
+        codex_level="runtime-tool+text-fallback",
+        strategy="Use `request_user_input` with 2-3 input-alignment options when exposed; otherwise ask numbered options and stop, escalating to an artifact/phase gate when needed.",
         habit_strength="medium missing-input inertia",
         countered_inertia="continuing with missing user input",
         tier="Boundary",
         risk=2,
     ),
     "AskUserQuestion:think": CapabilityPort(
-        codex_level="artifact-gate",
-        strategy="Split alignment into Phase 1 questions-only output and Phase 2 gated by `alignment.md`.",
+        codex_level="runtime-tool+artifact-fallback",
+        strategy="Use sequential `request_user_input` calls when exposed; otherwise split alignment into Phase 1 questions-only output and Phase 2 gated by `alignment.md`.",
         habit_strength="strong",
         countered_inertia="skipping alignment and starting design or implementation immediately",
         tier="T0-1",
@@ -482,20 +482,28 @@ ASK_USER_CAPABILITY_BY_SKILL: dict[str, str] = {
 
 ASK_USER_REWRITE_BY_CAPABILITY: dict[str, str] = {
     "AskUserQuestion:think": (
-        "the Codex alignment gate (output numbered alignment questions; stop; "
-        "then require `alignment.md` before planning)"
+        "the `request_user_input` alignment gate (ask 1 question with 2-3 "
+        "options and wait; if unavailable, output numbered alignment "
+        "questions, stop, then require `alignment.md` before planning)"
     ),
     "AskUserQuestion:authorization": (
-        "direct user question (record the authorization decision; stop until the user answers)"
+        "`request_user_input` (1-3 questions per call, 2-3 options per question; "
+        "record the authorization decision and stop until the user answers; if "
+        "unavailable, ask directly and stop)"
     ),
     "AskUserQuestion:input-gate": (
-        "direct user question with numbered input options (stop for the user's reply)"
+        "`request_user_input` (1-3 questions per call, 2-3 input options per "
+        "question; stop for the user's reply; if unavailable, ask numbered "
+        "options directly)"
     ),
     "AskUserQuestion:cosmetic": (
-        "direct user question with numbered options (stop for the user's reply)"
+        "`request_user_input` (1-3 questions per call, 2-3 options per question; "
+        "stop for the user's reply; if unavailable, ask numbered options directly)"
     ),
     "AskUserQuestion:unclassified": (
-        "direct user question with numbered options (stop; classify whether this is an authorization PAUSE before continuing)"
+        "`request_user_input` after classifying the pause (stop; if unavailable, "
+        "ask numbered options directly; do not continue until authorization "
+        "semantics are known)"
     ),
     # Descriptive noun mention — no imperative, no stop. Used when the source
     # sentence talks ABOUT the tool rather than instructing a call.
@@ -504,11 +512,11 @@ ASK_USER_REWRITE_BY_CAPABILITY: dict[str, str] = {
 
 
 ASK_USER_CODE_REWRITE_BY_CAPABILITY: dict[str, str] = {
-    "AskUserQuestion:think": "Codex alignment gate requiring alignment.md",
-    "AskUserQuestion:authorization": "authorization PAUSE",
-    "AskUserQuestion:input-gate": "input-alignment question PAUSE",
-    "AskUserQuestion:cosmetic": "numbered-options question",
-    "AskUserQuestion:unclassified": "user-question PAUSE (unclassified)",
+    "AskUserQuestion:think": "request_user_input",
+    "AskUserQuestion:authorization": "request_user_input",
+    "AskUserQuestion:input-gate": "request_user_input",
+    "AskUserQuestion:cosmetic": "request_user_input",
+    "AskUserQuestion:unclassified": "request_user_input",
     "AskUserQuestion:descriptive": "user-question prompt",
 }
 
@@ -572,14 +580,17 @@ def classify_ask_user_occurrence(
 
 
 CODEX_SKILL_ADAPTERS: dict[str, str] = {
-    "think": """## Codex Port Adapter - Alignment Gate
+    "think": """## Codex Port Adapter - Request User Input Gate
 
-Codex has no verified AskUserQuestion hard stop. This skill is countering the model's inertia to skip alignment and start designing immediately, so plain prompt wording is not enough. For ambiguous requests, run the skill in two phases:
+Codex can expose the structured `request_user_input` runtime tool. In Default mode it is currently gated by `[features] default_mode_request_user_input = true`; a skill cannot enable that user configuration itself. This skill is countering the model's inertia to skip alignment and start designing immediately, so use the strongest gate available in the current runtime.
 
-1. Phase 1 outputs only numbered alignment questions, then stops. It must not include implementation, scaffolding, pseudo-code, or the five-section plan.
-2. Phase 2 may produce the five-section plan only after an `alignment.md` artifact exists in the active think workspace and records the user's answers. If the artifact is missing, refuse to plan and ask for the answers to be written first.
+When `request_user_input` is exposed, call it once per Stage A round with one question and 2-3 fundamentally different options, then wait for the structured answer before continuing. Do not create or require `alignment.md` on this runtime-tool path.
 
-This rebuilds the hard gate at the artifact layer. It does not guarantee answer quality; it only prevents planning without a recorded alignment step. Authorization PAUSE remains a hard stop; only input-selection PAUSE may degrade to direct text questions.""",
+When `request_user_input` is unavailable, preserve the artifact fallback: Phase 1 outputs only numbered alignment questions and stops; Phase 2 may produce the five-section plan only after `alignment.md` records the user's answers. Refuse to plan while that artifact is missing.
+
+The four-option Stage G gate exceeds the runtime tool's 3-option limit. Preserve all four semantics with two conditional questions: first offer 「送 /review 再決定」 versus 「直接決定」; only after 「直接決定」 ask 「批准實作」 / 「還有地方要對焦」 / 「放棄」. The automatically-added Other field is free text, not a stable fourth option. If the tool is unavailable, present the original four options directly and stop.
+
+Authorization PAUSE remains a hard stop on both paths. The runtime tool replaces the old artifact gate only when it is actually exposed; it does not guarantee answer quality.""",
     "review": """## Codex Port Adapter - Review Isolation
 
 This skill is countering the model's inertia to rubber-stamp its own prior work. Before relying on spawned reviewers as anti-hallucination evidence, run or consult a `codex-isolation-probe.md` conclusion for this Codex runtime. If native Codex subagents receive clean independent context, spawn the perspective agents directly. If they inherit enough parent context to rubber-stamp the current answer, run each perspective in an independent Codex invocation or session, write each result to an artifact file, then synthesize from those files.
@@ -1013,6 +1024,19 @@ def rewrite_body(
         del m
         return "user-question"
 
+    def ask_user_non_noun_sub(m: re.Match[str]) -> str:
+        nonlocal noun_count
+        noun_count += 1
+        del m
+        return "non-user-question"
+
+    body, _ = markdown_aware_subn(
+        r"\bnon-AskUserQuestion\b",
+        ask_user_non_noun_sub,
+        body,
+        code_replacement=lambda m: m.group(0),
+    )
+
     body, _ = markdown_aware_subn(
         r"\b(an|a|An|A|0|ONE|one)\s+AskUserQuestion\b(\s+(?:proxy|calls|round|block)\b)?",
         ask_user_article_noun_sub,
@@ -1053,6 +1077,39 @@ def rewrite_body(
         tool_count += ask_count
         for key in sorted(ask_keys_seen):
             note_capability(report, key)
+
+    if report.skill_name == "think":
+        valid_stage_g = (
+            "After the plan is presented, run the Codex adapter's conditional "
+            "two-question `request_user_input` flow. The four entries below are "
+            "the stable semantic outcomes, not one tool-call payload."
+        )
+        body, stage_g_count = re.subn(
+            r"After the plan is presented, call `request_user_input` with "
+            r"(?:these )?four options\.",
+            valid_stage_g,
+            body,
+        )
+        if stage_g_count:
+            report.rewrites.append(
+                "think Stage G 四選項改寫為條件式兩段 `request_user_input` flow"
+            )
+
+    if report.skill_name == "book":
+        oversized_batch = re.compile(
+            r"use a \*\*single `request_user_input`[^*]+ batch\*\* "
+            r"\(4 questions presented together, not blocking question-by-question\)"
+        )
+        body, batch_count = oversized_batch.subn(
+            "use **two sequential `request_user_input` calls** (3 questions in "
+            "the first call and 1 in the second; complete both before Stage 1, "
+            "rather than blocking after every individual question)",
+            body,
+        )
+        if batch_count:
+            report.rewrites.append(
+                "book 四問題 batch 依 runtime 上限拆為 3+1 兩次 `request_user_input`"
+            )
 
     # Single-token Claude API references.
     TOKEN_MAP: list[tuple[str, str, str | None]] = [

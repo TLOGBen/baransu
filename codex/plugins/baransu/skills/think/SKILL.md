@@ -14,14 +14,17 @@ metadata:
 
 # think — deliberate before you build
 
-## Codex Port Adapter - Alignment Gate
+## Codex Port Adapter - Request User Input Gate
 
-Codex has no verified AskUserQuestion hard stop. This skill is countering the model's inertia to skip alignment and start designing immediately, so plain prompt wording is not enough. For ambiguous requests, run the skill in two phases:
+Codex can expose the structured `request_user_input` runtime tool. In Default mode it is currently gated by `[features] default_mode_request_user_input = true`; a skill cannot enable that user configuration itself. This skill is countering the model's inertia to skip alignment and start designing immediately, so use the strongest gate available in the current runtime.
 
-1. Phase 1 outputs only numbered alignment questions, then stops. It must not include implementation, scaffolding, pseudo-code, or the five-section plan.
-2. Phase 2 may produce the five-section plan only after an `alignment.md` artifact exists in the active think workspace and records the user's answers. If the artifact is missing, refuse to plan and ask for the answers to be written first.
+When `request_user_input` is exposed, call it once per Stage A round with one question and 2-3 fundamentally different options, then wait for the structured answer before continuing. Do not create or require `alignment.md` on this runtime-tool path.
 
-This rebuilds the hard gate at the artifact layer. It does not guarantee answer quality; it only prevents planning without a recorded alignment step. Authorization PAUSE remains a hard stop; only input-selection PAUSE may degrade to direct text questions.
+When `request_user_input` is unavailable, preserve the artifact fallback: Phase 1 outputs only numbered alignment questions and stops; Phase 2 may produce the five-section plan only after `alignment.md` records the user's answers. Refuse to plan while that artifact is missing.
+
+The four-option Stage G gate exceeds the runtime tool's 3-option limit. Preserve all four semantics with two conditional questions: first offer 「送 /review 再決定」 versus 「直接決定」; only after 「直接決定」 ask 「批准實作」 / 「還有地方要對焦」 / 「放棄」. The automatically-added Other field is free text, not a stable fourth option. If the tool is unavailable, present the original four options directly and stop.
+
+Authorization PAUSE remains a hard stop on both paths. The runtime tool replaces the old artifact gate only when it is actually exposed; it does not guarantee answer quality.
 
 
 Claude's default when a user says "build X" is to start writing code almost immediately — often against a version of X that Claude *assumed* matched the user, rather than one both sides actually agreed on. This skill exists to correct that default.
@@ -35,8 +38,8 @@ If you find yourself thinking "I could just write this quickly" — that's exact
 ## Outcome Contract
 
 - **Outcome**: Converge a vague intent into a five-section plan explicitly approved by the user (or, in Evaluation mode, a single-line Kill / Keep / Pivot verdict), producing no code at any point.
-- **Done when**: The user approves the final proposal at the Stage G four-option gate (direct user question (record the authorization decision; stop until the user answers)), or explicitly abandons this round's plan; a Full-mode free-text approval must be closed and recorded with 「收到，把這當成批准實作」; in Lightweight mode, the user's 「可以」 (or equivalent) closes the run — no Stage G gate; in Evaluation mode, the verdict is confirmed with 「同意」 or closed after at most one re-verdict (see Verdict closure).
-- **Evidence**: Full mode — the Stage G direct user question (record the authorization decision; stop until the user answers) interaction result: one of the four options selected, or the closing sentence of a free-text approval has been emitted. Lightweight mode — the user's 「可以」 reply. Evaluation mode — the 「同意」 confirmation (or the recorded re-verdict closure).
+- **Done when**: The user approves the final proposal at the Stage G four-option gate (`request_user_input` (1-3 questions per call, 2-3 options per question; record the authorization decision and stop until the user answers; if unavailable, ask directly and stop)), or explicitly abandons this round's plan; a Full-mode free-text approval must be closed and recorded with 「收到，把這當成批准實作」; in Lightweight mode, the user's 「可以」 (or equivalent) closes the run — no Stage G gate; in Evaluation mode, the verdict is confirmed with 「同意」 or closed after at most one re-verdict (see Verdict closure).
+- **Evidence**: Full mode — the Stage G `request_user_input` (1-3 questions per call, 2-3 options per question; record the authorization decision and stop until the user answers; if unavailable, ask directly and stop) interaction result: one of the four options selected, or the closing sentence of a free-text approval has been emitted. Lightweight mode — the user's 「可以」 reply. Evaluation mode — the 「同意」 confirmation (or the recorded re-verdict closure).
 - **Output**: The 繁中 five-section plan presented in the conversation (or the verdict + three reasons); after a Full-mode approval, persist `.codex/think/<slug>.md` (the plan verbatim) and `.codex/think/<slug>.html` (HTML work journal, containing an 「執行日誌」 section, per the `_shared/output-journal.md` contract), and send them via write the artifact to disk and list its absolute path; then hand off to /analyze or implement directly per _shared/tdd.md. Lightweight's ~10-line 推薦修法 and Evaluation's verdict persist nothing beyond the conversation — the work-journal contract does not apply to either.
 - **Automation**: ultracode=neutral, loop=not-drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
@@ -44,7 +47,7 @@ PAUSE classification for non-interactive drivers: `references/loop-pauses.md` �
 
 ## The iron rule
 
-Until the user has explicitly approved the final proposal through `authorization PAUSE` (Stage G), do **not** produce:
+Until the user has explicitly approved the final proposal through `request_user_input` (Stage G), do **not** produce:
 
 - Production code, even one-liners
 - Scaffolding, directory trees, file layouts written out
@@ -60,7 +63,7 @@ Why so strict: a premature code artefact anchors the user — they argue about i
 
 ## User-facing language
 
-All output shown to the user — alignment questions, proposals, the final plan, `numbered-options question` labels — must be in **Traditional Chinese (繁體中文)**.
+All output shown to the user — alignment questions, proposals, the final plan, `request_user_input` labels — must be in **Traditional Chinese (繁體中文)**.
 
 ---
 
@@ -212,7 +215,7 @@ C. Official-first check  — framework-native / stdlib / well-maintained lib
 D. Premise validation    — pwd, existing ADRs, prior art
 E. Attack + complexity   — self-refute; file-count & component-count grading; deps list
 F. Final plan            — the five-section schema
-G. Approval              — authorization PAUSE with four options; downstream is direct implementation per _shared/tdd.md (small) or /analyze (medium-large)
+G. Approval              — request_user_input with four options; downstream is direct implementation per _shared/tdd.md (small) or /analyze (medium-large)
 ```
 
 Do **not** read any files, run any shell commands, or fetch any URLs before Stage A completes. The one sanctioned exception is the Step 0 DESIGN.md soft-read (git rev-parse + the DESIGN.md Read), which by design runs before mode selection and therefore before this rule attaches. The whole point of Stage A is to close the gap between Claude's understanding and the user's intent. Touching the codebase first anchors you to what's already there instead of what the user actually wants.
@@ -231,7 +234,7 @@ Round 3: **成功 (success)** — how we'll know it's done; what observable beha
 
 Open the round by listing **3 specific things that feel ambiguous** in the user's current statement of this dimension. Don't list generic things ("what's the scale?") — list things grounded in what they actually said ("you said 'make it faster' but you haven't said whether latency or throughput matters more — those lead to different designs").
 
-Then call `Codex alignment gate requiring alignment.md` with 2-3 options that are **fundamentally different in kind**, not "same direction, different intensity". Wrong: [A: cache for 5min, B: cache for 1hr, C: cache for 1day]. Right: [A: read-through cache, B: materialised view refreshed nightly, C: no cache, fix the slow query directly].
+Then call `request_user_input` with 2-3 options that are **fundamentally different in kind**, not "same direction, different intensity". Wrong: [A: cache for 5min, B: cache for 1hr, C: cache for 1day]. Right: [A: read-through cache, B: materialised view refreshed nightly, C: no cache, fix the slow query directly].
 
 Exactly one option must be labelled **【推薦】** and should come first. Explain in the option's description *why* you think it's right given what the user has said. If none of the options fits, the user can pick "Other" and type a free answer — that's fine and often the most useful outcome.
 
@@ -407,7 +410,7 @@ Claim-cite-first applies to the plan itself: a non-obvious claim in any section 
 
 ## Stage G — Approval (the four-option gate)
 
-After the plan is presented, call `authorization PAUSE` with these four options. Keep the labels short and stable — same wording every invocation, so they're predictable to the user and cache-friendly.
+After the plan is presented, run the Codex adapter's conditional two-question `request_user_input` flow. The four entries below are the stable semantic outcomes, not one tool-call payload. Keep the labels short and stable — same wording every invocation, so they're predictable to the user and cache-friendly.
 
 ```
 question: "要怎麼處理這份計畫？"
@@ -448,7 +451,7 @@ options:
 
    Omit any section that doesn't apply — never pad for symmetry. Immediately continue with this handoff prompt as input — invoke `/baransu:analyze` for medium-to-large tasks, or begin the direct implementation for small tasks. Execute autonomously; do not ask the user for further confirmation during implementation — except for high-risk actions, where the following gate applies: **if** the handoff implementation would touch any of these named actions — deleting files / `rm`, `git reset --hard` / force push, irreversible DB changes (DROP / TRUNCATE / destructive migration), overwriting an existing file, handling or writing secrets / credentials, or making an irreversible call to an external service — **then** stop, return to the user, and obtain explicit confirmation before proceeding.
 
-**Option 3 — 還有地方要對焦.** Call `input-alignment question PAUSE` to find out what needs re-alignment. Then determine whether the new concern is an **extension** of the current direction or a **different concern**:
+**Option 3 — 還有地方要對焦.** Call `request_user_input` to find out what needs re-alignment. Then determine whether the new concern is an **extension** of the current direction or a **different concern**:
 
 - **Extension** (same goal, same problem, deeper constraint or refinement): restart only the affected stage with the user's new constraint folded in. Open the re-proposal with one sentence: 「本次修改了 X 假設/約束，因此 Y 和 Z 有調整」 so the diff is visible. If the extension path is taken three consecutive times without convergence, treat as a different concern and restart from Stage A.
 - **Different concern** (goal changes, problem reframed, direction diverges): restart from Stage A. State clearly: 「這是一個不同的問題方向，重新從 Stage A 對焦。」
@@ -491,7 +494,7 @@ One Gotcha keeps its long-form prose because its value is in the multi-layer res
 | About to Read / Glob / Grep before Stage A finishes | Stop. If you already did, note it in Stage D's prior-art paragraph and move on; don't pretend it didn't happen |
 | Stage B recommendation softened into "X might be good, though Y has merit" | Rewrite with commitment. The falsification bullets are the safety net; you don't also need to hedge the stance itself |
 | `Unknowns` filled with bureaucratic placeholders ("scaling strategy: TBD", "monitoring: TODO") | Each unknown needs (a) a specific question, (b) a reason it can be deferred, (c) a person / time to resolve it. Otherwise it belongs back in Key decisions, unresolved |
-| User said "looks good, go ahead" in free text instead of via `authorization PAUSE` | Accept it, but say 「收到，把這當成批准實作（完全授權）」 so there's a clear recorded moment. The four-option gate is the audit trail |
+| User said "looks good, go ahead" in free text instead of via `request_user_input` | Accept it, but say 「收到，把這當成批准實作（完全授權）」 so there's a clear recorded moment. The four-option gate is the audit trail |
 | User asks "can we just add X?" after seeing the plan in Stage F | Small fit → fold into Building, note in Key decisions. Real extension (new file, new decision) → treat as Option 3 「還有地方要對焦」 and re-propose |
 | Files moved to `~/project`, but the repo actually lives at `~/www/project` | Run `pwd` (and `git rev-parse --show-toplevel`) before the first filesystem operation in Stage D. Never assume which checkout the user has in mind |
 | Planned an MCP workflow without checking whether the MCP server was loaded | Verify tool / server availability before handoff, not mid-implementation. Mid-flow "missing server" pauses cost more than the upfront check |

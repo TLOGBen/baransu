@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Designed for Claude Code; output targets Codex CLI. Optional `skills-ref` CLI for validation.
 metadata:
   author: baransu
-  version: "0.14.2"
+  version: "0.15.0"
 ---
 
 # Codex Skill Transfer

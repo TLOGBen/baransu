@@ -64,7 +64,7 @@ PAUSE classification for non-interactive drivers: `references/loop-pauses.md` �
 - Read `../_shared/contract-gate.md` before Stage 1 — its G1–G4 rules (criteria assertability, trap promotion, verbatim constants, surface inventory) govern how goal.md, design.md, and test.md are written. Do not restate its rules; apply them.
 - Do not call `/review` from within Stages 1-6. Stage 6 is a structured self-review pass against the contract-gate checklist — not an invitation to general per-layer critique. Stage 7 may offer /review as a handoff option — that is a post-spec quality check, not an in-spec alignment check.
 - Auto-correction is one round. No silent looping.
-- On a same-day same-slug directory collision (Stage 0.C), never silently overwrite: branch via the direct user question (record the authorization decision; stop until the user answers) among resume / overwrite-rebuild / new -N-suffixed directory before writing any spec file. The overwrite-rebuild branch may delete only the computed spec dir `{repo_root}/.codex/analyze/{date}-{slug}/`; if the resolved delete target does not string-equal that path (or contains `..`, or falls outside `{repo_root}` from `git rev-parse --show-toplevel`), abort the deletion and fall back to the `-N`-suffixed branch instead.
+- On a same-day same-slug directory collision (Stage 0.C), never silently overwrite: branch via the `request_user_input` (1-3 questions per call, 2-3 options per question; record the authorization decision and stop until the user answers; if unavailable, ask directly and stop) among resume / overwrite-rebuild / new -N-suffixed directory before writing any spec file. The overwrite-rebuild branch may delete only the computed spec dir `{repo_root}/.codex/analyze/{date}-{slug}/`; if the resolved delete target does not string-equal that path (or contains `..`, or falls outside `{repo_root}` from `git rev-parse --show-toplevel`), abort the deletion and fall back to the `-N`-suffixed branch instead.
 - `goal.md` and `requirement.md` are user-intent layers. Do not modify their semantics during auto-correct. Only design / test / task layers are auto-correctable.
 - Never invent requirement numbers. Every `REQ-XXX` reference in task files must have a matching entry in `requirement.md`.
 - Never invent Criteria numbers. Every `C{n}` reference in `test.md` must have a matching entry in `goal.md`.
@@ -118,7 +118,7 @@ All spec files share one directory:
 
 Use today's date from the `currentDate` context. Confirm the path to the user in one line before writing.
 
-Then resolve the directory-existence failure path explicitly — never silently overwrite. If `.codex/analyze/{date}-{slug}/` already exists (the same-day, same-goal-slug rerun case), then call `authorization PAUSE` once to pick among three branches before any file is written; otherwise (directory absent) create it and continue:
+Then resolve the directory-existence failure path explicitly — never silently overwrite. If `.codex/analyze/{date}-{slug}/` already exists (the same-day, same-goal-slug rerun case), then call `request_user_input` once to pick among three branches before any file is written; otherwise (directory absent) create it and continue:
 
 ```
 question: "目錄 .codex/analyze/{date}-{slug}/ 已存在，怎麼處理？"
@@ -188,7 +188,7 @@ read of the actual implementation at a cited file:line, or the authoritative
 SA/spec document — that either confirms it (→ retag `已驗` with the source) or
 refutes it (→ correct the premise). If first-hand contact is impossible this run
 (tool offline, no access), the gate degrades — never silently passes — to an
-explicit user escalation via `authorization PAUSE`, surfacing the premise as an
+explicit user escalation via `request_user_input`, surfacing the premise as an
 unverified assumption for the user to confirm or supply. Rationale: a prior
 harness experiment's entire failure was a single user-typo data-source premise
 entering five independent specs as 「領域事實」; the only configuration that
@@ -198,7 +198,7 @@ defect source; this gate makes the contact mandatory, not optional.
 flips or escalates a `未驗` premise across three months, retire it — a gate that
 never fires is pure friction (mirrors the codex-skill-transfer sunset clause).
 
-After writing, show the `goal.md` content to the user. Then call `authorization PAUSE`:
+After writing, show the `goal.md` content to the user. Then call `request_user_input`:
 
 ```
 question: "goal.md 確認"
@@ -471,7 +471,7 @@ If no structural finding remains but one or more wording-only findings are still
 
 ## Stage 7 — Handoff
 
-Run `ls` on the spec dir in this turn and list the generated files exactly as that output returns them — never from memory. Confirm the five layers are present and grep the spec files for leftover template braces (e.g. `{criterion`, `{item}`). Each check has an explicit failure path. **If** the `ls` output lacks any of the five required spec files (`goal.md`, `requirement.md`, `design.md`, `test.md`, at least one `task-{group}.md`), **then** do not call the handoff `authorization PAUSE` — return to the stage that produces the missing layer, regenerate it, and re-run this Stage 7 check once. **If** the grep finds leftover template braces, **then** repair is allowed in `design.md` / `test.md` / `task-*.md` only (one pass, then re-grep); **if** a placeholder sits in `goal.md` or `requirement.md`, do not auto-repair — those are user-intent layers per Constraints — pause and show the user the offending line for confirmation before declaring. Only after both checks pass (or the user has confirmed the goal/requirement placeholder), call `authorization PAUSE`:
+Run `ls` on the spec dir in this turn and list the generated files exactly as that output returns them — never from memory. Confirm the five layers are present and grep the spec files for leftover template braces (e.g. `{criterion`, `{item}`). Each check has an explicit failure path. **If** the `ls` output lacks any of the five required spec files (`goal.md`, `requirement.md`, `design.md`, `test.md`, at least one `task-{group}.md`), **then** do not call the handoff `request_user_input` — return to the stage that produces the missing layer, regenerate it, and re-run this Stage 7 check once. **If** the grep finds leftover template braces, **then** repair is allowed in `design.md` / `test.md` / `task-*.md` only (one pass, then re-grep); **if** a placeholder sits in `goal.md` or `requirement.md`, do not auto-repair — those are user-intent layers per Constraints — pause and show the user the offending line for confirmation before declaring. Only after both checks pass (or the user has confirmed the goal/requirement placeholder), call `request_user_input`:
 
 ```
 question: "spec 完成。接下來怎麼做？"
