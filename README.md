@@ -30,15 +30,15 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 | `/health` | 體檢專案的 agent 配置與 AI 可維護性：五層審計，預算姿態先行。 |
 | `/analyze` | 大頻段全管線：把需求展開成五層 spec（條文釘到可退件），再經內建執行段跑到全綠、產出 final-report。 |
 | `/design` | 寫 UI/UX 設計規格：`gen` 引導生成、`lint` 挑違規、`preset` 套內建模板。 |
-| `/contract` | 中頻段開工合約：一頁釘死目標、可斷言條文、錯不起表面、照抄常數，實作前先立約。 |
-| `/seal` | 中頻段收工封緘：冷腦單次五點驗收（逐條對約、掃未釘表面、跨介面一致、常數逐字比對、突變抽查），發現直接修＋補釘死測試。 |
+| `/contract` | 中頻段開工合約：一頁釘死目標、可斷言條文、錯不起表面、照抄常數，實作前先立約；sealed 合約覆蓋前先歸檔。 |
+| `/seal` | 中頻段收工封緘：派遣乾淨 context 的 verify-only seal-agent 跑五點驗收（逐條對約、掃未釘表面、跨介面一致、常數逐字比對、突變抽查），findings 回主 session 修＋補釘死測試，複驗上限 2，全清才在合約蓋 sealed 標記。 |
 | `/write` | 雙語寫作／潤色：套排版與風格規則，輸出 Before/After 與每處改動理由。 |
 | `/evolve` | 把既有 SKILL.md 對著固定標準一輪輪磨好，只保留確有改進的改動。 |
 | `/read` | 萬用擷取：URL／路徑／glob／Chrome／剪貼簿轉成離線 Markdown。 |
 | `/learn` | 把素材整理成五欄重點摘要，可續寫成完整大綱筆記。 |
 | `/book` | 把任何來源渲染成紙質風格的瀏覽器 HTML 閱讀頁，含 SVG 圖解與排版。 |
 | `/codex-skill-transfer` | 把 Claude 的 skill／plugin 單向轉成 Codex 對應格式。 |
-| `/ship` | session 收尾：歸檔工作檔、commit、push、清理 worktree。 |
+| `/ship` | session 收尾：歸檔工作檔與 root 的 sealed 合約、commit、push、清理 worktree。 |
 
 ### 三頻段路由（v3.0 起）
 

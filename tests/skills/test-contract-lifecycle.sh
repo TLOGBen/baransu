@@ -20,6 +20,8 @@
 #   A5  agents/seal-agent.md verify-only boundary: tool set, never-applies-a-fix
 #       line, git revert prohibition, structured status enum — and NO sentence
 #       granting fix authority
+#   A6  contract pins the marker's line-2 position, and seal's loop-pauses
+#       registers the two new Authorization rows (複驗超限 / 指紋不符)
 
 set -u
 
@@ -29,6 +31,7 @@ CONTRACT_MD="$SKILLS/contract/SKILL.md"
 SEAL_MD="$SKILLS/seal/SKILL.md"
 SHIP_MD="$SKILLS/ship/SKILL.md"
 SEAL_AGENT="$ROOT/plugins/baransu/agents/seal-agent.md"
+LOOP_PAUSES="$SKILLS/seal/references/loop-pauses.md"
 
 PASS=0
 FAIL=0
@@ -210,6 +213,17 @@ assert_lit "A5d: structured report status enum" \
            "$SEAL_AGENT" 'status: [clean | findings | revert-failure | malformed-payload]'
 assert_absent_re "A5e: no sentence granting fix authority" \
            "$SEAL_AGENT" 'direct-fix rights|((the|this) agent|you)[^.]*(may|can|(is|are) (allowed|authorized) to)[^.]*(fix|repair|correct)|授權[^。]*修復'
+
+# ---------------------------------------------------------------------------
+# A6: marker position clause + the two new loop-pauses rows
+# ---------------------------------------------------------------------------
+echo "A6: marker position clause + loop-pauses rows..."
+assert_lit "A6a: contract pins the marker position (line 2, after the H1)" \
+           "$CONTRACT_MD" 'Position: line 2 of CONTRACT.md, immediately'
+assert_lit "A6b1: loop-pauses row — 複驗超限 (Authorization)" \
+           "$LOOP_PAUSES" '| 複驗超限 (re-verification cap exhausted:'
+assert_lit "A6b2: loop-pauses row — 指紋不符/探針殘留 (Authorization)" \
+           "$LOOP_PAUSES" '| 指紋不符/探針殘留 (post-dispatch fingerprint mismatch,'
 
 # ---------------------------------------------------------------------------
 echo ""

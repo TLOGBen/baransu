@@ -2,6 +2,20 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [3.2.0] - 2026-08-05
+
+### Added
+- **`/seal` 改為 dispatcher，五點驗收交給新的 verify-only `seal-agent`**。主 session 負責組裝載荷（合約路徑或 criteria 原文／diff 基準／測試指令／baseline 結果含降級旗標／scratch 路徑）、先跑 baseline、派遣、依報告修復；agent 在乾淨 context 只驗不修，寫入權限僅限突變探針注入與 byte-for-byte 還原（`git checkout` / `git restore` / `git stash` 明文禁止作為還原手段）。冷腦與修復手分開，避免「自己審自己剛改的東西」。
+- **複驗迴圈與上限**：初次派遣＋最多 2 次複驗（總派遣 ≤3）。用盡仍有未清 findings → 不蓋章、seal-log 記 `unresolved`、原樣回報（「複驗上限已達（2 次）：{N} 項未清 findings 如下，未蓋章（seal-log: unresolved）。」）。seal-log result 枚舉自 `pass|fixed` 擴充為 `pass|fixed|unresolved`（seal-guard hook 只驗當日日期、不驗 result 值，故免改 hook）。
+- **sealed 標記與合約狀態機**：`/contract` Step 2 模板成為 `> STATUS: sealed（{ISO 日期}）— {五點結果一行摘要}` 的唯一文法權威——位置為 H1 後第 2 行、冪等單行覆寫、只是「蓋章當下 clean」的時點聲明。`/seal` 在指紋比對（tracked diff＋untracked 清單差集）通過之後才寫入，target-pin 分支 2/3 一律不寫。
+- **`tests/skills/test-contract-lifecycle.sh`**：三檔標記字面 byte-identical、seal dispatcher 條文、ship 三條件早停與兩不變式、五個使用者訊息格式、seal-agent verify-only 邊界（含「不得出現授予修復權語句」負向斷言）的具名機器錨。
+
+### Changed
+- **`/contract` 覆蓋 sealed 合約前先歸檔**：偵測到標記即 `mv` 進 `.claude/archived/{filename}-{unix_timestamp}` 後續寫，不再詢問；未 sealed 的異任務合約維持現行「停下另名」。「禁止靜默覆寫」條文加 sealed 例外。
+- **`/ship` 收走做完的合約**：Step 1 偵測加第三輸入（root `CONTRACT*.md` 前 3 行含 sealed 標記），早停條件改為三者皆空（「沒有可歸檔的工作檔案，git 也乾淨，root 無 sealed 合約，結束。」）；Step 2 於 allowlist 掃描後歸檔 sealed 合約並在輸出附 sealed 計數。INV-1 明列兩個歸檔來源（allowlist 目錄＋sealed root 合約），INV-8 補註 sealed 合約刪除會入 staged diff 但不得主導 commit subject。
+- **偵測一律只讀前 3 行**（`head -3 "$f" | grep -qF '> STATUS: sealed'`）：全檔 grep 會讓「把標記當常數釘在自己 Verbatim Constants 裡」的合約自我誤判為已封緘。
+- **`seal/references/loop-pauses.md`**：帶內修復列改為主 session 職責（agent 回報 → 主 session 修），新增「複驗超限」與「指紋不符／探針殘留」兩個 Authorization 分類。
+
 ## [3.1.10] - 2026-08-03
 
 ### Changed

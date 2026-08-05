@@ -31,7 +31,7 @@ Named red-lines, each enforced by the step in parentheses; none is optional. The
 - **INV-5 — Branch deletion uses `-D`, not `-d`.** After a merge the branch may read as unmerged locally, so `-d` fails. (Step 5)
 - **INV-6 — `rm -rf` is only run on a validated worktree path.** The third-tier `rm -rf "$WORKTREE_PATH"` fallback runs only after a precondition guard confirms `$WORKTREE_PATH` is non-empty, is not `/`, and carries `.git`/`.git/worktrees` lineage; if the guard fails, `rm -rf` is skipped and the worktree is left intact. (Step 5)
 - **INV-7 — No blind staging of secret-pattern files.** Before `git add -A`, every untracked/modified path from `git status --porcelain` is matched against the Step 3 closed pattern list; any match stops the commit before staging. (Step 3)
-- **INV-8 — The commit subject names the shipped outcome.** Derive one Conventional Commit message from the staged diff; archiving and session cleanup never displace a substantive code, behavior, or documentation outcome. (Step 3)
+- **INV-8 — The commit subject names the shipped outcome.** Derive one Conventional Commit message from the staged diff; archiving and session cleanup never displace a substantive code, behavior, or documentation outcome — including the staged deletion of a sealed root contract, which legitimately enters the staged diff but must never dominate the subject. (Step 3)
 - **INV-9 — Archive is local-only.** The archive root must be ignored and contain no tracked paths before any item is moved into it; existing tracked archives are removed from the index but retained on disk. (Step 2)
 
 ## Step 0 — Parse target branch
