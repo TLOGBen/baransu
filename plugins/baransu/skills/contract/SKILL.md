@@ -31,7 +31,7 @@ PAUSE classification for non-interactive drivers: `references/loop-pauses.md`.
 - **只寫不驗**: This skill writes the contract only. Implementation follows in the same or next session under `_shared/tdd.md` §7 discipline; verification is `/seal`'s job.
 - **現實接觸強制閘**: a 未驗 data-source / schema / contract / permission premise may never be written into criteria as fact (procedure: Step 1).
 - **無捆綁停權**: an undetermined premise never exempts its adjacent verifiable criteria from becoming independent assertable criteria (procedure: Step 1).
-- **禁止靜默覆寫**: never overwrite an existing CONTRACT.md belonging to a different task (procedure: Step 3).
+- **禁止靜默覆寫**: never overwrite an existing CONTRACT.md belonging to a different task (procedure: Step 3). Sealed exception: a contract carrying the sealed marker (Step 2 grammar) is a completed artifact — archiving it to `.claude/archived/` and then writing the new contract is sanctioned and silent.
 
 ## Flow
 
@@ -68,6 +68,7 @@ alone under G1/G3/G4; Steps 2–3 proceed unchanged. Silence is non-compliant.
 
 ```markdown
 # CONTRACT — {task title}
+> STATUS: sealed（{ISO 日期}）— {五點結果一行摘要}
 
 ## 目標
 {1-3 lines: the observable difference when this is done}
@@ -94,14 +95,34 @@ prohibition-style criterion}
 source of truth}
 ```
 
+**Sealed-marker grammar (single authority).** The `> STATUS: sealed` line
+shown under the H1 above is the one and only grammar authority for the sealed
+marker: `/seal` writes it, `/seal` and `/ship` detect it, and both cite this
+template as the single source. Position: line 2 of CONTRACT.md, immediately
+after the H1. Idempotent single line: a re-seal overwrites the existing marker
+in place — never appends a second line. Timestamp declaration: the marker
+certifies only that the contract was clean at seal time; it says nothing about
+later changes. `/contract` itself never writes this line — a freshly written
+contract has no STATUS line; it appears only after `/seal` passes.
+
 ### Step 3 — Confirm (one round)
 
 Show the contract with a per-criterion G1 disposition (可斷言 ✓ / 已改寫自模糊
 表述). Ask the user to confirm or amend — one round, in Traditional Chinese.
-If a CONTRACT.md already exists at the target path: if its content belongs to
-the same task, overwrite it on confirmation; if it belongs to a different
-task, stop and ask the user to name a new path (e.g. `CONTRACT-{slug}.md`) —
-silent overwrite is forbidden.
+If a CONTRACT.md already exists at the target path, first check for the
+sealed marker (detection form — never grep the whole file):
+
+```bash
+head -3 "$f" | grep -qF '> STATUS: sealed'
+```
+
+If sealed: it is a completed artifact — `mv` it to
+`.claude/archived/{filename}-{unix_timestamp}` (create the directory if
+needed), then proceed to write the new contract without asking, outputting:
+「偵測到已封緘合約，已先歸檔至 .claude/archived/{filename}-{unix_timestamp}，續寫新合約。」
+If unsealed: if its content belongs to the same task, overwrite it on
+confirmation; if it belongs to a different task, stop and ask the user to
+name a new path (e.g. `CONTRACT-{slug}.md`) — silent overwrite is forbidden.
 On confirmation, write the file and output:
 「合約已釘死：{path}（{N} 條可斷言條文、{M} 個錯不起表面）。實作時照抄
 Verbatim Constants；完工後跑 /baransu:seal 驗收。」
