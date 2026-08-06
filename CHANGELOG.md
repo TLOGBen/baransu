@@ -2,6 +2,14 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [3.3.0] - 2026-08-06
+
+### Changed
+- **`/write` 吸收 [human-writing](https://github.com/KKKKhazix/human-writing) 對模型寫作慣性的行為級提點**。zh rule 5 從字面禁「不是X，而是Y」升級為**翻案腔修辭動作偵測**——先立讀者沒有的誤解再推翻抬價，換字仍算命中（並非…而是／不在於…而在於／與其說…不如說／看似…實則／你以為…其實／回頭才發現／A不重要，重要的是B 及省字、跨句變形；「不只…還…」正常遞進可用，落在翻案位置才處理）；en rule 5 同步改為 gesture-based（"The real question isn't X"、"You'd think X, but" 均命中）。
+- **zh rule 9 修正假細節漏洞**：原條文教模型自行編出具體時地人（台北車站三樓的星巴克）替換飄浮錨點——正是「假細節越具體，AI 味越重」的反模式。改為具體錨點只能來自原文或使用者材料；Refine 無真實細節可換時在修正說明標記請使用者補、不得代編，Generate 只用 prompt 給出的具體資訊。
+- **writing-principles.md 新增六條模型指紋（zh 10–15）**：句長齊一與固定鼓點（十字句要能挨著四十字句、段末不逐段補短判斷）／連接詞過密（刪一半，中文小句靠語序事理自接）／同義詞迴避（該重複就重複，不換「這門手藝」「這項技能」）／動作後補解釋（動作已載情緒就句號收住）／抒情詞與借喻包裝（安放微光褶皺＋倉庫浪潮底座＋抽象名詞配具體動詞）／商業黑話（賦能抓手閉環還原成人、動作、錢、時間、後果）。entry 9 擴充洞察路標（說白了／先說結論／更微妙的是）與提示性冒號禁令（散文冒號只引原話）。en 新增 5–6（No elegant variation／Vary sentence rhythm）。
+- **Generate 加 material-bound composition**：每句要新增事實、動作或後果，換句話重講不算推進；材料薄就寫短，篇幅是目標、材料邊界是底線；不得虛構 prompt 沒給的精確細節。
+
 ## [3.2.0] - 2026-08-05
 
 ### Added

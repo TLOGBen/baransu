@@ -53,11 +53,11 @@ This exception is intentional. The skill's purpose is language-targeted copywrit
 
 #### 文體規則 — 反 AI 腔
 
-5. **禁用二元對仗句**：「不是X，而是Y」做獨立完整句式時禁用。改用「而」加上具體脈絡（例：「她哀悼的不是過去，而是再也回不去的、還相信故事有結局的童年」）。
+5. **禁用二元對仗句（翻案腔全類）**：禁的是修辭動作，不是字面——先立一個讀者並沒有的誤解，再推翻它替下文抬價。「不是X，而是Y」是最常見外衣；換一套字繼續做同一個動作仍然命中：「並非…而是…」「不在於…而在於…」「與其說…不如說…」「表面…實際…」「看似…實則…」「你以為…其實…」「回頭才發現」「說到底」「A不重要，重要的是B」，以及省字（「不是A，是B」）與跨句（「不是A。而是B。」）變形。清單是舉例不是邊界。改法：判斷從正面下——先給判斷，再把依據放在旁邊（例：「她哀悼的不是過去，而是童年」→「她哀悼那個還相信故事有結局的童年」）。只有文章真的用材料走過從誤解到修正的過程，自我修正才可保留，且不得套用上述任何句式。「不只…還…」是正常中文遞進可用；出現在翻案位置替下文抬價時，按本條處理。
 6. **避免無感官錨點的抽象金句**：「成長是孤獨的旅程」「內在的真實」這類缺乏感官細節的金句。改法：加入具體可視覺化的細節。檢驗：這段文字能拍成電影嗎？不能 → 缺少感官錨點。
 7. **避免純裝飾性的三段排比**：「不是A，不是B，而是C」「願妳X，願妳Y，願妳Z」這類以節奏感為目的的排比。若排比各項有實質內容差異則可保留；純裝飾性的節奏堆疊須打散改寫。
 8. **禁用概念名詞化**：「○○感」「○○性」「○○化」的組合（自我的探索、認同感的建構、孤獨的覺察）。改法：改用動詞或具體短語（「找自己」「知道自己是誰」「發現自己很寂寞」）。
-9. **禁用飄浮敘事錨點**：「某個午後」「在這個忙碌的城市裡」「我認識一個朋友她」「曾經有個人告訴我」。改法：換成具體時間（上禮拜三下午三點）、具體地點（台北車站三樓的星巴克）、具體人名（我大學同學阿芳）。
+9. **禁用飄浮敘事錨點——但不得以假細節替換**：「某個午後」「在這個忙碌的城市裡」「我認識一個朋友她」「曾經有個人告訴我」。改法：換成具體時間、地點、人名——**且具體內容只能來自原文或使用者提供的材料**。模型自行編出的精確細節（凌晨三點、第三根菸、桌上的冷咖啡、窗外的雨）是假細節；假細節越具體，AI 味越重，比飄浮錨點更糟。Refine 時原文沒有真實細節可換 → 在修正說明標記該錨點並請使用者補真實細節（或建議直接刪掉錨點），不得代編；Generate 時只使用 prompt 裡給出的具體資訊，沒給就不寫錨點。
 10. **「——」軟規則（voice-overridable）**：避免以破折號「——」充當邏輯連接詞（佔據「因為」「所以」「也就是」的位置）。改法：改用明確連接詞，或拆成兩句。此為軟規則，屬 voice cue 段定義的 voice-overridable 類別：voice preset 來源文體正當使用「——」（如節奏停頓、聲音延宕）時，依 preset 保留，不視為違規。
 
 ### en rules (compact English copywriting)
@@ -69,7 +69,7 @@ This exception is intentional. The skill's purpose is language-targeted copywrit
 
 #### Anti-AI voice
 
-5. **No binary opposition**: Avoid standalone "It's not X, it's Y" sentence constructions that exist purely as rhetorical contrast. Use specific context instead: "She wasn't mourning the past. She was grieving a childhood where stories still had endings."
+5. **No binary opposition**: Avoid standalone "It's not X, it's Y" sentence constructions that exist purely as rhetorical contrast. The ban targets the gesture, not the wording: any construction that first plants a misunderstanding the reader never had, then overturns it to inflate the next claim, counts as a hit — "The real question isn't X", "You'd think X, but", "It's less about X than Y", "X matters less than Y" included. State the judgment directly and put the evidence beside it: "She wasn't mourning the past. She was grieving a childhood where stories still had endings."
 6. **Anchor claims**: Replace vague time/place/person references ("a friend once told me", "one afternoon", "in this busy city") with specifics: a name, a date, a location. Vague anchors signal fabricated experience.
 7. **No nominalization chains**: Prefer verbs and concrete phrases over noun-phrase stacks. "The exploration of one's identity" → "figuring out who you are". "The cultivation of resilience" → "learning to keep going".
 8. **Em-dash tiering**: the em-dash U+2014 (—) is hard-banned in en output, with no exceptions. The en-dash U+2013 (–) is banned except inside numeric ranges (pages 3–5, 2010–2020). When a dash would join two clauses, use a period, a colon, or a comma, or restructure into two sentences. (The dash characters in this rule are mentions of the banned glyphs, not uses.)
@@ -183,8 +183,8 @@ A **valid selection** is one or more listed change-point numbers, or the exact s
 - [規則標記]：[具體改動說明]
 ```
 
-Rule tag examples for zh: `空格規則`、`標點規則`、`數字規則`、`專有名詞`、`語氣調整`、`動詞直用`、`「的」克制`、`具象優先`、`空洞形容詞`、`密度克制`、`禁對仗句`、`感官錨點`、`禁排比`、`禁名詞化`、`敘事錨點`、`破折號軟規則`、`段末總結`、`升華句`、`套話連接`、`voice 套用`.
-Rule tag examples for en: `Oxford comma`、`Active voice`、`Sentence length`、`Parallel structure`、`Tone`、`No stale metaphors`、`Cut filler`、`Short words`、`One idea`、`No binary opposition`、`Anchor claims`、`No nominalization chains`、`Em-dash`、`Voice applied`.
+Rule tag examples for zh: `空格規則`、`標點規則`、`數字規則`、`專有名詞`、`語氣調整`、`動詞直用`、`「的」克制`、`具象優先`、`空洞形容詞`、`密度克制`、`禁對仗句`、`感官錨點`、`禁排比`、`禁名詞化`、`敘事錨點`、`假細節`、`破折號軟規則`、`段末總結`、`升華句`、`套話連接`、`節奏指紋`、`連接詞過密`、`同義迴避`、`動作留白`、`抒情包裝`、`黑話禁詞`、`voice 套用`.
+Rule tag examples for en: `Oxford comma`、`Active voice`、`Sentence length`、`Parallel structure`、`Tone`、`No stale metaphors`、`Cut filler`、`Short words`、`One idea`、`No binary opposition`、`Anchor claims`、`No nominalization chains`、`Em-dash`、`Repeat the word`、`Rhythm variance`、`Voice applied`.
 
 If no rules were triggered and no tone adjustment is needed, output:
 > 「文字已符合規則，無需修改。」
@@ -226,7 +226,9 @@ When format is not identifiable but the topic is clear, silently default to Shor
 格式：[Email／短訊／短文／社群貼文] ｜ 語氣：[正式／輕鬆／中性]
 ```
 
-When generating, also apply the embedded rule set for the detected language while composing — both format rules and anti-AI-voice rules (zh: 對仗句、純裝飾性排比、概念名詞化、飄浮錨點; en: including rule 8's em-dash hard ban) — in addition to the writing principles.
+When generating, also apply the embedded rule set for the detected language while composing — both format rules and anti-AI-voice rules (zh: 對仗句／翻案腔、純裝飾性排比、概念名詞化、飄浮錨點; en: including rule 8's em-dash hard ban) — in addition to the writing principles.
+
+**Material-bound composition**: every sentence must add something new — a fact, an action, a consequence, a condition. Restating the previous sentence in different words is padding, not progression. When the prompt's material is thin, write shorter rather than inflate: length is a target, the material boundary is the floor. Never fabricate precise details (times, places, names, quotes) absent from the prompt — a fabricated specific reads more AI than a plain sentence without one.
 
 ---
 
