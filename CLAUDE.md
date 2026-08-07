@@ -22,7 +22,7 @@ When working on any UI/UX content, read the design system at the project root an
 plugins/
   baransu/
     .claude-plugin/
-      plugin.json              # plugin manifest (v3.2.0)
+      plugin.json              # plugin manifest (v3.3.1)
     skills/
       think/ review/ contract/ analyze/ seal/ write/ ship/ hunt/ health/ read/ learn/ book/ design/ codex-skill-transfer/ evolve/
       _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md, fact-check.md, contract-gate.md, selection-telemetry.md) + evals/ scripts/
@@ -100,6 +100,7 @@ These have each caused regressions — do not "optimize" them away:
 - **read `raw/` is immutable by construction**: recaptures version to `raw/{slug}_vN`, cascade fetches go through `/tmp` then move — never write `raw/` twice.
 - **verify-skills.py Gates 10/11 are the contract** for loop-pauses registry completeness and `green_proof` field-name consistency: adding or revising a skill's Automation line or green_proof surface must clear these gates.
 - **No-git projects degrade one-way**: the analyze execution pipeline falls back to in-place serialized execution (never wedges); ship fast-fails BEFORE any archive move (archiving without git would strand the moved files with no commit to anchor them).
+- **`seal-guard.ps1` must keep its UTF-8 BOM**: Windows PowerShell 5.1 parses BOM-less non-ASCII scripts as ANSI (system codepage), which breaks the zh instruction string with a parse error — empirically hit on first Windows run. Gate: test-seal-guard-hook.sh G14. The `.sh`/`.ps1` pair must keep one behavioral contract (G14 string parity + G15 real-runtime suite); the transfer's same-name-`.ps1` rule wires `commandWindows` automatically.
 - **Cross-skill guardrails**: behavioral anti-patterns that apply across skills live in `plugins/baransu/rules/anti-patterns.md`; the skill-specific invariants above stay here.
 
 ## Install

@@ -1,6 +1,8 @@
 # seal-guard hook — shipped Stop hook, blocking by default
 
 > Distribution note: both Claude Code and Codex plugin packages ship the Stop hook. Codex users must review and trust the installed definition through `/hooks`; until then Codex skips it.
+>
+> Windows note: the guard ships in two runtime-native implementations with one behavioral contract — `seal-guard.sh` (POSIX bash) and `seal-guard.ps1` (Windows PowerShell 5.1+). On Windows Codex the ported handler carries `commandWindows: powershell -NoProfile -ExecutionPolicy Bypass -File "${PLUGIN_ROOT}/hooks/seal-guard.ps1"` (pinned by the transfer's same-name-`.ps1` rule), so detection, telemetry, and blocking all work natively — no bash/WSL dependency, `C:\` paths handled natively. Two `.ps1` invariants: the file MUST keep its UTF-8 BOM (PS 5.1 parses BOM-less non-ASCII as ANSI and the zh instruction string breaks the parse), and `SEAL_GUARD_PATTERNS` there is .NET regex, not POSIX ERE (shipped defaults are equivalent; avoid `[[:alnum:]]`-style classes in overrides). Parity is enforced by test gates G14 (BOM + instruction-string byte parity) and G15 (six-scenario behavioral run on the real PS 5.1 runtime via WSL interop, skipped where unavailable).
 
 The plugin ships a real Stop hook (`plugins/baransu/hooks/seal-guard.sh`, registered in
 `plugins/baransu/hooks/hooks.json`) — installation loads the definition; Claude activates

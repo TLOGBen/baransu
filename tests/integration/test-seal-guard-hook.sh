@@ -13,6 +13,12 @@
 #   G12) Codex runtime defaults telemetry to ~/.codex, never ~/.claude
 #   G13) SEAL_GUARD_PATHS override: default path set misses a non-standard
 #        layout (plugins/); with SEAL_GUARD_PATHS=plugins the same diff blocks
+#   G14) seal-guard.ps1 Windows port shipped: UTF-8 BOM present (PS 5.1 parses
+#        BOM-less non-ASCII as ANSI → parse error) + zh instruction string
+#        byte-identical with the bash implementation
+#   G15) real-runtime behavioral parity: when Windows PowerShell + Windows git
+#        are reachable (WSL interop), run seal-guard-windows.ps1 six-scenario
+#        suite on the actual PS 5.1 runtime; SKIP cleanly elsewhere
 set -u
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -160,6 +166,30 @@ if [ "$rc_default" -eq 0 ] && [ "$rc_paths" -eq 2 ]; then
   ok "G13 SEAL_GUARD_PATHS: default misses non-standard layout, override blocks"
 else bad "G13 SEAL_GUARD_PATHS (default rc=$rc_default, override rc=$rc_paths)"; fi
 rm -rf "$R" "$T"
+
+# G14 — Windows port shipped: BOM + instruction-string parity with bash impl
+PS1_HOOK="$REPO_ROOT/plugins/baransu/hooks/seal-guard.ps1"
+ZH_MSG='偵測到 user-facing 變更尚未 /baransu:seal——請執行 seal 收尾（單次窄域驗收＋直接修正權），或設 SEAL_GUARD=log 降級為僅記錄。'
+if [ -f "$PS1_HOOK" ] \
+   && [ "$(head -c 3 "$PS1_HOOK" | od -An -tx1 | tr -d ' \n')" = "efbbbf" ] \
+   && grep -qF "$ZH_MSG" "$PS1_HOOK" \
+   && grep -qF "$ZH_MSG" "$HOOK"; then
+  ok "G14 seal-guard.ps1 shipped with UTF-8 BOM and byte-identical zh instruction"
+else bad "G14 Windows port BOM / instruction parity"; fi
+
+# G15 — behavioral parity on the real Windows PowerShell runtime (WSL interop);
+# SKIP (not FAIL) where the interop or Windows git is unavailable
+if command -v powershell.exe >/dev/null 2>&1 && command -v wslpath >/dev/null 2>&1 \
+   && powershell.exe -NoProfile -Command "git --version" >/dev/null 2>&1; then
+  DRIVER="$REPO_ROOT/tests/integration/seal-guard-windows.ps1"
+  PS_OUT="$(powershell.exe -NoProfile -ExecutionPolicy Bypass \
+      -File "$(wslpath -w "$DRIVER")" -Guard "$(wslpath -w "$PS1_HOOK")" 2>&1 | tr -d '\r')"
+  if printf '%s\n' "$PS_OUT" | grep -q '=== ps-verify: fails=0'; then
+    ok "G15 Windows PS 5.1 six-scenario behavioral suite green"
+  else bad "G15 Windows behavioral suite ($PS_OUT)"; fi
+else
+  echo "SKIP: G15 Windows PowerShell interop unavailable — behavioral parity not run here"
+fi
 
 echo ""
 echo "=== test-seal-guard-hook: $PASS passed, $FAIL failed ==="

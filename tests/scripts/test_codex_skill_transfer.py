@@ -882,13 +882,168 @@ class TestPluginModeGeneration(unittest.TestCase):
             self.assertIn("${PLUGIN_DATA}", command)
             self.assertNotIn("CLAUDE_PLUGIN_ROOT", command)
             self.assertNotIn("CLAUDE_PLUGIN_DATA", command)
+            self.assertEqual(
+                "cmd /c exit 0",
+                hook_doc["hooks"]["Stop"][0]["hooks"][0]["commandWindows"],
+            )
             mapped = "\n".join(summary["manifest_mapped"])
             self.assertIn("2 處 Claude plugin env", mapped)
+            self.assertIn("commandWindows", mapped)
             manual = "\n".join(summary["manifest_manual"])
             self.assertIn("不支援事件：SessionEnd", manual)
             self.assertIn("/hooks", manual)
             self.assertIn("trust", manual)
+            self.assertIn("Windows 端 hooks 已降級為 no-op", manual)
             self.assertNotIn("預設關閉", manual)
+
+    def test_plugin_hook_source_command_windows_is_preserved(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            plugin = root / "plug"
+            (plugin / ".claude-plugin").mkdir(parents=True)
+            (plugin / ".claude-plugin" / "plugin.json").write_text(
+                json.dumps({"name": "plug", "version": "1.0.0"}), encoding="utf-8"
+            )
+            write_stub_skill(plugin / "skills" / "alpha", "alpha")
+            hooks = plugin / "hooks"
+            hooks.mkdir()
+            (hooks / "hooks.json").write_text(
+                json.dumps(
+                    {
+                        "hooks": {
+                            "Stop": [
+                                {
+                                    "hooks": [
+                                        {
+                                            "type": "command",
+                                            "command": 'bash "${CLAUDE_PLUGIN_ROOT}/hooks/g.sh"',
+                                            "commandWindows": "powershell -File g.ps1",
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            out = root / "codex"
+            _, summary = transfer.transfer_plugin(plugin, out)
+            hook_doc = json.loads(
+                (out / "plugins" / "plug" / "hooks" / "hooks.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            handler = hook_doc["hooks"]["Stop"][0]["hooks"][0]
+            self.assertEqual("powershell -File g.ps1", handler["commandWindows"])
+            self.assertNotIn(
+                "Windows 端 hooks 已降級為 no-op",
+                "\n".join(summary["manifest_manual"]),
+            )
+
+    def test_plugin_hook_ps1_sibling_gets_native_windows_command(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            plugin = root / "plug"
+            (plugin / ".claude-plugin").mkdir(parents=True)
+            (plugin / ".claude-plugin" / "plugin.json").write_text(
+                json.dumps({"name": "plug", "version": "1.0.0"}), encoding="utf-8"
+            )
+            write_stub_skill(plugin / "skills" / "alpha", "alpha")
+            hooks = plugin / "hooks"
+            hooks.mkdir()
+            (hooks / "guard.sh").write_text("#!/usr/bin/env bash\nexit 0\n", encoding="utf-8")
+            ps1_bytes = b"\xef\xbb\xbf" + b"# native windows port\nexit 0\n"
+            (hooks / "guard.ps1").write_bytes(ps1_bytes)
+            (hooks / "hooks.json").write_text(
+                json.dumps(
+                    {
+                        "hooks": {
+                            "Stop": [
+                                {
+                                    "hooks": [
+                                        {
+                                            "type": "command",
+                                            "command": 'bash "${CLAUDE_PLUGIN_ROOT}/hooks/guard.sh"',
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            out = root / "codex"
+            _, summary = transfer.transfer_plugin(plugin, out)
+            plugin_out = out / "plugins" / "plug"
+            hook_doc = json.loads(
+                (plugin_out / "hooks" / "hooks.json").read_text(encoding="utf-8")
+            )
+            handler = hook_doc["hooks"]["Stop"][0]["hooks"][0]
+            self.assertEqual(
+                'powershell -NoProfile -ExecutionPolicy Bypass -File "${PLUGIN_ROOT}/hooks/guard.ps1"',
+                handler["commandWindows"],
+            )
+            self.assertEqual(
+                ps1_bytes, (plugin_out / "hooks" / "guard.ps1").read_bytes()
+            )
+            mapped = "\n".join(summary["manifest_mapped"])
+            self.assertIn("Windows 原生 PowerShell 實作", mapped)
+            self.assertNotIn(
+                "Windows 端 hooks 已降級為 no-op",
+                "\n".join(summary["manifest_manual"]),
+            )
+
+    def test_plugin_hook_windows_noop_covers_malformed_command_and_counts(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            plugin = root / "plug"
+            (plugin / ".claude-plugin").mkdir(parents=True)
+            (plugin / ".claude-plugin" / "plugin.json").write_text(
+                json.dumps({"name": "plug", "version": "1.0.0"}), encoding="utf-8"
+            )
+            write_stub_skill(plugin / "skills" / "alpha", "alpha")
+            hooks = plugin / "hooks"
+            hooks.mkdir()
+            (hooks / "hooks.json").write_text(
+                json.dumps(
+                    {
+                        "hooks": {
+                            "Stop": [
+                                {
+                                    "hooks": [
+                                        {"type": "command", "command": "true"},
+                                        {"type": "command", "command": 123},
+                                        {"type": "command"},
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            out = root / "codex"
+            _, summary = transfer.transfer_plugin(plugin, out)
+            hook_doc = json.loads(
+                (out / "plugins" / "plug" / "hooks" / "hooks.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            handlers = hook_doc["hooks"]["Stop"][0]["hooks"]
+            # Every kept command handler gets the no-op — including malformed
+            # ones whose `command` is missing or non-string.
+            self.assertEqual(
+                ["cmd /c exit 0"] * 3,
+                [handler["commandWindows"] for handler in handlers],
+            )
+            self.assertIn(
+                "hooks command 3 處補上", "\n".join(summary["manifest_mapped"])
+            )
 
     def test_plugin_hook_drops_non_command_handler(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -1006,15 +1161,29 @@ class TestPluginModeGeneration(unittest.TestCase):
             manifest = json.loads(
                 (plugin_out / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
             )
-            self.assertEqual("3.3.0", manifest["version"])
+            self.assertEqual("3.3.1", manifest["version"])
 
             codex_transfer = plugin_out / "skills" / "codex-skill-transfer"
             self.assertTrue((codex_transfer / "references" / "CODEX_PORT_PLAN.md").is_file())
             self.assertIn(
-                # Re-pinned 0.14.2 -> 0.15.0: AskUserQuestion now prefers
-                # request_user_input while retaining runtime-safe fallbacks.
-                "version: 0.15.0",
+                # Re-pinned 0.15.0 -> 0.16.0: ported POSIX hook handlers now
+                # carry a commandWindows no-op so Windows Codex degrades
+                # silently instead of erroring on every hook firing.
+                "version: 0.16.0",
                 (codex_transfer / "SKILL.md").read_text(encoding="utf-8"),
+            )
+            baransu_hooks = json.loads(
+                (plugin_out / "hooks" / "hooks.json").read_text(encoding="utf-8")
+            )
+            baransu_stop = baransu_hooks["hooks"]["Stop"][0]["hooks"][0]
+            self.assertEqual(
+                'powershell -NoProfile -ExecutionPolicy Bypass -File "${PLUGIN_ROOT}/hooks/seal-guard.ps1"',
+                baransu_stop["commandWindows"],
+            )
+            self.assertTrue(
+                (plugin_out / "hooks" / "seal-guard.ps1")
+                .read_bytes()
+                .startswith(b"\xef\xbb\xbf")
             )
             ship_skill = (plugin_out / "skills" / "ship" / "SKILL.md").read_text(
                 encoding="utf-8"

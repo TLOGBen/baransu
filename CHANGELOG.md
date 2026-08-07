@@ -2,6 +2,16 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [3.3.1] - 2026-08-07
+
+### Fixed
+- **Windows Codex 每次 Stop 都因 seal-guard hook 報錯（hook exited with code 1）**。根因：Codex 在 Windows 把 `C:\` 形式的 `PLUGIN_ROOT` 文字代入 `bash "${PLUGIN_ROOT}/hooks/seal-guard.sh"`，而 `bash` 常解析到 WSL bash——WSL 讀不懂 Windows 路徑，腳本永遠找不到；即使找到，WSL 也不繼承 Windows 環境變數（僅 WSLENV 白名單），腳本內 `${PLUGIN_ROOT:-}` 的 runtime 偵測與 exit contract 都會錯。
+
+### Added
+- **`hooks/seal-guard.ps1` — seal-guard 的 Windows 原生移植**（Windows PowerShell 5.1+，不依賴 bash/WSL）：loop 保護、git 偵測、user-facing surface 啟發式、seal 證據、telemetry、雙 runtime exit contract（Claude exit 2＋stderr／Codex `decision:block` JSON＋exit 0）逐條對等；任何偵測失敗一律 exit 0（never-wedge 契約不變）。六情境行為測試已在真 Windows PowerShell 5.1（WSL interop）跑綠。兩個 `.ps1` 不變式：UTF-8 BOM 必須保留（PS 5.1 把無 BOM 非 ASCII 腳本當 ANSI 解析、中文字串直接 parse error——實測踩到），`SEAL_GUARD_PATTERNS` 為 .NET regex（預設值與 POSIX 版等價）。
+- **`/codex-skill-transfer` 0.16.0 hook 移植的同名 `.ps1` 規則**：移植 command handler 時，凡指令執行套件內 `.sh` 且旁邊有同名 `.ps1`，`commandWindows` 即指向 `powershell -NoProfile -ExecutionPolicy Bypass -File "${PLUGIN_ROOT}/….ps1"`（Windows 全功能）；無 `.ps1` 的 handler 才降級 `cmd /c exit 0` 並列入報告；來源自帶 `commandWindows` 一律原樣保留。malformed handler（command 缺失/非 string）也保證拿到 `commandWindows`（Luna Max 獨立審核 finding 修正）。
+- **測試**：pytest 新增 `.ps1` 同名規則、來源覆寫保留、malformed handler 計數三組斷言；integration suite 新增 G14（BOM＋中文指示字串與 bash 版 byte 對等）與 G15（WSL interop 存在時在真 PS 5.1 跑六情境行為套件，否則乾淨 SKIP）。
+
 ## [3.3.0] - 2026-08-06
 
 ### Changed

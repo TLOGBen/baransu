@@ -9,7 +9,7 @@ description: Ports Claude Code skills, plugins, or marketplaces one-way to OpenA
 license: Apache-2.0
 metadata:
   author: baransu
-  version: 0.15.0
+  version: 0.16.0
 compatibility: Designed for Claude Code; output targets Codex CLI. Optional `skills-ref`
   CLI for validation.
 ---

@@ -2070,6 +2070,8 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
             else:
                 dropped_events: list[str] = []
                 hook_env_rewrites = 0
+                hook_windows_noops = 0
+                hook_windows_native = 0
                 for event, groups in raw_events.items():
                     if event not in CODEX_HOOK_EVENTS:
                         dropped_events.append(event)
@@ -2106,6 +2108,41 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
                                 )
                                 kept_handler["command"] = command
                                 hook_env_rewrites += root_count + data_count
+                            # Codex documents `commandWindows` as the
+                            # Windows-only command override. Ported handlers
+                            # are POSIX shell strings; without an override,
+                            # Windows Codex substitutes a C:\ PLUGIN_ROOT into
+                            # the command and hands it to whatever `bash`
+                            # resolves to (often WSL bash, which cannot read
+                            # Windows paths), so the hook errors on every
+                            # firing. Every kept command handler therefore
+                            # gets a `commandWindows` (source-supplied
+                            # override wins): when the command runs a bundled
+                            # `.sh` that ships a same-name `.ps1` sibling,
+                            # Windows runs that native port via Windows
+                            # PowerShell; otherwise Windows degrades to a
+                            # silent no-op instead of wedging the session.
+                            if "commandWindows" not in kept_handler:
+                                ps1_rel = None
+                                new_command = kept_handler.get("command")
+                                if isinstance(new_command, str):
+                                    sh_ref = re.search(
+                                        r"\$\{PLUGIN_ROOT\}/([^\"']+\.sh)\b",
+                                        new_command,
+                                    )
+                                    if sh_ref:
+                                        candidate = sh_ref.group(1)[: -len(".sh")] + ".ps1"
+                                        if (plugin_root / candidate).is_file():
+                                            ps1_rel = candidate
+                                if ps1_rel is not None:
+                                    kept_handler["commandWindows"] = (
+                                        "powershell -NoProfile -ExecutionPolicy Bypass "
+                                        f'-File "${{PLUGIN_ROOT}}/{ps1_rel}"'
+                                    )
+                                    hook_windows_native += 1
+                                else:
+                                    kept_handler["commandWindows"] = "cmd /c exit 0"
+                                    hook_windows_noops += 1
                             kept_handlers.append(kept_handler)
                         if kept_handlers:
                             kept_group = dict(group)
@@ -2127,6 +2164,23 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
                         mapped.append(
                             f"hooks command {hook_env_rewrites} 處 Claude plugin env "
                             "改寫為 Codex canonical `PLUGIN_ROOT` / `PLUGIN_DATA`"
+                        )
+                    if hook_windows_native:
+                        mapped.append(
+                            f"hooks command {hook_windows_native} 處偵測到同名 .ps1，"
+                            "`commandWindows` 指向 Windows 原生 PowerShell 實作"
+                        )
+                    if hook_windows_noops:
+                        mapped.append(
+                            f"hooks command {hook_windows_noops} 處補上 "
+                            "`commandWindows: cmd /c exit 0`"
+                            "（POSIX handler 無 .ps1 同名實作，不假設可在 Windows shell 執行）"
+                        )
+                        manual.append(
+                            "Windows 端 hooks 已降級為 no-op（`commandWindows: cmd /c exit 0`）——"
+                            "POSIX 腳本在 Windows Codex 會拿到 C:\\ 形式的 PLUGIN_ROOT 且常落到 "
+                            "WSL bash 而必然報錯；若某 hook 在 Windows 也必須生效，"
+                            "請提供同名 .ps1 的 Windows 原生實作"
                         )
                     manual.append(
                         "Codex plugin hooks 已輸出；安裝或變更後仍須在 `/hooks` review and trust，"
