@@ -20,11 +20,18 @@ Name a specific file, function, line, or condition. "A state management issue" i
 
 All user-facing output is in **Traditional Chinese (繁體中文)**.
 
+### Plain-language presentation contract
+
+- Make the immediate context explicit: what the user was doing or what event occurred.
+- Explain the evidence-backed causal chain in plain Traditional Chinese: what the user was doing → triggering event or condition → concrete root cause → propagation path → visible symptom → practical impact → concrete next step.
+- Keep each English technical term, but explain it in plain Traditional Chinese at its first use, in the same sentence or immediately after it.
+- Do not add facts that the current evidence has not established. This is presentation-only: it adds no PAUSE and does not replace or rename any output schema below.
+
 ---
 
 ## Outcome Contract
 
-- **Outcome**: The bug's root cause is stated in one sentence with confirming evidence before any fix, and the hunt is recorded for future reference.
+- **Outcome**: The bug's root cause is stated in one sentence with confirming evidence before any fix, every observed symptom is mapped to that causal chain or separated by an independent evidence citation proving it does not share that chain (with its own incident id and next action), and the hunt is recorded for future reference.
 - **Done when**: A Success-format report (根因/修復/確認方式/測試矩陣/迴歸守護) or a Handoff-format report is emitted with status 已解決 / 已解決（附帶條件說明）/ 受阻, and the case file `.claude/hunt-report/HUNT-YYYY-NNN.md` is written.
 - **Evidence**: The report's 確認方式 line cites the instrument or test that confirmed the root cause; all 🎯HUNT-id tagged instruments removed after confirmation (`grep -rn "🎯HUNT-{YYYY-NNN}" --exclude-dir=.claude .` over the source/test dirs returns 0 matches).
 - **Output**: The 繁中 success or handoff report plus the `.claude/hunt-report/HUNT-YYYY-NNN.md` case file.
@@ -34,10 +41,12 @@ All user-facing output is in **Traditional Chinese (繁體中文)**.
 ## Core constraints
 
 - Do not touch code before stating the root cause in one sentence.
-- Locate step (four questions) must complete before adding the first instrument.
+- Locate step (five questions) must complete before adding the first instrument.
 - Before You Fix (impact analysis + test matrix) is mandatory before any fix.
 - All instruments must carry a HUNT-id tag; remove all after root cause is confirmed.
-- Confirm or Discard: one instrument at a time; contradicted hypotheses are discarded completely, not patched.
+- Confirm or Discard: one active yes/no probe at a time; contradicted hypotheses are discarded completely, not patched.
+- A root cause cannot become `confirmed`, 「已解決」, or 「已解決（附帶條件說明）」 until every observed symptom maps to its causal chain, or an independent evidence citation proves the symptom does not share that chain and the case file records a separate incident id plus next action. A label alone is not separation evidence; otherwise the symptom stays `pending`.
+- Before every probe, declare the exact minimal allowed field names for that hypothesis. Runtime observations, reporter results, verbatim RED evidence, and the case file may retain only those fields after redaction; never retain a complete object, payload, credential, token, cookie, PII, or private path. The tested systemd reporter example below uses `timestamp`, `target`, `probe`, `event`, and `result`; other probe types choose their own minimal allowlist.
 - Three failed hypotheses triggers Handoff format, not another guess.
 - DB-connected investigation tests must use transactions that always rollback.
 - File writes and external API calls in investigation tests must use mocks.
@@ -69,6 +78,8 @@ When these appear, the diagnosis is moving in the right direction:
 
 Progress claims must map to at least one of the above signals.
 
+Do not stay silent while investigating. Emit a short user-visible progress update after Locate, after each hypothesis is confirmed or discarded, and before a fix or Handoff. Each update says what was checked, what the evidence changed, and what concrete check comes next. Report evidence and decisions only; never expose private chain-of-thought.
+
 ---
 
 ## Fast Path — Trivial Bugs
@@ -77,7 +88,7 @@ Eligibility is measured **at routing time**, by running the Scope Blast grep ear
 
 When BOTH hold: (1) the FIRST instrument, or the error message itself, confirms a one-sentence root cause, AND (2) the routing-time Scope Blast grep returns ≤3 matches still needing a fix/leave verdict (exclude matches inside `tests/` and `.claude/`) — the hunt may compress ceremony. The count that governs is post-exclusion matches requiring a verdict, not raw grep hits (raw hits may be 5 while relevant matches are 1; the Fast Path gates on the 1).
 
-- Locate's four questions answered in one line each.
+- Locate's five questions answered in one line each.
 - Short-form case file: EXACTLY these five named sections — root cause / fix / 確認方式 / 迴歸守護 / blast verdicts. Before You Fix call-chain analysis and the hypothesis log are omitted on the Fast Path; both return the moment the run leaves the Fast Path (the first instrument fails to confirm, or the blast grows past 3).
 
 When the Fast Path is taken, the case file (trace) MUST carry one routing log line — recognition must be auditable, not inferred from a section heading:
@@ -107,18 +118,39 @@ If the problem layer is uncertain, use bash logging first to confirm which modul
 
 ## Locate — Pin Down the Prey
 
-After selecting a tool in Tool Scan, answer these four questions before adding any instrument:
+After selecting a tool in Tool Scan, answer these five questions before adding any instrument:
 
 1. **Event sequence**: Which operation or event does the bug appear after? (HTTP request, scheduled job, user action, data sync)
 2. **Reproduction data**: Is there data available that triggers the bug? (request payload, DB record, log excerpt)
 3. **Dirty data characteristics**: How does the dirty data differ from normal? (which field, which value, which condition)
 4. **Environment**: Can the bug be reproduced in a test environment, or only in production?
+5. **Observed symptoms**: List every reported or visible symptom verbatim enough to distinguish it, and keep that complete list in the case file. For each item record `pending`, its eventual causal-chain mapping, or `separate incident: <id / independent evidence citation / next action>`. Without the citation it remains `pending`.
 
-These four questions determine where the first instrument goes. Adding a log before answering these questions = setting traps in a forest without knowing where the prey is.
+These five questions determine where the first instrument goes. Adding a log before answering these questions = setting traps in a forest without knowing where the prey is.
 
 Before instrumenting, run `python3 "$CLAUDE_SKILL_DIR/scripts/hunt-search.py" --keyword "<symptom term>"` to check whether a similar case was already solved; the search covers `.claude/hunt-report/` plus `/ship`-archived cases in `.claude/archived/`. Cite any hit in the report. (If no case dirs exist at all, apply the Fast Path's case-memory rule: skip the search and log 「首獵：無既往案例」.)
 
 **Create the case file now, at the Locate stage — not after completion.** Allocate NNN = max(existing ids found by hunt-search.py across `.claude/hunt-report/` and archived cases) + 1, create `.claude/hunt-report/HUNT-YYYY-NNN.md` (format: `references/hunt-case-template.md`) with a `status: scoping` frontmatter field, and update the status as the hunt progresses: scoping → confirmed → fixed / handoff. On the Fast Path, scoping → fixed is a legal collapse — the `confirmed` hop may fold into the fix transition; off the Fast Path the three-state ladder stands. At creation, the trace entry recording the case file MUST quote the file's `status: scoping` frontmatter line verbatim, so early creation is externally checkable against the trace even in single-commit hunts.
+
+### Reporter probe when local reproduction is unavailable
+
+If the Environment answer is production-only or otherwise unavailable locally, first finish every safe local inventory/context scan. Then run no more local hypothesis probes while waiting: issue exactly this five-line reporter diagnostic block. Its five labels and explicit target/time/work/output bounds are fixed; generate the command and minimal return-field allowlist for the shell/runtime established at Locate. The block below is a tested Linux systemd example, not a universal command. In that example replace only the one known target selector. For a different known runtime, generate an equivalently bounded, quoted, read-only command; for an unknown runtime, use Handoff rather than invent one.
+
+```
+診斷目的：{一個 yes/no 假說}
+唯讀命令：`bash -c 'target=$1; since=$2; journalctl --no-pager --since "$since" -u "$target" -n 80 -o json --output-fields=__REALTIME_TIMESTAMP,_SYSTEMD_UNIT,HUNT_PROBE,HUNT_EVENT,HUNT_RESULT | jq -c --arg target "$target" "{\"timestamp\": .__REALTIME_TIMESTAMP, \"target\": \$target, \"probe\": .HUNT_PROBE, \"event\": .HUNT_EVENT, \"result\": .HUNT_RESULT}" | head -n 80' -- 'known-service.service' '-15 min'`
+執行界限：target=known-service.service；time=15 minutes；work=80 journal records；output=80 lines
+請回傳：僅 `timestamp`、`target`、`probe`、`event`、`result` 五個欄位；最多 80 行
+回傳前遮蔽：credential/token/cookie/PII/完整 payload/私人路徑
+```
+
+The systemd example is one bounded, read-only command: `--no-pager` forbids follow mode, `--since` bounds time, `-n 80` bounds work, and `head -n 80` bounds output. `journalctl -o json --output-fields=__REALTIME_TIMESTAMP,_SYSTEMD_UNIT,HUNT_PROBE,HUNT_EVENT,HUNT_RESULT` forbids a `MESSAGE` dump, and `jq` projects only the five allowed aliases. In this example `HUNT_PROBE`, `HUNT_EVENT`, and `HUNT_RESULT` must be predeclared fixed tokens/enums, never data-derived values. A different known runtime may use different predeclared fields, but it must meet the same minimal-allowlist, redaction, and three-bound contract. If it cannot, do not dump a log line: use the Handoff format instead. Do not replace it with a root/home/all-resource wildcard, unbounded device, global scan followed by truncation, or a follow command.
+
+Treat symptom text, service names, paths, and all reporter values as hostile input. Never interpolate them into shell code: bind validated literal selectors through positional parameters as shown, quote every expansion, and keep the shell program constant. The required hostile-value test set is `'; env; #`, `$(id)`, `` `id` ``, `<newline>`, and `--help`; each must remain data and must neither execute nor rewrite the command.
+
+Before any runtime or reporter probe, declare an exact minimal evidence allowlist for that hypothesis; the tested systemd example uses `timestamp`, `target`, `probe`, `event`, `result`. Redact values before they enter runtime logs, reporter output, a quoted RED evidence line, or the case file. A RED quotation must be one redacted line made only from that probe's allowlist, never a copied raw log/object/payload.
+
+In non-interactive mode, waiting for the reporter result is the reporter-result Input PAUSE in `references/loop-pauses.md`. If no other read-only check remains, emit the existing Handoff format and end with `LOOP_OUTCOME: no progress: reporter probe result required`; do not request authorization.
 
 ---
 
@@ -130,11 +162,15 @@ All instruments (log lines, failing assertions, minimal test cases) **must carry
 - `grep -rn "🎯HUNT-{YYYY-NNN}" --exclude-dir=.claude .` finds all instruments at once (the `--exclude-dir=.claude` scope matters: the case file itself carries the tag and must not count)
 - After root cause is confirmed, **remove all tagged instruments in one sweep**, verify the build still passes, and confirm the same scoped grep over the source/test dirs returns 0 matches
 
-Log bisection: add only 2–3 instruments per round, not 20.
+One probe answers exactly one written yes/no hypothesis. At most one probe may be active at any time, whether it is an assertion, query, test, log, or static hypothesis check. Only an inventory/context scan that answers no hypothesis may run in parallel.
+
+A probe contains either one assertion/query/test/static check, or 2–3 coordinated log sites. In the log-site form, every site has the same HUNT-id and probe label, all sites test the same yes/no hypothesis, and they close together as one probe — never as parallel hypotheses.
+
+Log bisection therefore uses one log-site probe per round, not 20 instruments or multiple active probes.
 ```
-Round 1: one point each at suspect entry / middle / exit → determine which segment contains the problem
-Round 2: 2–3 more points inside the problematic segment → narrow further
-Round 3: usually locates within 5–10 lines
+Probe 1: entry / middle / exit sites answer “does this one path lose the value?” → close the probe
+Probe 2: 2–3 sites inside the identified segment answer the next yes/no hypothesis → close the probe
+Probe 3: usually locates within 5–10 lines
 ```
 
 **Side-effect rule**: If adding a log changes the behavior (the bug disappears, the symptom shifts, the order of events differs), treat that as direct evidence of a timing, lifecycle, or concurrency problem — not as a logging side-effect to dismiss. The act of observing already pointed at the root cause class.
@@ -143,10 +179,10 @@ Round 3: usually locates within 5–10 lines
 
 ## Confirm or Discard
 
-Add only **one** minimal instrument at a time (one log line, one failing assertion, or one minimal test case).
+Write one yes/no hypothesis, declare its exact evidence allowlist, then open exactly one probe. Close it and record the result before opening another. A partial explanation may stay a hypothesis, but it cannot set `confirmed` until the complete observed-symptom list is mapped to the causal chain, or an independent evidence citation proves a symptom belongs to another incident and the case file records that incident's id plus next action.
 
 After executing:
-- Evidence **supports the hypothesis** → find one independent cross-confirmation, then proceed to Before You Fix (next section). Independent means the cross-confirmation MUST come from a different observable layer than the one that produced the first evidence (per the Tool Scan layers — UI/render, data state, call-chain structure, runtime intermediate values, static structure). Concretely, if a log line at the runtime layer confirmed it, the second check must be a DB query, a failing test, or a UI/render observation — not a second log at the same layer. One explicitly sanctioned second channel: **a failing test you then watch fail** — writing a test that encodes the hypothesis and observing it fail is a distinct confirmation *mechanism*, and counts even when it exercises the same layer as the first evidence.
+- Evidence **supports the hypothesis** → close that first probe, then open one second, independent cross-confirmation probe before proceeding to Before You Fix (next section). Independent means a different observable layer than the first probe (per the Tool Scan layers — UI/render, data state, call-chain structure, runtime intermediate values, static structure). Concretely, if a runtime log probe supported it, the second probe must be a DB query, a failing test, or a UI/render observation — not another runtime log. The sole same-layer exception is an observed failing test that encodes the hypothesis; it is still a second, closed-before-opened probe.
 - Evidence **contradicts the hypothesis** → **discard the hypothesis completely**. Not patch, not explain. Reorient using what was just learned.
 
 A preserved-but-contradicted hypothesis produces a new bug. Discard completely.
@@ -241,7 +277,7 @@ If the issue is purely subjective UI taste, route to `/baransu:design` instead. 
 | Fix plan or current diff touches 6 or more files (without a Scope Blast pattern justification) | Stop **before adding the 6th file**. Check at two points: (i) when drafting the fix plan, (ii) after each edit. If the scope is genuinely a class-of-bug sweep, route through Scope Blast Mode (which is an explicit exception). If it is symptom-patch creep growing into a refactor, narrow back or route to `/baransu:analyze`. |
 | Someone (user or agent) deflects suspicion from a specific area — semantic trigger, not literal string match. Examples: 「那段沒問題」「不是那邊的問題」「先別管那個」「我已經檢查過了」, "that part doesn't matter", "I already checked there" | Treat as a signal. The area being deflected from is often where the bug lives — especially in multi-stage pipelines (CI segments, data pipeline stages, baransu plane handoffs) where one stage is excluded from suspicion. Re-examine that area with one targeted instrument before accepting the deflection. |
 
-> In an ultracode session you may dispatch Workflows to explore multiple hypothesis lines in parallel (one instrument focus per line); results still converge into a single root-cause statement.
+> In an ultracode session you may dispatch Workflows only for parallel inventory/context scans that answer no hypothesis. They may inform the next serialized probe, but never explore multiple hypothesis lines in parallel.
 > When driven by loop, the loop-mode default is assisted: diagnosis advances automatically, but the fix is reported to the driver before being applied.
 
 ---
@@ -259,6 +295,8 @@ If the issue is purely subjective UI taste, route to `/baransu:design` instead. 
 ---
 
 ## Output
+
+Before either fixed format below, write one short plain-language event summary that joins the whole incident: what the user was doing → triggering event or condition → concrete root cause (or the exact missing evidence if still unknown) → propagation path → visible symptom → practical impact → concrete next step. This summary is required even when the hunt is blocked; the fixed fields remain unchanged.
 
 ### Success format
 

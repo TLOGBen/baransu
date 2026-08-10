@@ -22,10 +22,10 @@ When working on any UI/UX content, read the design system at the project root an
 plugins/
   baransu/
     .claude-plugin/
-      plugin.json              # plugin manifest (v3.3.1)
+      plugin.json              # plugin manifest (v3.3.2)
     skills/
       think/ review/ contract/ analyze/ seal/ write/ ship/ hunt/ health/ read/ learn/ book/ design/ codex-skill-transfer/ evolve/
-      _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md, fact-check.md, contract-gate.md, selection-telemetry.md) + evals/ scripts/
+      _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md, fact-check.md, contract-gate.md, selection-telemetry.md, distillation-candidate-matrix.md) + evals/ scripts/
     rules/
       anti-patterns.md         # cross-skill behavioral guardrails
     agents/

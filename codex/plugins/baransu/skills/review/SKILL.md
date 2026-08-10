@@ -216,7 +216,7 @@ Before any finding enters consolidation, it passes four quality questions. This 
 3. Did the reviewer read the upstream/downstream context, not just the cited lines?
 4. Does the claimed severity hold when restated against that evidence?
 
-HIGH / CRITICAL findings additionally require **three pieces of evidence** (e.g. citation + triggering input + contradicted claim or reproduction record). A finding that fails any question downgrades one tier or drops entirely — nothing passes through "just in case".
+HIGH / CRITICAL findings additionally require **three pieces of evidence** (e.g. citation + triggering input + contradicted claim or reproduction record). Before retaining one, name a prediction that would falsify its core claim, then check that prediction through a different evidence source or mechanism; rereading or restating the same citation is not independent. Record the result in natural prose. A falsified finding drops or is downgraded; one with no executable falsifier also drops or downgrades without asking the user to preserve severity. A finding that fails any question downgrades one tier or drops entirely — nothing passes through "just in case".
 
 「乾淨的 review 是有效的 review — 零發現配上明說的審查面就是完整輸出」。A zero-finding report that states exactly which surfaces were examined is a complete, valid deliverable. Manufacturing findings to justify the invocation is prohibited (**INV-no-manufacture**).
 
@@ -236,6 +236,8 @@ The fourth question is the compass — it is the difference between a review tha
 **Mechanism necessity — a finding that proposes new mechanism must clear one more bar.** Does the added complexity actually solve the problem or reach the goal, or does it only add weight whose sole product is a failure log — "I failed here" — that solves nothing, advances no progress, completes no milestone? Detection or narration of a failure the mechanism cannot prevent does not justify its complexity. Beware especially the recommendation that stacks another rule *inside* the same path that just failed (so the failing path can simply skip it too): prefer removing the trigger or proving the fix needs a lever outside the failing system over endorsing one more skippable layer. A reviewer who keeps proposing mechanism is at risk of the same trap the target fell into — adding complexity in place of a fix.
 
 When a perspective surfaces a real-but-off-goal observation, the load-bearing rule applies: if it cannot be traced back to the explicit review goal, it must drop to advisory, never package as an action item.
+
+In the final prose, explicitly say which surviving findings are worth including and which are not, with a one-line reason for each against the review goal; explicitly say when either set is empty. Do not hand every tier back to the user for this decision.
 
 The fourth question itself is load-bearing — silently assuming it instead of asking it produced perspective drift on past runs. Treat it as a written check at every consolidation, not as ambient atmosphere.
 
@@ -291,6 +293,10 @@ For plan / claim / pure-documentation targets, e2e does not apply — note as n/
 ## Output shape
 
 Traditional Chinese, natural prose, this shape:
+
+### Plain-language presentation contract
+
+Within the prose body, make the immediate context explicit, explain why each conclusion follows from the reviewed evidence, state the practical impact, and give a concrete next step. Keep each English technical term, but explain it in plain Traditional Chinese at its first use, in the same sentence or immediately after it. Do not add facts the review has not established. This is presentation-only: it adds no PAUSE, does not create a skeleton template, and does not replace, rename, or add fields to the shape or receipt below.
 
 - One-sentence conclusion (完成 / 需要你的判斷 / 未完成)
 - Target and scope

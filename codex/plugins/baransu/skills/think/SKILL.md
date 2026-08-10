@@ -60,10 +60,9 @@ You *may* reference existing file paths when citing what you found, and you *may
 Why so strict: a premature code artefact anchors the user — they argue about its wording instead of its architecture.
 
 ---
-
 ## User-facing language
 
-All output shown to the user — alignment questions, proposals, the final plan, `request_user_input` labels — must be in **Traditional Chinese (繁體中文)**.
+All output shown to the user — alignment questions, proposals, the final plan, `request_user_input` labels — must be in **Traditional Chinese (繁體中文)**. **Plain-language presentation contract:** within the active mode's existing shape, make the immediate context explicit, explain why the conclusion follows from this run's evidence or the user's known constraints, state the practical impact, and give a concrete next step. Keep each English technical term, but explain it in plain Traditional Chinese at its first use, in the same sentence or immediately after it. Do not add facts that this run has not established. This is presentation-only: it adds no PAUSE and does not replace, rename, reorder, or prepend a generic skeleton to any mode schema below. Evaluation still opens with its exact verdict line; Full still uses its exact five sections.
 
 ---
 
@@ -120,10 +119,11 @@ This rule is scoped to **Lightweight → Full inside Plan**. There is no automat
 Ask which part was wrong (file? approach? risk analysis?), correct it, and propose once more. If the second proposal is also rejected and the disagreement is *growing* rather than narrowing — escalate to Full mode.
 
 ---
-
 ## Lightweight mode
 
 Total output: ~10 lines in Traditional Chinese, then wait.
+
+Before recommending, enumerate only behavior-complete candidates: each must satisfy the stated success, failure, and edge outcomes. Exclude any suppress/hide/bypass workaround or candidate that drops an outcome; recommend the smallest remaining change by behavior, files, and new abstractions, preferring existing paths and primitives. If repo evidence shows that smallest complete candidate cannot meet the need, cite it in the existing reason and choose the next-smallest complete candidate.
 
 Output template (translated to 繁體中文 in actual output):
 
@@ -362,9 +362,7 @@ If you genuinely don't know something, it goes in **Unknowns** with a reason and
 Before the plan proposes any new mechanism — a rule, a check, a step, a layer, a constraint — it must answer one question: does this added complexity actually solve the problem or move toward the goal, or does it merely add weight whose only product is a failure log — a record that says "I failed here" while solving nothing, advancing no progress, completing no milestone?
 
 A mechanism that can only detect or narrate a failure it cannot prevent has not earned its complexity. The sharpest tell: the proposed mechanism sits *inside* the same failing path it is meant to govern, so that path can simply skip it (this is how a fourth prose rule joins three already-bypassed ones and changes nothing). When that is the case, prefer removing the trigger, or proving the fix structurally impossible without a lever outside the failing system, over stacking another skippable layer. Complexity that only buys a nicer obituary for the failure is not a fix — name it as such in **Approach** rather than dressing it as a solution.
-
 ---
-
 ## Stage F — The final plan (five-section schema)
 
 Produce **exactly** this structure, in 繁體中文, with these exact section titles. The schema is fixed because downstream consumers (humans reviewing, or Claude reading the plan back to implement) are calibrated on it.
@@ -383,6 +381,7 @@ Produce **exactly** this structure, in 繁體中文, with these exact section ti
 <選了 Stage B/C 的哪一個選項？為什麼選它而不是其他？
  如果是自製方案而非 Option 1（官方），說明為什麼官方方案不適用於這個情境。
  Stage E 的攻擊角度中，哪些 failure mode 是已接受的邊界？>
+承重前提：{X}；若不成立：{實際後果 Y}；設計如何承受：{Z}。
 
 ## Key decisions（關鍵決策）
 1. <決策 1>：<為什麼這樣選；有什麼取捨>
@@ -479,9 +478,7 @@ If the user pushes back in free text instead of using Option 3 — same rules ap
 - If you get two rejections in a row and the second reason is *different in kind* from the first (concerns are spreading, not converging), stop and ask for an **anti-example**: 「請給我一個你絕對不要的方案長什麼樣」. Anti-examples often surface a constraint neither side realised was in play.
 
 Do not loop more than 3 re-proposals on the same plan. If the third is also rejected, pause and suggest: 「我們可能在解的是錯的問題；要不要回到 Stage A 重新對焦 目的 / 約束 / 成功？」. This is the one legitimate reason to go back to the top.
-
 ---
-
 ## Gotchas
 
 One Gotcha keeps its long-form prose because its value is in the multi-layer response. The rest are tabulated for quick scanning — each row pairs an observed mistake with the rule it should obey.

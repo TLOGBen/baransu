@@ -1161,7 +1161,11 @@ class TestPluginModeGeneration(unittest.TestCase):
             manifest = json.loads(
                 (plugin_out / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
             )
-            self.assertEqual("3.3.1", manifest["version"])
+            source_manifest = json.loads(
+                (REPO_ROOT / "plugins" / "baransu" / ".claude-plugin" / "plugin.json")
+                .read_text(encoding="utf-8")
+            )
+            self.assertEqual(source_manifest["version"], manifest["version"])
 
             codex_transfer = plugin_out / "skills" / "codex-skill-transfer"
             self.assertTrue((codex_transfer / "references" / "CODEX_PORT_PLAN.md").is_file())
@@ -1206,7 +1210,44 @@ class TestPluginModeGeneration(unittest.TestCase):
             self.assertIn("$CLAUDE_SKILL_DIR", codex_skill_mapping)
             self.assertNotIn("`.` → `.`", codex_skill_mapping)
 
+            hunt = (plugin_out / "skills" / "hunt" / "SKILL.md").read_text(encoding="utf-8")
+            self.assertIn("Plain-language presentation contract", hunt)
+            self.assertIn("Do not stay silent while investigating", hunt)
+            self.assertIn("Before either fixed format below", hunt)
+            self.assertIn("every observed symptom maps to its causal chain", hunt)
+            self.assertIn("an independent evidence citation proves the symptom does not share that chain", hunt)
+            self.assertIn("At most one probe may be active at any time", hunt)
+            self.assertIn("never explore multiple hypothesis lines in parallel", hunt)
+            self.assertIn("Reporter probe when local reproduction is unavailable", hunt)
+            self.assertIn("a tested Linux systemd example, not a universal command", hunt)
+            self.assertIn(
+                "--output-fields=__REALTIME_TIMESTAMP,_SYSTEMD_UNIT,HUNT_PROBE,HUNT_EVENT,HUNT_RESULT",
+                hunt,
+            )
+            self.assertIn("LOOP_OUTCOME: no progress: reporter probe result required", hunt)
+            hunt_case = (
+                plugin_out / "skills" / "hunt" / "references" / "hunt-case-template.md"
+            ).read_text(encoding="utf-8")
+            self.assertIn("哪個 event / condition 觸發 → 具體根因", hunt_case)
+            self.assertIn("下一個調查方向，以及需要的工具或權限", hunt_case)
+            self.assertIn("independent evidence citation / next action", hunt_case)
+            hunt_pauses = (
+                plugin_out / "skills" / "hunt" / "references" / "loop-pauses.md"
+            ).read_text(encoding="utf-8")
+            self.assertIn("Reporter probe — waiting for the bounded reporter diagnostic result", hunt_pauses)
+
             think = (plugin_out / "skills" / "think" / "SKILL.md").read_text(encoding="utf-8")
+            self.assertIn("Plain-language presentation contract", think)
+            self.assertIn("practical impact", think)
+            self.assertIn("concrete next step", think)
+            self.assertIn("behavior-complete candidates", think)
+            self.assertIn("stated success, failure, and edge outcomes", think)
+            self.assertIn("suppress/hide/bypass", think)
+            self.assertEqual(
+                1,
+                think.count("承重前提：{X}；若不成立：{實際後果 Y}；設計如何承受：{Z}。"),
+            )
+            self.assertLessEqual(len(think.splitlines()), 500)
             self.assertIn("Codex Port Adapter - Request User Input Gate", think)
             self.assertIn("`request_user_input`", think)
             self.assertIn("default_mode_request_user_input", think)
@@ -1220,6 +1261,11 @@ class TestPluginModeGeneration(unittest.TestCase):
             )
 
             review = (plugin_out / "skills" / "review" / "SKILL.md").read_text(encoding="utf-8")
+            self.assertIn("Plain-language presentation contract", review)
+            self.assertIn("does not create a skeleton template", review)
+            self.assertIn("prediction that would falsify its core claim", review)
+            self.assertIn("different evidence source or mechanism", review)
+            self.assertIn("which surviving findings are worth including and which are not", review)
             self.assertIn("Codex Port Adapter - Review Isolation", review)
             self.assertIn(
                 "Codex Port Adapter - Bundled Agent Resolution", review
@@ -1236,6 +1282,31 @@ class TestPluginModeGeneration(unittest.TestCase):
             )
             self.assertIn("codex-isolation-probe.md", health)
             self.assertIn("independent Codex invocation or session", health)
+
+            distillation_matrix = (
+                plugin_out / "skills" / "_shared" / "distillation-candidate-matrix.md"
+            ).read_text(encoding="utf-8")
+            for question in (
+                "Recurrence evidence",
+                "Durable invariant",
+                "Target layer",
+                "Verifier",
+                "Project/private contamination",
+            ):
+                self.assertEqual(1, distillation_matrix.count(f"| {question} |"))
+            self.assertIn("red-on-absence evidence through a mutation or pre-fix failure", distillation_matrix)
+            self.assertIn("one reproducible failure plus a red-on-absence behavioral verifier", distillation_matrix)
+            self.assertIn("Necessary project-specific facts select `project` and REROUTE", distillation_matrix)
+            self.assertIn("候選處置：{PROMOTE|REROUTE|DEFER|REJECT} — {一行理由}", distillation_matrix)
+
+            evolve = (plugin_out / "skills" / "evolve" / "SKILL.md").read_text(encoding="utf-8")
+            self.assertIn("apply `../_shared/distillation-candidate-matrix.md`", evolve)
+            self.assertIn("Only `PROMOTE: shared-skill` with this exact resolved target may enter Stage 1", evolve)
+            health_conditional = (
+                plugin_out / "skills" / "health" / "references" / "conditional-audits.md"
+            ).read_text(encoding="utf-8")
+            self.assertIn("Only when a deep health audit reads recent agent conversations", health_conditional)
+            self.assertIn("do not automatically write durable docs", health_conditional)
 
             analyze_out = (plugin_out / "skills" / "analyze" / "SKILL.md").read_text(encoding="utf-8")
             self.assertIn("Codex Port Adapter - Machine Gates and Task Map", analyze_out)

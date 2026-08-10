@@ -2,6 +2,16 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [3.3.2] - 2026-08-10
+
+### Changed
+- **`/hunt` 不再沉默或只丟技術結論**：調查中的 Locate、每次假說確認／排除、修復或 Handoff 前都要用繁中回報「查了什麼、證據改變了什麼、下一個具體檢查」；結案與受阻時先以白話串起「當時在做什麼 → 觸發條件 → 根因／缺失證據 → 傳導路徑 → 使用者看到的症狀 → 影響 → 下一步」，既有 Success／Handoff 欄位不變。
+- **`/hunt` 的確認門檻與遠端診斷更嚴謹**：根因必須解釋全部已觀察症狀，否則只能維持假說，或以獨立證據拆成另一事件；一次只開一個 yes/no probe，2–3 個 log site 也必須共同回答同一題。本機無法重現時，改交付符合已知 runtime、且有 target／時間／工作量／輸出上限的五行唯讀診斷區塊，只保留該 probe 預先允許且已遮蔽的欄位。
+- **`/think` 與 `/review` 共用同一個白話呈現契約**：補齊脈絡、證據或已知限制所支持的理由、實際影響、具體下一步；English technical term 首次出現時保留原文並就地解釋。呈現層不得補造事實、不得新增 PAUSE，也不得改動 Evaluation verdict-first、Full 五節或 review 八欄 receipt 等既有 schema。
+- **`/think` 與 `/review` 加入抗慣性判斷**：Lightweight 先從行為完整的候選中選最小可靠修法；Full Approach 明列最脆弱承重前提、失敗後果與承受方式。HIGH／CRITICAL finding 必須先用不同證據來源嘗試反證；最後明說哪些值得、哪些不值得，理由須回扣 review goal。
+- **`/evolve` 與 `/health` 共用蒸餾候選矩陣**：外部 repo、release log、事故、對話或 private memory 的候選先判斷是否重複、是否為長期 invariant、正確 owner layer、可讓缺失行為轉紅的 verifier，以及是否混入專案／私人資訊；只讓值得且放對層的規則進入長期資產。
+- **行為契約測試**：新增白話呈現、hunt 診斷、think／review 抗慣性及蒸餾矩陣測試，釘住既有 5／6／5、4／5／8 schema，並以 mutation fixture 證明「只留說明文字、刪掉實際行為」會轉紅；Codex transfer E2E 同步確認新契約有進入生成結果。
+
 ## [3.3.1] - 2026-08-07
 
 ### Fixed

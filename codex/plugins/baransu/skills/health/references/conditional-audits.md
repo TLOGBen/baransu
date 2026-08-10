@@ -26,17 +26,7 @@ The stop conditions should live in tracked project docs (`AGENTS.md`, the loop's
 
 ## Conversation-derived guidance
 
-**Conversation-derived guidance.** When a health audit reads recent agent conversations, do not recommend copying the conversation or a scorecard into docs. Recommend a candidate-matrix pass instead:
-
-| Field | Question |
-|---|---|
-| Repeated failure | Did this recur across fixes, releases, agents, or user reports? |
-| Durable invariant | Can the lesson be stated as a stable rule, not a dated incident summary? |
-| Target layer | Should it live in project instructions, a reusable skill, a global rule, or private memory? |
-| Verifier | Is there a deterministic command, script, artifact check, or runtime smoke that can enforce it? |
-| Redaction risk | Does the lesson require local paths, issue numbers, customer details, machine state, secrets, or unpublished release facts? |
-
-Layering rule: project-specific commands, app names, artifact names, and release rituals stay in the project; reusable workflows belong in shared skills; universal honesty and verification rules belong in global CLAUDE/AGENTS instructions; private user preferences and one-machine facts stay in memory. If the lesson cannot pass the redaction-risk field, keep it out of public guidance.
+**Conversation-derived guidance.** Only when a deep health audit reads recent agent conversations, do not recommend copying the conversation or a scorecard into docs. Apply the shared authority at `../../_shared/distillation-candidate-matrix.md` before recommending durable or public guidance. Put `候選處置：{PROMOTE|REROUTE|DEFER|REJECT} — {一行理由}` in the existing finding prose; do not add report fields and do not automatically write durable docs. `DEFER` and `REJECT` must not recommend writing durable docs, and every off-ramp leaves other owner layers untouched. This admission check does not block local read-only conversation inspection or inspector dispatch.
 
 ## Hotspot ownership gaps
 

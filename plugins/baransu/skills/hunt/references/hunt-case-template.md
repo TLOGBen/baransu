@@ -20,7 +20,8 @@ fix: ""
 
 ## 症狀
 
-[完整錯誤訊息或重現步驟]
+- `observed symptom`: [完整錯誤訊息或重現步驟] → `causal-chain mapping`: pending | [因果鏈位置] | separate incident: [id / independent evidence citation / next action]
+- Add one row for every reported or visible symptom. `status: confirmed` is forbidden until every row has a causal-chain mapping or an independently evidenced separate incident; a label without the citation remains `pending`.
 
 ## Before You Fix
 
@@ -41,16 +42,19 @@ fix: ""
 ### 假說 1
 - 假說：
 - 工具（帶 `🎯HUNT-YYYY-NNN` tag）：
+- Probe label / yes-no question:
+- Allowed field names: [exact minimal fields for this probe; the tested systemd reporter example uses `timestamp`, `target`, `probe`, `event`, `result`]
+- Redacted evidence only: values are redacted before this file; no complete object, payload, credential, token, cookie, PII, or private path:
 - 結果：
 - 保留或丟棄：
 
 ## 根因分析
 
-[詳細說明根因]
+[用白話串起整體事件：當時在做什麼 → 哪個 event / condition 觸發 → 具體根因 → 如何一路傳成使用者看到的症狀 → 造成什麼影響]
 
 ## 修復
 
-[改了什麼，在哪裡，對應哪個 commit]
+[已修復：改了什麼、在哪裡、對應哪個 commit，以及接下來如何驗證或觀察；未修復：具體的下一個調查方向，以及需要的工具或權限]
 
 ## Scope Blast
 
