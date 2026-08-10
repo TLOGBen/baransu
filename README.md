@@ -46,7 +46,7 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 - **中**：`/contract` 開工立約 → 實作 → `/seal` 收工封緘。
 - **大**：`/analyze` 一條管線走完規格與執行段。
 
-任務不遷就工具：小任務不硬上全套，大任務不偷走輕量路。證據錨：`.claude/experiments/2026-07-19-harness-matrix/`（10-arm 矩陣＋驗證輪盲評）。
+任務不遷就工具：小任務不硬上全套，大任務不偷走輕量路。
 
 > ⚠️ **seal-guard hook（隨 plugin 生效，預設阻擋）**：session 結束時若偵測到未 `/seal` 的 user-facing 變更，會擋下並提示補 seal。降級：`SEAL_GUARD=log`（只記錄）或 `SEAL_GUARD=off`。遙測集中在 `~/.claude/baransu/telemetry/{專案}/{類型}-{YYYY-MM}.jsonl`，月回看檢討誤擋率（過高即降回 log 預設——可證偽條款）。
 

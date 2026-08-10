@@ -25,7 +25,7 @@
 
 Stage B 方案 2 修訂版：雙釘獨立（觸發體驗優先的直接結論——「名字即觸發器」係由對焦目的推導 (inferred: 實驗未含觸發表現對照格，其驗證落在本計畫自身的遙測判準上)；實驗結論 skill 殘餘本體＝注意力假肢 (verified: 08-reform-article)）＋雙塔合一（**實驗判死的是交接工件——ctx 檔／summarize／常數轉抄鏈，且驗證輪冠軍組態 p3-os′ 本來就是單一連續管線；合併是把已驗證形態搬回 baransu**）＋上限 14→15（合併回收一格後僅需一格，修憲幅度最小）。不選最小方案（全併入為模式）因觸發詞彙弱化牴觸目的；不選 16 格方案因保留死縫且修憲幅度加倍。已接受邊界：合併後大頻段品質未經實驗驗證（Phase 2 承擔）；execute 名字消失的習慣斷裂由 description 關鍵詞＋CHANGELOG breaking-change 指引緩解。
 
-實驗證據錨:驗證輪 p3-os′（R1–R9 全套）20/20 全釘、**0 引入 med/high**、突變 6/6 全殺、$19.29（冠軍 59% 成本）；p-min（一頁合約＋單 seal）行為面 20/20、**0 引入 med/high**、$7.27。記錄正本於 baransu `.claude/experiments/2026-07-19-harness-matrix/`（01 run-log、09 validation-verdicts）。
+實驗證據錨:驗證輪 p3-os′（R1–R9 全套）20/20 全釘、**0 引入 med/high**、突變 6/6 全殺、$19.29（冠軍 59% 成本）；p-min（一頁合約＋單 seal）行為面 20/20、**0 引入 med/high**、$7.27。
 
 ## Key decisions（關鍵決策）
 

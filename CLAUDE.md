@@ -71,7 +71,7 @@ Invoke with `/baransu:<name>`. To edit a skill, read its `SKILL.md` — design c
 
 **15 is the skill-count ceiling** — adding a 16th requires retiring one first (以裁換建). Mechanism anchor: the skill-count check in `scripts/verify-skills.py`. Falsifiable amendment clause (2026-07-19, 14→15): if selection telemetry shows `/codex-skill-transfer` at zero use for three consecutive months, retire it and restore the ceiling to 14.
 
-**Three-band routing** (evidence anchor: `.claude/experiments/2026-07-19-harness-matrix/` — the 10-arm harness×model matrix plus its validation round):
+**Three-band routing**:
 
 | Band | Route | Closure evidence |
 |------|-------|------------------|

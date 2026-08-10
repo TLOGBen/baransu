@@ -142,7 +142,7 @@
 
 ## v3.0.0 (2026-07-19)
 
-**版圖重組：三頻段路由落地——雙塔合一＋雙釘獨立＋修憲 15**。plugin version 2.13.0 → 3.0.0。依據：10-arm harness×model 矩陣實驗＋R1–R9 改革驗證輪（完整記錄與判決在 `.claude/experiments/2026-07-19-harness-matrix/`；核心結論——品質槓桿是驗收條文的可斷言性，不是流程重量；改革版全套 p3-os′ 以 59% 成本追平頂級模型冠軍，一頁合約＋單次 seal 以 22% 成本達成行為面全數達標）。
+**版圖重組：三頻段路由落地——雙塔合一＋雙釘獨立＋修憲 15**。plugin version 2.13.0 → 3.0.0。依據：10-arm harness×model 矩陣實驗＋R1–R9 改革驗證輪（核心結論——品質槓桿是驗收條文的可斷言性，不是流程重量；改革版全套 p3-os′ 以 59% 成本追平頂級模型冠軍，一頁合約＋單次 seal 以 22% 成本達成行為面全數達標）。
 
 - **BREAKING：`/baransu:execute` 移除**。其觸發詞（「開始執行」「跑 execute」「依照 analyze 執行」）與全流程併入 `/baransu:analyze`——spec 完成後直通內建執行管線（`analyze/references/execution-pipeline.md`）。舊 `/analyze` spec 要接續執行：改喚 `/baransu:analyze` 即可，Stage 0 會偵測既有 spec 直接進入執行段。
 - **新增 `/contract`**：中頻段開工釘——一頁合約四節（目標／可斷言條文／錯不起表面清單／照抄常數塊），判準單一實作於 `_shared/contract-gate.md`（G1–G4＋R7）。
