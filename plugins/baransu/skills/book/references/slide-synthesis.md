@@ -79,6 +79,9 @@ interface Slide {
   heading: string;
   body_bullets?: string[];  // for content-bullets / content-2col, typically 1-3 items
   has_svg?: boolean;        // if true, generate an inline SVG on this slide
+  feel?: string;            // written ONLY by Stage 2C (--storyboard); consumed by
+                            // render-pipelines.md §6b Step 1 when filling the skeleton.
+                            // Never changes layout_type. Absent on every other run.
 }
 ```
 

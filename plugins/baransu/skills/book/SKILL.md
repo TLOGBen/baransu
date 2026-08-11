@@ -1,7 +1,7 @@
 ---
 name: book
 description: "Converts any content source into a browser-ready, Kami-themed HTML book with SVG diagrams — Acquire (URL / slug / local path / text) → Synthesize → Render (quality-gated). Trigger On '/book', '轉成 book', '做成 HTML book', '存成 book'. Not for editable Markdown output (/read to capture, /learn to digest) — /book only emits rendered HTML."
-argument-hint: "<url | slug | path | text>"
+argument-hint: "<url | slug | path | text> [--storyboard]"
 user-invocable: true
 ---
 
@@ -78,6 +78,7 @@ Parse the `--style` flag in the user's invocation (v1.3 PPT + HTML dual mode):
 - Invalid value: output 「--style 不合法。支援 v1.3 三 preset 或已註冊 gen slug」 and stop
 - HTML mode dynamically reads the template from `{project_root}/design-cores/long-form.html`; PPT mode dynamically reads the layout from `{project_root}/slide-cores/`
 - Set `$STYLE` for use by later Stages (Stage 3 tokens.css tie-break / GATE-F prefix matching reads `$STYLE`)
+- Also parse the valueless `--storyboard` here: present → `$STORYBOARD=true` (Stage 2C runs, subject to its own skip conditions), absent → `false` (Stage 2C prints its hint line only); `--storyboard=x` → output 「`--storyboard` 不接受值」 and stop
 
 ### 4. Python check
 
@@ -285,6 +286,7 @@ From `$RAW_CONTENT`, extract:
   - Section heading
   - 1–3 key claims (concrete, specific — no vague summaries)
   - Whether this section benefits from an SVG diagram
+  - `feel` (optional) — written only by Stage 2C when `--storyboard` confirmed one; absent otherwise, and its absence changes nothing
 
 Store as `$STRUCTURE`.
 
@@ -312,6 +314,14 @@ If a collision exists: append `_v2`, `_v3`, etc., and **output one Traditional-C
 Runs only when `$FORMAT` ∈ {`ppt`, `all`}; produces `$STRUCTURE_SLIDES` (6–12 slides, first page fixed as `cover`, last page conditionally `closing`). **The layout is not hard-coded**: dynamically read the YAML front-matter registration decision table of `{project_root}/slide-cores/*.html`, assigning layout_type via first-match + positional override.
 
 **Rule details (10-row decision table / closing condition recognition / graceful degradation / `$STRUCTURE_SLIDES` schema) → read `references/slide-synthesis.md`.**
+
+---
+
+## Stage 2C — 🔴 CHECKPOINT — Storyboard confirmation (opt-in)
+
+Runs after the structures exist and before Stage 3 — the only point where the actual output units are known. **IF `$STORYBOARD` is true AND no skip condition holds** → echo the whole storyboard in ONE batch (restated scene goal + one row per output unit with its outline and an empty 感覺 field), take one round of edits, and write the confirmed content into `$STRUCTURE` and `$STRUCTURE_SLIDES.slides[*]` (the latter when Stage 2B ran) — each carrier has a named consumer; a field with no consumer is a field the user fills for nothing. **ELSE** → when interactive, print one stderr hint (`本次未逐頁確認；要逐頁確認請加 --storyboard 重跑`) and continue. Confirmed content is the generation basis: `$RAW_CONTENT` supplies supporting detail but may not drop, rewrite, or override it. `感覺` opens no new degree of freedom — bounded variation inside one frame: it picks a value inside an already-legal range (§3's quantified steps; the §3 `not by feel` component criterion and `layout_type` are unchanged).
+
+**Rule details (trigger / skip conditions / tokens.css precondition / echo shape / carrier→consumer mapping / 感覺 scope and precedence / three-kind overflow with its termination rule) → read `references/storyboard.md`.**
 
 ---
 

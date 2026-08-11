@@ -40,6 +40,8 @@ Run only when `$FORMAT` is `ppt` or `all`. Depends on the `$STRUCTURE_SLIDES` ge
 
 For each slide object in `$STRUCTURE_SLIDES`, read the skeleton from `{project_root}/slide-cores/<layout-id>.html` (`<layout-id>` = the Stage 2B dynamic decision-table result, e.g. `cover.html` / `content-bullets.html` / `closing.html`) and generate a slide HTML file.
 
+**Consume the slide's `feel` when Stage 2C wrote one** (`$STRUCTURE_SLIDES.slides[*].feel`; absent on every non-`--storyboard` run, and its absence changes nothing): while filling the skeleton, let `feel` pick the value inside ranges the existing rules already permit — which end of a quantified spacing / line-height step applies, and which of the components the data-shape criterion already admits. It MUST NOT change `layout_type` (the Stage 2B decision table owns that, and GATE-G checks it), MUST NOT introduce a class prefix or color outside the hard floor, and never overrides `perception-guide`. This is the slide side's only consumption point — without it the field is inert.
+
 Write each generated slide to **`.claude/book/slides-{$SLUG}/slide-{NN}.html`** (`{NN}` = zero-padded deck order starting at `01`; `mkdir -p` the directory first). This is the fixed on-disk contract — Stage 4's PPT-mode validation loop and the Step 3 html2pptx invocation both read the files back from this path; do not invent a per-run location.
 
 If `{project_root}/slide-cores/<layout-id>.html` is missing (consistent with the Stage 2B graceful-degradation behavior): warning「請先跑 `/baransu:design preset <style>` 取得 slide-cores」, and the body slot degrades to the inline skeleton of the hardcoded fallback three layouts (`cover` / `closing` / `content-bullets`); do not abort Stage 3.
