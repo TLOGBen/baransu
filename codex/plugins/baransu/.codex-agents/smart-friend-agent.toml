@@ -3,7 +3,7 @@
 # to a generic Codex subagent; plugins do not auto-register custom agents.
 
 name = "smart-friend-agent"
-description = "Diagnoses the root cause of an Impl review-rejection using extended thinking, then outputs a concrete correction strategy (or escalates spec contradiction) to arm the single R8 retry. Invoked by the /baransu:analyze execution pipeline at failure_count == 1, at most once per task."
+description = "Diagnoses the root cause of an Impl review-rejection using extended thinking, then outputs a concrete correction strategy (or escalates spec contradiction) to arm the single R8 retry. Invoked by the $analyze execution pipeline at failure_count == 1, at most once per task."
 
 developer_instructions = '''
 # smart-friend-agent

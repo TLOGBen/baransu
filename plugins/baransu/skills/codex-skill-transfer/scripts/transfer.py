@@ -588,7 +588,7 @@ When `request_user_input` is exposed, call it once per Stage A round with one qu
 
 When `request_user_input` is unavailable, preserve the artifact fallback: Phase 1 outputs only numbered alignment questions and stops; Phase 2 may produce the five-section plan only after `alignment.md` records the user's answers. Refuse to plan while that artifact is missing.
 
-The four-option Stage G gate exceeds the runtime tool's 3-option limit. Preserve all four semantics with two conditional questions: first offer 「送 /review 再決定」 versus 「直接決定」; only after 「直接決定」 ask 「批准實作」 / 「還有地方要對焦」 / 「放棄」. The automatically-added Other field is free text, not a stable fourth option. If the tool is unavailable, present the original four options directly and stop.
+The four-option Stage G gate exceeds the runtime tool's 3-option limit. Preserve all four semantics with two conditional questions: first offer 「送 $review 再決定」 versus 「直接決定」; only after 「直接決定」 ask 「批准實作」 / 「還有地方要對焦」 / 「放棄」. The automatically-added Other field is free text, not a stable fourth option. If the tool is unavailable, present the original four options directly and stop.
 
 Authorization PAUSE remains a hard stop on both paths. The runtime tool replaces the old artifact gate only when it is actually exposed; it does not guarantee answer quality.""",
     "review": """## Codex Port Adapter - Review Isolation
@@ -860,12 +860,73 @@ def rewrite_repo_paths(
     return text, n
 
 
+# ---------------------------------------------------------------------------
+# Slash-invocation mention rewriting (`/skill` -> `$skill`)
+# ---------------------------------------------------------------------------
+# Claude Code prose mentions sibling skills as slash commands (`/review`,
+# `/baransu:review`). Codex mentions skills with a `$` prefix ("run /skills or
+# type $ to mention a skill" — Codex skills docs), so a slash mention left in
+# ported text points at a command Codex does not have. The namespaced form is
+# rewritten unconditionally (its shape is unambiguous); the bare form only
+# when the name is a known sibling skill, so path segments (`.claude/read/`,
+# `skills/read`) and unrelated slashes survive untouched. Same exemptions as
+# the path rewrite: files that DOCUMENT the mapping keep their slash forms.
+_NAMESPACED_SKILL_MENTION = re.compile(
+    r"(?<![A-Za-z0-9_./-])/baransu:([A-Za-z0-9_-]+)"
+)
+
+
+def known_sibling_skills(source: Path) -> frozenset[str]:
+    """Skill names eligible for the bare `/name` -> `$name` mention rewrite.
+
+    The source skill itself plus every sibling directory that carries a
+    SKILL.md — in plugin/batch mode that is the whole skills/ set; a lone
+    single-skill source degrades to just its own name (unknown bare slashes
+    are then left alone rather than guessed at).
+    """
+    names = {source.name}
+    try:
+        for child in source.parent.iterdir():
+            if (child / "SKILL.md").is_file():
+                names.add(child.name)
+    except OSError:
+        pass
+    return frozenset(names)
+
+
+def rewrite_skill_mentions(
+    text: str, known_skills: frozenset[str] = frozenset()
+) -> tuple[str, int]:
+    """Rewrite `/baransu:name` and known bare `/name` mentions to `$name`.
+
+    Returns (rewritten_text, change_count). Applies inside code spans too:
+    mentions are quoted as invocations (`` `/review` ``), and the ported
+    invocation surface IS `$review`.
+    """
+    n = 0
+
+    def sub(m: re.Match[str]) -> str:
+        nonlocal n
+        n += 1
+        return f"${m.group(1)}"
+
+    text = _NAMESPACED_SKILL_MENTION.sub(sub, text)
+    if known_skills:
+        names = "|".join(
+            sorted((re.escape(s) for s in known_skills), key=len, reverse=True)
+        )
+        bare = re.compile(rf"(?<![A-Za-z0-9_./-])/({names})(?![A-Za-z0-9_/-])")
+        text = bare.sub(sub, text)
+    return text, n
+
+
 def rewrite_body(
     body: str,
     report: TransferReport,
     named_args: list[str] | None = None,
     positional_args: bool = False,
     skill_name: str | None = None,
+    known_skills: frozenset[str] = frozenset(),
 ) -> str:
     inline_count = 0
     block_count = 0
@@ -1175,6 +1236,15 @@ def rewrite_body(
                 "（agents→plugin `.codex-agents/*.toml`、_shared/跨 skill→相對路徑、"
                 "`.claude/`→`.codex/`）"
             )
+        # Slash-invocation mentions (`/other-skill`, `/baransu:other-skill`)
+        # AFTER the path rewrite: a `/name` that was part of a repo path has
+        # already been resolved to a relative path there, so what remains is
+        # invocation prose. Codex mentions skills as `$name`.
+        body, mention_n = rewrite_skill_mentions(body, known_skills)
+        if mention_n:
+            report.rewrites.append(
+                f"{mention_n} 處 `/skill` 呼叫提及改寫為 Codex `$skill` mention"
+            )
 
     return body
 
@@ -1296,7 +1366,12 @@ class OutputGuardError(RuntimeError):
     """
 
 
-def copy_aux(source: Path, target: Path, report: TransferReport) -> None:
+def copy_aux(
+    source: Path,
+    target: Path,
+    report: TransferReport,
+    known_skills: frozenset[str] = frozenset(),
+) -> None:
     # Standard auxiliary dirs. node_modules / __pycache__ are runtime-
     # regenerated install artifacts (never distributed); copying them bloats
     # the mirror by thousands of files for no consumer.
@@ -1382,6 +1457,7 @@ def copy_aux(source: Path, target: Path, report: TransferReport) -> None:
     skill_name = target.name
     if refs_root.is_dir() and skill_name not in REPO_PATH_REWRITE_EXEMPT_SKILLS:
         path_rewrites = 0
+        mention_rewrites = 0
         for path in sorted(refs_root.rglob("*.md")):
             rel = path.relative_to(target)
             if (skill_name, str(rel)) in REPO_PATH_REWRITE_EXEMPT_RELPATHS:
@@ -1393,12 +1469,19 @@ def copy_aux(source: Path, target: Path, report: TransferReport) -> None:
             # One `../` per path component reaches the skills/ dir:
             # references/foo.md (2 parts) -> `../../`.
             new_text, n = rewrite_repo_paths(text, "../" * len(rel.parts), skill_name)
-            if n:
+            # Slash-invocation mentions after paths (see rewrite_body ordering).
+            new_text, k = rewrite_skill_mentions(new_text, known_skills)
+            if n or k:
                 path.write_text(new_text, encoding="utf-8")
                 path_rewrites += n
+                mention_rewrites += k
         if path_rewrites:
             report.rewrites.append(
                 f"{path_rewrites} 處 references/ 內 repo 路徑參照改寫為 Codex 佈局"
+            )
+        if mention_rewrites:
+            report.rewrites.append(
+                f"{mention_rewrites} 處 references/ 內 `/skill` 呼叫提及改寫為 `$skill`"
             )
 
     # Claude-only token scan over copied references/*.md (TOKEN_SCAN_PATTERNS;
@@ -1497,12 +1580,25 @@ def transfer_one(source: Path, output_root: Path) -> TransferReport:
         named_args = None
 
     positional_args = bool(fm.get("arguments") or fm.get("argument-hint"))
+    known = known_sibling_skills(source)
+    # Slash-invocation mentions in the description (trigger phrases like
+    # "Trigger On '/design'") point Codex users at the right mention form.
+    if name not in REPO_PATH_REWRITE_EXEMPT_SKILLS:
+        desc_mentions, desc_mention_n = rewrite_skill_mentions(
+            str(new_fm["description"]), known
+        )
+        if desc_mention_n:
+            new_fm["description"] = desc_mentions
+            report.rewrites.append(
+                f"`description` {desc_mention_n} 處 `/skill` 呼叫提及改寫為 `$skill`"
+            )
     new_body = rewrite_body(
         body,
         report,
         named_args=named_args,
         positional_args=positional_args,
         skill_name=name,
+        known_skills=known,
     )
     new_body = inject_codex_port_adapter(new_body, report)
     if CLAUDE_PLUGIN_ROOT_ENV.search(new_body):
@@ -1512,7 +1608,7 @@ def transfer_one(source: Path, output_root: Path) -> TransferReport:
         )
     write_skill(target, new_fm, new_body, openai_yaml)
     check_output_invariants(target, report)
-    copy_aux(source, target, report)
+    copy_aux(source, target, report, known_skills=known)
     return report
 
 
@@ -1646,6 +1742,9 @@ def emit_agent_stub(agent_md: Path, dest: Path) -> None:
     instructions, _ = rewrite_repo_paths(
         instructions, "", name, skills_relative=False
     )
+    # Flat stubs know no sibling-skill set; the unambiguous namespaced
+    # `/baransu:skill` form is still rewritten to `$skill`.
+    instructions, _ = rewrite_skill_mentions(instructions)
     instructions_block = _toml_multiline(instructions)
 
     # name/description go through json.dumps for ironclad escaping. TOML
@@ -1728,7 +1827,9 @@ def _toml_multiline(text: str) -> str:
     return f'"""\n{escaped}\n"""'
 
 
-def rewrite_bundled_agent_instructions(text: str) -> str:
+def rewrite_bundled_agent_instructions(
+    text: str, known_skills: frozenset[str] = frozenset()
+) -> str:
     """Translate one Claude agent body into a package-local Codex definition.
 
     The generated TOML lives at `<plugin>/.codex-agents/<name>.toml`.
@@ -1758,10 +1859,13 @@ def rewrite_bundled_agent_instructions(text: str) -> str:
     text = text.replace(".claude/", ".codex/")
     text, _ = normalize_codex_subagent_terms(text)
     text = re.sub(r"\bTask tool\b", "subagent dispatch", text, flags=re.IGNORECASE)
+    text, _ = rewrite_skill_mentions(text, known_skills)
     return text
 
 
-def emit_bundled_agent_definition(agent_md: Path, dest: Path) -> None:
+def emit_bundled_agent_definition(
+    agent_md: Path, dest: Path, known_skills: frozenset[str] = frozenset()
+) -> None:
     """Emit a runtime-consumable Codex agent TOML inside the plugin package."""
     name = agent_md.stem
     body = agent_md.read_text(encoding="utf-8")
@@ -1774,9 +1878,9 @@ def emit_bundled_agent_definition(agent_md: Path, dest: Path) -> None:
                 desc = str(fm.get("description") or "").splitlines()[0]
         except yaml.YAMLError:
             pass
-    desc = rewrite_bundled_agent_instructions(desc)
+    desc = rewrite_bundled_agent_instructions(desc, known_skills)
     instructions = body[fm_end + 4 :].lstrip("\n") if fm_end > 0 else body
-    instructions = rewrite_bundled_agent_instructions(instructions)
+    instructions = rewrite_bundled_agent_instructions(instructions, known_skills)
     dest.write_text(
         "\n".join(
             [
@@ -1878,7 +1982,9 @@ def wire_bundled_agent_references(
         _inject_bundled_agent_adapter(report.target / "SKILL.md", sorted(used), report)
 
 
-def copy_plugin_rules(plugin_root: Path, plugin_out: Path) -> int:
+def copy_plugin_rules(
+    plugin_root: Path, plugin_out: Path, known_skills: frozenset[str] = frozenset()
+) -> int:
     """Copy and Codex-normalize package-level rule documents."""
     source = plugin_root / "rules"
     if not source.is_dir():
@@ -1891,6 +1997,7 @@ def copy_plugin_rules(plugin_root: Path, plugin_out: Path) -> int:
         new = text.replace("CLAUDE.md", "AGENTS.md")
         new = re.sub(r"(?<![./])skills/", "../skills/", new)
         new = new.replace(".claude/", ".codex/")
+        new, _ = rewrite_skill_mentions(new, known_skills)
         if new != text:
             path.write_text(new, encoding="utf-8")
         count += 1
@@ -2315,6 +2422,11 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
     skill_reports: list[TransferReport] = []
     aux_dirs_copied: list[str] = []
     aux_manual: list[str] = []
+    plugin_known: frozenset[str] = frozenset(
+        c.name
+        for c in skills_dir.iterdir()
+        if c.is_dir() and (c / "SKILL.md").is_file()
+    ) if has_skills else frozenset()
     if has_skills:
         out_skills = plugin_out / "skills"
         out_skills.mkdir()
@@ -2344,7 +2456,8 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
                     new_text, n = rewrite_repo_paths(
                         text, "../" * len(rel_to_aux.parts), child.name
                     )
-                    if n:
+                    new_text, k = rewrite_skill_mentions(new_text, plugin_known)
+                    if n or k:
                         path.write_text(new_text, encoding="utf-8")
                         text = new_text
                     found = [
@@ -2368,7 +2481,9 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
         agent_dir = plugin_out / ".codex-agents"
         agent_dir.mkdir()
         for md in sorted(agents_dir.glob("*.md")):
-            emit_bundled_agent_definition(md, agent_dir / f"{md.stem}.toml")
+            emit_bundled_agent_definition(
+                md, agent_dir / f"{md.stem}.toml", known_skills=plugin_known
+            )
             agent_names.append(md.stem)
             summary["agent_definitions"] += 1
 
@@ -2377,7 +2492,9 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
     # fail-closed dispatch adapter so a missing definition can never degrade
     # into an improvised agent.
     wire_bundled_agent_references(plugin_out, skill_reports, agent_names)
-    summary["rules_copied"] = copy_plugin_rules(plugin_root, plugin_out)
+    summary["rules_copied"] = copy_plugin_rules(
+        plugin_root, plugin_out, known_skills=plugin_known
+    )
     source_rule_count = (
         sum(1 for path in (plugin_root / "rules").rglob("*") if path.is_file())
         if (plugin_root / "rules").is_dir()

@@ -6,7 +6,7 @@ description: Turns rough intent into either a validated five-section approved pl
   library choice, refactor, or data-model change, including 「怎麼設計」「哪種方法」 or "I want
   to build / refactor / migrate X"; also use for value / existence judgments, including
   「判斷一下」「值不值得」「有沒有必要」 or "should we keep this". 繁體中文輸出。 Not for debugging an existing
-  error/報錯 (/hunt) nor writing code (hand off downstream or /analyze).
+  error/報錯 ($hunt) nor writing code (hand off downstream or $analyze).
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex
@@ -22,14 +22,14 @@ When `request_user_input` is exposed, call it once per Stage A round with one qu
 
 When `request_user_input` is unavailable, preserve the artifact fallback: Phase 1 outputs only numbered alignment questions and stops; Phase 2 may produce the five-section plan only after `alignment.md` records the user's answers. Refuse to plan while that artifact is missing.
 
-The four-option Stage G gate exceeds the runtime tool's 3-option limit. Preserve all four semantics with two conditional questions: first offer 「送 /review 再決定」 versus 「直接決定」; only after 「直接決定」 ask 「批准實作」 / 「還有地方要對焦」 / 「放棄」. The automatically-added Other field is free text, not a stable fourth option. If the tool is unavailable, present the original four options directly and stop.
+The four-option Stage G gate exceeds the runtime tool's 3-option limit. Preserve all four semantics with two conditional questions: first offer 「送 $review 再決定」 versus 「直接決定」; only after 「直接決定」 ask 「批准實作」 / 「還有地方要對焦」 / 「放棄」. The automatically-added Other field is free text, not a stable fourth option. If the tool is unavailable, present the original four options directly and stop.
 
 Authorization PAUSE remains a hard stop on both paths. The runtime tool replaces the old artifact gate only when it is actually exposed; it does not guarantee answer quality.
 
 
 Claude's default when a user says "build X" is to start writing code almost immediately — often against a version of X that Claude *assumed* matched the user, rather than one both sides actually agreed on. This skill exists to correct that default.
 
-The deliverable of `/think` is not code. It's an **approved plan** that someone else (usually Claude, in the next turn) can hand off to implementation with zero remaining ambiguity.
+The deliverable of `$think` is not code. It's an **approved plan** that someone else (usually Claude, in the next turn) can hand off to implementation with zero remaining ambiguity.
 
 If you find yourself thinking "I could just write this quickly" — that's exactly the default the skill is here to push against. Run the process.
 
@@ -40,7 +40,7 @@ If you find yourself thinking "I could just write this quickly" — that's exact
 - **Outcome**: Converge a vague intent into a five-section plan explicitly approved by the user (or, in Evaluation mode, a single-line Kill / Keep / Pivot verdict), producing no code at any point.
 - **Done when**: The user approves the final proposal at the Stage G four-option gate (`request_user_input` (1-3 questions per call, 2-3 options per question; record the authorization decision and stop until the user answers; if unavailable, ask directly and stop)), or explicitly abandons this round's plan; a Full-mode free-text approval must be closed and recorded with 「收到，把這當成批准實作」; in Lightweight mode, the user's 「可以」 (or equivalent) closes the run — no Stage G gate; in Evaluation mode, the verdict is confirmed with 「同意」 or closed after at most one re-verdict (see Verdict closure).
 - **Evidence**: Full mode — the Stage G `request_user_input` (1-3 questions per call, 2-3 options per question; record the authorization decision and stop until the user answers; if unavailable, ask directly and stop) interaction result: one of the four options selected, or the closing sentence of a free-text approval has been emitted. Lightweight mode — the user's 「可以」 reply. Evaluation mode — the 「同意」 confirmation (or the recorded re-verdict closure).
-- **Output**: The 繁中 five-section plan presented in the conversation (or the verdict + three reasons); after a Full-mode approval, persist `.codex/think/<slug>.md` (the plan verbatim) and `.codex/think/<slug>.html` (HTML work journal, containing an 「執行日誌」 section, per the `_shared/output-journal.md` contract), and send them via write the artifact to disk and list its absolute path; then hand off to /analyze or implement directly per _shared/tdd.md. Lightweight's ~10-line 推薦修法 and Evaluation's verdict persist nothing beyond the conversation — the work-journal contract does not apply to either.
+- **Output**: The 繁中 five-section plan presented in the conversation (or the verdict + three reasons); after a Full-mode approval, persist `.codex/think/<slug>.md` (the plan verbatim) and `.codex/think/<slug>.html` (HTML work journal, containing an 「執行日誌」 section, per the `_shared/output-journal.md` contract), and send them via write the artifact to disk and list its absolute path; then hand off to $analyze or implement directly per _shared/tdd.md. Lightweight's ~10-line 推薦修法 and Evaluation's verdict persist nothing beyond the conversation — the work-journal contract does not apply to either.
 - **Automation**: ultracode=neutral, loop=not-drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 PAUSE classification for non-interactive drivers: `references/loop-pauses.md` — read it alongside `../_shared/loop-contract.md` when driven by /loop, cron, or Workflow (this skill is not loop-drivable).
@@ -87,7 +87,7 @@ Decide the kind of output the user wants:
 Pick **Evaluation** when the user's intent matches one of these triggers and the user is NOT in the middle of debugging an error:
 「判斷一下」, 「值不值得」, 「有沒有必要」, 「我不想做」, 「商業前景」, "should we keep this", "is this worth it".
 
-**Disambiguation — Evaluation vs `/hunt`**: when the trigger is paired with an error / bug context (「判斷一下這個報錯」, 「判斷這個錯誤」, 「這個報錯值不值得修」, etc.), route to `/hunt` instead. Evaluation Mode is strictly for value / existence judgments, not debugging.
+**Disambiguation — Evaluation vs `$hunt`**: when the trigger is paired with an error / bug context (「判斷一下這個報錯」, 「判斷這個錯誤」, 「這個報錯值不值得修」, etc.), route to `$hunt` instead. Evaluation Mode is strictly for value / existence judgments, not debugging.
 
 If Plan is picked, continue to the second layer. If Evaluation is picked, skip the depth layer and jump to **Evaluation Mode** (below).
 
@@ -110,9 +110,9 @@ Typical phrasings: "fix the bug where…", "this throws when…", "this should r
 
 ### Escalation from Lightweight to Full (inside the Plan branch only)
 
-If while drafting the Lightweight recommendation you find **3 or more substantively different fixes** (not the-same-fix-at-different-intensities), that's a disguised design decision. Tell the user plainly: "this looks like a bug fix, but there are three fundamentally different ways to fix it with real trade-offs — switching to full `/think`", and jump to Stage A.
+If while drafting the Lightweight recommendation you find **3 or more substantively different fixes** (not the-same-fix-at-different-intensities), that's a disguised design decision. Tell the user plainly: "this looks like a bug fix, but there are three fundamentally different ways to fix it with real trade-offs — switching to full `$think`", and jump to Stage A.
 
-This rule is scoped to **Lightweight → Full inside Plan**. There is no automatic escalation between Plan and Evaluation, nor demotion between Full and Lightweight when started from Evaluation. If mid-flow you discover the outer layer was wrong (e.g. realised the user wants a Plan instead of an Evaluation), stop and tell them to restart `/think` — mode switching mid-stream is not supported.
+This rule is scoped to **Lightweight → Full inside Plan**. There is no automatic escalation between Plan and Evaluation, nor demotion between Full and Lightweight when started from Evaluation. If mid-flow you discover the outer layer was wrong (e.g. realised the user wants a Plan instead of an Evaluation), stop and tell them to restart `$think` — mode switching mid-stream is not supported.
 
 ### If Lightweight is rejected
 
@@ -143,15 +143,15 @@ Output template (translated to 繁體中文 in actual output):
 
 Then stop. Wait for one round of user confirmation. Don't keep working.
 
-If the user says "可以" (or equivalent): you're done with `/think`. Implementation is the next turn's problem, not this skill's problem.
+If the user says "可以" (or equivalent): you're done with `$think`. Implementation is the next turn's problem, not this skill's problem.
 
-If the user instead asks to broaden Lightweight into Full ("actually let's plan this properly"), don't extend the current Lightweight in place — tell them to restart `/think` so the Full-mode Stages A-G run with a clean Alignment. Mode switching mid-stream is not supported (see Step 0).
+If the user instead asks to broaden Lightweight into Full ("actually let's plan this properly"), don't extend the current Lightweight in place — tell them to restart `$think` so the Full-mode Stages A-G run with a clean Alignment. Mode switching mid-stream is not supported (see Step 0).
 
 ---
 
 ## Evaluation Mode
 
-Total output: ~10 lines in Traditional Chinese, then wait. This mode is for value / existence judgment — "should X exist, be kept, or removed". It is not for "how to build X" (that's Plan) and it is not for debugging (that's `/hunt`; see the Step 0 disambiguation rule).
+Total output: ~10 lines in Traditional Chinese, then wait. This mode is for value / existence judgment — "should X exist, be kept, or removed". It is not for "how to build X" (that's Plan) and it is not for debugging (that's `$hunt`; see the Step 0 disambiguation rule).
 
 ### Constraint elicitation gate
 
@@ -215,7 +215,7 @@ C. Official-first check  — framework-native / stdlib / well-maintained lib
 D. Premise validation    — pwd, existing ADRs, prior art
 E. Attack + complexity   — self-refute; file-count & component-count grading; deps list
 F. Final plan            — the five-section schema
-G. Approval              — request_user_input with four options; downstream is direct implementation per _shared/tdd.md (small) or /analyze (medium-large)
+G. Approval              — request_user_input with four options; downstream is direct implementation per _shared/tdd.md (small) or $analyze (medium-large)
 ```
 
 Do **not** read any files, run any shell commands, or fetch any URLs before Stage A completes. The one sanctioned exception is the Step 0 DESIGN.md soft-read (git rev-parse + the DESIGN.md Read), which by design runs before mode selection and therefore before this rule attaches. The whole point of Stage A is to close the gap between Claude's understanding and the user's intent. Touching the codebase first anchors you to what's already there instead of what the user actually wants.
@@ -224,7 +224,7 @@ Do **not** read any files, run any shell commands, or fetch any URLs before Stag
 
 ## Stage A — Alignment (對焦)
 
-The most common failure of `/think`: planning the *wrong problem* off the user's first sentence — and users often don't know what they want until pushed to pick between concrete options.
+The most common failure of `$think`: planning the *wrong problem* off the user's first sentence — and users often don't know what they want until pushed to pick between concrete options.
 
 Round 1: **目的 (purpose)** — what problem is actually being solved; what's in or out of scope-of-problem.
 Round 2: **約束 (constraints)** — what can't change; what's the budget of time, files, dependencies, risk tolerance; what boundaries the solution must respect.
@@ -275,7 +275,7 @@ If the words below are in your draft, delete them and rewrite:
 - "Both have trade-offs"
 - "This is a design decision for you to make"
 
-These are all ways of refusing to take a position. The user called `/think` because they wanted a technical lead, not a survey.
+These are all ways of refusing to take a position. The user called `$think` because they wanted a technical lead, not a survey.
 
 ---
 
@@ -415,26 +415,26 @@ After the plan is presented, run the Codex adapter's conditional two-question `r
 question: "要怎麼處理這份計畫？"
 header:   "決定"
 options:
-  1. label: "送 /review 再決定 【推薦】"
-     description: "先用 /baransu:review 對這份計畫做獨立複審，review 完成後再決定是否批准實作。"
+  1. label: "送 $review 再決定 【推薦】"
+     description: "先用 $review 對這份計畫做獨立複審，review 完成後再決定是否批准實作。"
   2. label: "批准實作（完全授權）"
      description: "接受這份計畫；接下來我會找出最適合接手實作的 skill，摘要重點並直接交接過去。執行過程中自主判斷，不再過問使用者。"
   3. label: "還有地方要對焦"
      description: "某一節沒收斂；我會先確認新的疑慮是延伸還是另一件事——若是延伸，只重啟受影響的 stage；若是另一件事，從 Stage A 重新對焦。"
   4. label: "放棄"
-     description: "整個方向不對或不想做了；結束 /think，不交接。"
+     description: "整個方向不對或不想做了；結束 $think，不交接。"
 ```
 
 ### Handling each choice
 
-**Option 1 — 送 /review 再決定.** First materialize the plan on disk — /review's iron rule refuses targets that exist only in conversation: write the current five-section plan verbatim to `.codex/think/<slug>-draft.md` and pass that path as the review target. The post-approval Work-journal persistence supersedes this draft (rename the draft this run itself created into the plan path the Work-journal step resolves; that draft is the only file `/think` may overwrite or delete). Then invoke `/baransu:review` on the draft file. Derive the review goal from the user's invocation context (typically: 「確認這份計畫邏輯自洽、沒有設計矛盾、KD 無遺漏 unknown」). After /review presents its findings: if findings point to substantive gaps — missing decisions, logic contradictions, underspecified Unknowns — treat them as Option 3 input and revise the affected section with the finding folded in, then re-present this gate. If findings are advisory or minor, return to this gate and let the user choose Option 2 or 3. The full loop is: `/think → /review → /think (revision) → gate → downstream`.
+**Option 1 — 送 $review 再決定.** First materialize the plan on disk — $review's iron rule refuses targets that exist only in conversation: write the current five-section plan verbatim to `.codex/think/<slug>-draft.md` and pass that path as the review target. The post-approval Work-journal persistence supersedes this draft (rename the draft this run itself created into the plan path the Work-journal step resolves; that draft is the only file `$think` may overwrite or delete). Then invoke `$review` on the draft file. Derive the review goal from the user's invocation context (typically: 「確認這份計畫邏輯自洽、沒有設計矛盾、KD 無遺漏 unknown」). After $review presents its findings: if findings point to substantive gaps — missing decisions, logic contradictions, underspecified Unknowns — treat them as Option 3 input and revise the affected section with the finding folded in, then re-present this gate. If findings are advisory or minor, return to this gate and let the user choose Option 2 or 3. The full loop is: `$think → $review → $think (revision) → gate → downstream`.
 
 **Option 2 — 批准實作（完全授權）.** You are done with the deliberation phase. Do two things:
 
 1. Identify the downstream path using this explicit numeric rule (reusing the Stage E file/service thresholds and the Stage F Key-decisions count — no judgment required):
    - **Small task** — ALL of: touches ≤ 8 files AND introduces 0 new services/processes AND has ≤ 3 Key decisions: implement directly, building a red/green task list under the _shared/tdd.md discipline — the main session implements directly following `../_shared/tdd.md` §7; no skill handoff.
-   - **Medium-to-large task** — otherwise (touches > 8 files, OR introduces ≥ 1 new service/process, OR has > 3 Key decisions): invoke `/baransu:analyze`.
-   - **KD-bound relaxation (mechanical, prevents ping-pong)**: when the plan touches a single file — or a single layer with no cross-module dependency, /analyze's own Not-for boundary — the Key-decisions bound relaxes from ≤ 3 to ≤ 5 (the Stage F ceiling): such a plan implements directly regardless of a 4th or 5th Key decision, because /analyze would reject it back to /think.
+   - **Medium-to-large task** — otherwise (touches > 8 files, OR introduces ≥ 1 new service/process, OR has > 3 Key decisions): invoke `$analyze`.
+   - **KD-bound relaxation (mechanical, prevents ping-pong)**: when the plan touches a single file — or a single layer with no cross-module dependency, $analyze's own Not-for boundary — the Key-decisions bound relaxes from ≤ 3 to ≤ 5 (the Stage F ceiling): such a plan implements directly regardless of a 4th or 5th Key decision, because $analyze would reject it back to $think.
    - If no path fits, say so — 「沒有完美接手的 skill，建議直接進入手寫實作」.
 2. Produce a **handoff prompt** in 繁體中文 — the implementer-facing artifact, in the seven-section skeleton below. (Why a prompt, not the plan: A/B-tested against handing over the five-section plan with its deliberation records — execution quality was identical while the artifact shrank ~40% and the implementation side ran measurably cheaper and faster. Stage records, PAUSE/approval logs, and the plan narrative are the human audit trail; the implementer needs conclusions only.)
 
@@ -448,24 +448,24 @@ options:
    Stop rules:       <from Unknowns (each becomes an ask-or-stop trigger) + the high-risk gate below + "done only when Success criteria are verified">
    ```
 
-   Omit any section that doesn't apply — never pad for symmetry. Immediately continue with this handoff prompt as input — invoke `/baransu:analyze` for medium-to-large tasks, or begin the direct implementation for small tasks. Execute autonomously; do not ask the user for further confirmation during implementation — except for high-risk actions, where the following gate applies: **if** the handoff implementation would touch any of these named actions — deleting files / `rm`, `git reset --hard` / force push, irreversible DB changes (DROP / TRUNCATE / destructive migration), overwriting an existing file, handling or writing secrets / credentials, or making an irreversible call to an external service — **then** stop, return to the user, and obtain explicit confirmation before proceeding.
+   Omit any section that doesn't apply — never pad for symmetry. Immediately continue with this handoff prompt as input — invoke `$analyze` for medium-to-large tasks, or begin the direct implementation for small tasks. Execute autonomously; do not ask the user for further confirmation during implementation — except for high-risk actions, where the following gate applies: **if** the handoff implementation would touch any of these named actions — deleting files / `rm`, `git reset --hard` / force push, irreversible DB changes (DROP / TRUNCATE / destructive migration), overwriting an existing file, handling or writing secrets / credentials, or making an irreversible call to an external service — **then** stop, return to the user, and obtain explicit confirmation before proceeding.
 
 **Option 3 — 還有地方要對焦.** Call `request_user_input` to find out what needs re-alignment. Then determine whether the new concern is an **extension** of the current direction or a **different concern**:
 
 - **Extension** (same goal, same problem, deeper constraint or refinement): restart only the affected stage with the user's new constraint folded in. Open the re-proposal with one sentence: 「本次修改了 X 假設/約束，因此 Y 和 Z 有調整」 so the diff is visible. If the extension path is taken three consecutive times without convergence, treat as a different concern and restart from Stage A.
 - **Different concern** (goal changes, problem reframed, direction diverges): restart from Stage A. State clearly: 「這是一個不同的問題方向，重新從 Stage A 對焦。」
 
-**Option 4 — 放棄.** End the skill. Don't argue. Don't offer a simplified version. If the user later returns with a different angle, that's a fresh `/think`.
+**Option 4 — 放棄.** End the skill. Don't argue. Don't offer a simplified version. If the user later returns with a different angle, that's a fresh `$think`.
 
 ### Work journal (after approval)
 
 Once the plan is approved — Option 2 selected, a free-text approval closed with 「收到，把這當成批准實作」, or the plan sent onward after Option 1's review loop ends in approval — produce the persistent artifacts before handing off:
 
-- [ ] Write the five-section plan verbatim to `.codex/think/<slug>.md` (slug: short kebab-case derived from the plan topic). **If** `.codex/think/<slug>.md` or `.codex/think/<slug>.html` already exists as of the start of this run, **then** neither of those two files may be overwritten or deleted: write the plan to `.codex/think/<slug>-2.md` and the journal of the next checklist item to `.codex/think/<slug>-2.html`, incrementing the numeric suffix — `-3`, `-4`, and so on — until both suffixed paths are unoccupied, and name the already-existing file in the write the artifact to disk and list its absolute path caption below. If Option 1 produced `.codex/think/<slug>-draft.md`, this persistence supersedes it — rename that draft, which this run itself created, into the `.md` path resolved above; do not leave both. The `<slug>-draft.md` this run wrote under Option 1 is the only file `/think` may overwrite or delete.
+- [ ] Write the five-section plan verbatim to `.codex/think/<slug>.md` (slug: short kebab-case derived from the plan topic). **If** `.codex/think/<slug>.md` or `.codex/think/<slug>.html` already exists as of the start of this run, **then** neither of those two files may be overwritten or deleted: write the plan to `.codex/think/<slug>-2.md` and the journal of the next checklist item to `.codex/think/<slug>-2.html`, incrementing the numeric suffix — `-3`, `-4`, and so on — until both suffixed paths are unoccupied, and name the already-existing file in the write the artifact to disk and list its absolute path caption below. If Option 1 produced `.codex/think/<slug>-draft.md`, this persistence supersedes it — rename that draft, which this run itself created, into the `.md` path resolved above; do not leave both. The `<slug>-draft.md` this run wrote under Option 1 is the only file `$think` may overwrite or delete.
 - [ ] Render an HTML work journal at `.codex/think/<slug>.html` — or at the suffixed path resolved in the previous item — based on the book golden-template, per the shared contract in `../_shared/output-journal.md`. It contains the original skill output (the five-section plan) plus an 「執行日誌」 section, initially seeded with the approval record (who approved, which option, when).
 - [ ] Send both files via `write the artifact to disk and list its absolute path` with a one-line 繁中 caption（例：「計畫已落檔；執行日誌將隨實作持續追記」；走遞增後綴時，caption 需點名該既有檔，例：「既有 `<slug>.md` 未更動，本回合落檔為 `<slug>-2.md`」）.
 
-During subsequent implementation, the 「執行日誌」 section MUST be continuously appended with off-spec decisions, forced changes, trade-offs, and anything else the user should know. **The implementing party owns the appending** — `/analyze`'s execution pipeline on the medium-to-large path, or the main session implementing directly per `_shared/tdd.md` §7. /think's responsibility ends at creating the journal and naming this ownership in the handoff prompt (Stop rules section).
+During subsequent implementation, the 「執行日誌」 section MUST be continuously appended with off-spec decisions, forced changes, trade-offs, and anything else the user should know. **The implementing party owns the appending** — `$analyze`'s execution pipeline on the medium-to-large path, or the main session implementing directly per `_shared/tdd.md` §7. $think's responsibility ends at creating the journal and naming this ownership in the handoff prompt (Stop rules section).
 
 ---
 
@@ -496,4 +496,4 @@ One Gotcha keeps its long-form prose because its value is in the multi-layer res
 | Files moved to `~/project`, but the repo actually lives at `~/www/project` | Run `pwd` (and `git rev-parse --show-toplevel`) before the first filesystem operation in Stage D. Never assume which checkout the user has in mind |
 | Planned an MCP workflow without checking whether the MCP server was loaded | Verify tool / server availability before handoff, not mid-implementation. Mid-flow "missing server" pauses cost more than the upfront check |
 | Slid a second language or runtime into a single-stack project ("just a small Rust helper for the Node app") | Never add a new language or runtime without explicit approval. Surface the stack expansion as a Key decision, not an implementation detail |
-| User said 「判斷一下這個報錯」 and got routed into Evaluation Mode | 「判斷一下」 + error / bug context = debugging, route to `/hunt`. Evaluation Mode is strictly for value / existence judgments |
+| User said 「判斷一下這個報錯」 and got routed into Evaluation Mode | 「判斷一下」 + error / bug context = debugging, route to `$hunt`. Evaluation Mode is strictly for value / existence judgments |

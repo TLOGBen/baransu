@@ -3,9 +3,9 @@ name: read
 description: 'Captures and converts any content source — URL / path / glob / --chrome
   / --clipboard / --topic / --web / --gh / --x — to offline-readable Markdown under
   .codex/read/. Use when the user wants to archive content for offline reading. Trigger
-  On ''/read'', ''存下來'', ''抓網頁'', ''轉成 markdown'', ''存檔''. Not For digesting captured
-  content into notes (use /learn) or producing browser-ready HTML output (use /book)
-  — /read only captures raw offline Markdown.
+  On ''$read'', ''存下來'', ''抓網頁'', ''轉成 markdown'', ''存檔''. Not For digesting captured
+  content into notes (use $learn) or producing browser-ready HTML output (use $book)
+  — $read only captures raw offline Markdown.
 
   '
 compatibility: Designed for Claude Code; ported to Codex.
@@ -79,7 +79,7 @@ Chrome being unavailable is NOT an early exit for the run as a whole — only th
 
 **Forward-reference map** — the lanes below jump to two routing targets: URL routing → §9 (defined below in this stage); candidate presentation → `references/acquisition/candidate-selection.md` (read it before the first user-question round).
 
-Parse the argument(s) passed to `/read`. `--use-proxy` is a modifier flag, not a mode: if present, strip it from the argument list before routing and record `$USE_PROXY=true` (default `false`). Route as follows (check in order):
+Parse the argument(s) passed to `$read`. `--use-proxy` is a modifier flag, not a mode: if present, strip it from the argument list before routing and record `$USE_PROXY=true` (default `false`). Route as follows (check in order):
 
 ### 1. `--topic "keyword"`
 
@@ -91,7 +91,7 @@ Display paper list and wait for user selection. After selection, continue with t
 
 Read `references/acquisition/web-search.md`.
 
-Use the search the web tool to fetch candidate URLs, present them via `request_user_input` (1-3 questions per call, 2-3 options per question; stop for the user's reply; if unavailable, ask numbered options directly) (per `references/acquisition/candidate-selection.md`), then route the selected URL through `/read`'s existing URL routing (§9).
+Use the search the web tool to fetch candidate URLs, present them via `request_user_input` (1-3 questions per call, 2-3 options per question; stop for the user's reply; if unavailable, ask numbered options directly) (per `references/acquisition/candidate-selection.md`), then route the selected URL through `$read`'s existing URL routing (§9).
 
 ### 3. `--gh "keyword"`
 

@@ -17,15 +17,15 @@
 
 # slide-image-prompts.md
 
-> **Scope: PPT only.** This document governs image handling and external AI image-generation prompt templates for `/design` slide-core outputs (the PPT surface consumed by `/book --format ppt` — `/design` itself has no `--format` flag). It does **not** apply to long-form output. The `/book` skill's image-generation capability is out of scope here — this file regulates user-supplied image placement and prompt templates only; it never calls an external image API.
+> **Scope: PPT only.** This document governs image handling and external AI image-generation prompt templates for `$design` slide-core outputs (the PPT surface consumed by `$book --format ppt` — `$design` itself has no `--format` flag). It does **not** apply to long-form output. The `$book` skill's image-generation capability is out of scope here — this file regulates user-supplied image placement and prompt templates only; it never calls an external image API.
 >
-> Audience: `/design` slide-core authors and `check.py` lint source.
+> Audience: `$design` slide-core authors and `check.py` lint source.
 
 ---
 
 ## 1. Scope Declaration
 
-- **Applies to**: all slide-core HTML (`/book --format ppt` surface). The table in §2 covers the 9 most image-prone layouts explicitly; any layout not listed follows the fallback row at the end of the table.
+- **Applies to**: all slide-core HTML (`$book --format ppt` surface). The table in §2 covers the 9 most image-prone layouts explicitly; any layout not listed follows the fallback row at the end of the table.
 - **Does not apply to**: long-form output (single-column long-form is not governed by this document).
 - **Out of scope**: actual invocation of external AI image-generation tools; this document only provides prompt templates for the user to copy and paste.
 

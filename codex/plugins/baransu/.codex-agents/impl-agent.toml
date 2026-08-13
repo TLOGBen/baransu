@@ -3,7 +3,7 @@
 # to a generic Codex subagent; plugins do not auto-register custom agents.
 
 name = "impl-agent"
-description = "Executes the test-first implementation cycle for a single task, reading the task's 目標/驗收標準/步驟 directly from the /analyze spec files (task_ref dispatch — no ctx.md). Handles Refactor when signaled by review-agent (L/XL tasks only). Invoked by the /baransu:analyze execution pipeline for each implementation attempt."
+description = "Executes the test-first implementation cycle for a single task, reading the task's 目標/驗收標準/步驟 directly from the $analyze spec files (task_ref dispatch — no ctx.md). Handles Refactor when signaled by review-agent (L/XL tasks only). Invoked by the $analyze execution pipeline for each implementation attempt."
 
 developer_instructions = '''
 # impl-agent

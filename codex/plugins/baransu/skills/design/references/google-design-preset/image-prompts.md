@@ -1,15 +1,15 @@
 ---
 preset: google-design
-purpose: External AI image-gen prompt templates for the Google Material You / M3 preset. Three product-category fallbacks (product photo / logo / UI) with a standardized negative tail for /design lint grep-gate.
+purpose: External AI image-gen prompt templates for the Google Material You / M3 preset. Three product-category fallbacks (product photo / logo / UI) with a standardized negative tail for $design lint grep-gate.
 accent: "#6750A4"
 flavor: Material You dynamic colour, surface-tint elevation, rounded shape scale, Roboto / Google Sans feel
 ---
 
 # google-design-preset / image-prompts.md
 
-> **Scope**: prompt templates only; no API calls. Audience: users feeding Codex CLI image-gen, ChatGPT Images 2.0, or compatible tools when sourcing imagery for a Google Design / M3 preset DESIGN.md or `/book` artifact.
+> **Scope**: prompt templates only; no API calls. Audience: users feeding Codex CLI image-gen, ChatGPT Images 2.0, or compatible tools when sourcing imagery for a Google Design / M3 preset DESIGN.md or `$book` artifact.
 >
-> Every prompt ends with the literal negative tail string, byte-for-byte, so the `/design` grep-gate (`task-checklist-governance` TASK-cg-04) can validate without ambiguity:
+> Every prompt ends with the literal negative tail string, byte-for-byte, so the `$design` grep-gate (`task-checklist-governance` TASK-cg-04) can validate without ambiguity:
 > `no title, no footer, no page chrome, no logo, no border`
 
 ---
@@ -42,7 +42,7 @@ no title, no footer, no page chrome, no logo, no border
 
 **Description (3 lines)**
 
-- Placeholder mark for Google-Design preset DESIGN.md previews and `/book` slug avatars.
+- Placeholder mark for Google-Design preset DESIGN.md previews and `$book` slug avatars.
 - The "no logo" element of the negative tail targets host-platform chrome; the prompt itself requests a *mark*, so the gate match stays literal text only.
 - Rounded corners are mandatory — sharp-cornered geometry reads as Swiss or Kami, not M3.
 

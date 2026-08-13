@@ -1,9 +1,9 @@
-# /baransu:design — Error Codes
+# $design — Error Codes
 
 | Error | Trigger | Action |
 |-------|------|--------|
-| lint: DESIGN.md not found | no DESIGN.md at project root | Report + suggest `/design gen`; stop |
-| preset: no name given | `/design preset` with no second token | List available presets; exit ≠ 0 |
+| lint: DESIGN.md not found | no DESIGN.md at project root | Report + suggest `$design gen`; stop |
+| preset: no name given | `$design preset` with no second token | List available presets; exit ≠ 0 |
 | preset: unknown name | name not in enum | List available presets; exit ≠ 0 |
 | preset: references/ empty | install missing files | Report「目前無可用 preset」 |
 | preset: `references/<name>-preset/` any file missing | plugin damaged | Report which path is missing; abort |

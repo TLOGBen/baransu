@@ -14,7 +14,7 @@
 
 ## Empty Keyword Fail-Fast
 
-If `/read --topic ""` (empty keyword): output 「請提供關鍵字」 and stop. Do not invoke `search-papers.py`.
+If `$read --topic ""` (empty keyword): output 「請提供關鍵字」 and stop. Do not invoke `search-papers.py`.
 
 This guard is shared with the other three search-type lanes (`--web` / `--gh` / `--x`) per `requirement.md` REQ-008 Scenario 3 (cross-cutting fail-fast).
 
@@ -81,7 +81,7 @@ User selection happens via AskUserQuestion (single-pick semantics; selection ter
 
 For `N = 10` candidates from `search-papers.py` (default), the round mapping in `references/acquisition/candidate-selection.md` truncates to the first 7 by `search-papers.py`'s native ranking and presents 3 rounds (2 + 2 + 3 result slots, plus escape per round and `「下一批」` on non-final rounds).
 
-Single-pick replaces the prior multi-select (`1 3 5`) workflow; multi-paper sessions are achieved by re-invoking `/read --topic "keyword"` after each paper finishes.
+Single-pick replaces the prior multi-select (`1 3 5`) workflow; multi-paper sessions are achieved by re-invoking `$read --topic "keyword"` after each paper finishes.
 
 ---
 

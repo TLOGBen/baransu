@@ -65,7 +65,7 @@ Use the signals below; when signals conflict, choose the type that matches the
 - Document purpose is to *record*, *compare*, or *evaluate*
 
 **Examples:** Literature reviews, comparative analyses, evaluation reports, weekly digests,
-learning briefs (like /learn output)
+learning briefs (like $learn output)
 
 **Visual treatment:**
 - Score / rating tables with visual bars or badges
@@ -82,7 +82,7 @@ These apply regardless of content type — they are the standing `book` invarian
 
 | Element | Rule |
 |---------|------|
-| Design tokens | Read from `{project_root}/tokens.css`（canonical 38-name tokens; written by `/baransu:design preset\|gen`, this skill only reads）— use named tokens, never raw hex |
+| Design tokens | Read from `{project_root}/tokens.css`（canonical 38-name tokens; written by `$design preset\|gen`, this skill only reads）— use named tokens, never raw hex |
 | Background | `var(--paper)` as page canvas; `var(--surface)` for cards |
 | Accent | `var(--accent)` as the sole chromatic accent; no secondary accent colour |
 | Typography | `var(--font-serif)` for body (the preset defines it — a serif stack in kami, a sans alias in sans-only presets like swiss/google-design); `var(--font-sans)` / `var(--font-mono)` per the preset's stacks |

@@ -103,7 +103,7 @@ note: |
 
 > 「聽聽，那冷雨。看看，那冷雨。嗅嗅聞聞，那冷雨，舔舔吧，那冷雨。」
 >
-> 標題式短語反覆呼喚，形成節奏複沓。/write 套此 voice 時可在段落首句插入 motif 變奏，但**全篇不超過 3 次**，避免變成裝飾性排比（rule 7 仍守）。
+> 標題式短語反覆呼喚，形成節奏複沓。$write 套此 voice 時可在段落首句插入 motif 變奏，但**全篇不超過 3 次**，避免變成裝飾性排比（rule 7 仍守）。
 
 ---
 
@@ -127,7 +127,7 @@ note: |
 
 ## 反面（套此 voice 時同步守 anti-AI floor）
 
-此 preset 是**正向風格錨**，仍須守 zh rules 5 / 7 / 8 anti-AI 味底線（禁對仗句 ／ 禁排比 ／ 禁名詞化）。/write 主流程已強制此底線，本 preset 不覆蓋。
+此 preset 是**正向風格錨**，仍須守 zh rules 5 / 7 / 8 anti-AI 味底線（禁對仗句 ／ 禁排比 ／ 禁名詞化）。$write 主流程已強制此底線，本 preset 不覆蓋。
 
 額外避免（與余光中本人寫作論一致）：
 
@@ -143,7 +143,7 @@ note: |
 - 〈聽聽那冷雨〉(1974)，余光中
 - 本地 raw：`.codex/read/material/ygzsw007/index.md`
 - 線上原始：http://www.ccview.net/htm/xiandai/ygz/ygzsw007.htm
-- 取於：2026-05-07 via `/baransu:read --web`
+- 取於：2026-05-07 via `$read --web`
 
 ---
 

@@ -1508,6 +1508,98 @@ class TestRepoPathRewrite(unittest.TestCase):
         out = transfer.rewrite_body(body, rpt, skill_name="codex-skill-transfer")
         self.assertEqual(out, body)
 
+    def test_skill_mention_namespaced_is_always_dollar(self):
+        out, n = transfer.rewrite_skill_mentions(
+            "run `/baransu:review` after each output"
+        )
+        self.assertEqual(out, "run `$review` after each output")
+        self.assertEqual(n, 1)
+
+    def test_skill_mention_bare_requires_known_sibling(self):
+        known = frozenset({"review", "read", "design"})
+        out, _ = transfer.rewrite_skill_mentions("route to /review when done", known)
+        self.assertEqual(out, "route to $review when done")
+        # Unknown bare names are never guessed at.
+        out_unknown, n_unknown = transfer.rewrite_skill_mentions(
+            "route to /review when done"
+        )
+        self.assertEqual(out_unknown, "route to /review when done")
+        self.assertEqual(n_unknown, 0)
+
+    def test_skill_mention_leaves_paths_urls_and_longer_identifiers(self):
+        known = frozenset({"review", "read", "design"})
+        body = (
+            "Files under .claude/read/ and skills/read stay; "
+            "https://x.com/review stays; /design-cores and /reads stay; "
+            "path /read/ segment stays."
+        )
+        out, n = transfer.rewrite_skill_mentions(body, known)
+        self.assertEqual(out, body)
+        self.assertEqual(n, 0)
+
+    def test_rewrite_body_converts_mentions_and_reports(self):
+        rpt = report()
+        out = transfer.rewrite_body(
+            "Hand off to `/baransu:seal`; worth-it calls go to /think Evaluation Mode.",
+            rpt,
+            skill_name="contract",
+            known_skills=frozenset({"contract", "seal", "think"}),
+        )
+        self.assertIn("`$seal`", out)
+        self.assertIn("$think Evaluation Mode", out)
+        self.assertTrue(
+            any("`$skill` mention" in line for line in rpt.rewrites),
+            rpt.rewrites,
+        )
+
+    def test_exempt_skill_keeps_slash_mentions(self):
+        rpt = report()
+        body = "Docs show `/baransu:review` and /review mapping rows."
+        out = transfer.rewrite_body(
+            body,
+            rpt,
+            skill_name="codex-skill-transfer",
+            known_skills=frozenset({"review"}),
+        )
+        self.assertEqual(out, body)
+
+    def test_transfer_one_rewrites_description_and_reference_mentions(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            skills = root / "skills"
+            source = skills / "seal"
+            (skills / "review").mkdir(parents=True)
+            (skills / "review" / "SKILL.md").write_text(
+                "---\nname: review\ndescription: d\n---\nbody\n", encoding="utf-8"
+            )
+            refs = source / "references"
+            refs.mkdir(parents=True)
+            (source / "SKILL.md").write_text(
+                "---\nname: seal\ndescription: \"Post-seal. Trigger On '/seal'; "
+                "re-verification goes to /review.\"\n---\n"
+                "# Seal\n\nCross-perspective checks belong to `/baransu:review`.\n",
+                encoding="utf-8",
+            )
+            (refs / "notes.md").write_text(
+                "Escalate to /review; never to /unknown-cmd.\n", encoding="utf-8"
+            )
+            out_root = root / "out"
+            out_root.mkdir()
+
+            rpt = transfer.transfer_one(source, out_root)
+
+            skill_out = (out_root / "seal" / "SKILL.md").read_text(encoding="utf-8")
+            self.assertIn("'$seal'", skill_out)
+            self.assertIn("goes to $review", skill_out)
+            self.assertIn("`$review`", skill_out)
+            self.assertNotIn("/baransu:review", skill_out)
+            ref_out = (out_root / "seal" / "references" / "notes.md").read_text(
+                encoding="utf-8"
+            )
+            self.assertIn("Escalate to $review", ref_out)
+            self.assertIn("/unknown-cmd", ref_out)
+            self.assertFalse(rpt.skipped)
+
     def test_copy_aux_rewrites_reference_paths(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

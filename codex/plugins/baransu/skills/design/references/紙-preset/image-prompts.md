@@ -1,15 +1,15 @@
 ---
 preset: 紙 (Kami)
-purpose: External AI image-gen prompt templates for the Kami warm-paper preset. Three product-category fallbacks (product photo / logo / UI) with a standardized negative tail for /design lint grep-gate.
+purpose: External AI image-gen prompt templates for the Kami warm-paper preset. Three product-category fallbacks (product photo / logo / UI) with a standardized negative tail for $design lint grep-gate.
 accent: "#1B365D"
 flavor: warm parchment background, deep ink-blue accent, serif typography hints
 ---
 
 # 紙-preset / image-prompts.md
 
-> **Scope**: prompt templates only; no API calls. Audience: users feeding Codex CLI image-gen, ChatGPT Images 2.0, or compatible tools when sourcing imagery for a Kami-preset DESIGN.md or `/book` artifact.
+> **Scope**: prompt templates only; no API calls. Audience: users feeding Codex CLI image-gen, ChatGPT Images 2.0, or compatible tools when sourcing imagery for a Kami-preset DESIGN.md or `$book` artifact.
 >
-> Every prompt ends with the literal negative tail string, byte-for-byte, so the `/design` grep-gate (`task-checklist-governance` TASK-cg-04) can validate without ambiguity:
+> Every prompt ends with the literal negative tail string, byte-for-byte, so the `$design` grep-gate (`task-checklist-governance` TASK-cg-04) can validate without ambiguity:
 > `no title, no footer, no page chrome, no logo, no border`
 
 ---
@@ -42,7 +42,7 @@ no title, no footer, no page chrome, no logo, no border
 
 **Description (3 lines)**
 
-- Used for placeholder marks in Kami preset DESIGN.md previews and `/book` slug avatars.
+- Used for placeholder marks in Kami preset DESIGN.md previews and `$book` slug avatars.
 - "no logo" in the negative tail refers to incidental brand chrome (page-level watermarks, host UI badges) — the prompt explicitly asks for a *mark*, so this is intentional and the grep-gate treats it as literal text only.
 - One-colour, one-gesture: any second hue or stroke variation breaks Kami's monastic typographic feel.
 

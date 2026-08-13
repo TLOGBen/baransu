@@ -3,9 +3,9 @@ name: analyze
 description: 'Large-band pipeline: builds a goal→requirement→design→test→task spec
   under .codex/analyze/, then runs it to green through the built-in execution pipeline
   (impl/review loops, E2E, final review). Use when scope spans ≥2 interdependent modules.
-  Trigger On ''/analyze'', ''分析需求'', ''展開規格'', ''開始執行'', ''跑 execute'', ''依照 analyze
-  執行'', ''execute the spec''. Not for single-file changes (/think or implement directly);
-  medium tasks needing only pinned criteria (/contract); worth-it judgments (/think
+  Trigger On ''$analyze'', ''分析需求'', ''展開規格'', ''開始執行'', ''跑 execute'', ''依照 analyze
+  執行'', ''execute the spec''. Not for single-file changes ($think or implement directly);
+  medium tasks needing only pinned criteria ($contract); worth-it judgments ($think
   Evaluation Mode). 繁體中文輸出。'
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
@@ -62,7 +62,7 @@ PAUSE classification for non-interactive drivers: `references/loop-pauses.md` �
 
 - Do not write production code, scaffolding, or config files during Stages 1-6 (the spec phase). The five spec documents are the only spec-phase output; production code is written exclusively inside the execution pipeline (Stage 8).
 - Read `../_shared/contract-gate.md` before Stage 1 — its G1–G4 rules (criteria assertability, trap promotion, verbatim constants, surface inventory) govern how goal.md, design.md, and test.md are written. Do not restate its rules; apply them.
-- Do not call `/review` from within Stages 1-6. Stage 6 is a structured self-review pass against the contract-gate checklist — not an invitation to general per-layer critique. Stage 7 may offer /review as a handoff option — that is a post-spec quality check, not an in-spec alignment check.
+- Do not call `$review` from within Stages 1-6. Stage 6 is a structured self-review pass against the contract-gate checklist — not an invitation to general per-layer critique. Stage 7 may offer $review as a handoff option — that is a post-spec quality check, not an in-spec alignment check.
 - Auto-correction is one round. No silent looping.
 - On a same-day same-slug directory collision (Stage 0.C), never silently overwrite: branch via the `request_user_input` (1-3 questions per call, 2-3 options per question; record the authorization decision and stop until the user answers; if unavailable, ask directly and stop) among resume / overwrite-rebuild / new -N-suffixed directory before writing any spec file. The overwrite-rebuild branch may delete only the computed spec dir `{repo_root}/.codex/analyze/{date}-{slug}/`; if the resolved delete target does not string-equal that path (or contains `..`, or falls outside `{repo_root}` from `git rev-parse --show-toplevel`), abort the deletion and fall back to the `-N`-suffixed branch instead.
 - `goal.md` and `requirement.md` are user-intent layers. Do not modify their semantics during auto-correct. Only design / test / task layers are auto-correctable.
@@ -79,7 +79,7 @@ the argument is an existing `.codex/analyze/{date}-{slug}/` directory, or the
 trigger was 「開始執行」／「跑 execute」／「依照 analyze 執行」 — skip the spec
 stages entirely and jump to Stage 8 (execution pipeline) with that spec dir.
 If no spec dir exists for an execution-intent invocation, output
-「找不到 Analyze spec 目錄，請先跑 /baransu:analyze 展開規格」 and stop.
+「找不到 Analyze spec 目錄，請先跑 $analyze 展開規格」 and stop.
 
 Otherwise (spec-building intent), two steps before any file is written.
 
@@ -103,9 +103,9 @@ Reject if the task is clearly small:
 - Single-file change with no cross-module impact
 - Changes that affect only one layer and one area, with no other layer depending on the result
 
-Rejection (繁中): 「這個任務的規模適合直接執行或走 /think；/analyze 是為中大型、跨模組任務設計的。建議：[具體替代方案]。」
+Rejection (繁中): 「這個任務的規模適合直接執行或走 $think；$analyze 是為中大型、跨模組任務設計的。建議：[具體替代方案]。」
 
-On borderline cases, proceed — err toward running /analyze rather than rejecting a task that turns out larger than expected.
+On borderline cases, proceed — err toward running $analyze rather than rejecting a task that turns out larger than expected.
 
 ### C. Derive slug and directory
 
@@ -364,7 +364,7 @@ Define the testing strategy that verifies the implementation satisfies requireme
 
 ## Stage 5 — Task layer → `task-{group}.md`
 
-> **Re-read checkpoint**: Before beginning task decomposition, re-read this SKILL.md §Stage 5 (task sizing rule, group naming, wave.md cap). The sizing and dependency rules are the most judgment-heavy part of /analyze and are vulnerable to attention decay after Stages 1–4.
+> **Re-read checkpoint**: Before beginning task decomposition, re-read this SKILL.md §Stage 5 (task sizing rule, group naming, wave.md cap). The sizing and dependency rules are the most judgment-heavy part of $analyze and are vulnerable to attention decay after Stages 1–4.
 
 Decompose the work into tasks. Start from the innermost reusable layer and work outward. Each group becomes a separate file.
 
@@ -477,24 +477,24 @@ Run `ls` on the spec dir in this turn and list the generated files exactly as th
 question: "spec 完成。接下來怎麼做？"
 header:   "下一步"
 options:
-  1. label: "送 /review 再決定 【推薦】"
-     description: "用 /baransu:review 對完成的 spec 文件做整體品質複審，review 完成後再決定執行方式。"
+  1. label: "送 $review 再決定 【推薦】"
+     description: "用 $review 對完成的 spec 文件做整體品質複審，review 完成後再決定執行方式。"
   2. label: "進入執行段（完全授權）"
      description: "以本 spec 目錄進入 Stage 8 執行管線，自主執行到全綠，不再過問使用者。"
   3. label: "手動決定"
      description: "列出 spec 路徑，讓使用者自行決定下一步（新 session 執行，或稍後再進執行段）。"
 ```
 
-**Option 1 — 送 /review 再決定.** Invoke `/baransu:review` on the generated spec files. Review goal: 「確認五層 spec 的品質與一致性，找出任何可能影響執行的遺漏或矛盾」. After review, the user naturally loops back to this gate.
+**Option 1 — 送 $review 再決定.** Invoke `$review` on the generated spec files. Review goal: 「確認五層 spec 的品質與一致性，找出任何可能影響執行的遺漏或矛盾」. After review, the user naturally loops back to this gate.
 
-**Option 2 — 進入執行段（完全授權）.** Inline same-session execution contradicts the never-share-loaded-context premise, so gate it on spec size: **if** the spec dir contains ≥2 `task-*.md` group files or a `wave.md`, **then** stop at the handoff and tell the user to run the execution phase in a fresh session instead of continuing in the loaded context (see /think Stage E, Mechanism necessity), outputting: 「spec 規模跨多個 task 群組，請在新 session 執行：/baransu:analyze .codex/analyze/{date}-{slug}/（會直接進入執行段）」. Only a single-group spec — exactly one `task-*.md` and no `wave.md` — may continue inline: enter Stage 8 with the spec directory path, executing autonomously without asking the user for further confirmation.
+**Option 2 — 進入執行段（完全授權）.** Inline same-session execution contradicts the never-share-loaded-context premise, so gate it on spec size: **if** the spec dir contains ≥2 `task-*.md` group files or a `wave.md`, **then** stop at the handoff and tell the user to run the execution phase in a fresh session instead of continuing in the loaded context (see $think Stage E, Mechanism necessity), outputting: 「spec 規模跨多個 task 群組，請在新 session 執行：$analyze .codex/analyze/{date}-{slug}/（會直接進入執行段）」. Only a single-group spec — exactly one `task-*.md` and no `wave.md` — may continue inline: enter Stage 8 with the spec directory path, executing autonomously without asking the user for further confirmation.
 
 **Option 3 — 手動決定.**
 
 「spec 已完成，路徑：`.codex/analyze/{date}-{slug}/`
 
 下一步選擇：
-1. 在新 session 執行：/baransu:analyze .codex/analyze/{date}-{slug}/（直接進入執行段）
+1. 在新 session 執行：$analyze .codex/analyze/{date}-{slug}/（直接進入執行段）
 2. 在新 session 中依 task-*.md 逐一手動執行（每個 task 獨立 session）」
 
 ---

@@ -1,9 +1,9 @@
 # Test-Driven Development — TDD reference (authoritative for baransu)
 
 > **Scope**: Every trigger point that writes, modifies, or reviews tests under the
-> baransu framework (the `impl-agent` and `review-agent` dispatched by `/analyze`'s
+> baransu framework (the `impl-agent` and `review-agent` dispatched by `$analyze`'s
 > execution pipeline, and the small tasks implemented directly by the main session after
-> `/think`／`/hunt` reroute) treats this document as the **single source of knowledge for "how to design a Test"**.
+> `$think`／`$hunt` reroute) treats this document as the **single source of knowledge for "how to design a Test"**.
 > This file is translated/localized from mattpocock/skills' TDD skill, with baransu's
 > existing RED / GREEN / TDAID vocabulary as inline gloss.
 >
@@ -17,7 +17,7 @@
 >
 > **Trigger points**: at the top of `impl-agent.md`'s General Principles (before the Red gate),
 > at the top of `review-agent.md`'s General Principles (before the R6 review order), and the
-> small-task reroute sentences of `/think`／`/hunt`
+> small-task reroute sentences of `$think`／`$hunt`
 > (pointing at this file's §7 direct-implementation discipline). All point to this file via passive reference sentences.
 
 ---
@@ -57,7 +57,7 @@ decided by what the previous round taught you**.
 - The four tasks of §7.2 (red-light test → confirm red → green-light impl → confirm green)
   are themselves one vertical slice.
 - The execution pipeline's TDAID cycle is **per-task**; if one task has multiple acceptance criteria
-  (AC), `/analyze`'s design layer should have already split the cardinality. `impl-agent`
+  (AC), `$analyze`'s design layer should have already split the cardinality. `impl-agent`
   does not re-split; it writes per design.md. review-agent raises "does the diff add ≥ 2 test
   functions at once without a corresponding split cycle" as an `advisory` finding.
 - BAD example: one task contains "add endpoints A, B, C", and impl-agent writes 3 tests in one
@@ -200,8 +200,8 @@ Cross-skill behavioral anti-patterns (including the red/green discipline items) 
 
 ## 7. The red/green gate for direct implementation (document discipline)
 
-When a small task bypasses `/analyze`'s execution pipeline and is implemented directly by the main
-session (for example, a `/think`-approved plan or the single change point after `/hunt`
+When a small task bypasses `$analyze`'s execution pipeline and is implemented directly by the main
+session (for example, a `$think`-approved plan or the single change point after `$hunt`
 diagnosis converges), the red/green gate operates as **document discipline (discipline-suggested)**:
 no orchestrator gatekeeps for you; the implementer builds their own red/green task list per
 this section, goes red first then green, and writes the implementation only after the red is
@@ -268,10 +268,10 @@ The order is fixed: do not enter implementation before red is confirmed; do not 
 |---|---|
 | All pass, no regression | Green confirmed; done. |
 | Test fails (1st time) | Modify the implementation and re-run directly. |
-| Test fails (2nd time) | Stop. If the direction is in doubt, return to `/think` to refocus, then retry. |
+| Test fails (2nd time) | Stop. If the direction is in doubt, return to `$think` to refocus, then retry. |
 | compile error | Fix and re-run; not counted toward the retry count. |
 
-In `/analyze`'s execution pipeline, the authoritative counting rules for compile error and `failure_count` are in `../analyze/references/execution-pipeline.md`; this file only references them, it does not duplicate the rule text.
+In `$analyze`'s execution pipeline, the authoritative counting rules for compile error and `failure_count` are in `../analyze/references/execution-pipeline.md`; this file only references them, it does not duplicate the rule text.
 
 **Beyond the two gates — surprises are new reds.** The tables above govern the two
 gate checks only. Any *other* result that contradicts what the plan assumed — a tool
@@ -322,8 +322,8 @@ This file is referenced by the following trigger points:
 |---|---|---|
 | execution-pipeline impl-agent | `../../.codex-agents/impl-agent.toml`, top of General Principles, before the Red gate | "Before writing tests, read §1 (Core Principles) and §6 (Anti-pattern quick reference) of `${CLAUDE_PLUGIN_ROOT}/skills/_shared/tdd.md` — test-verifies-behavior, vertical slicing, mock-at-boundaries, refactor-only-when-green." |
 | execution-pipeline review-agent | `../../.codex-agents/review-agent.toml`, General Principles, before the R6 review order | "Before reviewing, read §1 (Core Principles) and §6 (Anti-pattern quick reference) of `${CLAUDE_PLUGIN_ROOT}/skills/_shared/tdd.md` and check test quality per its principles." |
-| `/think` small-task reroute | `../think/SKILL.md` Stage G downstream split | Small tasks reroute to this file's §7: the main session builds its own red/green task list per document discipline and implements directly. |
-| `/hunt` fix reroute | `../hunt/SKILL.md` fix-suggestion split | Single change-point fixes reroute to this file's §7 direct-implementation discipline. |
+| `$think` small-task reroute | `../think/SKILL.md` Stage G downstream split | Small tasks reroute to this file's §7: the main session builds its own red/green task list per document discipline and implements directly. |
+| `$hunt` fix reroute | `../hunt/SKILL.md` fix-suggestion split | Single change-point fixes reroute to this file's §7 direct-implementation discipline. |
 
 Besides checking test quality per this file's principles, review-agent must report the four green_proof fields (see
 `../../.codex-agents/review-agent.toml` General Principle §3 return format and its 5-tier required-fields matrix).

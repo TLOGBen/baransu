@@ -190,6 +190,17 @@ Applied to: SKILL.md bodies, the `description` frontmatter field, copied `refere
 
 **Exemptions.** Files whose baransu paths are documentation *about* the repo or the mapping itself — not live cross-references — are skipped (rewriting corrupts meaning) and stay Claude-token-scanned only: the whole `codex-skill-transfer` skill (`REPO_PATH_REWRITE_EXEMPT_SKILLS`, its own mapping tables) and design's `references/slide-checklist.md` version-bump example (`REPO_PATH_REWRITE_EXEMPT_RELPATHS`). Scripts/assets (`.sh`/`.css`/`.py` fallback-probing and self-describing comments) are not path-rewritten — they carry their own multi-fallback discovery logic; only the `$CLAUDE_SKILL_DIR` rewrite touches `scripts/`.
 
+### 6.2 Slash-invocation mentions (`rewrite_skill_mentions`)
+
+Claude prose mentions sibling skills as slash commands (`/review`, `/baransu:review`). Codex mentions skills with a `$` prefix — the official skills docs: "run `/skills` or type `$` to mention a skill" — so a slash mention left in ported text points at a command Codex does not have.
+
+| Claude mention | Codex rewrite | Condition |
+|---|---|---|
+| `/baransu:<name>` | `$<name>` | Always — the namespaced shape is unambiguous |
+| `/<name>` | `$<name>` | Only when `<name>` is a *known sibling skill* (the source skill plus every sibling dir carrying a SKILL.md), and the `/` is not part of a path/URL (`.claude/read/`, `skills/read`, `example.com/review` stay) and not a longer identifier (`/design-cores`, `/reads` stay) |
+
+Applied AFTER the §6.1 path rewrite (a `/name` inside a repo path has already been resolved to a relative path there, so what survives is invocation prose), to the same carriers: SKILL.md bodies, the `description` frontmatter field (trigger phrases like `'/design'`), copied `references/*.md`, shared aux dirs (`_shared/*.md`), plugin `rules/*.md`, and bundled agent TOML instructions. Code spans and fenced examples ARE rewritten — a quoted `` `/review` `` is an invocation mention, and the ported invocation surface is `` `$review` ``. The §6.1 exemptions apply unchanged; `scripts/` bodies are never mention-rewritten (their user-facing strings stay flagged territory, not rewrite territory). A lone single-skill source knows no sibling set, so only the namespaced form is rewritten there; the glob prose form `/baransu:*` is also left as-is.
+
 ### 7. Output format invariants
 
 The output `SKILL.md` must:

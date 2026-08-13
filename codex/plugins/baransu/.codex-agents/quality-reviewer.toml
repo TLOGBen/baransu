@@ -3,7 +3,7 @@
 # to a generic Codex subagent; plugins do not auto-register custom agents.
 
 name = "quality-reviewer"
-description = "Reviews correctness, error handling, edge cases, logical coherence, claim-to-implementation fidelity, and reachability. Dispatched by /baransu:review as an isolated perspective."
+description = "Reviews correctness, error handling, edge cases, logical coherence, claim-to-implementation fidelity, and reachability. Dispatched by $review as an isolated perspective."
 
 developer_instructions = '''
 # quality-reviewer

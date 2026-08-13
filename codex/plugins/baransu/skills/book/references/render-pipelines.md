@@ -44,7 +44,7 @@ For each slide object in `$STRUCTURE_SLIDES`, read the skeleton from `{project_r
 
 Write each generated slide to **`.codex/book/slides-{$SLUG}/slide-{NN}.html`** (`{NN}` = zero-padded deck order starting at `01`; `mkdir -p` the directory first). This is the fixed on-disk contract — Stage 4's PPT-mode validation loop and the Step 3 html2pptx invocation both read the files back from this path; do not invent a per-run location.
 
-If `{project_root}/slide-cores/<layout-id>.html` is missing (consistent with the Stage 2B graceful-degradation behavior): warning「請先跑 `/baransu:design preset <style>` 取得 slide-cores」, and the body slot degrades to the inline skeleton of the hardcoded fallback three layouts (`cover` / `closing` / `content-bullets`); do not abort Stage 3.
+If `{project_root}/slide-cores/<layout-id>.html` is missing (consistent with the Stage 2B graceful-degradation behavior): warning「請先跑 `$design preset <style>` 取得 slide-cores」, and the body slot degrades to the inline skeleton of the hardcoded fallback three layouts (`cover` / `closing` / `content-bullets`); do not abort Stage 3.
 
 **Self-containment (mandatory)**: the slide-cores skeletons carry `<link rel="stylesheet" href="../tokens.css">` — that relative path breaks once the slide is written under `.codex/book/slides-{$SLUG}/`, and the output must be single-file portable regardless. When generating each slide HTML from the skeleton: STRIP every `<link rel="stylesheet" …>` and replace it with an inline `<style>` embedding the FULL content of `{project_root}/tokens.css` (keep its line-1 preset comment verbatim). No `@import` anywhere. validate-output.ts's `self-contained` core check blocks on violations in Stage 4's per-slide loop.
 

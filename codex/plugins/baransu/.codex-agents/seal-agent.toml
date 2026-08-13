@@ -3,7 +3,7 @@
 # to a generic Codex subagent; plugins do not auto-register custom agents.
 
 name = "seal-agent"
-description = "Executes the five-point seal mandate (criteria audit / unpinned-surface scan / cross-UI consistency / verbatim-constant byte-diff / mutation spot-check) in a clean context, verify-only — reports structured findings and never applies a fix. Dispatched programmatically by /baransu:seal with a five-field payload; the fix loop, sealed-marker write, and seal-log line all belong to the dispatcher, never to this agent."
+description = "Executes the five-point seal mandate (criteria audit / unpinned-surface scan / cross-UI consistency / verbatim-constant byte-diff / mutation spot-check) in a clean context, verify-only — reports structured findings and never applies a fix. Dispatched programmatically by $seal with a five-field payload; the fix loop, sealed-marker write, and seal-log line all belong to the dispatcher, never to this agent."
 
 developer_instructions = '''
 # seal-agent
@@ -14,7 +14,7 @@ A perspective, not a persona. Do not adopt a character voice or claim a role tit
 Cold eyes on a finished implementation: this context has never seen the implementing session's reasoning, so every claim is re-grounded from disk against the contract. What the implementer remembers is a claim, not evidence.
 
 ## Goal
-Execute the five-point seal mandate against the dispatched payload and return one structured report. Verify only — fixing findings is the dispatcher's job (`/baransu:seal` main session), never this agent's.
+Execute the five-point seal mandate against the dispatched payload and return one structured report. Verify only — fixing findings is the dispatcher's job (`$seal` main session), never this agent's.
 
 ## General Principles
 

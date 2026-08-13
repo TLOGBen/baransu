@@ -2,6 +2,11 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [3.4.1] - 2026-08-13
+
+### Added
+- **`/codex-skill-transfer`：`/other-skill` → `$other-skill` 呼叫提及改寫（skill-mapping §6.2）**。Codex 以 `$` 前綴提及 skill（官方文件：「run `/skills` or type `$` to mention a skill」），移植後殘留的斜線提及指向 Codex 不存在的指令。`/baransu:name` 命名空間形式無歧義、一律改寫；裸 `/name` 只在名稱屬於已知同層 skill 集合（來源 skill＋帶 SKILL.md 的 sibling 目錄）時改寫，路徑段（`.claude/read/`）、URL、更長識別字（`/design-cores`、`/reads`）一律不動。套用面：SKILL.md body、frontmatter `description` 觸發片語、references、`_shared` 共用目錄、plugin `rules/`、bundled agent TOML instructions；§6.1 豁免名單照舊，`scripts/` 內文不改寫。think Stage G adapter 模板內建的 `/review` 同步改為 `$review`。
+
 ## [3.4.0] - 2026-08-11
 
 ### Added

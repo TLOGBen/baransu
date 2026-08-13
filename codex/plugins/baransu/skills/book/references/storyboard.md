@@ -26,7 +26,7 @@ Skipped when any one holds — the whole stage, including the echo:
 - The run is driven non-interactively (/loop, cron, Workflow) — see
   `loop-pauses.md`.
 
-Stage 0b's two OTHER skip conditions (a `/read` / `/learn` slug input, and
+Stage 0b's two OTHER skip conditions (a `$read` / `$learn` slug input, and
 `--text` under 200 words) **do NOT carry over**: 0b skips them because audience
 and purpose are already implicit before acquisition, whereas Stage 2C runs after
 the structure exists and slug-to-book is a primary path for this feature.
@@ -39,7 +39,7 @@ to Stage 3.
 `{project_root}/tokens.css` is a **hard abort** in Stage 3 §1. Verify it exists
 BEFORE presenting the echo — otherwise the user completes a full round of
 editing and is then aborted, losing everything (results are never persisted).
-Missing → output 「請先跑 `/baransu:design preset <style>`（kami / google-design /
+Missing → output 「請先跑 `$design preset <style>`（kami / google-design /
 swiss）再用 `--storyboard`」 and stop before the echo.
 
 ## The echo (one batch, one round)
@@ -151,6 +151,6 @@ after the structures exist (never blocking, never awaiting a reply):
 本次未逐頁確認；要逐頁確認請加 --storyboard 重跑
 ```
 
-This position reaches every path — including `/read` / `/learn` slugs, which
+This position reaches every path — including `$read` / `$learn` slugs, which
 Stage 0b skips — and the user can see the actual section / slide count the hint
 refers to.

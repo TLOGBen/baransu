@@ -98,7 +98,7 @@ Required only for presets declaring `schema: 43` in the `tokens.css` header (38 
 ## tokens.css first line is the preset identifier comment
 
 Format: `/* preset: <slug> */` (slug is `kami` / `google-design` / `swiss` / gen-slug).
-Parsed by `scripts/check.py` and `/baransu:book` GATE-F.
+Parsed by `scripts/check.py` and `$book` GATE-F.
 
 ## v1.2 → v1.3 banned naming list
 

@@ -66,7 +66,7 @@ See `references/acquisition/candidate-selection.md` for capacity, escape, multi-
 
 | Condition | Behaviour |
 |-----------|-----------|
-| Empty keyword (`/read --gh ""`) | Output 「請提供關鍵字」 and stop. Do not invoke `gh`. |
+| Empty keyword (`$read --gh ""`) | Output 「請提供關鍵字」 and stop. Do not invoke `gh`. |
 | `gh` CLI not installed (PATH lookup fails) | Output 「gh CLI 未安裝，請執行 `brew install gh` 或 `apt install gh`」 and stop. Do not fall back to GitHub REST API. |
 | `gh search repos` exits non-zero with auth/rate-limit signal (`HTTP 403`, `rate limit`, `authentication`) | Output 「GitHub API rate limit 或認證失敗：{stderr 內容}，請設定 GH_TOKEN 或稍後再試」 and stop. Wording must be distinguishable from the 0-repos message below. |
 | `gh search repos` returns empty array `[]` | Output 「GitHub 搜尋無 repo 結果」 and stop. Do not invoke AskUserQuestion. |
@@ -79,7 +79,7 @@ Do not fall back to other lanes. Do not silent-retry.
 
 ## Handoff
 
-When the user selects one repo, hand its `url` back to `/read`'s existing URL routing. The `github.com` host check in `SKILL.md` Stage 1 §9 routes to `web-static.md` GitHub section.
+When the user selects one repo, hand its `url` back to `$read`'s existing URL routing. The `github.com` host check in `SKILL.md` Stage 1 §9 routes to `web-static.md` GitHub section.
 
 The existing `raw/{slug}/index.{ext}` → markitdown → `material/{slug}/index.md` chain is unchanged.
 

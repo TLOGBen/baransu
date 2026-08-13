@@ -1,6 +1,6 @@
 # contract-gate — criteria assertability rules (single implementation)
 
-Shared by `/contract` (one-page contract, medium band) and `/analyze` (five-layer
+Shared by `$contract` (one-page contract, medium band) and `$analyze` (five-layer
 spec, large band). Both skills read THIS file for the rules below; neither skill
 restates them. Experiments 2026-07-19 (harness×model matrix + validation round)
 showed these three rules structurally eliminate two whole defect classes

@@ -1,15 +1,15 @@
 ---
 preset: swiss
-purpose: External AI image-gen prompt templates for the Swiss International Style preset. Three product-category fallbacks (product photo / logo / UI) with a standardized negative tail for /design lint grep-gate.
+purpose: External AI image-gen prompt templates for the Swiss International Style preset. Three product-category fallbacks (product photo / logo / UI) with a standardized negative tail for $design lint grep-gate.
 accent: "#002FA7"
 flavor: neutral paper canvas, IKB ultramarine single accent, neo-grotesque sans-serif, ample whitespace
 ---
 
 # swiss-preset / image-prompts.md
 
-> **Scope**: prompt templates only; no API calls. Audience: users feeding Codex CLI image-gen, ChatGPT Images 2.0, or compatible tools when sourcing imagery for a Swiss-preset DESIGN.md or `/book` artifact.
+> **Scope**: prompt templates only; no API calls. Audience: users feeding Codex CLI image-gen, ChatGPT Images 2.0, or compatible tools when sourcing imagery for a Swiss-preset DESIGN.md or `$book` artifact.
 >
-> Every prompt ends with the literal negative tail string, byte-for-byte, so the `/design` grep-gate (`task-checklist-governance` TASK-cg-04) can validate without ambiguity:
+> Every prompt ends with the literal negative tail string, byte-for-byte, so the `$design` grep-gate (`task-checklist-governance` TASK-cg-04) can validate without ambiguity:
 > `no title, no footer, no page chrome, no logo, no border`
 
 ---
@@ -42,7 +42,7 @@ no title, no footer, no page chrome, no logo, no border
 
 **Description (3 lines)**
 
-- Placeholder mark for Swiss preset DESIGN.md previews and `/book` slug avatars.
+- Placeholder mark for Swiss preset DESIGN.md previews and `$book` slug avatars.
 - The "no logo" element of the negative tail targets host-platform branding chrome; the prompt itself requests a *mark*, so the gate match remains literal text only.
 - Pure geometry: any organic curve or hand-drawn gesture pushes the mark out of the Swiss canon.
 

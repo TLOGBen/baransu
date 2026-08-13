@@ -1,4 +1,4 @@
-# Orchestration Interface — /review dual-mode dispatch
+# Orchestration Interface — $review dual-mode dispatch
 
 Single internal interface for the Stage 4 perspective dispatch. Two adapters implement it — the current parallel-Task adapter (§3) and a thin Workflow adapter (§4). Both return findings in the identical shape, so downstream consumers (Stage 6 consolidate + balance check, Stage 7 response tiers) never sense which mode produced them.
 
@@ -36,7 +36,7 @@ When the read does happen, before Stage 1 begins:
 
 One **parallel Task** per activated perspective, each in a clean context, exactly as SKILL.md Stage 4 specifies. Reviewers do not know about each other and do not coordinate. The adversarial round (Stage 5) runs after all Tasks return — exactly one round.
 
-Depth invariant (restated for this adapter): dispatched perspective agents must not invoke skills or dispatch further subagents — review-agent-style leaves never call `/review`, reviewers do not review each other, and /review never invokes /review.
+Depth invariant (restated for this adapter): dispatched perspective agents must not invoke skills or dispatch further subagents — review-agent-style leaves never call `$review`, reviewers do not review each other, and $review never invokes $review.
 
 ## 4. Workflow thin adapter — pinned-workflow mode only
 

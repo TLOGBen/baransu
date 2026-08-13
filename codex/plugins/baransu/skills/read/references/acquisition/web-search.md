@@ -44,7 +44,7 @@ The candidate's `title` populates the AskUserQuestion `label`; `description` pop
 
 | Condition | Behaviour |
 |-----------|-----------|
-| Empty keyword (`/read --web ""`) | Output 「請提供關鍵字」 and stop. Do not invoke WebSearch. |
+| Empty keyword (`$read --web ""`) | Output 「請提供關鍵字」 and stop. Do not invoke WebSearch. |
 | WebSearch returns 0 results | Output 「web 搜尋無結果，建議改關鍵字」 and stop. Do not invoke AskUserQuestion. Do not write `raw/` or `material/`. |
 | WebSearch throws (API error / rate limit / geo-restriction / key missing) | Output 「web 搜尋呼叫失敗：{原因}」 and stop. Wording must be distinguishable from the 0-results message above. |
 | 1 ≤ N ≤ 7 results | Apply the `candidate-selection.md` round mapping (N≤3 → 1 round; 4-5 → 2; 6-7 → 3, with `「下一批」` advancing between rounds). Do not round-pad small N. |
@@ -56,7 +56,7 @@ Do not fall back to other lanes. Do not silent-retry.
 
 ## Handoff
 
-When the user selects one URL, hand it back to `/read`'s existing URL routing in `SKILL.md` Stage 1 §9:
+When the user selects one URL, hand it back to `$read`'s existing URL routing in `SKILL.md` Stage 1 §9:
 - `github.com` / `raw.githubusercontent.com` host → web-static.md GitHub section
 - `.pdf` URL, or the local-first GET's Content-Type reports `application/pdf` → web-static.md PDF URL section
 - Quality checks fail AND SPA signals match (response < 500 bytes or feature strings) → web-dynamic.md

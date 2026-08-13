@@ -5,9 +5,9 @@ description: 'Post-implementation seal, run as a dispatcher: assembles the verif
   (criteria audit / unpinned-surface scan / cross-UI / constants byte-diff / mutation
   spot-check), fixes findings in the main session with capped re-verification, and
   stamps the sealed marker on a clean pass. Use to close out a /contract-banded task.
-  Trigger On ''/seal'', ''封緘'', ''收尾驗收'', ''驗收剛做完的'', ''seal it''. Not for cross-perspective
-  re-verification of any model output (use /review) or pre-work criteria pinning (use
-  /contract). 繁體中文輸出。'
+  Trigger On ''$seal'', ''封緘'', ''收尾驗收'', ''驗收剛做完的'', ''seal it''. Not for cross-perspective
+  re-verification of any model output (use $review) or pre-work criteria pinning (use
+  $contract). 繁體中文輸出。'
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex
@@ -57,7 +57,7 @@ PAUSE classification for non-interactive drivers: `references/loop-pauses.md`.
 
 Materialize the target from disk BEFORE anything else, in this order:
 1. A `CONTRACT.md` (project root or user-named path) → its criteria are the audit baseline; the diff is `git diff <base>` when the user names a base, else uncommitted + branch-local changes. This is the ONLY branch that can end with a sealed marker.
-2. No contract but user-named criteria / artifact → use those verbatim as the baseline. A clean result on this branch closes with the report + seal-log line only — **no sealed marker is written** (there is no contract file to stamp, and nothing enters /ship's archive loop).
+2. No contract but user-named criteria / artifact → use those verbatim as the baseline. A clean result on this branch closes with the report + seal-log line only — **no sealed marker is written** (there is no contract file to stamp, and nothing enters $ship's archive loop).
 3. Neither a materializable diff nor a named artifact → **stop and report** `needs-input`（「無可審工件：請指名 diff 基準或合約」）. **No sealed marker is written.** Never fabricate a target and never seal from conversation memory.
 
 Seal is designed for cold eyes: the five points run in a dispatched clean
@@ -168,8 +168,8 @@ R10 forbids that pushback.
 A bare assertion WITHOUT first-hand evidence does not qualify (evidence gate).
 
 Out of band — architectural rework, behavior redesign, anything touching files
-the diff never touched — is reported, not fixed: route to `/baransu:review`
-(independent re-verification) or `/baransu:hunt` (root-cause diagnosis).
+the diff never touched — is reported, not fixed: route to `$review`
+(independent re-verification) or `$hunt` (root-cause diagnosis).
 
 Each dispatch is exactly one pass on the agent side — no seal-of-a-seal inside
 a dispatch; iteration lives only in this fix loop, and the sealed marker stamps
@@ -229,7 +229,7 @@ Close with: 「封緘完成：{N} 條條文核對、{M} 個表面掃描、{K} �
 
 ## Not-for boundaries
 
-- Cross-perspective independent re-verification of any model output（跨視角重驗證、四層回應、無預設修正權）→ `/baransu:review`.
-- Pre-work criteria pinning（開工前釘條文）→ `/baransu:contract`（contract 開工前、seal 收工後——同一頻段的一對）.
-- Large-band spec verification → `/baransu:analyze`'s built-in final review; seal never audits a multi-module spec.
-- Symptom/error debugging（報錯排查）→ `/baransu:hunt`.
+- Cross-perspective independent re-verification of any model output（跨視角重驗證、四層回應、無預設修正權）→ `$review`.
+- Pre-work criteria pinning（開工前釘條文）→ `$contract`（contract 開工前、seal 收工後——同一頻段的一對）.
+- Large-band spec verification → `$analyze`'s built-in final review; seal never audits a multi-module spec.
+- Symptom/error debugging（報錯排查）→ `$hunt`.

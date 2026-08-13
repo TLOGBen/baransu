@@ -1,4 +1,4 @@
-# Orchestration Interface — /learn dual-mode fan-out
+# Orchestration Interface — $learn dual-mode fan-out
 
 Single internal interface for the Stage 1 §3.5 four-lane fan-out. Two adapters implement it — the current batched fan-out adapter (§3) and a thin Workflow adapter (§4). Both return the identical candidate-pool shape, so the downstream consumer (the Stage 2 scoring table and its lane-grouped layout rule) never senses which mode produced it.
 
@@ -31,9 +31,9 @@ During Stage 0 (environment self-check):
 
 ## 3. Current adapter — four-lane fan-out
 
-The batched tool-call fan-out exactly as SKILL.md §3.5 specifies: `academic` / `web` / `gh` launch in turn 1 as one batch together with the X lane's first Chrome step; the X lane completes by turn 3. Lanes invoke their underlying tools directly (never via `/read --{lane}`), and each lane's failure maps to the three-state status surface.
+The batched tool-call fan-out exactly as SKILL.md §3.5 specifies: `academic` / `web` / `gh` launch in turn 1 as one batch together with the X lane's first Chrome step; the X lane completes by turn 3. Lanes invoke their underlying tools directly (never via `$read --{lane}`), and each lane's failure maps to the three-state status surface.
 
-Depth invariant (restated for this adapter): lane agents must not invoke skills or dispatch further subagents — do not spawn sub-agents to flatten the X-lane turn delay, and never route a lane through `/read`.
+Depth invariant (restated for this adapter): lane agents must not invoke skills or dispatch further subagents — do not spawn sub-agents to flatten the X-lane turn delay, and never route a lane through `$read`.
 
 ## 4. Workflow thin adapter — pinned-workflow mode only
 
@@ -44,4 +44,4 @@ When Stage 0 pinned `workflow`, run the four lanes as Workflow `parallel` branch
 
 Nothing else. Lane-status mapping, timeout values, the soft-failure invariant, and Stage 2 scoring stay in the main flow (SKILL.md Stage 1 §3.5 and Stage 2).
 
-Depth invariant (restated for this adapter): Workflow branches are leaves — agents must not invoke skills or dispatch further subagents; a branch may not call `/read` or any other skill to perform its search.
+Depth invariant (restated for this adapter): Workflow branches are leaves — agents must not invoke skills or dispatch further subagents; a branch may not call `$read` or any other skill to perform its search.

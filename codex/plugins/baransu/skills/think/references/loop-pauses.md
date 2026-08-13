@@ -1,8 +1,8 @@
-# loop-pauses — /think PAUSE classification
+# loop-pauses — $think PAUSE classification
 
 PAUSE classification for non-interactive drivers; semantics in `../../_shared/loop-contract.md` §2.
 
-/think is graded loop=not-drivable — its focusing dialogue is the product; no
+$think is graded loop=not-drivable — its focusing dialogue is the product; no
 recommended default can substitute it. The rows below exist for the cases
 loop-contract's Scope still covers (hosted as a subagent, /loop, cron,
 Workflow): they tell a non-interactive run how to stop loudly instead of

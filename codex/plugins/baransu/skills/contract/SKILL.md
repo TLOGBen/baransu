@@ -2,9 +2,9 @@
 name: contract
 description: 'Writes a one-page work contract (~35 lines) before a medium-sized change:
   goal, assertable criteria, can''t-miss surfaces, verbatim constants. Use before
-  implementing a feature that deserves pinned acceptance but not a full /analyze spec.
-  Trigger On ''/contract'', ''寫合約'', ''一頁合約'', ''開工合約'', ''pin the criteria''. Not
-  for multi-module specs (use /analyze) or post-hoc verification (use /seal). 繁體中文輸出。'
+  implementing a feature that deserves pinned acceptance but not a full $analyze spec.
+  Trigger On ''$contract'', ''寫合約'', ''一頁合約'', ''開工合約'', ''pin the criteria''. Not
+  for multi-module specs (use $analyze) or post-hoc verification (use $seal). 繁體中文輸出。'
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex
@@ -29,11 +29,11 @@ PAUSE classification for non-interactive drivers: `references/loop-pauses.md`.
 
 ## Constraints
 
-- **一頁上限**: One page. Target ~35 lines, hard cap 60. A contract that needs more is a signal the task belongs to `/analyze` — say so and stop instead of writing a long contract.
+- **一頁上限**: One page. Target ~35 lines, hard cap 60. A contract that needs more is a signal the task belongs to `$analyze` — say so and stop instead of writing a long contract.
 - **閘則外置**: The gate rules live in `../_shared/contract-gate.md` (G1 assertability, G2 trap promotion, G3 verbatim constants, G4 surface inventory). Read it before writing any criterion; do not restate its rules here or in the contract.
 - **只釘 WHAT**: The contract pins WHAT must hold, never HOW to implement. No file-by-file plans, no pseudo-code.
 - **先讀碼再寫條文**: Read the relevant code before writing criteria — G2 requires promoting discovered traps into criteria, which is impossible without looking.
-- **只寫不驗**: This skill writes the contract only. Implementation follows in the same or next session under `_shared/tdd.md` §7 discipline; verification is `/seal`'s job.
+- **只寫不驗**: This skill writes the contract only. Implementation follows in the same or next session under `_shared/tdd.md` §7 discipline; verification is `$seal`'s job.
 - **現實接觸強制閘**: a 未驗 data-source / schema / contract / permission premise may never be written into criteria as fact (procedure: Step 1).
 - **無捆綁停權**: an undetermined premise never exempts its adjacent verifiable criteria from becoming independent assertable criteria (procedure: Step 1).
 - **禁止靜默覆寫**: never overwrite an existing CONTRACT.md belonging to a different task (procedure: Step 3). Sealed exception: a contract carrying the sealed marker (Step 2 grammar) is a completed artifact — archiving it to `.codex/archived/` and then writing the new contract is sanctioned and silent.
@@ -102,13 +102,13 @@ source of truth}
 
 **Sealed-marker grammar (single authority).** The `> STATUS: sealed` line
 shown under the H1 above is the one and only grammar authority for the sealed
-marker: `/seal` writes it, `/seal` and `/ship` detect it, and both cite this
+marker: `$seal` writes it, `$seal` and `$ship` detect it, and both cite this
 template as the single source. Position: line 2 of CONTRACT.md, immediately
 after the H1. Idempotent single line: a re-seal overwrites the existing marker
 in place — never appends a second line. Timestamp declaration: the marker
 certifies only that the contract was clean at seal time; it says nothing about
-later changes. `/contract` itself never writes this line — a freshly written
-contract has no STATUS line; it appears only after `/seal` passes.
+later changes. `$contract` itself never writes this line — a freshly written
+contract has no STATUS line; it appears only after `$seal` passes.
 
 ### Step 3 — Confirm (one round)
 
@@ -130,10 +130,10 @@ confirmation; if it belongs to a different task, stop and ask the user to
 name a new path (e.g. `CONTRACT-{slug}.md`) — silent overwrite is forbidden.
 On confirmation, write the file and output:
 「合約已釘死：{path}（{N} 條可斷言條文、{M} 個錯不起表面）。實作時照抄
-Verbatim Constants；完工後跑 /baransu:seal 驗收。」
+Verbatim Constants；完工後跑 $seal 驗收。」
 
 ## Not-for boundaries
 
-- Task spans ≥2 interdependent modules or needs a task DAG → `/baransu:analyze`（大頻段全管線）.
-- Work is already done and needs verification → `/baransu:seal`.
-- The ask is a value judgment (worth doing?) → `/baransu:think` Evaluation Mode.
+- Task spans ≥2 interdependent modules or needs a task DAG → `$analyze`（大頻段全管線）.
+- Work is already done and needs verification → `$seal`.
+- The ask is a value judgment (worth doing?) → `$think` Evaluation Mode.

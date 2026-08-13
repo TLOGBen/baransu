@@ -5,7 +5,7 @@ Semantics follow the R8-reformed pipeline (retry cap 1, red gate advisory).
 
 | Condition | Detection point | Action |
 |-----------|-----------------|--------|
-| Spec dir missing | Step 0 | Stop; tell user to run the /analyze spec stages first |
+| Spec dir missing | Step 0 | Stop; tell user to run the $analyze spec stages first |
 | Spec file missing | Step 0 | List gaps; escalate; stop |
 | Red gate ⚠️ (test already passing) | §4b Phase 1 | Advisory finding attached to review dispatch; proceed to review (R8: never blocks by itself) |
 | Compile error ❌ | §4b Phase 1 | Retry; excluded from failure_count; compile_error_count++ (consecutive, reset by any other return); at 3 → BLOCKED |

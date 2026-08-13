@@ -1,4 +1,4 @@
-# loop-pauses — /review PAUSE classification
+# loop-pauses — $review PAUSE classification
 
 PAUSE classification for non-interactive drivers; semantics in ../../_shared/loop-contract.md §2.
 

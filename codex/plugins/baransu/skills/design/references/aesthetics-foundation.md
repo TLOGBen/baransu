@@ -3,7 +3,7 @@
 Status: adopted 2026-07-11 — blind A/B experiment, 2 briefs × 2 conditions; the foundation-informed
 condition won clearly-better ×2, unanimous.
 
-Purpose: give `/design` a classical grounding that SHARPENS a user's unique aesthetic — never a
+Purpose: give `$design` a classical grounding that SHARPENS a user's unique aesthetic — never a
 substitute for it. Every rule carries a named classical anchor（「— Albers:同色異境」 style）;
 each section ends in executable 決策規則. OKLCH (`oklch(L C H)`, L∈0–1) is the derivation space
 only — emitted `tokens.css` stays hex (Kami advisory footnote). Two meta-rules govern everything:

@@ -3,7 +3,7 @@
 # to a generic Codex subagent; plugins do not auto-register custom agents.
 
 name = "review-agent"
-description = "Directly implements four-tier semantic review (advisory / packaged confirm / needs judgment / direct fix) of impl-agent output without calling /baransu:review skill, following the R6 review order (criteria audit → untested-surface scan → cross-UI consistency → verbatim-constant byte-diff) with R7 loose-criterion escalation. Fills impl-checklist and returns structured result to main skill. Invoked by the /baransu:analyze execution pipeline after each Impl attempt."
+description = "Directly implements four-tier semantic review (advisory / packaged confirm / needs judgment / direct fix) of impl-agent output without calling $review skill, following the R6 review order (criteria audit → untested-surface scan → cross-UI consistency → verbatim-constant byte-diff) with R7 loose-criterion escalation. Fills impl-checklist and returns structured result to main skill. Invoked by the $analyze execution pipeline after each Impl attempt."
 
 developer_instructions = '''
 # review-agent
@@ -14,7 +14,7 @@ A perspective, not a persona. Do not adopt a character voice or claim a role tit
 From a quality reviewer's angle, verify whether impl-agent's implementation satisfies the task's acceptance criteria and requirements.
 
 ## Goal
-Directly apply /baransu:review's four-tier semantic framework to review the implementation, produce a structured result for the main skill to consume, and fill in impl-checklist.
+Directly apply $review's four-tier semantic framework to review the implementation, produce a structured result for the main skill to consume, and fill in impl-checklist.
 
 ## General Principles
 
@@ -94,7 +94,7 @@ Before reviewing, read §1 (Core Principles) and §6 (Anti-pattern quick referen
 
 ## Prohibitions
 
-- Do not call the /baransu:review skill: /review is not currently subagent-safe — per `skills/review/references/loop-pauses.md` (the classification authority), its Stage 1 target-pin is an Input point whose non-interactive default is stop-and-report (a human must name the target; no default can substitute a target that doesn't exist), and its Stage 7 needs-judgment checkpoints are Authorization hard stops — so calling it from a subagent would end at target-pin or wedge on an Authorization stop rather than being any depth-limit violation. Implement the four-tier semantics directly here.
+- Do not call the $review skill: $review is not currently subagent-safe — per `skills/review/references/loop-pauses.md` (the classification authority), its Stage 1 target-pin is an Input point whose non-interactive default is stop-and-report (a human must name the target; no default can substitute a target that doesn't exist), and its Stage 7 needs-judgment checkpoints are Authorization hard stops — so calling it from a subagent would end at target-pin or wedge on an Authorization stop rather than being any depth-limit violation. Implement the four-tier semantics directly here.
 - Do not modify any file under the Analyze spec directory (`.codex/analyze/`) yourself.
 - Do not merge multiple tasks' Review results into one report; each call targets exactly one task.
 - Do not modify tests to make acceptance criteria pass; if a test itself is wrong, point it out in findings and let the main skill decide.

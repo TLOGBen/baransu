@@ -4,7 +4,7 @@ description: Dispatches isolated architecture / quality / security / style / dom
   perspectives in clean Codex subagent contexts, surfacing hallucinations, drift,
   and over-engineering. Use for an independent second opinion after a model declares
   something done. Trigger On 「看一下」「看看」「幫我看」「check 一下」「review 一下」, or casual "take
-  a look at X". Not For auditing the user's own project agent-config (route to /health),
+  a look at X". Not For auditing the user's own project agent-config (route to $health),
   nor verifying baransu's own skill structure (scripts/verify-skills.py). 繁體中文輸出。
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
@@ -39,7 +39,7 @@ This skill is countering the model's inertia to rubber-stamp its own prior work.
 Do not simulate independent review by asking the same conversation context several times in sequence. Authorization PAUSE remains a hard stop; only input-selection PAUSE may degrade to direct text questions.
 
 
-Models drift. After a model claims "done" — especially after a long-running or multi-turn session — it is the wrong one to audit itself: inertia and context pollution make it confirm its own assumptions. `/review` is the counter-move. Spawn isolated perspectives in clean Codex subagent contexts and let them re-read the target with fresh eyes — but with a surgeon's mindset: find only what matters to the user's actual concern, don't over-correct.
+Models drift. After a model claims "done" — especially after a long-running or multi-turn session — it is the wrong one to audit itself: inertia and context pollution make it confirm its own assumptions. `$review` is the counter-move. Spawn isolated perspectives in clean Codex subagent contexts and let them re-read the target with fresh eyes — but with a surgeon's mindset: find only what matters to the user's actual concern, don't over-correct.
 
 This skill is not a monolithic reviewer. It is a **task analyst + dispatcher**: it lifts a claim checklist out of the target, derives the review's goal, decides who to dispatch, lets them think independently, weighs returned findings on a balance scale (complexity must justify itself), and applies findings in four response tiers.
 
@@ -57,13 +57,13 @@ This skill is not a monolithic reviewer. It is a **task analyst + dispatcher**: 
 
 These named rules are load-bearing red lines restated here from where they appear inline in the stages below. Each stage points back to its invariant by name; do not weaken any of them.
 
-- **INV-depth**: this dispatch is the only Task depth /review uses — /review never invokes /review, and reviewers never review each other.
-- **INV-no-recursion**: if the dispatcher's impulse is to nest another /review (or let a reviewer spawn its own reviewers), then stop — there is exactly one dispatch layer.
+- **INV-depth**: this dispatch is the only Task depth $review uses — $review never invokes $review, and reviewers never review each other.
+- **INV-no-recursion**: if the dispatcher's impulse is to nest another $review (or let a reviewer spawn its own reviewers), then stop — there is exactly one dispatch layer.
 - **INV-adversarial-once**: Stage 5 is exactly one round — if it has already run, do not run it again.
 - **INV-no-manufacture**: a zero-finding report that states which surfaces were examined is valid; fabricating findings to justify the invocation is forbidden.
 - **INV-consent**: never change behavior without user consent.
 
-Being hosted as a subagent does NOT disable this dispatch: the five-perspective fan-out still proceeds — the `Agent` tool is always available (probe run a928109). INV-depth / INV-no-recursion forbid only /review→/review nesting and reviewer self-spawning, never the top-level perspective dispatch. Fan-out is orthogonal to interactive-capability detection.
+Being hosted as a subagent does NOT disable this dispatch: the five-perspective fan-out still proceeds — the `Agent` tool is always available (probe run a928109). INV-depth / INV-no-recursion forbid only $review→$review nesting and reviewer self-spawning, never the top-level perspective dispatch. Fan-out is orthogonal to interactive-capability detection.
 
 ## Five perspectives (agent files)
 
@@ -84,7 +84,7 @@ means the current (parallel-subagent) adapter.
 
 ## Subagent-hosted degradation
 
-When /review is hosted as a subagent, the `request_user_input` tool is simply absent from the runtime tool list — there is no human to ask. The detection primitive is defined in `../_shared/loop-contract.md`: inspect the run's own tool list directly and check whether `request_user_input` is present; this is NOT an attempt-and-catch (invoking a missing tool "to see if it fails" is forbidden). Tool absence gates the interaction axis only — worker fan-out rides the always-present `Agent` tool and stays unconditionally allowed (see the INV clarification above).
+When $review is hosted as a subagent, the `request_user_input` tool is simply absent from the runtime tool list — there is no human to ask. The detection primitive is defined in `../_shared/loop-contract.md`: inspect the run's own tool list directly and check whether `request_user_input` is present; this is NOT an attempt-and-catch (invoking a missing tool "to see if it fails" is forbidden). Tool absence gates the interaction axis only — worker fan-out rides the always-present `Agent` tool and stays unconditionally allowed (see the INV clarification above).
 
 When the tool is absent, each of the four `request_user_input` (1-3 questions per call, 2-3 options per question; record the authorization decision and stop until the user answers; if unavailable, ask directly and stop) call-points below degrades per loop-contract §2: a preference/confirmation checkpoint is an **Input PAUSE** — take the recommended default and continue, annotating every substituted decision in the report with the user-visible string 「此處採預設：{假設}」; a checkpoint that cannot be resolved without a human decision is an **Authorization PAUSE** — a hard stop: report it upward to the calling layer and never fabricate a substitute (`references/loop-pauses.md` is the authority for each point's class). The per-point degradation branches are stated inline at each call-point (the Stage 1 pre-dispatch off-ramp target-pin, the Stage 1.5 domain-sources round, the Stage 7 needs-judgment tier, and the Output-shape needs-judgment note); the human-present (tool-present) behavior at every point is unchanged. One non-user-question checkpoint degrades here too: Stage 7 packaged-confirm batches are never applied when no human is present — do NOT apply the batch; list it in the report as pending-confirm per loop-pauses.md（「此處採預設：不套用，留待人工確認」）.
 
@@ -94,7 +94,7 @@ When the tool is absent, each of the four `request_user_input` (1-3 questions pe
 
 ### Pre-dispatch off-ramp
 
-Before materializing anything: if the invocation matches a frontmatter Not-For boundary (own-project agent-config audit → /health; baransu structure verification → scripts/verify-skills.py), name the correct route and stop — dispatch nothing. The same name-the-route-and-stop semantics apply to two adjacent confusion surfaces: a symptom/error-debugging ask (e.g. 「看一下為什麼報錯」) → /hunt; a capture-to-offline intent (e.g. 「幫我存下來」) → /read. If no target can be materialized from disk (no diff, no file, no named artifact), ask exactly ONE user-question prompt to pin the target; if the user cannot name one, stop without dispatching — never review from conversation memory. When `request_user_input` (1-3 questions per call, 2-3 options per question; record the authorization decision and stop until the user answers; if unavailable, ask directly and stop) is absent (subagent-hosted): the target cannot be pinned interactively, so apply the existing stop rule — stop and report `needs-input` upward to the calling layer, and never fabricate or invent a target from conversation memory.
+Before materializing anything: if the invocation matches a frontmatter Not-For boundary (own-project agent-config audit → $health; baransu structure verification → scripts/verify-skills.py), name the correct route and stop — dispatch nothing. The same name-the-route-and-stop semantics apply to two adjacent confusion surfaces: a symptom/error-debugging ask (e.g. 「看一下為什麼報錯」) → $hunt; a capture-to-offline intent (e.g. 「幫我存下來」) → $read. If no target can be materialized from disk (no diff, no file, no named artifact), ask exactly ONE user-question prompt to pin the target; if the user cannot name one, stop without dispatching — never review from conversation memory. When `request_user_input` (1-3 questions per call, 2-3 options per question; record the authorization decision and stop until the user answers; if unavailable, ask directly and stop) is absent (subagent-hosted): the target cannot be pinned interactively, so apply the existing stop rule — stop and report `needs-input` upward to the calling layer, and never fabricate or invent a target from conversation memory.
 
 Two things, in order, both passed to every dispatched reviewer.
 
@@ -106,14 +106,14 @@ Materialize the target from disk first (`git diff --stat` + content for code, Re
 
 Target can be any shape:
 - git diff, file set, directory, uncommitted changes
-- a /think 5-section plan or other design document
+- a $think 5-section plan or other design document
 - a bare claim plus cited code (e.g. "this function is thread-safe" + `path/to/file.py`)
 
 ### The review goal
 
 One sentence, in 繁中. Why does the user want this reviewed? Derived from the user's invocation plus the target's visible properties. Examples:
 - 「確認這個 PR 沒有把舊的認證流程打壞」
-- 「看 /think 的 plan 裡有沒有自我矛盾或偽裝成 unknown 的已決定事項」
+- 「看 $think 的 plan 裡有沒有自我矛盾或偽裝成 unknown 的已決定事項」
 - 「驗證 `increment()` 是否真的 thread-safe；如果不是，最小必要修法」
 
 **The goal is the single most important input to reviewer dispatch.** It is what keeps each perspective from drifting into its own bias.
@@ -182,7 +182,7 @@ Launch one **parallel Codex subagent** per activated perspective, each in a clea
 
 Findings return in natural language (not YAML). Each must include: citation (file:line or section), which claim it contradicts (or "none — observation"), the observation itself, the surgical fix, and a balance note (see Stage 6). Any non-obvious claim inside a finding carries a source annotation — `(verified: <how>)` when the reviewer actually checked, or `(inferred: 未實查)` when it rests on reasoning alone.
 
-No recursion (**INV-no-recursion**): this dispatch is the only depth /review uses (**INV-depth**) — /review does not invoke /review, adversarial (Stage 5) is exactly one round (**INV-adversarial-once**), and reviewers do not review each other.
+No recursion (**INV-no-recursion**): this dispatch is the only depth $review uses (**INV-depth**) — $review does not invoke $review, adversarial (Stage 5) is exactly one round (**INV-adversarial-once**), and reviewers do not review each other.
 
 ---
 
@@ -263,7 +263,7 @@ Run after Stage 6 consolidation, per the hard-stop ordering paragraph above. Eac
 
 - **Injection / hardcoded secret** — SQL / command / path injection at system entry points; credentials hardcoded, logged, committed, or copied into public docs. Pin to needs-judgment.
 
-This list deliberately does **not** include release-artifact missing, generated-artifact drift, or version skew — those belong to `/baransu:ship`, not to /review.
+This list deliberately does **not** include release-artifact missing, generated-artifact drift, or version skew — those belong to `$ship`, not to $review.
 
 ---
 
@@ -332,7 +332,7 @@ Field semantics (single source of truth for each):
 - `depth`: Stage 3's three-tier classification (`quick` / `standard` / `deep`).
 - `perspectives`: the Stage 4 returned set — a dispatched-but-failed perspective is listed as `<name>: dispatch failed` and its coverage may not be claimed — with `+ adversarial: yes|no` from Stage 5. Quick-pass targets still list ≥1 perspective.
 - `hard_stops`: the source of truth for hits. The checklist above is a derived view; if `hard_stops: none` here, all checklist lines must read `□ ... not hit`.
-- `new_tests`: pure count. Regression-first verification belongs to 「/baransu:analyze 執行段或依 tdd.md 的直接實作」, not /review.
+- `new_tests`: pure count. Regression-first verification belongs to 「$analyze 執行段或依 tdd.md 的直接實作」, not $review.
 - `doc_debt`: invariants the reviewer noticed are missing from project docs (AGENTS / CLAUDE / `.codex/rules`). `none` when nothing surfaced.
 - `e2e_status`: three states from the E2E hard requirement section above. The hard-stop checklist's e2e-related line, if any, is **derived** from this field — do not judge e2e independently in the checklist.
 
@@ -346,7 +346,7 @@ For **needs-judgment** items, batch-ask via `request_user_input` (1-3 questions 
 
 After the report has been presented in conversation, persist it as an HTML work journal:
 
-1. Render the full report as a single HTML file at `.codex/review/<slug>.html`, styled after the book golden-template. Derive `<slug>` per the shared contract's `/review` rule (Location section: the reviewed target's slug when it has one, else `{YYYY-MM-DD}-{target basename}`). The shared rendering contract lives at `../_shared/output-journal.md` — follow it.
+1. Render the full report as a single HTML file at `.codex/review/<slug>.html`, styled after the book golden-template. Derive `<slug>` per the shared contract's `$review` rule (Location section: the reviewed target's slug when it has one, else `{YYYY-MM-DD}-{target basename}`). The shared rendering contract lives at `../_shared/output-journal.md` — follow it.
 2. Include an 「執行日誌」 section: off-spec decisions, forced changes, tradeoffs, and anything else from this run the user should know.
 3. Send the file to the user via write the artifact to disk and list its absolute path.
 

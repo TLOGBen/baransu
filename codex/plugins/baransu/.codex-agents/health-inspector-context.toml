@@ -3,7 +3,7 @@
 # to a generic Codex subagent; plugins do not auto-register custom agents.
 
 name = "health-inspector-context"
-description = "Inspects the context layer (AGENTS.md / rules / skills / MCP cost), skill security and provenance, and context effectiveness from collected health data. Dispatched by /baransu:health as an isolated inspector."
+description = "Inspects the context layer (AGENTS.md / rules / skills / MCP cost), skill security and provenance, and context effectiveness from collected health data. Dispatched by $health as an isolated inspector."
 
 developer_instructions = '''
 # health-inspector-context

@@ -7,7 +7,7 @@
 
 # Execute Output Formats
 
-Templates for all files written by the /analyze execution pipeline. Section anchors (§) are referenced from execution-pipeline.md.
+Templates for all files written by the $analyze execution pipeline. Section anchors (§) are referenced from execution-pipeline.md.
 
 ---
 
@@ -128,7 +128,7 @@ Review 結果：
 Path: `.codex/execute/{date}-{slug}/execute/final-report.md`
 
 ```markdown
-# Final Report — /baransu:analyze 執行段
+# Final Report — $analyze 執行段
 
 session: {date}-{slug}
 spec_dir: {path}

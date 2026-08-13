@@ -1,10 +1,10 @@
 # fact-check — counting-noun discipline for quantitative claims
 
 > **Scope**: the canonical statement of the counting-noun discipline shared by baransu
-> skills that re-verify a target's quantitative claims. `/think` inlines the same rule
+> skills that re-verify a target's quantitative claims. `$think` inlines the same rule
 > set in its Stage D claim-cite-first (the counting-noun taxonomy + literal-number rule);
-> `/review`'s dispatcher references this file at Stage 1.6. The two are kept in sync by
-> hand — **do not edit `/think` when changing this file**. What follows is a set of
+> `$review`'s dispatcher references this file at Stage 1.6. The two are kept in sync by
+> hand — **do not edit `$think` when changing this file**. What follows is a set of
 > ecosystem-agnostic *principles*, not a runnable script: every command shown is a
 > clearly-marked illustration of one stack, never required machinery.
 

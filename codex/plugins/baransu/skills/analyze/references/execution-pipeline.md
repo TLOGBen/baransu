@@ -1,18 +1,18 @@
 # Execution Pipeline — run the spec to green (large band)
 
-The execution half of `/analyze`. It rests on four mechanisms the harness×model
+The execution half of `$analyze`. It rests on four mechanisms the harness×model
 matrix experiment validated: worktree parallel groups, the compile-error-excluded
 failure counter, coverage-riding dispatch, and the merge / e2e-fix / final-fixer
 closing agents. The rituals that same experiment condemned — per-task context
 files, a blocking Red-gate stop, deep retry chains — are deliberately absent.
 All user-visible output is **Traditional Chinese (繁體中文)**.
 
-Entry: `/analyze` Stage 8 (execution handoff) reads this file and drives it,
+Entry: `$analyze` Stage 8 (execution handoff) reads this file and drives it,
 in the same session (single-group spec) or a fresh session (multi-group spec).
 
 ## Goal
 
-Read the `/analyze` spec directory. Execute every task through an
+Read the `$analyze` spec directory. Execute every task through an
 Impl → Review loop with subagent context isolation. Run E2E and Final-Review.
 Write `final-report.md`. Never stop early — if a task is blocked, escalate and
 continue unblocked work.
@@ -23,7 +23,7 @@ continue unblocked work.
 - **Analyze spec directory is read-only during execution** — with exactly TWO sanctioned exceptions, both ONLY via the orchestrator and logged in final-report.md: the R7 loose-criterion criteria patch (§4b Phase 2) and the R10 evidence-dissent 前提/C{n} patch (SWITCH advisory case). Leaf agents never write the spec dir.
 - **Subagent depth = 1.** Agents in `../../../.codex-agents/*.toml` are stateless leaf nodes; they never dispatch further subagents. Dispatch-tool presence is decided by the Step 0 tool-list probe (inspection, never attempt-and-catch); when absent, enter serial-absorbed mode.
 - **All Task Tools created before execution begins** (Step 2). No mid-execution task creation.
-- **Working files live under `.codex/execute/`.** (The directory names the execution phase — not a skill; /ship's archive rules key on it.)
+- **Working files live under `.codex/execute/`.** (The directory names the execution phase — not a skill; $ship's archive rules key on it.)
 - **goal.md criteria are the top acceptance authority.** A criterion satisfied only inside test scaffolding while its production path stays inert is NOT met. Step 6 cross-checks every C{n} against its literal wording.
 - **Process artifacts are a closed list**: confirm.md, task-map.md, impl-checklist-{group}.md, final-report.md (plus task-registry.md only when Task tools are unavailable). No per-task ctx files — the handoff is the spec itself.
 - **Goal-Alignment Filter is hard governance** (`references/goal-alignment-filter.md`): off-goal findings downgrade to advisory and do not increment `failure_count`; findings tied to an 驗收標準直接失敗 keep their tier and count.
@@ -42,7 +42,7 @@ and write no mode record — no mode record means the subagent-loop adapter.
 
 1. **Git availability probe**: `git rev-parse --show-toplevel 2>/dev/null`. Record `git_available: true|false` in confirm.md; false → also `execution_mode: degraded-in-place`, announce 「偵測不到 git repo：L/XL 將降級為就地序列執行」. Never a stop condition.
 2. **Dispatch-tool probe** (inspection only): record `dispatch_available: true|false`; false → `execution_mode: serial-absorbed`, announce 「無 subagent 派遣工具：進入 serial-absorbed 模式」. Serial-absorbed retains classification, worktrees, merge points, cleanup; roles are absorbed by the orchestrator with their MECHANICAL gates still enforced (green_proof Bash verification, checklist fill); reviewer-independence loss is disclosed in final-report.md. Both probes false → degraded-in-place subsumes.
-3. **Spec validation**: spec dir exists; `goal.md`, `requirement.md`, `design.md`, `test.md`, ≥1 `task-{group}.md` present. Derive `{date}-{slug}` from the spec dir name; write confirm.md at `.codex/execute/{date}-{slug}/execute/confirm.md` (template: `references/output-formats.md`). Missing dir → 「找不到 Analyze spec 目錄，請先跑 /baransu:analyze 的規格階段」, stop. Missing files → list, escalate, stop.
+3. **Spec validation**: spec dir exists; `goal.md`, `requirement.md`, `design.md`, `test.md`, ≥1 `task-{group}.md` present. Derive `{date}-{slug}` from the spec dir name; write confirm.md at `.codex/execute/{date}-{slug}/execute/confirm.md` (template: `references/output-formats.md`). Missing dir → 「找不到 Analyze spec 目錄，請先跑 $analyze 的規格階段」, stop. Missing files → list, escalate, stop.
 
 Every logged gate result carries its value inline (exit code, counts) as a
 contemporaneous, self-contained line.
@@ -110,7 +110,7 @@ compile_error_count = 0   # consecutive compile-error ❌; reset by any other re
 
 LOOP:
   Dispatch impl-agent with:
-    - spec_dir:            the /analyze spec directory path
+    - spec_dir:            the $analyze spec directory path
     - task_ref:            {task_file_path, task_id}   # agent reads 目標/驗收標準/步驟 directly
     - goal_path:           goal.md path (criteria authority + Verbatim Constants source via design.md)
     - design_path:         design.md path (layer table + Verbatim Constants block)
