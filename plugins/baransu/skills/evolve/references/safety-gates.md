@@ -30,7 +30,7 @@ The snapshot/restore mechanism touches exactly one file: the target SKILL.md.
 
 The effectiveness axis prefers running the skill under test, but only through both gates, in order:
 
-1. **Capability gate** — is the skill non-interactive and runnable unattended? Skills with `AskUserQuestion` / approval gates (think, review, analyze, …) fail this gate and are forced offline. This is a capability fact, not a flaw.
+1. **Capability gate** — is the skill non-interactive and runnable unattended? Skills with `AskUserQuestion` / approval gates (think, review, contract, …) fail this gate and are forced offline. This is a capability fact, not a flaw.
 2. **Trust gate** — only if the capability gate passes: is the target a skill the user themselves specified, living under the user's own plugin path, AND does its body contain none of the destructive patterns below? Unknown-origin / third-party / pattern-hit skills are forced offline.
 
 Destructive-pattern denylist (any hit → forced offline, reason disclosed in the report):

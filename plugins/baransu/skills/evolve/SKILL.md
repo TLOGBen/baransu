@@ -63,7 +63,7 @@ Repo-mode verify-skills scans only the live skills tree — a scratch copy is in
 ## Stage 4 — Effectiveness axis (real-exec or offline)
 
 Score the effectiveness dimensions (7–9). Decide real-exec vs offline via the **trust + capability dual gate** (`references/safety-gates.md` Gate 3):
-- **Capability gate** — interactive/approval-gated skills (think, review, analyze, …) cannot run unattended → offline.
+- **Capability gate** — interactive/approval-gated skills (think, review, contract, …) cannot run unattended → offline.
 - **Trust gate** — only user-owned-path skills with no destructive-pattern hit run for real; unknown/third-party/pattern-hit → offline.
 - **Destructive-pattern red line (`real-exec-destructive-forbid`)** — if the real-exec trust gate hits ANY destructive pattern (`rm` / writing files outside the target directory / network writes / secret access) → then force-downgrade to offline and NEVER execute that skill. This is a hard if-then prohibition with the same rigidity as the git-tree red line, not advice: actually executing an untrusted skill is the genuinely irreversible destructive surface, so it is forbidden, not merely flagged. When real-exec does run (no destructive pattern, trust + capability both clear), mark it untrusted in the report and rotate memory after the run. When offline, the effectiveness output is same-source as the structure axis → label it `offline-同源` and treat its evidence as single-axis.
 

@@ -21,7 +21,7 @@
       "prompt": "I want to build a rate limiter for our API — which approach should I take?",
       "should_trigger": true,
       "expected_skill": "think",
-      "expected_behavior": "Plan mode: approach comparison inside the five-section plan; hands off to implementation or /analyze, writes no code."
+      "expected_behavior": "Plan mode: approach comparison inside the five-section plan; hands off to implementation, writes no code."
     },
     {
       "id": 4,
@@ -32,13 +32,6 @@
     },
     {
       "id": 5,
-      "prompt": "幫我分析需求，這個功能橫跨前端、API 和資料庫三層",
-      "should_trigger": false,
-      "expected_skill": "analyze",
-      "expected_behavior": "Cross-module (≥2 interdependent modules) spec expansion routes to /analyze, not /think."
-    },
-    {
-      "id": 6,
       "prompt": "直接幫我把離線同步的 scaffolding 寫出來",
       "should_trigger": false,
       "expected_skill": null,

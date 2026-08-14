@@ -249,23 +249,6 @@ After the plan is presented, call `AskUserQuestion` with four options.
             rpt.capability_risks["AskUserQuestion:authorization"].codex_level,
         )
 
-    def test_analyze_adapter_requires_machine_gate_and_task_map(self):
-        rpt = transfer.TransferReport(
-            skill_name="analyze",
-            source=Path("source"),
-            target=Path("target"),
-        )
-
-        out = transfer.inject_codex_port_adapter("# Analyze\n\nBody.", rpt)
-
-        self.assertIn("Codex Port Adapter - Machine Gates and Task Map", out)
-        self.assertIn("actual command exit codes", out)
-        self.assertIn("Model self-report is never green proof", out)
-        self.assertIn("`task-map.md` as the durable source of truth", out)
-        self.assertIn("test-runner", rpt.capability_risks)
-        self.assertIn("TaskCreate", rpt.capability_risks)
-        self.assertIn("TaskUpdate", rpt.capability_risks)
-
     def test_send_user_file_is_path_delivery(self):
         rpt = report()
 
@@ -337,11 +320,10 @@ python3 "$CLAUDE_SKILL_DIR/references/hunt-search.py"
                 self.assertIn(expected, out)
                 self.assertIn(token, rpt.capability_risks)
 
-    def test_transfer_one_pipeline_injects_review_health_analyze_adapters(self):
+    def test_transfer_one_pipeline_injects_review_health_adapters(self):
         cases = {
             "review": ("Codex Port Adapter - Review Isolation", "Task tool"),
             "health": ("Codex Port Adapter - Inspector Isolation", "Task tool"),
-            "analyze": ("Codex Port Adapter - Machine Gates and Task Map", "test-runner"),
         }
 
         for skill_name, (heading, capability) in cases.items():
@@ -1308,19 +1290,6 @@ class TestPluginModeGeneration(unittest.TestCase):
             self.assertIn("Only when a deep health audit reads recent agent conversations", health_conditional)
             self.assertIn("do not automatically write durable docs", health_conditional)
 
-            analyze_out = (plugin_out / "skills" / "analyze" / "SKILL.md").read_text(encoding="utf-8")
-            self.assertIn("Codex Port Adapter - Machine Gates and Task Map", analyze_out)
-            self.assertIn(
-                "Codex Port Adapter - Bundled Agent Resolution", analyze_out
-            )
-            self.assertIn("actual command exit codes", analyze_out)
-            self.assertIn("Model self-report is never green proof", analyze_out)
-            self.assertIn("`task-map.md` as the durable source of truth", analyze_out)
-            pipeline_out = (
-                plugin_out / "skills" / "analyze" / "references" / "execution-pipeline.md"
-            ).read_text(encoding="utf-8")
-            self.assertIn("task-map.md", pipeline_out)
-
             read_skill = (plugin_out / "skills" / "read" / "SKILL.md").read_text(encoding="utf-8")
             self.assertIn('bash "./scripts/install-deps.sh"', read_skill)
             self.assertNotIn("the skill's root directory/scripts", read_skill)
@@ -1345,8 +1314,8 @@ class TestPluginModeGeneration(unittest.TestCase):
             # reference those exact files; no install-time copy to user config
             # is required, and a missing file cannot degrade into improvisation.
             agent_defs = sorted((plugin_out / ".codex-agents").glob("*.toml"))
-            self.assertEqual(18, len(agent_defs))
-            self.assertEqual(18, summary["agent_definitions"])
+            self.assertEqual(11, len(agent_defs))
+            self.assertEqual(11, summary["agent_definitions"])
             self.assertTrue(summary["content_closure_verified"])
             self.assertFalse((plugin_out / ".codex-agents-templates").exists())
             for agent_def in agent_defs:

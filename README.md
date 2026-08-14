@@ -2,7 +2,7 @@
 
 > バランス。動手前先想，做完後驗證。
 
-baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重的決策不省思考」這套平衡哲學，包成一個 Claude Code plugin。共 15 個 skill，每個都有清楚的觸發界線——什麼能省、什麼一定要做。
+baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重的決策不省思考」這套平衡哲學，包成一個 Claude Code plugin。共 14 個 skill，每個都有清楚的觸發界線——什麼能省、什麼一定要做。
 
 ---
 
@@ -13,7 +13,7 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 | 理念 | 一句話 | 機制錨點 |
 |---|---|---|
 | 規則是天花板 | 只寫防真實翻車的規則；容器只能變深、不能變長 | `plugins/baransu/rules/anti-patterns.md` |
-| 結構是地板 | 確定性檢查全走腳本閘門，不靠模型自律；15 個技能是上限（2026-07 修憲，附 codex-skill-transfer 三個月零使用即退役回 14 的可證偽條款） | `scripts/verify-skills.py` |
+| 結構是地板 | 確定性檢查全走腳本閘門，不靠模型自律；14 個技能是上限（2026-07 修憲 14→15，2026-08 隨 `/analyze` 退役收回 14；附 codex-skill-transfer 三個月零使用即退役回 13 的可證偽條款） | `scripts/verify-skills.py` |
 | 人在授權點 | Input PAUSE 可走預設；Authorization PAUSE 不可覆寫 | `plugins/baransu/skills/_shared/loop-contract.md` |
 | 證據優先 | 非顯然主張依賴前先引查證來源；乾淨的 review 也是有效的 review | `plugins/baransu/skills/review/SKILL.md` |
 | 狀態落盤 | 長流程的結論落檔交付、不賭終端顯示 | `plugins/baransu/skills/_shared/output-journal.md` |
@@ -28,7 +28,6 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 | `/review` | 在乾淨 context 重讀已完成的工作，抓邊界沒守住、邏輯跳格、宣稱與實作對不上。 |
 | `/hunt` | 從症狀追到根因：選對觀測層、log 二分法定位，指到 file:line 才動手修。 |
 | `/health` | 體檢專案的 agent 配置與 AI 可維護性：五層審計，預算姿態先行。 |
-| `/analyze` | 大頻段全管線：把需求展開成五層 spec（條文釘到可退件），再經內建執行段跑到全綠、產出 final-report。 |
 | `/design` | 寫 UI/UX 設計規格：`gen` 引導生成、`lint` 挑違規、`preset` 套內建模板。 |
 | `/contract` | 中頻段開工合約：一頁釘死目標、可斷言條文、錯不起表面、照抄常數，實作前先立約；sealed 合約覆蓋前先歸檔。 |
 | `/seal` | 中頻段收工封緘：派遣乾淨 context 的 verify-only seal-agent 跑五點驗收（逐條對約、掃未釘表面、跨介面一致、常數逐字比對、突變抽查），findings 回主 session 修＋補釘死測試，複驗上限 2，全清才在合約蓋 sealed 標記。 |
@@ -44,7 +43,7 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 
 - **小**：直接實作（紅綠紀律見 `_shared/tdd.md` §7），不走任何 skill。
 - **中**：`/contract` 開工立約 → 實作 → `/seal` 收工封緘。
-- **大**：`/analyze` 一條管線走完規格與執行段。
+- **大**：先把整件事畫成決策圖、切成片，每片各自走中頻段（`/contract` → 實作 → `/seal`）。裝了 common 套件（wayfinder／delegate／strategic-advance）時，畫圖與執行可以走那條路——先偵測，不要假設有裝。
 
 任務不遷就工具：小任務不硬上全套，大任務不偷走輕量路。
 

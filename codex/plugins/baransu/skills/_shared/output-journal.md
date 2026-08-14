@@ -16,8 +16,8 @@ happened during implementation.
 
 - **Producers**: `$think` and `$review` each produce one journal per run,
   immediately after their primary deliverable is written.
-- **Appenders**: any implementer working from that deliverable (`$analyze`'s execution pipeline,
-  direct implementation under `_shared/tdd.md` §7, or any later session)
+- **Appenders**: any implementer working from that deliverable (direct implementation
+  under `_shared/tdd.md` §7, a delegated executor running one slice, or any later session)
   appends to the existing journal instead of creating a new one.
 
 ## Location
@@ -70,7 +70,7 @@ browser-ready HTML file; no external assets.
 Entry format for 執行日誌 (newest first):
 
 ```
-2026-06-11 14:30 ｜ $analyze（執行段）
+2026-06-11 14:30 ｜ 實作（第 2 片）
 規範外決策：spec 未定義 slug 衝突行為，採「附加 -2 後綴」而非覆寫。
 取捨：保留舊檔可追溯，代價是目錄多一份檔案。
 ```

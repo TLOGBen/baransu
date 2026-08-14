@@ -36,7 +36,6 @@ FIXTURE_AGENTS_DIR = THIS_FILE.parent / "fixtures" / "verify-skills-agents"
 LISTING_TOTAL_ADVISORY = 7000
 
 EXPECTED_SKILLS = [
-    "analyze",
     "book",
     "codex-skill-transfer",
     "design",
@@ -47,6 +46,7 @@ EXPECTED_SKILLS = [
     "learn",
     "read",
     "review",
+    "seal",
     "ship",
     "think",
     "write",
@@ -96,10 +96,9 @@ class TestCurrentRepoPasses(unittest.TestCase):
             self.assertIn(name, self.out, f"per-skill pass list missing: {name}")
 
     def test_no_oversize_advisory_remains(self):
-        # v2.1.0 slimmed the former execute/SKILL.md under the 500-line cap;
-        # v3 merged it into analyze/references/execution-pipeline.md. No skill should
-        # trigger the ADVISORY list any more; a reappearing line means a
-        # SKILL.md regressed past the cap.
+        # The last oversize offender left with the v4.0.0 pipeline purge.
+        # No skill should trigger the ADVISORY list any more; a reappearing
+        # line means a SKILL.md regressed past the 500-line cap.
         advisory_lines = [
             line for line in self.out.splitlines() if "ADVISORY" in line
         ]

@@ -204,5 +204,5 @@ Close with: 「封緘完成：{N} 條條文核對、{M} 個表面掃描、{K} �
 
 - Cross-perspective independent re-verification of any model output（跨視角重驗證、四層回應、無預設修正權）→ `/baransu:review`.
 - Pre-work criteria pinning（開工前釘條文）→ `/baransu:contract`（contract 開工前、seal 收工後——同一頻段的一對）.
-- Large-band spec verification → `/baransu:analyze`'s built-in final review; seal never audits a multi-module spec.
+- Large-band work is sealed one slice at a time: seal audits a single slice against its own contract. A multi-module effort MUST be sliced and each slice sealed separately — never one seal pass over the whole effort.
 - Symptom/error debugging（報錯排查）→ `/baransu:hunt`.

@@ -65,11 +65,11 @@ appends one supplementary line with an `event` field (other fields as above,
 `miss:false`):
 
 - `"event":"reality_contact_flip"` — the 現實接觸強制閘 flipped a `未驗` premise to
-  `已驗`, or escalated it to the user (analyze Stage 1 / contract Ground).
-- `"event":"critical_hard_stop"` — final-review's Critical hard-stop blocked a green
-  delivery on an open Critical (carrying its 死因四件套).
+  `已驗`, or escalated it to the user (contract Ground).
+- `"event":"critical_hard_stop"` — a Critical hard-stop blocked a green delivery on an
+  open Critical (carrying its 死因四件套).
 - `"event":"r10_premise_patch"` — an R10 evidence-backed dissent triggered a
-  sanctioned goal.md 前提/C{n} patch.
+  sanctioned contract 前提／criteria patch.
 
 Three monthly reform signals (reform-proposal §5), from the month's records:
 - **錯誤前提穿透率** — tasks whose delivered data source / premise was wrong ÷ tasks

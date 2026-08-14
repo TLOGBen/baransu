@@ -467,7 +467,6 @@ def note_capability(report: TransferReport, key: str) -> None:
 
 ASK_USER_CAPABILITY_BY_SKILL: dict[str, str] = {
     "think": "AskUserQuestion:think",
-    "analyze": "AskUserQuestion:authorization",
     "review": "AskUserQuestion:authorization",
     "read": "AskUserQuestion:cosmetic",
     "book": "AskUserQuestion:cosmetic",
@@ -601,11 +600,6 @@ Do not simulate independent review by asking the same conversation context sever
 This skill is countering the model's inertia to treat same-context self-audit as independent evidence. Before using inspector subagents for deep audits, run or consult a `codex-isolation-probe.md` conclusion for this Codex runtime. If native Codex subagents are isolated, use them directly. If not, run each inspector perspective in an independent Codex invocation or session, write the raw findings to files, then merge from those artifacts.
 
 Do not treat same-context sequential prompts as independent inspection. Authorization PAUSE remains a hard stop; only input-selection PAUSE may degrade to direct text questions.""",
-    "analyze": """## Codex Port Adapter - Machine Gates and Task Map
-
-This skill is countering the model's inertia to declare progress without machine proof or durable state. Red/green decisions must come from actual command exit codes. Model self-report is never green proof. Keep the existing invariant that compile errors do not increment `failure_count`.
-
-Use `task-map.md` as the durable source of truth for TaskCreate/TaskUpdate semantics. `update_plan` or other runtime plan displays are presentation only; after a session restart, reconstruct task state from `task-map.md` and adjacent artifacts before continuing. Authorization PAUSE remains a hard stop.""",
 }
 
 
@@ -613,7 +607,6 @@ CODEX_SKILL_ADAPTER_CAPABILITIES: dict[str, tuple[str, ...]] = {
     "think": ("AskUserQuestion:think",),
     "review": ("Task tool",),
     "health": ("Task tool",),
-    "analyze": ("test-runner", "TaskCreate", "TaskUpdate"),
 }
 
 
@@ -680,7 +673,7 @@ def translate_frontmatter(fm: dict, report: TransferReport) -> tuple[dict, dict 
             f"`description` {desc_rewrite_count} 處 Claude Task/subagent wording 改為 Codex wording"
         )
     # Repo-internal path refs in the description (usually the output dir, e.g.
-    # `.claude/analyze/`) -> Codex layout, unless this skill documents them.
+    # `.claude/read/`) -> Codex layout, unless this skill documents them.
     if fm.get("name") not in REPO_PATH_REWRITE_EXEMPT_SKILLS:
         desc_paths, desc_path_n = rewrite_repo_paths(str(desc), "../", fm.get("name"))
         if desc_path_n:
@@ -1735,7 +1728,7 @@ def emit_agent_stub(agent_md: Path, dest: Path) -> None:
 
     instructions = body[fm_end + 4 :].lstrip("\n") if fm_end > 0 else body
     # Rewrite repo-internal path refs so the stub body doesn't send the agent
-    # to Claude-only paths (`.claude/analyze/`, `plugins/baransu/agents/*.md`).
+    # to Claude-only paths (`.claude/read/`, `plugins/baransu/agents/*.md`).
     # Flat install (`~/.codex/agents/`) has no `../`-anchor into skills/, so the
     # skills-relative rule is skipped — a `_shared/*` ref stays a discoverable
     # plugin path rather than an unresolvable relative one.

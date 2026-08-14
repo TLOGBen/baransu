@@ -1,8 +1,9 @@
 # contract-gate — criteria assertability rules (single implementation)
 
-Shared by `$contract` (one-page contract, medium band) and `$analyze` (five-layer
-spec, large band). Both skills read THIS file for the rules below; neither skill
-restates them. Experiments 2026-07-19 (harness×model matrix + validation round)
+Owned by `$contract` (one-page contract, medium band), and therefore binding on
+the large band too — a large effort is sliced into contract-band slices, each
+pinned by its own contract. `$contract` reads THIS file for the rules below; it
+does not restate them. Experiments 2026-07-19 (harness×model matrix + validation round)
 showed these three rules structurally eliminate two whole defect classes
 (off-by-one display fields; constant-retyping drift) — they are the quality
 lever, not process weight.

@@ -2,6 +2,24 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [4.0.0] - 2026-08-14
+
+### Removed
+- **`/analyze` 全面退役**。遙測與實際使用皆為零——大頻段全管線（goal→requirement→design→test→task 五層 spec ＋ 內建執行段）從未被真正走完過一輪，維護成本卻攤在每一次改版上。skill 目錄 `plugins/baransu/skills/analyze/` 整個移除，不歸檔——git 歷史就是唯一備份。
+- **7 個管線 agent 一併移除**：`impl-agent`、`review-agent`、`merge-agent`、`e2e-fix-agent`、`final-review-agent`、`final-fixer-agent`、`smart-friend-agent`。這些 agent 只有執行段會派遣，沒有第二個消費點。`seal-agent`、5 個 review 視角 agent、3 個 health inspector、2 個 evolve agent 全數保留（18 → 11）。
+- **只為 `/analyze` 存在的 CLAUDE.md 不變式一併刪除**：review-agent 不得呼叫 `/baransu:review` 的禁令、執行段 worktree 落點慣例、`goal.md 驗收標準 C{n}` 頂層驗收權威、coverage-riding 的閘時決策、`failure_count` 與 `compile_error_count` 分流。錨點沒了，條文就不留——無錨條款不入冊的反向適用。
+
+### Changed
+- **大頻段改為複合鏈，不再是單一 skill**：先把整件事畫成決策圖、切成 contract 頻段的片，每片各自走 `/contract` 釘條文 → 實作 → `/seal` 封緘。收工證據從 `final-report.md` 改為逐片的 seal 五點任務書結果。裝了 common 套件（wayfinder／delegate／strategic-advance）時，畫圖與執行可以走那條路——**先偵測，不要假設有裝**；套件名一律只出現在 body 散文，不進任何 frontmatter `description` 或觸發詞，避免在發布中繼資料裡帶出未宣告的跨 plugin 相依。
+- **技能上限 15 → 14**（`scripts/verify-skills.py` 的 skill-count 檢查為機制錨點）。codex-skill-transfer 的可證偽退役條款同步下修：三個月零使用即退役、上限收回 **13**（原為 14）。「2026-07-19, 14→15」的修憲註記保留為歷史。
+- **`/seal` 的大頻段邊界翻轉**：原本「大頻段 spec 驗證交給 `/analyze` 內建 final review、seal 不審多模組 spec」，改為 seal 逐片驗收——一次只對一片合約收工，多模組任務必須先切片、每片各自封緘，永遠不對整件事跑單次 seal。
+- **`/contract` 的超長 off-ramp 沒有上一層可退**：合約超過 60 行不再是「該升去 `/analyze`」的訊號，而是「這片還沒切夠小」。Step 2 的非互動回報字串同步改為 `no progress: task exceeds contract band, slice it into contract-band slices`。
+- **`/think` Stage G Option 2 的下游路由重寫**：medium-to-large 不再喚起 `/baransu:analyze`，改為切片後逐片 `/contract` → 依 `_shared/tdd.md` 實作 → `/seal`。KD-bound relaxation 的理由從「`/analyze` 會把它退回 `/think`」改為「單層改動切片後就只有一片」；工作日誌的追記歸屬人改為「實作方」——主 session 或受託執行者。
+- **`_shared/tdd.md` 去除管線綁定**：Scope、tracer-bullet 對照表、§7 直接實作閘門不再指名 impl-agent／review-agent／執行段；`failure_count` 計數規則的外部指標（指向已刪除的 `execution-pipeline.md`）直接移除。
+- **`/ship` 歸檔白名單移除 `analyze`**（Step 1 `ARCHIVE_DIRS` 與 Step 2 allowlist 維持逐字一致）；`.gitignore` 移除 `.claude/analyze/`、新增 `.strategic-advance/`。
+- **`/codex-skill-transfer` 移除 analyze 專屬移植資料**：`transfer.py` 的 AskUserQuestion 能力表、Codex port adapter 與 adapter 能力表三處 analyze 條目刪除；`CODEX_PORT_PLAN.md` 與 `skill-mapping.md` 的機制落點清單與 adapter 註記改為泛化敘述。
+- **路由 eval 語料刪除 analyze 案例**（cross-skill-routing 2 例、contract 1 例、design 1 例、think 1 例），不新增替代案例；各檔 id 重新連號。
+
 ## [3.4.1] - 2026-08-13
 
 ### Added

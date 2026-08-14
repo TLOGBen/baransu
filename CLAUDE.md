@@ -6,7 +6,7 @@ When working on any UI/UX content, read the design system at the project root an
 - design-cores/ — 21 component skeletons consuming the tokens (long-form / gallery / dashboard + 6 bilingual document types + 6 elements)
 - slide-cores/ — slide layouts (4 cover variants + 17 non-cover layouts)
 
-`baransu` is a Claude Code plugin distributing fifteen governance skills. Theme: バランス — deliberate before executing, verify after.
+`baransu` is a Claude Code plugin distributing fourteen governance skills. Theme: バランス — deliberate before executing, verify after.
 
 ## Philosophy — バランス (Balance)
 
@@ -22,16 +22,15 @@ When working on any UI/UX content, read the design system at the project root an
 plugins/
   baransu/
     .claude-plugin/
-      plugin.json              # plugin manifest (v3.4.1)
+      plugin.json              # plugin manifest (v4.0.0)
     skills/
-      think/ review/ contract/ analyze/ seal/ write/ ship/ hunt/ health/ read/ learn/ book/ design/ codex-skill-transfer/ evolve/
+      think/ review/ contract/ seal/ write/ ship/ hunt/ health/ read/ learn/ book/ design/ codex-skill-transfer/ evolve/
       _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md, fact-check.md, contract-gate.md, selection-telemetry.md, distillation-candidate-matrix.md) + evals/ scripts/
     rules/
       anti-patterns.md         # cross-skill behavioral guardrails
     agents/
       # Perspective: architecture-reviewer.md  quality-reviewer.md  security-reviewer.md  style-reviewer.md  domain-reviewer.md
-      # Pipeline:    impl-agent.md  review-agent.md  smart-friend-agent.md  seal-agent.md
-      #              e2e-fix-agent.md  final-review-agent.md  final-fixer-agent.md  merge-agent.md
+      # Seal:        seal-agent.md
       # Health:      health-inspector-context.md  health-inspector-control.md  health-inspector-maintainability.md
       # Evolve:      evolve-diagnostician.md  evolve-judge.md
 ```
@@ -55,21 +54,20 @@ Invoke with `/baransu:<name>`. To edit a skill, read its `SKILL.md` — design c
 |-------|---------------|------------------|
 | `/think` | Before any new feature, architecture decision, or non-trivial design choice | 「判斷一下」＋報錯屬除錯 → `/hunt`；存廢/價值判斷走 Evaluation Mode，不出五段計畫 |
 | `/review` | After any model output — code, plan, claim — for independent re-verification | 審「使用者專案」的 agent 配置與 AI 可維護性 → `/health` |
-| `/contract` | Medium tasks: pins a one-page work contract (goal / assertable criteria / surface inventory / verbatim constants) before implementing; owns the sealed-marker grammar and archives a sealed contract before writing over it | 跨模組大任務 → `/analyze`；事後驗收 → `/seal` |
+| `/contract` | Medium tasks: pins a one-page work contract (goal / assertable criteria / surface inventory / verbatim constants) before implementing; owns the sealed-marker grammar and archives a sealed contract before writing over it | 跨模組大任務先切片，每片各自立約；事後驗收 → `/seal` |
 | `/seal` | After implementation, run as a dispatcher: assembles the payload, runs the baseline, dispatches a verify-only seal-agent in a clean context (criteria audit / unpinned-surface scan / cross-UI / constants byte-diff / mutation spot-check), fixes findings in the main session with re-verification capped at 2, and stamps the sealed marker only on a clean pass | 跨視角獨立重驗證 → `/review`；開工前釘條文 → `/contract` |
-| `/analyze` | Large tasks: builds goal→requirement→design→test→task spec, then runs it to green through the built-in execution pipeline (`開始執行` also enters here) | 單一 session 收得掉的小任務不展 spec → `_shared/tdd.md` §7；中型任務只要釘條文 → `/contract` |
 | `/write` | Bilingual copywriting: `zh`/`en` prefix; Refine (existing text), Generate (new), or Proofread (findings table → `錯字修改.html`) | 寫完要 commit/push 的收尾 → `/ship` |
 | `/ship` | Session cleanup: archive `.claude/` dirs plus sealed root contracts, commit, push, optional worktree removal | 只收尾；不寫作、不審查 |
 | `/hunt` | Bug diagnosis: symptom → root cause via observability-first investigation | 「值不值得修」是價值判斷 → `/think` Evaluation Mode |
 | `/health` | Audit the user project's agent configuration and AI-maintainability: budget-aware five-layer audit (config → instructions → tools → verifiers → maintainability) | baransu 自身結構驗證 → `scripts/verify-skills.py`；審單次模型輸出 → `/review` |
 | `/read` | Capture any content to offline Markdown: URL, path, glob, Chrome, `--topic`, `--web`, `--gh`, `--x` | 要消化成筆記 → `/learn`；要瀏覽器成品 → `/book` |
-| `/design` | UI/UX spec: `gen` (guided), `lint` (preset-agnostic structure + consistency, 6 checks A-F), `preset <name>`, `export-brief` | 技術架構文件是 `/analyze` 的 design 層（小寫 `design.md`） |
+| `/design` | UI/UX spec: `gen` (guided), `lint` (preset-agnostic structure + consistency, 6 checks A-F), `preset <name>`, `export-brief` | 技術架構文件（小寫 `design.md`）不歸這裡管 |
 | `/learn` | Research pipeline: Collect→Digest→Outline→Fill In→Refine; `--brief` stops at Digest | 只要離線原文不要筆記 → `/read` |
 | `/book` | Convert any content source (URL, `/read` slug, `/learn` digest, local file, `--text`) into a Kami-themed browser-ready HTML with SVG diagrams. Three stages: Acquire → Synthesize (technical/narrative/research) → Render (golden-template + validate-output.ts gate) | 要可編輯的 Markdown 工件 → `/read` 或 `/learn` |
 | `/codex-skill-transfer` | One-way port Claude Code skill / plugin / marketplace material to Codex format. Auto-detects single-skill / batch / plugin mode. Refuses `context: fork` skills (cross-boundary; surfaces three Codex paths). | 單向 Claude→Codex；不做反向移植 |
 | `/evolve` | Improve a SKILL.md against a fixed 9-dim rubric: forward-only ratchet, blind multi-judge, held-out validation | 寫新 skill 是 authoring 非演化 → 直接撰寫；存廢/價值判斷 → `/think` Evaluation Mode |
 
-**15 is the skill-count ceiling** — adding a 16th requires retiring one first (以裁換建). Mechanism anchor: the skill-count check in `scripts/verify-skills.py`. Falsifiable amendment clause (2026-07-19, 14→15): if selection telemetry shows `/codex-skill-transfer` at zero use for three consecutive months, retire it and restore the ceiling to 14.
+**14 is the skill-count ceiling** — adding a 15th requires retiring one first (以裁換建). Mechanism anchor: the skill-count check in `scripts/verify-skills.py`. Falsifiable amendment clause (2026-07-19, 14→15): if selection telemetry shows `/codex-skill-transfer` at zero use for three consecutive months, retire it and restore the ceiling to 13.
 
 **Three-band routing**:
 
@@ -77,7 +75,7 @@ Invoke with `/baransu:<name>`. To edit a skill, read its `SKILL.md` — design c
 |------|-------|------------------|
 | Small — single-file, clear scope | Implement directly under the red/green discipline in `_shared/tdd.md` §7 (維5: behavior tests assert named values, never tautological "responds/all-green"; a broken feature MUST turn a test red); no skill ceremony | red → green run |
 | Medium — one feature, few files | `/contract` pins a one-page contract before work; `/seal` dispatches a verify-only seal-agent for one narrow verification pass, fixes findings in the main session (re-verification capped at 2), and stamps the sealed marker on a clean pass | seal five-point mandate result |
-| Large — ≥2 interdependent modules, context rot is real | `/analyze` full pipeline: five-layer spec → built-in execution to green | `final-report.md` |
+| Large — ≥2 interdependent modules, context rot is real | Chart the effort as a decision map, slice it, then run each slice through the medium band: `/contract` pins that slice's criteria → implement → `/seal` closes it. When the common suite (wayfinder / delegate / strategic-advance) is installed, the charting and the execution MAY route through it — detect first, never assume it is present | per-slice seal mandate results |
 
 Never force a task up-band (a small fix does not deserve a spec) or down-band (a cross-module change does not get to skip criteria pinning).
 
@@ -88,18 +86,13 @@ Never force a task up-band (a small fix does not deserve a spec) or down-band (a
 These have each caused regressions — do not "optimize" them away:
 
 - **No `skills` array in `plugin.json`**: Claude Code discovers skills from the filesystem. Adding one was done in v0.3.0 and immediately reverted.
-- **`review-agent` must NOT call `/baransu:review`**: `/review` is not currently subagent-safe — per `skills/review/references/loop-pauses.md` (the classification authority), its Stage 1 target-pin is an Input point whose non-interactive default is stop-and-report (a human must name the target; no default can substitute a target that doesn't exist), and its Stage 7 needs-judgment checkpoints are Authorization hard stops. Implement four-tier semantics directly in `review-agent.md`.
 - **`/ship` branch deletion uses `-D` not `-d`**: after push the branch is unmerged locally, so `-d` always fails. Both steps need `git -C "$MAIN_REPO" branch -D`.
 - **Sealed-marker detection reads only the first 3 lines**: `/seal`, `/contract`, and `/ship` all detect it with `head -3 "$f" | grep -qF '> STATUS: sealed'` — never a whole-file grep, or a contract that merely pins the marker inside its own Verbatim Constants block reads as sealed (self-false-positive). The two archive paths are deliberately asymmetric: `/contract` always timestamps (`.claude/archived/{filename}-{unix_timestamp}`) because it is displacing a contract to write a new one in its place; `/ship` timestamps only on a name collision, matching the allowlist sweep it runs alongside.
-- **`failure_count` excludes compile errors**: compile errors do NOT count toward the TDAID failure block limit — they cap on their own `compile_error_count` channel (3 consecutive); review-rejection `failure_count` caps at 2 under the R8 retry rule. Merging these two counters breaks retry behavior.
-- **`DESIGN.md` ≠ `design.md`**: uppercase at project root = UI visual spec (from `/design`); lowercase in `.claude/analyze/` = technical architecture layer (from `/analyze`). Never confuse them.
-- **Execution-stage worktrees live under `.claude/worktrees/`** (analyze execution pipeline; the `execute-` filename prefix names the stage, not a skill): checkouts go to `.claude/worktrees/execute-{date}-{slug}-{group}` — NEVER `.git/worktrees/` (git's per-worktree metadata lives there; a checkout there is permanently dirty and `git add -A` commits git internals — empirically verified).
-- **goal.md 驗收標準 C{n} is the top acceptance authority** in the analyze spec→execution chain: a criterion satisfied only in test scaffolding while its production path is inert is NOT met (anchors: `analyze/references/execution-pipeline.md` Step 6 literal cross-check + final-review-agent §1b).
-- **Coverage-riding is a gate-time decision**: the test tier is recorded in task-map.md at Step 3; impl-agent may never self-authorize riding (it only receives the dispatch field `test_weight`).
+- **`DESIGN.md` ≠ `design.md`**: uppercase at project root = UI visual spec (from `/design`); lowercase `design.md` anywhere = a technical-architecture document, not this skill's territory. `/design` only ever reads or writes the uppercase file — never confuse them.
 - **learn's full digest ends with the 批判層 four sections** (來源矛盾點／盲點／信度評分／後續角度): silence is non-compliant — 「查無矛盾」 must be stated affirmatively.
 - **read `raw/` is immutable by construction**: recaptures version to `raw/{slug}_vN`, cascade fetches go through `/tmp` then move — never write `raw/` twice.
-- **verify-skills.py Gates 10/11 are the contract** for loop-pauses registry completeness and `green_proof` field-name consistency: adding or revising a skill's Automation line or green_proof surface must clear these gates.
-- **No-git projects degrade one-way**: the analyze execution pipeline falls back to in-place serialized execution (never wedges); ship fast-fails BEFORE any archive move (archiving without git would strand the moved files with no commit to anchor them).
+- **verify-skills.py Gate 10 is the contract** for loop-pauses registry completeness: adding or revising a skill's Automation line must clear it (a `loop=drivable`/`assisted` skill ships `references/loop-pauses.md` and owns a canonical row in `_shared/loop-contract.md` §4 — no orphan files, no dead rows). Gate 11 (`green_proof` field-name consistency) was retired in v4.0.0: all four of its surfaces went with the large-band pipeline, so the gate had nothing left to check. Its number is not reused — the gate list stops at 10.
+- **No-git projects: ship fast-fails BEFORE any archive move** — archiving without git would strand the moved files with no commit to anchor them.
 - **`seal-guard.ps1` must keep its UTF-8 BOM**: Windows PowerShell 5.1 parses BOM-less non-ASCII scripts as ANSI (system codepage), which breaks the zh instruction string with a parse error — empirically hit on first Windows run. Gate: test-seal-guard-hook.sh G14. The `.sh`/`.ps1` pair must keep one behavioral contract (G14 string parity + G15 real-runtime suite); the transfer's same-name-`.ps1` rule wires `commandWindows` automatically.
 - **Cross-skill guardrails**: behavioral anti-patterns that apply across skills live in `plugins/baransu/rules/anti-patterns.md`; the skill-specific invariants above stay here.
 

@@ -16,7 +16,9 @@ export const meta = {
 const A = (typeof args === 'string') ? JSON.parse(args) : (args || {})
 const ROOT = A.root
 if (!ROOT) throw new Error('args.root required — pass the baransu repo/worktree root')
-const ALL = ['analyze','book','codex-skill-transfer','design','evolve','execute','health','hunt','learn','read','review','ship','think','write']
+// The 14 shipped skills (v4.0.0). Keep in sync with plugins/baransu/skills/ —
+// EXPECTED_SKILL_COUNT in scripts/verify-skills.py is the count authority.
+const ALL = ['book','codex-skill-transfer','contract','design','evolve','health','hunt','learn','read','review','seal','ship','think','write']
 const SKILLS = (Array.isArray(A.skills) && A.skills.length) ? A.skills : ALL
 const MARGIN = (typeof A.margin === 'number') ? A.margin : 2.0   // min per-judge structure-point improvement to adopt
 

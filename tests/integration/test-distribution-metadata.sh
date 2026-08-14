@@ -3,13 +3,13 @@
 #
 # Asserts (behavioral, against release surfaces only):
 #   D1) plugin.json version is semver with major >= 2 (not pinned to a string)
-#   D2) plugin.json description describes fifteen skills (no "16"/"sixteen", no stale "14"/"fourteen")
+#   D2) plugin.json description describes fourteen skills (no stale "13"/"thirteen"/"15"/"fifteen"/"16"/"sixteen")
 #   D3) plugin.json keywords contain none of: dev, tdd, harness, grade, triage, bridge
 #   D4) marketplace.json plugin description synced (no "16"/"sixteen");
 #       metadata.version identical to plugin.json version
 #   D5) marketplace.json tags contain none of: dev, tdd, harness, grade, triage, bridge
 #   D6) CLAUDE.md has no "sixteen" / "self-healing harness" wording
-#   D7) CLAUDE.md skills table has exactly 13 rows; no removed-skill rows
+#   D7) CLAUDE.md skills table has exactly 14 rows; no removed-skill rows
 #   D8) CLAUDE.md keeps the cross-skill anti-patterns pointer (rules/anti-patterns.md)
 #   D9) README has no functional reference to removed skills
 #       (word-boundary scan: \bgrade\b|\btriage\b|\bbridge\b|`/dev`|baransu:dev)
@@ -60,12 +60,12 @@ fi
 
 # --- D2: plugin.json description ---
 PLUGIN_DESC=$(python3 -c "import json;print(json.load(open('$PLUGIN_JSON'))['description'])" 2>/dev/null)
-if echo "$PLUGIN_DESC" | grep -qiE '\b16\b|sixteen|\b14\b|fourteen'; then
-  bad "D2 plugin.json description says a stale count (14/fourteen/16/sixteen): $PLUGIN_DESC"
-elif echo "$PLUGIN_DESC" | grep -qiE '\b15\b|fifteen'; then
-  ok "D2 plugin.json description describes fifteen skills"
+if echo "$PLUGIN_DESC" | grep -qiE '\b16\b|sixteen|\b15\b|fifteen|\b13\b|thirteen'; then
+  bad "D2 plugin.json description says a stale count (13/thirteen/15/fifteen/16/sixteen): $PLUGIN_DESC"
+elif echo "$PLUGIN_DESC" | grep -qiE '\b14\b|fourteen'; then
+  ok "D2 plugin.json description describes fourteen skills"
 else
-  bad "D2 plugin.json description does not mention fifteen/15: $PLUGIN_DESC"
+  bad "D2 plugin.json description does not mention fourteen/14: $PLUGIN_DESC"
 fi
 
 # --- D3: plugin.json keywords ---
@@ -110,13 +110,13 @@ fi
 
 # --- D7: CLAUDE.md skills table ---
 ROW_COUNT=$(grep -cE '^\| `/' "$CLAUDE_MD")
-if [ "$ROW_COUNT" -eq 15 ]; then
-  ok "D7a CLAUDE.md skills table has 15 rows"
+if [ "$ROW_COUNT" -eq 14 ]; then
+  ok "D7a CLAUDE.md skills table has 14 rows"
 else
-  bad "D7a CLAUDE.md skills table has $ROW_COUNT rows, expected 15"
+  bad "D7a CLAUDE.md skills table has $ROW_COUNT rows, expected 14"
 fi
-if grep -E '^\| `/' "$CLAUDE_MD" | grep -qE '`/(dev|grade|triage|bridge)`'; then
-  bad "D7b CLAUDE.md skills table still has /dev, /grade, /triage, or /bridge row"
+if grep -E '^\| `/' "$CLAUDE_MD" | grep -qE '`/(dev|grade|triage|bridge|execute|analyze)`'; then
+  bad "D7b CLAUDE.md skills table still has a retired-skill row (/dev, /grade, /triage, /bridge, /execute, /analyze)"
 else
   ok "D7b CLAUDE.md skills table has no removed-skill rows"
 fi

@@ -1,8 +1,8 @@
-# Dogfood prompt for the TDD trigger (/execute impl-agent loop)
+# Dogfood prompt for the TDD trigger (main-session §7 direct implementation)
 
-> **Use**: 把本檔**整檔**內容作為 task 交給 `/baransu:execute` 的 impl-agent（或主
-> session 依 `_shared/tdd.md` §7 直接實作），跑完一輪 RED→GREEN→review。本檔為
-> 唯一可貼給 model 的部分；驗收條件與期待行為**不在本檔內**，避免答案外洩。
+> **Use**: 把本檔**整檔**內容作為 task 交給主 session，依 `_shared/tdd.md` §7
+> 直接實作，跑完一輪 RED→GREEN。本檔為唯一可貼給 model 的部分；驗收條件與期待
+> 行為**不在本檔內**，避免答案外洩。
 
 ---
 

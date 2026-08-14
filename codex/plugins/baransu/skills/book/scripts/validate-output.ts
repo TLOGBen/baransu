@@ -673,7 +673,7 @@ svgs.forEach((svg, i) => {
 // ── html2pptx 4-rule pre-check (PPT mode only) ──────────────────────────────
 // Fixture-calibrated rule levels (TASK-book-validator-03 / REQ-003-S1).
 // Calibration source: fixture-result.md (hardcoded — not read at runtime so
-// that archiving .claude/analyze/<date>/ does not break the validator).
+// that archiving the workspace dir it came from does not break the validator).
 const HTML2PPTX_RULE_LEVELS = {
   rule1_div_text: "hard_fail",
   rule2_gradient: "hard_fail",     // fixture-calibrated up from soft_warn

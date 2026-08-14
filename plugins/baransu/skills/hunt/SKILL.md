@@ -274,7 +274,7 @@ If the issue is purely subjective UI taste, route to `/baransu:design` instead. 
 | Investigation involves file writes / external API calls | Use mocks to prevent real writes; emails and webhooks must not actually send. |
 | Working tree dirty (`git status --porcelain` non-empty) when bisect is about to start | Stop — apply Bisect Mode step 3 gate before `git bisect start`. |
 | git bisect identified the commit | Run `git bisect reset` per Bisect Mode step 6 before any other git operation. |
-| Fix plan or current diff touches 6 or more files (without a Scope Blast pattern justification) | Stop **before adding the 6th file**. Check at two points: (i) when drafting the fix plan, (ii) after each edit. If the scope is genuinely a class-of-bug sweep, route through Scope Blast Mode (which is an explicit exception). If it is symptom-patch creep growing into a refactor, narrow back or route to `/baransu:analyze`. |
+| Fix plan or current diff touches 6 or more files (without a Scope Blast pattern justification) | Stop **before adding the 6th file**. Check at two points: (i) when drafting the fix plan, (ii) after each edit. If the scope is genuinely a class-of-bug sweep, route through Scope Blast Mode (which is an explicit exception). If it is symptom-patch creep growing into a refactor, narrow back, or slice it and open a `/baransu:contract` on the first slice. |
 | Someone (user or agent) deflects suspicion from a specific area — semantic trigger, not literal string match. Examples: 「那段沒問題」「不是那邊的問題」「先別管那個」「我已經檢查過了」, "that part doesn't matter", "I already checked there" | Treat as a signal. The area being deflected from is often where the bug lives — especially in multi-stage pipelines (CI segments, data pipeline stages, baransu plane handoffs) where one stage is excluded from suspicion. Re-examine that area with one targeted instrument before accepting the deflection. |
 
 > In an ultracode session you may dispatch Workflows only for parallel inventory/context scans that answer no hypothesis. They may inform the next serialized probe, but never explore multiple hypothesis lines in parallel.
@@ -318,7 +318,7 @@ For a bug that was previously fixed and then recurred, the conditions for 「已
 
 After confirming root cause, route the fix by task scope:
 - Single change point, small amount of code → implement directly, building your own red/green task list under the _shared/tdd.md discipline (read `../_shared/tdd.md` §7 before implementing)
-- Multiple files, design decision needed, or cross-module impact → invoke `/baransu:analyze`
+- Multiple files, design decision needed, or cross-module impact → slice the fix and run each slice through `/baransu:contract` → implement → `/baransu:seal`
 
 ### Handoff format (use after three hypothesis failures)
 

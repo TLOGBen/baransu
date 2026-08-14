@@ -3,7 +3,7 @@
 """verify-skills.py — baransu 結構驗證器（一條命令證明 C1/C2/C3/C6）。
 
 Repo mode（無參數）執行全部檢查：
-  1. plugins/baransu/skills/ 技能目錄數 = 15（_shared/ 除外，且每目錄有 SKILL.md）
+  1. plugins/baransu/skills/ 技能目錄數 = 14（_shared/ 除外，且每目錄有 SKILL.md）
   2. SKILL.md frontmatter 可解析（think 極簡式 / read-learn 完整式皆容納）
      ＋官方細目：name ≤64 字元小寫連字符、name == 目錄名、name 無保留字
      （anthropic/claude）、description 非空 ≤1024、第三人稱啟發式、
@@ -22,10 +22,14 @@ Repo mode（無參數）執行全部檢查：
  10. loop-pauses 註冊表完備（loop=drivable/assisted 技能須出貨
      references/loop-pauses.md 且在 _shared/loop-contract.md §4 註冊；
      無孤兒檔、無死鏈；變體見 check_loop_pauses docstring）
- 11. green_proof 欄位名跨檔一致（四鍵 × 四發行面；stale 變體
-     run_command 全面禁、passed/collected 僅在 green_proof 語境內禁）
 
-Advisory（不影響 exit code）：SKILL.md 本文 >500 行清單（官方上限）；repo mode 另印 15 skill description+when_to_use
+（檢查 11「green_proof 欄位名跨檔一致」已於 v4.0.0 退場：四個發行面
+ —— agents/review-agent.md 與 analyze/references/{green-proof-verify,
+ orchestration-interface,output-formats}.md —— 隨 /analyze 執行管線一併裁撤，
+ 全倉已無 green_proof 欄位可對齊，該閘門失去檢查對象。編號不重排：11 為末位，
+ 直接留白。）
+
+Advisory（不影響 exit code）：SKILL.md 本文 >500 行清單（官方上限）；repo mode 另印 14 skill description+when_to_use
 總量，超過 LISTING_TOTAL_ADVISORY 時印警示行（見 LISTING_* 常數註記）。
 
 Skills-root mode（一個位置參數 = 含技能目錄的根目錄）：只跑 per-skill 檢查
@@ -35,8 +39,7 @@ Skills-root mode（一個位置參數 = 含技能目錄的根目錄）：只跑 
 Agents mode（--agents <目錄>）：只跑檢查 9。同樣供負向 fixture 測試。
 
 Loop-registry mode（--loop-registry <skills 根目錄>）：只跑檢查 10。
-Green-proof mode（--green-proof <repo 根目錄>）：只跑檢查 11。
-兩者皆供負向 fixture 測試（tests/scripts/test_verify_skills_gates.py）。
+供負向 fixture 測試（tests/scripts/test_verify_skills_gates.py）。
 
 Exit 語義（沿用倉內 gate 慣例）：
   0 = pass
@@ -60,7 +63,7 @@ PLUGIN_MANIFEST = REPO_ROOT / "plugins" / "baransu" / ".claude-plugin" / "plugin
 MARKETPLACE_MANIFEST = REPO_ROOT / ".claude-plugin" / "marketplace.json"
 CODEX_MANIFEST = REPO_ROOT / "codex" / "plugins" / "baransu" / ".codex-plugin" / "plugin.json"
 
-EXPECTED_SKILL_COUNT = 15
+EXPECTED_SKILL_COUNT = 14
 BODY_LINE_ADVISORY_LIMIT = 500
 
 # 官方 frontmatter 細目
@@ -98,27 +101,6 @@ LOOP_ROW_CANON_RE = re.compile(
 )
 # 無豁免：所有 loop=drivable/assisted 技能一律須出貨 loop-pauses.md＋§4 註冊列
 # （codex-skill-transfer 的歷史豁免已於補齊該檔＋註冊列後移除）。
-
-# ---------------------------------------------------------------------------
-# 檢查 11：green_proof 欄位名跨檔一致（常數）
-# ---------------------------------------------------------------------------
-GREEN_PROOF_KEYS = ("test_command", "exit_code", "output_tail", "tests_correspondence")
-GREEN_PROOF_FILES = (
-    "plugins/baransu/agents/review-agent.md",
-    "plugins/baransu/skills/analyze/references/green-proof-verify.md",
-    "plugins/baransu/skills/analyze/references/orchestration-interface.md",
-    "plugins/baransu/skills/analyze/references/output-formats.md",
-)
-# stale 變體：run_command 夠特定 → 四檔內任何位置皆禁；passed / collected 太
-# 泛用（output-formats.md 的 e2e_evidence 區塊合法使用、green-proof-verify.md
-# 有 "a passed review" 散文）→ 僅在 green_proof 語境內禁：
-#   (a) `green_proof:` 區塊（YAML 縮排範圍）內的 key 行；
-#   (b) `green_proof.<stale>` 點記法引用。
-GREEN_PROOF_STALE_ANYWHERE_RE = re.compile(r"\brun_command\b")
-GREEN_PROOF_STALE_BLOCK_KEYS = frozenset({"run_command", "passed", "collected"})
-GREEN_PROOF_BLOCK_HEADER_RE = re.compile(r"^(\s*)green_proof:\s*$")
-GREEN_PROOF_KEY_LINE_RE = re.compile(r"^\s*([A-Za-z_]+)\s*:")
-GREEN_PROOF_DOTTED_STALE_RE = re.compile(r"\bgreen_proof\.(run_command|passed|collected)\b")
 
 # SKILL.md 內 references/ 路徑 token（排除常見定界與 CJK 標點；含 {*$<} 之類
 # 模板字樣的 token 略過不查）
@@ -537,59 +519,6 @@ def check_loop_pauses(skills_root: Path) -> list[str]:
 
 
 # ---------------------------------------------------------------------------
-# 檢查 11：green_proof 欄位名跨檔一致
-# ---------------------------------------------------------------------------
-def check_green_proof(repo_root: Path) -> list[str]:
-    """green_proof 欄位名跨檔一致（檢查 11）。
-
-    四鍵（GREEN_PROOF_KEYS）必須逐一出現在全部四個發行面
-    （GREEN_PROOF_FILES）；stale 變體按 GREEN_PROOF_STALE_* 常數註記的
-    範圍禁用（run_command 全面禁；passed/collected 僅 green_proof 語境）。
-    """
-    v: list[str] = []
-    for rel in GREEN_PROOF_FILES:
-        path = repo_root / rel
-        if not path.is_file():
-            v.append(f"green_proof 發行面檔案不存在：{rel}")
-            continue
-        try:
-            text = path.read_text(encoding="utf-8")
-        except (OSError, UnicodeDecodeError) as exc:
-            raise Structural(f"{path}: 無法讀取（{exc}）")
-        short = Path(rel).name
-        for key in GREEN_PROOF_KEYS:
-            if re.search(rf"\b{key}\b", text) is None:
-                v.append(f"{short}: green_proof 鍵 {key!r} 未出現（四鍵四檔一致性）")
-        block_indent: int | None = None
-        for n, line in enumerate(text.splitlines(), 1):
-            if GREEN_PROOF_STALE_ANYWHERE_RE.search(line):
-                v.append(f"{short}:{n}: stale green_proof 欄位名 'run_command'")
-            dm = GREEN_PROOF_DOTTED_STALE_RE.search(line)
-            if dm:
-                v.append(
-                    f"{short}:{n}: stale green_proof 點記法引用 "
-                    f"'green_proof.{dm.group(1)}'"
-                )
-            hm = GREEN_PROOF_BLOCK_HEADER_RE.match(line)
-            if hm:
-                block_indent = len(hm.group(1))
-                continue
-            if block_indent is None or not line.strip():
-                continue
-            indent = len(line) - len(line.lstrip())
-            if indent <= block_indent:
-                block_indent = None
-                continue
-            km = GREEN_PROOF_KEY_LINE_RE.match(line)
-            if km and km.group(1) in GREEN_PROOF_STALE_BLOCK_KEYS:
-                v.append(
-                    f"{short}:{n}: green_proof 區塊內 stale 欄位名 "
-                    f"{km.group(1)!r}"
-                )
-    return v
-
-
-# ---------------------------------------------------------------------------
 # main
 # ---------------------------------------------------------------------------
 def check_philosophy_anchors() -> list[str]:
@@ -647,8 +576,7 @@ def discover_skills(root: Path) -> list[Path]:
 def main(argv: list[str]) -> int:
     agents_mode = len(argv) >= 3 and argv[1] == "--agents"
     loop_mode = len(argv) >= 3 and argv[1] == "--loop-registry"
-    green_mode = len(argv) >= 3 and argv[1] == "--green-proof"
-    flag_mode = agents_mode or loop_mode or green_mode
+    flag_mode = agents_mode or loop_mode
     repo_mode = len(argv) < 2
     skills_root = SKILLS_DIR if (repo_mode or flag_mode) else Path(argv[1]).resolve()
 
@@ -681,9 +609,6 @@ def main(argv: list[str]) -> int:
         if loop_mode:
             violations += check_loop_pauses(Path(argv[2]).resolve())
 
-        if green_mode:
-            violations += check_green_proof(Path(argv[2]).resolve())
-
         if repo_mode:
             rv, excluded = check_residue()
             violations += rv
@@ -714,13 +639,6 @@ def main(argv: list[str]) -> int:
                 print(
                     "✅ loop-pauses 註冊表完備"
                     "（drivable/assisted 檔案＋註冊列、無孤兒、無死鏈）"
-                )
-            gv = check_green_proof(REPO_ROOT)
-            violations += gv
-            if not gv:
-                print(
-                    "✅ green_proof 欄位名跨檔一致"
-                    "（4 鍵 × 4 發行面；無 stale 變體）"
                 )
             if len(skills) == EXPECTED_SKILL_COUNT:
                 print(f"✅ 技能目錄數 = {EXPECTED_SKILL_COUNT}")

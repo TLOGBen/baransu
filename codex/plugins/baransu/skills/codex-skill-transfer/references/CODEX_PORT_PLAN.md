@@ -2,7 +2,6 @@
 
 - General Rule: Relocate the Tooth, Don't Degrade It
 - Tier 0 — Strong Inertia × UI Hard-Stop: Must Relocate the Tooth, Cannot Degrade to a Hint
-- Tier 1 — Good Cases Where the Tooth Doesn't Rely on UI: low port cost, don't over-engineer
 - Tier 2 — Mechanism Convergence: collect scattered degradations into one table
 - Tier 3 — Low Value: degradation is harmless, do it last
 - Two Boundaries Running Through the Whole Table (preconditions written into every Codex work item)
@@ -58,28 +57,6 @@ Common principle: **the model cannot talk its way through, because the next step
 
 ---
 
-## Tier 1 — Good Cases Where the Tooth Doesn't Rely on UI: low port cost, don't over-engineer
-
-### T1-1　Execution-pipeline Red-Green Gate → confirm the runner actually runs and the gate actually reads the exit code
-
-| Field | Content |
-|------|------|
-| **Counters** | The model's inertia of "claiming done without tests" |
-| **Why** | This cell's tooth is a deterministic fact (tests red / green), which holds in both runtimes, **so no relocation is needed**. The only risk is whether the Codex-side gate actually executes the tests, rather than reading the LLM's self-report. |
-| **Codex action** | Ensure the Codex version of `/analyze`'s execution pipeline derives its red-green verdict from the actual test runner's exit code (machine gate), with network / dependencies runnable inside the sandbox. Preserve the semantics of `failure_count` excluding compile errors (an existing invariant; do not merge the counters). |
-| **Done when** | Run a failing test on the Codex side; the gate indeed exits ≠0 and blocks "claiming done". |
-
-### T1-2　Execution-pipeline Task State → TaskCreate/Update changed to durable `task-map.md`
-
-| Field | Content |
-|------|------|
-| **Counters** | The model's inertia of "losing state across many steps, verbally claiming done" |
-| **Why** | Claude's Task tool is a built-in state surface; Codex has no built-in equivalent, and degrading to "verbal tracking" = inertia resurrected. |
-| **Codex action** | Use `task-map.md` as the durable source of truth, writing the file on every state transition; when a runtime display layer like `update_plan` exists, use it as *display* only, but the true value always lives in the file. |
-| **Done when** | After killing the session and restarting, the task state can be fully reconstructed from `task-map.md`, with no verbal dependency. |
-
----
-
 ## Tier 2 — Mechanism Convergence: collect scattered degradations into one table
 
 ### T2-1　capability degradation table (with **execution-strength levels**, not just strategy)
@@ -104,7 +81,7 @@ Common principle: **the model cannot talk its way through, because the next step
 
 ## Tier 3 — Low Value: degradation is harmless, do it last
 
-### T3-1　`SendUserFile` (execute / review / think) → write the file then list the path
+### T3-1　`SendUserFile` (review / think) → write the file then list the path
 
 | Field | Content |
 |------|------|
@@ -131,11 +108,9 @@ Common principle: **the model cannot talk its way through, because the next step
 |----|--------|:---:|------|------|
 | 1 | T0-1　think alignment gate | Strong | UI → runtime tool, artifact fallback | preserve tooth |
 | 2 | T0-2　review/health isolation verification | Strong | UI → verify runtime | probe first, then decide |
-| 3 | T1-1　execute red-green runner | Strong | deterministic (no relocation) | low-cost port |
-| 4 | T1-2　execute task-map | Strong | built-in → durable file | relocate to file |
-| 5 | T2-1　capability degradation table | mechanism | — | convergence |
-| 6 | T2-2　cosmetic AskUser | none | direct degrade | miscellaneous |
-| 7 | T3-1　SendUserFile | none | direct degrade | miscellaneous |
+| 3 | T2-1　capability degradation table | mechanism | — | convergence |
+| 4 | T2-2　cosmetic AskUser | none | direct degrade | miscellaneous |
+| 5 | T3-1　SendUserFile | none | direct degrade | miscellaneous |
 
 ---
 
@@ -143,11 +118,10 @@ Common principle: **the model cannot talk its way through, because the next step
 
 The following is the result of scanning the execution-surface primitives of the canonical skills; this construction plan uses it to place mechanisms on the correct skill:
 
-- **AskUserQuestion**: analyze, book, design, hunt, read, review, think
-  → among them think is strong inertia (alignment); analyze/review/hunt are medium; read/book/design are cosmetic (mode selection).
-- **Isolated subagent**: analyze, execute, health, review
+- **AskUserQuestion**: book, design, hunt, read, review, think
+  → among them think is strong inertia (alignment); review/hunt are medium; read/book/design are cosmetic (mode selection).
+- **Isolated subagent**: health, review
   → the key to isolation *as a tooth* lies in review / health.
-- **Red-green / test-first**: execute (core), health, hunt, learn, think
-- **TaskCreate/Update / state file**: execute (the only one)
-- **SendUserFile**: execute, review, think
+- **Red-green / test-first**: health, hunt, learn, think
+- **SendUserFile**: review, think
 - **PAUSE / gate**: nearly full coverage across 13 skills → must distinguish authorization vs input PAUSE.

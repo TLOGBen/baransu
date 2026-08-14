@@ -2,6 +2,9 @@
 # Transient handoff artifacts, flow-state, health pulses.
 .agent-workspace/
 
+# strategic-advance campaign state — local only.
+.strategic-advance/
+
 # Archived session work files (baransu /ship output — local only).
 .claude/archived/
 /.claude/archived/
@@ -12,8 +15,6 @@
 .claude/think/
 .claude/evolve/
 .claude/review/
-.claude/analyze/
-.claude/execute/
 .claude/hunt-report/
 .claude/impl/
 

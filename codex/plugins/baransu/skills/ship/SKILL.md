@@ -55,7 +55,7 @@ Git probe first — run `git rev-parse --git-dir 2>/dev/null`. If it fails (the 
 Check three inputs: whether the workspace dirs hold archivable items, whether the git working tree has pending changes, AND whether the repo root holds a sealed contract. Stop only when **all three** are empty — otherwise there is still work to ship even when the other sides are empty.
 
 ```bash
-ARCHIVE_DIRS="tmp analyze execute think design hunt-report evolve review write"
+ARCHIVE_DIRS="tmp think design hunt-report evolve review write"
 ARCHIVE_ITEMS=$(python3 -c "import sys, pathlib; print(next((str(p) for d in sys.argv[1].split() if pathlib.Path('.claude', d).is_dir() for p in pathlib.Path('.claude', d).iterdir()), ''))" "$ARCHIVE_DIRS")
 GIT_DIRTY=$(git status --porcelain 2>/dev/null | head -1)
 SEALED_CONTRACTS=$(find . -maxdepth 1 -type f -name 'CONTRACT*.md' | while read -r f; do
@@ -108,7 +108,7 @@ Before moving any item, enforce the local-only boundary:
    If either command fails, output 「archive ignore 驗證失敗：已停止歸檔，未移動
    任何工作檔案。」 and stop.
 
-**Archive allowlist** — exactly the Step 1 `ARCHIVE_DIRS` value, in the same order: `tmp`, `analyze`, `execute`, `think`, `design`, `hunt-report`, `evolve`, `review`, `write`. The two lists MUST stay identical; a dir detected in Step 1 but absent here would leave Step 1's detect output unconsumed.
+**Archive allowlist** — exactly the Step 1 `ARCHIVE_DIRS` value, in the same order: `tmp`, `think`, `design`, `hunt-report`, `evolve`, `review`, `write`. The two lists MUST stay identical; a dir detected in Step 1 but absent here would leave Step 1's detect output unconsumed.
 
 **Never archived**: the `read`, `learn`, and `book` dirs are kept products and stay in place. Claude Code infrastructure (`worktrees/`, `projects/`, `jobs/`, `plugins/`, `settings*.json`, …) is never touched — the allowlist is explicit precisely so infra is never swept up.
 

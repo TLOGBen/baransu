@@ -6,8 +6,9 @@
 # shared loop-contract reference (locative pointer since v2.2.1; upgraded to a
 # read-trigger in v2.2.2 — aux files are not auto-loaded at skill invocation).
 # Grading must match the plan table; the annotation lives in the body contract
-# block only (no non-standard frontmatter field). hunt/analyze additionally
-# carry a Workflow parallel-dispatch hint + loop-mode default sentence.
+# block only (no non-standard frontmatter field). hunt additionally carries a
+# Workflow parallel-dispatch hint + loop-mode default sentence (the other
+# ultracode=assist holder of that hint, analyze, was retired in v4.0.0).
 # Exit 0 = pass, 1 = annotation missing/malformed/misgraded.
 set -u
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -23,7 +24,7 @@ expected = {
     "learn": ("overlap", "drivable"),
     "hunt": ("assist", "assisted"),
     "health": ("assist", "assisted"),
-    "analyze": ("assist", "assisted"),
+    "seal": ("neutral", "drivable"),
     "codex-skill-transfer": ("assist", "assisted"),
     "evolve": ("overlap", "drivable"),
     "think": ("neutral", "not-drivable"),
@@ -100,9 +101,9 @@ for skill, (exp_ultra, exp_loop) in expected.items():
             f"expected ultracode={exp_ultra}, loop={exp_loop}"
         )
 
-# hunt/analyze: body must carry a Workflow parallel-dispatch hint under
-# ultracode plus a loop-mode default sentence (outside the contract line).
-for skill in ("hunt", "analyze"):
+# hunt: body must carry a Workflow parallel-dispatch hint under ultracode
+# plus a loop-mode default sentence (outside the contract line).
+for skill in ("hunt",):
     path = f"{root}/plugins/baransu/skills/{skill}/SKILL.md"
     try:
         body_lines = open(path, encoding="utf-8").read().splitlines()

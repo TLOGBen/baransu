@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
-# test_tdd_trigger.sh — structural verification for TDD trigger plan v4
-# (pruned for the v2 slim-down: /dev was removed; surviving triggers are
-#  the /analyze execution pipeline's impl-agent and review-agent)
+# test_tdd_trigger.sh — structural verification for the TDD trigger record
+# (pruned twice: the v2 slim-down removed /dev; v4.0.0 retired the /analyze
+#  execution pipeline, so impl-agent / review-agent / execution-pipeline.md
+#  are gone. The surviving trigger points are the /think small-task reroute
+#  and the /hunt fix reroute, both of which land in the main session under
+#  _shared/tdd.md §7.)
 #
 # Greps that the surviving deliverables are in place. Each check is
 # deterministic; first failure prints reason and exits 1.
 #
 # CLI: test_tdd_trigger.sh
 # Exit codes:
-#   0 — all checks pass (TDD trigger reference + impl-agent/review-agent
-#       citations + green_proof schema + 5-tier matrix + pipeline verify rule
-#       + fixture all present)
+#   0 — all checks pass (TDD reference content + §8 trigger-point citations
+#       + reciprocal citation in each triggering SKILL.md + fixture present)
 #   1 — at least one check failed; stdout names the failing check
 
 set -uo pipefail
@@ -23,9 +25,8 @@ fi
 cd "$REPO_ROOT"
 
 TDD_REF="plugins/baransu/skills/_shared/tdd.md"
-IMPL_AGENT="plugins/baransu/agents/impl-agent.md"
-REVIEW_AGENT="plugins/baransu/agents/review-agent.md"
-PIPELINE_REF="plugins/baransu/skills/analyze/references/execution-pipeline.md"
+THINK_SKILL="plugins/baransu/skills/think/SKILL.md"
+HUNT_SKILL="plugins/baransu/skills/hunt/SKILL.md"
 FIXTURE_DIR="tests/scripts/fixtures/tdd-trigger"
 
 fail_count=0
@@ -47,59 +48,30 @@ else
   grep -qi "mock.*boundary\|boundary.*mock\|系統邊界\|邊界" "$TDD_REF" && pass "mock-at-boundaries principle present" || fail "mock-at-boundaries principle missing"
   grep -qi "refactor.*green\|green.*refactor\|綠燈.*refactor\|refactor.*只.*綠" "$TDD_REF" && pass "refactor-only-when-green principle present" || fail "refactor-only-when-green principle missing"
   grep -qi "觸發點\|trigger.*point\|baransu-specific" "$TDD_REF" && pass "trigger-points section (§8) present" || fail "trigger-points section (§8) missing — referenced citation paths lose anchor"
-  grep -q "impl-agent.md" "$TDD_REF" && pass "§8 cites impl-agent.md" || fail "§8 missing impl-agent.md citation"
-  grep -q "review-agent.md" "$TDD_REF" && pass "§8 cites review-agent.md" || fail "§8 missing review-agent.md citation"
+  grep -q "skills/think/SKILL.md" "$TDD_REF" && pass "§8 cites think/SKILL.md" || fail "§8 missing think/SKILL.md citation"
+  grep -q "skills/hunt/SKILL.md" "$TDD_REF" && pass "§8 cites hunt/SKILL.md" || fail "§8 missing hunt/SKILL.md citation"
 fi
 
 # ---------------------------------------------------------------------------
-# Check 2: impl-agent.md citation
+# Check 2: reciprocal citation — each §8 trigger point actually reroutes to
+# _shared/tdd.md. A one-way §8 row would be a dangling claim.
+# (Checks 3 and 4 covered review-agent.md's green_proof schema / 5-tier matrix
+#  and the execution pipeline's green_proof verify rule; both surfaces were
+#  deleted with the /analyze pipeline in v4.0.0 and are not replaced.)
 # ---------------------------------------------------------------------------
-echo "[2] impl-agent.md citation"
-if [[ ! -f "$IMPL_AGENT" ]]; then
-  fail "$IMPL_AGENT does not exist"
-else
-  grep -q "_shared/tdd.md" "$IMPL_AGENT" && pass "tdd.md path cited" || fail "tdd.md path not cited in $IMPL_AGENT"
-  grep -qE "[Bb]efore writing tests.*tdd\.md|[Bb]efore the Red gate.*tdd\.md" "$IMPL_AGENT" && pass "passive citation phrasing present" || fail "passive citation phrasing missing in $IMPL_AGENT"
-fi
+echo "[2] reciprocal tdd.md reroute in the triggering skills"
+for skill_md in "$THINK_SKILL" "$HUNT_SKILL"; do
+  if [[ ! -f "$skill_md" ]]; then
+    fail "$skill_md does not exist"
+  else
+    grep -q "_shared/tdd.md" "$skill_md" && pass "$skill_md cites _shared/tdd.md" || fail "$skill_md does not cite _shared/tdd.md"
+  fi
+done
 
 # ---------------------------------------------------------------------------
-# Check 3: review-agent.md citation + green_proof schema + 5-tier matrix
+# Check 3: dogfood fixture exists with mattpocock-violation lures
 # ---------------------------------------------------------------------------
-echo "[3] review-agent.md citation + green_proof + matrix"
-if [[ ! -f "$REVIEW_AGENT" ]]; then
-  fail "$REVIEW_AGENT does not exist"
-else
-  grep -q "_shared/tdd.md" "$REVIEW_AGENT" && pass "tdd.md path cited" || fail "tdd.md path not cited in $REVIEW_AGENT"
-  grep -qE "[Bb]efore reviewing.*tdd\.md" "$REVIEW_AGENT" && pass "passive citation phrasing present" || fail "passive citation phrasing missing in $REVIEW_AGENT"
-  # green_proof schema 4 fields
-  grep -q "green_proof" "$REVIEW_AGENT" && pass "green_proof field declared" || fail "green_proof field missing"
-  grep -q "test_command" "$REVIEW_AGENT" && pass "test_command field declared" || fail "test_command field missing"
-  grep -q "exit_code" "$REVIEW_AGENT" && pass "exit_code field declared" || fail "exit_code field missing"
-  grep -q "output_tail" "$REVIEW_AGENT" && pass "output_tail field declared" || fail "output_tail field missing"
-  grep -q "tests_correspondence" "$REVIEW_AGENT" && pass "tests_correspondence field declared" || fail "tests_correspondence field missing"
-  # 5-tier matrix presence (heuristic: needs all 5 tier names + at least one allow-na marker)
-  for tier in "direct fix" "advisory" "packaged confirm (quality)" "packaged confirm (correctness)" "needs judgment"; do
-    grep -q "$tier" "$REVIEW_AGENT" && pass "tier '$tier' present" || fail "tier '$tier' missing"
-  done
-  # failure_count exclusion statement
-  grep -q "failure_count" "$REVIEW_AGENT" && pass "failure_count exclusion statement present" || fail "failure_count exclusion statement missing"
-fi
-
-# ---------------------------------------------------------------------------
-# Check 4: execute SKILL.md SWITCH verify rule for green_proof
-# ---------------------------------------------------------------------------
-echo "[4] execution-pipeline verify rule"
-if [[ ! -f "$PIPELINE_REF" ]]; then
-  fail "$PIPELINE_REF does not exist"
-else
-  grep -q "green_proof" "$PIPELINE_REF" && pass "green_proof referenced in execution-pipeline.md" || fail "green_proof not referenced in execution-pipeline.md"
-  grep -qi "verify.*green_proof\|green_proof.*驗證\|green_proof.*verify" "$PIPELINE_REF" && pass "verify rule present" || fail "verify rule missing in execution-pipeline.md"
-fi
-
-# ---------------------------------------------------------------------------
-# Check 5: dogfood fixture exists with mattpocock-violation lures
-# ---------------------------------------------------------------------------
-echo "[5] dogfood fixture"
+echo "[3] dogfood fixture"
 if [[ ! -d "$FIXTURE_DIR" ]]; then
   fail "$FIXTURE_DIR does not exist"
 else

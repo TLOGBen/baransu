@@ -1,6 +1,6 @@
 ---
 name: design
-description: "Generates a UI/UX design spec or lints an existing DESIGN.md. Four modes — gen (guided DESIGN.md) / lint (preset-agnostic structure + consistency check, 6 checks) / preset NAME / export-brief (cross-tool prompt-ready brief). Use when the user asks for a design system or visual spec. Trigger On '/design', '生成設計規格', '設計規格'. Not For: technical-architecture design.md (lowercase, /analyze layer); this skill only ever touches uppercase DESIGN.md (UI visual spec)."
+description: "Generates a UI/UX design spec or lints an existing DESIGN.md. Four modes — gen (guided DESIGN.md) / lint (preset-agnostic structure + consistency check, 6 checks) / preset NAME / export-brief (cross-tool prompt-ready brief). Use when the user asks for a design system or visual spec. Trigger On '/design', '生成設計規格', '設計規格'. Not For: technical-architecture design.md (lowercase); this skill only ever touches uppercase DESIGN.md (UI visual spec)."
 argument-hint: "[lint | preset <name> | <description>]"
 user-invocable: true
 ---
@@ -22,7 +22,7 @@ Hard rules referenced by number throughout this skill (restated, not abstracted 
 - **I1 — Token-name immutability**: canonical token NAMES never change; only derived VALUES move. The set is version-gated: **38 base canonical names** always, **+5 capability tokens** when the preset header declares `schema: 43` (38 base +5 capability = 43; legacy presets without a `schema:` field stay at 38 base).
 - **I2 — Accent ≤5% fixed**: the single-accent ≤5% surface budget is fixed for **every** extreme (極簡 / 極繁 / brutalist / editorial) — it does not move with the extreme→value table.
 - **I3 — Token-only / PDF-safe**: all values stay token-only and PDF-safe; CSS animation is progressive-enhancement only — PDF/PPT render the static final state.
-- **I4 — Uppercase-only DESIGN.md**: this skill only ever reads/writes uppercase `DESIGN.md` (UI visual spec) at project root; never lowercase `design.md` (the `/analyze` technical layer).
+- **I4 — Uppercase-only DESIGN.md**: this skill only ever reads/writes uppercase `DESIGN.md` (UI visual spec) at project root; never lowercase `design.md` (a technical-architecture document).
 - **I5 — Atomic staged-then-mv write**: the 5 artifacts are first written to `.tmp/design-staging/`, then atomic-mv'd to project root only after all 5 succeed; never write straight to project root.
 
 **Direction-defense stance (design rules, not pipeline invariants)**: the design-side hard rules this skill enforces — numeric anchors, preset sanity rules, DESIGN.md §8 Do/Don't — defend the committed direction from the generic default; they are not a lint pass run for its own sake. When the committed direction genuinely calls for breaking one, break it deliberately and name the tradeoff in DESIGN.md. Two floors never move: the accessibility baseline (contrast ratios) and the CSS-pattern bans — and I1–I5 above are pipeline invariants, outside this stance entirely.
@@ -478,7 +478,7 @@ When a slide-core carries an `<img>` / `background-image`, set the per-layout `o
 - ❌ Don't leave placeholder hex or invent color values in DESIGN.md §2 → ✅ give every named color a real hex; never hard-code Kami `#1B365D` into a non-Kami preset's output (lint Check B/D; §Export-brief Mode B20 boundary).
 - ❌ Don't write the 5 artifacts straight to project root, skipping atomic staging → because an IO interrupt mid-write leaves a half-applied artifact set with no rollback → ✅ stage to `.tmp/design-staging/` first, then atomic-mv (per I5; Preset/Gen Mode Step 3).
 - ❌ Don't treat `lint` / `Lint` / `LINT` as synonyms → ✅ match `lint` (lowercase exact) before dispatching (§Mode Dispatch).
-- ❌ Don't confuse `DESIGN.md` (uppercase, UI visual spec, this skill) with `design.md` (lowercase, `/analyze` technical layer) → because writing to the wrong one corrupts an unrelated artifact and no lint gate catches it → ✅ only ever read/write uppercase `DESIGN.md` at project root (per I4).
+- ❌ Don't confuse `DESIGN.md` (uppercase, UI visual spec, this skill) with `design.md` (lowercase, a technical-architecture document) → because writing to the wrong one corrupts an unrelated artifact and no lint gate catches it → ✅ only ever read/write uppercase `DESIGN.md` at project root (per I4).
 
 ---
 

@@ -222,7 +222,11 @@ class TestFilesUntouchedRegressionGate(unittest.TestCase):
         # exactly 9 pre-existing lines. Allow that audited edit (same pattern
         # as the check.py allowance below); anything beyond it still trips
         # this gate.
-        AUDITED_SMOKE_FIX_DELETIONS = 9
+        # +1 in v4.0.0: the large-band pipeline purge rewrote one comment line
+        # in the html2pptx pre-check header (the calibration note named the
+        # retired skill's workspace dir). Comment-only, zero executable bytes
+        # touched — hence a 1-line allowance bump, not a relaxed gate.
+        AUDITED_SMOKE_FIX_DELETIONS = 10
         ins, dele = _git_numstat(VALIDATE_OUTPUT_TS)
         self.assertLessEqual(
             dele, AUDITED_SMOKE_FIX_DELETIONS,

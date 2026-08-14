@@ -49,7 +49,7 @@ Scan the forbidden zone via the 🛑 visual marker, not by reading through prose
 
 ### 1. Design context soft-read
 
-Runs before all other Stage 0 steps. Follows the same soft-read pattern as /design / /analyze, bringing the current preset's design philosophy into context as advisory framing.
+Runs before all other Stage 0 steps. Follows the same soft-read pattern as /design, bringing the current preset's design philosophy into context as advisory framing.
 
 1. Resolve project root: `git rev-parse --show-toplevel 2>/dev/null`; on failure use cwd.
 2. Attempt to read the following files (all best-effort, **failing all of them does not abort Stage 0**, only a stderr warning):

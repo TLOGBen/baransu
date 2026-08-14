@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Tests for TASK-automation-02: dual-mode orchestration interface references
-# for review / analyze (execution pipeline) / learn / evolve (REQ-004 Scenario 3 / 4).
+# for review / learn / evolve (REQ-004 Scenario 3 / 4).
 #
 # Asserts (structural, behavior-level checks stay with spec review):
 #   T1  references/orchestration-interface.md exists for each of the 3 skills
@@ -8,8 +8,13 @@
 #       (once in the current-adapter section, once in the Workflow adapter)
 #   T3  each SKILL.md links the reference file directly (one level deep)
 #   T4  the SKILL.md pointer block is <= 10 lines (heading included)
-#   T5  execute/SKILL.md Goal-Alignment Filter + failure_count sections are
-#       byte-identical to HEAD (pointer insertion must not touch them)
+#
+# T5 (guarded zero-diff-vs-HEAD checks on the retired execution pipeline's
+# Phase 1 failure_count loop, Goal-Alignment Filter, and failure-escalation
+# sections) was retired in v4.0.0: the large-band pipeline skill and both
+# guarded reference files were deleted, so the sections it protected no longer
+# exist. That same skill also leaves the T1-T4 loop, which now covers the
+# three surviving orchestration-interface holders.
 
 set -u
 
@@ -33,7 +38,7 @@ fail() {
 # ---------------------------------------------------------------------------
 # T1 + T2 + T3 + T4 per skill
 # ---------------------------------------------------------------------------
-for skill in review analyze learn evolve; do
+for skill in review learn evolve; do
   REF="$SKILLS_DIR/$skill/references/orchestration-interface.md"
   SKILL_MD="$SKILLS_DIR/$skill/SKILL.md"
 
@@ -76,51 +81,6 @@ for skill in review analyze learn evolve; do
     fi
   fi
 done
-
-# ---------------------------------------------------------------------------
-# T5: execution-pipeline guarded sections — zero diff vs HEAD
-#     (a) Phase 1 failure_count loop   (b) Goal-Alignment Filter (reference file)
-#     (c) Failure escalation logic (failure_count accounting)
-#     Bootstrap rule: a guarded file absent from HEAD (first commit after the
-#     analyze+execute merge) passes with a bootstrap note; from the next commit
-#     on, any drift in these sections fails.
-# ---------------------------------------------------------------------------
-PIPE_REL="plugins/baransu/skills/analyze/references/execution-pipeline.md"
-FILT_REL="plugins/baransu/skills/analyze/references/goal-alignment-filter.md"
-
-extract_phase1()  { awk '/^\*\*Phase 1 — Impl\*\*/{found=1} found && /^\*\*Phase 2 — Review\*\*/{exit} found{print}'; }
-extract_filter()  { awk '/^\*\*Goal-Alignment Filter\*\*/{found=1} found{print}'; }
-extract_escal()   { awk '/^\*\*Failure escalation\*\*/{found=1} found && /^### 4c/{exit} found{print}'; }
-
-check_guarded() {
-  local section="$1" rel="$2" extract="$3" label="$4"
-  local work="$ROOT/$rel"
-  echo "T5[$section]: $label zero diff vs HEAD..."
-  if [ ! -f "$work" ]; then
-    fail "T5[$section]: $rel missing from working tree"
-    return
-  fi
-  if git -C "$ROOT" show "HEAD:$rel" > /tmp/guard-head.$$ 2>/dev/null; then
-    local head_sec work_sec
-    head_sec=$("$extract" < /tmp/guard-head.$$)
-    work_sec=$("$extract" < "$work")
-    rm -f /tmp/guard-head.$$
-    if [ -z "$work_sec" ]; then
-      fail "T5[$section]: $label not found in working copy of $rel"
-    elif [ "$head_sec" = "$work_sec" ]; then
-      pass "T5[$section]: $label unchanged"
-    else
-      fail "T5[$section]: $label differs from HEAD" \
-           "Edits must not touch this guarded section without review"
-    fi
-  else
-    pass "T5[$section]: $rel not in HEAD yet (bootstrap — guarded from next commit)"
-  fi
-}
-
-check_guarded phase1 "$PIPE_REL" extract_phase1 "Phase 1 failure_count loop"
-check_guarded filter "$FILT_REL" extract_filter "Goal-Alignment Filter section"
-check_guarded escal  "$PIPE_REL" extract_escal  "Failure escalation (failure_count) section"
 
 # ---------------------------------------------------------------------------
 echo ""

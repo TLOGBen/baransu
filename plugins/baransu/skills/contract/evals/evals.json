@@ -18,13 +18,6 @@
     },
     {
       "id": 3,
-      "prompt": "這個功能跨五個模組要展完整規格",
-      "should_trigger": false,
-      "expected_skill": "analyze",
-      "expected_behavior": "Multi-module scope routes to /analyze, not a one-page contract."
-    },
-    {
-      "id": 4,
       "prompt": "幫我驗收剛剛做完的改動",
       "should_trigger": false,
       "expected_skill": "seal",

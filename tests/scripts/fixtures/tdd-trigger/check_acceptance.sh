@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
-# check_acceptance.sh — dogfood acceptance for TDD trigger plan v4
+# check_acceptance.sh — dogfood acceptance for the TDD trigger record
 #
-# Runs after the /execute impl-agent loop (or a main-session direct
-# implementation per _shared/tdd.md §7) produced a test file from this
-# fixture's prompt.md.
+# Runs after a main-session direct implementation per _shared/tdd.md §7
+# produced a test file from this fixture's prompt.md.
 # Greps the test file for mattpocock-violation signals.
 #
-# CLI: check_acceptance.sh <test_file_path> [<review_report_path>]
+# (Criterion (c) — the review-agent green_proof report shape — was dropped in
+#  v4.0.0 with the /analyze execution pipeline; no agent emits that report.)
+#
+# CLI: check_acceptance.sh <test_file_path>
 # Exit codes:
 #   0 — all acceptance criteria met
 #   1 — at least one criterion failed
@@ -15,12 +17,11 @@
 set -uo pipefail
 
 if (( $# < 1 )); then
-  echo "usage: check_acceptance.sh <test_file_path> [<review_report_path>]" >&2
+  echo "usage: check_acceptance.sh <test_file_path>" >&2
   exit 2
 fi
 
 TEST_FILE="$1"
-REVIEW_REPORT="${2:-}"
 
 if [[ ! -f "$TEST_FILE" ]]; then
   echo "FAIL (structural): test file not found: $TEST_FILE" >&2
@@ -73,36 +74,6 @@ if [[ -n "$class_fake" ]]; then
   echo "$class_fake" | sed 's/^/    /'
 else
   pass "no class-extension fake / lowercase spy of XService"
-fi
-
-# ---------------------------------------------------------------------------
-# (c) review-agent green_proof 4 fields complete (if review report provided)
-# ---------------------------------------------------------------------------
-echo "[c] green_proof structural completeness"
-if [[ -z "$REVIEW_REPORT" ]]; then
-  pass "(skipped — no review report provided)"
-elif [[ ! -f "$REVIEW_REPORT" ]]; then
-  fail "review report not found: $REVIEW_REPORT"
-else
-  for field in test_command exit_code output_tail tests_correspondence; do
-    if grep -q "$field" "$REVIEW_REPORT"; then
-      pass "green_proof.$field present in review report"
-    else
-      fail "green_proof.$field missing from review report"
-    fi
-  done
-  # exit_code must be 0
-  if grep -qE 'exit_code["[:space:]:]+0' "$REVIEW_REPORT"; then
-    pass "green_proof.exit_code = 0"
-  else
-    fail "green_proof.exit_code != 0 (or not parseable)"
-  fi
-  # tests_correspondence must not be "n/a" (this is not cosmetic-only path)
-  if grep -qE 'tests_correspondence["[:space:]:]+["\x27]?n/a' "$REVIEW_REPORT"; then
-    fail 'tests_correspondence is "n/a" (only cosmetic-only path may use this)'
-  else
-    pass "tests_correspondence is not n/a"
-  fi
 fi
 
 # ---------------------------------------------------------------------------
