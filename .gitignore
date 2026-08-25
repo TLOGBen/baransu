@@ -18,6 +18,24 @@
 .claude/hunt-report/
 .claude/impl/
 
+# Root-level work contracts (/contract output). Unsealed ones stay at the repo
+# root while work is open; sealed ones are archived by /ship into the ignored
+# .claude/archived/. Neither stage belongs in version control.
+/CONTRACT-*.md
+
+# Codex-side mirror of the same transient workspace dirs — local only.
+# Only the plugin mirror under codex/plugins/ is tracked; .codex/ is session state.
+.codex/dev/
+.codex/think/
+.codex/evolve/
+.codex/review/
+.codex/hunt-report/
+.codex/impl/
+.codex/read/
+.codex/learn/
+.codex/wiki/
+.codex/delegate-matrix-*/
+
 # baransu working data — local dogfooding artifacts, regenerated per session.
 # Useless to plugin installers (they re-initialize their own). Only the shared
 # .claude/settings.json stays tracked.
