@@ -35,6 +35,9 @@
 .codex/learn/
 .codex/wiki/
 .codex/delegate-matrix-*/
+# Loose session work files at the .codex root (assessments, delegation ledgers).
+/.codex/*.md
+/.codex/*.html
 
 # baransu working data — local dogfooding artifacts, regenerated per session.
 # Useless to plugin installers (they re-initialize their own). Only the shared

@@ -310,10 +310,10 @@ CAPABILITY_REGISTRY: dict[str, CapabilityPort] = {
         risk=2,
     ),
     "AskUserQuestion:think": CapabilityPort(
-        codex_level="runtime-tool+artifact-fallback",
-        strategy="Use sequential `request_user_input` calls when exposed; otherwise split alignment into Phase 1 questions-only output and Phase 2 gated by `alignment.md`.",
+        codex_level="runtime-tool+text-fallback",
+        strategy="Use sequential `request_user_input` calls when exposed; otherwise ask the same question in plain numbered text and stop until answered.",
         habit_strength="strong",
-        countered_inertia="skipping alignment and starting design or implementation immediately",
+        countered_inertia="assuming the user has already thought the request through",
         tier="T0-1",
         risk=5,
     ),
@@ -481,9 +481,9 @@ ASK_USER_CAPABILITY_BY_SKILL: dict[str, str] = {
 
 ASK_USER_REWRITE_BY_CAPABILITY: dict[str, str] = {
     "AskUserQuestion:think": (
-        "the `request_user_input` alignment gate (ask 1 question with 2-3 "
-        "options and wait; if unavailable, output numbered alignment "
-        "questions, stop, then require `alignment.md` before planning)"
+        "the `request_user_input` interaction gate (ask 1 question with 2-3 "
+        "options and wait; if unavailable, ask the same question in plain "
+        "numbered text and stop until answered)"
     ),
     "AskUserQuestion:authorization": (
         "`request_user_input` (1-3 questions per call, 2-3 options per question; "
@@ -531,65 +531,21 @@ def classify_ask_user_occurrence(
             "AskUserQuestion:unclassified",
         )
 
-    line_start = text.rfind("\n", 0, match.start()) + 1
-    line_end = text.find("\n", match.end())
-    if line_end == -1:
-        line_end = len(text)
-    line = text[line_start:line_end]
-    before = text[: match.start()]
-    h2_matches = list(re.finditer(r"^##\s+(.+)$", before, re.MULTILINE))
-    section = h2_matches[-1].group(1) if h2_matches else ""
-    context = text[max(0, match.start() - 250) : match.end()]
-    lowered_line = line.lower()
-    lowered_section = section.lower()
-    lowered_context = context.lower()
-
-    if (
-        "option 3" in lowered_line
-        or "re-alignment" in lowered_line
-        or "realignment" in lowered_line
-        or "還有地方要對焦" in line
-    ):
-        return "AskUserQuestion:input-gate"
-    if (
-        "stage g" in lowered_section
-        or "approval" in lowered_section
-        or "stage g" in lowered_line
-        or "approval" in lowered_line
-        or "approved" in lowered_line
-        or "final proposal" in lowered_context
-        or "four-option gate" in lowered_context
-        or "批准" in line
-        or "核可" in line
-        or "自由文字批准" in line
-    ):
-        return "AskUserQuestion:authorization"
-    if (
-        "stage a" in lowered_section
-        or "alignment" in lowered_section
-        or "stage a" in lowered_line
-        or "before planning" in lowered_line
-        or "each round" in lowered_line
-        or "對焦" in line
-    ):
-        return "AskUserQuestion:think"
-    if "label" in lowered_line:
-        return "AskUserQuestion:cosmetic"
-    return "AskUserQuestion:unclassified"
+    # Every interaction point in the rebuilt think skill (alignment rounds,
+    # constraint surfacing, verdict/recommendation/handoff confirmations) is an
+    # Input-class ask — references/loop-pauses.md is the authority. One class,
+    # one rewrite.
+    return "AskUserQuestion:think"
 
 
 CODEX_SKILL_ADAPTERS: dict[str, str] = {
     "think": """## Codex Port Adapter - Request User Input Gate
 
-Codex can expose the structured `request_user_input` runtime tool. In Default mode it is currently gated by `[features] default_mode_request_user_input = true`; a skill cannot enable that user configuration itself. This skill is countering the model's inertia to skip alignment and start designing immediately, so use the strongest gate available in the current runtime.
+Codex can expose the structured `request_user_input` runtime tool. In Default mode it is currently gated by `[features] default_mode_request_user_input = true`; a skill cannot enable that user configuration itself. This skill is countering the model's inertia to assume the user has already thought the request through, so use the strongest gate available in the current runtime.
 
-When `request_user_input` is exposed, call it once per Stage A round with one question and 2-3 fundamentally different options, then wait for the structured answer before continuing. Do not create or require `alignment.md` on this runtime-tool path.
+When `request_user_input` is exposed, call it once per interaction point — each alignment round (one question, 2-3 fundamentally different options, one marked 【推薦】), the constraint-surfacing round before a 存廢 verdict, and each confirmation (verdict, recommendation, or handoff sheet) — then wait for the structured answer before continuing.
 
-When `request_user_input` is unavailable, preserve the artifact fallback: Phase 1 outputs only numbered alignment questions and stops; Phase 2 may produce the five-section plan only after `alignment.md` records the user's answers. Refuse to plan while that artifact is missing.
-
-The four-option Stage G gate exceeds the runtime tool's 3-option limit. Preserve all four semantics with two conditional questions: first offer 「送 $review 再決定」 versus 「直接決定」; only after 「直接決定」 ask 「批准實作」 / 「還有地方要對焦」 / 「放棄」. The automatically-added Other field is free text, not a stable fourth option. If the tool is unavailable, present the original four options directly and stop.
-
-Authorization PAUSE remains a hard stop on both paths. The runtime tool replaces the old artifact gate only when it is actually exposed; it does not guarantee answer quality.""",
+When `request_user_input` is unavailable, present the same question as plain numbered text and stop until the user answers. Every interaction point in this skill is an Input PAUSE: the user's answer is the material the verdict or handoff sheet is built from, and a fabricated answer would defeat the skill's founding purpose. The runtime tool replaces the text prompt only when it is actually exposed; it does not guarantee answer quality.""",
     "review": """## Codex Port Adapter - Review Isolation
 
 This skill is countering the model's inertia to rubber-stamp its own prior work. Before relying on spawned reviewers as anti-hallucination evidence, run or consult a `codex-isolation-probe.md` conclusion for this Codex runtime. If native Codex subagents receive clean independent context, spawn the perspective agents directly. If they inherit enough parent context to rubber-stamp the current answer, run each perspective in an independent Codex invocation or session, write each result to an artifact file, then synthesize from those files.
@@ -1131,23 +1087,6 @@ def rewrite_body(
         tool_count += ask_count
         for key in sorted(ask_keys_seen):
             note_capability(report, key)
-
-    if report.skill_name == "think":
-        valid_stage_g = (
-            "After the plan is presented, run the Codex adapter's conditional "
-            "two-question `request_user_input` flow. The four entries below are "
-            "the stable semantic outcomes, not one tool-call payload."
-        )
-        body, stage_g_count = re.subn(
-            r"After the plan is presented, call `request_user_input` with "
-            r"(?:these )?four options\.",
-            valid_stage_g,
-            body,
-        )
-        if stage_g_count:
-            report.rewrites.append(
-                "think Stage G 四選項改寫為條件式兩段 `request_user_input` flow"
-            )
 
     if report.skill_name == "book":
         oversized_batch = re.compile(

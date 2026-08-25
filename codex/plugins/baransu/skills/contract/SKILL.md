@@ -137,4 +137,4 @@ Verbatim Constants；完工後跑 $seal 驗收。」
 
 - Task spans ≥2 interdependent modules or needs a task DAG → 先切片：把整件事畫成決策圖、切成 contract 頻段的片，每片各自立約（裝了 common 套件時可走 wayfinder／delegate／strategic-advance——先偵測，不要假設有裝）.
 - Work is already done and needs verification → `$seal`.
-- The ask is a value judgment (worth doing?) → `$think` Evaluation Mode.
+- The ask is a value judgment (worth doing?) → `$think` 存廢判決 (Kill/Keep/Pivot).

@@ -2,6 +2,13 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [5.0.0] - 2026-08-25
+
+### Changed
+- **`/think` 從零重建為判決型 skill**。三條路徑（存廢判決 Kill/Keep/Pivot、選型判決 A-or-B 官方優先、對焦交棒 三輪對焦→交棒單路由）取代舊五段計畫＋Lightweight＋Evaluation 三模式。不再產出計畫——判決或交棒單產出後交由 `/contract`、wayfinder、或 `_shared/tdd.md` §7 接手。Verbatim Constants：verdict 行、推翻條件行、交棒單四欄位、Automation 行四組照抄模板。SKILL.md 從 478 行縮至 ≤250 行。
+- **發行面全面同步**：CLAUDE.md 技能表 row、baseline.txt、plugin.json / marketplace.json 版號 4.0.0→5.0.0、AGENTS.md skill count 修正（fifteen→fourteen）、evals 五案改為新路由、loop-pauses.md 重寫為三列新互動點。
+- **測試改寫**：`test-inertia-distillation-contracts.sh` think sections 改 pin 新 verdict/handoff schemas；新增 `test-think-rework.sh` pin Verbatim Constants byte-exactly。
+
 ## [4.0.0] - 2026-08-14
 
 ### Removed

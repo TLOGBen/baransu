@@ -76,7 +76,7 @@ TaskUpdate: status=completed
         self.assertIn("TaskCreate", rpt.capability_risks)
         self.assertIn("TaskUpdate", rpt.capability_risks)
 
-    def test_think_ask_user_prefers_runtime_tool_with_artifact_fallback(self):
+    def test_think_ask_user_prefers_runtime_tool_with_text_fallback(self):
         rpt = transfer.TransferReport(
             skill_name="think",
             source=Path("source"),
@@ -87,44 +87,47 @@ TaskUpdate: status=completed
         out = transfer.inject_codex_port_adapter(out, rpt)
 
         self.assertIn("Codex Port Adapter - Request User Input Gate", out)
-        self.assertIn("model's inertia to skip alignment", out)
+        self.assertIn(
+            "model's inertia to assume the user has already thought the request through",
+            out,
+        )
         self.assertIn("`request_user_input`", out)
         self.assertIn("default_mode_request_user_input", out)
-        self.assertIn("require `alignment.md` before planning", out)
-        self.assertIn("four-option Stage G gate", out)
-        self.assertIn("two conditional questions", out)
+        self.assertIn("plain numbered text and stop until answered", out)
+        self.assertIn("Input PAUSE", out)
+        self.assertIn("each alignment round", out)
         self.assertIn("AskUserQuestion:think", rpt.capability_risks)
         self.assertEqual(
-            "runtime-tool+artifact-fallback",
+            "runtime-tool+text-fallback",
             rpt.capability_risks["AskUserQuestion:think"].codex_level,
         )
 
-    def test_think_ask_user_occurrences_are_context_classified(self):
+    def test_think_ask_user_occurrences_all_classify_as_input_gate(self):
         rpt = transfer.TransferReport(
             skill_name="think",
             source=Path("source"),
             target=Path("target"),
         )
-        body = """## Stage A — Alignment
-Then call `AskUserQuestion` with options.
+        body = """## Route 1 — 存廢判決 (Kill / Keep / Pivot)
+ask exactly one round of questions via AskUserQuestion to surface context.
+Present the verdict to the user via AskUserQuestion.
 
-## Stage G — Approval
-After the plan is presented, call `AskUserQuestion` with four options.
-
-**Option 3 — 還有地方要對焦.** Call `AskUserQuestion` to find out what needs re-alignment.
+## Route 3 — 對焦交棒 (Align then hand off)
+Ask via AskUserQuestion with 2-3 options that are fundamentally different.
 """
 
         out = transfer.rewrite_body(body, rpt)
 
-        self.assertIn("Then call `request_user_input` with options", out)
-        self.assertIn("conditional two-question `request_user_input` flow", out)
-        self.assertIn("Call `request_user_input` to find out", out)
+        self.assertNotIn("AskUserQuestion", out)
+        self.assertEqual(
+            3, out.count("the `request_user_input` interaction gate")
+        )
+        self.assertIn("plain numbered text and stop until answered", out)
         self.assertIn("AskUserQuestion:think", rpt.capability_risks)
-        self.assertIn("AskUserQuestion:authorization", rpt.capability_risks)
-        self.assertIn("AskUserQuestion:input-gate", rpt.capability_risks)
-        self.assertNotIn("`run the Codex alignment gate: output numbered alignment questions, stop, then require `alignment.md` before planning`", out)
-        self.assertIn("conditional two-question `request_user_input` flow", out)
-        self.assertIn("stable semantic outcomes, not one tool-call payload", out)
+        self.assertNotIn("AskUserQuestion:authorization", rpt.capability_risks)
+        self.assertNotIn("AskUserQuestion:unclassified", rpt.capability_risks)
+        self.assertNotIn("alignment.md", out)
+        self.assertNotIn("authorization semantics", out)
         self.assertNotIn(
             "call `request_user_input` with these four options",
             out,
@@ -422,7 +425,10 @@ class TestCapabilityReport(unittest.TestCase):
         self.assertIn("Capability 降級風險 (weighted by model inertia)", text)
         self.assertLess(text.index("AskUserQuestion:think"), text.index("AskUserQuestion:cosmetic"))
         self.assertIn("strength=strong", text)
-        self.assertIn("counters=skipping alignment", text)
+        self.assertIn(
+            "counters=assuming the user has already thought the request through",
+            text,
+        )
         self.assertIn("T0-1", text)
         self.assertIn("T2-2", text)
         self.assertIn("### Next-port follow-ups", text)
@@ -1222,25 +1228,19 @@ class TestPluginModeGeneration(unittest.TestCase):
             self.assertIn("Plain-language presentation contract", think)
             self.assertIn("practical impact", think)
             self.assertIn("concrete next step", think)
-            self.assertIn("behavior-complete candidates", think)
-            self.assertIn("stated success, failure, and edge outcomes", think)
-            self.assertIn("suppress/hide/bypass", think)
-            self.assertEqual(
-                1,
-                think.count("承重前提：{X}；若不成立：{實際後果 Y}；設計如何承受：{Z}。"),
-            )
+            self.assertEqual(1, think.count("「判決：{Kill|Keep|Pivot}——{一句話結論}」"))
+            self.assertEqual(1, think.count("「推翻條件：{什麼證據出現，本判決即翻}」"))
+            self.assertIn("## 目的（一句話）", think)
+            self.assertIn("## 未決（Unknowns）", think)
             self.assertLessEqual(len(think.splitlines()), 500)
             self.assertIn("Codex Port Adapter - Request User Input Gate", think)
             self.assertIn("`request_user_input`", think)
             self.assertIn("default_mode_request_user_input", think)
-            self.assertIn("alignment.md", think)
-            self.assertIn("four-option Stage G gate", think)
-            self.assertIn("two conditional questions", think)
-            self.assertIn("stable semantic outcomes, not one tool-call payload", think)
-            self.assertNotIn(
-                "call `request_user_input` with these four options",
-                think,
-            )
+            self.assertIn("Input PAUSE", think)
+            self.assertIn("each alignment round", think)
+            self.assertIn("interaction gate", think)
+            self.assertNotIn("alignment.md", think)
+            self.assertNotIn("authorization semantics", think)
 
             review = (plugin_out / "skills" / "review" / "SKILL.md").read_text(encoding="utf-8")
             self.assertIn("Plain-language presentation contract", review)

@@ -5,7 +5,7 @@ description: Improves, scores, or evolves a SKILL.md via a forward-only ratchet 
   judges; kept only on strict improvement, else the snapshot is restored. Dual-axis
   evaluation (structure + effectiveness), held-out validation, Kami result card; adoption
   is an Authorization PAUSE. Not for authoring a brand-new SKILL.md, or deciding whether
-  a skill should exist ($think Evaluation Mode). Trigger on '$evolve', '優化 skill',
+  a skill should exist ($think 存廢判決 Kill/Keep/Pivot). Trigger on '$evolve', '優化 skill',
   'skill 評分', '演化 skill', 'optimize skill', 'improve skill quality', 'evolve a skill',
   '幫我改 skill'. 繁體中文輸出。
 compatibility: Designed for Claude Code; ported to Codex.
@@ -49,7 +49,7 @@ All user-visible output is in **Traditional Chinese (繁體中文)**.
 
 ## When to use / not
 
-Use when a SKILL.md (or any skill-shaped instruction file) should be measurably improved against a stable rubric. Not for: writing a new skill from scratch (that is authoring, not evolution); one-off prose edits (just edit it); judging whether a skill should exist (a value call — that is `../think/SKILL.md` Evaluation Mode).
+Use when a SKILL.md (or any skill-shaped instruction file) should be measurably improved against a stable rubric. Not for: writing a new skill from scratch (that is authoring, not evolution); one-off prose edits (just edit it); judging whether a skill should exist (a value call — that is `../think/SKILL.md` Route 1 存廢判決 (Kill/Keep/Pivot)).
 
 ## The four pillars (do not weaken)
 

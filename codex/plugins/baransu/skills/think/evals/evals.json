@@ -4,38 +4,38 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "我想幫 App 加上離線同步，怎麼設計比較好？",
-      "should_trigger": true,
-      "expected_skill": "think",
-      "expected_behavior": "Plan mode: Stage A alignment questions first, then a five-section approved plan. Never produces code, scaffolding, or pseudo-code."
-    },
-    {
-      "id": 2,
       "prompt": "這個模組值不值得留？",
       "should_trigger": true,
       "expected_skill": "think",
-      "expected_behavior": "Evaluation Mode: single-line Kill/Keep/Pivot verdict with rationale. No five-section plan is produced."
+      "expected_behavior": "Route 1 (存廢判決): Kill/Keep/Pivot verdict with three grounded reasons and a falsifier line."
     },
     {
-      "id": 3,
+      "id": 2,
       "prompt": "I want to build a rate limiter for our API — which approach should I take?",
       "should_trigger": true,
       "expected_skill": "think",
-      "expected_behavior": "Plan mode: approach comparison inside the five-section plan; hands off to implementation, writes no code."
+      "expected_behavior": "Route 2 (選型判決): candidate comparison with official-first ordering and a recommendation."
+    },
+    {
+      "id": 3,
+      "prompt": "我想幫 App 加上離線同步，怎麼設計比較好？",
+      "should_trigger": true,
+      "expected_skill": "think",
+      "expected_behavior": "Route 3 (對焦交棒): three alignment rounds (目的→約束→成功) then a four-field handoff sheet routed by band."
     },
     {
       "id": 4,
       "prompt": "判斷一下這個報錯",
       "should_trigger": false,
       "expected_skill": "hunt",
-      "expected_behavior": "Judgment request paired with an existing error/報錯 is debugging — routes to /hunt, not /think Evaluation Mode."
+      "expected_behavior": "Judgment request paired with an existing error/報錯 is debugging — routes to /hunt, not /think."
     },
     {
       "id": 5,
       "prompt": "直接幫我把離線同步的 scaffolding 寫出來",
       "should_trigger": false,
       "expected_skill": null,
-      "expected_behavior": "Writing actual code/scaffolding is downstream implementation — /think never does that."
+      "expected_behavior": "Writing actual code/scaffolding is downstream implementation — /think produces verdicts and handoff sheets, never code."
     }
   ]
 }

@@ -28,7 +28,7 @@
       "prompt": "這個 bug 值不值得修？",
       "should_trigger": false,
       "expected_skill": "think",
-      "expected_behavior": "Worth-fixing value call routes to /think Evaluation Mode."
+      "expected_behavior": "Worth-fixing value call routes to /think 存廢判決 (Kill/Keep/Pivot)."
     },
     {
       "id": 5,

@@ -64,14 +64,15 @@ assert_order("hunt success", hunt, ("根因：", "修復：", "確認方式：",
 assert_order("hunt handoff", hunt, ("症狀：[", "已測試的假說：", "已蒐集的證據：", "已排除的根因：", "尚不知道的事：", "建議下一步："))
 
 think = skills["think"]
-if "Line 1 is exactly one of **Kill** / **Keep** / **Pivot**" not in think:
-    failures.append("think: Evaluation verdict-first contract changed")
-assert_order("think full", think, (
-    "## Building（要做什麼）",
-    "## Not building（明確不做的事）",
-    "## Approach（選了哪個方案及理由）",
-    "## Key decisions（關鍵決策）",
-    "## Unknowns（已知不知道的事）",
+if think.count("「判決：{Kill|Keep|Pivot}——{一句話結論}」") != 1:
+    failures.append("think: verdict-line verbatim template changed")
+if think.count("「推翻條件：{什麼證據出現，本判決即翻}」") != 1:
+    failures.append("think: falsifier-line verbatim template changed")
+assert_order("think handoff", think, (
+    "## 目的（一句話）",
+    "## 約束",
+    "## 成功判準",
+    "## 未決（Unknowns）",
 ))
 
 review = skills["review"]

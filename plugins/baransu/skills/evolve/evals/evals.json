@@ -35,7 +35,7 @@
       "prompt": "這個 skill 該不該留？",
       "should_trigger": false,
       "expected_skill": "think",
-      "expected_behavior": "Whether a skill should exist is /think Evaluation Mode."
+      "expected_behavior": "Whether a skill should exist is /think 存廢判決 (Kill/Keep/Pivot)."
     },
     {
       "id": 6,

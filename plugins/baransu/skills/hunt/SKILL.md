@@ -1,7 +1,7 @@
 ---
 name: hunt
 description: >
-  Tracks a bug from symptom to root cause before any fix: picks the right observability tool (playwright / MCP db / LSP / logs / static analysis), bisects, confirms or discards hypotheses before touching code. Trigger On 「排查」「查 bug」「追問題」「為什麼失敗」, 'debug', "what's wrong", 'not working'. Not For: subjective UI taste (→ /baransu:design); worth-fixing value calls / 值不值得修 (→ /baransu:think Evaluation Mode).
+  Tracks a bug from symptom to root cause before any fix: picks the right observability tool (playwright / MCP db / LSP / logs / static analysis), bisects, confirms or discards hypotheses before touching code. Trigger On 「排查」「查 bug」「追問題」「為什麼失敗」, 'debug', "what's wrong", 'not working'. Not For: subjective UI taste (→ /baransu:design); worth-fixing value calls / 值不值得修 (→ /baransu:think 存廢判決 Kill/Keep/Pivot).
 when_to_use: "排查, 查查, 報錯, 崩潰, debug, why broken, not working, fix error, 找 bug, 追問題, 查問題, 狩獵, 定位根因, bisect, 為什麼失敗, what's wrong, hunt the bug"
 metadata:
   version: "1.0.0"

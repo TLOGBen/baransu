@@ -22,7 +22,7 @@ When working on any UI/UX content, read the design system at the project root an
 plugins/
   baransu/
     .claude-plugin/
-      plugin.json              # plugin manifest (v4.0.0)
+      plugin.json              # plugin manifest (v5.0.0)
     skills/
       think/ review/ contract/ seal/ write/ ship/ hunt/ health/ read/ learn/ book/ design/ codex-skill-transfer/ evolve/
       _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md, fact-check.md, contract-gate.md, selection-telemetry.md, distillation-candidate-matrix.md) + evals/ scripts/
@@ -52,20 +52,20 @@ Invoke with `/baransu:<name>`. To edit a skill, read its `SKILL.md` — design c
 
 | Skill | When to invoke | Not for（易混淆） |
 |-------|---------------|------------------|
-| `/think` | Before any new feature, architecture decision, or non-trivial design choice | 「判斷一下」＋報錯屬除錯 → `/hunt`；存廢/價值判斷走 Evaluation Mode，不出五段計畫 |
+| `/think` | Verdict before effort: 存廢判決 (Kill/Keep/Pivot), 選型判決 (A-or-B), or 對焦交棒 (align intent → handoff sheet). Never produces plans or code | 報錯/debugging → `/hunt`；完整計畫 → `/contract` or wayfinder；解釋 → not this skill |
 | `/review` | After any model output — code, plan, claim — for independent re-verification | 審「使用者專案」的 agent 配置與 AI 可維護性 → `/health` |
 | `/contract` | Medium tasks: pins a one-page work contract (goal / assertable criteria / surface inventory / verbatim constants) before implementing; owns the sealed-marker grammar and archives a sealed contract before writing over it | 跨模組大任務先切片，每片各自立約；事後驗收 → `/seal` |
 | `/seal` | After implementation, run as a dispatcher: assembles the payload, runs the baseline, dispatches a verify-only seal-agent in a clean context (criteria audit / unpinned-surface scan / cross-UI / constants byte-diff / mutation spot-check), fixes findings in the main session with re-verification capped at 2, and stamps the sealed marker only on a clean pass | 跨視角獨立重驗證 → `/review`；開工前釘條文 → `/contract` |
 | `/write` | Bilingual copywriting: `zh`/`en` prefix; Refine (existing text), Generate (new), or Proofread (findings table → `錯字修改.html`) | 寫完要 commit/push 的收尾 → `/ship` |
 | `/ship` | Session cleanup: archive `.claude/` dirs plus sealed root contracts, commit, push, optional worktree removal | 只收尾；不寫作、不審查 |
-| `/hunt` | Bug diagnosis: symptom → root cause via observability-first investigation | 「值不值得修」是價值判斷 → `/think` Evaluation Mode |
+| `/hunt` | Bug diagnosis: symptom → root cause via observability-first investigation | 「值不值得修」是價值判斷 → `/think` 存廢判決 (Kill/Keep/Pivot) |
 | `/health` | Audit the user project's agent configuration and AI-maintainability: budget-aware five-layer audit (config → instructions → tools → verifiers → maintainability) | baransu 自身結構驗證 → `scripts/verify-skills.py`；審單次模型輸出 → `/review` |
 | `/read` | Capture any content to offline Markdown: URL, path, glob, Chrome, `--topic`, `--web`, `--gh`, `--x` | 要消化成筆記 → `/learn`；要瀏覽器成品 → `/book` |
 | `/design` | UI/UX spec: `gen` (guided), `lint` (preset-agnostic structure + consistency, 6 checks A-F), `preset <name>`, `export-brief` | 技術架構文件（小寫 `design.md`）不歸這裡管 |
 | `/learn` | Research pipeline: Collect→Digest→Outline→Fill In→Refine; `--brief` stops at Digest | 只要離線原文不要筆記 → `/read` |
 | `/book` | Convert any content source (URL, `/read` slug, `/learn` digest, local file, `--text`) into a Kami-themed browser-ready HTML with SVG diagrams. Three stages: Acquire → Synthesize (technical/narrative/research) → Render (golden-template + validate-output.ts gate) | 要可編輯的 Markdown 工件 → `/read` 或 `/learn` |
 | `/codex-skill-transfer` | One-way port Claude Code skill / plugin / marketplace material to Codex format. Auto-detects single-skill / batch / plugin mode. Refuses `context: fork` skills (cross-boundary; surfaces three Codex paths). | 單向 Claude→Codex；不做反向移植 |
-| `/evolve` | Improve a SKILL.md against a fixed 9-dim rubric: forward-only ratchet, blind multi-judge, held-out validation | 寫新 skill 是 authoring 非演化 → 直接撰寫；存廢/價值判斷 → `/think` Evaluation Mode |
+| `/evolve` | Improve a SKILL.md against a fixed 9-dim rubric: forward-only ratchet, blind multi-judge, held-out validation | 寫新 skill 是 authoring 非演化 → 直接撰寫；存廢/價值判斷 → `/think` 存廢判決 (Kill/Keep/Pivot) |
 
 **14 is the skill-count ceiling** — adding a 15th requires retiring one first (以裁換建). Mechanism anchor: the skill-count check in `scripts/verify-skills.py`. Falsifiable amendment clause (2026-07-19, 14→15): if selection telemetry shows `/codex-skill-transfer` at zero use for three consecutive months, retire it and restore the ceiling to 13.
 

@@ -4,7 +4,7 @@ description: 'Tracks a bug from symptom to root cause before any fix: picks the 
   observability tool (playwright / MCP db / LSP / logs / static analysis), bisects,
   confirms or discards hypotheses before touching code. Trigger On 「排查」「查 bug」「追問題」「為什麼失敗」,
   ''debug'', "what''s wrong", ''not working''. Not For: subjective UI taste (→ $design);
-  worth-fixing value calls / 值不值得修 (→ $think Evaluation Mode).
+  worth-fixing value calls / 值不值得修 (→ $think 存廢判決 Kill/Keep/Pivot).
 
   '
 metadata:
