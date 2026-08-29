@@ -2,6 +2,11 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [5.2.0] - 2026-08-29
+
+### Added
+- **`/health` 環境醫生（Environment doctor／環境急診）**——生態系遇環境問題（skill 的 CLI/SDK 缺失、command not found、依賴壞損）的**預設調度目標**：其他 skill 撞到環境問題交給 /health，不就地即興。四步：先診斷再修（含 nvm 陷阱——node/npm 只在互動式 login shell 載入，非互動 shell 找不到不等於未安裝，先 `zsh -lic` 重試）；預設修法＝該工具官方一步「全域」安裝（如 `npm install -g <pkg>`，呼叫方指名版本即 pin）——此為「不得未確認修改」不變量的唯一豁免通道：調度本身指名工具即授權、一次一工具；硬限制（禁 sudo／替代品／source build／即興改道，一步裝失敗即大聲報錯附一行人工修法）；固定收據 `ENV_DOCTOR ｜ tool ｜ before ｜ action ｜ after ｜ shell` 成敗必發。description/when_to_use 補環境問題觸發詞（command not found、環境問題、依賴缺失、SDK 沒裝）。起因：kamishibai SDK 上 npm 前夕「新環境首用自動安裝」意圖零載體，統帥裁定 bootstrap 不散進各 skill、集中於健檢器官。Gotchas 補 nvm 列。codex 變體同步。
+
 ## [5.1.0] - 2026-08-29
 
 ### Changed

@@ -1,10 +1,10 @@
 ---
 name: health
 description: >
-  Audits a project's agent configuration and AI-coding maintainability — instruction drift, hooks/MCP, verifier surfaces, code-rot signals — via a budget-aware five-layer audit; escalates to inspector subagents only for deep audits. Trigger On '/health', '健康檢查', '配置體檢', '檢查配置', 'AI 可維護性', 'agents ignoring instructions'. Not for verifying baransu's own skill structure (scripts/verify-skills.py), reviewing a single model output (/review), or substituting for lint/typecheck. 繁體中文輸出。
-when_to_use: "檢查 claude, 檢查 codex, 配置對不對, 健康度, AI coding 腐化, 程式碼變爛, 上下文混亂, 驗證缺失, hooks 沒生效, MCP 壞了, AGENTS.md, agent instructions, check config, audit config, health check, config drift"
+  Audits a project's agent configuration and AI-coding maintainability — instruction drift, hooks/MCP, verifier surfaces, code-rot signals — via a budget-aware five-layer audit; escalates to inspector subagents only for deep audits. Also the DEFAULT DISPATCH for environment problems — a skill's CLI/SDK missing, command not found（環境急診：預設修法＝官方一步全域安裝）. Trigger On '/health', '健康檢查', '配置體檢', '檢查配置', 'AI 可維護性', 'agents ignoring instructions'. Not for verifying baransu's own skill structure (scripts/verify-skills.py), reviewing a single model output (/review), or substituting for lint/typecheck. 繁體中文輸出。
+when_to_use: "檢查 claude, 檢查 codex, 配置對不對, 健康度, AI coding 腐化, 程式碼變爛, 上下文混亂, 驗證缺失, hooks 沒生效, MCP 壞了, AGENTS.md, agent instructions, check config, audit config, health check, config drift, command not found, 環境問題, 依賴缺失, SDK 沒裝"
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
   scope: user-project-agent-config-and-maintainability
 ---
 
@@ -38,7 +38,7 @@ These hard rules hold across every step, tier, and mode. They are non-negotiable
 1. **Secret redaction.** Secrets, tokens, keys, and passwords appear only as `[REDACTED]`. Full keys are never printed — when a key must be touched at all, only `head -c 5` is permitted.
 2. **No raw config values.** Raw config values are never printed; report file:line and the key name instead.
 3. **Subagent depth = 1.** Inspectors never call any `/baransu:` skill and never dispatch further subagents. Being dispatched as a subagent does NOT disable this skill's own worker fan-out — the `Agent` tool is always available (probe run a928109). The depth=1 rule here governs the leaf inspectors this skill dispatches (they never dispatch further), NOT health's own ability to fan out its inspectors when health is itself hosted as a subagent. Fan-out is released unconditionally and is orthogonal to interactive-capability detection — it is never gated behind an AskUserQuestion proxy.
-4. **No unconfirmed mutation.** Never auto-apply fixes or auto-run destructive actions without explicit user confirmation.
+4. **No unconfirmed mutation.** Never auto-apply fixes or auto-run destructive actions without explicit user confirmation — sole exception: Environment doctor's default repair (the dispatch names the missing tool and is itself the confirmation; see that section's hard limits).
 
 ## Two lanes share one report
 
@@ -132,6 +132,32 @@ Treat agent memory and third-party skills as supply-chain artifacts. They run wi
 ### Long-running agent stop conditions
 
 If the project runs loops, autonomous agents, or any long-running agent flow, read `references/conditional-audits.md` §Long-running agent stop conditions before Step 2 and audit its four hard stop signals.
+
+## Environment doctor（環境急診 — default dispatch for environment problems）
+
+When this skill is invoked BECAUSE something hit an environment problem — a skill's
+CLI/SDK is missing, `command not found`, a runtime dependency broken — run this
+bounded rescue pass INSTEAD of the five-layer audit (run the full audit too only when
+the user also asked for one). This is the ecosystem's default routing target:
+other skills that hit an environment problem hand it here rather than improvising
+in place.
+
+1. **Diagnose before repairing.** Name the missing tool, the invocation surface,
+   and the PATH state. Known trap: nvm loads node/npm only in interactive login
+   shells — a non-interactive shell missing `npm` proves nothing; retry via a
+   login shell (e.g. `zsh -lic 'command -v npm'`) before concluding it is absent.
+2. **Default repair — pre-authorized by the dispatch itself.** The missing tool's
+   official one-step install, GLOBAL by default (e.g. `npm install -g <pkg>`),
+   version-pinned when the caller names one. This is the one sanctioned exception
+   to the "never auto-apply fixes" non-goal: dispatching the environment doctor for a
+   named tool IS the confirmation, exactly one tool per visit. Anything beyond
+   that named tool still requires confirmation.
+3. **Hard limits.** No `sudo`, no substitute tools, no source builds, no config
+   edits, no improvised detours. If the one-step install fails: stop and report
+   loudly — what failed, the exact one-line manual fix, and which shell to run it
+   in.
+4. **Fixed receipt** (always emitted, success or not):
+   `ENV_DOCTOR ｜ tool: {name} ｜ before: missing ｜ action: {install command | none} ｜ after: {version | still-missing＋原因} ｜ shell: {interactive|login-retry}`
 
 ## Step 2: Route analysis depth
 
@@ -234,7 +260,7 @@ If no issues: 「所有相關檢查通過，無需修正。」
 ## Non-goals
 
 - Never verify baransu's own skill **structure** (frontmatter, registries, skill counts) — that is `scripts/verify-skills.py`'s job. Auditing the baransu repo as a normal audited project — its agent config, instruction surfaces, maintainability — is legitimate and in scope. Plugin-style repos keep their skills under `plugins/*/skills`, so the collector's `.claude/skills`-oriented counting reports 0 there — treat the plugin skill dirs as the project's skill surface when analyzing.
-- Never auto-apply fixes without confirmation.
+- Never auto-apply fixes without confirmation — sole exception: Environment doctor's default repair, where the dispatch names the missing tool and is itself the confirmation.
 - Never apply complex-tier checks to simple projects.
 - Never act as a heavy lint, typecheck, duplication, or architecture-rewrite substitute; `/health` reports maintainability guardrails and concrete next actions only.
 
@@ -250,3 +276,4 @@ If no issues: 「所有相關檢查通過，無需修正。」
 | Treated missing specs/docs as a failure | Decision artifacts are optional by default. Escalate missing docs/specs only when the tier, active handoff risk, or user request makes them necessary. |
 | Treated an ignored AGENTS/CLAUDE file as durable project truth | Report whether the rule is tracked and distributed. Local overlays can inform the audit, but durable fixes belong in public repo docs or shipped skill/rule files. |
 | Treated a review scorecard as maintainability documentation | Scorecards are snapshots. Extract the invariant and verification path, then remove or archive the report instead of calling the score itself a durable rule. |
+| 非互動 shell 找不到 node/npm 就判定未安裝 | nvm 只在互動式 login shell 載入——先以 `zsh -lic` 重試，再下「未安裝」結論 |
