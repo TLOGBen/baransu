@@ -105,25 +105,94 @@ findings against it. The mandate, point by point:
 5. **Mutation spot-check** — deliberately break 1-2 user-facing surfaces, run
    the payload's test command, and record which test fired (or that none did);
    degrades to a static pin-audit when the payload's degradation flag is set.
+   Every probe MUST first pay the entry fee and be ranked by the selection
+   standard in **Probe admission** below — an unpaid probe is never injected.
    Before injecting each probe the agent saves the target file's exact
    pre-probe content byte for byte to the payload's scratch path; the only
    permitted revert is writing that saved copy back, confirmed by byte-for-byte
    comparison (full protocol in the agent definition). A probe that no test
    catches is a finding, never a shrug.
 
+## Probe admission (verbatim-shared clause — SKILL.md and seal-agent.md MUST match word for word)
+
+**Entry fee (per probe, paid in writing BEFORE injection)** — list the real
+operation chain the probe replays: which future real actor, under what normal
+operation, and step by step which step walks through the existing process
+discipline (diff review, self-verification, first-hand handover data) without
+being caught. A chain that does not walk through end to end is a paper exercise
+and that probe is NOT admitted. An arbitrary character mutation with no
+corresponding real operator is inadmissible; "it could happen" is not an entry
+fee. The chain travels in the probe record as `operation_chain`, so the
+dispatcher can audit the fee that was paid.
+
+**Selection standard** — rank admissible probes by the consequence severity of
+the DEFENCE BREACH each one would expose. A probe that would expose a whole
+family of hollow assertions of one shape (e.g. the bare-value `includes` form)
+is ranked at the heaviest surface that family of judges guards — never at the
+surface consequence of the mutated object itself, and never by adjacency to the
+previous round's finding (streetlight ban).
+
+**Zero-probe exit clause** (the same shape as the existing "no runnable suite"
+degradation path) — when the slice offers NO admissible probe target at all,
+point 5 is recorded as 未執行, and that fact is ITSELF a top-level finding;
+silently judging 符合 is forbidden.
+
 ## Fix loop (dispatcher side)
 
 The agent returns structured findings; it never fixes. In the main session:
 
-1. **Apply in-band fixes** — an unpinned surface, a constant drift, a criteria
+1. **Apply in-band fixes**, graded per **Findings grading** below — an unpinned
+   surface, a constant drift, a criteria
    violation with an obvious minimal fix: fix directly, pair each fix with a
    pinning test, re-run the suite to green (relative to the baseline red set).
 2. **Re-dispatch for re-verification** with a refreshed payload and a fresh
-   fingerprint. **Re-verification cap: 2** — the initial dispatch plus at most
-   2 re-verification dispatches (total dispatches ≤3).
+   fingerprint. **A re-verification dispatch is NOT a second five-point
+   excavation.** Its mandate is exactly these three mechanical replays, and the
+   dispatch payload names them in place of the five-point mandate:
+   (a) **Regression on fixed findings** — every finding from the previous round,
+   one by one, re-checked at its own citation.
+   (b) **Re-fire every probe that already bit in the first dispatch** — those
+   probes produced no finding and appear nowhere in the fix list, and the fix
+   round is the single most likely step to hollow them out (recorded case: a fix
+   round's stub isolation passed handover review and was caught only by
+   re-firing those probes during re-verification).
+   (c) **Hollowness spot-check on judges newly created in the fix round** — an
+   implementer's self-proof of "exactly one red" certifies ONLY the one
+   discriminating branch that actually went red, never the whole protected
+   surface the judge claims for itself; the re-verifier issues every newborn
+   judge its own red (its birth certificate).
+   **Findings newly discovered during re-verification are report-only** — logged
+   in the report, not fixed. The ONE exception: an irreversible / data-destroying
+   class is fixed immediately, and that fix does NOT count against the
+   re-verification cap. **Re-verification cap: 2** — the initial dispatch plus at
+   most 2 re-verification dispatches (total dispatches ≤3). The fingerprint
+   comparison rule is unchanged.
 3. **Over the cap with findings still open** → stop the loop, write NO sealed
    marker, append seal-log `unresolved`, and report:
    「複驗上限已達（2 次）：{N} 項未清 findings 如下，未蓋章（seal-log: unresolved）。」
+
+**Findings grading — one axis only: consequence severity.** Rank is never taken
+from which mandate point found it, how cheap the fix looks, or how visible the
+mutated object is. When the contract's Surface Inventory carries an impact
+class (G4 impact grammar), that class is the severity source of truth — the
+grading below applies on its own only to surfaces the contract never
+classified.
+
+- **Must-fix**: irreversible consequences (data corruption / data loss) and
+  broken shipped contracts (an already-published behavioral contract, a
+  licensing or compliance breach). These are fixed in-band.
+- **Surface assets** (styling, copy, color tokens, letter-spacing) carry a
+  low-severity DEFAULT PRIOR — a prior, not a verdict. First-hand evidence (an
+  actual probe result, or a whole family of hollow assertions exposed by a
+  judge's shape) overturns the prior and raises the severity.
+- **Low-rank findings default to logged, not fixed** — the report leaves them to
+  the user's discretion.
+- A surface-asset judge receives EXACTLY ONE round of probes in its lifetime
+  (its birth certificate); later rounds do not re-fire probes at it. The round
+  is counted per seal ENGAGEMENT, not per dispatch: within one engagement,
+  re-verification replay (b) re-fires every probe that already bit regardless
+  of the judge's asset class — a probe that bit is evidence, not a prior. What
+  the cap forbids is fresh probes at that judge in later seal engagements.
 
 Per the shared Loose-Criterion Escalation rule: a real defect the criteria are
 too loose to reject is a SPEC BUG — fix the defect AND record the criteria

@@ -86,9 +86,10 @@ prohibition-style criterion}
 - [ ] A2: ...
 
 ## 錯不起表面（Surface Inventory）
-{G4 table: surface → exact format → pinning test name (to be written)}
-| 表面 | 格式 | 釘死測試 |
-|------|------|----------|
+{G4 table: surface → exact format → impact per the G4 impact grammar（資產 →
+一句後果｜類別；no asset, no pinned surface）→ pinning test name (to be written)}
+| 表面 | 格式 | 影響（資產 → 後果｜類別） | 釘死測試 |
+|------|------|--------------------------|----------|
 
 ## Verbatim Constants
 {G3 fenced block — every regex / format string / magic literal, copy-paste

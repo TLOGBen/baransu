@@ -2,6 +2,17 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [5.1.0] - 2026-08-29
+
+### Changed
+- **`/seal` 探針入場費（五點任務書第 5 點，SKILL.md 與 seal-agent 兩側逐字共用）**。每枚探針注入前必須先書面列出它重演的「真實操作鏈」——未來哪個真實行為者、在什麼正常操作下、逐步走到哪一步會穿過既有流程紀律（diff 對照／自驗／交卷一手數據）而不被攔；推演走不通的鏈是紙上談兵，該探針不得入單，任意字元竄改若無對應真實操作者一律不合格，「有可能會發生」不是入場費。選點按「被揭露的防線破口」後果嚴重度排序：一枚能揭露某族判官（如 `includes` 裸值形狀）整族空洞的探針，嚴重度以該族守護的最重表面計，不以被竄改物本身表面後果計，更不以上一輪 finding 的鄰域計（街燈禁令）。新增**零探針出口條款**（比照「無可執行測試套件」降級路徑）：本片若無任何合格探針標的，point 5 記為 `未執行`，且此事本身即 top-level finding——不得靜默判「符合」。原條文「A probe that no test catches is a finding, never a shrug」保留：入場費管誰能入單，該句管入單後的結果判讀。
+- **`seal-agent` 結構化回傳新增必填 `operation_chain`**。probe_record 每筆都要載入場費（誰／什麼正常操作／哪一步穿過紀律），缺欄即 malformed，使 dispatcher 能稽核付費事實；零探針時回傳 `probe_record: []` ＋ top-level `probe_admission: none-admissible`（逐一列出考慮過的候選與落榜理由），空 probe_record 而無此行同樣視為 malformed。
+- **複驗限縮為三件機械重放**（Fix loop）。複驗 dispatch 不是第二輪五點開掘，其任務書恰為：(a) 已修 findings 逐筆回歸；(b) 初驗中「已咬中」的探針全部重打——它們沒產生 finding、不在修單字面內，而修繕輪正是最可能把它們弄空的一步（實錄：修繕輪的 stub 隔離穿過交卷審查，靠複驗重打探針才咬出）；(c) 修繕輪新立判官的空洞性抽查——執行者的「紅恰一」自證只認證實際亮紅的那條鑑別分支，不認證判官自我宣稱的整個保護面，每個新生判官由複驗官親發一張紅（出生證明）。複驗中的新發現一律 report-only 入帳，**唯一例外**：不可逆／資料毀損類直接開修，且該修不計入複驗上限。複驗上限 2 與指紋比對規則不變。
+- **findings 單軸分級**（Fix loop）。分級唯一軸＝後果嚴重度，不看是哪一點掃出、不看修起來多便宜、不看被竄改物多顯眼。必修類＝不可逆後果（資料毀損／滅失）與已出貨契約破裂（已發布的行為契約、授權法遵破口）。「表層資產」（樣式、文案、色票、字距）低嚴重度只是**預設先驗、不是判決**——一手證據（探針實打結果、判官形狀揭露的整族空洞）可翻轉先驗升級嚴重度；低位 findings 預設入帳不修，報告中留使用者裁量；表層資產判官一生恰領一輪探針（出生證明），後續輪次不再重打。
+- **表層判官一輪計法補優先序**：輪以封緘 engagement 計、不以 dispatch 計——同一次封緘內，複驗重放 (b) 對咬過的探針不分資產類別一律重打（咬過＝證據、非先驗）；上限禁止的是之後的封緘再對該判官開新探針。
+- **`/contract` G4 影響文法（`_shared/contract-gate.md` ＋ Step 2 模板）**。錯不起表面表新增「影響（資產 → 後果｜類別）」欄與入表費：影響格必須以受影響資產起句、接資產持有者會親身遭遇的一句後果、再標類別（不可逆／資料、邏輯核心、上下游契約、穩定性可靠性、UI/UX）——寫不出資產不入表（no asset, no pinned surface）、無人可感知的 epsilon 不成句、誠實歸類落在風格／命名／MOP 類者屬 lint 管區。類別欄是 `/seal` findings 分級的嚴重度真源：分級在立約時由使用者確認裁定，封緘時不再重議；seal 的分級先驗僅適用於合約未分類的表面。
+- 以上各條同步鏡射至 codex 變體（`codex/plugins/baransu/skills/seal/SKILL.md`、`codex/plugins/baransu/.codex-agents/seal-agent.toml`、`codex/plugins/baransu/skills/contract/SKILL.md`、`codex/plugins/baransu/skills/_shared/contract-gate.md`）；「Probe admission」共用段落在四份檔案間逐字相同。
+
 ## [5.0.0] - 2026-08-25
 
 ### Changed

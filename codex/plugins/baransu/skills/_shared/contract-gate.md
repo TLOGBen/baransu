@@ -42,11 +42,27 @@ against this block.
 
 Enumerate EVERY user-facing output surface the change touches (each CLI
 println, each TUI toast, each error path) in a table:
-surface → exact format (per G1) → pinning test name. Include a cross-UI
-consistency row: when two UIs express the same outcome, the spec MUST require
-a single shared formatting helper, pinned by tests on BOTH call paths — a test
-that mirrors the format function without invoking the real handler path does
-not count as pinning.
+surface → exact format (per G1) → impact（資產 → 一句後果｜類別）→ pinning
+test name. Include a cross-UI consistency row: when two UIs express the same
+outcome, the spec MUST require a single shared formatting helper, pinned by
+tests on BOTH call paths — a test that mirrors the format function without
+invoking the real handler path does not count as pinning.
+
+**Impact grammar — the table's entry fee.** The impact cell MUST open with the
+affected asset by name (whose what gets hurt), then the one-sentence
+consequence that asset's owner would actually suffer, then one impact class:
+不可逆／資料、邏輯核心、上下游契約、穩定性可靠性、UI/UX. No asset, no pinned
+surface — a row that cannot name an asset does not enter the table. A
+consequence the owner could never perceive (an imperceptible epsilon) does not
+complete the sentence; a concern that honestly classifies as style, naming, or
+any other measurement-side (MOP) matter belongs to lint and conventions, never
+here.
+
+**Downstream authority.** The impact class is the severity source of truth for
+`/seal`'s findings grading: 不可逆／資料, 邏輯核心 and 上下游契約 rows are
+must-fix tier; UI/UX rows carry the surface-asset prior (one birth-certificate
+probe round for their judge). The tier is decided here, at contract time, under
+the user's confirmation — never re-litigated at seal time.
 
 ## Loose-Criterion Escalation (reviewer side)
 
