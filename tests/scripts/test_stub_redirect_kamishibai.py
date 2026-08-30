@@ -28,6 +28,7 @@ BOOK_SKILL = SKILLS / "book" / "SKILL.md"
 DESIGN_SKILL = SKILLS / "design" / "SKILL.md"
 EVOLVE_SKILL = SKILLS / "evolve" / "SKILL.md"
 EVOLVE_OUTPUT_CONTRACT = SKILLS / "evolve" / "references" / "output-contract.md"
+CLAUDE_MD = WORKTREE_ROOT / "CLAUDE.md"
 
 # --- Verbatim Constants (CONTRACT.md §Verbatim Constants) -------------------
 BOOK_POINTER = (
@@ -55,6 +56,30 @@ BOOK_FORBIDDEN = ("validate-output.ts", "verify-render.py", "swiss-smoke-test.sh
 DESIGN_FORBIDDEN = ("check.py", "editorial-sanity.sh", "紙-sanity.sh")
 
 STAGE_HEADER_RE = re.compile(r"^#+\s*Stage\s", re.MULTILINE)
+
+# --- Bare in-repo `/book` prohibition (G1 form) ------------------------------
+# The first pass sampled output-contract.md by "lines containing card.html",
+# which could not see the orphan left on the Order line (`/write` → `/book` →
+# deliver). The rule is now whole-file: the retired in-repo entry may not be
+# named anywhere in that file. Exactly one sentence is exempt, and the
+# exemption is a verbatim allowlist entry — never a heuristic about wording —
+# so a newly introduced bare `/book` stays red until someone registers it here
+# on purpose.
+BARE_BOOK_TOKEN = "`/book`"
+BARE_BOOK_HISTORICAL_ALLOWLIST = (
+    # 5.3.0 note explaining why the entry name changed. Narrates the stub's
+    # existence; instructs no one to invoke it.
+    "Since baransu 5.3.0 the in-repo `/book` is a stub that only redirects there,",
+)
+
+# --- Frozen-asset declaration must stay a qualified claim -------------------
+# `book/references/loop-pauses.md` and `design/references/loop-pauses.md` are
+# still resolved by verify-skills.py Gate 10, so an absolute "no longer part of
+# any current flow" sentence is false as written. Each declaration carries the
+# Gate 10 exception plus the 6.0.0 disposal pointer.
+FROZEN_CLAIM_MARKER = "不再是任何現行流程的一部分"
+CLAUDE_CLAIM_MARKER = "may cite them as a current step"
+FROZEN_CLAIM_QUALIFIERS = ("Gate 10", "6.0.0")
 
 
 def read(path: Path) -> str:
@@ -145,10 +170,45 @@ class TestStubRedirect(unittest.TestCase):
                 f"{path.name}: card.html 產線仍指向已 stub 化的 in-repo `/book` 入口",
             )
         # The rule the repoint must not quietly drop.
+        contract_text = read(EVOLVE_OUTPUT_CONTRACT)
         self.assertIn(
-            "never hand-assemble", read(EVOLVE_OUTPUT_CONTRACT),
+            "never hand-assemble", contract_text,
             "output-contract.md 掉了 never-hand-assemble 規則（改指不得順手鬆綁紀律）",
         )
+        # Whole-file prohibition — sampling by card.html lines missed the Order
+        # line once already.
+        for lineno, line in enumerate(contract_text.splitlines(), start=1):
+            if BARE_BOOK_TOKEN not in line:
+                continue
+            self.assertTrue(
+                any(frag in line for frag in BARE_BOOK_HISTORICAL_ALLOWLIST),
+                f"output-contract.md:{lineno} 出現裸 {BARE_BOOK_TOKEN} 作為步驟受詞——"
+                "in-repo 入口自 5.3.0 起不執行，須改指 `/kamishibai:book`；"
+                "確屬歷史／敘述句者逐字登錄 BARE_BOOK_HISTORICAL_ALLOWLIST",
+            )
+
+    def test_frozen_asset_claim_is_qualified(self):
+        """The frozen-asset declaration is a qualified claim, not an absolute
+        one: Gate 10 still resolves both `references/loop-pauses.md` files, so
+        the sentence must name that exception and point its disposal at 6.0.0."""
+        surfaces = (
+            (BOOK_SKILL, FROZEN_CLAIM_MARKER),
+            (DESIGN_SKILL, FROZEN_CLAIM_MARKER),
+            (CLAUDE_MD, CLAUDE_CLAIM_MARKER),
+        )
+        for path, marker in surfaces:
+            lines = [l for l in read(path).splitlines() if marker in l]
+            self.assertTrue(
+                lines, f"{path.name}: 找不到凍結資產宣告句（marker: {marker}）"
+            )
+            for line in lines:
+                for qualifier in FROZEN_CLAIM_QUALIFIERS:
+                    self.assertIn(
+                        qualifier, line,
+                        f"{path.name}: 凍結資產宣告句缺限定詞「{qualifier}」——"
+                        "Gate 10 仍解析 references/loop-pauses.md，絕對句與驗證器"
+                        "矛盾；該指標之實體收殮屬 6.0.0",
+                    )
 
 
 if __name__ == "__main__":

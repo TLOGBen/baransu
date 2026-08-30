@@ -21,7 +21,7 @@ The package is read by a person, not a parser. Two user-facing surfaces MUST be 
 - **Convergence summary** (the in-conversation 繁中 wrap-up) and **card copy**: draft through `$write` (zh) first, so the prose is coherent and plain. A reader who did not watch the run should understand *what changed and why* without decoding `dim`/`headroom`/`alpha-beta` jargon. Do not dump the raw round-by-round technical trace at the user as the summary.
 - **Result card**: render through the kamishibai plugin's book skill (`/kamishibai:book`, slug or pasted-text mode) — **never hand-assemble HTML**. Hand-built cards drift from the book format and read as jumpy; that skill is what keeps the format, structure, and diagram conventions correct. Since baransu 5.3.0 the in-repo `$book` is a stub that only redirects there, so the entry name changed but the rule did not: the card is never hand-assembled.
 
-Order: `$write` the copy → feed the refined copy into `$book` → deliver. The card and the summary are *finished* artifacts, not debug dumps. (`log.md` / `results.tsv` stay raw — they are the audit trail, not the human-facing surface.)
+Order: `$write` the copy → feed the refined copy into `/kamishibai:book` → deliver. The card and the summary are *finished* artifacts, not debug dumps. (`log.md` / `results.tsv` stay raw — they are the audit trail, not the human-facing surface.)
 
 ## Held-out independence layer (REQ-004)
 

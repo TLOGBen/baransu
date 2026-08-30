@@ -37,4 +37,4 @@ UI/UX design specification skill（本版僅轉介）。All user-visible output 
 
 蟄伏機件（scripts/references）本版一位元未動，6.0.0 隨目錄實體退役——git 歷史即唯一備份（/analyze 前例）。
 
-本目錄下的 `scripts` 與 `references`（含三套 preset 與其 sanity 腳本）自 5.3.0 起是凍結資產，不再是任何現行流程的一部分：不得援引為現行步驟、不得被其他 skill 當作規格或閘門依據。等價能力一律走 kamishibai SDK。
+本目錄下的 `scripts` 與 `references`（含三套 preset 與其 sanity 腳本）自 5.3.0 起是凍結資產，除 Gate 10 loop-pauses 登記（驗證器仍解析 `references/loop-pauses.md`，該指標之實體收殮屬 6.0.0）外，不再是任何現行流程的一部分：不得援引為現行步驟、不得被其他 skill 當作規格或閘門依據。等價能力一律走 kamishibai SDK。
