@@ -2,6 +2,16 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [5.4.1] - 2026-08-30
+
+### Fixed
+- **防撞守衛前置為執行前條件**（F8d 封緘 F-1，不可逆類）。`references/proofread.md` §4 的「目標已存在→改用 `錯字修改-<YYYYMMDD-HHMMSS>.html`」原本寫在步驟 5，位置在渲染指令**之後**——而 `render` 一旦寫下去，舊報告就已經沒了，寫在後面的守衛救不回任何東西。改為步驟 3 的執行前條件：先確認 `-o` 目標不存在，已存在則把 `-o` 換成時間戳名，然後才跑指令。步驟 5 相應收斂為「目標即步驟 3 的 `-o`，防撞屬步驟 3」。Verbatim 渲染指令形一字未動。
+- **完工回報範本不再硬寫路徑**（F-1 連帶）。§5 的 `✅ 校對完成：.claude/write/錯字修改.html` 改為 `✅ 校對完成：{實際寫入路徑}`——撞名改寫時間戳名之後，範本若仍硬寫預設路徑，回報的就是一個不存在的檔案。
+- **位置關係斷言**（F-2）。`tests/skills/test-write-proofread-kamishibai.sh` 新增 E4：防撞語句的**行號**必須早於或等於帶 `-o .claude/write/錯字修改.html` 的首行。既有 E2／E3 只問「字面在不在」，對「在，但在指令後面」完全無感——F-1 那個缺陷正是這樣穿過去的。
+- **停手句正向釘**（F-3）。新增 D2b 釘住「CLI 不可用即說明並停手、不得退回手寫 HTML」字面。既有 D3 只是 `tokens.css` 反向釘，規格書若把停手句整句刪掉、什麼都不說，D3 照樣綠——而「什麼都不說」正是模型自行即興退路的溫床。
+- **SKILL.md 括號殘句收殮**（F-4）。`(analysis output + no SVG would fail book's red line and quality gate)` 改為指向單一真源：`(analysis output — the red line and the reasoning are preserved verbatim in references/proofread.md §4, the single source)`。baransu 的 `/book` 自 5.3.0 起是 stub，其紅線與品質閘實體已不在本 repo，原句是對已遷出物件的現在式斷言。`never routes through the /book pipeline` 字面照舊。
+- **description 一詞隨產線改道**（F-5）。frontmatter `book-styled 錯字修改.html` → `kamishibai-rendered 錯字修改.html`。觸發詞一個未增未減。
+
 ## [5.4.0] - 2026-08-30
 
 ### Changed

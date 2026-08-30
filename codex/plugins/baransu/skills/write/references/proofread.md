@@ -67,14 +67,23 @@ The output HTML is no longer hand-written. Write a Markdown corpus, then render 
    | 用語不妥 | `badge badge-diction` |
    | 語句不通順 | `badge badge-flow` |
 
-3. **Render**: `kamishibai render <語料.md> -t kami/long-form -o .codex/write/錯字修改.html`. The `kami/long-form` skin supplies the reading measure, the zebra striping, the `<mark>` treatment and the three badge hues — do not inline a `<style>` block of your own and do not post-process the artifact. The product is self-contained (fonts and styles are embedded; zero external requests). Verify with `kamishibai lint <output.html>`; a non-zero exit means the artifact is not shippable, so report the failure rather than handing over a broken file. If the `kamishibai` CLI is unavailable, say so and stop — do not fall back to hand-writing the HTML, which is exactly the divergence this route retired.
+3. **Render**. The collision check runs **before** the command, not after it — once `render` has written the file the earlier report is already gone, so this is an execution precondition, not a note to remember afterwards:
+
+   - Confirm the `-o` target does not already exist. If `.codex/write/錯字修改.html` is already there (a prior proofread of a possibly different document), do NOT silently clobber it: swap the `-o` argument for `.codex/write/錯字修改-<YYYYMMDD-HHMMSS>.html` (timestamp suffixes stay collision-proof under concurrent runs) and report that path in the completion line, so an earlier report is never lost.
+   - Then run, with `-o` set to whichever of the two paths the check selected:
+
+   ```
+   kamishibai render <語料.md> -t kami/long-form -o .codex/write/錯字修改.html
+   ```
+
+   The `kami/long-form` skin supplies the reading measure, the zebra striping, the `<mark>` treatment and the three badge hues — do not inline a `<style>` block of your own and do not post-process the artifact. The product is self-contained (fonts and styles are embedded; zero external requests). Verify with `kamishibai lint <output.html>`; a non-zero exit means the artifact is not shippable, so report the failure rather than handing over a broken file. If the `kamishibai` CLI is unavailable, say so and stop — do not fall back to hand-writing the HTML, which is exactly the divergence this route retired.
 4. **No validate-output.ts**: that gate enforces SVG presence and long-form section structure, neither of which applies to a report table. Do not run it; do not add a decorative SVG just to satisfy a gate that is not invoked here.
-5. **Write target**: `.codex/write/錯字修改.html` (create `.codex/write/` if absent) — this is the `-o` argument above. If `.codex/write/錯字修改.html` already exists (a prior proofread of a possibly different document), do NOT silently clobber it: render to `.codex/write/錯字修改-<YYYYMMDD-HHMMSS>.html` instead (the collision scheme defined in SKILL.md Stage 4 — timestamp suffixes stay collision-proof under concurrent runs) and report the renamed path in the completion line, so an earlier report is never lost.
+5. **Write target**: `.codex/write/錯字修改.html` (create `.codex/write/` if absent) — it is the `-o` argument of step 3, and the collision check that may replace it with `.codex/write/錯字修改-<YYYYMMDD-HHMMSS>.html` belongs to step 3, before the render runs (the collision scheme is the one defined in SKILL.md Stage 4). Whichever path was actually written is the one the completion line reports.
 
 ## 5. Completion report (Traditional Chinese)
 
 ```
-✅ 校對完成：.codex/write/錯字修改.html
+✅ 校對完成：{實際寫入路徑}
 共 {N} 處：錯別字 {a}｜用語不妥 {b}｜語句不通順 {c}
 頁數來源：{PDF 逐頁 ／ 無分頁（以段落上下文定位）}
 ```

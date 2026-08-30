@@ -127,6 +127,17 @@ else
   fail "D2. proofread.md does not verify the artifact with kamishibai lint"
 fi
 
+# D2b. The stop clause, pinned positively. D3 below only forbids the retired
+# hand-render path; without this the spec could drop the instruction to STOP
+# when the CLI is missing and still pass D3 by saying nothing at all — and
+# "say nothing" is exactly how an agent improvises its own fallback.
+if grep -qF 'If the `kamishibai` CLI is unavailable, say so and stop' "${SPEC_PATH}" \
+  && grep -qF 'do not fall back to hand-writing the HTML' "${SPEC_PATH}"; then
+  pass "D2b. proofread.md pins the stop-on-missing-CLI clause"
+else
+  fail "D2b. proofread.md lost the stop-on-missing-CLI clause (no fallback to hand-writing)"
+fi
+
 # The retired route must not linger as an alternative: a tokens.css fallback
 # next to a render command is an invitation to hand-write the HTML again.
 if grep -qF 'tokens.css' "${SPEC_PATH}"; then
@@ -164,6 +175,22 @@ if grep -qF 'do NOT silently clobber it' "${SPEC_PATH}"; then
   pass "E3. proofread.md keeps the do-not-clobber semantics"
 else
   fail "E3. proofread.md lost the do-not-clobber semantics"
+fi
+
+# E4. **Position**, not mere presence. A collision guard written *after* the
+# render command is a guard that runs after the file is already overwritten —
+# the destroyed report cannot be un-destroyed by a later paragraph. So compare
+# line numbers: the guard must appear strictly before, or on the same line as,
+# the first line carrying the `-o` target. Existence-only greps (E2/E3) are
+# blind to this, which is why the failure it guards against survived them once.
+guard_line="$(grep -nF 'do NOT silently clobber it' "${SPEC_PATH}" | head -1 | cut -d: -f1)"
+render_line="$(grep -nF -e '-o .claude/write/錯字修改.html' "${SPEC_PATH}" | head -1 | cut -d: -f1)"
+if [[ -z "${guard_line}" || -z "${render_line}" ]]; then
+  fail "E4. cannot compare positions — guard line or render line not found (guard='${guard_line}' render='${render_line}')"
+elif (( guard_line <= render_line )); then
+  pass "E4. collision guard (line ${guard_line}) precedes the render command (line ${render_line})"
+else
+  fail "E4. collision guard (line ${guard_line}) comes AFTER the render command (line ${render_line}) — it would run only once the earlier report is already overwritten"
 fi
 
 # ---------------------------------------------------------------

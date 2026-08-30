@@ -1,11 +1,11 @@
 ---
 name: write
 description: Refines existing text, generates a piece from a prompt, or proofreads
-  a document into an error-report HTML (book-styled 錯字修改.html findings table). Auto-classifies
-  input as Refine / Generate / Proofread; follows language prefix or auto-detects.
-  Use for bilingual zh/en writing help. Trigger On '$write', '潤稿', '寫一篇', '改寫這段',
-  '校對', '找錯字', '抓錯字', 'proofread'. Not for committing finished text ($ship) or digesting
-  sources into notes ($learn, $read).
+  a document into an error-report HTML (kamishibai-rendered 錯字修改.html findings table).
+  Auto-classifies input as Refine / Generate / Proofread; follows language prefix
+  or auto-detects. Use for bilingual zh/en writing help. Trigger On '$write', '潤稿',
+  '寫一篇', '改寫這段', '校對', '找錯字', '抓錯字', 'proofread'. Not for committing finished text
+  ($ship) or digesting sources into notes ($learn, $read).
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex
@@ -40,7 +40,7 @@ This exception is intentional. The skill's purpose is language-targeted copywrit
 - Content output language follows the prefix (or auto-detection). Operational notifications are always Traditional Chinese.
 - Refine mode never silently applies rules to incompatible-language content. Report the mismatch; do not guess.
 - Generate mode vague-topic fallback is always short prose. Do not ask the user to clarify before outputting — produce something and let the user re-invoke with a more specific prompt if needed.
-- Proofread mode reports, never rewrites: it emits the findings table, not a corrected document. It never fabricates a page number — unknown page → 「—」. It never routes through the $book pipeline (analysis output + no SVG would fail book's red line and quality gate); it writes a Markdown corpus and renders it with `kamishibai render -t kami/long-form`, which is the SDK's single-file renderer and not that pipeline. Precision over recall: an empty table is correct when the document is clean.
+- Proofread mode reports, never rewrites: it emits the findings table, not a corrected document. It never fabricates a page number — unknown page → 「—」. It never routes through the $book pipeline (analysis output — the red line and the reasoning are preserved verbatim in `references/proofread.md` §4, the single source); it writes a Markdown corpus and renders it with `kamishibai render -t kami/long-form`, which is the SDK's single-file renderer and not that pipeline. Precision over recall: an empty table is correct when the document is clean.
 
 ---
 
