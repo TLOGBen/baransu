@@ -2,6 +2,17 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [Unreleased]
+
+### Changed
+- **`/write` Proofread 產線改道 `kamishibai render`**（F8d）。`錯字修改.html` 不再由模型手寫 HTML，改為「產六欄 Markdown 語料 → `kamishibai render <語料.md> -t kami/long-form -o .claude/write/錯字修改.html` → `kamishibai lint` 驗收」。`references/proofread.md` §4 全段重寫，`write/SKILL.md` 的 Done-when／Output／Constraints／Stage 4 四處同步。CLI 不可用時明令停手回報，不得退回手寫 HTML——那正是本次改道要收掉的分叉。
+- **六欄表頭隨遷為無「／」形**：`段落／上下文` → `段落上下文`（proofread.md :10／:36／§4 全數改寫）。真源是 kamishibai S4 的凍結錨 `FINDINGS_HEAD`（`頁數/段落上下文/原文內容/錯誤類型/建議修正/修改原因`）；兩處各自逐字釘死，下游比對與統計以欄名為鍵，差一個字即斷契約。
+- **badge 三 class 入規格書為逐字常數**：`badge badge-typo`（錯別字）／`badge badge-diction`（用語不妥）／`badge badge-flow`（語句不通順），與 `<mark>` 同為儲存格行內 HTML（table cell raw passthrough）。列常數表的理由是失效模式**靜默**——class 拼錯只是退回無樣式純文字，檔案照開、表格照讀、無人報錯。樣式由 kamishibai `templates/kami/long-form/styles.css` 的三條規則（zebra／`.table mark`／badge 三色相）承接。
+- **`tokens.css` preset 段退場**：原 §4 第 1 步「讀 `{project_root}/tokens.css` 首行取 preset slug、缺檔則自訂 fallback 調色盤」整段移除——皮改由 `kami/long-form` 供給，規格書不再保留手寫 HTML 的退路（保留即等於留著舊分叉）。
+- **紅線一條未破**：`a proofreading table is analysis output (which /book's "no LLM commentary" red line forbids)` 一句原樣保留，另補一句澄清「`kamishibai render` 不是 /book 管線」——單檔渲染器，無 Acquire／Synthesize 階段、無 SVG 品質閘、無 LLM 評註規則可破，防後人把紅線讀成禁止本次改道。`write/SKILL.md` 的 `never routes through the /book pipeline` 字面保持為真；`No validate-output.ts` 與寫入目標／時間戳防撞語意（`.claude/write/錯字修改.html`、撞名改 `錯字修改-<YYYYMMDD-HHMMSS>.html`、不得靜默覆蓋）逐字保留。
+- **新增釘死測試** `tests/skills/test-write-proofread-kamishibai.sh`：表頭逐字、三 badge 常數逐字且與標籤同列、紅線句在檔、渲染指令形、`tokens.css` 反向釘（不得復活手寫路徑）、寫入目標與時間戳防撞語意，共 18 條。
+- codex 鏡像隨 `make mirror` 重產。
+
 ## [5.3.0] - 2026-08-30
 
 ### Changed
