@@ -2,7 +2,7 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
-## [Unreleased]
+## [5.4.0] - 2026-08-30
 
 ### Changed
 - **`/write` Proofread 產線改道 `kamishibai render`**（F8d）。`錯字修改.html` 不再由模型手寫 HTML，改為「產六欄 Markdown 語料 → `kamishibai render <語料.md> -t kami/long-form -o .claude/write/錯字修改.html` → `kamishibai lint` 驗收」。`references/proofread.md` §4 全段重寫，`write/SKILL.md` 的 Done-when／Output／Constraints／Stage 4 四處同步。CLI 不可用時明令停手回報，不得退回手寫 HTML——那正是本次改道要收掉的分叉。
