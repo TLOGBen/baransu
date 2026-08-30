@@ -59,7 +59,7 @@ any other measurement-side (MOP) matter belongs to lint and conventions, never
 here.
 
 **Downstream authority.** The impact class is the severity source of truth for
-`/seal`'s findings grading: 不可逆／資料, 邏輯核心 and 上下游契約 rows are
+`$seal`'s findings grading: 不可逆／資料, 邏輯核心 and 上下游契約 rows are
 must-fix tier; UI/UX rows carry the surface-asset prior (one birth-certificate
 probe round for their judge). The tier is decided here, at contract time, under
 the user's confirmation — never re-litigated at seal time.

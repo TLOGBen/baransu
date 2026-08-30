@@ -346,7 +346,7 @@ For **needs-judgment** items, batch-ask via `request_user_input` (1-3 questions 
 
 After the report has been presented in conversation, persist it as an HTML work journal:
 
-1. Render the full report as a single HTML file at `.codex/review/<slug>.html`, styled after the book golden-template. Derive `<slug>` per the shared contract's `$review` rule (Location section: the reviewed target's slug when it has one, else `{YYYY-MM-DD}-{target basename}`). The shared rendering contract lives at `../_shared/output-journal.md` — follow it.
+1. Render the full report as a single HTML file at `.codex/review/<slug>.html`, styled per the shared rendering basis (the kamishibai plugin's book skill since 5.3.0; never the baransu book skill's frozen template assets). Derive `<slug>` per the shared contract's `$review` rule (Location section: the reviewed target's slug when it has one, else `{YYYY-MM-DD}-{target basename}`). The shared rendering contract lives at `../_shared/output-journal.md` — follow it.
 2. Include an 「執行日誌」 section: off-spec decisions, forced changes, tradeoffs, and anything else from this run the user should know.
 3. Send the file to the user via write the artifact to disk and list its absolute path.
 

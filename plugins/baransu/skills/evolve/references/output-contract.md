@@ -11,7 +11,7 @@ Every run writes its working artifacts under `.claude/evolve/<slug>/`, where `<s
 | `convergence.svg` | Score-over-rounds curve. Effective-baseline line steps up only on keeps; restored rounds show as dips that do not lower the baseline. |
 | `held-out.md` | Held-out comparison: pre-evolution vs post-evolution score on the held-out prompt set, plus the **evidence-strength** label (see below). |
 | `report.md` | Run summary: start/end score, dimensions improved, convergence reason, **effectiveness_mode** (`real-exec` \| `offline-同源` \| `no-benchmark` — one value per run; Gate 3 decides once per run, so this is an enum, not a ratio) plus the Gate 3 reason, and per-axis evidence source. |
-| `card.html` | Kami-styled result card. Copy drafted through `/write`, then rendered **only through the `/book` entry** (`--text` / slug mode) — never hand-assembled, never reaching into `book`'s `references/` internals; copy the `/book` output HTML to `.claude/evolve/<slug>/card.html` (`/book` emits HTML, not PNG). Omitted on zero-adoption runs via SKILL.md Stage 7's lighter exit (noted in `report.md`). See §Human-readable delivery. |
+| `card.html` | Kami-styled result card. Copy drafted through `/write`, then rendered **only through the kamishibai plugin's book skill** (`/kamishibai:book`, taking a slug or a pasted text body) — never hand-assembled, never reaching into the frozen baransu `book/references/` internals; copy that output HTML to `.claude/evolve/<slug>/card.html` (it emits HTML, not PNG). Omitted on zero-adoption runs via SKILL.md Stage 7's lighter exit (noted in `report.md`). See §Human-readable delivery. |
 | `snapshot/<round>.md` | File-level snapshots (see `safety-gates.md` Gate 2). |
 
 ## Human-readable delivery (the output is for a human)
@@ -19,7 +19,7 @@ Every run writes its working artifacts under `.claude/evolve/<slug>/`, where `<s
 The package is read by a person, not a parser. Two user-facing surfaces MUST be made readable before they reach the user — raw, jargon-dense, jumpy output is a defect, not a deliverable:
 
 - **Convergence summary** (the in-conversation 繁中 wrap-up) and **card copy**: draft through `/write` (zh) first, so the prose is coherent and plain. A reader who did not watch the run should understand *what changed and why* without decoding `dim`/`headroom`/`alpha-beta` jargon. Do not dump the raw round-by-round technical trace at the user as the summary.
-- **Result card**: render through the `/book` entry (`--text` / slug mode) — **never hand-assemble HTML**. Hand-built cards drift from the Kami book format and read as jumpy; `/book` is what keeps the format, structure, and SVG conventions correct.
+- **Result card**: render through the kamishibai plugin's book skill (`/kamishibai:book`, slug or pasted-text mode) — **never hand-assemble HTML**. Hand-built cards drift from the book format and read as jumpy; that skill is what keeps the format, structure, and diagram conventions correct. Since baransu 5.3.0 the in-repo `/book` is a stub that only redirects there, so the entry name changed but the rule did not: the card is never hand-assembled.
 
 Order: `/write` the copy → feed the refined copy into `/book` → deliver. The card and the summary are *finished* artifacts, not debug dumps. (`log.md` / `results.tsv` stay raw — they are the audit trail, not the human-facing surface.)
 

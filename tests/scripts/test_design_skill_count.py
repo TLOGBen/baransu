@@ -75,6 +75,9 @@ class TestSkillCanonicalSchema(unittest.TestCase):
         self.text = SKILL.read_text(encoding="utf-8")
         self.region = canonical_schema_region(self.text)
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_schema_region_mentions_capability(self):
         """§Canonical Token Schema mentions 'capability'."""
         self.assertIn(
@@ -83,6 +86,9 @@ class TestSkillCanonicalSchema(unittest.TestCase):
             "§Canonical Token Schema must mention 'capability'",
         )
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_skill_version_aware(self):
         """SKILL.md describes version-gating (schema: 43 / +5 capability)."""
         self.assertTrue(
@@ -90,6 +96,9 @@ class TestSkillCanonicalSchema(unittest.TestCase):
             "SKILL.md must carry a version-aware phrase (schema: 43 / +5 capability)",
         )
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_check_b_no_bare_38_absolute(self):
         """Lint Check B line no longer carries a bare un-versioned '38 canonical names present'."""
         self.assertNotRegex(
@@ -98,6 +107,9 @@ class TestSkillCanonicalSchema(unittest.TestCase):
             "Lint Check B must be version-gated, not a bare 'all 38 canonical names present'",
         )
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_check_b_is_version_gated(self):
         """The Check B description explains version-gating (mentions schema/43/capability)."""
         # Locate the Check B table row.

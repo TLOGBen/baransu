@@ -298,18 +298,30 @@ class TestSkillChecklistItem4ReferencesSameException(unittest.TestCase):
         self.item4 = self.full[start:end]
         self.lower = self.item4.lower()
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_item4_references_declared_statistical_chart_container_exception(self):
         self.assertIn("declared-statistical-chart container exception", self.lower)
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_item4_still_cites_anti_slop_8(self):
         self.assertIn("perception-guide anti-slop #8", self.lower)
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_item4_mentions_figure_container_boundary(self):
         self.assertTrue(
             "<figure>" in self.item4 or "figure" in self.lower,
             "checklist item #4 must reference the <figure>/SVG container boundary",
         )
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_item4_exception_name_matches_perception_guide_verbatim(self):
         # Cross-file consistency: both documents must use the exact same
         # exception name so a reader/self-check gate cannot mistake this for
@@ -326,18 +338,33 @@ class TestRegressionSkillDegradeLogicAndCheckPyUntouched(unittest.TestCase):
     def setUp(self) -> None:
         self.full = SKILL.read_text(encoding="utf-8")
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_degrade_header_paragraph_unchanged(self):
         self.assertIn(DEGRADE_HEADER_PARAGRAPH, self.full)
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_declared_bullet_unchanged(self):
         self.assertIn(DECLARED_BULLET, self.full)
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_undeclared_bullet_open_unchanged(self):
         self.assertIn(UNDECLARED_BULLET_OPEN, self.full)
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_l1_bullet_unchanged(self):
         self.assertIn(L1_BULLET, self.full)
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_l2_bullet_unchanged(self):
         self.assertIn(L2_BULLET, self.full)
 

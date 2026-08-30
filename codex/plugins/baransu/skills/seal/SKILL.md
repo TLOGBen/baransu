@@ -140,7 +140,7 @@ findings against it. The mandate, point by point:
    comparison (full protocol in the agent definition). A probe that no test
    catches is a finding, never a shrug.
 
-## Probe admission (verbatim-shared clause — SKILL.md and seal-agent.md MUST match word for word)
+## Probe admission (verbatim-shared clause — SKILL.md and ../../.codex-agents/seal-agent.toml MUST match word for word)
 
 **Entry fee (per probe, paid in writing BEFORE injection)** — list the real
 operation chain the probe replays: which future real actor, under what normal

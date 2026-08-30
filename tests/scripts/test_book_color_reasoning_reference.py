@@ -142,6 +142,9 @@ class TestReadStepWiredIntoSkillOnlyForStatisticalType(unittest.TestCase):
     def setUp(self) -> None:
         self.full = SKILL.read_text(encoding="utf-8")
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_declared_branch_reads_color_reasoning_file(self):
         region = _extract_region(
             self.full,
@@ -150,6 +153,9 @@ class TestReadStepWiredIntoSkillOnlyForStatisticalType(unittest.TestCase):
         )
         self.assertIn("color-reasoning.md", region)
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_read_step_scoped_only_to_statistical_degrade_section(self):
         region_start = self.full.find("Statistical-type color-capability degrade")
         region_end = self.full.find("### 5. Core Asset Protocol")
@@ -191,6 +197,9 @@ class TestRegressionExistingTypesAndUnrelatedSkillSectionsUnchanged(unittest.Tes
                     f"type-{name}.md must not be modified by TASK-book-02",
                 )
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_unrelated_skill_sections_still_present(self):
         full = SKILL.read_text(encoding="utf-8")
         anchors = [
@@ -202,6 +211,9 @@ class TestRegressionExistingTypesAndUnrelatedSkillSectionsUnchanged(unittest.Tes
         for anchor in anchors:
             self.assertIn(anchor, full, f"unrelated SKILL.md section anchor missing: {anchor!r}")
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_l1_l2_degrade_lines_unaffected(self):
         # Guard that only the Declared bullet changed — the Undeclared/L1/L2
         # branch lines (owned by TASK-book-01) must survive verbatim.

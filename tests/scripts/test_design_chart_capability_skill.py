@@ -81,18 +81,27 @@ class TestPresetModeDeclarationEntryPoint(unittest.TestCase):
     def setUp(self) -> None:
         self.region = preset_step3_region(SKILL.read_text(encoding="utf-8"))
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_declaration_flag_documented(self):
         self.assertIn(
             "--chart-capability", self.region,
             "Preset Mode Step 3 must document a --chart-capability declaration entry point",
         )
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_capability_name_documented(self):
         self.assertIn(
             "圖表分類色", self.region,
             "Preset Mode Step 3 must name the 圖表分類色 (chart-category color) capability",
         )
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_color_distance_tool_invocation_documented(self):
         self.assertIn(
             "color_distance.py", self.region,
@@ -100,6 +109,9 @@ class TestPresetModeDeclarationEntryPoint(unittest.TestCase):
             "candidate palette before baking",
         )
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_all_six_chart_cat_token_names_documented(self):
         for i in range(1, 7):
             token = f"--chart-cat-{i}"
@@ -108,6 +120,9 @@ class TestPresetModeDeclarationEntryPoint(unittest.TestCase):
                 f"Preset Mode Step 3 must document the exact canonical name {token}",
             )
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_header_field_syntax_documented_distinct_from_schema(self):
         self.assertIn(
             "chart-capability:", self.region,
@@ -118,6 +133,9 @@ class TestPresetModeDeclarationEntryPoint(unittest.TestCase):
             "Preset Mode Step 3 must reference schema: 43 to contrast the new version tier",
         )
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_undeclared_path_is_documented_noop(self):
         self.assertIn(
             "不呼叫 color_distance.py", self.region,
@@ -125,6 +143,9 @@ class TestPresetModeDeclarationEntryPoint(unittest.TestCase):
             "color_distance.py (zero behavior change)",
         )
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_atomic_rewrite_clears_stale_declaration_documented(self):
         self.assertTrue(
             ("自然清除" in self.region) or ("不會殘留" in self.region),
@@ -139,6 +160,9 @@ class TestGenModeDeclarationEntryPoint(unittest.TestCase):
     def setUp(self) -> None:
         self.region = gen_step1_region(SKILL.read_text(encoding="utf-8"))
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_ask_user_question_entry_point_documented(self):
         self.assertIn(
             "AskUserQuestion", self.region,
@@ -146,12 +170,18 @@ class TestGenModeDeclarationEntryPoint(unittest.TestCase):
             "point, consistent with the existing gen interview pattern",
         )
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_capability_name_documented(self):
         self.assertIn(
             "圖表分類色", self.region,
             "Gen Mode Step 1 must name the 圖表分類色 (chart-category color) capability",
         )
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_positioned_after_extreme_commitment_axis_subsection(self):
         axis_idx = self.region.find("#### The extreme-commitment axis")
         chart_idx = self.region.find("圖表分類色")
@@ -163,6 +193,9 @@ class TestGenModeDeclarationEntryPoint(unittest.TestCase):
             "extreme-commitment-axis subsection in Step 1",
         )
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_consistency_with_preset_mode_noted(self):
         self.assertIn(
             "--chart-capability", self.region,

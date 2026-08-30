@@ -36,6 +36,9 @@ class TestRenderSoftGeneration(unittest.TestCase):
         self.section = render_stage(self.full)
         self.lower = self.section.lower()
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_references_section9_expression_range_and_context(self):
         mentions_s9 = ("§9" in self.section) or ("expression range" in self.lower)
         self.assertTrue(
@@ -48,6 +51,9 @@ class TestRenderSoftGeneration(unittest.TestCase):
             "Render stage must reference the current article context as a generation input",
         )
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_states_generation_within_hard_floor(self):
         mentions_floor = ("hard floor" in self.lower) or ("safety floor" in self.lower)
         self.assertTrue(
@@ -60,6 +66,9 @@ class TestRenderSoftGeneration(unittest.TestCase):
             "Render stage must describe GENERATING layout within bounds",
         )
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_no_fixed_class_whitelist_reframe(self):
         # The reframe must explicitly state it is NOT limited to a fixed class whitelist
         # that must pre-exist in an SSOT template.
@@ -76,6 +85,9 @@ class TestRenderSoftGeneration(unittest.TestCase):
             "Render stage must state it is NOT limited to a fixed pre-existing class whitelist",
         )
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_conservative_fallback_when_section9_missing(self):
         self.assertTrue(
             ("conservative" in self.lower) and ("symmetric" in self.lower),
@@ -83,6 +95,9 @@ class TestRenderSoftGeneration(unittest.TestCase):
             "the expression-range fields",
         )
 
+    @unittest.skip(
+        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
+    )
     def test_hard_floor_canonical_token_no_bare_hex_restated(self):
         self.assertIn(
             "canonical token",

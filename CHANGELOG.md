@@ -2,6 +2,18 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [5.3.0] - 2026-08-30
+
+### Changed
+- **`/book` 與 `/design` 改為薄提示 stub**——兩份 SKILL.md 本文全部換成轉介指引（book 39 行、design 40 行，各 ≤60 行）。frontmatter 一欄不動：`name` / `argument-hint` / `user-invocable` 原樣，`description` 逐字保留（Trigger On 詞彙不減），所以觸發面完全不變、`EXPECTED_SKILL_COUNT = 14` 不動。本文只剩三件事：退場預告、改裝指引（`/plugin install kamishibai@kamishibai` → `/kamishibai:book` / `/kamishibai:design`，或 `npm i -g @kamishibai/sdk` 走 CLI）、蟄伏機件說明。Stage 操作指示、四模式操作指示、以及 `validate-output.ts` / `check.py` / `editorial-sanity.sh` / `紙-sanity.sh` 的所有調用行全部移除。book 指向句與 design 指向句逐字入文。
+- **蟄伏鐵律**：`book/scripts`、`book/references`、`design/scripts`、`design/references` 本版**零位元組變更**（`git diff --stat` 該四徑為空）。蟄伏機件（scripts/references）本版一位元未動，6.0.0 隨目錄實體退役——git 歷史即唯一備份（/analyze 前例）。
+- **跨 skill bleed 面改指 kamishibai**：`agents/style-reviewer.md`（技術閘門面改指 `kamishibai lint`，GATE-F/GATE-G/check.py 標為凍結歷史；render 正確性改指 SDK `render`/`lint` lane）、`skills/_shared/output-journal.md`（渲染基準由 book golden-template 改為 kamishibai book skill，並附「kamishibai 未裝時自渲染」退路）、`skills/review/SKILL.md`（work journal 樣式改指共用渲染基準）、`skills/codex-skill-transfer/SKILL.md`（單檔慣例例證由 `design/scripts/check.py` 換成仍在役的 `hunt/scripts/hunt-search.py`）、`skills/write/references/proofread.md`（僅 markitdown 出處註腳改指，**自產 HTML 流程與 no-LLM-commentary 紅線一字未動**）、`CLAUDE.md`（Layout 註記、Design Artifacts 段、技能表 `/book` 與 `/design` 兩列、新增「book/design 為 stub、機件蟄伏非在役」不變量）。
+- **`/evolve` card.html 產線改指**：`evolve/SKILL.md` Stage 7 與 `evolve/references/output-contract.md` 的 `/book` 入口改為 `/kamishibai:book`；「never hand-assemble HTML」規則不變，只換入口名，產線不斷鏈。
+- **版號 5.2.0 → 5.3.0**（`plugin.json` ＋ `marketplace.json` 兩處同步；codex 鏡像隨 `make mirror` 重產）。
+
+### Deprecated
+- `/book`、`/design` 兩 skill 的實體目錄（含 `scripts/` 與 `references/`）預告於 **6.0.0 移除**。本版起它們是凍結資產：不得被任何 skill、agent 或共用參考援引為現行步驟。等價能力一律走 kamishibai plugin 與 `@kamishibai/sdk`。
+
 ## [5.2.0] - 2026-08-29
 
 ### Added
