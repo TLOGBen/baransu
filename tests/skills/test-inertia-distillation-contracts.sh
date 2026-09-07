@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-# Contract gate: think verdict schemas, review receipt + judgment + mutation fixtures.
+# Contract gate: think restatement/stance/plan schema, review independence + judgment, mutation fixtures.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 python3 - "$ROOT" <<'PY'
-import re
 import sys
 from pathlib import Path
 
@@ -26,112 +25,87 @@ def ordered(text, anchors, label):
     elif positions != sorted(positions):
         failures.append(f"{label}: schema order changed")
 
-# --- think: verdict and handoff schemas ---
-
-verdict_line = "「判決：{Kill|Keep|Pivot}——{一句話結論}」"
-falsifier_line = "「推翻條件：{什麼證據出現，本判決即翻}」"
-handoff_fields = ("## 目的（一句話）", "## 約束", "## 成功判準", "## 未決（Unknowns）")
-
-if think.count(verdict_line) != 1:
-    failures.append(f"think verdict: template count = {think.count(verdict_line)}, expected 1")
-if think.count(falsifier_line) != 1:
-    failures.append(f"think falsifier: template count = {think.count(falsifier_line)}, expected 1")
-ordered(think, handoff_fields, "think handoff")
-for field in handoff_fields:
+# --- think: chain order, plan schema, exits ---
+chain = (
+    "## Align on a restatement, not on a solution",
+    "## Take a stance",
+    "## Verify the premises the stance leans on",
+    "## Attack your own proposal, in both directions",
+    "## Present it so a person can follow",
+    "## Leave a plan on disk, then stop",
+)
+ordered(think, chain, "think chain")
+plan_sections = ("- Building —", "- Not building —", "- Approach —", "- Key decisions —", "- Unknowns —")
+ordered(think, plan_sections, "think plan schema")
+for field in plan_sections:
     if think.count(field) != 1:
-        failures.append(f"think handoff: {field!r} count = {think.count(field)}, expected 1")
-
-route_table = ("存廢判決", "選型判決", "對焦交棒")
-ordered(think, route_table, "think route table")
-
+        failures.append(f"think plan: {field!r} count = {think.count(field)}, expected 1")
 require(think, (
+    "what happens if that assumption is wrong",
+    'Never write a bare "this would be overturned by Z".',
+    "Attack for excess:",
+    "does not choose a downstream skill",
     "ultracode=neutral, loop=not-drivable",
     "references/loop-pauses.md",
     "selection-telemetry.md",
     ".claude/think/",
-    "SendUserFile",
-), "think outcome contract")
+    "_shared/tdd.md",
+), "think contract")
+for forbidden in ("AskUserQuestion", "handoff prompt", "SendUserFile", ".html"):
+    if forbidden in think:
+        failures.append(f"think: retired mechanism still present: {forbidden!r}")
 
-# --- review: receipt ---
+# --- review: independence + judgment ---
+require(review, (
+    "a clean review is a valid result",
+    "「乾淨的 review",
+    "agents/verifier.md",
+    "Do not supply the author's defense or desired verdict.",
+    "same-context self-check",
+    "Test a plausible disconfirming explanation for a severe claim",
+    "with a one-line reason each",
+    "mocking the claimed layer does not test that layer",
+    ".claude/review/",
+    "loop=drivable",
+    "references/loop-pauses.md",
+    "fact-check.md",
+    "verification-effort.md",
+), "review contract")
+for forbidden in ("Stage 1.6", "Sign-off receipt", "five perspectives", "HTML work journal"):
+    if forbidden in review:
+        failures.append(f"review: retired mechanism still present: {forbidden!r}")
 
-receipt = ("files:", "scope:", "depth:", "perspectives:", "hard_stops:", "new_tests:", "doc_debt:", "e2e_status:")
-ordered(review, receipt, "review receipt")
-receipt_block = review.split("**Sign-off receipt**", 1)[1].split("```", 2)[1]
-fields = [line.split(":", 1)[0].strip() for line in receipt_block.splitlines() if ":" in line]
-if fields != [field[:-1] for field in receipt]:
-    failures.append(f"review receipt: expected exactly eight fields, got {fields!r}")
-
-# --- review: judgment + controls ---
-
-require(review, ("prediction that would falsify its core claim", "different evidence source or mechanism", "same citation is not independent", "no executable falsifier", "which surviving findings are worth including and which are not", "when either set is empty"), "review judgment")
-require(review, ("reviewers do not review each other", "INV-adversarial-once", "PAUSE classification"), "review controls")
-
-# --- line budgets ---
-
+# --- budgets ---
 source_lines, generated_lines = len(think.splitlines()), len(generated.splitlines())
-transfer_overhead, distributed_max, source_max = 22, 500, 250
+distributed_max, source_max = 500, 250
 if source_lines > source_max:
     failures.append(f"think source budget exceeds {source_max} lines (got {source_lines})")
 if generated_lines > distributed_max:
     failures.append(f"think distributed line budget exceeds {distributed_max} (got {generated_lines})")
 
-# --- mutation fixtures ---
+# --- mutation fixtures: the gate must reject a skill with the protection removed ---
+def valid_think(text):
+    return "Attack for excess:" in text and "does not choose a downstream skill" in text
+if valid_think(think.replace("Attack for excess:", "", 1)):
+    failures.append("mutation: think without the excess attack was accepted")
+if valid_think(think.replace("does not choose a downstream skill", "", 1)):
+    failures.append("mutation: think that may choose a downstream skill was accepted")
 
-def valid_review_contract(text):
-    try:
-        high = text.split("HIGH / CRITICAL findings additionally require", 1)[1].split(
-            "「乾淨的 review", 1
-        )[0]
-        disposition = text.split("In the final prose", 1)[1].split(
-            "The fourth question itself", 1
-        )[0]
-    except IndexError:
-        return False
-    return (
-        "prediction that would falsify its core claim" in high
-        and "different evidence source or mechanism" in high
-        and "same citation is not independent" in high
-        and "no executable falsifier" in high
-        and "drops or downgrades" in high
-        and "which surviving findings are worth including and which are not" in disposition
-        and "one-line reason for each against the review goal" in disposition
-        and "when either set is empty" in disposition
-        and "Do not hand every tier back to the user" in disposition
-    )
-
-if not valid_review_contract(review):
-    failures.append("review: operational falsification/disposition contract is incomplete")
-
-same_citation_review = review.replace(
-    "then check that prediction through a different evidence source or mechanism; rereading or restating the same citation is not independent.",
-    "then reread or restate the same citation and treat it as independent confirmation.",
-    1,
-)
-if valid_review_contract(same_citation_review):
-    failures.append("mutation: same-citation fake disproof was accepted in shipped review")
-missing_disposition_review = review.replace(
-    "In the final prose, explicitly say which surviving findings are worth including and which are not, with a one-line reason for each against the review goal; explicitly say when either set is empty. Do not hand every tier back to the user for this decision.",
-    "In the final prose, list surviving findings by tier and let the user decide which to include.",
-    1,
-)
-if valid_review_contract(missing_disposition_review):
-    failures.append("mutation: omitted worth/not-worth disposition was accepted in shipped review")
-
-# think mutation: verdict line removed
-think_no_verdict = think.replace(verdict_line, "", 1)
-if verdict_line in think_no_verdict:
-    failures.append("mutation: think verdict line survived removal (duplicate?)")
-if think_no_verdict.count(falsifier_line) != 1:
-    failures.append("mutation: removing verdict line also removed falsifier")
-
-# think mutation: falsifier replaced with vague text
-think_vague_falsifier = think.replace(falsifier_line, "若情況改變則重新評估", 1)
-if falsifier_line in think_vague_falsifier:
-    failures.append("mutation: think falsifier survived replacement (duplicate?)")
+def valid_review(text):
+    return ("Test a plausible disconfirming explanation for a severe claim" in text
+            and "with a one-line reason each" in text
+            and "Do not supply the author's defense or desired verdict." in text)
+if valid_review(review.replace("Test a plausible disconfirming explanation for a severe claim", "", 1)):
+    failures.append("mutation: review without the disconfirming check was accepted")
+if valid_review(review.replace("with a one-line reason each", "", 1)):
+    failures.append("mutation: review without the worth/not-worth disposition was accepted")
+if valid_review(review.replace("Do not supply the author's defense or desired verdict.", "", 1)):
+    failures.append("mutation: review that feeds the author's verdict to the verifier was accepted")
 
 if failures:
-    print("RED: inertia/distillation judgment contract failed")
-    print("\n".join(f"  - {failure}" for failure in failures))
-    raise SystemExit(1)
-print("GREEN: verdict/handoff/8 schemas, judgment controls, budgets, and mutation fixtures hold")
+    print("FAIL: inertia distillation contracts")
+    for f in failures:
+        print("  -", f)
+    sys.exit(1)
+print("PASS: inertia distillation contracts")
 PY

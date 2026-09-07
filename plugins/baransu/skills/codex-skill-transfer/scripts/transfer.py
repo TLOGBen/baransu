@@ -531,10 +531,10 @@ def classify_ask_user_occurrence(
             "AskUserQuestion:unclassified",
         )
 
-    # Every interaction point in the rebuilt think skill (alignment rounds,
-    # constraint surfacing, verdict/recommendation/handoff confirmations) is an
-    # Input-class ask — references/loop-pauses.md is the authority. One class,
-    # one rewrite.
+    # Every interaction point in the think skill (restatement questions and
+    # confirmation, the user-owned choice before the stance, the pushback
+    # question) is an Input-class ask — references/loop-pauses.md is the
+    # authority. One class, one rewrite.
     return "AskUserQuestion:think"
 
 
@@ -543,9 +543,9 @@ CODEX_SKILL_ADAPTERS: dict[str, str] = {
 
 Codex can expose the structured `request_user_input` runtime tool. In Default mode it is currently gated by `[features] default_mode_request_user_input = true`; a skill cannot enable that user configuration itself. This skill is countering the model's inertia to assume the user has already thought the request through, so use the strongest gate available in the current runtime.
 
-When `request_user_input` is exposed, call it once per interaction point — each alignment round (one question, 2-3 fundamentally different options, one marked 【推薦】), the constraint-surfacing round before a 存廢 verdict, and each confirmation (verdict, recommendation, or handoff sheet) — then wait for the structured answer before continuing.
+When `request_user_input` is exposed, call it once per interaction point — each restatement question (one question fixing one guessed phrase, candidate answers of different kinds, one marked recommended), the restatement confirmation, a choice that is genuinely the user's (a value, budget, or authority boundary) before the stance, and the which-section-is-wrong question after pushback — then wait for the structured answer before continuing.
 
-When `request_user_input` is unavailable, present the same question as plain numbered text and stop until the user answers. Every interaction point in this skill is an Input PAUSE: the user's answer is the material the verdict or handoff sheet is built from, and a fabricated answer would defeat the skill's founding purpose. The runtime tool replaces the text prompt only when it is actually exposed; it does not guarantee answer quality.""",
+When `request_user_input` is unavailable, present the same question as plain numbered text and stop until the user answers. Every interaction point in this skill is an Input PAUSE: the user's answer is the material the restatement, the stance, and the plan file are built from, and a fabricated answer would defeat the skill's founding purpose. The runtime tool replaces the text prompt only when it is actually exposed; it does not guarantee answer quality.""",
     "review": """## Codex Port Adapter - Review Isolation
 
 This skill is countering the model's inertia to rubber-stamp its own prior work. Before relying on spawned reviewers as anti-hallucination evidence, run or consult a `codex-isolation-probe.md` conclusion for this Codex runtime. If native Codex subagents receive clean independent context, spawn the perspective agents directly. If they inherit enough parent context to rubber-stamp the current answer, run each perspective in an independent Codex invocation or session, write each result to an artifact file, then synthesize from those files.

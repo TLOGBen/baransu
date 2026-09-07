@@ -2,14 +2,11 @@
 
 PAUSE classification for non-interactive drivers; semantics in `../../_shared/loop-contract.md` §2.
 
-/think is graded loop=not-drivable — its focusing dialogue is the product; no
-recommended default can substitute it. The rows below exist for the cases
-loop-contract's Scope still covers (hosted as a subagent, /loop, cron,
-Workflow): they tell a non-interactive run how to stop loudly instead of
-auto-advancing through the dialogue or the confirmation gate.
+/think is graded loop=not-drivable — the restatement dialogue is the product; no recommended default can substitute it. The rows below tell a non-interactive run how to stop loudly instead of auto-advancing.
 
 | Interaction point | Class | Non-interactive default |
 |---|---|---|
-| Alignment rounds (Route 3, Steps 1-3: 目的 / 約束 / 成功, AskUserQuestion ×3) | Input | No default can substitute the focusing dialogue (the not-drivable rationale): report `no progress: focusing dialogue requires a human` and end the run |
-| Constraint elicitation (Route 1, Step 1: when user provides < 3 constraints) | Input | Do not ask; ground the verdict only in the constraints already visible in the conversation and repo — flag the thin evidence base in the verdict |
-| Verdict / handoff confirmation (all routes, final AskUserQuestion) | Input | Report `no progress: verdict confirmation requires a human` and end the run |
+| Restatement questions (one at a time, each fixing a guessed phrase) | Input | No default can substitute the dialogue: report `no progress: restatement requires a human` and end the run |
+| Restatement confirmation | Input | Report `no progress: restatement confirmation requires a human` and end the run |
+| A choice that is genuinely the user's (value, budget, authority boundary) before the stance | Authorization | Never assume; report `no progress: user-owned choice pending` and end the run |
+| Which-section-is-wrong question after pushback | Input | Report `no progress: pushback needs the user to name the section` and end the run |

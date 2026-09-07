@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Behavior-contract gate: hunt / think / review must explain their user-facing
-# result in plain Traditional Chinese without changing their stable schemas.
+# result in plain Traditional Chinese without changing their stable schemas
+# (hunt: causal chain + fixed formats; think: chain + five plan sections; review: report shape).
 set -u
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
@@ -64,27 +65,24 @@ assert_order("hunt success", hunt, ("根因：", "修復：", "確認方式：",
 assert_order("hunt handoff", hunt, ("症狀：[", "已測試的假說：", "已蒐集的證據：", "已排除的根因：", "尚不知道的事：", "建議下一步："))
 
 think = skills["think"]
-if think.count("「判決：{Kill|Keep|Pivot}——{一句話結論}」") != 1:
-    failures.append("think: verdict-line verbatim template changed")
-if think.count("「推翻條件：{什麼證據出現，本判決即翻}」") != 1:
-    failures.append("think: falsifier-line verbatim template changed")
-assert_order("think handoff", think, (
-    "## 目的（一句話）",
-    "## 約束",
-    "## 成功判準",
-    "## 未決（Unknowns）",
+assert_order("think chain", think, (
+    "## Align on a restatement, not on a solution",
+    "## Take a stance",
+    "## Verify the premises the stance leans on",
+    "## Attack your own proposal, in both directions",
+    "## Present it so a person can follow",
+    "## Leave a plan on disk, then stop",
 ))
+assert_order("think plan", think, ("- Building —", "- Not building —", "- Approach —", "- Key decisions —", "- Unknowns —"))
+if "「計畫已落檔：.claude/think/{slug}.md。最關鍵的未決點：{一句話，或「無」}。」" not in think:
+    failures.append("think: plan-landed closing line changed")
 
 review = skills["review"]
-receipt = (
-    "files:", "scope:", "depth:", "perspectives:",
-    "hard_stops:", "new_tests:", "doc_debt:", "e2e_status:",
-)
-assert_order("review receipt", review, receipt)
-receipt_block = review.split("**Sign-off receipt**", 1)[1].split("```", 2)[1]
-actual_fields = [line.split(":", 1)[0].strip() for line in receipt_block.splitlines() if ":" in line]
-if actual_fields != [field.rstrip(":") for field in receipt]:
-    failures.append(f"review: receipt must remain exactly eight fields, got {actual_fields!r}")
+for anchor in ("examined scope, findings, evidence, independence, and remaining limits", "「乾淨的 review"):
+    if anchor not in review:
+        failures.append(f"review: missing report-shape anchor {anchor!r}")
+if "「review 完成：{N} 項有後果的發現（{M} 項值得處理）、{U} 項未驗證；獨立性：{獨立／同 context 自檢}。」" not in review:
+    failures.append("review: closing line changed")
 
 if failures:
     print("RED: plain-language presentation contract failed")

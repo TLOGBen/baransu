@@ -24,13 +24,13 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 
 | Skill | 用途 |
 |---|---|
-| `/think` | 動手前判決：存廢（Kill/Keep/Pivot）、選型（A-or-B 官方優先）、對焦交棒（三輪對齊→交棒單）。只出判決，不出計畫。 |
-| `/review` | 在乾淨 context 重讀已完成的工作，抓邊界沒守住、邏輯跳格、宣稱與實作對不上。 |
+| `/think` | 動手前審議：先復述你要的東西對焦，表態並說明押在什麼上，查證前提，正反兩向攻擊，呈現，落一份五段計畫到 `.claude/think/`。不寫程式、不交棒；已定的決定也可拿來拷問。 |
+| `/review` | 派一個乾淨 context 的 verifier 獨立重驗任何產出，視角只為不同的實質風險才加；不改目標；乾淨的 review 也是有效的 review。 |
 | `/hunt` | 從症狀追到根因：選對觀測層、log 二分法定位，指到 file:line 才動手修。 |
 | `/health` | 體檢專案的 agent 配置與 AI 可維護性：五層審計，預算姿態先行。 |
 | `/design` | 寫 UI/UX 設計規格：`gen` 引導生成、`lint` 挑違規、`preset` 套內建模板。 |
-| `/contract` | 中頻段開工合約：一頁釘死目標、可斷言條文、錯不起表面、照抄常數，實作前先立約；sealed 合約覆蓋前先歸檔。 |
-| `/seal` | 中頻段收工封緘：派遣乾淨 context 的 verify-only seal-agent 跑五點驗收（逐條對約、掃未釘表面、跨介面一致、常數逐字比對、突變抽查），findings 回主 session 修＋補釘死測試，複驗上限 2，全清才在合約蓋 sealed 標記。 |
+| `/contract` | 中頻段開工合約：一頁 `CONTRACT.md` 釘死目標與範圍、前提、附反例與證據路徑的條文、需求常數、決策；釘 WHAT 不釘 HOW；sealed 合約覆蓋前先歸檔。 |
+| `/seal` | 中頻段收工封緘：驗證強度跟著後果走，先定檢查與修復額度，派乾淨 context 的 verifier 只驗不修；有實作授權才修、修完只複驗該處；收據落 `.claude/seal/`，獨立成功才在合約蓋 sealed 標記。 |
 | `/write` | 雙語寫作／潤色：套排版與風格規則，輸出 Before/After 與每處改動理由。 |
 | `/evolve` | 把既有 SKILL.md 對著固定標準一輪輪磨好，只保留確有改進的改動。 |
 | `/read` | 萬用擷取：URL／路徑／glob／Chrome／剪貼簿轉成離線 Markdown。 |

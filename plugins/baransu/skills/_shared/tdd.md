@@ -200,7 +200,7 @@ session (for example, a `/think`-approved plan or the single change point after 
 diagnosis converges), the red/green gate operates as **document discipline (discipline-suggested)**:
 no orchestrator gatekeeps for you; the implementer builds their own red/green task list per
 this section, goes red first then green, and writes the implementation only after the red is
-confirmed. If the approved plan already has an upstream work journal (`.claude/think/*.html`),
+confirmed. If the approved plan already has an upstream work journal (`.claude/think/*.md`),
 out-of-spec decisions made during implementation are appended to that journal's "執行日誌"
 section per the `output-journal.md` contract.
 
@@ -313,7 +313,7 @@ This file is referenced by the following trigger points:
 
 | Trigger point | Reference location | Reference sentence |
 |---|---|---|
-| `/think` small-task reroute | `plugins/baransu/skills/think/SKILL.md` Stage G downstream split | Small tasks reroute to this file's §7: the main session builds its own red/green task list per document discipline and implements directly. |
+| `/think` small-task reroute | `plugins/baransu/skills/think/SKILL.md` restatement exits (single-file change with one obvious fix) | Small tasks reroute to this file's §7: the main session builds its own red/green task list per document discipline and implements directly. |
 | `/hunt` fix reroute | `plugins/baransu/skills/hunt/SKILL.md` fix-suggestion split | Single change-point fixes reroute to this file's §7 direct-implementation discipline. |
 
 ---

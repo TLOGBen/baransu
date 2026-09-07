@@ -19,7 +19,7 @@ import sys
 
 root = sys.argv[1]
 expected = {
-    "review": ("overlap", "drivable"),
+    "review": ("neutral", "drivable"),
     "contract": ("neutral", "drivable"),
     "learn": ("overlap", "drivable"),
     "hunt": ("assist", "assisted"),

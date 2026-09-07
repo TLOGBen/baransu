@@ -1,241 +1,91 @@
 ---
 name: think
-description: "Produces a verdict or a handoff sheet — never a plan, never code. Three routes: 存廢判決 (Kill/Keep/Pivot), 選型判決 (A-or-B), 對焦交棒 (intent → handoff to contract/wayfinder/tdd). Trigger On 「值不值得」「有沒有必要」「判斷一下」「我想做 X 但還不確定」 'worth it?', 'should we keep', 'which approach', A-or-B choices. Not for 報錯/debugging → /hunt, 完整計畫 → /contract or wayfinder, 解釋/說明 → not this skill. 繁體中文輸出。"
-argument-hint: "<question or rough intent>"
-user-invocable: true
+description: 'Deliberates before building when the user has an undecided idea, feature, refactor, or direction and asks how to design it, which way to go, or whether it is worth doing (想一下, 幫我想, 怎麼設計, 值不值得, 該不該做, 「我想做 X 但還不確定」). Also takes a decision already made when the user wants it tested (拷問我, grill me). Aligns on a restatement of what they actually want, then leaves a stance with its bets named and a plan file under .claude/think/ for review; never code, never a handoff to implementation. Not for debugging an existing error (/hunt) or pinning acceptance for settled work (/contract). 繁體中文輸出。'
 ---
 
-# think — verdict before effort
+# think — deliberate before you build
 
-A judgment machine: the user hands over a whether / which / what-exactly
-question, and think returns a verdict or a handoff sheet. Plans, code,
-scaffolding, and pseudo-code are never produced — those belong downstream.
-All user-visible output is **Traditional Chinese (繁體中文)**.
+Turn a fuzzy intent into a shared statement of what the user wants, then into a position someone else can read cold and judge. Never produce code, scaffolding, config, or pseudo-code; the deliverable is a stance and, when the work deserves one, a plan file.
+
+The default this skill corrects: the model assumes the user has already thought the request through, and answers before both sides agree on what is being asked. Everything in the opening exists to close that gap, and nothing in the opening may start solving.
+
+All user-facing output is in Traditional Chinese; keep technical terms in English and explain each one where it first appears.
 
 ## Outcome Contract
 
-- **Outcome**: A verdict (Kill/Keep/Pivot or a ranked candidate list) or a
-  four-field handoff sheet, depending on the route taken.
-- **Done when**: The conclusion is in the final message, persisted to
-  `.claude/think/<slug>.md` (≤20 lines), and delivered via SendUserFile.
-- **Evidence**: The verdict line or handoff sheet fields, each grounded in
-  user-stated constraints or repo-observable facts.
-- **Output**: Operational messages and the verdict/handoff in Traditional
-  Chinese; `.claude/think/<slug>.md` on disk.
+- **Outcome**: A confirmed restatement of what the user wants, a stance with its bets named, and — for buildable work — a five-section plan at `.claude/think/<slug>.md`; for a verdict (Kill / Pivot) or a decision under test, the stance alone. Never code, scaffolding, or a handoff to implementation.
+- **Done when**: The restatement is confirmed by the user or unchanged after a round of answers; the stance is stated with its bets; every premise it leans on is tagged verified or 未實查; both attacks (breakage and excess) have run; the result has been presented; and, when buildable, the plan file exists and its path was reported. The turn ends there — no downstream skill is chosen and no approval gate is opened.
+- **Evidence**: The confirmed restatement, the verified / 未實查 tags with their commands and quoted output, and the plan file path (or the verdict line).
+- **Output**: Traditional Chinese conversation; `.claude/think/<slug>.md` with the restatement on top and the five sections below. `/ship` archives that directory.
 - **Automation**: ultracode=neutral, loop=not-drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
-- **Telemetry**: on invocation, append one selection record per
-  `../_shared/selection-telemetry.md`.
+- **Telemetry**: on invocation, append one selection record per `../_shared/selection-telemetry.md`.
 
 PAUSE classification for non-interactive drivers: `references/loop-pauses.md`.
 
-## Route Selection
+## Align on a restatement, not on a solution
 
-The user's phrasing determines which of three routes to take. Each route
-has one observable characteristic that distinguishes it:
+Open by restating, in a few sentences, what you understand the user wants: the outcome, why they want it, what must not change, and roughly how big it is (a one-off script, a long-lived feature, a core path, an edge). Fill it only from what the user actually said; mark a missing field 未知，先不問 rather than inventing it. This restatement is the object of alignment. Its job is to make your guesses visible so the user can correct them.
 
-| Route | The user is asking | Observable cue |
-|---|---|---|
-| **存廢判決** | *whether* — keep this, kill it, or pivot it? | A thing exists and the user questions its continued existence or value |
-| **選型判決** | *which* — A or B (or C)? | Two or more named alternatives the user wants compared |
-| **對焦交棒** | *what exactly* — I want to do X but haven't pinned it down | Rough intent with no fixed alternatives; the user needs alignment, not comparison |
+Every phrase in the restatement you had to guess is a candidate question. Ask it only if different answers would change the shape of the answer, not a parameter of it — whether to cache at all: ask; cache for five minutes or an hour: do not. Offer the candidate answers as different kinds, not the same direction at different strengths, and mark one as recommended. Ask one at a time unless the user prefers a batch, and say which phrase of the restatement the question fixes.
 
-**Off-ramp**: if the user's input contains an error message, stack trace,
-or debugging context, say so and route to `/hunt` — a value judgment about
-a bug ("值不值得修") still starts with diagnosis. If the user asks for an
-explanation of how something works, answer directly — that is not a verdict.
+Find facts yourself. Read the repo, docs, and prior decisions to answer any question that has an answer, and never turn research into a question for the user. Reading code to settle a fact is allowed; forming or showing a solution before the restatement is confirmed is not. During alignment the user sees exactly two things: the current restatement with the changed phrase marked, and the question.
 
----
+When the user arrives with a decision already made and wants it tested (拷問我, 壓力測試這個決定, grill me), the restatement is that decision; confirm it in one round and go straight to the attack.
 
-## Route 1 — 存廢判決 (Kill / Keep / Pivot)
+Alignment ends when the user confirms the restatement, or when a round of answers leaves it unchanged; then stop asking. Two exits sit here:
 
-**Purpose**: Deliver one verdict on whether something should be kept, killed,
-or pivoted, grounded in the user's own constraints.
+- If the confirmed restatement is a single-file change with one obvious fix, there is nothing to deliberate. Say so and point the user to the red/green discipline in `../_shared/tdd.md` §7; do not write a plan for it.
+- If the restatement cannot fit in a few sentences because the effort has several independent destinations, say so. When the common suite's wayfinder is installed in the session (detect first, never assume), point there; otherwise say the effort needs to be charted before it can be deliberated, and stop.
 
-### Step 1 — Surface constraints
+## Take a stance
 
-Before producing a verdict, identify the constraints the user has already
-stated (in this conversation or in the repo). Each reason in the verdict
-references a specific constraint or observable fact.
+State the recommendation in one sentence with its decisive reason. It answers the restatement and nothing beyond it. Lay out the credible alternatives, always including the minimal one (do nothing, reuse existing Z) and the framework-native or official solution when it genuinely fits — as a real candidate, not an automatic winner. Then say what the recommendation is betting on, in one to three conditions, each as a sentence a person can act on: what it assumes, what happens if that assumption is wrong, and which alternative it switches to. Never write a bare "this would be overturned by Z".
 
-When the user's input provides fewer than three distinct constraints to
-reason from, ask exactly one round of questions via AskUserQuestion to
-surface the missing context. Frame the question around what they value
-(cost, timeline, quality, user impact) — do not guess their priorities.
-Ground the verdict only in material the user has provided or the repo shows.
+Delete "it depends on your priorities", "both have trade-offs", "this is your decision to make": the user asked for a lead, not a survey. If the remaining choice is genuinely the user's (a value, a budget, an authority boundary), explain its consequence and wait; a missing question tool does not permit inventing the answer.
 
-### Step 2 — Verdict
+Judge existence too. If the honest stance is "do not build this" or "build something else", say Kill or Pivot with reasons grounded in the user's actual constraints — time, motivation, maintenance cost, business model — never generic trade-offs. A verdict ends the skill; it needs no plan file, but it still goes through the presentation step below.
 
-Produce the verdict in this exact format:
+## Verify the premises the stance leans on
 
-```
-「判決：{Kill|Keep|Pivot}——{一句話結論}」
+Before writing anything durable, list every existence, count, or absence premise the stance leaned on ("no existing X", "Y already handles this", "tests cover this layer") and re-derive each from the repo root with a command whose output you quote, or from the authoritative document. Tag each claim verified (with the command and a quoted fragment) or 未實查; a bare tool name does not earn verified. A count carries the noun the command actually counted (files, classes, call sites, test cases) and never resurfaces as a different noun. A stance resting on a refuted premise is revised in one sentence, not carried forward. Check the project's own prior art — decision records, design docs, recent commits in the area — so the plan does not silently override a decision already made. Current state overrides memory.
 
-理由：
-1. {理由，引用使用者已陳述的約束或 repo 可觀察事實}（來源：{出處}）
-2. {理由}（來源：{出處}）
-3. {理由}（來源：{出處}）
+## Attack your own proposal, in both directions
 
-「推翻條件：{什麼證據出現，本判決即翻}」
-```
+Attack for breakage: list two to four concrete failure scenarios. Fold in cheap fixes and say you did; state fundamental ones plainly as accepted boundaries. Be loud about scope the user may not realize they are agreeing to: many files, a new service or process, a new runtime dependency or language, any key, account, or external service someone must provision. Before proposing any new mechanism — a rule, a check, a layer — ask whether it solves the problem or only produces a nicer failure log; a check that sits inside the path it governs can simply be skipped by that path.
 
-The verdict line and the falsifier line are verbatim templates — the
-`{…}` placeholders are filled, the surrounding text is copied unchanged.
-Exactly three reasons, each citing its source. The falsifier names a
-concrete, observable condition — not a vague "if circumstances change."
+Attack for excess: for each part of the proposal, ask what the restatement would lose if that part were removed. If nothing, cut it and move it to Not building with one line on when it would become needed. The plan must fit the restatement's scale; a solution optimised for a need the user never stated is a defect, not thoroughness.
 
-### Step 3 — Verdict confirmation
-
-Present the verdict to the user via AskUserQuestion:
-- Option 1: 接受判決
-- Option 2: 提供新資訊重新判決（one revision, then the disagreement stands
-  as an Unknown on the record)
-
-If the user provides new information, revise the verdict once. A second
-disagreement is recorded as-is — the skill does not enter an open-ended
-debate.
-
----
-
-## Route 2 — 選型判決 (Which approach)
-
-**Purpose**: Compare named alternatives and recommend one, with the
-official/framework-native/stdlib solution presented first.
-
-### Step 1 — Candidate list
-
-List the candidates the user named. Then check: does the framework, stdlib,
-or official tooling already provide a solution? If yes, that candidate is
-listed first regardless of the user's ordering. If no official solution
-exists, state 「查無官方解」 on its own line before the list.
-
-### Step 2 — Mechanism necessity
-
-Any candidate that introduces a new mechanism (a new abstraction, library,
-pattern, or process) carries a one-sentence necessity argument answering
-two questions:
-1. What problem does this mechanism solve?
-2. What breaks or degrades without it?
-
-Both answers are checkable against the repo or the user's stated constraints.
-A candidate whose necessity cannot be stated is flagged, not silently kept.
-
-### Step 3 — Recommendation
-
-Recommend one candidate with a short rationale. State what the runner-up
-does better and why it still lost. Present via AskUserQuestion:
-- Option 1: 採用推薦方案
-- Option 2: 改選其他方案（name which）
-
-### Step 4 — Handoff
-
-After the user confirms, produce a handoff sheet (Route 3, Step 3 format)
-with the chosen approach filled in as the purpose. Route by band:
-small → `_shared/tdd.md` §7, medium → `/contract`, large → wayfinder
-(detect first — do not assume it is installed).
-
----
-
-## Route 3 — 對焦交棒 (Align then hand off)
-
-**Purpose**: Compress vague intent into a precise handoff sheet through
-three fixed alignment rounds, then route to the right execution band.
-
-### Step 1 — Three alignment rounds
-
-Conduct exactly three rounds, in this fixed order:
-
-1. **目的** — What is the user trying to accomplish? Ask via AskUserQuestion
-   with 2-3 options that are fundamentally different in kind (not variations
-   of the same idea). Mark one 【推薦】. If the user's stated purpose is
-   already precise and unambiguous, confirm it in one sentence and move to
-   round 2.
-2. **約束** — What constraints apply? (timeline, compatibility, performance,
-   scope limits.) Same format: 2-3 options, one 【推薦】.
-3. **成功** — What does success look like, concretely? How will the user
-   know it worked? Same format.
-
-If a user's answer in a later round contradicts an earlier answer, name the
-contradiction explicitly and ask which one holds — do not silently override.
-
-### Step 2 — No tools before the handoff sheet
-
-File reads, grep, glob, shell commands, and URL fetches are forbidden until
-Step 3 has produced the handoff sheet (tools open at Step 4). The alignment rounds reason only from
-what the user says and what is already in conversation context. This
-constraint exists because premature tool use anchors the model on
-implementation details before the purpose is settled.
-
-### Step 3 — Produce the handoff sheet
-
-After three rounds, produce the handoff sheet in this exact format:
-
-```
-## 目的（一句話）
-{一句話描述}
-
-## 約束
-- {約束 1}
-- {約束 2}
-- ...
-
-## 成功判準
-- {判準 1}
-- {判準 2}
-- ...
-
-## 未決（Unknowns）
-- {未決事項 1}：延後理由；由誰在何時決定
-- ...
-```
-
-The four field headings are verbatim templates — copy them unchanged.
-Unknowns that surfaced as contradictions in Step 1 appear here with their
-resolution status.
-
-### Step 4 — Route by band
-
-Now (and only now) tools are permitted. Read enough of the codebase to
-judge the size of the work:
-
-| Band | Route | Evidence |
-|---|---|---|
-| Small — single file, clear scope | `_shared/tdd.md` §7 direct implementation | State the file and the change |
-| Medium — one feature, few files | `/contract` pins acceptance before building | State the feature boundary |
-| Large — ≥2 interdependent modules | wayfinder (detect first; if absent, slice manually then medium-band each slice) | State the modules and dependencies |
-
-Present the handoff sheet and the routing recommendation to the user via
-AskUserQuestion:
-- Option 1: 照這樣開工
-- Option 2: 修改交棒單（loop back to the specific round that needs revision)
-
----
-
-## Shared Discipline
-
-### Persistence (all routes)
-
-Every completed run persists its conclusion:
-1. Write `.claude/think/<slug>.md` (≤20 lines: the verdict or handoff sheet,
-   no preamble).
-2. Include the conclusion in the final message to the user.
-3. Deliver the file via SendUserFile.
+## Present it so a person can follow
 
 ### Plain-language presentation contract
 
-All user-facing output follows the shared presentation discipline. When
-explaining a verdict or recommendation:
-- Start with **immediate context** — what is being decided and why now.
-- State the **practical impact** — what changes for the user.
-- End with a **concrete next step** the user can act on.
-- When an **English technical term** appears, give a one-line plain-language
-  gloss on **first use**.
-- **Do not add facts**, claims, or recommendations beyond what the
-  investigation or alignment produced — the presentation is
-  **presentation-only** and **adds no PAUSE**.
+- Make the immediate context explicit: which phrase of the restatement a question fixes, or which bet the stance rests on.
+- Explain in plain Traditional Chinese why the conclusion follows from this run's evidence or the user's stated constraints, its practical impact, and the concrete next step (the open decision, or 「無」).
+- Keep each English technical term, but explain it in plain Traditional Chinese at its first use, in the same sentence or immediately after it.
+- Do not add facts that this run has not established. This is presentation-only: it adds no PAUSE and does not replace or rename the restatement, the stance, or the five plan sections.
 
-### Style
+Before the file, show the result the way a person absorbs it: the whole shape first, then the part that matters to this user, in the smallest view that makes the key point clear — a before/after diff, one flow, a side-by-side comparison, or one focused HTML page when the shape is too dense for text — with each technical term explained where it first appears. When the common suite's show-me skill is installed in the session, hand the result to it; otherwise do the same inline. The user should also be able to see which questions were asked and what each answer changed, so the decisions are traceable, not just the conclusion. The conversation is the understanding version; the file is the durable version. Do not make the user read five sections to find out what you recommend.
 
-This skill produces verdicts and handoff sheets. It does not produce plans,
-implementation details, code, scaffolding, pseudo-code, or config files.
-ASCII diagrams of logical relationships are permitted when they clarify a
-comparison.
+## Leave a plan on disk, then stop
+
+When the deliberation produced a buildable direction (not a verdict, not a one-line answer), write `.claude/think/<slug>.md` in Traditional Chinese with the confirmed restatement on top and exactly five sections:
+
+- Building — the observable outcome, concrete enough to picture the result; not the mechanism.
+- Not building — at least three concrete exclusions, including everything the excess attack cut, each with why and when it would become needed.
+- Approach — why this over the alternatives considered; the load-bearing premise, what happens if it fails, and how the design survives it; which failure modes are accepted boundaries.
+- Key decisions — three to five, each "could have done X, doing Y because Z"; activities are not decisions.
+- Unknowns — each with the specific question, why deferring is safe, and who decides when; or 無 with the reason this scale needs no deferral.
+
+No TBD or TODO, no "standard approach", no unnamed library or unnamed flow; every non-obvious claim carries its verified or 未實查 tag. Success criteria and scope land here, as outputs of the deliberation, not as inputs demanded at the start. Never overwrite another task's file; if `.claude/think/<slug>.md` already exists, write `<slug>-2.md` and count up. Do not also write an acceptance record; that is `/contract`'s job, reading from this plan.
+
+Tell the user the path and the single most consequential open decision, if any:
+「計畫已落檔：.claude/think/{slug}.md。最關鍵的未決點：{一句話，或「無」}。」
+Then end the turn. This skill does not implement, does not choose a downstream skill, does not ask permission to proceed, and does not open another approval gate. The user decides what happens next — `/contract` to pin acceptance, `/review` to get a second opinion on the plan, or nothing — and the file is written so a person or a reviewer can judge it without the conversation.
+
+If the user pushes back on the plan, ask which section is wrong, revise with the changed assumption named up front, and rewrite the file. If the pushback is about what they wanted rather than how to build it, the restatement was wrong: go back to it, not to the plan. If the objections spread across sections instead of narrowing, ask for an anti-example — a version they would never accept — before revising again.
+
+## Not-for boundaries
+
+- An existing error or failing behavior → `/hunt`; 「判斷一下這個報錯」 is debugging, not a value judgment.
+- Pinning assertable acceptance for work already decided → `/contract`.
+- A single-file fix with a clear scope → `../_shared/tdd.md` §7 directly; a plan would be ceremony.

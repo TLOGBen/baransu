@@ -2,6 +2,22 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [5.5.0] - 2026-09-07
+
+### Changed
+- **think／contract／seal／review 四技能改以 Common Lab 實驗版定稿為本體**（common-lab 0.6.0），輸出目錄回歸 baransu 慣例：think → `.claude/think/<slug>.md`、contract → 專案根目錄 `CONTRACT.md`（sealed 標記文法不變）、seal → 收據 `.claude/seal/<slug>-<run>.md` ＋ seal-log ＋ 合約 line 2 標記、review → 對話報告，需要時 `.claude/review/<slug>.md`。
+- **think**：對焦改為「復述」（結果／目的／不能動的／規模），只問會改變答案形狀的題；表態附「押在什麼上、押錯會怎樣、改走哪條」；前提逐條 verified／未實查；正向攻擊找會壞的地方、反向攻擊砍掉復述不需要的東西；先呈現再落檔；落檔即結束，不挑下游 skill、不開核准關卡。已定決定可拿來拷問（取代 Lab grilling 反證版）。單檔小修改指 `_shared/tdd.md` §7；多目的地指向 common wayfinder。
+- **contract**：四段改五段（目標與範圍／前提／條文／需求常數／決策與修正），釘 WHAT 不釘 HOW；必要性與違反成本分開，需求常數用精確比對驗；不確定前提隔離其依賴條文但相鄰條文照釘；不再要求儀式性確認。`references/acceptance.md` 為單一格式來源。
+- **seal**：撤除固定五點 mandate、五欄 payload、複驗上限 2、fingerprint 監管鏈與每修必配 pinning test；改為「驗證強度跟著後果」——先定檢查與修復額度（`references/verification-effort.md`），派 `agents/verifier.md` 只驗不修；突變是方法不是配額，需求常數以精確比對結案；有實作授權才修、修後只複驗該處；到額度即交回。seal-log JSONL 與 Stop hook 契約不變。
+- **review**：撤除七階段五視角流程、八欄簽收與 HTML 工作日誌；改為派一個乾淨 context 的 verifier，視角 agent 只為不同的實質風險才加；計數依 `_shared/fact-check.md`；乾淨的 review 是有效結果。
+- `/ship` 歸檔清單加入 `seal`；`_shared/tdd.md` §8 與 `_shared/output-journal.md` 對應更新（不再預設產 HTML 日誌）。
+
+### Removed
+- `agents/seal-agent.md`（五點 mandate 隨 seal 退役）與 `review/references/orchestration-interface.md`；新增 `agents/verifier.md`。
+
+### Tests
+- `tests/skills/test-inertia-distillation-contracts.sh` 改釘新版 think／review 契約；`tests/skills/test-contract-lifecycle.sh` A2／A4／A5／A6 改釘新版 seal 條款與 `agents/verifier.md`；`tests/skills/test-plain-language-presentation.sh` 改釘新版 think 鏈與 review 報告形狀；`tests/skills/test-automation-annotation.sh` review 改為 ultracode=neutral；`tests/skills/test-orchestration-interface.sh` 迴圈移除 review；`tests/scripts/test_codex_skill_transfer.py` 對應更新；`tests/skills/test-think-rework.sh`（釘 v5.0.0 判決機字面）退役；`tests/integration/claude-md-skills-baseline.txt` 重生。
+
 ## [5.4.1] - 2026-08-30
 
 ### Fixed

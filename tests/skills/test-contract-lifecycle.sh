@@ -17,7 +17,7 @@
 #       two-sources line, and the INV-8 staged-deletion note
 #   A4  the five user-facing message formats from the Surface Inventory each
 #       live in their owning SKILL.md
-#   A5  agents/seal-agent.md verify-only boundary: tool set, never-applies-a-fix
+#   A5  agents/verifier.md verify-only boundary: tool set, never-applies-a-fix
 #       line, git revert prohibition, structured status enum — and NO sentence
 #       granting fix authority
 #   A6  contract pins the marker's line-2 position, and seal's loop-pauses
@@ -30,7 +30,7 @@ SKILLS="$ROOT/plugins/baransu/skills"
 CONTRACT_MD="$SKILLS/contract/SKILL.md"
 SEAL_MD="$SKILLS/seal/SKILL.md"
 SHIP_MD="$SKILLS/ship/SKILL.md"
-SEAL_AGENT="$ROOT/plugins/baransu/agents/seal-agent.md"
+SEAL_AGENT="$ROOT/plugins/baransu/agents/verifier.md"
 LOOP_PAUSES="$SKILLS/seal/references/loop-pauses.md"
 
 PASS=0
@@ -143,29 +143,32 @@ done
 # ---------------------------------------------------------------------------
 # A2: seal/SKILL.md dispatcher clauses
 # ---------------------------------------------------------------------------
-echo "A2: seal/SKILL.md dispatcher clauses..."
+echo "A2: seal/SKILL.md consequence-sized verification clauses..."
 assert_lit "A2a: seal-log result enum literal 'pass|fixed|unresolved'" \
            "$SEAL_MD" "$SEAL_LOG_ENUM"
 assert_lit "A2b: head -3 sealed-marker detection form" \
            "$SEAL_MD" "$DETECT_FORM"
-assert_lit "A2c: re-verification cap heading (cap 2)" \
-           "$SEAL_MD" '**Re-verification cap: 2**'
-assert_lit "A2d: total-dispatch ceiling clause (total dispatches <= 3)" \
-           "$SEAL_MD" '2 re-verification dispatches (total dispatches ≤3).'
-assert_lit "A2e: branch 2/3 write no sealed marker" \
+assert_lit "A2c: branch 2/3 write no sealed marker" \
            "$SEAL_MD" 'Branches 2 and 3 never write a marker.'
-assert_lit "A2f: dispatch payload is exactly five fields" \
-           "$SEAL_MD" 'Every dispatch of seal-agent carries exactly these five fields'
-assert_lit "A2g: payload field 5 = scratch path" \
-           "$SEAL_MD" '5. **Scratch path** —'
-assert_absent_lit "A2h: old Exactly-one-pass sentence removed" \
-           "$SEAL_MD" 'Exactly one pass (no seal-of-a-seal, no iterative rounds)'
-assert_lit "A2i: Exactly-one-pass replacement (latest clean dispatch)" \
-           "$SEAL_MD" 'The marker stamps only the latest clean dispatch'
-assert_lit "A2j: fingerprint definition (tracked diff + untracked list)" \
-           "$SEAL_MD" '**Fingerprint definition**: the tracked diff (`git diff`) plus the'
-assert_lit "A2k: marker write ordered after fingerprint comparison" \
-           "$SEAL_MD" '**Ordering**: the sealed marker write is ordered strictly AFTER the'
+assert_lit "A2d: default allowance = one independent review + one focused recheck" \
+           "$SEAL_MD" 'start with one independent review and one focused recheck after authorized repairs'
+assert_lit "A2e: verifier agent loaded completely before dispatch" \
+           "$SEAL_MD" 'Load `${CLAUDE_PLUGIN_ROOT}/agents/verifier.md` completely'
+assert_lit "A2f: verification-only request stays read-only" \
+           "$SEAL_MD" 'A verification-only request stays read-only even for a serious defect'
+assert_lit "A2g: exhaustion never converts unverified into passed" \
+           "$SEAL_MD" 'Exhaustion never converts unverified into passed.'
+assert_lit "A2h: mutation is a method, not a quota" \
+           "$SEAL_MD" 'a mutation probe is used only when it resolves a specific consequential uncertainty'
+assert_lit "A2i: requirement constants settle by exact comparison" \
+           "$SEAL_MD" 'is settled by an exact comparison'
+assert_lit "A2j: receipt path under .claude/seal/" \
+           "$SEAL_MD" '.claude/seal/<slug>-<run>.md'
+assert_lit "A2k: marker write is idempotent" \
+           "$SEAL_MD" 'Idempotent: a re-seal overwrites the existing marker in place.'
+assert_absent_lit "A2l: five-point mandate retired" "$SEAL_MD" 'five-point'
+assert_absent_lit "A2m: re-verification cap 2 retired" "$SEAL_MD" '**Re-verification cap: 2**'
+assert_absent_lit "A2n: seal-agent retired" "$SEAL_MD" 'seal-agent'
 
 # ---------------------------------------------------------------------------
 # A3: ship/SKILL.md detection, INV-1, INV-8
@@ -189,9 +192,9 @@ assert_lit "A3f: INV-8 note — that deletion must not dominate the commit subje
 # ---------------------------------------------------------------------------
 echo "A4: Surface Inventory message formats in their owning SKILL.md..."
 assert_lit_joined "A4a: seal 封緘完成 message format" "$SEAL_MD" \
-  '「封緘完成：{N} 條條文核對、{M} 個表面掃描、{K} 處修正（各附釘死測試）、突變 {X}/{Y} 被測試攔截。」'
-assert_lit "A4b: seal 複驗超限 message format" "$SEAL_MD" \
-  '「複驗上限已達（2 次）：{N} 項未清 findings 如下，未蓋章（seal-log: unresolved）。」'
+  '「封緘完成：{N} 條條文全數支持，{K} 處修正已複驗，收據 {path}，已蓋 sealed 標記（seal-log: pass|fixed）。」'
+assert_lit "A4b: seal 驗證額度已達 message format" "$SEAL_MD" \
+  '「驗證額度已達：{N} 項未清如下，未蓋章（seal-log: unresolved），收據 {path}。」'
 assert_lit "A4c: ship Step 1 早停 message format" "$SHIP_MD" \
   '「沒有可歸檔的工作檔案，git 也乾淨，root 無 sealed 合約，結束。」'
 assert_lit "A4d: ship Step 2 歸檔輸出 message format (含 sealed 計數 {S})" "$SHIP_MD" \
@@ -200,30 +203,30 @@ assert_lit "A4e: contract 覆蓋前歸檔 message format" "$CONTRACT_MD" \
   '「偵測到已封緘合約，已先歸檔至 .claude/archived/{filename}-{unix_timestamp}，續寫新合約。」'
 
 # ---------------------------------------------------------------------------
-# A5: seal-agent.md verify-only boundary
+# A5: agents/verifier.md verify-only boundary
 # ---------------------------------------------------------------------------
-echo "A5: agents/seal-agent.md verify-only boundary..."
-assert_lit "A5a: frontmatter tool set (no permissionMode, verify-only set)" \
-           "$SEAL_AGENT" 'tools: Read, Grep, Glob, Bash, Write, Edit'
-assert_lit "A5b: agent never applies a fix" \
-           "$SEAL_AGENT" 'This agent NEVER applies a fix'
-assert_lit "A5c: git checkout/restore/stash forbidden as revert mechanism" \
-           "$SEAL_AGENT" '`git checkout` / `git restore` / `git stash` are FORBIDDEN as revert mechanisms'
-assert_lit "A5d: structured report status enum" \
-           "$SEAL_AGENT" 'status: [clean | findings | revert-failure | malformed-payload]'
+echo "A5: agents/verifier.md verify-only boundary..."
+assert_lit "A5a: frontmatter tool set (no permissionMode, read/probe only)" \
+           "$SEAL_AGENT" 'tools: Read, Grep, Glob, Bash'
+assert_lit "A5b: agent never edits the target" \
+           "$SEAL_AGENT" 'Do not edit the target, its tests, criteria, or configuration'
+assert_lit "A5c: no independent pass without evidence, identity, and independence" \
+           "$SEAL_AGENT" 'Never claim a complete independent pass when required evidence, target identity, or independence is unavailable.'
+assert_lit "A5d: per-criterion result enum" \
+           "$SEAL_AGENT" 'supported / violated / unverified'
 assert_absent_re "A5e: no sentence granting fix authority" \
            "$SEAL_AGENT" 'direct-fix rights|((the|this) agent|you)[^.]*(may|can|(is|are) (allowed|authorized) to)[^.]*(fix|repair|correct)|授權[^。]*修復'
 
 # ---------------------------------------------------------------------------
-# A6: marker position clause + the two new loop-pauses rows
+# A6: marker position clause + the two authorization loop-pauses rows
 # ---------------------------------------------------------------------------
 echo "A6: marker position clause + loop-pauses rows..."
 assert_lit "A6a: contract pins the marker position (line 2, after the H1)" \
            "$CONTRACT_MD" 'Position: line 2 of CONTRACT.md, immediately'
-assert_lit "A6b1: loop-pauses row — 複驗超限 (Authorization)" \
-           "$LOOP_PAUSES" '| 複驗超限 (re-verification cap exhausted:'
-assert_lit "A6b2: loop-pauses row — 指紋不符/探針殘留 (Authorization)" \
-           "$LOOP_PAUSES" '| 指紋不符/探針殘留 (post-dispatch fingerprint mismatch,'
+assert_lit "A6b1: loop-pauses row — allowance reached (Authorization)" \
+           "$LOOP_PAUSES" '| Allowance reached / repeated no-progress / fix would widen into a refactor | Authorization |'
+assert_lit "A6b2: loop-pauses row — repair without implementation authorization (Authorization)" \
+           "$LOOP_PAUSES" '| Repair of a finding when the original request did not include implementation | Authorization |'
 
 # ---------------------------------------------------------------------------
 echo ""

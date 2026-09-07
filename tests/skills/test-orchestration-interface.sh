@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # Tests for TASK-automation-02: dual-mode orchestration interface references
-# for review / learn / evolve (REQ-004 Scenario 3 / 4).
+# for learn / evolve (REQ-004 Scenario 3 / 4). review left the loop in 5.5.0:
+# its dispatch is a single verifier agent (agents/verifier.md), no dual-mode
+# orchestration interface.
 #
 # Asserts (structural, behavior-level checks stay with spec review):
-#   T1  references/orchestration-interface.md exists for each of the 3 skills
+#   T1  references/orchestration-interface.md exists for each of the 2 skills
 #   T2  depth-invariant sentence appears >= 2 times per reference file
 #       (once in the current-adapter section, once in the Workflow adapter)
 #   T3  each SKILL.md links the reference file directly (one level deep)
@@ -14,7 +16,7 @@
 # sections) was retired in v4.0.0: the large-band pipeline skill and both
 # guarded reference files were deleted, so the sections it protected no longer
 # exist. That same skill also leaves the T1-T4 loop, which now covers the
-# three surviving orchestration-interface holders.
+# surviving orchestration-interface holders (learn, evolve since 5.5.0).
 
 set -u
 
@@ -38,7 +40,7 @@ fail() {
 # ---------------------------------------------------------------------------
 # T1 + T2 + T3 + T4 per skill
 # ---------------------------------------------------------------------------
-for skill in review learn evolve; do
+for skill in learn evolve; do
   REF="$SKILLS_DIR/$skill/references/orchestration-interface.md"
   SKILL_MD="$SKILLS_DIR/$skill/SKILL.md"
 

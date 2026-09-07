@@ -1,10 +1,10 @@
 # loop-pauses — /review PAUSE classification
 
-PAUSE classification for non-interactive drivers; semantics in ../../_shared/loop-contract.md §2.
+PAUSE classification for non-interactive drivers; semantics in `../../_shared/loop-contract.md` §2.
 
 | Interaction point | Class | Non-interactive default |
 |---|---|---|
-| Stage 1 target pinning — AskUserQuestion when no target can be materialized from disk | Input | Report `no progress: no materializable target` and end the run |
-| Stage 7 「Packaged confirm」 — batch diff presented once for confirmation | Input | Do NOT apply the batch; list it in the report as pending-confirm.「此處採預設：不套用，留待人工確認」 |
-| Stage 1.5 domain grounding — AskUserQuestion when sources for the transition table are insufficient | Input | Do not ask; treat as sources-insufficient: skip domain-reviewer dispatch, the Domain grounding missing hard stop hits, and the report must not claim domain coverage. A driving context may pre-supply source paths to avoid this outcome |
-| Stage 7 「Needs judgment」 — batched AskUserQuestion for logic / boundary / API / behavior / security findings, including hard-stops-sweep pinned findings | **Authorization** | Hard stop. Return verdict 「需判斷」 to the driver with the findings; never auto-apply behavior changes |
+| Target or question cannot be pinned | Input | Report `no progress: no target or question to review` and end the run |
+| Independent execution unavailable or the session authored the target | Input | Proceed as a same-context self-check and state in the report that no independent pass was earned |
+| Extending the review into repeated probes beyond the allowance | Authorization | Do not extend; report the finding as unverified with the observation that would decide it |
+| Persisting the report to `.claude/review/<slug>.md` | Input | Persist when the driver named a slug or asked for a file; otherwise keep the conversation report only |

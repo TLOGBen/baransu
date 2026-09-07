@@ -1,8 +1,9 @@
 # output-journal — work-journal contract (single source)
 
-> Shared contract for the HTML work journal produced by `/think` and `/review`
-> and appended to by every downstream implementer. Skills cite this file; they
-> do not restate it.
+> Shared contract for the HTML work journal. Since 5.5.0 no skill produces one by
+> default — `/think` writes a Markdown plan under `.claude/think/` and `/review` a
+> Markdown report under `.claude/review/` — but any skill or implementer that opts
+> into an HTML journal follows this contract. Skills cite this file; they do not restate it.
 
 ## Purpose
 
@@ -14,8 +15,8 @@ happened during implementation.
 
 ## Trigger
 
-- **Producers**: `/think` and `/review` each produce one journal per run,
-  immediately after their primary deliverable is written.
+- **Producers**: none by default since 5.5.0; a skill that opts in produces one journal per run,
+  immediately after its primary deliverable is written.
 - **Appenders**: any implementer working from that deliverable (direct implementation
   under `_shared/tdd.md` §7, a delegated executor running one slice, or any later session)
   appends to the existing journal instead of creating a new one.
