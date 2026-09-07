@@ -327,9 +327,6 @@ class TestMaintainedDiagramsContract(unittest.TestCase):
         region = _extract_region(rules, "## §4.11", [])
         self.assertIn("maintained-diagrams.md", region)
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_named_by_book_skill_md(self):
         self.assertIn(
             "references/diagram-types/maintained-diagrams.md",
@@ -425,9 +422,6 @@ class TestStaleCountLiteralsGone(unittest.TestCase):
                         f"stale catalog-count literal {stale!r} in {label}",
                     )
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_skill_md_speaks_seventeen(self):
         self.assertIn("17 型", SKILL.read_text(encoding="utf-8"))
 

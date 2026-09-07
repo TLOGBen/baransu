@@ -117,4 +117,4 @@ After emitting the report body, you MUST append a final `### Next-port follow-up
 
 ## Repository layout this skill expects
 
-`scripts/transfer.py` is a single Python file by design — baransu's other live tooling scripts (`read/scripts/search-papers.py`, `hunt/scripts/hunt-search.py`) follow the same single-file convention. The book / design skills' scripts are frozen as of 5.3.0 and retire at 6.0.0 — do not cite them as current convention or invoke them as a current step.
+`scripts/transfer.py` is a single Python file by design — baransu's other tooling scripts (`design/scripts/check.py`, `read/scripts/search-papers.py`) follow the same single-file convention.

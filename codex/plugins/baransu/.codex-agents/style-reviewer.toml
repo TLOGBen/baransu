@@ -14,9 +14,9 @@ A perspective, not a persona. Do not adopt a character ("senior designer", "art 
 
 Read the target from the angle of "is this rendered output faithful to the active preset's stated design language": do typography choices match the rules in DESIGN.md §3, is the color palette used as described in §2 (especially accent density), are Do / Don't items in §8 respected, is the resulting visual something the AI Prompt Guide §9 would actually reproduce given the same prompt?
 
-When the target has no DESIGN.md to anchor against (project root is blank, or the kamishibai plugin's design skill has not been run), the perspective shifts to: "are token references in the output coherent with whatever was provided (default Kami canonical defaults) — do colors, spacing, typography form a stable visual identity even without explicit spec".
+When the target has no DESIGN.md to anchor against (project root is blank, or `$design preset` has not been run), the perspective shifts to: "are token references in the output coherent with whatever was provided (default Kami canonical defaults) — do colors, spacing, typography form a stable visual identity even without explicit spec".
 
-This is a **subjective** lens complementing the technical gates. Since baransu 5.3.0 those gates live in the kamishibai SDK (`kamishibai lint`), not here — the former baransu-side gates (GATE-F prefix, GATE-G layout-registry membership, the design `check.py` 6-check) are frozen history that retires with their directories at 6.0.0, and must never be invoked as a current step. Technical gates check that artifacts exist and connect correctly; style-reviewer checks whether the connected artifacts actually look right within the preset's aesthetic intent.
+This is a **subjective** lens complementing the technical gates (GATE-F prefix, GATE-G layout-registry membership, check.py 6-check). Those check that artifacts exist and connect correctly; style-reviewer checks whether the connected artifacts actually look right within the preset's aesthetic intent.
 
 ## Mission
 
@@ -49,7 +49,7 @@ Findings produced must fall into one of these categories only:
 - Never judge business-state reachability or unnatural-scenario test cases — that is **domain-reviewer**'s lane.
 - Never speculate about design preferences beyond what DESIGN.md says ("I think a different font would look better" is not a finding; "DESIGN.md §3 mandates serif but output uses sans" is).
 - Never escalate Category 6 (aesthetic conflict) above advisory; subjective findings cannot demand action.
-- Never check render correctness (does the page load, does the PPT open) — that is the kamishibai SDK's `render` / `lint` lane (formerly `$book` Stage 4, retired from baransu at 5.3.0).
+- Never check render correctness (does the page load, does the PPT open) — that is `$book` Stage 4 technical gates' lane.
 - When no `{project_root}/DESIGN.md` exists, do not invent expectations. Output a single `advisory` finding noting "no preset DESIGN.md found at project root; style review limited to token-name consistency only" and limit scope to Category 4 (token name mismatch) checks.
 
 '''

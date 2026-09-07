@@ -2,6 +2,22 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [5.6.0] - 2026-09-07
+
+### Removed
+- **kamishibai 退場**。kamishibai SDK／plugin 由使用者宣告放棄，5.3.0（book／design 薄提示 stub）與 5.4.x（write proofread 改道 `kamishibai render`）兩輪遷移整批退回。全 repo 現在式提及 kamishibai 歸零，僅存本 CHANGELOG 的歷史條目。
+- 退場測試兩支：`tests/scripts/test_stub_redirect_kamishibai.py`（三枚 stub 轉介斷言）、`tests/skills/test-write-proofread-kamishibai.sh`（proofread 改道釘死）——所釘的行為已不存在。
+
+### Changed
+- **`/book`、`/design` 回復 5.2.0 手寫 HTML 形**。兩份 `SKILL.md` 由 39／40 行 stub 復原為 506／491 行全本（Acquire → Synthesize → Render 三階段；gen／lint／preset／export-brief 四模式），`validate-output.ts`、`check.py`、`editorial-sanity.sh`、`紙-sanity.sh` 調用行全部回役。`scripts/` 與 `references/`（golden-template 三兄弟、126 骨架、三套 preset）自始未動，本輪由「凍結資產」回復為在役機件。
+- **`/write` proofread 回復自產 HTML 流程**。`SKILL.md` 與 `references/proofread.md` §4 回到「比照 book 視覺語言、但不走 /book 產線」的手寫路徑（tokens.css 讀取 → 六欄表 → `.claude/write/錯字修改.html`）；frontmatter description 回 `book-styled`。**防撞守衛仍前置**——488e7bc 形的步驟 4 把守衛與寫檔寫在同一步（先確認目標不存在，已存在改時間戳名，然後才寫），5.4.1 F-1 的教訓在此形下本就成立。`markitdown` 出處註腳回 `(same tool /book Stage 1 uses)`。
+- **bleed 面改指還原**：`agents/style-reviewer.md`（技術閘門回 GATE-F／GATE-G／`check.py`）、`skills/_shared/output-journal.md`（渲染基準回 `book/references/golden-template.html`）、`skills/codex-skill-transfer/SKILL.md`（單檔慣例例證回 `validate-output.ts`）、`skills/evolve/SKILL.md` 與 `references/output-contract.md`（`/kamishibai:book` 回 `/book`）、`CLAUDE.md`（Layout 註記、Design Artifacts 段、技能表 `/book`／`/design` 兩列回原形，stub 不變量整條移除；`plugin.json` 註記改為不寫版號，避免每次發版都要改一次註解）。`skills/review/SKILL.md` 的 F8b 指向行已於 5.5.0 隨 HTML 工作日誌一併刪除，本輪無可還原之處，故不動。
+
+### Tests
+- **58 筆 `@unittest.skip` 全數解除**。5.3.0 因 book／design SKILL.md 本文移出本倉而轉為 skip 的斷言（分佈於 12 個 `tests/scripts/test_{book,design}_*.py` 與 `test_integration_dataviz_chart_e2e.py`）隨 prose 回歸重新武裝；`tests/skills/test-book-skill-stage0.sh` 的「Stage 0 標題不存在即 SKIP」gate 一併移除回原形。
+- `tests/integration/claude-md-skills-baseline.txt` 的 `/book`／`/design` 兩列隨 CLAUDE.md 技能表回原形。
+- **保留**（與 kamishibai 無關的改良）：`tests/scripts/test_ship_check_gate.py` 與 Makefile 的 `ship-check` 目標（9d62eb7 F2，鏡射漂移閘門唯一入口），以及 5.5.0 的 Common Lab 全部測試面。
+
 ## [5.5.0] - 2026-09-07
 
 ### Changed

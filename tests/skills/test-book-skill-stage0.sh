@@ -11,22 +11,6 @@ set -u
 
 SKILL_MD="$(cd "$(dirname "$0")/../.." && pwd)/plugins/baransu/skills/book/SKILL.md"
 
-# ---------------------------------------------------------------------------
-# 5.3.0 stub retirement gate
-#
-# book/SKILL.md became a thin redirect stub in 5.3.0 — the Acquire/Synthesize/
-# Render pipeline (Stage 0 included) moved to the kamishibai plugin, so there
-# is no Stage 0 left in this repo to assert against. The suite is kept as the
-# record and retires with book/ at 6.0.0. It re-arms automatically the moment
-# a "## Stage 0" heading reappears in book/SKILL.md, so this is a skip, not a
-# deletion.
-# ---------------------------------------------------------------------------
-if ! grep -q '^## Stage 0' "$SKILL_MD"; then
-  echo "SKIP: book/SKILL.md 自 5.3.0 起為薄提示 stub（管線移交 kamishibai plugin），"
-  echo "      無 Stage 0 可斷言；本套件隨 book/ 目錄於 6.0.0 退役。"
-  exit 0
-fi
-
 PASS=0
 FAIL=0
 FAILED_TESTS=()

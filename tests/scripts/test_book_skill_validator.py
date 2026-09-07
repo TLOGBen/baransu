@@ -39,9 +39,6 @@ class TestValidatorDivision(unittest.TestCase):
         self.section = validator_section(self.full)
         self.lower = self.section.lower()
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_names_hard_floor_as_blocking_mechanical_gate(self):
         """(1) Hard floor named as a blocking mechanical gate covering all four items."""
         self.assertIn("hard floor", self.lower, "section must name the 'hard floor'")
@@ -61,9 +58,6 @@ class TestValidatorDivision(unittest.TestCase):
             "PDF-safe must be named",
         )
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_names_soft_range_as_nonblocking_opinion(self):
         """(2) Soft range named as style-reviewer + heuristics, non-blocking opinion."""
         self.assertIn("soft range", self.lower, "section must name the 'soft range'")
@@ -80,16 +74,10 @@ class TestValidatorDivision(unittest.TestCase):
         )
         self.assertIn("column width", self.lower)
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_references_validate_output_as_hard_floor_mechanism(self):
         """(3) validate-output.ts referenced as the hard-floor mechanism."""
         self.assertIn("validate-output.ts", self.section)
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_makes_division_explicit(self):
         """The hard-blocks / soft-advises division is stated explicitly."""
         self.assertTrue(
