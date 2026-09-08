@@ -2,6 +2,12 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [5.6.1] - 2026-09-08
+
+### Reverted
+- **`/contract` 與 `/seal` 回歸 5.4.1 形**。5.5.0 把兩者換成 Common Lab 定稿本體時，contract 模板刪掉「錯不起表面（Surface Inventory）」節，但 `_shared/contract-gate.md` 的 G4 一位元未動、且仍宣告自己是 seal 分級真源——G4 因此成了無錨條款（全倉零引用、seal 不讀、無測試釘）。使用者裁定整體回歸：`contract/SKILL.md`、`seal/SKILL.md`、兩者的 `loop-pauses.md`、`agents/seal-agent.md`、`tests/skills/test-contract-lifecycle.sh`、`test-inertia-distillation-contracts.sh` 全數自 `288f13d^` 還原；`contract/references/acceptance.md` 退場。`seal/references/verification-effort.md` 保留（5.5.0 的 `/review` 仍引用）。think／review 的 5.5.0 本體不動。
+- CLAUDE.md／README／`tests/integration/claude-md-skills-baseline.txt` 的 contract／seal 兩列與三頻段 Medium／Large 列回原文；agents 名冊同時列 seal-agent（seal 派遣）與 verifier（review 派遣）。codex 鏡像隨 `make mirror` 重產（agent TOML 11→12）。
+
 ## [5.6.0] - 2026-09-07
 
 ### Removed

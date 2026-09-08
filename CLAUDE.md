@@ -30,7 +30,8 @@ plugins/
       anti-patterns.md         # cross-skill behavioral guardrails
     agents/
       # Perspective: architecture-reviewer.md  quality-reviewer.md  security-reviewer.md  style-reviewer.md  domain-reviewer.md
-      # Verify:      verifier.md  (dispatched by seal and review)
+      # Seal:        seal-agent.md
+      # Verify:      verifier.md  (dispatched by review)
       # Health:      health-inspector-context.md  health-inspector-control.md  health-inspector-maintainability.md
       # Evolve:      evolve-diagnostician.md  evolve-judge.md
 ```
@@ -54,8 +55,8 @@ Invoke with `/baransu:<name>`. To edit a skill, read its `SKILL.md` — design c
 |-------|---------------|------------------|
 | `/think` | Deliberate before building: align on a restatement of what the user wants, take a stance with its bets named, verify premises, attack for breakage and excess, present, and leave a five-section plan under `.claude/think/` — never code, never a handoff; a settled decision can be brought for testing (拷問我) | 報錯/debugging → `/hunt`；釘驗收條文 → `/contract`；單檔小修 → `_shared/tdd.md` §7 |
 | `/review` | After any model output — code, plan, claim — for independent re-verification: a fresh verifier agent, perspectives only for distinct consequential risks, never edits the target; a clean review is a valid result | 審「使用者專案」的 agent 配置與 AI 可維護性 → `/health`；封緘合約任務 → `/seal` |
-| `/contract` | Medium tasks: pins `CONTRACT.md` (goal and scope / premises / criteria with IDs, counterexamples and evidence paths / requirement constants / decisions) before implementing — WHAT must hold, not HOW; owns the sealed-marker grammar and archives a sealed contract before writing over it | 跨模組大任務先切片，每片各自立約；事後驗收 → `/seal` |
-| `/seal` | After implementation: pins the artifact and its contract, sizes verification to consequence under a finite check-and-repair allowance, dispatches a fresh verify-only verifier, repairs only inside an existing implementation authorization, writes a receipt under `.claude/seal/`, appends the seal-log line, and stamps the sealed marker on independent success | 跨視角獨立重驗證 → `/review`；開工前釘條文 → `/contract` |
+| `/contract` | Medium tasks: pins a one-page work contract (goal / assertable criteria / surface inventory / verbatim constants) before implementing; owns the sealed-marker grammar and archives a sealed contract before writing over it | 跨模組大任務先切片，每片各自立約；事後驗收 → `/seal` |
+| `/seal` | After implementation, run as a dispatcher: assembles the payload, runs the baseline, dispatches a verify-only seal-agent in a clean context (criteria audit / unpinned-surface scan / cross-UI / constants byte-diff / mutation spot-check), fixes findings in the main session with re-verification capped at 2, and stamps the sealed marker only on a clean pass | 跨視角獨立重驗證 → `/review`；開工前釘條文 → `/contract` |
 | `/write` | Bilingual copywriting: `zh`/`en` prefix; Refine (existing text), Generate (new), or Proofread (findings table → `錯字修改.html`) | 寫完要 commit/push 的收尾 → `/ship` |
 | `/ship` | Session cleanup: archive `.claude/` dirs plus sealed root contracts, commit, push, optional worktree removal | 只收尾；不寫作、不審查 |
 | `/hunt` | Bug diagnosis: symptom → root cause via observability-first investigation | 「值不值得修」是價值判斷 → `/think` 存廢判決 (Kill/Keep/Pivot) |
@@ -74,8 +75,8 @@ Invoke with `/baransu:<name>`. To edit a skill, read its `SKILL.md` — design c
 | Band | Route | Closure evidence |
 |------|-------|------------------|
 | Small — single-file, clear scope | Implement directly under the red/green discipline in `_shared/tdd.md` §7 (維5: behavior tests assert named values, never tautological "responds/all-green"; a broken feature MUST turn a test red); no skill ceremony | red → green run |
-| Medium — one feature, few files | `/contract` pins `CONTRACT.md` before work; `/seal` verifies to consequence with a fresh verifier under a finite allowance, repairs only when the request includes implementation, writes a receipt, and stamps the sealed marker on independent success | seal receipt + sealed marker |
-| Large — ≥2 interdependent modules, context rot is real | Chart the effort as a decision map, slice it, then run each slice through the medium band: `/contract` pins that slice's criteria → implement → `/seal` closes it. When the common suite (wayfinder / delegate / strategic-advance) is installed, the charting and the execution MAY route through it — detect first, never assume it is present | per-slice seal receipts |
+| Medium — one feature, few files | `/contract` pins a one-page contract before work; `/seal` dispatches a verify-only seal-agent for one narrow verification pass, fixes findings in the main session (re-verification capped at 2), and stamps the sealed marker on a clean pass | seal five-point mandate result |
+| Large — ≥2 interdependent modules, context rot is real | Chart the effort as a decision map, slice it, then run each slice through the medium band: `/contract` pins that slice's criteria → implement → `/seal` closes it. When the common suite (wayfinder / delegate / strategic-advance) is installed, the charting and the execution MAY route through it — detect first, never assume it is present | per-slice seal mandate results |
 
 Never force a task up-band (a small fix does not deserve a spec) or down-band (a cross-module change does not get to skip criteria pinning).
 
