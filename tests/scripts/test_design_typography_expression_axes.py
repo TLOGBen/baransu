@@ -123,9 +123,6 @@ class TestExistenceAndWiring(unittest.TestCase):
         self.assertTrue(TYPOGRAPHY.exists(), f"{TYPOGRAPHY} must exist")
         self.assertTrue(AXES.exists(), f"{AXES} must exist")
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_step2_region_points_at_both_files(self):
         region = gen_step2_region(SKILL.read_text(encoding="utf-8"))
         self.assertIn(
@@ -163,9 +160,6 @@ class TestLosslessTableMove(unittest.TestCase):
             "SKILL.md must no longer carry the moved 極繁 table row",
         )
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_step1_derivation_invariants_still_present(self):
         # Guards test_design_skill_gen's invariant independently: the Step 1
         # region still names the capability tokens after the table move.

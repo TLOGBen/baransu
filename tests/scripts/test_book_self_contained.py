@@ -141,17 +141,11 @@ class TestSelfContainedProse(unittest.TestCase):
         / "references" / "render-pipelines.md"
     )
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_a1_no_linked_tokens_wording(self):
         text = self.SKILL.read_text(encoding="utf-8")
         self.assertNotIn("linked tokens.css", text)
         self.assertIn("inline <style> embedding the FULL content", text)
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_a2_self_contained_constraint_present(self):
         text = self.SKILL.read_text(encoding="utf-8")
         self.assertIn("**Single-file self-contained output**", text)

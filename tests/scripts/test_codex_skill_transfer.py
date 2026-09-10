@@ -1312,8 +1312,8 @@ class TestPluginModeGeneration(unittest.TestCase):
             # reference those exact files; no install-time copy to user config
             # is required, and a missing file cannot degrade into improvisation.
             agent_defs = sorted((plugin_out / ".codex-agents").glob("*.toml"))
-            self.assertEqual(11, len(agent_defs))
-            self.assertEqual(11, summary["agent_definitions"])
+            self.assertEqual(12, len(agent_defs))
+            self.assertEqual(12, summary["agent_definitions"])
             self.assertTrue(summary["content_closure_verified"])
             self.assertFalse((plugin_out / ".codex-agents-templates").exists())
             for agent_def in agent_defs:

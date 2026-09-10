@@ -35,9 +35,6 @@ class TestGenStep1ExtremeCommitment(unittest.TestCase):
         self.region = gen_step1_region(SKILL.read_text(encoding="utf-8"))
         self.lower = self.region.lower()
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_extreme_commitment_framing_present(self):
         """Step 1 mentions an extreme-commitment framing with a list of extremes."""
         self.assertIn(
@@ -52,9 +49,6 @@ class TestGenStep1ExtremeCommitment(unittest.TestCase):
                 f"Gen Step 1 extreme list must include '{extreme}'",
             )
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_memorable_hook_prompt_present(self):
         """Step 1 adds a 記憶點 (memorable hook) interaction point."""
         self.assertTrue(
@@ -62,9 +56,6 @@ class TestGenStep1ExtremeCommitment(unittest.TestCase):
             "Gen Step 1 must add a memorable-hook (記憶點) prompt",
         )
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_minimal_marked_as_chosen_equal_extreme_not_default(self):
         """Minimal is a CHOSEN/EQUAL extreme, explicitly not a default safe value."""
         chosen = ("chosen extreme" in self.lower) or ("equal" in self.lower) or (
@@ -82,9 +73,6 @@ class TestGenStep1ExtremeCommitment(unittest.TestCase):
             "Gen Step 1 must state minimal is NOT a default safe value",
         )
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_both_derivation_lines_referenced(self):
         """The chosen extreme drives BOTH token-value derivation AND §9 expression range."""
         # Line (a): capability-token value derivation.

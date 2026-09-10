@@ -5,36 +5,487 @@ argument-hint: "[lint | preset <name> | <description>]"
 user-invocable: true
 ---
 
-> **STATUS: stub（5.3.0 退場預告）**
-
-本 skill 已由 kamishibai plugin 的 design skill 承接（規格歸 DESIGN.md、渲染歸 SDK）；本 stub 於 6.0.0 移除。
-
-UI/UX design specification skill（本版僅轉介）。All user-visible output is **Traditional Chinese (繁體中文)**.
+UI/UX design specification skill. All user-visible output is **Traditional Chinese (繁體中文)**.
 
 ## Outcome Contract
 
-- **Outcome**: 接住 `/design` 觸發詞，把使用者轉介到 kamishibai plugin 的 design skill —— 觸發不落空、不留死巷。
-- **Done when**: 使用者收到改裝指引（kamishibai plugin 的安裝式與新入口名），且本 skill 未寫出任何專案根工件。
-- **Evidence**: 本 stub 回覆的改裝指引訊息，含 plugin 名 `kamishibai` 與新入口 `/kamishibai:design`。
-- **Output**: 一則繁體中文改裝指引；本版起不再寫 `tokens.css` / `DESIGN.md` / `DESIGN.html` / `design-cores/` / `slide-cores/`。
+- **Outcome**: The requested mode delivers a complete design-system artifact set, a lint verdict, or a cross-tool brief.
+- **Done when**: gen/preset — the five artifacts (`tokens.css` / `DESIGN.md` / `DESIGN.html` / `design-cores/` / `slide-cores/`) are atomically written at project root; lint — `python3 scripts/check.py` exits 0 (clean) or 1 with violations listed; export-brief — `.claude/design/brief-{preset}-{date}.md` is written (or printed with `--stdout`).
+- **Evidence**: The mode's completion message (「✅ 已套用…」 / lint pass-fail line with violation list / 「Brief 已寫入…」) and `check.py` exit code.
+- **Output**: Project-root design artifacts, a lint report, or a prompt-ready brief markdown file.
 - **Automation**: ultracode=neutral, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
-## 唯一動作：轉介
+## Design Invariants
 
-1. 說明現況：baransu 的 design 管線已於 5.3.0 移交 kamishibai plugin；本 skill 只轉介，不生成規格、不寫檔、不跑任何本目錄下的腳本。
-2. 指路（Claude Code 內）：
-   ```
-   /plugin marketplace add https://github.com/TLOGBen/kamishibai
-   /plugin install kamishibai@kamishibai
-   /kamishibai:design <草稿名> [原稿：截圖／舊產物／一段 CSS／網址]
-   ```
-   該 skill 走 臨摹 workflow（`init draft/<名>` → 寫 stylesheet → `render` + `snapshot` 對照 → 迭代 → `lint` → 人驗 → `promote`），視覺決策段（承諾的極端／記憶點／表現軸）在其 guided design decisions 內。
-3. 指路（命令列，不經 plugin）：`npm i -g @kamishibai/sdk`，之後直接跑 `kamishibai init` / `kamishibai lint` / `kamishibai promote`。
-4. 邊界照舊：本 skill 從不碰小寫 `design.md`（技術架構文件）；大寫 `DESIGN.md`（UI 視覺規格）的產出責任隨本次移交一併過去。
-5. 使用者若堅持要舊四模式（gen / lint / preset / export-brief）：據實說明本版已無執行面，唯一路徑是裝 kamishibai；不得自行拼裝替代流程。
+Hard rules referenced by number throughout this skill (restated, not abstracted — the numeric thresholds at each use-site remain authoritative):
 
-## 蟄伏機件與退役時程
+- **I1 — Token-name immutability**: canonical token NAMES never change; only derived VALUES move. The set is version-gated: **38 base canonical names** always, **+5 capability tokens** when the preset header declares `schema: 43` (38 base +5 capability = 43; legacy presets without a `schema:` field stay at 38 base).
+- **I2 — Accent ≤5% fixed**: the single-accent ≤5% surface budget is fixed for **every** extreme (極簡 / 極繁 / brutalist / editorial) — it does not move with the extreme→value table.
+- **I3 — Token-only / PDF-safe**: all values stay token-only and PDF-safe; CSS animation is progressive-enhancement only — PDF/PPT render the static final state.
+- **I4 — Uppercase-only DESIGN.md**: this skill only ever reads/writes uppercase `DESIGN.md` (UI visual spec) at project root; never lowercase `design.md` (a technical-architecture document).
+- **I5 — Atomic staged-then-mv write**: the 5 artifacts are first written to `.tmp/design-staging/`, then atomic-mv'd to project root only after all 5 succeed; never write straight to project root.
 
-蟄伏機件（scripts/references）本版一位元未動，6.0.0 隨目錄實體退役——git 歷史即唯一備份（/analyze 前例）。
+**Direction-defense stance (design rules, not pipeline invariants)**: the design-side hard rules this skill enforces — numeric anchors, preset sanity rules, DESIGN.md §8 Do/Don't — defend the committed direction from the generic default; they are not a lint pass run for its own sake. When the committed direction genuinely calls for breaking one, break it deliberately and name the tradeoff in DESIGN.md. Two floors never move: the accessibility baseline (contrast ratios) and the CSS-pattern bans — and I1–I5 above are pipeline invariants, outside this stance entirely.
 
-本目錄下的 `scripts` 與 `references`（含三套 preset 與其 sanity 腳本）自 5.3.0 起是凍結資產，除 Gate 10 loop-pauses 登記（驗證器仍解析 `references/loop-pauses.md`，該指標之實體收殮屬 6.0.0）外，不再是任何現行流程的一部分：不得援引為現行步驟、不得被其他 skill 當作規格或閘門依據。等價能力一律走 kamishibai SDK。
+## Stage 0 — Inject DESIGN.md reference into context files
+
+Before mode dispatch, proactively ensure that CLAUDE.md, AGENT.md, and INSTRUCTION.md (any that exist at the project root) carry a top-of-file reminder to read DESIGN.md when handling UI/UX work.
+
+### Steps
+
+1. Resolve project root: `git rev-parse --show-toplevel`. If the command fails, use the current working directory.
+
+2. For each of the following files — **in this order** — if the file exists at `{root}`:
+   - `CLAUDE.md`
+   - `AGENT.md`
+   - `INSTRUCTION.md`
+
+   a. Read the file and scan the whole file for the design-system block (not just the head — an existing block may sit below a long frontmatter or preamble, and missing it would cause a duplicate insert).
+   b. Locate the current baransu design-system block. Three markers identify a block as current-version (v1.3):
+      - contains `- slide-cores/` (added in v1.3; the v1.2 inject does not have this line)
+      - contains `canonical 38-name vocabulary` (v1.3 schema marker)
+      - contains `17 non-cover` (v1.3 count-fix marker — earlier v1.3 blocks said "8 non-cover", which was wrong; lacking this marker makes the block stale so the count self-corrects on the next run)
+   c. Decide the action:
+      - **No block found** (normal case — never injected before) → insert the canonical v1.3 block at the first valid position in this priority: immediately after the YAML frontmatter if present, else immediately after the first heading if present, else at line 2
+      - **Stale block found** (contains `DESIGN.md` but lacks the v1.3 markers — e.g. leftover v1.2 inject) → **replace** the stale block with the canonical v1.3 block; leave the rest of the file untouched
+      - **Current block found** (v1.3 markers all present) → skip silently (idempotent)
+   d. Canonical v1.3 block text:
+
+      ```
+      When working on any UI/UX content, read the design system at the project root and follow it:
+      - DESIGN.md — visual spec (nine-section design system)
+      - tokens.css — CSS variables (canonical 38-name vocabulary (+5 capability for schema:43); first line `/* preset: <slug> */`)
+      - design-cores/ — 21 component skeletons consuming the tokens (long-form / gallery / dashboard + 6 bilingual document types + 6 elements)
+      - slide-cores/ — slide layouts (4 cover variants + 17 non-cover layouts)
+      ```
+
+      Stale-block replacement logic: find the first paragraph starting with `When working on any UI/UX` (the run of `-`-prefixed bullets up to the next blank line is its boundary) and replace that whole paragraph with the canonical block.
+   e. Output:
+      - newly inserted → 「已在 {filename} 開頭插入 DESIGN.md 引用（v1.3）。」
+      - upgraded/replaced → 「已將 {filename} 內 v1.2 design 引用 block 升級為 v1.3。」
+      - skip → no output.
+
+3. If none of the three files exist → skip silently. Do not create any of them.
+
+This stage is non-blocking and does not affect mode dispatch.
+
+---
+
+## Canonical Token Schema (v1.3)
+
+v1.3 fixed vocabulary: the 38 base canonical token names are **required** in every preset's `tokens.css`; HTML skeletons reference tokens only through these names, and preset-specific names (Material `--md-*` / v1.2 `--brand`) are mapped as aliases. The canonical set is version-gated — **38 base canonical names** always, **+5 capability tokens** when the preset header declares `schema: 43`; legacy presets without a `schema:` field stay at 38 base. Single source of truth: check.py's two constants `BASE_TOKENS` (38) + `CAPABILITY_TOKENS` (5). Full schema (surface 5 / accent 2 / text 5 / border 2 / font 3 / shadow 2 / space 7 / radius 7 / layout 3 / semantic 2 / capability 5) + the v1.2 banned-name list → **read `references/canonical-tokens.md`**.
+
+The first line of `tokens.css`, `/* preset: <slug> */`, identifies the preset; it is parsed by `scripts/check.py` and `/baransu:book` GATE-F.
+
+## Mode Dispatch (v1.3, v1.4 export-brief)
+
+Parse the first token of the user's input (after `/design`):
+
+| First token | Mode |
+|-------------|------|
+| `lint` (lowercase exact match) | Lint mode |
+| `preset` | Preset mode (second token = preset name) |
+| `gen` | Gen mode (requires `--slug <slug>`) |
+| `export-brief` | Export-brief mode (v1.4 — see §Export-brief Mode) |
+| anything else (or no input) | Gen mode (legacy alias — a slug is still required, recoverable per Gen Step 0) |
+
+Case-sensitive. `Lint` or `LINT` do not match lint mode. `export-brief` must be lowercase exact match.
+
+In `preset` mode, the second token is the preset name:
+
+| Second token | Preset route |
+|--------------|--------------|
+| `紙` | Kami preset (warm parchment, ink-blue, serif) — slug `kami` |
+| `google-design` | Google Material 3 preset — slug `google-design` |
+| `swiss` | Swiss preset (IKB accent, sans-serif) — slug `swiss` |
+
+v1.3 unified routing — all three presets share the same atomic staging pipeline (Step 3) and all produce 5 artifacts (tokens.css / DESIGN.md / DESIGN.html / design-cores/ / slide-cores/). The two v1.2 shared directories `references/cores/` and `references/slide-cores/` are removed (deprecated); all skeletons have moved into each preset's own `references/<name>-preset/{design-cores,slide-cores}/`.
+
+### Decision checkpoint map
+
+This skill has three hard-stops — honor each before crossing it:
+
+| Checkpoint | Type | Where | Pass condition |
+|------------|------|-------|----------------|
+| destructive overwrite | 🔴 GATE | Preset Mode Step 3 (v1.2 residue detection) | `--force` present, or no v1.2 residue → else STOP (exit ≠ 0) |
+| gen direction Q | 🔴 CHECKPOINT | Gen Mode Step 1 | user has answered the AskUserQuestion |
+| lint verdict | 🔴 GATE | Lint Mode | `check.py` exit 0 → continue; exit 1 → report violations + stop |
+
+Under a non-interactive driver (`/loop`, cron, Workflow), see `references/loop-pauses.md` for each checkpoint's PAUSE class and its sanctioned default (the destructive-overwrite GATE is an Authorization PAUSE, standing-authorizable only via an explicit `--force` in the driving context; the gen direction questions are an Input PAUSE with no substitutable default for the extreme-commitment axis).
+
+---
+
+## Preset Mode
+
+Apply a named preset as the complete DESIGN.md.
+
+### Step 1 — Parse preset name
+
+Extract the second token after `preset` as the preset name.
+
+If no name is provided → output error + list available presets (see Step 2 for listing logic):
+「錯誤：preset 模式需要名稱，例如：/design preset 紙」
+
+### Step 2 — Locate preset directory
+
+Presets are folders at: `{skill_dir}/references/{name}-preset/`
+
+Each preset directory contains (the v1.3 full artifact set):
+- `DESIGN.md` — the design specification (required)
+- `tokens.css` — canonical CSS variables (38 base +5 capability for schema:43); first line `/* preset: <slug> */`
+- `design-cores/` — 21 component skeletons (long-form / gallery / dashboard + document-type letter / resume / one-pager / portfolio / equity-report / changelog, each with an -en bilingual variant + card / metric / quote-callout / data-table / section-title / tag-button), class prefix `<slug>-*`
+- `slide-cores/` — 21 layouts (4 cover variants: cover / cover-data / cover-quote / cover-section + 17 non-cover), class prefix `<slug>-*`
+- `<slug>-sanity.sh` — preset-private sanity script (紙 preset only; v1.3 moved the Kami ten invariants here)
+
+Skeletons reference tokens by canonical token name, and the preset's `tokens.css` supplies the concrete values. Every skeleton's class prefix matches the **prefix family** of the preset slug on the first line of tokens.css — the slug's first hyphen-segment (e.g. slug `google-design` → classes `google-*`; single-segment slugs map to themselves) — guarded by lint Check C.
+
+Where `{skill_dir}` is the directory containing this SKILL.md file.
+
+Scan `references/` for directories matching `*-preset/` that contain a `DESIGN.md`. Build the available preset list by stripping the `-preset` suffix from each directory name.
+
+Fallback: if no `*-preset/` directories exist, also scan for legacy `*-preset.md` files (backwards-compat).
+
+If the requested preset name does not match any directory (or legacy file) → output error + list:
+```
+錯誤：找不到 preset「{name}」。
+可用 preset：{list}
+```
+If no presets exist: 「目前無可用 preset。」
+
+### Step 3 — Apply preset (v1.3 — atomic staging + v1.2 detection)
+
+Use `git rev-parse --show-toplevel` to find the project root.
+
+**Chart-capability declaration entry point (`--chart-capability` CLI flag)**: Preset Mode's declaration entry point for 圖表分類色能力 (chart-category color capability) is a CLI flag on the invocation: `/design preset <name> --chart-capability`. Flag present → declared this run; flag absent (the default, matching every existing invocation unchanged) → undeclared. For the shared dual-entry rationale, see Gen Mode Step 1 「Chart-capability declaration」.
+
+**v1.2 residue detection** (before the atomic write):
+
+Either condition counts as v1.2 residue:
+1. `{project_root}/tokens.css` exists but its first line does not match the regex `/^\/\* preset: [a-z][a-z0-9-]{1,15}[^*]*\*\/$/` (the `[^*]*` tolerates the optional `; schema: NN` / `; chart-capability: N` fields every shipped preset carries — aligned with check.py's `PRESET_HEADER_RE`; a bare `/* preset: kami */` and `/* preset: kami; schema: 43 */` both match)
+2. `{project_root}/tokens.css` does not exist, but any of `design-cores/` / `slide-cores/` / `DESIGN.md` exists
+
+🔴 **GATE — destructive overwrite**: this branch can overwrite the user's existing project-root artifacts (tokens.css / DESIGN.md / design-cores/ / slide-cores/). STOP and do not proceed without confirmation.
+
+If v1.2 residue is detected and the `--force` flag is absent → print to stderr 「將覆蓋 v1.2 artifact，建議 `git stash` 或備份；以 `--force` 確認繼續」 and abort the command (exit ≠ 0). **Without `--force` present, you must not bypass this GATE and write directly.**
+
+If the first line of `tokens.css` matches the regex → treat it as a v1.3 header and atomic-overwrite directly without reporting residue (idempotent). Every shipped preset writes `/* preset: <slug>; schema: 43 */`, so a faithful re-apply MUST take this branch — classifying the skill's own v1.3 output as v1.2 residue (and demanding `--force`) is the regression this regex tolerance exists to prevent.
+
+**v1.3 unified routing** — every preset copies the complete three-layer artifact set:
+
+| Preset name | Source dir | preset header |
+|-------------|------------|---------------|
+| `紙` | `{skill_dir}/references/紙-preset/` | `/* preset: kami */` |
+| `google-design` | `{skill_dir}/references/google-design-preset/` | `/* preset: google-design */` |
+| `swiss` | `{skill_dir}/references/swiss-preset/` | `/* preset: swiss */` |
+
+The v1.2 shared directories `references/cores/` and `references/slide-cores/` are removed/deprecated (they live inside swiss-preset). All presets share the canonical token list (38 base +5 capability for schema:43; see §Canonical Token Schema); the HTML skeletons distinguish their class prefixes with `kami-*` / `google-*` / `swiss-*` but the token references are identical.
+
+**Atomic staging flow** (per I5) — the 5 artifacts are first written to `.tmp/design-staging/`, then atomic-mv'd to the project root once all succeed:
+
+**Precondition (root-resolution guard, runs before step 1)**: if `{project_root}` resolved from `git rev-parse --show-toplevel` is empty or the command failed (and the cwd fallback is also empty or `/`), STOP with stderr 「無法解析 project root，中止以避免 rm -rf 誤刪」 and exit ≠ 0 — never run any `rm -rf` with an empty or root-level `{project_root}`. **Additionally (target-suffix pin, runs after the root check, before any rm -rf below)**: for each `rm -rf` command in this flow (steps 1, 9, 10), assemble its full target path and assert it equals exactly `{project_root}/.tmp/design-staging` or `{project_root}/.tmp/design-old`, with the `.tmp/...` literal segment non-empty — i.e. if the assembled `rm -rf` path does not end in the literal `/.tmp/design-staging` or `/.tmp/design-old`, STOP with stderr 「rm -rf 目標路徑非預期，中止」 and exit ≠ 0. This closes the gap where the root-only check validates `{project_root}` non-emptiness but never the appended `.tmp` subpath, so a malformed or empty suffix can never let `rm -rf` strike `{project_root}` itself.
+
+```
+1. rm -rf {project_root}/.tmp/design-staging/   # auto-clean residue from a previous failed run
+2. mkdir -p {project_root}/.tmp/design-staging/
+3. Write staging/tokens.css (full copy from the source tokens.css; the first line already carries the preset header). **If the 圖表分類色 capability is declared** (Preset Mode: `--chart-capability` flag present; Gen Mode: Step 1's chart-capability AskUserQuestion answered 「宣告」): call `python3 {skill_dir}/../_shared/scripts/color_distance.py "#hex1,#hex2,#hex3,#hex4,#hex5,#hex6"` to validate the candidate six-color categorical palette (advisory-only, never blocks generation). **Candidate-value source (never invent colors freely)**: derive the six candidates mechanically from the preset's own `--accent` — `--chart-cat-1` = the accent itself, then rotate the accent's hue in five further equal steps (≈60° apart, holding its perceived lightness/chroma), so the palette is reproducible from the preset rather than improvised (in Gen Mode, the Step 1 color-direction answer may substitute specific brand colors for individual slots). Write the validated six colors into staging/tokens.css under the fixed canonical names `--chart-cat-1` `--chart-cat-2` `--chart-cat-3` `--chart-cat-4` `--chart-cat-5` `--chart-cat-6` (reuse check.py's `CHART_CAPABILITY_TOKENS` list — no more, no fewer, no renames), and append to the first-line preset header a field independent of `schema: 43`: `; chart-capability: 1` (its version number is separate from the CAPABILITY tier's `schema: 43`; the two do not affect each other). **If undeclared**: skip this step entirely（不呼叫 color_distance.py）— tokens.css content and header stay byte-identical to current behavior, with no chart-capability field. Because atomic staging regenerates tokens.css wholesale (per I5), every run decides whether to write the field from this run's declaration state, so a declared→undeclared regeneration naturally clears（自然清除）the previously baked chart token names — nothing stale survives for `/book` to misread as still-declared.
+4. Write staging/DESIGN.md
+5. Render staging/DESIGN.html (produce the visual preview from DESIGN.md + tokens.css)
+6. Copy staging/design-cores/ (21 files: long-form + gallery + dashboard + 6 document-type bilingual skeletons + 6 universal components)
+7. Copy staging/slide-cores/ (21 files: 4 cover variants + 17 existing non-cover layouts)
+8. (紙 preset only) Copy staging/紙-sanity.sh
+9. Atomic move: mv the project root's existing v1.3 artifacts to .tmp/design-old/ → mv staging/* to project root → rm -rf .tmp/design-old/
+10. rm -rf .tmp/design-staging/; then rmdir {project_root}/.tmp if now empty (ignore failure — a non-empty .tmp belongs to the user and stays)
+```
+
+**Staged verification anchor (preset mode)**: after staging item 8 completes and **before** the atomic move (item 9), run `python3 {skill_dir}/scripts/check.py {project_root}/.tmp/design-staging` — mirroring Gen Mode Step 3's anchor. The staged dir contains tokens.css + DESIGN.md, so check.py enters project-root mode and Checks A–F fire on the staged set — including existence of the freshly rendered `DESIGN.html`, the one artifact that is NOT a byte-copy from the preset source. Exit ≠ 0 → keep the staging dir, leave the project root unchanged, exit ≠ 0 (same contract as an IO fail); a mangled render must never reach project root where only lint-mode Check A would ever see it.
+
+If any stage fails amid an IO fail / SIGTERM / SIGINT → keep the staging dir, leave the project root unchanged, exit ≠ 0.
+
+**Completion message**: 「✅ 已套用「{name}」preset；project root 5 份 artifact 已 atomic 寫入。」
+
+### Step 4 — Render DESIGN.html
+
+DESIGN.html is rendered **inside the staging flow** (Step 3's staging item 5), not as a second render after the atomic mv — the shared mv is what delivers it to project root. Render spec → read `references/render-design-html.md` (shares the same spec as Gen Mode Step 3).
+
+---
+
+## Gen Mode (v1.3 — slug mandatory)
+
+Generate a custom-preset full artifact suite via guided questions.
+
+### Step 0 — Validate `--slug <slug>`
+
+Gen mode mandatorily requires a slug. When `--slug <slug>` is not provided, do NOT dead-end the invocation — recover it:
+
+- **interactive run** → ask for the slug as one more question in the Step 1 AskUserQuestion round, proposing a candidate derived from the user's description (lowercased, hyphenated, clamped to the pattern) for the user to confirm or replace;
+- **non-interactive run** → derive the candidate from the description the same way; reject only when nothing derivable exists.
+
+Outright rejection is reserved for the two mechanical failures below:
+
+- pattern `/^[a-z][a-z0-9-]{1,15}$/` (lowercase start, 2–16 chars, only a-z 0-9 hyphen)
+- the collision list is dynamically derived from the `*-preset/` directory names actually present under `{skill_dir}/references/`
+  - v1.3 includes: `kami` (display name 紙), `google-design`, `swiss`
+- name collision → print to stderr 「slug 撞既存 preset 名 (reserved: kami / google-design / swiss)」 and abort the command
+- pattern mismatch → print to stderr 「slug 不合 pattern /^[a-z][a-z0-9-]{1,15}$/」 and abort the command
+
+Once the slug passes, it is used for: the tokens.css first-line preset header (`/* preset: <slug> */`), the design-cores/ + slide-cores/ class prefix (`<slug>-*`), and all HTML-internal naming.
+
+The rest of the gen-mode flow (interview → derive tokens → atomic staging → mv) shares the same pipeline as Preset Mode. The only difference is the source-of-truth: preset copies the whole set from `references/<name>-preset/`; gen does not author its 5 artifacts from thin air but instead **clones the closest existing preset as the donor skeleton** and rewrites it.
+
+### Step 1 — Ask direction questions
+
+🔴 **CHECKPOINT — wait for the user's answers before continuing.** Do not draft DESIGN.md until the AskUserQuestion replies are in hand.
+
+Use AskUserQuestion to ask 3–5 design direction questions. Suggested questions (adapt based on what the user already provided):
+
+1. **Atmosphere & style** — 「這個介面的整體氛圍是什麼？（例如：溫潤手感紙張、現代冷調、活潑色彩、極簡留白）」
+2. **Color direction** — 「主色調的方向是什麼？有沒有需要傳達的品牌色或情感色？」
+3. **Component expression** — 「按鈕、卡片、輸入框的視覺個性偏向哪種風格？（例如：有框線、無框填色、柔化陰影、扁平）」
+4. **Typography personality** — 「文字排版偏向哪種感覺？（例如：宋體古典、無襯線現代、等寬工程、混搭）」
+5. **Use scenario** — 「這個介面主要在什麼情境下使用？（例如：桌機閱讀、行動操作、資訊密集後台、展示型落地頁）」
+
+Skip questions that were already answered in the user's initial input.
+
+#### The extreme-commitment axis (記憶點 + which extreme)
+
+Replace any neutral intensity / boldness slider with a single **extreme-commitment** prompt. The interface must commit to one clear extreme rather than hedge toward a middle-ground "safe" look. This prompt carries **two** interaction points and both must be asked:
+
+- **記憶點 (memorable hook)** — 「這個設計的記憶點是什麼？一句話講出讓人記住它的那個鉤子。」 (the one detail a viewer remembers).
+- **Which extreme** — 「你要承諾哪一個極端？（極簡 minimal / 極繁 maximal / brutalist / editorial / …）」 (commit to one clear extreme).
+
+`極簡 minimal` is a **chosen extreme** — an equal peer to maximal / brutalist / editorial, NOT a default safe value. Treat 「平等極端」: restraint is a deliberate commitment a user picks, not the fallback the system reaches for when no extreme is named. Do not pre-select minimal; the user must name their extreme just as they would name maximal.
+
+**Aesthetics foundation (read before construction)**: once the direction is locked (the extreme + 記憶點 answers are in hand), read `references/aesthetics-foundation.md` in full and let it INFORM (not dictate) every aesthetic construction step — colour derivation, composition, uniqueness derivation. Preset Mode does NOT read it (presets are already-derived aesthetics).
+
+**The chosen extreme drives BOTH derivation lines** — record it and propagate it through both:
+
+- **(a) Capability-token VALUE derivation** — the chosen extreme sets the VALUES (not the names) of `--ease` / `--duration` / `--stagger-step` / `--font-display` / `--shadow-drama`, read off the lookup table below. The canonical token NAMES (38 base +5 capability for schema:43) never change — only the derived values move (per I1; Step 1.5 (b) consumes these values).
+- **(b) §9 expression-range authoring** — the same chosen extreme drives the DESIGN.md §9 expression-range spec (表現範圍), read off the same table: the asymmetry/overlap tolerance, the column-width ceiling, and the single-accent ≤5% discipline (the ≤5% accent budget is fixed for every extreme; per I2).
+
+**Extreme → value lookup** → read `references/canonical-tokens.md` §Extreme → Value Lookup (read each column off the chosen extreme; values are starting anchors, tune ±1 step to the 記憶點 — never invent new token names).
+
+All values stay token-only / PDF-safe (per I3): CSS animation is progressive-enhancement only; PDF/PPT render the static final state.
+
+Both lines derive from the one extreme answer — never let token values and §9 drift onto separate decisions.
+
+#### Chart-capability declaration (圖表分類色能力)
+
+Alongside the extreme-commitment axis, ask one more AskUserQuestion in the same Step 1 interview — Gen Mode's declaration entry point for 圖表分類色能力 (chart-category color capability): 「這個風格需不需要圖表分類色能力？（供統計圖表使用多個可辨識分類色，而非單一 accent）」, options 「宣告」(Step 3 atomic staging then calls the color-distance tool and bakes six chart tokens into tokens.css) / 「不宣告」(default when skipped, matching every existing gen invocation unchanged — keeps the current single-accent rule, no new token). This AskUserQuestion and Preset Mode's `--chart-capability` flag (see Preset Mode Step 3) both funnel into the same Step 3 contract — one declared/undeclared boolean, one atomic-staging bake+emit flow.
+
+#### Gen Mode Step 1.5 — Donor-clone the 21+21 skeletons (closed step)
+
+The 21 `design-cores/` + 21 `slide-cores/` skeletons are NEVER authored from scratch by the LLM. They are derived from a donor preset so the gen output inherits the SSOT skeleton structure (DOM / slot / object-position) rather than improvising HTML.
+
+**Donor selection rule** — pick the donor from the Step 1 atmosphere answer:
+
+| Step 1 atmosphere answer | Donor preset | Donor dir |
+|--------------------|--------------|-----------|
+| 暖紙 / 手感紙張 / 古典 / 溫潤 | `kami` | `references/紙-preset/` |
+| 現代冷調 / 極簡 / 工程 / 中性 | `swiss` | `references/swiss-preset/` |
+| Material / 活潑色彩 / 卡片陰影 / app 介面 | `google-design` | `references/google-design-preset/` |
+
+When the answer straddles two, prefer `swiss` (most preset-agnostic skeleton).
+
+**Per-file transform** (input = donor dir's `design-cores/` + `slide-cores/`; output = 42 files staged):
+
+- (a) Replace every class prefix `<donor>-*` (`kami-*` / `swiss-*` / `google-*`) with `<slug>-*` across the whole file.
+- (b) Replace the donor `tokens.css` literal values with the values derived from the Step 1 interview; keep the canonical token NAMES (38 base +5 capability for schema:43) unchanged (only the values change).
+- (c) Keep the donor's DOM structure / `data-slot` / `object-position` / object-fit untouched — these are SSOT-tuned, not gen-time decisions.
+
+Output of this step feeds Step 3's atomic staging (`Copy staging/design-cores/` + `slide-cores/`) exactly as the preset path does. No new skeleton source is invented — gen only re-skins an existing donor.
+
+**Gen-mode donor-clone failure branch** (three-tiered — resilience specific to the gen output path; the preset path's atomic/lint fallback does not cover this newly-generated path):
+
+- **Trigger condition**: the staged Check C run (the §Staged verification anchor after Step 3, once all five artifacts are staged) fails — some staged `design-cores/` / `slide-cores/` file's class prefix still mixes in a donor prefix (`kami-*` / `swiss-*` / `google-*`).
+- **First-line fix**: run a full `sed` over that staged file replacing the leftover donor prefix → `<slug>-` (patching the gap from (a) above), then re-run the staged Check C to confirm it passes.
+- **Still-fails fallback** (the donor skeleton itself lacks some canonical token alias; the prefix is clean but the staged Check B still fails): fall back to preset mode applying that donor preset, and tell the user plainly 「gen slug `<slug>` 已降級為 `<donor>` preset」. 🔴 **Do not silently produce a half artifact set** — better to downgrade and report than to write out an incomplete skeleton that fails lint.
+
+### Step 2 — Generate DESIGN.md
+
+Use `git rev-parse --show-toplevel` to find the project root. If the command fails, use the current working directory.
+
+Write `staging/DESIGN.md` (`.tmp/design-staging/DESIGN.md` — per I5, gen never writes straight to project root; the artifact reaches `{project_root}/DESIGN.md` only through the shared atomic mv). The 🔴 GATE — destructive overwrite (Preset Mode Step 3's v1.2-residue detection) applies to gen mode identically, before the atomic mv; an existing v1.3 `DESIGN.md` is then replaced by the mv without further prompting.
+
+The file carries the full nine-section structure:
+
+```
+# Design System: [Project Title]
+
+## 1. Visual Theme & Atmosphere
+## 2. Color Palette & Roles
+## 3. Typography Rules
+## 4. Component Stylings
+## 5. Layout & Spacing
+## 6. Iconography & Imagery
+## 7. Motion & Animation
+## 8. Do / Don't
+## 9. AI Prompt Guide
+```
+
+Each section must be substantive — no placeholder text. Base content on the user's answers. Section 2 must include hex codes for every named color. Section 9 must be a single reproducible AI prompt summarizing the design system.
+
+**Numeric anchors (a gen-mode custom-preset DESIGN.md must land hard numeric values, otherwise §2/§3/§5 degrade into a thresholdless AI-generic spec)** — the definition of "substantive" is upgraded from "not a placeholder" to "each segment below hits a named, measurable numeric value":
+- §2 Color: color count ≤3–4 (1 primary + 1 secondary + 1 accent + grayscale), accent coverage ≤5% of the surface; body-text contrast ≥4.5:1, large text ≥3:1.
+- §3 Typography: type scale perfect-fourth `r=1.333` (h1:body ≈ 2.37, h2:h3 ≈ 1.333); Chinese body line-height 1.5–1.55, forbid ≥1.6; reading column `max-width` ≤65ch.
+- §5 Layout: whitespace ≥40% of total area; spacing follows a 4pt grid (multiples).
+
+→ For the source of the numeric thresholds and the post-render self-check method, see `references/render-design-html.md §可驗品質門檻`; for the type-scale formula and tolerances, see `references/canonical-tokens.md §Modular Scale` (not re-transcribing the full table here — keeping the body lean); for the weight-discipline ladder, size floors, and text-adaptation IF-THEN rules (orphan lines, truncation, CJK), see `references/typography-discipline.md`.
+
+**Optional expression axes** — when authoring §1 / §6 / §7, read `references/expression-axes.md` (four-rung texture ladder, flat default; three-rung motion budget, functional default). Both axes are optional and INFORM-only: a DESIGN.md that never declares them keeps current behavior, and no new tokens or sections are introduced.
+
+### Step 3 — Render DESIGN.html
+
+**Spec → read `references/render-design-html.md`** (includes the 7-section structure + technical requirements + write location + success message). Rendered into the staging dir as `staging/DESIGN.html` (atomic staging item 5, per I5); the shared atomic mv delivers it to project root.
+
+**Staged verification anchor**: immediately after this step completes — all five artifacts are now staged (Step 1.5's 42 skeletons, staging/tokens.css, staging/DESIGN.md, and this step's staging/DESIGN.html) and the shared atomic mv has not yet run — run `python3 {skill_dir}/scripts/check.py` against the staged output. With the staged set complete, Check A (5 artifacts) passes through, so Check B (canonical tokens) and Check C (prefix consistency) fire at this point in the gen pipeline. This staged run is the verification event the Step 1.5 donor-clone failure branch refers to; gen mode never defers it to a Lint-Mode invocation it does not schedule.
+
+
+---
+
+## Lint Mode (v1.3 — structure + consistency, 6 checks)
+
+The v1.2 「Kami 十不變量」 have been moved out of lint mode and are now guarded by the 紙 preset's own `紙-sanity.sh` (copied to the project root when the 紙 preset is applied). In v1.3 lint mode is a preset-agnostic structure check.
+
+### Execution
+
+Before invoking check.py, verify that `{project_root}` contains `DESIGN.md` or `tokens.css`. If neither exists, report per `references/error-codes.md` row 1 (「DESIGN.md not found」→ suggest `/design gen`) and stop — do not let check.py fall through to legacy per-file mode, which would rglob every .html/.css in the project and apply Kami per-file rules to arbitrary user files.
+
+Call `python3 {skill_dir}/scripts/check.py [project_root]` (uses cwd when no args). check.py auto-detects project-root mode (anything containing tokens.css or DESIGN.md is treated as a project root) and runs the 6 checks.
+
+### Check items (Check A–F)
+
+| Check | Rule | Fail condition |
+|-------|------|----------|
+| **A. 5 artifacts complete** | tokens.css / DESIGN.md / DESIGN.html / design-cores/ / slide-cores/ all five present | any one missing → fail; on Check A fail, terminate and do not run B-F |
+| **B. tokens.css contains the version-gated canonical set** | version-gated by the `tokens.css` header — no `schema:` field → BASE 38 canonical names present; `schema: 43` → BASE 38 +5 capability tokens present (see §Canonical Token Schema) | missing any required canonical name for the declared schema, or containing a v1.2 banned token (`--brand` / `--parchment` etc.) → fail |
+| **C. cross-artifact prefix consistency** | class prefixes inside design-cores/ + slide-cores/ all equal the prefix family of the preset slug on the first line of tokens.css (the slug's first hyphen-segment, e.g. `google-design` → `google-*`) | a single file mixing prefixes, or a prefix not matching the tokens header's prefix family → fail |
+| **D. DESIGN.md nine sections + canonical references** | all nine section headings present (canonical list lives in `scripts/check.py` Check D), and the body contains no v1.2 token naming | a missing section, reversed order, or v1.2 naming in the body → fail |
+| **E. long-form.html slot unique** | `design-cores/long-form.html` contains exactly one `<section data-slot="long-form-body">` | more than one or zero → fail |
+| **F. dashboard.html purely static** | `design-cores/dashboard.html` contains no `<script>` or external `src=http(s)://` | any occurrence → fail |
+
+### Output
+
+- all pass: `✅ /design lint pass — 5 file(s) checked, no violations.` + exit 0
+- any fail: `❌ N violation(s) in M file(s):` + each item `L<line> [#<inv> <name>] <msg>` + exit 1
+- structural error (spec dir does not exist): exit 2
+
+### Kami sanity guard
+
+The 紙 preset's bundled `紙-sanity.sh` is a standalone tool (lint mode does not run it). It auto-locates `check.py` and then runs DESIGN.md + design-cores/ + slide-cores/ file by file in legacy per-file mode, applying check.py's built-in Kami ten-invariant rules (warm-tones / italics / heading-weight etc.) plus extended checks for schema existence, object-position, editorial-sanity, and so on. Other presets do not inherit this sanity, preserving lint mode's preset-agnostic nature.
+
+### Slide + long-form design rules and failure branches
+
+When authoring or reviewing slide-cores / long-form output, or interpreting a `check.py` violation code, read the rule catalogue **before** patching the template:
+
+- Slide + long-form lint rules with three-column **現象 → 根因 → 做法** fallbacks, graded P0-S (Swiss-locked) / P0-A (all-preset) / P0-B (baransu self-discipline) / P1 (fail) / P2 (warning) / P3 (advisory) → **read `references/slide-checklist.md`**. Each entry pairs a trigger condition with a one-line fix and the rationale for why the rule exists — consult it when a lint code fires or a template choice is ambiguous, do not re-derive the fix from memory.
+- Reference-honesty caveat: some `做法` columns **in every tier (P0-S / P0-A / P0-B / P1 / P2 / P3)** describe **proposed / observed tooling** (observation items, not necessarily implemented yet), not runnable fixes. The only runnable verification mechanisms are `check.py` (A–F + legacy per-file) and, on the book side, `book/scripts/validate-swiss-deck.mjs` / `validate-output.ts`. When a `做法` cites a script that does not exist yet, treat it as a future observation item — do not build the missing file.
+
+---
+
+## Export-brief Mode (v1.4)
+
+Cross-tool brief packaging — package the current preset's DESIGN.md + tokens.css + design-cores structure into a single prompt-ready plain-text markdown, ready to feed Codex CLI / ChatGPT Images 2.0 for cross-tool image-gen.
+
+### Invocation
+
+```
+/baransu:design export-brief            # 寫到 {project_root}/.claude/design/brief-{preset}-{date}.md
+/baransu:design export-brief --stdout   # 印到 stdout，不寫檔
+```
+
+### Input
+
+- Current preset: parsed from the first line `/* preset: <slug> */` comment of `{project_root}/tokens.css`.
+  - tokens.css missing or first line not matching the regex → print to stderr 「找不到 preset header；請先跑 `/baransu:design preset <name>`」 + exit ≠ 0.
+
+### Output
+
+- **Default**: markdown written to `{project_root}/.claude/design/brief-{preset}-{date}.md` (`{date}` is ISO `YYYY-MM-DD`); auto-created if `.claude/design/` does not exist.
+- **`--stdout`**: the plain markdown block is printed directly to stdout, not persisted.
+
+### Step-by-step assembly
+
+#### Step 1 — Parse the preset
+- Read the first line of `{project_root}/tokens.css`.
+- Parse the `/* preset: <slug> */` comment to obtain `$PRESET` (`kami` / `swiss` / `google-design`, or a slug the user custom-built via `gen --slug`).
+- **Canonical regex (path-traversal hardening)**: the first line must fully match `^/\* preset: [a-z][a-z0-9-]{1,15}[^*]*\*/$` (same slug spec as Gen Mode Step 0; the `[^*]*` tolerates the `; schema: NN` / `; chart-capability: N` fields every shipped preset writes — aligned with check.py's `PRESET_HEADER_RE`). The `<slug>` character class is only `[a-z0-9-]`, forbidding path elements like `/` `.` `..` — because `$PRESET` is subsequently concatenated directly into the output filename `brief-{preset}-{date}.md`.
+- If `tokens.css` does not exist or the first-line regex does not match → print to stderr 「未找到 tokens.css 或無 preset 註解；請先跑 `/baransu:design preset <name>`」 and exit 1.
+
+#### Step 2 — Read source files
+
+All `§N` references below resolve against the canonical nine-section DESIGN.md structure defined in Gen Mode Step 2 (§1 Visual Theme & Atmosphere … §3 Typography Rules … §8 Do / Don't, §9 AI Prompt Guide).
+
+- `{project_root}/DESIGN.md` (full text — Section B extracts the named subsections of §9 AI Prompt Guide; Section D extracts the editorial passages of §3 Typography Rules + §8 Do / Don't; Section C extracts fallback quotes from §8/§9). If a referenced subsection or passage does not exist in the current DESIGN.md → apply that Section's per-extraction fallback in Step 3.
+- `{project_root}/tokens.css` (full text; additionally parse the hex values of `--accent` / `--paper` / `--surface`, **read dynamically**, not hard-coded).
+- `{project_root}/design-cores/*.html` (the filename list + the first 30 lines of inline `<style>` per file, as raw material for the structure summary).
+- `{skill_dir}/references/{$PRESET}-preset/image-prompts.md` (full text — supplies the verbatim negative-tail string and fallback quotes consumed by Section C). If this file exists but contains no negative-tail string → Section C takes the shared negative tail from `{skill_dir}/references/slide-image-prompts.md` §4 verbatim instead.
+- `{skill_dir}/references/{$PRESET}-preset/schemas/*.md` (filename list; take names only, do not expand the full text).
+- **Gen-built slug branch**: when `{skill_dir}/references/{$PRESET}-preset/` does not exist (`$PRESET` was custom-built via `gen --slug`, so the two reads above have no source), fall back — Section C takes the shared negative tail verbatim from `{skill_dir}/references/slide-image-prompts.md` §4 plus three quotes extracted from the project-root DESIGN.md §8/§9; Section E is laid out from the project-root `design-cores/` + `slide-cores/` filename lists alone (omit the schemas lines).
+
+#### Step 3 — Assemble the brief (markdown block)
+- **Section A — Preset header**: preset name + a one-sentence philosophy caption (extracted from DESIGN.md §1 Visual Theme & Atmosphere).
+- **Section B — §9 hex rationale**: extract the three named subsections of `DESIGN.md §9 AI Prompt Guide` — (a) 焦點 / (b) hex 設計理據 / (c) 我不是什麼. If any of these named subsections does not exist in the current DESIGN.md (a gen-built nine-section §9 need not carry them) → extract the §9 AI Prompt Guide full text instead. All hex values are **dynamically parsed from the current `tokens.css`** by Step 2; **do not** hard-code Kami `#1B365D`; if `$PRESET=swiss` then `--accent: #002FA7`, if `$PRESET=google-design` then `--accent: #6750A4` (all derived from tokens.css parsing, switching automatically when the preset is switched and re-run).
+- **Section C — negative tail**: take the string 「no title, no footer, no page chrome, no logo, no border」 from the preset's `image-prompts.md` (read in Step 2) + three fallback quotes. If the preset's `image-prompts.md` is missing or lacks that string (per the Step 2 fallbacks) → take the shared negative tail from `{skill_dir}/references/slide-image-prompts.md` §4 verbatim.
+- **Section D — editorial spec (DESIGN.md §3 + §8)**: dropcap 3-line / `text-wrap: pretty` / curly quotes (Kami spec quotation; **forbid** straight quotes), extracted from the editorial passages of §3 Typography Rules + §8 Do / Don't. If the current DESIGN.md carries no such editorial passage in §3/§8 (a gen-built nine-section structure need not include one) → extract the §3 Typography Rules full text instead.
+- **Section E — design-cores structure summary**: one line per schema + one line per slide-core (laid out from the file list gathered in Step 2).
+- **Section F — Codex CLI bridge wording**: plain-text guidance (no MCP implementation), including an invocation example:
+
+  ```
+  ## Codex CLI bridge usage
+  Pipe this brief to Codex's image-gen prompt input:
+  $ codex prompt --stdin < brief-{preset}-{date}.md
+  Then append your image-specific prompt suffix.
+  ```
+
+#### Step 4 — Output
+- **Default**: write to `{project_root}/.claude/design/brief-{preset}-{date}.md`, `{date}` is ISO `YYYY-MM-DD`; `mkdir -p` automatically if the directory does not exist.
+- **`--stdout`**: print to stdout, no file written.
+- **Success message** (file-write mode): 「Brief 已寫入 {path}（{word_count} 詞）。可餵 Codex CLI 端做 image-gen prompt。」
+
+> **B20 boundary**: all hex values in the brief MUST be parsed by Step 2 from the current preset's `tokens.css`; after switching preset and re-running export-brief, the hex pointers must switch automatically (acceptance: see REQ-007 Scenario 3).
+
+---
+
+## check.py tool (v1.3)
+
+`scripts/check.py` provides two modes:
+
+**v1.3 project-root mode** (no args, or arg = project root): runs the Check A–F structure + consistency checks (see the Lint Mode section).
+
+**Legacy per-file mode** (arg = a single file or dir): retains the v1.2 generic lint rules (cool-gray blocklist / italics / heading-weight / line-height / shadow-blur) for /book GATE-F interop + 紙 preset sanity script use.
+
+Exit codes: 0 = clean, 1 = violations, 2 = structural error.
+
+---
+
+## Validator division of labor (v1.3)
+
+- `scripts/check.py` (project-root mode): A 5 artifacts complete / B version-gated canonical (38 base +5 capability for schema:43) + v1.2 banned detection / C cross-artifact prefix consistency / D DESIGN.md nine sections + canonical references / E long-form slot unique / F dashboard purely static
+- `scripts/check.py` (legacy per-file mode): used by the 紙 preset sanity script to verify the Kami ten invariants. (`/book`'s `validate-output.ts` implements its own GATE-F prefix check and does NOT call check.py; it trusts that check.py has already linted the slide-core artifacts.)
+- On the `/book` side, `validate-output.ts` GATE-F (class prefix allowlist dynamically expanded to `{kami, google, swiss}` + first-line slug of tokens.css) + GATE-G (filesystem dynamic read)
+
+### Slide-core image handling (PPT only)
+
+When a slide-core carries an `<img>` / `background-image`, set the per-layout `object-fit` / `object-position` defaults (e.g. portrait focus `center 35%`, data charts `contain`) and append the verbatim negative tail `no title, no footer, no page chrome, no logo, no border` to any external image-gen prompt → **read `references/slide-image-prompts.md`** (scope: slide-cores only — the PPT-output surface consumed by `/book --format ppt`; `/design` itself has no `--format` flag; long-form is exempt). Pull the per-layout values and prompt templates from that file — do not invent crop ratios.
+
+---
+
+## Anti-patterns (skill-operation blacklist)
+
+🔴 Operator red lines for this skill — each entry is `❌ don't do X → ✅ do Z instead`, citing its authoritative section; a `→ because Y` clause stays only where that section does not already state the failure consequence. Honoring the GATEs/CHECKPOINTs in §Decision checkpoint map is mandatory; the entries below name the specific traps that bypass them.
+
+- ❌ Don't write to project root while the 🔴 GATE — destructive overwrite is firing (v1.2 residue detected, no `--force`) → ✅ honor the GATE: only write when `--force` is present or no residue exists (Preset Mode Step 3).
+- ❌ Don't leave placeholder hex or invent color values in DESIGN.md §2 → ✅ give every named color a real hex; never hard-code Kami `#1B365D` into a non-Kami preset's output (lint Check B/D; §Export-brief Mode B20 boundary).
+- ❌ Don't write the 5 artifacts straight to project root, skipping atomic staging → because an IO interrupt mid-write leaves a half-applied artifact set with no rollback → ✅ stage to `.tmp/design-staging/` first, then atomic-mv (per I5; Preset/Gen Mode Step 3).
+- ❌ Don't treat `lint` / `Lint` / `LINT` as synonyms → ✅ match `lint` (lowercase exact) before dispatching (§Mode Dispatch).
+- ❌ Don't confuse `DESIGN.md` (uppercase, UI visual spec, this skill) with `design.md` (lowercase, a technical-architecture document) → because writing to the wrong one corrupts an unrelated artifact and no lint gate catches it → ✅ only ever read/write uppercase `DESIGN.md` at project root (per I4).
+
+---
+
+## Error Handling
+
+Detailed entries → read `references/error-codes.md`. Common cases:
+- preset name not in the enum / v1.2 residue without `--force` → stderr + exit ≠ 0
+- staging IO fail / atomic mv fail → keep staging, leave the project root unchanged
+- gen --slug missing / pattern fail / name collision → reject
+- any lint check fails → list the specific violation + exit 1

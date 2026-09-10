@@ -347,18 +347,12 @@ class TestDegradeLogicDocumented(unittest.TestCase):
         self.section = stage3_render_stage(self.full)
         self.lower = self.section.lower()
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_declaration_state_check_documented(self):
         self.assertIn("chart-capability", self.lower)
         self.assertIn("tokens.css", self.lower)
         self.assertIn("declared", self.lower)
         self.assertIn("undeclared", self.lower)
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_l1_single_trend_fallback_documented(self):
         self.assertIn("l1", self.lower)
         self.assertTrue(
@@ -366,9 +360,6 @@ class TestDegradeLogicDocumented(unittest.TestCase):
             "L1 branch must fall back to the existing single-hue accent ramp",
         )
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_l2_small_multiples_or_table_documented(self):
         self.assertIn("l2", self.lower)
         self.assertTrue(
@@ -377,18 +368,12 @@ class TestDegradeLogicDocumented(unittest.TestCase):
         )
         self.assertIn("table", self.lower)
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_branches_are_mutually_exclusive(self):
         self.assertTrue(
             "mutually exclusive" in self.lower or "exactly one" in self.lower,
             "degrade branches must be documented as mutually exclusive (no mixing/misjudging)",
         )
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_l1_l2_boundary_covers_exactly_two_series_no_gap(self):
         """Round-2 regression guard (review-agent finding): AC5's own text is
         a strict binary — 單一數列 → L1 ／ 多條互不相關數列 → L2, where 多條

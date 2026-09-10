@@ -428,9 +428,6 @@ class TestE2ERow2DeclaredStatisticalChartColorAndContainerException(unittest.Tes
         text = TYPE_STATISTICAL.read_text(encoding="utf-8")
         self.assertIn("LEGEND", text)
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_container_exception_named_identically_in_both_files(self):
         guide = PERCEPTION_GUIDE.read_text(encoding="utf-8")
         skill = BOOK_SKILL.read_text(encoding="utf-8")
@@ -456,9 +453,6 @@ class TestE2ERow3And4UndeclaredDegradeBoundaryConcrete(unittest.TestCase):
         nxt = body.find("\n## ", len(marker))
         self.section = body if nxt == -1 else body[:nxt]
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_l2_threshold_has_no_upper_bound_covers_three_series(self):
         l2_line = next(l for l in self.section.splitlines() if "**L2**" in l)
         self.assertNotRegex(
@@ -468,9 +462,6 @@ class TestE2ERow3And4UndeclaredDegradeBoundaryConcrete(unittest.TestCase):
         )
         self.assertRegex(l2_line.lower(), r"2\+|2 or more|two or more")
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_exactly_two_documented_branches_no_third_path(self):
         self.assertIn("Pick **exactly one** of the two branches", self.section)
         self.assertIn("**L1**", self.section)
@@ -503,9 +494,6 @@ class TestE2ERow5DesignGenDeclarationProducesCanonicalNaming(unittest.TestCase):
             findings = mod.check_project_root(root)
             self.assertEqual(findings, [], f"expected check.py all-green, got: {findings}")
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_design_skill_md_documents_the_exact_same_six_token_names(self):
         mod = _load_check_module()
         design_text = DESIGN_SKILL.read_text(encoding="utf-8")
@@ -587,9 +575,6 @@ class TestIntegrationRow1TokensCssToPerceptionGuideWiring(unittest.TestCase):
         self.assertIn("_parse_chart_capability_header", guide)
         self.assertTrue(hasattr(mod, "_parse_chart_capability_header"))
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_declaration_field_name_consistent_across_design_and_book(self):
         design_text = DESIGN_SKILL.read_text(encoding="utf-8")
         book_text = BOOK_SKILL.read_text(encoding="utf-8")
@@ -664,9 +649,6 @@ class TestIntegrationRow4FourteenthTypeDoesNotAffectExisting13(unittest.TestCase
     underlying table it describes — a cross-file consistency angle no prior
     suite checked."""
 
-    @unittest.skip(
-        "5.3.0 stub — book/design SKILL.md 本文已改為薄提示 stub（管線移交 kamishibai plugin）；本斷言 pin 的 SKILL.md prose 已不在本倉，隨 book/ design/ 目錄於 6.0.0 一併退役"
-    )
     def test_skill_md_and_svg_rules_agree_on_seventeen_type_language(self):
         skill_text = BOOK_SKILL.read_text(encoding="utf-8")
         self.assertIn("17-type diagram first-match decision tree", skill_text)

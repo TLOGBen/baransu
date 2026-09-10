@@ -39,14 +39,9 @@ the execution pipeline's Step 7) matches by slug, so the derivation must stay de
 
 ## Rendering basis
 
-Render through the kamishibai plugin's book skill (`/kamishibai:book`, SDK
-`kamishibai render`), which owns the Kami-derived templates since baransu
-5.3.0. When kamishibai is not installed, render a self-contained Kami-styled
-HTML directly — paper-toned background, serif headings, one restrained accent.
-Never reach into the baransu book skill's frozen template assets: they are
-dormant as of 5.3.0, retire with the directory at 6.0.0, and are not a current
-step for anything. The journal is a standalone, browser-ready HTML file; no
-external assets.
+Render with the book golden template — `../book/references/golden-template.html`
+— consuming the Kami tokens it carries. The journal is a standalone,
+browser-ready HTML file; no external assets.
 
 ## Required sections
 

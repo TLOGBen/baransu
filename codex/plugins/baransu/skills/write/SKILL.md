@@ -1,11 +1,11 @@
 ---
 name: write
 description: Refines existing text, generates a piece from a prompt, or proofreads
-  a document into an error-report HTML (kamishibai-rendered 錯字修改.html findings table).
-  Auto-classifies input as Refine / Generate / Proofread; follows language prefix
-  or auto-detects. Use for bilingual zh/en writing help. Trigger On '$write', '潤稿',
-  '寫一篇', '改寫這段', '校對', '找錯字', '抓錯字', 'proofread'. Not for committing finished text
-  ($ship) or digesting sources into notes ($learn, $read).
+  a document into an error-report HTML (book-styled 錯字修改.html findings table). Auto-classifies
+  input as Refine / Generate / Proofread; follows language prefix or auto-detects.
+  Use for bilingual zh/en writing help. Trigger On '$write', '潤稿', '寫一篇', '改寫這段',
+  '校對', '找錯字', '抓錯字', 'proofread'. Not for committing finished text ($ship) or digesting
+  sources into notes ($learn, $read).
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex
@@ -20,9 +20,9 @@ metadata:
 ## Outcome Contract
 
 - **Outcome**: Per the language prefix (zh/en) or auto-detection, complete one rule-driven refine (Refine), generation (Generate), or document proofread (Proofread), with rule application traceable rule by rule (Refine/Generate) or finding by finding (Proofread).
-- **Done when**: Refine output contains Before/After plus per-rule 修正說明 (or Generate output carries a format/tone note), and no floor-rule violations remain (zh 5/7/8 禁對仗句/禁排比/禁名詞化; en 5/7 plus the en 8 em-dash ban); or Proofread has rendered `錯字修改.html` with `kamishibai render -t kami/long-form`, the artifact contains the six-column findings table, `kamishibai lint` exits 0, and the file path plus a finding count are reported.
+- **Done when**: Refine output contains Before/After plus per-rule 修正說明 (or Generate output carries a format/tone note), and no floor-rule violations remain (zh 5/7/8 禁對仗句/禁排比/禁名詞化; en 5/7 plus the en 8 em-dash ban); or Proofread has written `錯字修改.html` containing the six-column findings table and reported the file path plus a finding count.
 - **Evidence**: The structure of the output body — Refine's Before / After / 修正說明 three sections with rule tags (or the format/tone note attached to the Generate piece), each item cross-checkable against the embedded rule sets; for Proofread, every table row's 錯誤類型 maps to one of the three fixed labels (錯別字／用語不妥／語句不通順) and carries a 建議修正 plus 修改原因.
-- **Output**: The revised or generated piece output in the conversation, or — for Proofread — a self-contained `錯字修改.html` rendered by the kamishibai SDK under the `kami/long-form` skin; operational notifications are Traditional Chinese, content language follows the prefix or detection result.
+- **Output**: The revised or generated piece output in the conversation, or — for Proofread — a self-contained `錯字修改.html` file styled with the project's book/Kami design tokens; operational notifications are Traditional Chinese, content language follows the prefix or detection result.
 - **Automation**: ultracode=neutral, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 ## User-facing language
@@ -40,7 +40,7 @@ This exception is intentional. The skill's purpose is language-targeted copywrit
 - Content output language follows the prefix (or auto-detection). Operational notifications are always Traditional Chinese.
 - Refine mode never silently applies rules to incompatible-language content. Report the mismatch; do not guess.
 - Generate mode vague-topic fallback is always short prose. Do not ask the user to clarify before outputting — produce something and let the user re-invoke with a more specific prompt if needed.
-- Proofread mode reports, never rewrites: it emits the findings table, not a corrected document. It never fabricates a page number — unknown page → 「—」. It never routes through the $book pipeline (analysis output — the red line and the reasoning are preserved verbatim in `references/proofread.md` §4, the single source); it writes a Markdown corpus and renders it with `kamishibai render -t kami/long-form`, which is the SDK's single-file renderer and not that pipeline. Precision over recall: an empty table is correct when the document is clean.
+- Proofread mode reports, never rewrites: it emits the findings table, not a corrected document. It never fabricates a page number — unknown page → 「—」. It never routes through the $book pipeline (analysis output + no SVG would fail book's red line and quality gate); it renders the HTML directly, reusing tokens.css when present and a clean modern fallback when not. Precision over recall: an empty table is correct when the document is clean.
 
 ---
 
@@ -258,6 +258,5 @@ Proofread does not rewrite the document — it **reports** errors as a reviewabl
 - Report, don't rewrite: emit the findings table, never a corrected document.
 - Never invent a page number — when a finding's page cannot be determined with confidence, write 「—」.
 - Write target: `.codex/write/錯字修改.html` (create `.codex/write/` if absent); if `.codex/write/錯字修改.html` already exists, write to `錯字修改-<YYYYMMDD-HHMMSS>.html` in the same directory instead, and report the actual path written in the completion notification.
-- The HTML is produced by `kamishibai render <語料.md> -t kami/long-form -o <target>` — never hand-written, never post-processed. The six-column header (`頁數 | 段落上下文 | 原文內容 | 錯誤類型 | 建議修正 | 修改原因`) and the three badge class names are verbatim constants; `references/proofread.md` §4 holds both tables.
 
 **When Proofread mode is detected, read `references/proofread.md` before executing Stage 4.** It holds the full procedure: source acquisition with page tracking, the error taxonomy with Taiwan-usage anchors, the six-field record spec, the HTML render spec, and the completion-report templates.
