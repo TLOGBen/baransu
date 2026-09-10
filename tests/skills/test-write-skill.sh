@@ -144,6 +144,34 @@ else
 fi
 
 # ---------------------------------------------------------------
+# Block E — Direct language and clarification boundary
+# ---------------------------------------------------------------
+
+# E1. Literal wording is required across technical and ordinary copy.
+if grep -qF 'Use literal wording when it conveys the intended meaning.' "${SKILL_PATH}" \
+   && grep -qF 'This applies to technical prose as well as ordinary copy.' "${SKILL_PATH}"; then
+  pass "E1. Direct-language rule covers technical prose"
+else
+  fail "E1. SKILL.md missing direct-language rule"
+fi
+
+# E2. Lists are conditional, and minimal-formatting requests stay plain.
+if grep -qF 'Use lists only when the user asks for them' "${SKILL_PATH}" \
+   && grep -qF 'without headings, bullets, lists, or bold emphasis' "${SKILL_PATH}"; then
+  pass "E2. List and minimal-formatting boundary preserved"
+else
+  fail "E2. SKILL.md missing list/minimal-formatting boundary"
+fi
+
+# E3. Clarifications acknowledge understanding and stop rather than generating.
+if grep -qF 'briefly state the understanding and stop' "${SKILL_PATH}" \
+   && grep -qF 'Do not classify it as Generate.' "${SKILL_PATH}"; then
+  pass "E3. Clarification boundary stops before generation"
+else
+  fail "E3. SKILL.md missing clarification stop boundary"
+fi
+
+# ---------------------------------------------------------------
 
 echo ""
 if [[ ${failures} -eq 0 ]]; then
