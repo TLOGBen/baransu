@@ -1,12 +1,6 @@
 {
   "name": "baransu",
-<<<<<<< HEAD
   "version": "6.0.0",
-||||||| 4890dbc
-  "version": "5.6.1",
-=======
-  "version": "5.6.2",
->>>>>>> origin/main
   "description": "バランス — deliberate before executing, verify after. Fourteen governance skills covering the full development lifecycle.",
   "skills": "./skills/",
   "hooks": "./hooks/hooks.json",

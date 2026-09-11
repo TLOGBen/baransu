@@ -6,6 +6,7 @@
 
 ### Changed
 - **`/design` 重做並更名為 `/ui`（「你 repo 裡的 UI 設計主導」），取代 frontend-design**。更名原因：Claude Code 內建的 `/design` 指令（Claude Design 權限管理）會先攔截 `/design`，`-p` 實測兩次皆被接走。擷取筆記路徑仍為 `.claude/design/`。單檔散文：逐字吸收 Anthropic frontend-design 五節（Apache 2.0，授權與修改聲明放 `LICENSE.txt`／`NOTICE.txt`，本文不提出處），新增「從參考物學設計語言」（五個觀察面、三層工具階梯、紅線「只抽性質，不抽素材、文案、logo」、筆記落 `.claude/design/reference-<slug>.md`）與「修整既有 UI」（先列差異再原地改，不補原頁沒有的事實）兩節；`loop=not-drivable`。skill 內零腳本、零固定格式。行為證據走 skill-creator evals（`evals/evals.json` 三案例），觸發準確度以 `claude -p --plugin-dir plugins/baransu` 實測（`run_eval.py` 受已安裝的同名舊 skill 干擾，結果不採）。
+- 併入上游 5.5.1／5.6.2 的 `/write` 規則：`## Direct language and response shape`（直接用語、清單使用時機、澄清意圖時簡短回覆即停）。
 - **自用提醒**：安裝 6.0.0 後停用 frontend-design plugin（`frontend-design@claude-plugins-official`），否則兩個 skill 搶同一觸發。
 
 ### Removed

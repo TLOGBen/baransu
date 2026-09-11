@@ -6,13 +6,7 @@
   },
   "metadata": {
     "description": "バランス — a Claude Code plugin marketplace",
-<<<<<<< HEAD
     "version": "6.0.0"
-||||||| 4890dbc
-    "version": "5.6.1"
-=======
-    "version": "5.6.2"
->>>>>>> origin/main
   },
   "plugins": [
     {
@@ -33,13 +27,7 @@
         "contract",
         "seal"
       ],
-<<<<<<< HEAD
       "version": "6.0.0"
-||||||| 4890dbc
-      "version": "5.6.1"
-=======
-      "version": "5.6.2"
->>>>>>> origin/main
     }
   ]
 }
