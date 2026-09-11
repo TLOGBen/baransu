@@ -15,7 +15,7 @@ No user confirmation required. The steps below run automatically.
 
 - **Outcome**: The session's working files are archived locally without entering Git, and all other pending changes are committed and pushed — optionally landed on a specified target branch.
 - **Done when**: Archivable items are moved into the gitignored `.claude/archived/`, no archive path is tracked, `git status --porcelain` is empty after the commit, and the work is on origin (the current branch pushed, or — when a target branch is given — the current branch merged into it and that branch pushed); when run inside a worktree whose work is confirmed on origin, the worktree is removed and its branch deleted.
-- **Evidence**: The archive ignore/untracked checks, the session end output reporting the archived item count, the commit message (or 「跳過」), the push target (`origin/{branch}` or `{branch} → {target}`), and the worktree cleanup status.
+- **Evidence**: The archive ignore/untracked checks, the session end output reporting the archived item count, the commit message (or 「跳過」), the upstream integration line (「拉入 N 個 commit」, 「無需整合」, or 「新分支，略過」), the push target (`origin/{branch}` or `{branch} → {target}`), and the worktree cleanup status.
 - **Output**: Local-only archived directories under `.claude/archived/`, a pushed git commit when non-archive changes exist, and the 繁中 session end report.
 - **Automation**: ultracode=neutral, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
   In the same non-interactive pass, read `references/loop-pauses.md` for this skill's own PAUSE classification.
@@ -33,6 +33,7 @@ Named red-lines, each enforced by the step in parentheses; none is optional. The
 - **INV-7 — No blind staging of secret-pattern files.** Before `git add -A`, every untracked/modified path from `git status --porcelain` is matched against the Step 3 closed pattern list; any match stops the commit before staging. (Step 3)
 - **INV-8 — The commit subject names the shipped outcome.** Derive one Conventional Commit message from the staged diff; archiving and session cleanup never displace a substantive code, behavior, or documentation outcome — including the staged deletion of a sealed root contract, which legitimately enters the staged diff but must never dominate the subject. (Step 3)
 - **INV-9 — Archive is local-only.** The archive root must be ignored and contain no tracked paths before any item is moved into it; existing tracked archives are removed from the index but retained on disk. (Step 2)
+- **INV-10 — Integrate before committing; never commit over an unverified resolution.** The remote is pulled into the stashed working tree before the commit, and the commit proceeds only after the unmerged-path check, the conflict-marker grep, structured-file parsing and the project's test entrypoint have each passed on their own exit status. (Step 2b)
 
 ## Step 0 — Parse target branch
 
@@ -129,6 +130,51 @@ If any move fails → output 「歸檔失敗：{reason}」 and stop.
 
 ---
 
+## Step 2b — Integrate upstream locally before committing
+
+Bring the remote in before Step 3 commits, never after. While every local change is still uncommitted, a conflict is resolved in the working tree where it can be read and checked, and the commit Step 3 creates already sits on top of the remote, so Step 4's push is a fast-forward. Merging after the commit instead yields a merge commit whose conflict resolution nobody inspected before it was pushed.
+
+```bash
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+git fetch origin
+```
+
+- `git fetch origin` fails → output 「整合驗證未通過：無法 fetch origin（{error}）；已停止，未 commit。」 and stop.
+- `git rev-parse --verify --quiet "origin/$BRANCH"` fails → the branch is new; Step 4 creates it with `-u`. Record 「新分支，略過」 and continue to Step 3.
+- `BEHIND=$(git rev-list --count "HEAD..origin/$BRANCH")` is `0` → record 「無需整合」 and continue to Step 3.
+- Otherwise run items 1–5 in order. In Mode B this integrates the current branch with its own upstream; landing on `$TARGET` keeps Step 4's own integration.
+
+1. **Stash** — only when `git status --porcelain` is non-empty:
+   ```bash
+   git stash push --include-untracked -m "ship: pre-pull"
+   ```
+   Ignored paths, `.claude/archived/` included, are not stashed and stay in place. The stash fails → output 「整合驗證未通過：stash 失敗（{error}）；已停止，未 commit。」 and stop.
+2. **Pull without rebasing**:
+   ```bash
+   git pull --no-rebase --no-edit origin "$BRANCH"
+   ```
+   With the tree stashed clean, this pull conflicts only when local commits not yet pushed collide with the remote. On conflict → `git merge --abort`, then `git stash pop` to put the stashed work back, output 「拉取 origin/{BRANCH} 有衝突（本地已有未推送的 commit），已中止合併並還原工作樹；請手動整合後再重跑 /ship。」 and stop.
+3. **Pop** — skipped when item 1 was skipped:
+   ```bash
+   git stash pop
+   ```
+   A clean pop → output 「已整合 origin/{BRANCH}：拉入 {BEHIND} 個 commit，工作樹變更已還原。」 and go to item 5. A conflicted pop keeps the stash entry and marks the conflicted paths unmerged → go to item 4.
+4. **Resolve** every path listed by `git diff --name-only --diff-filter=U`, in the working tree:
+   - Read the local side, the remote side and, when present, the base. Conflict blocks may be in diff3 form — `<<<<<<<` local, `|||||||` base, `=======`, `>>>>>>>` remote — so never assume a block has only two parts.
+   - Keep the intent of both sides. Resolve mechanical conflicts directly: the same version string bumped on both sides takes the higher semantic version, and independent additions that merely sit next to each other keep both. When the right result depends on a judgment about what the code or text should do, do not guess: leave the conflict and the stash entry as they are, output 「stash 還原後有需要判斷的衝突：{檔案清單}；已停止，衝突與 stash 保留在工作樹，請處理後重跑 /ship。」 and stop.
+   - Mark each resolved path with `git add <path>`.
+5. **Verify** — read each check's exit status on its own:
+   - `git diff --name-only --diff-filter=U` prints nothing;
+   - `git grep -nE '^(<<<<<<<|\|\|\|\|\|\|\||>>>>>>>) '` finds no conflict marker;
+   - every structured file the integration touched still parses (for JSON: `python3 -m json.tool <file> >/dev/null`);
+   - when the project documents a single test entrypoint (for example `make test`), it passes.
+
+   Drop the stash entry only after every check above passes: `git stash drop`, needed only when item 3 conflicted (a clean pop already removed it). Any check fails → output 「整合驗證未通過：{原因}；已停止，未 commit。」 and stop.
+
+**Never run this step, Step 3 and Step 4 as one `&&` chain or under `set -e`.** Some agent harnesses execute each shell command inside an `eval` nested in an `&&` list, where errexit is silently disabled: a failed resolution then still reaches `git commit` and `git push`. Run each state-changing command on its own and read its exit status before issuing the next.
+
+---
+
 ## Step 3 — Commit
 
 **Secret gate (INV-7)** — run immediately before `git add -A`: run `git status --porcelain` and match each untracked/modified path's filename against this fixed, closed pattern list: `.env`, `.env.*`, `*.pem`, `*.key`, `id_rsa*`, `*.p12`, `credentials*.json`. If any path matches → output 「偵測到疑似機敏檔案：{列出檔名}，已停止 commit；請確認內容、加入 .gitignore 或手動處理後再重跑 /ship。」 and stop. If none match → proceed to `git add -A` unchanged.
@@ -179,7 +225,7 @@ MAIN_REPO=$(dirname "$(git rev-parse --git-common-dir)")
 git push origin "$BRANCH" || git push -u origin "$BRANCH"
 ```
 
-On success → output 「已推送至 origin/{BRANCH}。」 On failure → output 「Push 失敗：{error}」 and stop.
+On success → output 「已推送至 origin/{BRANCH}。」 If the push is rejected as non-fast-forward (the remote moved after Step 2b) → output 「Push 被拒：origin/{BRANCH} 在整合後又有新 commit；請重跑 /ship（會先在本地整合）。」 and stop — do not pull here: the next /ship integrates in Step 2b, before its commit, where a conflict is still resolvable in the working tree. On any other failure → output 「Push 失敗：{error}」 and stop.
 
 ### Mode B — `$TARGET` set and ≠ `$BRANCH`: merge `$BRANCH` into `$TARGET`, then push `$TARGET`
 
@@ -241,6 +287,7 @@ If not in a worktree → skip silently.
 /baransu:ship 完成。
 
 歸檔：{N} 個項目（或「無可歸檔檔案」；read/learn/book/design 產物保留）
+整合：{「拉入 N 個 commit」、「無需整合」或「新分支，略過」}
 Commit：{commit message 或「跳過」}
 Push：{origin/BRANCH 或「BRANCH → TARGET，origin/TARGET」}
 Worktree：{已清理 path 或「保留（工作未落地）」或「不適用」}

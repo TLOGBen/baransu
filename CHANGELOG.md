@@ -2,6 +2,12 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [6.0.1] - 2026-09-11
+
+### Changed
+- **`/ship` commit 前先在本地整合上游**（新 Step 2b、INV-10）：fetch 後若落後 origin，依序 stash（含 untracked）→ `pull --no-rebase` → `stash pop` → 在工作樹解衝突（明文處理 diff3 基底段；版本號等機械衝突直接解，需判斷者停下保留衝突與 stash）→ 逐項驗證（無 unmerged、無衝突標記、結構化檔可解析、專案測試入口綠）後才 commit。Mode A push 被拒改為提示重跑 /ship，不在 commit 後 pull。明文禁止把整合、commit、push 串成單一 `&&`／`set -e` 指令鏈。起因：6.0.0 發版時合併後才整合，解衝突腳本中止但後續步驟照跑，帶衝突標記的版本檔被推上 origin（733a6bf，a0bb8d4 補修）。
+- `loop-pauses.md` 登記 Step 2b 兩個停下點（拉取衝突、需判斷的衝突，皆 Input 綁定停下回報）；新增 `tests/skills/test-ship-upstream-integration.sh` 釘死以上字面與順序。
+
 ## [6.0.0] - 2026-09-08
 
 ### Changed
