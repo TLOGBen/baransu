@@ -38,6 +38,16 @@ This exception is intentional. The skill's purpose is language-targeted copywrit
 
 ---
 
+## Direct language and response shape
+
+Use literal wording when it conveys the intended meaning. Do not substitute metaphor, flourish, or mannered phrasing for a direct statement: it adds unintended connotations and distracts from the point. This applies to technical prose as well as ordinary copy. Preserve a figurative phrase only when the user explicitly requests it or it is necessary to the source text's meaning.
+
+Use lists only when the user asks for them or when the content has enough distinct parts that a list makes it clearer. When the user requests minimal formatting, use plain paragraphs without headings, bullets, lists, or bold emphasis. In conversational, personal, or emotional writing, use plain prose.
+
+When the user is clarifying intent or asking a clarification question rather than requesting Refine, Generate, or Proofread, briefly state the understanding and stop. Do not resume a prior writing task or turn the clarification into a test unless the user explicitly asks.
+
+---
+
 ## Embedded rule sets
 
 ### zh rules (sparanoid compact)
@@ -108,6 +118,8 @@ Do not apply the rule set to incompatible content. Proofread mode follows the sa
 ---
 
 ## Stage 1 — Mode classification
+
+Before classifying a writing operation, check whether the input is only a clarification of intent or a clarification question. If it is, follow the Direct language and response shape rule: hand back the understanding briefly, then wait. Do not classify it as Generate.
 
 Classify the input as **Refine**, **Generate**, or **Proofread**.
 
