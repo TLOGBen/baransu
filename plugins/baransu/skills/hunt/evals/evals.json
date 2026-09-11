@@ -41,8 +41,8 @@
       "id": 6,
       "prompt": "這個按鈕顏色好醜，幫我看看怎麼配",
       "should_trigger": false,
-      "expected_skill": "design",
-      "expected_behavior": "Subjective UI taste routes to /design, not bug hunting."
+      "expected_skill": "ui",
+      "expected_behavior": "Subjective UI taste routes to /ui, not bug hunting."
     }
   ]
 }

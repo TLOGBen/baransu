@@ -28,7 +28,7 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 | `/review` | 派一個乾淨 context 的 verifier 獨立重驗任何產出，視角只為不同的實質風險才加；不改目標；乾淨的 review 也是有效的 review。 |
 | `/hunt` | 從症狀追到根因：選對觀測層、log 二分法定位，指到 file:line 才動手修。 |
 | `/health` | 體檢專案的 agent 配置與 AI 可維護性：五層審計，預算姿態先行。 |
-| `/design` | 寫 UI/UX 設計規格：`gen` 引導生成、`lint` 挑違規、`preset` 套內建模板。 |
+| `/ui` | 你 repo 裡的 UI 設計主導：定調色／字／版／動效後直接寫改 UI 檔；能從參考網站、截圖、藝術流派抽出設計語言，也能拿既有 UI 對照參考修整。 |
 | `/contract` | 中頻段開工合約：一頁釘死目標、可斷言條文、錯不起表面、照抄常數，實作前先立約；sealed 合約覆蓋前先歸檔。 |
 | `/seal` | 中頻段收工封緘：派遣乾淨 context 的 verify-only seal-agent 跑五點驗收（逐條對約、掃未釘表面、跨介面一致、常數逐字比對、突變抽查），findings 回主 session 修＋補釘死測試，複驗上限 2，全清才在合約蓋 sealed 標記。 |
 | `/write` | 雙語寫作／潤色：套排版與風格規則，輸出 Before/After 與每處改動理由。 |

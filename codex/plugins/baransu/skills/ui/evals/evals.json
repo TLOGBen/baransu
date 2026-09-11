@@ -1,0 +1,149 @@
+{
+  "skill_name": "ui",
+  "note": "skill-creator schema. Cases map to CONTRACT.md A2 (learn from a reference), A3 (refine an existing UI), A4 (from-zero build, plan before code). Assertions revised after iteration-1 grader critiques: negative token checks, positive structural checks, bundled assertions split. Seal 2026-09-11 added note-no-copy-or-logo (eval 1) and no-invented-facts (eval 2). Run with /skill-creator:skill-creator; workspace lives at .claude/skill-creator/design-workspace/ (never beside the skill dir — the skill-count gate would trip).",
+  "evals": [
+    {
+      "id": 1,
+      "name": "learn-from-reference",
+      "prompt": "照這個網站的風格幫我做一個獨立咖啡烘焙坊的首頁（單檔 HTML），參考頁在 tests/fixtures/design/reference-page.html。",
+      "files": [
+        "tests/fixtures/design/reference-page.html"
+      ],
+      "expected_output": "A reference note at .claude/design/reference-<slug>.md whose first line names the source, describing type / color / spacing / layout / motion as properties; a design plan shown before code; a new HTML page for the roastery in that language with none of the reference's copy, images or brand marks; a closing message listing changed files.",
+      "assertions": [
+        {
+          "name": "reference-note-exists",
+          "check": ".claude/design/reference-*.md exists under the run's project root and its first line names the source (tests/fixtures/design/reference-page.html or 'Meridian')"
+        },
+        {
+          "name": "note-records-properties",
+          "check": "the note describes at least four of: type roles/scale, color relationships, spacing unit/rhythm, layout alignment, motion — as decisions, not as a copy of the reference's CSS"
+        },
+        {
+          "name": "no-reference-assets-or-copy",
+          "check": "the output page contains none of 'Meridian', 'Porto', 'Aurelia Text', 'Corso Display'"
+        },
+        {
+          "name": "note-no-copy-or-logo",
+          "check": "apart from naming the source (its first line, and a title naming the reference), the reference note quotes none of the reference's copy — no 'A type foundry in Porto', 'We draw serifs for long reading', 'Read the terms', no headline or body sentence of the reference — and describes no logo or brand mark; the reference's product or place names (e.g. 'Aurelia Text', 'Corso Display', 'Porto') may appear only inside an explicit do-not-carry list"
+        },
+        {
+          "name": "properties-not-tokens",
+          "check": "the output page does not reuse the reference's literal tokens: no #efe9dc, #9a3b1c, #1a1a18, and no 'Cormorant Garamond'"
+        },
+        {
+          "name": "language-carried-over",
+          "check": "the output page shows the reference's decisions as relationships: one type family (or two with distinct roles), a single chromatic accent used on one kind of element only, one spacing unit reused, and at most one @keyframes"
+        },
+        {
+          "name": "plan-before-code",
+          "check": "a plan (palette with named values, type roles, layout concept, principles) appears in the log before the first write of the page"
+        },
+        {
+          "name": "closing-lists-changed-files",
+          "check": "the final message (the executor's reply) lists every created or edited file, one bullet each, and the list matches `ls` of the output dir exactly — no missing, no extra"
+        },
+        {
+          "name": "closing-no-fake-checks",
+          "check": "the final message never claims a visual check that did not happen (no browser run ⇒ no 「已目視確認」/「看過了」)"
+        },
+        {
+          "name": "closing-no-scores",
+          "check": "the final message contains no score, percentage or rating of the work itself (event facts like prices are fine)"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "refine-existing-ui",
+      "prompt": "幫我調 UI，tests/fixtures/design/generic-dashboard.html 這頁看起來太 AI、太模板，改得有個性一點但別整個重做。",
+      "files": [
+        "tests/fixtures/design/generic-dashboard.html"
+      ],
+      "expected_output": "A short difference list in the conversation (current vs target) before any edit; the same file edited in place with the generic tells (cream #F4F1EA + #D97757 accent, all-caps eyebrow labels, identical rounded cards with the same soft shadow, middle-dot meta strings, arrow-suffixed links) replaced by deliberate choices; structure and content preserved; a closing message listing changed files.",
+      "assertions": [
+        {
+          "name": "difference-list-before-edit",
+          "check": "before the first edit of the copy, the log holds a list contrasting current vs target that cites at least three verbatim values from the fixture (e.g. #F4F1EA, #D97757, rgba(0,0,0,.1), text-transform:uppercase, →)"
+        },
+        {
+          "name": "markup-preserved",
+          "check": "the edited copy keeps the fixture's DOM: the same three .card blocks, the h1, the meta line and the three stats 12,480 / 3.2% / $48k (numeric equivalents such as $48,000 count as preserved); the file was edited, not replaced by an unrelated page"
+        },
+        {
+          "name": "copy-changed-only-where-listed",
+          "check": "every text change in the copy traces to an entry in the difference list; a text change with no listed reason fails"
+        },
+        {
+          "name": "no-invented-facts",
+          "check": "the edited copy adds no fact the fixture does not hold — no new date, reporting period, count, name or source (rewording or removing existing text is fine)"
+        },
+        {
+          "name": "color-tells-removed",
+          "check": "the CSS no longer contains #D97757 or #F4F1EA"
+        },
+        {
+          "name": "chrome-tells-removed",
+          "check": "no rule combines text-transform: uppercase with letter-spacing (the eyebrow tell), no ' · ' meta separators, and no link text ending in →"
+        },
+        {
+          "name": "less-templated-positively",
+          "check": "the grid is no longer three identical equal-width cards with identical radius and the same soft shadow — some hierarchy or structural device exists (unequal widths, a rule, a lead card, a different separator)"
+        },
+        {
+          "name": "closing-lists-changed-files",
+          "check": "the final message (the executor's reply) lists every created or edited file, one bullet each, and the list matches `ls` of the output dir exactly — no missing, no extra"
+        },
+        {
+          "name": "closing-no-fake-checks",
+          "check": "the final message never claims a visual check that did not happen (no browser run ⇒ no 「已目視確認」/「看過了」)"
+        },
+        {
+          "name": "closing-no-scores",
+          "check": "the final message contains no score, percentage or rating of the work itself (event facts like prices are fine)"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "build-from-brief",
+      "prompt": "設計 UI：幫一家只賣二手科幻小說的小書店做一個活動頁（單檔 HTML），下個月有作者座談。",
+      "files": [],
+      "expected_output": "A design plan (4–6 named colors, typefaces and roles, layout concept, principles) shown and reviewed against the brief before any code; one HTML file grounded in the subject (second-hand science fiction) rather than a default landing-page look; a closing message listing changed files.",
+      "assertions": [
+        {
+          "name": "plan-before-code",
+          "check": "a plan appears in the log before the first write of the HTML"
+        },
+        {
+          "name": "plan-has-four-parts",
+          "check": "the plan names 4–6 hex values with roles, the typefaces and their roles, a layout concept (alignment stated), and at least two principles"
+        },
+        {
+          "name": "plan-reviewed-against-brief",
+          "check": "after the plan and before code, the log names at least one part judged a generic default and states what replaced it and why"
+        },
+        {
+          "name": "subject-grounded",
+          "check": "the page's copy and visual choices refer to second-hand science fiction and the author talk; no lorem, no generic SaaS hero"
+        },
+        {
+          "name": "one-bold-moment",
+          "check": "the page has one memorable element and the rest stays quiet: at most one @keyframes, and no per-section fade-in or per-card hover transform"
+        },
+        {
+          "name": "closing-lists-changed-files",
+          "check": "the final message (the executor's reply) lists every created or edited file, one bullet each, and the list matches `ls` of the output dir exactly — no missing, no extra"
+        },
+        {
+          "name": "closing-no-fake-checks",
+          "check": "the final message never claims a visual check that did not happen (no browser run ⇒ no 「已目視確認」/「看過了」)"
+        },
+        {
+          "name": "closing-no-scores",
+          "check": "the final message contains no score, percentage or rating of the work itself (event facts like prices are fine)"
+        }
+      ]
+    }
+  ]
+}

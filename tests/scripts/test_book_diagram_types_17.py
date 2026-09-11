@@ -385,10 +385,7 @@ STALE_SCAN_FILES = {
     "svg-rendering-rules.md": SVG_RULES,
     "design-token-resolver.md": BOOK_SKILL_DIR / "references" / "design-token-resolver.md",
     "color-reasoning.md": BOOK_SKILL_DIR / "references" / "color-reasoning.md",
-    "design slide-checklist.md": (
-        WORKTREE_ROOT / "plugins" / "baransu" / "skills" / "design"
-        / "references" / "slide-checklist.md"
-    ),
+    # "design slide-checklist.md" dropped 6.0.0: the /design rebuild removed it.
 }
 
 # Catalog-count phrasings observed to go stale, expanded across the

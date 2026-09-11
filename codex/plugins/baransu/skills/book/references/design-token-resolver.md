@@ -51,13 +51,13 @@ START [Need token X for SVG/CSS]
 The resolver runs inside Stage 3 (Render), at the moment a hex value
 is needed for SVG/CSS; Stage 4's `validate-output.ts` gates the result.
 
-Relationship to `$design` skill is one-way:
+Relationship to `/design` skill is one-way:
 
 ```
-$design  → writes →  {project_root}/tokens.css  → read by →  $book
+/design  → writes →  {project_root}/tokens.css  → read by →  $book
 ```
 
-`$book` never writes back to tokens.css and never tells `$design`
+`$book` never writes back to tokens.css and never tells `/design`
 which tokens it consumes.
 
 ---

@@ -212,7 +212,7 @@ legitimate exception**, plus a grep-able self-check. Scan before declaring Stage
    Check: `grep -cE "var\(--accent\)"` (count vs total body elements — over-count = over-paint);
    `grep -nE "#[0-9a-fA-F]{6}"` then verify each gray hex by eye satisfies `R≥G>B`.
 
-Text-adaptation IF-THEN rules (orphan-line sweep, truncation ban, CJK stack/lang/tracking) → see `../../design/references/typography-discipline.md` (advisory at render time).
+Text-adaptation IF-THEN rules (orphan-line sweep, truncation ban, CJK stack/lang/tracking) → see `../../_shared/typography-discipline.md` (advisory at render time).
 
 ---
 

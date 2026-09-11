@@ -55,16 +55,8 @@
 # Skill eval / optimization workspaces (transient, local only).
 eval-workspace/
 
-# Root-level design artifacts — dogfooding output of /design (preset/gen).
-# Not part of the distributed plugin; installers re-run /design if they want them.
-# Leading slash anchors to repo root so the plugin's own design references under
-# plugins/baransu/skills/design/references/ (tokens.css, slide-cores, …) stay tracked.
-/DESIGN.md
-/DESIGN.html
-/tokens.css
-/design-cores/
-/slide-cores/
-# 紙-sanity.sh copied to repo root when the 紙 preset is applied (per design/SKILL.md).
+# Leftover from the retired 紙 preset (pre-6.0.0 /design); kept ignored so a stale
+# local copy at the repo root never gets committed.
 /紙-sanity.sh
 
 # Session telemetry written by the everything-cli harness.
@@ -116,3 +108,7 @@ build/
 *.log
 .cache/
 .tmp/
+
+# design skill working files (extraction notes) + skill-creator workspace
+.claude/design/
+.claude/skill-creator/

@@ -38,7 +38,7 @@ LISTING_TOTAL_ADVISORY = 7000
 EXPECTED_SKILLS = [
     "book",
     "codex-skill-transfer",
-    "design",
+    "ui",
     "contract",
     "evolve",
     "health",

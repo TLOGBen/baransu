@@ -195,7 +195,7 @@ assert_lit "A4b: seal 複驗超限 message format" "$SEAL_MD" \
 assert_lit "A4c: ship Step 1 早停 message format" "$SHIP_MD" \
   '「沒有可歸檔的工作檔案，git 也乾淨，root 無 sealed 合約，結束。」'
 assert_lit "A4d: ship Step 2 歸檔輸出 message format (含 sealed 計數 {S})" "$SHIP_MD" \
-  '「已歸檔：{N} 個項目 → .claude/archived/（read/learn/book 產物保留；含 sealed 合約 {S} 份）」'
+  '「已歸檔：{N} 個項目 → .claude/archived/（read/learn/book/design 產物保留；含 sealed 合約 {S} 份）」'
 assert_lit "A4e: contract 覆蓋前歸檔 message format" "$CONTRACT_MD" \
   '「偵測到已封緘合約，已先歸檔至 .claude/archived/{filename}-{unix_timestamp}，續寫新合約。」'
 

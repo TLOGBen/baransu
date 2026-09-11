@@ -117,4 +117,4 @@ After emitting the report body, you MUST append a final `### Next-port follow-up
 
 ## Repository layout this skill expects
 
-`scripts/transfer.py` is a single Python file by design — baransu's other tooling scripts (`design/scripts/check.py`, `read/scripts/search-papers.py`) follow the same single-file convention.
+`scripts/transfer.py` is a single Python file by design — baransu's other tooling scripts (e.g. `read/scripts/search-papers.py`) follow the same single-file convention.

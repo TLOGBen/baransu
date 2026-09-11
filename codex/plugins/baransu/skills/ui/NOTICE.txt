@@ -1,0 +1,2 @@
+SKILL.md derives from the frontend-design skill by Anthropic, licensed under the Apache License 2.0 (see LICENSE.txt).
+Modified: sections on learning from a reference and refining an existing UI were added; frontmatter and Outcome Contract are baransu's.

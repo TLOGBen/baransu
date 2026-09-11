@@ -1,10 +1,10 @@
 ---
 name: ship
 description: 'Wraps up a session: archives baransu working dirs under .codex/ (except
-  read/learn/book products) into the gitignored, local-only .codex/archived/, commits,
-  pushes (optionally `$ship BRANCH`), and tears down the worktree once work is on
-  origin. Trigger On ''$ship'', ''收工'', ''上傳收尾'', ''結束這輪''. Not For writing copy ($write)
-  or reviewing output ($review) — $ship only wraps up a session.'
+  read/learn/book/design products) into the gitignored, local-only .codex/archived/,
+  commits, pushes (optionally `$ship BRANCH`), and tears down the worktree once work
+  is on origin. Trigger On ''$ship'', ''收工'', ''上傳收尾'', ''結束這輪''. Not For writing
+  copy ($write) or reviewing output ($review) — $ship only wraps up a session.'
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex
@@ -55,7 +55,7 @@ Git probe first — run `git rev-parse --git-dir 2>/dev/null`. If it fails (the 
 Check three inputs: whether the workspace dirs hold archivable items, whether the git working tree has pending changes, AND whether the repo root holds a sealed contract. Stop only when **all three** are empty — otherwise there is still work to ship even when the other sides are empty.
 
 ```bash
-ARCHIVE_DIRS="tmp think design hunt-report evolve review write seal"
+ARCHIVE_DIRS="tmp think hunt-report evolve review write seal"
 ARCHIVE_ITEMS=$(python3 -c "import sys, pathlib; print(next((str(p) for d in sys.argv[1].split() if pathlib.Path('.claude', d).is_dir() for p in pathlib.Path('.claude', d).iterdir()), ''))" "$ARCHIVE_DIRS")
 GIT_DIRTY=$(git status --porcelain 2>/dev/null | head -1)
 SEALED_CONTRACTS=$(find . -maxdepth 1 -type f -name 'CONTRACT*.md' | while read -r f; do
@@ -108,9 +108,9 @@ Before moving any item, enforce the local-only boundary:
    If either command fails, output 「archive ignore 驗證失敗：已停止歸檔，未移動
    任何工作檔案。」 and stop.
 
-**Archive allowlist** — exactly the Step 1 `ARCHIVE_DIRS` value, in the same order: `tmp`, `think`, `design`, `hunt-report`, `evolve`, `review`, `write`, `seal`. The two lists MUST stay identical; a dir detected in Step 1 but absent here would leave Step 1's detect output unconsumed.
+**Archive allowlist** — exactly the Step 1 `ARCHIVE_DIRS` value, in the same order: `tmp`, `think`, `hunt-report`, `evolve`, `review`, `write`, `seal`. The two lists MUST stay identical; a dir detected in Step 1 but absent here would leave Step 1's detect output unconsumed.
 
-**Never archived**: the `read`, `learn`, and `book` dirs are kept products and stay in place. Claude Code infrastructure (`worktrees/`, `projects/`, `jobs/`, `plugins/`, `settings*.json`, …) is never touched — the allowlist is explicit precisely so infra is never swept up.
+**Never archived**: the `read`, `learn`, `book`, and `design` dirs are kept products and stay in place. Claude Code infrastructure (`worktrees/`, `projects/`, `jobs/`, `plugins/`, `settings*.json`, …) is never touched — the allowlist is explicit precisely so infra is never swept up.
 
 For each dir in the allowlist, for each item directly inside the source directory:
 - Destination: `.codex/archived/{item_name}`
@@ -128,7 +128,7 @@ A sealed contract is a completed artifact, so `$ship` collects it; an **unsealed
 
 (Archiving here is collision-only timestamping — the plain `{filename}` destination is used when it is free. `$contract` Step 3 archives a sealed contract it is about to overwrite and always timestamps. The asymmetry is deliberate: `$contract` is mid-write and cannot afford to reason about the destination, `$ship` keeps archive names readable. Do not unify them.)
 
-Output: 「已歸檔：{N} 個項目 → .codex/archived/（read/learn/book 產物保留；含 sealed 合約 {S} 份）」
+Output: 「已歸檔：{N} 個項目 → .codex/archived/（read/learn/book/design 產物保留；含 sealed 合約 {S} 份）」
 
 `{N}` is the total moved — allowlist items plus sealed contracts — and `{S}` is how many of those `{N}` were sealed contracts (`{S}` is `0` when none).
 
@@ -247,7 +247,7 @@ If not in a worktree → skip silently.
 ```
 $ship 完成。
 
-歸檔：{N} 個項目（或「無可歸檔檔案」；read/learn/book 產物保留）
+歸檔：{N} 個項目（或「無可歸檔檔案」；read/learn/book/design 產物保留）
 Commit：{commit message 或「跳過」}
 Push：{origin/BRANCH 或「BRANCH → TARGET，origin/TARGET」}
 Worktree：{已清理 path 或「保留（工作未落地）」或「不適用」}

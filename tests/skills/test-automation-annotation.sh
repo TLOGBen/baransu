@@ -32,7 +32,7 @@ expected = {
     "write": ("neutral", "drivable"),
     "read": ("neutral", "drivable"),
     "book": ("neutral", "drivable"),
-    "design": ("neutral", "drivable"),
+    "ui": ("neutral", "not-drivable"),
 }
 auto_pat = re.compile(
     r"^- \*\*Automation\*\*: ultracode=(overlap|assist|neutral), "

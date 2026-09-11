@@ -2,6 +2,18 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [6.0.0] - 2026-09-08
+
+### Changed
+- **`/design` 重做並更名為 `/ui`（「你 repo 裡的 UI 設計主導」），取代 frontend-design**。更名原因：Claude Code 內建的 `/design` 指令（Claude Design 權限管理）會先攔截 `/design`，`-p` 實測兩次皆被接走。擷取筆記路徑仍為 `.claude/design/`。單檔散文：逐字吸收 Anthropic frontend-design 五節（Apache 2.0，授權與修改聲明放 `LICENSE.txt`／`NOTICE.txt`，本文不提出處），新增「從參考物學設計語言」（五個觀察面、三層工具階梯、紅線「只抽性質，不抽素材、文案、logo」、筆記落 `.claude/design/reference-<slug>.md`）與「修整既有 UI」（先列差異再原地改，不補原頁沒有的事實）兩節；`loop=not-drivable`。skill 內零腳本、零固定格式。行為證據走 skill-creator evals（`evals/evals.json` 三案例），觸發準確度以 `claude -p --plugin-dir plugins/baransu` 實測（`run_eval.py` 受已安裝的同名舊 skill 干擾，結果不採）。
+- **自用提醒**：安裝 6.0.0 後停用 frontend-design plugin（`frontend-design@claude-plugins-official`），否則兩個 skill 搶同一觸發。
+
+### Removed
+- design 的 preset 系統（紙／swiss／google）、design-cores、slide-cores、DESIGN.html、lint `check.py`、export-brief、Stage 0 CLAUDE.md 注入；根目錄 `DESIGN.md`／`DESIGN.html`／`tokens.css`／`design-cores/`／`slide-cores/`；CLAUDE.md 頂端注入區塊、Design Artifacts 段、`DESIGN.md ≠ design.md` 不變量。
+- `write` proofread 不再讀 `tokens.css`；`ship` 的 `ARCHIVE_DIRS` 移除 `design`，`design` 改列 keep-list。
+- 9 個以已刪工件為受試對象的測試檔退場；新增 `tests/scripts/test_ui_skill_structure.py`（位元組層級：逐節逐字、LICENSE sha256、NOTICE 逐字、目錄清單）。
+- 片二範圍只改路由與路徑：`skills/book/` 兩處路徑（兩份 reference 搬到 `_shared/`）、`skills/hunt/` 三處改指 `/ui`；`agents/style-reviewer.md` 未動，其餘 book／style-reviewer 內容留片二處理。
+
 ## [5.6.1] - 2026-09-08
 
 ### Reverted

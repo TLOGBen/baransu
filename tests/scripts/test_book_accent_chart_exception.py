@@ -341,13 +341,8 @@ class TestRegressionSkillDegradeLogicAndCheckPyUntouched(unittest.TestCase):
     def test_l2_bullet_unchanged(self):
         self.assertIn(L2_BULLET, self.full)
 
-    def test_check_py_content_hash_unchanged(self):
-        actual = hashlib.sha256(CHECK_PY.read_bytes()).hexdigest()
-        self.assertEqual(
-            actual, CHECK_PY_SHA256_BEFORE_TASK,
-            "check.py is explicitly OUT of TASK-book-03's file scope — it "
-            "must not be modified by this task",
-        )
+    # test_check_py_content_hash_unchanged retired 6.0.0: design/scripts/check.py
+    # no longer exists (the /design rebuild removed the preset/lint machinery).
 
 
 if __name__ == "__main__":

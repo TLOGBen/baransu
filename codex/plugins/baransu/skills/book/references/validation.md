@@ -75,8 +75,8 @@ The soft range judges whether a hard-floor-passing output is *stylistically with
 
 ### Gate-internal trust boundary
 
-- `scripts/validate-output.ts`: responsible for the output layer's (output HTML) set membership and prefix consistency, including GATE A-E (existing SVG rules) / GATE-F (class prefix `kami-*` / `swiss-*` not mixed + tokens.css preset tie-break) / GATE-G (`data-layout` must correspond to a real file under `{project_root}/slide-cores/`) / GATE-J node-width whitelist / GATE-K chevron-strict / GATE-L viewBox containment (rect/line/circle/ellipse/text all fall within the viewBox, 0.5px tolerance; skips defs/marker/pattern/clipPath/mask/symbol and transformed groups). **Trusts** that the `$design` side's `check.py` has already linted the slide-core artifact's internal structure; this validation does not redo per-file lint.
-- The corresponding `$design`-side rules are in `../../design/scripts/check.py`'s artifact-internal lint rules.
+- `scripts/validate-output.ts`: responsible for the output layer's (output HTML) set membership and prefix consistency, including GATE A-E (existing SVG rules) / GATE-F (class prefix `kami-*` / `swiss-*` not mixed + tokens.css preset tie-break) / GATE-G (`data-layout` must correspond to a real file under `{project_root}/slide-cores/`) / GATE-J node-width whitelist / GATE-K chevron-strict / GATE-L viewBox containment (rect/line/circle/ellipse/text all fall within the viewBox, 0.5px tolerance; skips defs/marker/pattern/clipPath/mask/symbol and transformed groups). **Trusts** that the `/design` side's `check.py` has already linted the slide-core artifact's internal structure; this validation does not redo per-file lint.
+- The corresponding `/design`-side rules are in `../../design/scripts/check.py`'s artifact-internal lint rules.
 
 ## REQ-003 Scenario 2 automated evidence
 

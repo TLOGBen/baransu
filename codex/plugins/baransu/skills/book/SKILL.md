@@ -54,7 +54,7 @@ Scan the forbidden zone via the 🛑 visual marker, not by reading through prose
 
 ### 1. Design context soft-read
 
-Runs before all other Stage 0 steps. Follows the same soft-read pattern as $design, bringing the current preset's design philosophy into context as advisory framing.
+Runs before all other Stage 0 steps. Follows the same soft-read pattern as /design, bringing the current preset's design philosophy into context as advisory framing.
 
 1. Resolve project root: `git rev-parse --show-toplevel 2>/dev/null`; on failure use cwd.
 2. Attempt to read the following files (all best-effort, **failing all of them does not abort Stage 0**, only a stderr warning):
@@ -140,7 +140,7 @@ mkdir -p ".codex/book"
 
 ## Stage 0b — 🔴 CHECKPOINT — Pre-interview Gate (audience / hard-constraint front-loading)
 
-**Before** Stage 1 acquires `$RAW_CONTENT`, first suppress 50% of the uncertainty. Pattern aligned with $design Gen Mode Step 1: use **two sequential `request_user_input` calls** (3 questions in the first call and 1 in the second; complete both before Stage 1, rather than blocking after every individual question) to align audience, purpose, style leaning, and hard constraints.
+**Before** Stage 1 acquires `$RAW_CONTENT`, first suppress 50% of the uncertainty. Pattern aligned with /design Gen Mode Step 1: use **two sequential `request_user_input` calls** (3 questions in the first call and 1 in the second; complete both before Stage 1, rather than blocking after every individual question) to align audience, purpose, style leaning, and hard constraints.
 
 ### Skip conditions (the whole section is skipped if any one holds)
 
@@ -386,7 +386,7 @@ For each section from `$STRUCTURE`:
 2. **Reading-body line-height locked 1.50–1.55** (CJK on screen may relax to 1.55–1.65); **`≥ 1.70` is banned** (reads as floating web-prose, not print).
 3. **Reading column capped 740px / max body width 880px** — wider than this is a slop signal, not "generous".
 
-**Soft generation within bounds (replaces the old fixed-class-whitelist rule)**: the render reads three inputs — `{project_root}/tokens.css`, the current preset's `DESIGN.md` **§9 expression range** (loaded in Stage 0 §1), and the **current article context** (`$STRUCTURE` + `$RAW_CONTENT` + the Stage 0b interview brief) — and **GENERATES** the layout for each section inside the hard safety floor. The output is **NOT limited to a fixed class whitelist that must pre-exist in the SSOT template**; the SSOT template and `references/golden-template.html` are reference exemplars, not the closed set of permissible classes. Within the §9 expression range (its 不對稱/重疊允許度 soft cap, 空間原則 symmetry/grid basis, 欄寬上限) the render may compose section layout to fit the article context (e.g. an asymmetric or break-grid arrangement when §9 permits it), so two different articles under the same preset can differ in layout while staying stylistically consistent. When composing novel visual structure not covered by preset tokens / SSOT templates, the 構成/獨特性 rules of `../design/references/aesthetics-foundation.md` apply — read that file on demand before improvising the layout.
+**Soft generation within bounds (replaces the old fixed-class-whitelist rule)**: the render reads three inputs — `{project_root}/tokens.css`, the current preset's `DESIGN.md` **§9 expression range** (loaded in Stage 0 §1), and the **current article context** (`$STRUCTURE` + `$RAW_CONTENT` + the Stage 0b interview brief) — and **GENERATES** the layout for each section inside the hard safety floor. The output is **NOT limited to a fixed class whitelist that must pre-exist in the SSOT template**; the SSOT template and `references/golden-template.html` are reference exemplars, not the closed set of permissible classes. Within the §9 expression range (its 不對稱/重疊允許度 soft cap, 空間原則 symmetry/grid basis, 欄寬上限) the render may compose section layout to fit the article context (e.g. an asymmetric or break-grid arrangement when §9 permits it), so two different articles under the same preset can differ in layout while staying stylistically consistent. When composing novel visual structure not covered by preset tokens / SSOT templates, the 構成/獨特性 rules of `../_shared/aesthetics-foundation.md` apply — read that file on demand before improvising the layout.
 
 **§9-missing conservative fallback**: when the preset's §9 lacks the expression-range fields (an older preset not yet upgraded), the render does **not** improvise without a range — it falls back to a **conservative symmetric layout** (symmetric spatial basis, the default single-column reading rhythm), generating nothing beyond what the conservative baseline requires.
 

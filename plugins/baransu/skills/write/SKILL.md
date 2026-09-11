@@ -16,7 +16,7 @@ user-invocable: true
 - **Outcome**: Per the language prefix (zh/en) or auto-detection, complete one rule-driven refine (Refine), generation (Generate), or document proofread (Proofread), with rule application traceable rule by rule (Refine/Generate) or finding by finding (Proofread).
 - **Done when**: Refine output contains Before/After plus per-rule 修正說明 (or Generate output carries a format/tone note), and no floor-rule violations remain (zh 5/7/8 禁對仗句/禁排比/禁名詞化; en 5/7 plus the en 8 em-dash ban); or Proofread has written `錯字修改.html` containing the six-column findings table and reported the file path plus a finding count.
 - **Evidence**: The structure of the output body — Refine's Before / After / 修正說明 three sections with rule tags (or the format/tone note attached to the Generate piece), each item cross-checkable against the embedded rule sets; for Proofread, every table row's 錯誤類型 maps to one of the three fixed labels (錯別字／用語不妥／語句不通順) and carries a 建議修正 plus 修改原因.
-- **Output**: The revised or generated piece output in the conversation, or — for Proofread — a self-contained `錯字修改.html` file styled with the project's book/Kami design tokens; operational notifications are Traditional Chinese, content language follows the prefix or detection result.
+- **Output**: The revised or generated piece output in the conversation, or — for Proofread — a self-contained `錯字修改.html` file carrying its own inline styling (it reads no design-system file from the project); operational notifications are Traditional Chinese, content language follows the prefix or detection result.
 - **Automation**: ultracode=neutral, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 ## User-facing language
@@ -34,7 +34,7 @@ This exception is intentional. The skill's purpose is language-targeted copywrit
 - Content output language follows the prefix (or auto-detection). Operational notifications are always Traditional Chinese.
 - Refine mode never silently applies rules to incompatible-language content. Report the mismatch; do not guess.
 - Generate mode vague-topic fallback is always short prose. Do not ask the user to clarify before outputting — produce something and let the user re-invoke with a more specific prompt if needed.
-- Proofread mode reports, never rewrites: it emits the findings table, not a corrected document. It never fabricates a page number — unknown page → 「—」. It never routes through the /book pipeline (analysis output + no SVG would fail book's red line and quality gate); it renders the HTML directly, reusing tokens.css when present and a clean modern fallback when not. Precision over recall: an empty table is correct when the document is clean.
+- Proofread mode reports, never rewrites: it emits the findings table, not a corrected document. It never fabricates a page number — unknown page → 「—」. It never routes through the /book pipeline (analysis output + no SVG would fail book's red line and quality gate); it renders the HTML directly with its own self-contained styling and reads no design-system file from the project. Precision over recall: an empty table is correct when the document is clean.
 
 ---
 
