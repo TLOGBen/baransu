@@ -170,11 +170,15 @@ assert_lit "A2k: marker write ordered after fingerprint comparison" \
 # ---------------------------------------------------------------------------
 # A3: ship/SKILL.md detection, INV-1, INV-8
 # ---------------------------------------------------------------------------
-echo "A3: ship/SKILL.md three-condition early stop + invariants..."
-assert_lit "A3a: three-condition early-stop message" \
-           "$SHIP_MD" '「沒有可歸檔的工作檔案，git 也乾淨，root 無 sealed 合約，結束。」'
-assert_lit "A3b: early stop requires all three inputs empty" \
-           "$SHIP_MD" 'Stop only when **all three** are empty'
+echo "A3: ship/SKILL.md four-condition early stop + invariants..."
+assert_lit "A3a: four-condition early-stop message" \
+           "$SHIP_MD" '「沒有可歸檔的工作檔案，git 也乾淨，root 無 sealed 合約，也沒有待落地的 commit，結束。」'
+assert_lit "A3b: early stop requires all four inputs empty" \
+           "$SHIP_MD" 'Stop only when **all four** are empty'
+assert_lit "A3b2: fourth input — commits not yet on origin block the early stop" \
+           "$SHIP_MD" 'UNLANDED=$(git rev-list HEAD --not'
+assert_lit "A3b3: early-stop decision checks UNLANDED" \
+           "$SHIP_MD" 'AND `UNLANDED` is empty'
 assert_lit "A3c: INV-1 names exactly two archive sources" \
            "$SHIP_MD" 'Exactly two sources feed the archive: (1) the Step 1 `ARCHIVE_DIRS` allowlist, swept dir by dir; (2) sealed root `CONTRACT*.md` files'
 assert_lit "A3d: ship reuses the head -3 detection form" \
@@ -193,7 +197,7 @@ assert_lit_joined "A4a: seal 封緘完成 message format" "$SEAL_MD" \
 assert_lit "A4b: seal 複驗超限 message format" "$SEAL_MD" \
   '「複驗上限已達（2 次）：{N} 項未清 findings 如下，未蓋章（seal-log: unresolved）。」'
 assert_lit "A4c: ship Step 1 早停 message format" "$SHIP_MD" \
-  '「沒有可歸檔的工作檔案，git 也乾淨，root 無 sealed 合約，結束。」'
+  '「沒有可歸檔的工作檔案，git 也乾淨，root 無 sealed 合約，也沒有待落地的 commit，結束。」'
 assert_lit "A4d: ship Step 2 歸檔輸出 message format (含 sealed 計數 {S})" "$SHIP_MD" \
   '「已歸檔：{N} 個項目 → .claude/archived/（read/learn/book/design 產物保留；含 sealed 合約 {S} 份）」'
 assert_lit "A4e: contract 覆蓋前歸檔 message format" "$CONTRACT_MD" \

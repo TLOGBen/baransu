@@ -2,6 +2,12 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [6.0.3] - 2026-09-17
+
+### Fixed
+- **`/ship` Step 1 不再漏推已提交的 commit**：提前結束的條件從三項改為四項，新增 `UNLANDED`（HEAD 上還沒落到 origin 的 commit）。現行分支模式比對所有 remote 分支（新分支有 commit 也算）；`/ship <target>` 比對 `origin/<target>`（已推送但還沒併進目標分支也算）。遠端 ref 只是落後時，只會讓它偏向繼續往下跑（Step 4 的 push 此時是 no-op）；上次 fetch 之後遠端分支被刪除或倒退的情況不在 Step 1 的偵測範圍內。早停訊息改為「沒有可歸檔的工作檔案，git 也乾淨，root 無 sealed 合約，也沒有待落地的 commit，結束。」。起因：6.0.2 先 commit 再跑 /ship，工作樹乾淨，照原條文會在 Step 1 結束，commit 留在本地沒推。
+- `tests/skills/test-contract-lifecycle.sh` 同步更新 A3a／A3b／A4c 字面，新增 A3b2／A3b3 釘住 `UNLANDED` 偵測與早停判斷。
+
 ## [6.0.2] - 2026-09-17
 
 ### Changed

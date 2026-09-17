@@ -46,7 +46,7 @@ The optional target-branch argument may be written as `<branch>`, `到 <branch>`
 
 Git probe first — run `git rev-parse --git-dir 2>/dev/null`. If it fails (the project is not a git repo), output 「此專案不是 git repo：/ship 的 commit／push／worktree 流程無法執行，已停止。如需歸檔請手動處理 .claude/ 工作目錄。」 and stop. The probe MUST run before any archive move: without git there is no commit to anchor moved files, so archiving first would strand them — and every later git step (commit, push, worktree teardown) would wedge.
 
-Check three inputs: whether the workspace dirs hold archivable items, whether the git working tree has pending changes, AND whether the repo root holds a sealed contract. Stop only when **all three** are empty — otherwise there is still work to ship even when the other sides are empty.
+Check four inputs: whether the workspace dirs hold archivable items, whether the git working tree has pending changes, whether the repo root holds a sealed contract, AND whether HEAD carries commits that have not landed on origin yet. Stop only when **all four** are empty — otherwise there is still work to ship even when the other sides are empty. A clean tree does not mean the work is out: commits made earlier in the session (or in an earlier session) still need Step 4.
 
 ```bash
 ARCHIVE_DIRS="tmp think hunt-report evolve review write seal"
@@ -55,7 +55,15 @@ GIT_DIRTY=$(git status --porcelain 2>/dev/null | head -1)
 SEALED_CONTRACTS=$(find . -maxdepth 1 -type f -name 'CONTRACT*.md' | while read -r f; do
   head -3 "$f" | grep -qF '> STATUS: sealed' && printf '%s\n' "$f"
 done)
+LAND_REF="--remotes"
+if [ -n "$TARGET" ] && [ "$TARGET" != "$(git rev-parse --abbrev-ref HEAD)" ] \
+   && git rev-parse --verify --quiet "origin/$TARGET" >/dev/null; then
+  LAND_REF="origin/$TARGET"
+fi
+UNLANDED=$(git rev-list HEAD --not $LAND_REF 2>/dev/null | head -1)
 ```
+
+`UNLANDED` names the first commit on HEAD that the landing ref does not contain. In current-branch mode the ref is every remote-tracking branch (`--remotes`), so a new branch with commits counts as unlanded too. In land-on-target mode it is `origin/$TARGET`, so a branch that is pushed but not yet merged into the target still counts. The remote refs are the ones from the last fetch. A ref that merely lags the remote can only make `UNLANDED` non-empty, which sends the run on to Step 4 where the push is a no-op. The one case it misses is a remote branch deleted or rewound since that fetch; Step 1 does not fetch, so that case stays out of scope here. (`$LAND_REF` is left unquoted on purpose: it is a single token, and `--remotes` must reach git as an option.)
 
 (The detect uses python3/pathlib rather than a shell loop over `$ARCHIVE_DIRS`: zsh does not word-split unquoted parameters, so a `for d in $ARCHIVE_DIRS` + `find` pattern silently yields an always-empty `ARCHIVE_ITEMS` under zsh-driven harnesses. For the same class of reason the contract scan uses `find` with a quoted pattern instead of a `for f in CONTRACT*.md` glob: under zsh an unmatched glob is an error, not an empty list, so the glob form aborts the scan on every repo that has no contract at all. Keep the loop variable named `f` — the detection line below is a verbatim constant.)
 
@@ -75,7 +83,7 @@ The scan is root-only and non-recursive (`-maxdepth 1`): contracts kept at a use
 
 Decision:
 
-- If `ARCHIVE_ITEMS` is empty AND `GIT_DIRTY` is empty AND `SEALED_CONTRACTS` is empty → output 「沒有可歸檔的工作檔案，git 也乾淨，root 無 sealed 合約，結束。」 and stop. Do not proceed.
+- If `ARCHIVE_ITEMS` is empty AND `GIT_DIRTY` is empty AND `SEALED_CONTRACTS` is empty AND `UNLANDED` is empty → output 「沒有可歸檔的工作檔案，git 也乾淨，root 無 sealed 合約，也沒有待落地的 commit，結束。」 and stop. Do not proceed.
 - Otherwise → continue (Step 2 / Step 3 each have their own empty-input fallback; Step 4 lands work unconditionally so unpushed commits from earlier sessions still go out).
 
 ---
