@@ -44,7 +44,7 @@ each MUST surface as a criterion per G2.
 
 Also note every **premise (前提)** the criteria will rest on that affects data
 source / schema / contract / permissions; tag each `已驗` (first-hand: DB query /
-actual code at file:line / SA doc) or `未驗`. **現實接觸強制閘 (大膽包 A)**: a
+actual code at file:line / SA doc) or `未驗`. **現實接觸強制閘**: a
 `未驗` premise of that kind may NOT be written into criteria as fact — get ONE
 first-hand contact to confirm or refute it, or (contact impossible this run)
 escalate it to the user as an explicit assumption via `AskUserQuestion`, never
@@ -87,7 +87,9 @@ prohibition-style criterion}
 
 ## 錯不起表面（Surface Inventory）
 {G4 table: surface → exact format → impact per the G4 impact grammar（資產 →
-一句後果｜類別；no asset, no pinned surface）→ pinning test name (to be written)}
+一句後果｜類別；no asset, no pinned surface）→ pinning test name (to be written).
+The impact class is `/seal`'s severity source of truth for findings on that
+surface (G4 Downstream authority) — choose it deliberately, not as decoration}
 | 表面 | 格式 | 影響（資產 → 後果｜類別） | 釘死測試 |
 |------|------|--------------------------|----------|
 
@@ -95,6 +97,39 @@ prohibition-style criterion}
 {G3 fenced block — every regex / format string / magic literal, copy-paste
 source of truth}
 ```
+
+**Filling the impact column — how to think.** This column exists so that
+`/seal` knows, before it starts, which findings must block the seal and which
+are notes for the user. Without it, every surface looks equally urgent at seal
+time, so cosmetic findings get probed, fixed, and re-verified with the same
+weight as data loss. The seal loop then recurses (the kamishibai F7a seal ran
+three rounds this way). Work each row through four questions, in order:
+
+1. **Whose what gets hurt?** Start from the asset, not the surface: the user's
+   money, a downstream parser's input, the operator's reading of an error. If
+   no asset can be named, the row is not a pinned surface. Drop it.
+2. **What would the owner actually experience?** Write one sentence the
+   owner would recognize as their own bad day. A consequence nobody could
+   perceive ("off by 1px", "a slightly different wording") does not qualify.
+3. **Which class is the worst realistic outcome?** Classify by consequence,
+   never by how visible the surface is or how cheap the fix looks.
+   Over-classifying makes seal loop on cosmetics. Under-classifying lets an
+   irreversible defect ship as a UI note.
+4. **Should a defect here block the seal?** Yes → the class must be one of
+   不可逆／資料, 邏輯核心, 上下游契約. No → UI/UX. If the answer and the class
+   disagree, fix the class, not the answer.
+
+Example (an expense-report export task):
+
+| 表面 | 格式 | 影響（資產 → 後果｜類別） | 釘死測試 |
+|------|------|--------------------------|----------|
+| 匯出 CSV 金額欄 | `1234.50`（無千分位、兩位小數） | 會計的入帳資料 → 匯入 ERP 時千分位被當成欄位分隔，金額錯位入帳｜不可逆／資料 | `test_export_amount_plain_decimal` |
+| 匯出 API 回應 `status` | `"done"`／`"failed"` | 下游排程器 → 讀不到既有值就永遠重試，佔滿佇列｜上下游契約 | `test_export_status_enum_unchanged` |
+| 匯出失敗 toast | `匯出失敗：{原因}，請重試` | 使用者的判斷 → 看不到原因，不知道該重試還是找管理員｜UI/UX | `test_export_failure_toast_reason` |
+
+Rows that do NOT enter the table: 「按鈕色號與設計稿差一階」(no owner
+perceives a consequence; it is a design or lint concern); 「debug log 措辭」
+(no asset).
 
 **Sealed-marker grammar (single authority).** The `> STATUS: sealed` line
 shown under the H1 above is the one and only grammar authority for the sealed
@@ -109,7 +144,11 @@ contract has no STATUS line; it appears only after `/seal` passes.
 ### Step 3 — Confirm (one round)
 
 Show the contract with a per-criterion G1 disposition (可斷言 ✓ / 已改寫自模糊
-表述). Ask the user to confirm or amend — one round, in Traditional Chinese.
+表述) and, for each Surface Inventory row, its impact class with the seal tier
+it sets (必修 for 不可逆／資料, 邏輯核心, 上下游契約; 可翻轉先驗 for UI/UX; 穩定性可靠性 falls to seal's
+consequence grading) — this
+is the user confirmation G4 requires before the tier is fixed. Ask the user to
+confirm or amend — one round, in Traditional Chinese.
 If a CONTRACT.md already exists at the target path, first check for the
 sealed marker (detection form — never grep the whole file):
 

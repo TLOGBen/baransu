@@ -198,7 +198,7 @@ Per the shared Loose-Criterion Escalation rule: a real defect the criteria are
 too loose to reject is a SPEC BUG — fix the defect AND record the criteria
 patch; "the contract doesn't forbid it" is never grounds to pass.
 
-**Evidence-backed dissent (R10, 大膽包 A)** — governs how the DISPATCHER judges
+**Evidence-backed dissent (R10)** — governs how the DISPATCHER judges
 agent findings against contract premises: if the implementation DEVIATED from
 a contract premise or clause AND carries first-hand evidence (a DB query result,
 actual code at file:line, an SA-doc citation) that the premise was wrong, judge
