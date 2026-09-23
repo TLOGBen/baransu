@@ -4,10 +4,10 @@ description: 'Audits a project''s agent configuration and AI-coding maintainabil
   — instruction drift, hooks/MCP, verifier surfaces, code-rot signals — via a budget-aware
   five-layer audit; escalates to inspector subagents only for deep audits. Also the
   DEFAULT DISPATCH for environment problems — a skill''s CLI/SDK missing, command
-  not found（環境急診：預設修法＝官方一步全域安裝）. Trigger On ''$health'', ''健康檢查'', ''配置體檢'', ''檢查配置'',
-  ''AI 可維護性'', ''agents ignoring instructions''. Not for verifying baransu''s own
-  skill structure (scripts/verify-skills.py), reviewing a single model output ($review),
-  or substituting for lint/typecheck. 繁體中文輸出。
+  not found（環境急診：預設修法＝官方一步全域安裝）. Trigger On ''$baransu:health'', ''健康檢查'', ''配置體檢'',
+  ''檢查配置'', ''AI 可維護性'', ''agents ignoring instructions''. Not for verifying baransu''s
+  own skill structure (scripts/verify-skills.py), reviewing a single model output
+  ($baransu:review), or substituting for lint/typecheck. 繁體中文輸出。
 
   '
 metadata:
@@ -50,7 +50,7 @@ Audit the current project's agent setup and AI coding maintainability against th
 
 Find violations. Identify the misaligned layer. Calibrate to project complexity only.
 
-**Positioning**: structural validation of baransu's skills belongs to `scripts/verify-skills.py`. `$health` audits the **audited project's** agent configuration and AI maintainability — and that project may legitimately be the baransu repo itself, audited like any other project. The boundary is what gets checked (skill structure vs. agent config and maintainability), not whose repo it is.
+**Positioning**: structural validation of baransu's skills belongs to `scripts/verify-skills.py`. `$baransu:health` audits the **audited project's** agent configuration and AI maintainability — and that project may legitimately be the baransu repo itself, audited like any other project. The boundary is what gets checked (skill structure vs. agent config and maintainability), not whose repo it is.
 
 All user-facing output is in **Traditional Chinese (繁體中文)**.
 
@@ -296,7 +296,7 @@ If no issues: 「所有相關檢查通過，無需修正。」
 - Never verify baransu's own skill **structure** (frontmatter, registries, skill counts) — that is `scripts/verify-skills.py`'s job. Auditing the baransu repo as a normal audited project — its agent config, instruction surfaces, maintainability — is legitimate and in scope. Plugin-style repos keep their skills under `plugins/*/skills`, so the collector's `.codex/skills`-oriented counting reports 0 there — treat the plugin skill dirs as the project's skill surface when analyzing.
 - Never auto-apply fixes without confirmation — sole exception: Environment doctor's default repair, where the dispatch names the missing tool and is itself the confirmation.
 - Never apply complex-tier checks to simple projects.
-- Never act as a heavy lint, typecheck, duplication, or architecture-rewrite substitute; `$health` reports maintainability guardrails and concrete next actions only.
+- Never act as a heavy lint, typecheck, duplication, or architecture-rewrite substitute; `$baransu:health` reports maintainability guardrails and concrete next actions only.
 
 ## Gotchas
 
@@ -306,7 +306,7 @@ If no issues: 「所有相關檢查通過，無需修正。」
 | Subagent timeout reported as MCP failure | MCP failures come from the live probe, not data collection |
 | Flagged intentionally noisy hook as broken | Ask before calling a hook "broken" |
 | Hook seemed not to fire, but it did — a later UI element rendered above it | Hook firing order is not visual order. Before re-editing the hook config: (a) confirm with `--debug` or by piping output, (b) check whether a diff dialog, permission prompt, or other UI element rendered on top and pushed the hook output offscreen, (c) only then suspect the hook itself. |
-| `$health` burned too much quota on first run | Stay in summary mode first. Full conversation extracts and inspector subagents are deep-audit tools, not the default path for Standard projects. |
+| `$baransu:health` burned too much quota on first run | Stay in summary mode first. Full conversation extracts and inspector subagents are deep-audit tools, not the default path for Standard projects. |
 | Treated missing specs/docs as a failure | Decision artifacts are optional by default. Escalate missing docs/specs only when the tier, active handoff risk, or user request makes them necessary. |
 | Treated an ignored AGENTS/CLAUDE file as durable project truth | Report whether the rule is tracked and distributed. Local overlays can inform the audit, but durable fixes belong in public repo docs or shipped skill/rule files. |
 | Treated a review scorecard as maintainability documentation | Scorecards are snapshots. Extract the invariant and verification path, then remove or archive the report instead of calling the score itself a durable rule. |

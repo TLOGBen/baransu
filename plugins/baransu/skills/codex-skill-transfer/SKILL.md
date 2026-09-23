@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Designed for Claude Code; output targets Codex CLI. Optional `skills-ref` CLI for validation.
 metadata:
   author: baransu
-  version: "0.16.0"
+  version: "0.17.0"
 ---
 
 # Codex Skill Transfer
@@ -30,7 +30,7 @@ Look at the source path the user gave you. Pick the matching mode:
 
 | Source path looks like | Mode | What it produces |
 |---|---|---|
-| `<dir>/.claude-plugin/plugin.json` exists | **Plugin** | `<output>/` as marketplace root: `<output>/.agents/plugins/marketplace.json` + `<output>/plugins/<name>/{.codex-plugin, skills, hooks (when supported), rules, .codex-agents}` |
+| `<dir>/.claude-plugin/plugin.json` exists | **Plugin** | `<output>/` as marketplace root: `<output>/.agents/plugins/marketplace.json` + `<output>/plugins/<name>/{plugin.json, skills, hooks (when supported), rules, .codex-agents}` |
 | `<dir>/SKILL.md` exists at the top level | **Single skill** | One `<output>/<skill-name>/` |
 | `<dir>` has children that each contain `SKILL.md` | **Skills batch** | One subdir per child |
 
@@ -61,8 +61,8 @@ The transformation is layered; each reference owns one layer. Read the matching 
 When changing the mapping rules themselves, refresh the current OpenAI Codex docs first and compare against the relevant official sections: Agent Skills, Build plugins, Subagents, MCP, Hooks, and sandbox/approval behavior. The docs can drift faster than this skill; do not preserve an old mapping just because the transfer script already emits it.
 
 - [`references/CODEX_PORT_PLAN.md`](references/CODEX_PORT_PLAN.md) — behavior-weight survival plan. Read this before changing lossy rewrites: the question is not "which Codex API matches this Claude API", but "which model shortcut/inertia did the original mechanism counter, and is the Codex replacement still hard enough?" Strong-inertia soft-prompt downgrades must move to an artifact/phase/sandbox gate instead.
-- [`references/skill-mapping.md`](references/skill-mapping.md) — SKILL.md frontmatter + body rewrites. Covers `disable-model-invocation` → `agents/openai.yaml`, `$ARGUMENTS` → natural language, bang-backtick shell injection → imperative TODO, tool-API rewrites, and slash-invocation mentions `/other-skill` → `$other-skill` (§6.2). **Read this for any per-skill question.**
-- [`references/plugin-mapping.md`](references/plugin-mapping.md) — `.claude-plugin/plugin.json` → `.codex-plugin/plugin.json`. Read when porting a whole plugin.
+- [`references/skill-mapping.md`](references/skill-mapping.md) — SKILL.md frontmatter + body rewrites. Covers `disable-model-invocation` → `agents/openai.yaml`, `$ARGUMENTS` → natural language, bang-backtick shell injection → imperative TODO, tool-API rewrites, and slash-invocation mentions `/other-skill` → `$other-skill` (`$<plugin>:other-skill` in plugin mode, §6.2). **Read this for any per-skill question.**
+- [`references/plugin-mapping.md`](references/plugin-mapping.md) — `.claude-plugin/plugin.json` → portable root `plugin.json` (`$schema` agent-plugins.org, OpenAI settings under `extensions."com.openai"`). Read when porting a whole plugin.
 - [`references/agent-mapping.md`](references/agent-mapping.md) — Claude `context: fork` / `agent: ...` → Codex Subagents (`.codex/agents/*.toml`), and plugin `agents/*.md` → package-local `.codex-agents/*.toml` runtime definitions plus a fail-closed resolver. Read whenever agents are involved at either layer.
 - [`references/marketplace-mapping.md`](references/marketplace-mapping.md) — `.claude-plugin/marketplace.json` → `.agents/plugins/marketplace.json`. Plugin mode auto-emits Layout B (catalog inside `<output>/`); §8 covers Layout A (monorepo repo-root catalog) which stays manual.
 
@@ -70,7 +70,7 @@ When changing the mapping rules themselves, refresh the current OpenAI Codex doc
 
 All output shapes live in `assets/`. The script reads them; if you're working inline, copy them and fill the placeholders by hand. Each is a single file with `$placeholder` markers (Python `string.Template` syntax — `$name`, `$version`, etc.):
 
-- [`assets/codex-plugin.template.json`](assets/codex-plugin.template.json) — canonical `.codex-plugin/plugin.json` shape for plugins that bundle skills. The script renders this template, prunes empty pass-through fields, and merges complex fields (`author`, `keywords`) from the translated manifest. Edit this file to change the canonical shape.
+- [`assets/codex-plugin.template.json`](assets/codex-plugin.template.json) — canonical portable root `plugin.json` shape. The script renders this template, prunes empty pass-through fields, and merges complex fields (`author`, `keywords`) from the translated manifest. Edit this file to change the canonical shape.
 - [`assets/codex-marketplace.template.json`](assets/codex-marketplace.template.json) — schema-aligned starter for the repo-root Layout A catalog (the script writes Layout B inline; this template is for the monorepo case where you also need a root-level catalog).
 
 The skill-level `<skill>/agents/openai.yaml` and bundled-agent TOML output are NOT templated — they're built directly via `yaml.safe_dump` and `json.dumps` so escape correctness is ironclad regardless of source content. Earlier versions templated them but had to retire that approach when v0.4.0 review found honor-system escape bugs (description containing `"`, agent body containing `"""`).

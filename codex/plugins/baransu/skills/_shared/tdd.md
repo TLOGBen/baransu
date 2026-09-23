@@ -2,7 +2,7 @@
 
 > **Scope**: Every trigger point that writes, modifies, or reviews tests under the
 > baransu framework — the main session implementing directly, a delegated executor
-> running one contract-band slice, or any task arriving after a `$think`／`$hunt`
+> running one contract-band slice, or any task arriving after a `$baransu:think`／`$baransu:hunt`
 > reroute — treats this document as the **single source of knowledge for "how to design a Test"**.
 > This file is translated/localized from mattpocock/skills' TDD skill, with baransu's
 > existing RED / GREEN / TDAID vocabulary as inline gloss.
@@ -15,7 +15,7 @@
 > §7.3's beyond-the-gates note and §7.5 are baransu-original additions (2026-07-06),
 > not derived from the upstream skill.
 >
-> **Trigger points**: the small-task reroute sentences of `$think`／`$hunt`
+> **Trigger points**: the small-task reroute sentences of `$baransu:think`／`$baransu:hunt`
 > (pointing at this file's §7 direct-implementation discipline). They point to this file via passive reference sentences.
 
 ---
@@ -196,7 +196,7 @@ Cross-skill behavioral anti-patterns (including the red/green discipline items) 
 ## 7. The red/green gate for direct implementation (document discipline)
 
 When a small task is implemented directly by the main
-session (for example, a `$think`-approved plan or the single change point after `$hunt`
+session (for example, a `$baransu:think`-approved plan or the single change point after `$baransu:hunt`
 diagnosis converges), the red/green gate operates as **document discipline (discipline-suggested)**:
 no orchestrator gatekeeps for you; the implementer builds their own red/green task list per
 this section, goes red first then green, and writes the implementation only after the red is
@@ -263,7 +263,7 @@ The order is fixed: do not enter implementation before red is confirmed; do not 
 |---|---|
 | All pass, no regression | Green confirmed; done. |
 | Test fails (1st time) | Modify the implementation and re-run directly. |
-| Test fails (2nd time) | Stop. If the direction is in doubt, return to `$think` to refocus, then retry. |
+| Test fails (2nd time) | Stop. If the direction is in doubt, return to `$baransu:think` to refocus, then retry. |
 | compile error | Fix and re-run; not counted toward the retry count. |
 
 **Beyond the two gates — surprises are new reds.** The tables above govern the two
@@ -313,8 +313,8 @@ This file is referenced by the following trigger points:
 
 | Trigger point | Reference location | Reference sentence |
 |---|---|---|
-| `$think` small-task reroute | `../think/SKILL.md` restatement exits (single-file change with one obvious fix) | Small tasks reroute to this file's §7: the main session builds its own red/green task list per document discipline and implements directly. |
-| `$hunt` fix reroute | `../hunt/SKILL.md` fix-suggestion split | Single change-point fixes reroute to this file's §7 direct-implementation discipline. |
+| `$baransu:think` small-task reroute | `../think/SKILL.md` restatement exits (single-file change with one obvious fix) | Small tasks reroute to this file's §7: the main session builds its own red/green task list per document discipline and implements directly. |
+| `$baransu:hunt` fix reroute | `../hunt/SKILL.md` fix-suggestion split | Single change-point fixes reroute to this file's §7 direct-implementation discipline. |
 
 ---
 

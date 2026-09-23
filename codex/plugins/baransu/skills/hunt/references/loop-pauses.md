@@ -1,8 +1,8 @@
-# loop-pauses — $hunt PAUSE classification
+# loop-pauses — $baransu:hunt PAUSE classification
 
 PAUSE classification for non-interactive drivers; semantics in `../../_shared/loop-contract.md` §2.
 
-$hunt is loop=assisted: diagnosis advances automatically, but the fix itself
+$baransu:hunt is loop=assisted: diagnosis advances automatically, but the fix itself
 waits for the driver — the checkpoint rows below define exactly where.
 
 | Interaction point | Class | Non-interactive default |

@@ -33,7 +33,6 @@
 .codex/impl/
 .codex/read/
 .codex/learn/
-.codex/wiki/
 .codex/delegate-matrix-*/
 # Loose session work files at the .codex root (assessments, delegation ledgers).
 /.codex/*.md
@@ -44,7 +43,7 @@
 # .claude/settings.json stays tracked.
 .claude/read/
 .claude/learn/
-.claude/wiki/
+.claude/research/
 .claude/loop-state.json
 .claude/loop-final-report.md
 

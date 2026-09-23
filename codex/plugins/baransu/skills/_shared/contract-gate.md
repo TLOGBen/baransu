@@ -1,8 +1,8 @@
 # contract-gate — criteria assertability rules (single implementation)
 
-Owned by `$contract` (one-page contract, medium band), and therefore binding on
+Owned by `$baransu:contract` (one-page contract, medium band), and therefore binding on
 the large band too — a large effort is sliced into contract-band slices, each
-pinned by its own contract. `$contract` reads THIS file for the rules below; it
+pinned by its own contract. `$baransu:contract` reads THIS file for the rules below; it
 does not restate them. Experiments 2026-07-19 (harness×model matrix + validation round)
 showed these three rules structurally eliminate two whole defect classes
 (off-by-one display fields; constant-retyping drift) — they are the quality
@@ -59,7 +59,7 @@ any other measurement-side (MOP) matter belongs to lint and conventions, never
 here.
 
 **Downstream authority.** The impact class is the severity source of truth for
-`$seal`'s findings grading: 不可逆／資料, 邏輯核心 and 上下游契約 rows are
+`$baransu:seal`'s findings grading: 不可逆／資料, 邏輯核心 and 上下游契約 rows are
 must-fix tier; UI/UX rows carry the surface-asset prior (one birth-certificate
 probe round for their judge). The tier is decided here, at contract time, under
 the user's confirmation — never re-litigated at seal time.

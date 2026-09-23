@@ -15,7 +15,7 @@ Extract the slide structure `$STRUCTURE_SLIDES` from `$RAW_CONTENT`. **layout is
 
 ## Reading project root slide-cores
 
-Read path: `{project_root}/slide-cores/*.html` (copied to the project root by `$design preset <name>`; this stage only reads, never modifies).
+Read path: `{project_root}/slide-cores/*.html` (copied to the project root by `$baransu:design preset <name>`; this stage only reads, never modifies).
 
 Algorithm:
 
@@ -60,7 +60,7 @@ If none of the three are present → row 2 does not apply, **closing omit** (do 
 
 ## Graceful degradation on missing files / parse failure
 
-- **`{project_root}/slide-cores/` does not exist or is empty**: emit the warning「請先跑 `$design preset <name>` 取得 slide-cores」, **do not abort**; degrade to the hardcoded fallback three-layout set `{cover, closing, content-bullets}`, every body slot goes to `content-bullets`, and cover/closing still apply per the positional rule.
+- **`{project_root}/slide-cores/` does not exist or is empty**: emit the warning「請先跑 `$baransu:design preset <name>` 取得 slide-cores」, **do not abort**; degrade to the hardcoded fallback three-layout set `{cover, closing, content-bullets}`, every body slot goes to `content-bullets`, and cover/closing still apply per the positional rule.
 - **YAML parse failure on a given slide-core HTML**: warn with the filename and the failure reason, **remove that layout from the decision table**, the other layouts remain usable; content that would trigger that layout degrades to the fallback `content-bullets`.
 - Both of the above degradations **do not abort** Stage 2B; the subsequent Stage 3 still renders normally (GATE-G SKIPs as needed in the later validator stage).
 

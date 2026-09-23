@@ -6,7 +6,7 @@
 # Digest Frontmatter Spec
 
 This document adds per-field prose and a complete example for the YAML frontmatter
-of digest output files produced by `$learn` (`.codex/learn/digests/{slug}.md`).
+of digest output files produced by `$baransu:learn` (`.codex/learn/digests/{slug}.md`).
 The authoritative schema is the inline frontmatter block in SKILL.md Stage 5 §5 —
 consult this file only when a field's meaning is in doubt. If this file and SKILL.md
 ever disagree, SKILL.md wins; keep this file in sync when the skill changes.
@@ -20,7 +20,7 @@ ever disagree, SKILL.md wins; keep this file in sync when the skill changes.
 **Type:** string
 **Required:** yes
 
-The research topic keyword or phrase that was given to `$learn`. One sentence or
+The research topic keyword or phrase that was given to `$baransu:learn`. One sentence or
 short phrase; identifies what the digest is about.
 
 ---
@@ -35,7 +35,7 @@ sub-fields, both mandatory:
 
 | Sub-field | Type | Description |
 |-----------|------|-------------|
-| `slug`    | string | The `$read` material slug used internally to reference the source |
+| `slug`    | string | The `$baransu:read` material slug used internally to reference the source |
 | `url`     | string | The original URL of the source, or `local:{path}` for local files |
 
 ---
@@ -55,7 +55,7 @@ produced; enables chronological sorting and cache invalidation.
 **Type:** `"zh"` or `"en"`
 **Required:** yes
 
-The output language of the digest body, determined by `$learn` at Stage 5 §1:
+The output language of the digest body, determined by `$baransu:learn` at Stage 5 §1:
 a single CJK character anywhere in the draft sets `"zh"`; otherwise `"en"`. Exactly
 one of the two allowed values must appear.
 
@@ -70,11 +70,11 @@ The list of phases that have been completed for this digest. Valid values (in or
 
 | Value      | Phase |
 |------------|-------|
-| `collect`  | Collect — fetch and store source materials via `$read` |
+| `collect`  | Collect — fetch and store source materials via `$baransu:read` |
 | `digest`   | Digest — extract key points and filter noise |
 | `outline`  | Outline — build the article structure |
 | `fill_in`  | Fill-in — write the full draft from the outline |
-| `refine`   | Refine — language polish via `$write` |
+| `refine`   | Refine — language polish via `$baransu:write` |
 
 A digest written by the normal Stage 5 flow contains all five values.
 
@@ -102,4 +102,4 @@ phases_completed:
 ```
 
 Below the closing `---`, the file contains the Refine-phase output: a clean markdown
-article with no Before/After markers or `$write` correction annotations.
+article with no Before/After markers or `$baransu:write` correction annotations.

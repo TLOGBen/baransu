@@ -3,7 +3,7 @@
 # to a generic Codex subagent; plugins do not auto-register custom agents.
 
 name = "security-reviewer"
-description = "Reviews attack surface, input validation, authentication/authorization placement, secret handling, injection vectors, trust boundaries, and cryptographic usage. Dispatched by $review as an isolated perspective."
+description = "Reviews attack surface, input validation, authentication/authorization placement, secret handling, injection vectors, trust boundaries, and cryptographic usage. Dispatched by $baransu:review as an isolated perspective."
 
 developer_instructions = '''
 # security-reviewer

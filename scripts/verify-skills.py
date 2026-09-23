@@ -61,7 +61,7 @@ SKILLS_DIR = REPO_ROOT / "plugins" / "baransu" / "skills"
 AGENTS_DIR = REPO_ROOT / "plugins" / "baransu" / "agents"
 PLUGIN_MANIFEST = REPO_ROOT / "plugins" / "baransu" / ".claude-plugin" / "plugin.json"
 MARKETPLACE_MANIFEST = REPO_ROOT / ".claude-plugin" / "marketplace.json"
-CODEX_MANIFEST = REPO_ROOT / "codex" / "plugins" / "baransu" / ".codex-plugin" / "plugin.json"
+CODEX_MANIFEST = REPO_ROOT / "codex" / "plugins" / "baransu" / "plugin.json"
 
 EXPECTED_SKILL_COUNT = 14
 BODY_LINE_ADVISORY_LIMIT = 500

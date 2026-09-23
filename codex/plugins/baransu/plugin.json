@@ -1,13 +1,8 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "baransu",
-  "version": "6.0.3",
+  "version": "6.1.0",
   "description": "バランス — deliberate before executing, verify after. Fourteen governance skills covering the full development lifecycle.",
-  "skills": "./skills/",
-  "hooks": "./hooks/hooks.json",
-  "interface": {
-    "displayName": "Baransu",
-    "shortDescription": "バランス — deliberate before executing, verify after. Fourteen governance skills covering the full development lifecycle."
-  },
   "author": {
     "name": "ben.tsai",
     "email": "ben.tsai@hy-tech.com.tw"
@@ -25,5 +20,14 @@
     "ship",
     "contract",
     "seal"
-  ]
+  ],
+  "extensions": {
+    "com.openai": {
+      "hooks": "./hooks/hooks.json",
+      "interface": {
+        "displayName": "Baransu",
+        "shortDescription": "バランス — deliberate before executing, verify after. Fourteen governance skills covering the full development lifecycle."
+      }
+    }
+  }
 }

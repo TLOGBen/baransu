@@ -3,7 +3,7 @@
 # to a generic Codex subagent; plugins do not auto-register custom agents.
 
 name = "evolve-diagnostician"
-description = "Reads a target SKILL.md against the fixed 9-dimension rubric and names the single weakest dimension plus one concrete improvement direction. Dispatched by $evolve at the start of each ratchet round. Diagnoses only — never edits the skill."
+description = "Reads a target SKILL.md against the fixed 9-dimension rubric and names the single weakest dimension plus one concrete improvement direction. Dispatched by $baransu:evolve at the start of each ratchet round. Diagnoses only — never edits the skill."
 
 developer_instructions = '''
 # evolve-diagnostician

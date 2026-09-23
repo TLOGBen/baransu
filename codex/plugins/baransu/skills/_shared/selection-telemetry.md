@@ -27,7 +27,7 @@ Append one JSON line to the central user-scope ledger — NOT a per-project file
 `{project}` = the git-root basename; when there is no git repo, simply the cwd
 folder name. `{YYYY-MM}` = current month (monthly files are the time rotation —
 no other rotation mechanism exists or is needed). The seal-guard hook writes its
-`seal-guard-{YYYY-MM}.jsonl` and reads `$seal`'s `seal-log-{YYYY-MM}.jsonl` in the
+`seal-guard-{YYYY-MM}.jsonl` and reads `$baransu:seal`'s `seal-log-{YYYY-MM}.jsonl` in the
 same directory, so the monthly review is one directory read per project under a
 single root. Example record:
 
@@ -46,7 +46,7 @@ Keep it to one line; this is telemetry, not a journal.
 - **Miss rate** = (`"miss": true` records + seal-guard-\{month\}.jsonl confirmed lines) ÷
   (those + total records).
 - Review outcomes feed three standing decisions: seal-guard default de-escalation
-  (blocking → log, if the false-block rate is material), the `$codex-skill-transfer` retirement clause
+  (blocking → log, if the false-block rate is material), the `$baransu:codex-skill-transfer` retirement clause
   (three consecutive zero-use months → retire, ceiling back to 14), and routing-table
   wording fixes for whichever confusion pair actually fired.
 - **Zero-event caveat (seal-guard)**: a month with zero `seal-guard-{month}.jsonl`
@@ -81,4 +81,4 @@ Three monthly reform signals (reform-proposal §5), from the month's records:
 
 Falsifiable-exit evaluation: a Phase 3 gate with zero firing events (or only
 overridden false-positive firings) across three months is a retirement candidate —
-the same forward-only discipline as the `$codex-skill-transfer` sunset.
+the same forward-only discipline as the `$baransu:codex-skill-transfer` sunset.

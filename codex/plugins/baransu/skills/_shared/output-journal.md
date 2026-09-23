@@ -1,7 +1,7 @@
 # output-journal — work-journal contract (single source)
 
 > Shared contract for the HTML work journal. Since 5.5.0 no skill produces one by
-> default — `$think` writes a Markdown plan under `.codex/think/` and `$review` a
+> default — `$baransu:think` writes a Markdown plan under `.codex/think/` and `$baransu:review` a
 > Markdown report under `.codex/review/` — but any skill or implementer that opts
 > into an HTML journal follows this contract. Skills cite this file; they do not restate it.
 
@@ -31,7 +31,7 @@ happened during implementation.
 primary deliverable's slug (e.g. `.codex/think/baransu-v2.1-philosophy-merge-plan.html`
 beside the approved plan `.md`).
 
-For `$review`, whose primary deliverable is in-conversation prose with no
+For `$baransu:review`, whose primary deliverable is in-conversation prose with no
 on-disk slug of its own, derive `<slug>` from the reviewed target instead:
 the reviewed spec/plan's own slug when it has one, else
 `{YYYY-MM-DD}-{target basename}`. Downstream journal selection (e.g.

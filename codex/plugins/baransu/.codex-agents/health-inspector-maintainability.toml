@@ -3,7 +3,7 @@
 # to a generic Codex subagent; plugins do not auto-register custom agents.
 
 name = "health-inspector-maintainability"
-description = "Judges whether a project has enough structure to stay maintainable under repeated AI coding sessions, reasoning only from health-collection script output. Dispatched by $health as an isolated inspector for deep audits."
+description = "Judges whether a project has enough structure to stay maintainable under repeated AI coding sessions, reasoning only from health-collection script output. Dispatched by $baransu:health as an isolated inspector for deep audits."
 
 developer_instructions = '''
 # health-inspector-maintainability

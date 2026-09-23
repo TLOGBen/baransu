@@ -6,9 +6,9 @@ description: 'UI/UX design lead for the code in your repo. Use whenever the user
   — it builds or reshapes the web UI with deliberate palette / type / layout / motion
   choices and writes or edits the UI files directly; learns a design language from
   a reference (a website, a screenshot, an art style) and refines an existing UI against
-  it. Trigger On ''$ui'', ''設計 UI'', ''美化'', ''調 UI'', ''介面設計'', ''照這個網站的風格'', ''styling'',
-  ''beautifying any web UI'', ''frontend design''. Not For: Claude Design 畫布 mockup（內建
-  design skill）; 說明性圖表與動畫（$book）; 小寫 design.md 技術架構文件.'
+  it. Trigger On ''$baransu:ui'', ''設計 UI'', ''美化'', ''調 UI'', ''介面設計'', ''照這個網站的風格'',
+  ''styling'', ''beautifying any web UI'', ''frontend design''. Not For: Claude Design
+  畫布 mockup（內建 design skill）; 說明性圖表與動畫（$baransu:book）; 小寫 design.md 技術架構文件.'
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex

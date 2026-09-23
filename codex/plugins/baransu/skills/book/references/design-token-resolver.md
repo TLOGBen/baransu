@@ -1,7 +1,7 @@
 ---
 name: design-token-resolver
 purpose: |
-  Single source of truth for how $book resolves design tokens
+  Single source of truth for how $baransu:book resolves design tokens
   (colors, surfaces, ink levels) when rendering SVG/CSS for the
   17 diagram types. Defines a three-layer fallback chain plus a
   hex shape contract that all downstream consumers (template,
@@ -19,7 +19,7 @@ purpose: |
 
 # Design Token Resolver
 
-This document is the v1.3+ ground truth for token resolution in `$book`.
+This document is the v1.3+ ground truth for token resolution in `$baransu:book`.
 All template / example / validate code paths and the 17 per-type
 reference files reference this file rather than re-deriving rules.
 
@@ -54,10 +54,10 @@ is needed for SVG/CSS; Stage 4's `validate-output.ts` gates the result.
 Relationship to `/design` skill is one-way:
 
 ```
-/design  → writes →  {project_root}/tokens.css  → read by →  $book
+/design  → writes →  {project_root}/tokens.css  → read by →  $baransu:book
 ```
 
-`$book` never writes back to tokens.css and never tells `/design`
+`$baransu:book` never writes back to tokens.css and never tells `/design`
 which tokens it consumes.
 
 ---
@@ -65,7 +65,7 @@ which tokens it consumes.
 ## Layer 1: project-root tokens.css
 
 The sole token source (SKILL.md Constraints): `{project_root}/tokens.css`,
-written by `$design preset <style>` or `$design gen`.
+written by `$baransu:design preset <style>` or `$baransu:design gen`.
 Stage 3 §1 has already aborted before the resolver runs if the file is
 absent, so Layer 1 always has a file to read.
 
@@ -84,7 +84,7 @@ Rule:
 4. Values that pass become the active value for that token.
 
 Behaviour summary: missing tokens or rejected values never abort
-`$book` — they quietly degrade to Layer 2 / Layer 3.
+`$baransu:book` — they quietly degrade to Layer 2 / Layer 3.
 
 ### Hex shape contract
 
@@ -109,7 +109,7 @@ alpha channel byte). Explicitly **not accepted**:
 Non-hex outcome: reject this token, emit a `[design-token]
 warning: token --X rejected ("...")` line to stderr and surface it
 in the Stage 4 completion report, and fallback to Layer 2 for that
-single token. **Do not abort `$book`.**
+single token. **Do not abort `$baransu:book`.**
 
 ---
 
@@ -254,14 +254,14 @@ invariant #8 (no `rgba(`) intact.*
 
 | Scenario                                                                  | Layer          | Action                                                                                       |
 |---------------------------------------------------------------------------|----------------|----------------------------------------------------------------------------------------------|
-| `tokens.css` not present at project root                                  | Stage 3 §1     | Abort before the resolver runs (「請先跑 `$design preset <style>`」); the resolver is never reached |
+| `tokens.css` not present at project root                                  | Stage 3 §1     | Abort before the resolver runs (「請先跑 `$baransu:design preset <style>`」); the resolver is never reached |
 | `tokens.css` token value fails `^#[0-9a-fA-F]{3,8}$`                      | token resolver | Reject that single token, emit `[design-token]` stderr warning (surfaced in the Stage 4 completion report), fallback Layer 2 |
 | Injection-shaped value (e.g. `red;}</style><script>…`)                    | token resolver | Treated as plain non-hex → same as above. **Security critical** — never inline raw           |
 | Token absent from both Layer 1 and Layer 2 but type ∈ {sequence/state/swimlane/er} | token resolver | Apply Layer 3 derived rule (no warning)                                                      |
-| Token absent everywhere and no Layer 3 rule applies                       | token resolver | Hard error — `$book` reports the missing token and stops before writing that SVG (Stage 3)   |
+| Token absent everywhere and no Layer 3 rule applies                       | token resolver | Hard error — `$baransu:book` reports the missing token and stops before writing that SVG (Stage 3)   |
 
 The warning-then-fallback path is deliberate: a malformed token
-value must not be able to block `$book` — neither by crashing it
+value must not be able to block `$baransu:book` — neither by crashing it
 nor by injecting unsanitised content into the rendered SVG/HTML.
 
 ---

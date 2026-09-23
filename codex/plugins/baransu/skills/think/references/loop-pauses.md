@@ -1,8 +1,8 @@
-# loop-pauses — $think PAUSE classification
+# loop-pauses — $baransu:think PAUSE classification
 
 PAUSE classification for non-interactive drivers; semantics in `../../_shared/loop-contract.md` §2.
 
-$think is graded loop=not-drivable — the restatement dialogue is the product; no recommended default can substitute it. The rows below tell a non-interactive run how to stop loudly instead of auto-advancing.
+$baransu:think is graded loop=not-drivable — the restatement dialogue is the product; no recommended default can substitute it. The rows below tell a non-interactive run how to stop loudly instead of auto-advancing.
 
 | Interaction point | Class | Non-interactive default |
 |---|---|---|

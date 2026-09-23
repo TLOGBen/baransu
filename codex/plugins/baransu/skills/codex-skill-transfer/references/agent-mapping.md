@@ -1,6 +1,6 @@
 ## Contents
 
-- 1. The three Codex paths
+- 1. The two Codex paths
 - 2. SKILL.md frontmatter mapping (Path 1 specifics)
 - 3. Body rewrite for Path 1
 - 4. Bundled runtime agent generation (`agents/*.md` → `.codex-agents/*.toml`)
@@ -15,9 +15,9 @@ This file owns the `Claude agent → Codex subagent` translation in full. It cov
 
 [`skill-mapping.md`](skill-mapping.md) and [`plugin-mapping.md`](plugin-mapping.md) cross-ref into this file rather than duplicating the rules.
 
-## 1. The three Codex paths
+## 1. The two Codex paths
 
-Codex **does** have an equivalent for `context: fork` — native Subagents at `.codex/agents/{name}.toml` — but the mapping crosses the skill-package boundary into the user's Codex configuration. The transfer cannot decide which path you want, so for any source skill with `context: fork`, it refuses to auto-port and surfaces these three options:
+Codex **does** have an equivalent for `context: fork` — native Subagents at `.codex/agents/{name}.toml` — but the mapping crosses the skill-package boundary into the user's Codex configuration. The transfer cannot decide which path you want, so for any source skill with `context: fork`, it refuses to auto-port and surfaces these two options. (A third path — running Codex as an MCP server orchestrated by Agents SDK handoffs — went away when Codex 0.154.0 removed that server mode; embedding Codex now goes through the experimental app-server JSON-RPC, which is out of scope here.)
 
 ### Path 1: Codex native Subagents (closest equivalent)
 
@@ -28,13 +28,15 @@ Codex defines subagents as standalone TOML files at:
 
 Required fields: `name`, `description`, `developer_instructions`. Optional fields inherit from the parent session when omitted: `nickname_candidates`, `model`, `model_reasoning_effort`, `sandbox_mode`, `mcp_servers`, and `skills.config`. Three built-in agents ship by default: `default`, `worker`, `explorer`.
 
-Officially confirmed by the Codex Subagents docs (2026-07):
+Officially confirmed by the Codex Subagents docs and the `rust-v0.156.1` role loader (2026-09):
 
 - Required custom-agent fields: `name`, `description`, `developer_instructions`.
 - Optional custom-agent/config fields: `nickname_candidates`, `model`, `model_reasoning_effort`, `sandbox_mode`, `mcp_servers`, `skills.config`.
 - Built-ins: `default`, `worker`, `explorer`.
-- Global settings: `agents.max_concurrent_threads_per_session`, `agents.default_subagent_model`, `agents.default_subagent_reasoning_effort`, and `agents.interrupt_message`. `agents.max_threads` remains a legacy alias for the concurrency cap.
-- Model guidance: omit `model` and `model_reasoning_effort` unless you need deterministic routing; Codex can choose or inherit a balanced setup. When pinning, start with `gpt-5.6` for demanding agents, use `gpt-5.4` only for workflows pinned to GPT-5.4, and use `gpt-5.6-terra` for fast read-heavy scans.
+- Global settings: `agents.enabled` (default true), `agents.max_concurrent_threads_per_session`, `agents.default_subagent_model`, `agents.default_subagent_reasoning_effort`, and `agents.interrupt_message`. `agents.max_threads` remains a legacy alias for the concurrency cap.
+- Model guidance: omit `model` and `model_reasoning_effort` unless you need deterministic routing; Codex can choose or inherit a balanced setup. Model names turn over faster than this file — when pinning, take the current recommendation from the Subagents docs at port time rather than from here. Effort values are model-dependent (`low` | `medium` | `high` | `xhigh` | `max` | `ultra`).
+- `mcp_servers` is a config **table** (`[mcp_servers.<id>]` with `url` / `command` …), not a list of ids. Role files reject unknown or mistyped keys, so a wrong shape makes the whole agent fail to load. The stub places every commented table (`[[skills.config]]`, `[mcp_servers.<id>]`) after all top-level key comments, so uncommenting any line never pulls a top-level key into a table.
+- A custom agent whose `name` matches a built-in (`default`, `worker`, `explorer`) overrides it.
 
 **Spawn semantics:**
 - Explicitly requested or instruction-driven — current local Codex releases spawn after a direct user request or when applicable `AGENTS.md` / skill instructions request delegation.
@@ -51,12 +53,6 @@ Split the original skill into two skills. The first ends with an instruction tel
 
 **Best for**: short forked work where context pollution isn't a concern. The three perspective agents in baransu `/review` (architecture / quality / security) might fit here — each is a few hundred tokens of guidance, and running in the same thread is acceptable.
 
-### Path 3: Codex MCP server + OpenAI Agents SDK (heavy)
-
-Run `codex mcp-server` and orchestrate from external SDK code that uses `handoffs` between agents. Each agent can have its own git worktree for full isolation.
-
-**Best for**: programmatic, auditable pipelines (CI / cloud agents). Out of scope for typical baransu desktop usage.
-
 ## 2. SKILL.md frontmatter mapping (Path 1 specifics)
 
 When the user picks Path 1, the per-skill frontmatter translates as follows:
@@ -67,9 +63,9 @@ When the user picks Path 1, the per-skill frontmatter translates as follows:
 | `agent: Explore` | `name = "explorer"` (built-in) or matching custom |
 | `agent: general-purpose` | `name = "default"` |
 | `agent: Plan` | custom TOML mirroring Plan agent's behavior |
-| `model: opus` | Usually omit `model` and inherit. If pinning is required, choose the current Codex model intentionally (`gpt-5.6` for demanding agents as of 2026-07). |
+| `model: opus` | Usually omit `model` and inherit. If pinning is required, choose the current Codex model from the Subagents docs at port time. |
 | `effort: high` | `model_reasoning_effort = "high"` |
-| `allowed-tools: ...` / `tools: ...` | For an optional native custom-agent export, emit a **commented** `# mcp_servers = [...]` hint. Codex `mcp_servers` takes MCP server ids, not Claude tool names. Bundled runtime definitions omit this operator-specific pin and inherit the parent runtime. |
+| `allowed-tools: ...` / `tools: ...` | No Codex field. The optional native custom-agent export records the Claude tool names as a plain comment and shows the `# [mcp_servers.<id>]` table shape; Claude built-in tools have no MCP equivalent, so narrow capability through `sandbox_mode` instead. Bundled runtime definitions omit this operator-specific pin and inherit the parent runtime. |
 
 ## 3. Body rewrite for Path 1
 

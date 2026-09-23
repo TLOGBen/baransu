@@ -180,16 +180,16 @@ Outcome Contract still applies.
 
 | Skill | PAUSE classification |
 |---|---|
-| $review | `../review/references/loop-pauses.md` |
-| $contract | `../contract/references/loop-pauses.md` |
-| $seal | `../seal/references/loop-pauses.md` |
-| $hunt | `../hunt/references/loop-pauses.md` |
-| $learn | `../learn/references/loop-pauses.md` |
-| $ship | `../ship/references/loop-pauses.md` |
-| $evolve | `../evolve/references/loop-pauses.md` |
-| $think | `../think/references/loop-pauses.md` |
-| $write | `../write/references/loop-pauses.md` |
-| $read | `../read/references/loop-pauses.md` |
-| $book | `../book/references/loop-pauses.md` |
-| $health | `../health/references/loop-pauses.md` |
-| $codex-skill-transfer | `../codex-skill-transfer/references/loop-pauses.md` |
+| $baransu:review | `../review/references/loop-pauses.md` |
+| $baransu:contract | `../contract/references/loop-pauses.md` |
+| $baransu:seal | `../seal/references/loop-pauses.md` |
+| $baransu:hunt | `../hunt/references/loop-pauses.md` |
+| $baransu:learn | `../learn/references/loop-pauses.md` |
+| $baransu:ship | `../ship/references/loop-pauses.md` |
+| $baransu:evolve | `../evolve/references/loop-pauses.md` |
+| $baransu:think | `../think/references/loop-pauses.md` |
+| $baransu:write | `../write/references/loop-pauses.md` |
+| $baransu:read | `../read/references/loop-pauses.md` |
+| $baransu:book | `../book/references/loop-pauses.md` |
+| $baransu:health | `../health/references/loop-pauses.md` |
+| $baransu:codex-skill-transfer | `../codex-skill-transfer/references/loop-pauses.md` |

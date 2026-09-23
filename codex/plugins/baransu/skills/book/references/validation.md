@@ -80,6 +80,6 @@ The soft range judges whether a hard-floor-passing output is *stylistically with
 
 ## REQ-003 Scenario 2 automated evidence
 
-- Fixture: `scripts/validate-fixtures/swiss-positive.html` — a hand-written swiss-style slide HTML that mirrors the shape `$book` Stage 3 emits under `--format ppt --style swiss` (body 960pt×540pt, `data-layout="content-bullets"` / `quote`, all classes `swiss-*`, no hard-fail violations).
+- Fixture: `scripts/validate-fixtures/swiss-positive.html` — a hand-written swiss-style slide HTML that mirrors the shape `$baransu:book` Stage 3 emits under `--format ppt --style swiss` (body 960pt×540pt, `data-layout="content-bullets"` / `quote`, all classes `swiss-*`, no hard-fail violations).
 - Smoke runner: `scripts/swiss-smoke-test.sh` — Stage 1 runs `validate-output.ts` against the fixture (expected all green; GATE-C/GATE-G SKIP because of the viewBox height and the project root having no `slide-cores/`); Stage 2, when `pptxgenjs` + `playwright` are installed, runs `html2pptx.js`, and uses `python3 zipfile` to confirm the `.pptx` is a valid zip containing `ppt/presentation.xml` + `[Content_Types].xml`. When dependencies are not installed, Stage 2 SKIPs (`--strict` turns it into FAIL).
 - Purpose: serves as the minimal automated-evidence starting point for REQ-003 S2 「文件可在 PowerPoint 打開」. For a full PowerPoint round-trip, run `npx tsx scripts/install-deps.ts --format ppt` first.

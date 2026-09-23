@@ -471,14 +471,43 @@ Return concise findings.
 
         self.assertIn("~/.codex/agents/review-agent.toml", text)
         self.assertIn(".codex/agents/review-agent.toml", text)
-        self.assertIn('# model = "gpt-5.6"', text)
-        self.assertIn("gpt-5.6-terra", text)
+        self.assertNotIn("gpt-5.", text)
+        self.assertIn("# model = ", text)
+        self.assertIn("omit to inherit the parent session's model", text)
         self.assertIn("# model_reasoning_effort = \"high\"", text)
-        self.assertIn("minimal | low | medium | high | xhigh", text)
+        self.assertIn("low | medium | high | xhigh | max | ultra", text)
         self.assertIn("# [[skills.config]]", text)
-        self.assertIn("# mcp_servers = [\"Read\", \"Grep\"]", text)
+        self.assertNotIn("mcp_servers = [", text)
+        self.assertIn("# [mcp_servers.<id>]", text)
+        self.assertIn("Claude tools: Read, Grep", text)
         self.assertIn("omit optional fields to inherit", text)
         self.assertIn("read-only sandbox", text)
+
+    def test_agent_stub_uncommented_keeps_top_level_keys(self):  # C8 (seal F1)
+        # A user enabling every commented line must get a parseable role file
+        # with top-level keys still at top level, not swallowed by a table.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            src = root / "scan-agent.md"
+            dest = root / "scan-agent.toml"
+            src.write_text(
+                "---\ndescription: Scan.\ntools: Read\n---\n\nScan things.\n",
+                encoding="utf-8",
+            )
+            transfer.emit_agent_stub(src, dest)
+            lines = dest.read_text(encoding="utf-8").splitlines()
+        key_line = re.compile(r"^# (\[\[?[\w.<>]+\]\]?|[a-z_]+ = )")
+        enabled = [
+            ln[2:].replace("<id>", "scanner") if key_line.match(ln) else ln
+            for ln in lines
+        ]
+        doc = tomllib.loads("\n".join(enabled))
+        for key in ("model", "model_reasoning_effort", "sandbox_mode", "nickname_candidates"):
+            self.assertIn(key, doc)
+        self.assertEqual({"url": "https://example.com/mcp"}, doc["mcp_servers"]["scanner"])
+        self.assertEqual(
+            [{"path": "/path/to/skill/SKILL.md", "enabled": False}], doc["skills"]["config"]
+        )
 
     def test_agent_stub_warns_for_write_and_bash_agents(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -802,12 +831,12 @@ class TestPluginModeGeneration(unittest.TestCase):
 
             plugin_out = out / "plugins" / "plug"
             manifest = json.loads(
-                (plugin_out / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
+                (plugin_out / "plugin.json").read_text(encoding="utf-8")
             )
             self.assertNotIn("hooks", manifest)
             self.assertFalse((plugin_out / "hooks").exists())
 
-    def test_plugin_hooks_are_ported_without_inventing_session_end(self):
+    def test_plugin_hooks_are_ported_and_session_end_kept(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             plugin = root / "plug"
@@ -853,9 +882,12 @@ class TestPluginModeGeneration(unittest.TestCase):
             _, summary = transfer.transfer_plugin(plugin, out)
             plugin_out = out / "plugins" / "plug"
             manifest = json.loads(
-                (plugin_out / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
+                (plugin_out / "plugin.json").read_text(encoding="utf-8")
             )
-            self.assertEqual("./hooks/hooks.json", manifest["hooks"])
+            self.assertEqual(
+                "./hooks/hooks.json", manifest["extensions"]["com.openai"]["hooks"]
+            )
+            self.assertNotIn("hooks", manifest)
             self.assertEqual(
                 guard_bytes,
                 (plugin_out / "hooks" / "guard.sh").read_bytes(),
@@ -863,7 +895,9 @@ class TestPluginModeGeneration(unittest.TestCase):
             hook_doc = json.loads(
                 (plugin_out / "hooks" / "hooks.json").read_text(encoding="utf-8")
             )
-            self.assertNotIn("SessionEnd", hook_doc["hooks"])
+            self.assertEqual(
+                "echo end", hook_doc["hooks"]["SessionEnd"][0]["hooks"][0]["command"]
+            )
             self.assertEqual(10, hook_doc["hooks"]["Stop"][0]["hooks"][0]["timeout"])
             command = hook_doc["hooks"]["Stop"][0]["hooks"][0]["command"]
             self.assertIn("${PLUGIN_ROOT}", command)
@@ -878,7 +912,8 @@ class TestPluginModeGeneration(unittest.TestCase):
             self.assertIn("2 處 Claude plugin env", mapped)
             self.assertIn("commandWindows", mapped)
             manual = "\n".join(summary["manifest_manual"])
-            self.assertIn("不支援事件：SessionEnd", manual)
+            self.assertNotIn("不支援事件：SessionEnd", manual)
+            self.assertIn("SessionEnd handler 未設 timeout，Codex 預設 1 秒", manual)
             self.assertIn("/hooks", manual)
             self.assertIn("trust", manual)
             self.assertIn("Windows 端 hooks 已降級為 no-op", manual)
@@ -1109,11 +1144,12 @@ class TestPluginModeGeneration(unittest.TestCase):
                 self.assertIn(expected, "\n".join(summary["manifest_manual"]))
                 plugin_out = out / "plugins" / "plug"
                 manifest = json.loads(
-                    (plugin_out / ".codex-plugin" / "plugin.json").read_text(
+                    (plugin_out / "plugin.json").read_text(
                         encoding="utf-8"
                     )
                 )
                 self.assertNotIn("hooks", manifest)
+                self.assertNotIn("hooks", manifest["extensions"]["com.openai"])
                 self.assertFalse((plugin_out / "hooks").exists())
 
     def test_manifest_only_hook_shape_is_reported(self):
@@ -1131,7 +1167,7 @@ class TestPluginModeGeneration(unittest.TestCase):
                 "自訂來源形狀需人工映射", "\n".join(summary["manifest_manual"])
             )
             manifest = json.loads(
-                (out / "plugins" / "plug" / ".codex-plugin" / "plugin.json").read_text(
+                (out / "plugins" / "plug" / "plugin.json").read_text(
                     encoding="utf-8"
                 )
             )
@@ -1147,7 +1183,7 @@ class TestPluginModeGeneration(unittest.TestCase):
             self.assertGreaterEqual(len(reports), 13)
             plugin_out = output / "plugins" / "baransu"
             manifest = json.loads(
-                (plugin_out / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
+                (plugin_out / "plugin.json").read_text(encoding="utf-8")
             )
             source_manifest = json.loads(
                 (REPO_ROOT / "plugins" / "baransu" / ".claude-plugin" / "plugin.json")
@@ -1158,10 +1194,9 @@ class TestPluginModeGeneration(unittest.TestCase):
             codex_transfer = plugin_out / "skills" / "codex-skill-transfer"
             self.assertTrue((codex_transfer / "references" / "CODEX_PORT_PLAN.md").is_file())
             self.assertIn(
-                # Re-pinned 0.15.0 -> 0.16.0: ported POSIX hook handlers now
-                # carry a commandWindows no-op so Windows Codex degrades
-                # silently instead of erroring on every hook firing.
-                "version: 0.16.0",
+                # Re-pinned 0.16.0 -> 0.17.0: portable root plugin.json,
+                # namespaced `$plugin:skill` mentions, SessionEnd kept.
+                "version: 0.17.0",
                 (codex_transfer / "SKILL.md").read_text(encoding="utf-8"),
             )
             baransu_hooks = json.loads(
@@ -1460,14 +1495,16 @@ class TestRepoPathRewrite(unittest.TestCase):
         # `.claude-plugin/` must NOT be caught by the `.claude/` rule.
         self.assertIn("`.claude-plugin/marketplace.json`", out)
 
-    def test_plugin_json_ref_becomes_codex_plugin(self):
+    def test_plugin_json_ref_becomes_plugin_root_manifest(self):
         rpt = report()
         out = transfer.rewrite_body(
             "Bump `plugins/baransu/.claude-plugin/plugin.json`.",
             rpt,
             skill_name="analyze",
         )
-        self.assertIn("`.codex-plugin/plugin.json`", out)
+        # SKILL.md sits at skills/<name>/ -> the plugin root is ../../
+        self.assertIn("`../../plugin.json`", out)
+        self.assertNotIn(".codex-plugin", out)
 
     def test_exempt_skill_paths_untouched(self):
         rpt = report()
@@ -1618,7 +1655,9 @@ class TestRepoPathRewrite(unittest.TestCase):
             out = (target / "references" / "slide-checklist.md").read_text(
                 encoding="utf-8"
             )
-            self.assertIn(".codex-plugin/plugin.json", out)
+            # references/*.md is two levels below skills/ -> ../../../plugin.json
+            self.assertIn("../../../plugin.json", out)
+            self.assertNotIn(".codex-plugin", out)
 
     def test_plugin_rewrites_shared_aux_dir_paths(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -1680,6 +1719,245 @@ Counting per `plugins/baransu/skills/_shared/fact-check.md`.
         # No `../`-anchor from a flat agent install -> `_shared` ref left as a
         # discoverable plugin path, not an unresolvable relative one.
         self.assertIn("plugins/baransu/skills/_shared/fact-check.md", text)
+
+
+SCHEMA_URL = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
+
+
+def write_plugin(root: Path, manifest: dict, hooks: dict | None = None) -> Path:
+    plugin = root / "plug"
+    (plugin / ".claude-plugin").mkdir(parents=True)
+    (plugin / ".claude-plugin" / "plugin.json").write_text(
+        json.dumps(manifest), encoding="utf-8"
+    )
+    write_stub_skill(plugin / "skills" / "alpha", "alpha")
+    if hooks is not None:
+        (plugin / "hooks").mkdir()
+        (plugin / "hooks" / "hooks.json").write_text(
+            json.dumps({"hooks": hooks}), encoding="utf-8"
+        )
+    return plugin
+
+
+class TestCodexCurrentFormat(unittest.TestCase):
+    """CONTRACT: transfer 對齊 Codex 現行格式（rust-v0.156.1）."""
+
+    def test_portable_manifest_shape(self):  # C2 C3
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            plugin = write_plugin(
+                root,
+                {"name": "plug", "version": "1.2.3", "description": "Plug it.",
+                 "author": {"name": "a"}, "keywords": ["k"]},
+                hooks={"Stop": [{"hooks": [{"type": "command", "command": "true"}]}]},
+            )
+            out = root / "codex"
+            transfer.transfer_plugin(plugin, out)
+            plugin_out = out / "plugins" / "plug"
+            self.assertFalse((plugin_out / ".codex-plugin").exists())
+            manifest = json.loads((plugin_out / "plugin.json").read_text(encoding="utf-8"))
+            self.assertEqual(SCHEMA_URL, manifest["$schema"])
+            # F6: the template is the single source of the schema URL.
+            self.assertFalse(hasattr(transfer, "PORTABLE_PLUGIN_SCHEMA"))
+            for key in ("skills", "hooks", "interface"):
+                self.assertNotIn(key, manifest)
+            ext = manifest["extensions"]["com.openai"]
+            self.assertEqual("./hooks/hooks.json", ext["hooks"])
+            self.assertEqual("Plug", ext["interface"]["displayName"])
+            self.assertEqual("Plug it.", ext["interface"]["shortDescription"])
+            self.assertEqual({"name": "a"}, manifest["author"])
+            self.assertEqual(["k"], manifest["keywords"])
+
+    def test_portable_manifest_omits_absent_version_and_description(self):  # C4
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            plugin = write_plugin(root, {"name": "plug"})
+            out = root / "codex"
+            transfer.transfer_plugin(plugin, out)
+            manifest = json.loads(
+                (out / "plugins" / "plug" / "plugin.json").read_text(encoding="utf-8")
+            )
+            self.assertNotIn("version", manifest)
+            self.assertNotIn("description", manifest)
+            self.assertNotIn("0.1.0-codex", json.dumps(manifest))
+            self.assertEqual(
+                ["$schema", "name", "extensions"], list(manifest.keys())
+            )
+
+    def test_plugin_mentions_namespaced(self):  # C1
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            plugin = write_plugin(root, {"name": "plug", "version": "1.0.0"})
+            beta = plugin / "skills" / "beta"
+            (beta / "references").mkdir(parents=True)
+            (beta / "SKILL.md").write_text(
+                "---\nname: beta\ndescription: \"Trigger On '/beta'; then /alpha.\"\n---\n"
+                "Hand off to `/baransu:alpha` or /alpha.\n",
+                encoding="utf-8",
+            )
+            (beta / "references" / "n.md").write_text("Escalate to /alpha.\n", encoding="utf-8")
+            (plugin / "skills" / "_shared").mkdir()
+            (plugin / "skills" / "_shared" / "x.md").write_text("Use /beta.\n", encoding="utf-8")
+            (plugin / "rules").mkdir()
+            (plugin / "rules" / "r.md").write_text("Route to /alpha.\n", encoding="utf-8")
+            (plugin / "agents").mkdir()
+            (plugin / "agents" / "rev.md").write_text(
+                "---\ndescription: Review.\n---\nThen run /beta.\n", encoding="utf-8"
+            )
+            out = root / "codex"
+            reports, _ = transfer.transfer_plugin(plugin, out)
+            beta_report = next(r for r in reports if r.skill_name == "beta")
+            rewrites = "\n".join(beta_report.rewrites)
+            self.assertIn("`$plug:skill`", rewrites)
+            self.assertNotIn("`$skill`", rewrites)
+            po = out / "plugins" / "plug"
+            skill = (po / "skills" / "beta" / "SKILL.md").read_text(encoding="utf-8")
+            self.assertIn("'$plug:beta'", skill)
+            self.assertIn("then $plug:alpha.", skill)
+            self.assertIn("`$plug:alpha` or $plug:alpha.", skill)
+            self.assertIn("Escalate to $plug:alpha.",
+                          (po / "skills" / "beta" / "references" / "n.md").read_text(encoding="utf-8"))
+            self.assertIn("Use $plug:beta.",
+                          (po / "skills" / "_shared" / "x.md").read_text(encoding="utf-8"))
+            self.assertIn("Route to $plug:alpha.",
+                          (po / "rules" / "r.md").read_text(encoding="utf-8"))
+            agent = tomllib.loads((po / ".codex-agents" / "rev.toml").read_text(encoding="utf-8"))
+            self.assertIn("run $plug:beta.", agent["developer_instructions"])
+            bare = re.compile(r"(?<![:\w])\$(alpha|beta)\b")
+            for f in po.rglob("*"):
+                if f.is_file() and f.suffix in {".md", ".toml"}:
+                    self.assertIsNone(bare.search(f.read_text(encoding="utf-8")), f)
+
+    def test_single_skill_mentions_stay_unnamespaced(self):  # C1
+        out, n = transfer.rewrite_skill_mentions(
+            "run `/baransu:review` then /read", frozenset({"read"})
+        )
+        self.assertEqual("run `$review` then $read", out)
+        self.assertEqual(2, n)
+
+    def test_sessionend_kept_and_clamped(self):  # C5
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            plugin = write_plugin(
+                root, {"name": "plug", "version": "1.0.0"},
+                hooks={"SessionEnd": [{"hooks": [
+                    {"type": "command", "command": "echo a", "timeout": 30},
+                    {"type": "command", "command": "echo b", "timeout": 2},
+                ]}]},
+            )
+            out = root / "codex"
+            _, summary = transfer.transfer_plugin(plugin, out)
+            doc = json.loads((out / "plugins" / "plug" / "hooks" / "hooks.json").read_text(encoding="utf-8"))
+            handlers = doc["hooks"]["SessionEnd"][0]["hooks"]
+            self.assertEqual([3, 2], [h["timeout"] for h in handlers])
+            manual = "\n".join(summary["manifest_manual"])
+            self.assertIn("SessionEnd handler timeout 30 秒超過 Codex 上限 3 秒，已改為 3", manual)
+            self.assertNotIn("未設 timeout", manual)
+
+    def test_mcp_tool_handler_kept_without_command_windows(self):  # C6
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            mcp = {"type": "mcp_tool", "server": "s", "tool": "t", "input": {"a": "${tool_input.x}"}}
+            plugin = write_plugin(
+                root, {"name": "plug", "version": "1.0.0"},
+                hooks={"PostToolUse": [{"matcher": "Write", "hooks": [
+                    mcp, {"type": "agent", "prompt": "x"},
+                ]}]},
+            )
+            out = root / "codex"
+            _, summary = transfer.transfer_plugin(plugin, out)
+            doc = json.loads((out / "plugins" / "plug" / "hooks" / "hooks.json").read_text(encoding="utf-8"))
+            self.assertEqual([mcp], doc["hooks"]["PostToolUse"][0]["hooks"])
+            self.assertIn("不支援 handler：PostToolUse/agent", "\n".join(summary["manifest_manual"]))
+
+    def test_sessionend_mcp_tool_dropped_and_reported(self):  # C6 (seal F2)
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            plugin = write_plugin(
+                root, {"name": "plug", "version": "1.0.0"},
+                hooks={"SessionEnd": [{"hooks": [
+                    {"type": "mcp_tool", "server": "s", "tool": "t", "input": {}},
+                    {"type": "command", "command": "echo a", "timeout": 2},
+                ]}]},
+            )
+            out = root / "codex"
+            _, summary = transfer.transfer_plugin(plugin, out)
+            doc = json.loads((out / "plugins" / "plug" / "hooks" / "hooks.json").read_text(encoding="utf-8"))
+            handlers = doc["hooks"]["SessionEnd"][0]["hooks"]
+            self.assertEqual(["command"], [h["type"] for h in handlers])
+            self.assertIn(
+                "Codex SessionEnd 不支援 mcp_tool handler；已捨棄",
+                summary["manifest_manual"],
+            )
+
+    def test_namespaced_description_retrimmed_to_limit(self):  # C9 (seal F3)
+        # A description trimmed to fit, then lengthened by `<plugin>:` on
+        # every mention, must be trimmed again rather than shipped over 1024.
+        sentence = "Then run /alpha for the next step."  # 34 chars
+        desc = " ".join([sentence] * 29) + " Pad."  # 34*29+28+5 = 1019
+        self.assertLessEqual(len(desc), 1024)
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            plugin = write_plugin(root, {"name": "plug", "version": "1.0.0"})
+            beta = plugin / "skills" / "beta"
+            beta.mkdir(parents=True)
+            (beta / "SKILL.md").write_text(
+                f"---\nname: beta\ndescription: \"{desc}\"\n---\nbody\n", encoding="utf-8"
+            )
+            out = root / "codex"
+            transfer.transfer_plugin(plugin, out)
+            fm, _ = transfer.split_frontmatter(
+                (out / "plugins" / "plug" / "skills" / "beta" / "SKILL.md").read_text(encoding="utf-8")
+            )
+            written = str(fm["description"])
+            self.assertLessEqual(len(written), 1024)
+            self.assertIn("$plug:alpha", written)
+            self.assertTrue(written.endswith("."))
+
+    def test_fork_skip_lists_two_paths_only(self):  # C7
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            src = root / "forky"
+            src.mkdir()
+            (src / "SKILL.md").write_text(
+                "---\nname: forky\ndescription: d\ncontext: fork\n---\nbody\n", encoding="utf-8"
+            )
+            out = root / "out"
+            out.mkdir()
+            rpt = transfer.transfer_one(src, out)
+            self.assertTrue(rpt.skipped)
+            self.assertIn("1. ", rpt.skip_reason)
+            self.assertIn("2. ", rpt.skip_reason)
+            self.assertNotIn("3. ", rpt.skip_reason)
+            self.assertNotIn("mcp-server", rpt.skip_reason)
+        refs = REPO_ROOT / "plugins" / "baransu" / "skills" / "codex-skill-transfer"
+        for f in [refs / "SKILL.md", *sorted((refs / "references").glob("*.md"))]:
+            self.assertNotIn("codex mcp-server", f.read_text(encoding="utf-8"), f)
+
+    def test_description_over_1024_flagged(self):  # C9
+        # translate_frontmatter trims to 1024, but the later namespaced
+        # mention rewrite can push the written description back over; the
+        # output invariant check reads the WRITTEN SKILL.md.
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "longd"
+            target.mkdir()
+            (target / "SKILL.md").write_text(
+                f"---\nname: longd\ndescription: {'x' * 1030}\n---\nbody\n",
+                encoding="utf-8",
+            )
+            rpt = report()
+            transfer.check_output_invariants(target, rpt)
+            self.assertIn(
+                "`description` 長度 1030 字元，超過 Codex 上限 1024，skill 會載入失敗；請縮短",
+                rpt.manual_review,
+            )
+            (target / "SKILL.md").write_text(
+                f"---\nname: longd\ndescription: {'x' * 1024}\n---\nbody\n",
+                encoding="utf-8",
+            )
+            rpt2 = report()
+            transfer.check_output_invariants(target, rpt2)
+            self.assertFalse(any("超過 Codex 上限 1024" in m for m in rpt2.manual_review))
 
 
 if __name__ == "__main__":

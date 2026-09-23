@@ -3,9 +3,9 @@ name: write
 description: Refines existing text, generates a piece from a prompt, or proofreads
   a document into an error-report HTML (book-styled 錯字修改.html findings table). Auto-classifies
   input as Refine / Generate / Proofread; follows language prefix or auto-detects.
-  Use for bilingual zh/en writing help. Trigger On '$write', '潤稿', '寫一篇', '改寫這段',
-  '校對', '找錯字', '抓錯字', 'proofread'. Not for committing finished text ($ship) or digesting
-  sources into notes ($learn, $read).
+  Use for bilingual zh/en writing help. Trigger On '$baransu:write', '潤稿', '寫一篇',
+  '改寫這段', '校對', '找錯字', '抓錯字', 'proofread'. Not for committing finished text ($baransu:ship)
+  or digesting sources into notes ($baransu:learn, $baransu:read).
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex
@@ -13,7 +13,7 @@ metadata:
 
 # write — bilingual copywriting assistant
 
-`$write` mechanically enforces the embedded zh/en copywriting rule sets across the three modes specified in Stage 1 and the Outcome Contract: Refine, Generate, and Proofread.
+`$baransu:write` mechanically enforces the embedded zh/en copywriting rule sets across the three modes specified in Stage 1 and the Outcome Contract: Refine, Generate, and Proofread.
 
 ---
 
@@ -40,7 +40,7 @@ This exception is intentional. The skill's purpose is language-targeted copywrit
 - Content output language follows the prefix (or auto-detection). Operational notifications are always Traditional Chinese.
 - Refine mode never silently applies rules to incompatible-language content. Report the mismatch; do not guess.
 - Generate mode vague-topic fallback is always short prose. Do not ask the user to clarify before outputting — produce something and let the user re-invoke with a more specific prompt if needed.
-- Proofread mode reports, never rewrites: it emits the findings table, not a corrected document. It never fabricates a page number — unknown page → 「—」. It never routes through the $book pipeline (analysis output + no SVG would fail book's red line and quality gate); it renders the HTML directly with its own self-contained styling and reads no design-system file from the project. Precision over recall: an empty table is correct when the document is clean.
+- Proofread mode reports, never rewrites: it emits the findings table, not a corrected document. It never fabricates a page number — unknown page → 「—」. It never routes through the $baransu:book pipeline (analysis output + no SVG would fail book's red line and quality gate); it renders the HTML directly with its own self-contained styling and reads no design-system file from the project. Precision over recall: an empty table is correct when the document is clean.
 
 ---
 
@@ -95,9 +95,9 @@ When the user is clarifying intent or asking a clarification question rather tha
 ## Stage 0 — Language detection
 
 **Prefix parsing**: the user may prefix the invocation with `zh` or `en`:
-- `$write zh [input]` → zh mode (zh rules + Chinese output)
-- `$write en [input]` → en mode (en rules + English output)
-- `$write [input]` (no prefix) → auto-detect
+- `$baransu:write zh [input]` → zh mode (zh rules + Chinese output)
+- `$baransu:write en [input]` → en mode (en rules + English output)
+- `$baransu:write [input]` (no prefix) → auto-detect
 
 **Auto-detection rule**: if the input contains any Chinese character (any Unicode CJK block character) → zh. Otherwise → en. The threshold is one character — a single Chinese character is sufficient to trigger zh.
 
@@ -145,7 +145,7 @@ Classify the input as **Refine**, **Generate**, or **Proofread**.
 - A proofread keyword paired with a document → **Proofread**, even if a refine keyword is also present (proofreading "report the errors" is a stronger intent signal than "polish this"). Example: 「幫我校對這份文件，找出錯字」→ Proofread.
 - Request-tone phrasing AND a refine keyword paired with an existing text body → **Refine wins** over Generate. The presence of a refine keyword plus existing content signals user intent more reliably than surface grammatical tone. Example: 「幫我潤色這段：[paragraph]」→ Refine.
 
-When genuinely uncertain (no explicit keyword, no clear existing body) → default to **Generate**. Exception: if the sole input is a document file path with no accompanying keyword → **Proofread** (matching the argument-hint `file/path=校對`), never Generate — a file handed to `$write` is a document to check, not a prompt to generate from. The cost of generating something new is lower than silently discarding user content.
+When genuinely uncertain (no explicit keyword, no clear existing body) → default to **Generate**. Exception: if the sole input is a document file path with no accompanying keyword → **Proofread** (matching the argument-hint `file/path=校對`), never Generate — a file handed to `$baransu:write` is a document to check, not a prompt to generate from. The cost of generating something new is lower than silently discarding user content.
 
 Report classification to the user in one line before proceeding:
 - 「偵測到潤色模式（zh／en）」
@@ -183,7 +183,7 @@ The floor rules (zh 5/7/8 禁對仗句/禁排比/禁名詞化; en 5/7 plus the e
 
 Under a non-interactive driver (`/loop`, cron, Workflow), this selection is an Input PAUSE — see `references/loop-pauses.md` for the classified default.
 
-A **valid selection** is one or more listed change-point numbers, or the exact string 「全部」; anything else (out-of-range-only, other non-numeric text, empty) is invalid. After a valid reply, apply only the chosen change points. **Applied-output format**: for 「全部」, emit the full revised text as a `**After:**` block followed by `**修正說明：**` (the standard Refine output shape, minus `**Before:**` — this is the shape downstream consumers such as $learn Stage 5 extract from); for a partial selection, emit each applied fragment under its 位置 header copied verbatim from the change-points list, so a consumer can splice deterministically, and do not re-emit untouched text. If the reply is invalid, re-display the numbered change-points list once with the operational notification 「選擇編號無效，請回覆清單內的編號（例：『1 3』）或『全部』」 and apply nothing until a valid selection is received; ignore out-of-range numbers within an otherwise-valid reply rather than aborting. If the second reply is also invalid, end the pass applying nothing and report 「未套用任何變更點；請重新呼叫」. This re-display is a within-same-pass clarification of the selection step, not a new iteration. This selection step is part of the same Refine pass, not an iterative refinement loop.
+A **valid selection** is one or more listed change-point numbers, or the exact string 「全部」; anything else (out-of-range-only, other non-numeric text, empty) is invalid. After a valid reply, apply only the chosen change points. **Applied-output format**: for 「全部」, emit the full revised text as a `**After:**` block followed by `**修正說明：**` (the standard Refine output shape, minus `**Before:**` — this is the shape downstream consumers such as $baransu:learn Stage 5 extract from); for a partial selection, emit each applied fragment under its 位置 header copied verbatim from the change-points list, so a consumer can splice deterministically, and do not re-emit untouched text. If the reply is invalid, re-display the numbered change-points list once with the operational notification 「選擇編號無效，請回覆清單內的編號（例：『1 3』）或『全部』」 and apply nothing until a valid selection is received; ignore out-of-range numbers within an otherwise-valid reply rather than aborting. If the second reply is also invalid, end the pass applying nothing and report 「未套用任何變更點；請重新呼叫」. This re-display is a within-same-pass clarification of the selection step, not a new iteration. This selection step is part of the same Refine pass, not an iterative refinement loop.
 
 **Boundary between the two long-form mechanisms**: the input thresholds above (≥ 5 paragraphs OR ≥ 800 characters zh / ≥ 500 words en) govern **per-rule suppression** — how many instances each rule may touch. The ~300-line threshold governs **output form** — whole-block Before/After versus change-points list, measured on the would-be output. They are independent and can co-occur: a 6-paragraph, 80-line text gets per-rule suppression with the inline Before/After format; a 350-line text gets per-rule suppression and the change-points format.
 

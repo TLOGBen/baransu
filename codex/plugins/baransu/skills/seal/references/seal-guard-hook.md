@@ -7,7 +7,7 @@
 The plugin ships a real Stop hook (`plugins/baransu/hooks/seal-guard.sh`, registered in
 `plugins/baransu/hooks/hooks.json`) — installation loads the definition; Claude activates
 it directly, while Codex waits for `/hooks` trust. It is the
-mechanism anchor for the selection-telemetry blind spot: when `$seal` *should* have fired
+mechanism anchor for the selection-telemetry blind spot: when `$baransu:seal` *should* have fired
 but nothing invoked it, no skill is running to log the miss. The hook detects that state
 mechanically at session stop.
 
@@ -35,13 +35,13 @@ At `Stop`, the hook:
    therefore ambiguous (no misses vs. filter never matched) until PATHS is
    confirmed to fit the repo layout.
 3. **Seal evidence** (exit 0): a same-day line in `~/.codex/baransu/telemetry/{project}/seal-log-{YYYY-MM}.jsonl`
-   (written by `$seal` on completion), or a `SEAL:` trailer in the latest commit.
+   (written by `$baransu:seal` on completion), or a `SEAL:` trailer in the latest commit.
 4. **On miss — telemetry in every mode**: appends one JSON line to
    `~/.codex/baransu/telemetry/{project}/seal-guard-{YYYY-MM}.jsonl`（central user scope, split by project and month; `BARANSU_TELEMETRY_DIR` overrides the root）
    (`{"ts":…,"event":"seal-miss","mode":…,"repo":…,"surfaces":N}`), so the monthly
    review keeps its data even when blocking is degraded.
 5. **Verdict**: default → the same Traditional Chinese instruction on both runtimes
-   (「偵測到 user-facing 變更尚未 $seal——請執行 seal 收尾，或設 SEAL_GUARD=log
+   (「偵測到 user-facing 變更尚未 $baransu:seal——請執行 seal 收尾，或設 SEAL_GUARD=log
    降級」). Claude receives exit 2 + stderr; Codex receives exit 0 + structured
    `{"decision":"block","reason":"...","systemMessage":"..."}` so Stop creates a
    continuation prompt from `reason`. `SEAL_GUARD=log`

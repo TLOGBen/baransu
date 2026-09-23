@@ -6,7 +6,7 @@ description: 'Independent re-verification of a concrete artifact, diff, or direc
   examined scope, findings with evidence, independence, and remaining limits; a clean
   review is a valid result. Trigger On 「看一下」「看看」「幫我看」「check 一下」「review 一下」, or casual
   "take a look at X". Not for auditing the user''s own project agent-config (route
-  to $health) or closing a contract-banded task (use $seal). 繁體中文輸出。'
+  to $baransu:health) or closing a contract-banded task (use $baransu:seal). 繁體中文輸出。'
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex
@@ -49,7 +49,7 @@ All user-facing output is in Traditional Chinese.
 - **Outcome**: One independent re-verification of the pinned target against its review question, converging into a report of examined scope, findings with evidence, independence, and remaining limits.
 - **Done when**: The target and question are pinned, the verifier has returned, each retained finding carries a location, trigger, supported consequence, and evidence, and the report states independence and limits; zero findings with stated scope is a complete result.
 - **Evidence**: The verifier's returned observations and, for every retained finding, its evidence; the independence statement.
-- **Output**: A Traditional Chinese review report in the conversation; `.codex/review/<slug>.md` when persistence is useful or requested (`$ship` archives that directory).
+- **Output**: A Traditional Chinese review report in the conversation; `.codex/review/<slug>.md` when persistence is useful or requested (`$baransu:ship` archives that directory).
 - **Automation**: ultracode=neutral, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 PAUSE classification for non-interactive drivers: `references/loop-pauses.md`.
@@ -96,6 +96,6 @@ Close with one line the user can act on:
 
 ## Not-for boundaries
 
-- Auditing the user's project agent configuration and AI-maintainability → `$health`.
-- Closing a contract-banded task with a receipt and the sealed marker → `$seal`.
+- Auditing the user's project agent configuration and AI-maintainability → `$baransu:health`.
+- Closing a contract-banded task with a receipt and the sealed marker → `$baransu:seal`.
 - Verifying baransu's own skill structure → `scripts/verify-skills.py`.

@@ -11,7 +11,7 @@
 
 # Marketplace Mapping (`.claude-plugin/marketplace.json` → `.agents/plugins/marketplace.json`)
 
-⚠️ **Not script-automated.** Marketplace publication is a deliberate act and the converted catalog should be reviewed by hand. The schema below comes from the official Codex plugin build docs ([developers.openai.com/plugins/build/plugins](https://developers.openai.com/plugins/build/plugins), primary) and the Codex `plugin-creator` system skill (`~/.codex/skills/.system/plugin-creator/references/plugin-json-spec.md`, secondary), not guesswork.
+⚠️ **Not script-automated.** Marketplace publication is a deliberate act and the converted catalog should be reviewed by hand. The schema below comes from the official Codex plugin build docs ([developers.openai.com/plugins/build/plugins](https://developers.openai.com/plugins/build/plugins), primary) and the Codex marketplace loader at `rust-v0.156.1` (`codex-rs/core-plugins/src/marketplace.rs`), not guesswork. Where the two differ, the docs state authoring guidance and the loader states what actually fails.
 
 For automated layers, see [`skill-mapping.md`](skill-mapping.md) (skill files) and [`plugin-mapping.md`](plugin-mapping.md) (plugin manifests).
 
@@ -42,11 +42,11 @@ For the codex variant of a Claude plugin, use the repo form: write to `<codex-ro
 | `interface.displayName` | recommended | derive from Claude `metadata.description` or hand-write |
 | `plugins[]` | yes | one entry per Claude plugin |
 
-Drop on the Codex side: `$schema`, `owner`, `metadata`, `strict`. Codex marketplace has no equivalent fields and rejects unknown keys conservatively.
+Drop on the Codex side: `$schema`, `owner`, `metadata`, `strict`. Codex has no equivalent fields. (The loader tolerates unknown keys — it keeps them as fallback plugin metadata — so dropping them is for a clean catalog, not to avoid a load failure.)
 
 ## 3. Per-plugin entry shape
 
-Codex requires this exact shape:
+The loader requires only `name` and `source`; the build docs say to always include `policy.installation`, `policy.authentication`, and `category`, so the transfer writes this shape:
 
 ```json
 {
@@ -66,14 +66,14 @@ Codex requires this exact shape:
 ### Field-by-field rules
 
 - **`name`** — Plugin id. Match the plugin folder name and the plugin's own `plugin.json` `name`. Port verbatim from Claude.
-- **`source`** — **Object, not string** (this is the most common mistake when porting from Claude).
-  - `source.source`: the official docs document **three** source types — `"local"`, `"url"`, and `"git-subdir"` (the latter taking `url` / `path` / `ref` / `sha` fields). Use `"local"` for the in-repo workflow this file describes.
+- **`source`** — An object, or a plain relative-path string for a local plugin. The transfer always writes the object form.
+  - `source.source`: four source types — `"local"` (`path`), `"url"` (`url`, optional `path` / `ref` / `sha`), `"git-subdir"` (`url`, `path`, optional `ref` / `sha`), and `"npm"` (`package`, optional `version` / `registry`). Use `"local"` for the in-repo workflow this file describes.
   - `source.path`: `./plugins/<plugin-name>`. The path is relative to the marketplace root (the dir containing `.agents/`), not the marketplace.json file.
-- **`policy`** — **Required block.** Always include `installation` and `authentication`.
+- **`policy`** — Recommended by the docs (the loader defaults to `AVAILABLE` / `ON_INSTALL`). Always include `installation` and `authentication`.
   - `installation`: `NOT_AVAILABLE` | `AVAILABLE` | `INSTALLED_BY_DEFAULT`. Default to `AVAILABLE`.
   - `authentication`: `ON_INSTALL` | `ON_USE`. Default to `ON_INSTALL`.
   - `products`: omit unless the user explicitly asks for product gating.
-- **`category`** — Required. Codex spec example uses Capitalized form (`Productivity`). Map Claude's lowercase categories accordingly.
+- **`category`** — Recommended by the docs; a marketplace `category` overrides the plugin's own. Codex spec example uses Capitalized form (`Productivity`). Map Claude's lowercase categories accordingly.
 
 ### Drop these Claude fields
 
@@ -86,13 +86,13 @@ Codex requires this exact shape:
 
 ## 4. Required structural change: plugin tree must sit under `plugins/<name>/`
 
-Codex's `source.path: "./plugins/<plugin-name>"` is a structural requirement, not a stylistic one. The plugin tree (the dir holding `.codex-plugin/plugin.json`) MUST live at `<marketplace-root>/plugins/<plugin-name>/`. If you ported a Claude plugin tree to the marketplace root directly, move it down one level:
+Codex's `source.path: "./plugins/<plugin-name>"` is a structural requirement, not a stylistic one. The plugin tree (the dir holding the portable root `plugin.json`) MUST live at `<marketplace-root>/plugins/<plugin-name>/`. If you ported a Claude plugin tree to the marketplace root directly, move it down one level:
 
 ```
 codex/                                  ← marketplace root
 ├── .agents/plugins/marketplace.json
 └── plugins/baransu/                    ← plugin tree (was at codex/ root)
-    ├── .codex-plugin/plugin.json
+    ├── plugin.json
     ├── .codex-agents/
     ├── rules/
     └── skills/
@@ -153,7 +153,7 @@ After writing, sanity-check:
 
 ```bash
 python3 -c "import json; json.load(open('codex/.agents/plugins/marketplace.json'))"
-test -f codex/plugins/<plugin-name>/.codex-plugin/plugin.json || echo "MISSING plugin tree under plugins/<name>/"
+test -f codex/plugins/<plugin-name>/plugin.json || echo "MISSING plugin tree under plugins/<name>/"
 ```
 
 ## 8. End-user install (the part you must document)
@@ -179,7 +179,7 @@ When the source is a git URL (or git shorthand), Codex clones into a staging dir
 
 `--sparse <PATH>` filters the checkout but does **NOT** rebase the marketplace root inside `<PATH>`. Empirically (Codex CLI as of 2026-05): even with `--sparse codex`, the staging dir still contains repo-root files, and Codex looks for the manifest at staging root, not at `staging/codex/`. So `--sparse <PATH>` alone is not enough to make a `<repo>/codex/.agents/plugins/marketplace.json` reachable via git install.
 
-> ⚠️ **Unresolved conflict — re-verify before relying on either side.** The official docs' `git-subdir` source type (`url` / `path` / `ref` / `sha`) suggests a repo-subdirectory plugin *may* be reachable without the manual Layout A catalog. That conflicts with the empirical 2026-05 `--sparse` finding above. Re-verify against a current Codex CLI before changing the Layout A/B recommendation; until then this file surfaces the conflict without resolving it.
+> **Resolved (2026-09, loader `rust-v0.156.1`):** `git-subdir` is a source type for a *plugin entry*, not a way to relocate the marketplace root. Marketplace discovery only looks at root-relative paths (`.agents/plugins/marketplace.json`, `.agents/plugins/api_marketplace.json`, `.claude-plugin/marketplace.json`), so `marketplace add <git-url>` still needs the repo-root Layout A catalog. `git-subdir` is for a *different* catalog repo pointing at `codex/plugins/baransu`. Whether `--sparse` rebases the root remains undocumented; the loader matches the 2026-05 empirical finding above.
 
 ### Two layouts that actually work
 
@@ -191,7 +191,7 @@ The published Claude+Codex monorepo keeps a Codex catalog at repo root pointing 
 <repo>/.agents/plugins/marketplace.json     ← Codex finds this on git clone
 └── plugins[].source.path: "./codex/plugins/<plugin-name>"
 
-<repo>/codex/plugins/<plugin-name>/.codex-plugin/plugin.json
+<repo>/codex/plugins/<plugin-name>/plugin.json
 <repo>/codex/plugins/<plugin-name>/skills/...
 ```
 
@@ -208,7 +208,7 @@ The codex/ subtree is also self-contained as its own marketplace root:
 
 ```
 <repo>/codex/.agents/plugins/marketplace.json    ← local-path install
-<repo>/codex/plugins/<plugin-name>/.codex-plugin/plugin.json
+<repo>/codex/plugins/<plugin-name>/plugin.json
 ```
 
 End-user install:

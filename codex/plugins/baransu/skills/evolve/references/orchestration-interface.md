@@ -1,4 +1,4 @@
-# Orchestration Interface — $evolve dual-mode dispatch
+# Orchestration Interface — $baransu:evolve dual-mode dispatch
 
 Single internal interface for the Stage 5 blind-judge panel. Two adapters implement it — the current parallel-Task adapter (§3) and a thin Workflow adapter (§4). Both return votes in the identical shape, so the keep/restore decision (Stage 5 tally) and adoption gate (Stage 6) never sense which mode produced them.
 

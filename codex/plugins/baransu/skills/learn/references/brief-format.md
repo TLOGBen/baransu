@@ -4,7 +4,7 @@
 
 # brief-format.md — --brief five-column examples
 
-Worked example placeholders for the `$learn --brief` output body.
+Worked example placeholders for the `$baransu:learn --brief` output body.
 The authoritative format contract — the five-column structure, order, and names,
 the column (d) credibility anchor scale, the YAML frontmatter fields, and the
 same-slug `.bak` rule — lives inline in SKILL.md Stage 2 §4. This file only
@@ -46,9 +46,9 @@ Scored per source on the authorship anchor scale in SKILL.md Stage 2 §4 step c.
 | Source B | 3 | 具名作者，引用一篇佐證文獻 |
 ```
 
-### (e) 建議 $think 入場角度
+### (e) 建議 $baransu:think 入場角度
 
 ```
-建議以「小樣本場景下，資料增強 vs. 增加標注量，哪條路徑的 ROI 更高？」作為 $think 的核心問題，
+建議以「小樣本場景下，資料增強 vs. 增加標注量，哪條路徑的 ROI 更高？」作為 $baransu:think 的核心問題，
 優先探索 Source A 與 Source B 的分歧點。
 ```

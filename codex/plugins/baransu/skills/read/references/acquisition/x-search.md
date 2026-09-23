@@ -74,7 +74,7 @@ See `references/acquisition/candidate-selection.md` for capacity, escape, multi-
 
 ## Collect Phase
 
-When the user selects one tweet URL, hand it back to `$read`'s existing URL routing in `SKILL.md` Stage 1 §9. **Do not force Chrome MCP at this stage** — the URL is a regular tweet status URL; routing will detect SPA characteristics and route to `web-dynamic.md` automatically.
+When the user selects one tweet URL, hand it back to `$baransu:read`'s existing URL routing in `SKILL.md` Stage 1 §9. **Do not force Chrome MCP at this stage** — the URL is a regular tweet status URL; routing will detect SPA characteristics and route to `web-dynamic.md` automatically.
 
 This staging — Chrome MCP mandatory at search phase, optional (auto-routed) at collect phase — is `KD2: --x 階段化 Chrome MCP`.
 

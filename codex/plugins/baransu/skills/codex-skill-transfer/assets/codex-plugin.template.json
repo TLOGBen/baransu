@@ -1,14 +1,18 @@
 {
+  "$$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "$name",
   "version": "$version",
   "description": "$description",
-  "skills": "./skills/",
-  "hooks": "$hooks",
-  "interface": {
-    "displayName": "$display_name",
-    "shortDescription": "$short_description"
-  },
   "homepage": "$homepage",
   "repository": "$repository",
-  "license": "$license"
+  "license": "$license",
+  "extensions": {
+    "com.openai": {
+      "hooks": "$hooks",
+      "interface": {
+        "displayName": "$display_name",
+        "shortDescription": "$short_description"
+      }
+    }
+  }
 }

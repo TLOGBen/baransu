@@ -2,10 +2,10 @@
 name: contract
 description: 'Writes a one-page work contract (~35 lines) before a medium-sized change:
   goal, assertable criteria, can''t-miss surfaces, verbatim constants. Use before
-  implementing a feature that deserves pinned acceptance. Trigger On ''$contract'',
+  implementing a feature that deserves pinned acceptance. Trigger On ''$baransu:contract'',
   ''寫合約'', ''一頁合約'', ''開工合約'', ''pin the criteria''. Not for an unsliced multi-module
   effort (slice it first, then one contract per slice) or post-hoc verification (use
-  $seal). 繁體中文輸出。'
+  $baransu:seal). 繁體中文輸出。'
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex
@@ -34,7 +34,7 @@ PAUSE classification for non-interactive drivers: `references/loop-pauses.md`.
 - **閘則外置**: The gate rules live in `../_shared/contract-gate.md` (G1 assertability, G2 trap promotion, G3 verbatim constants, G4 surface inventory). Read it before writing any criterion; do not restate its rules here or in the contract.
 - **只釘 WHAT**: The contract pins WHAT must hold, never HOW to implement. No file-by-file plans, no pseudo-code.
 - **先讀碼再寫條文**: Read the relevant code before writing criteria — G2 requires promoting discovered traps into criteria, which is impossible without looking.
-- **只寫不驗**: This skill writes the contract only. Implementation follows in the same or next session under `_shared/tdd.md` §7 discipline; verification is `$seal`'s job.
+- **只寫不驗**: This skill writes the contract only. Implementation follows in the same or next session under `_shared/tdd.md` §7 discipline; verification is `$baransu:seal`'s job.
 - **現實接觸強制閘**: a 未驗 data-source / schema / contract / permission premise may never be written into criteria as fact (procedure: Step 1).
 - **無捆綁停權**: an undetermined premise never exempts its adjacent verifiable criteria from becoming independent assertable criteria (procedure: Step 1).
 - **禁止靜默覆寫**: never overwrite an existing CONTRACT.md belonging to a different task (procedure: Step 3). Sealed exception: a contract carrying the sealed marker (Step 2 grammar) is a completed artifact — archiving it to `.codex/archived/` and then writing the new contract is sanctioned and silent.
@@ -94,7 +94,7 @@ prohibition-style criterion}
 ## 錯不起表面（Surface Inventory）
 {G4 table: surface → exact format → impact per the G4 impact grammar（資產 →
 一句後果｜類別；no asset, no pinned surface）→ pinning test name (to be written).
-The impact class is `$seal`'s severity source of truth for findings on that
+The impact class is `$baransu:seal`'s severity source of truth for findings on that
 surface (G4 Downstream authority) — choose it deliberately, not as decoration}
 | 表面 | 格式 | 影響（資產 → 後果｜類別） | 釘死測試 |
 |------|------|--------------------------|----------|
@@ -105,7 +105,7 @@ source of truth}
 ```
 
 **Filling the impact column — how to think.** This column exists so that
-`$seal` knows, before it starts, which findings must block the seal and which
+`$baransu:seal` knows, before it starts, which findings must block the seal and which
 are notes for the user. Without it, every surface looks equally urgent at seal
 time, so cosmetic findings get probed, fixed, and re-verified with the same
 weight as data loss. The seal loop then recurses (the kamishibai F7a seal ran
@@ -139,13 +139,13 @@ perceives a consequence; it is a design or lint concern); 「debug log 措辭」
 
 **Sealed-marker grammar (single authority).** The `> STATUS: sealed` line
 shown under the H1 above is the one and only grammar authority for the sealed
-marker: `$seal` writes it, `$seal` and `$ship` detect it, and both cite this
+marker: `$baransu:seal` writes it, `$baransu:seal` and `$baransu:ship` detect it, and both cite this
 template as the single source. Position: line 2 of CONTRACT.md, immediately
 after the H1. Idempotent single line: a re-seal overwrites the existing marker
 in place — never appends a second line. Timestamp declaration: the marker
 certifies only that the contract was clean at seal time; it says nothing about
-later changes. `$contract` itself never writes this line — a freshly written
-contract has no STATUS line; it appears only after `$seal` passes.
+later changes. `$baransu:contract` itself never writes this line — a freshly written
+contract has no STATUS line; it appears only after `$baransu:seal` passes.
 
 ### Step 3 — Confirm (one round)
 
@@ -171,10 +171,10 @@ confirmation; if it belongs to a different task, stop and ask the user to
 name a new path (e.g. `CONTRACT-{slug}.md`) — silent overwrite is forbidden.
 On confirmation, write the file and output:
 「合約已釘死：{path}（{N} 條可斷言條文、{M} 個錯不起表面）。實作時照抄
-Verbatim Constants；完工後跑 $seal 驗收。」
+Verbatim Constants；完工後跑 $baransu:seal 驗收。」
 
 ## Not-for boundaries
 
 - Task spans ≥2 interdependent modules or needs a task DAG → 先切片：把整件事畫成決策圖、切成 contract 頻段的片，每片各自立約（裝了 common 套件時可走 wayfinder／delegate／strategic-advance——先偵測，不要假設有裝）.
-- Work is already done and needs verification → `$seal`.
-- The ask is a value judgment (worth doing?) → `$think` 存廢判決 (Kill/Keep/Pivot).
+- Work is already done and needs verification → `$baransu:seal`.
+- The ask is a value judgment (worth doing?) → `$baransu:think` 存廢判決 (Kill/Keep/Pivot).

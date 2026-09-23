@@ -2,6 +2,22 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [6.1.0] - 2026-09-23
+
+### Changed
+- **`/codex-skill-transfer` 對齊 Codex 現行格式（rust-v0.156.1）**，skill metadata 0.16.0 → 0.17.0：
+  - plugin 模式改輸出 portable root `plugin.json`（`$schema` agent-plugins.org），`hooks`、`interface` 移到 `extensions."com.openai"`；不再產生 `.codex-plugin/plugin.json`，也不再寫 `skills` 指標。來源缺 `version`／`description` 時直接省略，不再補 `0.1.0-codex`。
+  - plugin 模式的 skill 提及改寫為 `$<plugin>:<skill>`（Codex 以完整名稱比對，舊的 `$review` 在 plugin 內解析不到）；單 skill／batch 模式維持 `$<skill>`。
+  - hooks 保留 `SessionEnd`（Codex 0.145.0 起支援），`timeout` 超過 3 秒會改成 3 並列入報告；`mcp_tool` handler 改為保留（`SessionEnd` 下的 `mcp_tool` Codex 不執行，捨棄並報告）。
+  - `context: fork` 的跳過訊息只列兩條路徑：Codex 0.154.0 已移除 `codex mcp-server`。
+  - agent stub 改用 `# [mcp_servers.<id>]` 表格註解（舊的陣列寫法取消註解後會讓 role 檔解析失敗），model 註解改為「省略則繼承」，拿掉寫死的 `gpt-5.x`；表格註解移到 stub 最後，取消註解時頂層鍵不會被吞進表格。
+  - namespaced 提及改寫後若 description 超過 1024 字會再截一次；輸出後仍檢查長度作為最後防線。
+  - references 同步：plugin-mapping 全面改寫；marketplace-mapping 依 loader 實際行為修正必填說法、補 `npm` 來源，並結案 `git-subdir` 未解衝突；Codex 文件連結改到 `learn.chatgpt.com/docs/*`。
+- `scripts/verify-skills.py` 的三發行面版本檢查改讀 `codex/plugins/baransu/plugin.json`；`codex/` 鏡像已重產。
+
+### Removed
+- **退役 `hooks/wiki-sync.sh` 與 SessionEnd hook**：腳本在 `.claude/wiki/` 不存在時直接結束，而 plugin 內已無任何 skill 建立 `.claude/wiki/` 或 `wiki-schema.md`，hook 長期空轉。另查官方文件：SessionEnd 全體 hook 共用 1.5 秒預算，腳本同步執行的 `claude -p` 本就會被砍。`hooks.json` 只剩 Stop／seal-guard；`.gitignore` 移除 `.claude/wiki/`、`.codex/wiki/`，新增 `.claude/research/`。
+
 ## [6.0.3] - 2026-09-17
 
 ### Fixed

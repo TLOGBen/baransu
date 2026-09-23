@@ -1,4 +1,4 @@
-# loop-pauses — $write PAUSE classification
+# loop-pauses — $baransu:write PAUSE classification
 
 PAUSE classification for non-interactive drivers; semantics in `../../_shared/loop-contract.md` §2.
 

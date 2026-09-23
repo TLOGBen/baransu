@@ -2,15 +2,16 @@
 name: ship
 description: 'Wraps up a session: archives baransu working dirs under .codex/ (except
   read/learn/book/design products) into the gitignored, local-only .codex/archived/,
-  commits, pushes (optionally `$ship BRANCH`), and tears down the worktree once work
-  is on origin. Trigger On ''$ship'', ''收工'', ''上傳收尾'', ''結束這輪''. Not For writing
-  copy ($write) or reviewing output ($review) — $ship only wraps up a session.'
+  commits, pushes (optionally `$baransu:ship BRANCH`), and tears down the worktree
+  once work is on origin. Trigger On ''$baransu:ship'', ''收工'', ''上傳收尾'', ''結束這輪''.
+  Not For writing copy ($baransu:write) or reviewing output ($baransu:review) — $baransu:ship
+  only wraps up a session.'
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex
 ---
 
-# $ship — session cleanup
+# $baransu:ship — session cleanup
 
 All user-visible output is in **Traditional Chinese (繁體中文)**.
 
@@ -46,12 +47,12 @@ Named red-lines, each enforced by the step in parentheses; none is optional. The
 
 The optional target-branch argument may be written as `<branch>`, `到 <branch>`, or `to <branch>`. Strip a leading `到` / `to` token and take the next token as `$TARGET`; if no argument is given, `$TARGET` is empty.
 
-- `$ship` → `$TARGET` empty → **current-branch mode** (Step 4 Mode A).
-- `$ship main` / `$ship 到 main` / `$ship to release/2.5` → `$TARGET` set → **land-on-target mode** (Step 4 Mode B).
+- `$baransu:ship` → `$TARGET` empty → **current-branch mode** (Step 4 Mode A).
+- `$baransu:ship main` / `$baransu:ship 到 main` / `$baransu:ship to release/2.5` → `$TARGET` set → **land-on-target mode** (Step 4 Mode B).
 
 ## Step 1 — Detect
 
-Git probe first — run `git rev-parse --git-dir 2>/dev/null`. If it fails (the project is not a git repo), output 「此專案不是 git repo：$ship 的 commit／push／worktree 流程無法執行，已停止。如需歸檔請手動處理 .codex/ 工作目錄。」 and stop. The probe MUST run before any archive move: without git there is no commit to anchor moved files, so archiving first would strand them — and every later git step (commit, push, worktree teardown) would wedge.
+Git probe first — run `git rev-parse --git-dir 2>/dev/null`. If it fails (the project is not a git repo), output 「此專案不是 git repo：$baransu:ship 的 commit／push／worktree 流程無法執行，已停止。如需歸檔請手動處理 .codex/ 工作目錄。」 and stop. The probe MUST run before any archive move: without git there is no commit to anchor moved files, so archiving first would strand them — and every later git step (commit, push, worktree teardown) would wedge.
 
 Check four inputs: whether the workspace dirs hold archivable items, whether the git working tree has pending changes, whether the repo root holds a sealed contract, AND whether HEAD carries commits that have not landed on origin yet. Stop only when **all four** are empty — otherwise there is still work to ship even when the other sides are empty. A clean tree does not mean the work is out: commits made earlier in the session (or in an earlier session) still need Step 4.
 
@@ -74,7 +75,7 @@ UNLANDED=$(git rev-list HEAD --not $LAND_REF 2>/dev/null | head -1)
 
 (The detect uses python3/pathlib rather than a shell loop over `$ARCHIVE_DIRS`: zsh does not word-split unquoted parameters, so a `for d in $ARCHIVE_DIRS` + `find` pattern silently yields an always-empty `ARCHIVE_ITEMS` under zsh-driven harnesses. For the same class of reason the contract scan uses `find` with a quoted pattern instead of a `for f in CONTRACT*.md` glob: under zsh an unmatched glob is an error, not an empty list, so the glob form aborts the scan on every repo that has no contract at all. Keep the loop variable named `f` — the detection line below is a verbatim constant.)
 
-**Sealed-contract detect.** The grammar authority for the marker is the contract template in `../contract/SKILL.md` Step 2 (sealed-marker grammar: single authority) — cite it, do not restate its rules here. `$ship` only ever reads it. The detection target is this exact line, which a sealed contract carries at line 2, immediately after the H1:
+**Sealed-contract detect.** The grammar authority for the marker is the contract template in `../contract/SKILL.md` Step 2 (sealed-marker grammar: single authority) — cite it, do not restate its rules here. `$baransu:ship` only ever reads it. The detection target is this exact line, which a sealed contract carries at line 2, immediately after the H1:
 
 ```
 > STATUS: sealed（{ISO 日期}）— {五點結果一行摘要}
@@ -133,9 +134,9 @@ Source directories are left empty (not deleted).
 - If destination already exists: rename it to `.codex/archived/{filename}-{unix_timestamp}` first
 - Move the contract to destination
 
-A sealed contract is a completed artifact, so `$ship` collects it; an **unsealed** contract is live work and stays in place, untouched. Step 1's sealed-contract detect and this sweep MUST stay in sync — the same reason the two `ARCHIVE_DIRS` lists must: a contract detected in Step 1 but not swept here would leave Step 1's detect output unconsumed (and could early-stop nothing into a no-op run).
+A sealed contract is a completed artifact, so `$baransu:ship` collects it; an **unsealed** contract is live work and stays in place, untouched. Step 1's sealed-contract detect and this sweep MUST stay in sync — the same reason the two `ARCHIVE_DIRS` lists must: a contract detected in Step 1 but not swept here would leave Step 1's detect output unconsumed (and could early-stop nothing into a no-op run).
 
-(Archiving here is collision-only timestamping — the plain `{filename}` destination is used when it is free. `$contract` Step 3 archives a sealed contract it is about to overwrite and always timestamps. The asymmetry is deliberate: `$contract` is mid-write and cannot afford to reason about the destination, `$ship` keeps archive names readable. Do not unify them.)
+(Archiving here is collision-only timestamping — the plain `{filename}` destination is used when it is free. `$baransu:contract` Step 3 archives a sealed contract it is about to overwrite and always timestamps. The asymmetry is deliberate: `$baransu:contract` is mid-write and cannot afford to reason about the destination, `$baransu:ship` keeps archive names readable. Do not unify them.)
 
 Output: 「已歸檔：{N} 個項目 → .codex/archived/（read/learn/book/design 產物保留；含 sealed 合約 {S} 份）」
 
@@ -168,7 +169,7 @@ git fetch origin
    ```bash
    git pull --no-rebase --no-edit origin "$BRANCH"
    ```
-   With the tree stashed clean, this pull conflicts only when local commits not yet pushed collide with the remote. On conflict → `git merge --abort`, then `git stash pop` to put the stashed work back, output 「拉取 origin/{BRANCH} 有衝突（本地已有未推送的 commit），已中止合併並還原工作樹；請手動整合後再重跑 $ship。」 and stop.
+   With the tree stashed clean, this pull conflicts only when local commits not yet pushed collide with the remote. On conflict → `git merge --abort`, then `git stash pop` to put the stashed work back, output 「拉取 origin/{BRANCH} 有衝突（本地已有未推送的 commit），已中止合併並還原工作樹；請手動整合後再重跑 $baransu:ship。」 and stop.
 3. **Pop** — skipped when item 1 was skipped:
    ```bash
    git stash pop
@@ -176,7 +177,7 @@ git fetch origin
    A clean pop → output 「已整合 origin/{BRANCH}：拉入 {BEHIND} 個 commit，工作樹變更已還原。」 and go to item 5. A conflicted pop keeps the stash entry and marks the conflicted paths unmerged → go to item 4.
 4. **Resolve** every path listed by `git diff --name-only --diff-filter=U`, in the working tree:
    - Read the local side, the remote side and, when present, the base. Conflict blocks may be in diff3 form — `<<<<<<<` local, `|||||||` base, `=======`, `>>>>>>>` remote — so never assume a block has only two parts.
-   - Keep the intent of both sides. Resolve mechanical conflicts directly: the same version string bumped on both sides takes the higher semantic version, and independent additions that merely sit next to each other keep both. When the right result depends on a judgment about what the code or text should do, do not guess: leave the conflict and the stash entry as they are, output 「stash 還原後有需要判斷的衝突：{檔案清單}；已停止，衝突與 stash 保留在工作樹，請處理後重跑 $ship。」 and stop.
+   - Keep the intent of both sides. Resolve mechanical conflicts directly: the same version string bumped on both sides takes the higher semantic version, and independent additions that merely sit next to each other keep both. When the right result depends on a judgment about what the code or text should do, do not guess: leave the conflict and the stash entry as they are, output 「stash 還原後有需要判斷的衝突：{檔案清單}；已停止，衝突與 stash 保留在工作樹，請處理後重跑 $baransu:ship。」 and stop.
    - Mark each resolved path with `git add <path>`.
 5. **Verify** — read each check's exit status on its own:
    - `git diff --name-only --diff-filter=U` prints nothing;
@@ -192,7 +193,7 @@ git fetch origin
 
 ## Step 3 — Commit
 
-**Secret gate (INV-7)** — run immediately before `git add -A`: run `git status --porcelain` and match each untracked/modified path's filename against this fixed, closed pattern list: `.env`, `.env.*`, `*.pem`, `*.key`, `id_rsa*`, `*.p12`, `credentials*.json`. If any path matches → output 「偵測到疑似機敏檔案：{列出檔名}，已停止 commit；請確認內容、加入 .gitignore 或手動處理後再重跑 $ship。」 and stop. If none match → proceed to `git add -A` unchanged.
+**Secret gate (INV-7)** — run immediately before `git add -A`: run `git status --porcelain` and match each untracked/modified path's filename against this fixed, closed pattern list: `.env`, `.env.*`, `*.pem`, `*.key`, `id_rsa*`, `*.p12`, `credentials*.json`. If any path matches → output 「偵測到疑似機敏檔案：{列出檔名}，已停止 commit；請確認內容、加入 .gitignore 或手動處理後再重跑 $baransu:ship。」 and stop. If none match → proceed to `git add -A` unchanged.
 
 Stage first, then inspect what will actually ship:
 
@@ -240,13 +241,13 @@ MAIN_REPO=$(dirname "$(git rev-parse --git-common-dir)")
 git push origin "$BRANCH" || git push -u origin "$BRANCH"
 ```
 
-On success → output 「已推送至 origin/{BRANCH}。」 If the push is rejected as non-fast-forward (the remote moved after Step 2b) → output 「Push 被拒：origin/{BRANCH} 在整合後又有新 commit；請重跑 $ship（會先在本地整合）。」 and stop — do not pull here: the next $ship integrates in Step 2b, before its commit, where a conflict is still resolvable in the working tree. On any other failure → output 「Push 失敗：{error}」 and stop.
+On success → output 「已推送至 origin/{BRANCH}。」 If the push is rejected as non-fast-forward (the remote moved after Step 2b) → output 「Push 被拒：origin/{BRANCH} 在整合後又有新 commit；請重跑 $baransu:ship（會先在本地整合）。」 and stop — do not pull here: the next $baransu:ship integrates in Step 2b, before its commit, where a conflict is still resolvable in the working tree. On any other failure → output 「Push 失敗：{error}」 and stop.
 
 ### Mode B — `$TARGET` set and ≠ `$BRANCH`: merge `$BRANCH` into `$TARGET`, then push `$TARGET`
 
 Run on the main repo (`$MAIN_REPO`) — the target branch lives there, not in this worktree. **Never use `--force`.**
 
-1. The main repo must be clean before switching branches: run `git -C "$MAIN_REPO" status --porcelain`. If its output is non-empty → output 「主 repo 有未提交變更，無法切到 {TARGET}；請先處理後重跑 $ship {TARGET}。」 and stop; if its output is empty → proceed to the checkout in item 2.
+1. The main repo must be clean before switching branches: run `git -C "$MAIN_REPO" status --porcelain`. If its output is non-empty → output 「主 repo 有未提交變更，無法切到 {TARGET}；請先處理後重跑 $baransu:ship {TARGET}。」 and stop; if its output is empty → proceed to the checkout in item 2.
 2. Put the main repo on `$TARGET` (existing local branch, else track origin, else error):
    ```bash
    git -C "$MAIN_REPO" checkout "$TARGET" 2>/dev/null \
@@ -255,7 +256,7 @@ Run on the main repo (`$MAIN_REPO`) — the target branch lives there, not in th
    ```
 3. Merge (no-ff):
    ```bash
-   git -C "$MAIN_REPO" merge --no-ff "$BRANCH" -m "merge: $BRANCH → $TARGET (via $ship)"
+   git -C "$MAIN_REPO" merge --no-ff "$BRANCH" -m "merge: $BRANCH → $TARGET (via $baransu:ship)"
    ```
    On conflict → `git -C "$MAIN_REPO" merge --abort`, output 「合併 {BRANCH} → {TARGET} 有衝突，已中止；請手動解決後再 ship。」 and stop.
 4. Push without forcing; on a non-fast-forward rejection, integrate then retry once:
@@ -264,7 +265,7 @@ Run on the main repo (`$MAIN_REPO`) — the target branch lives there, not in th
      || { git -C "$MAIN_REPO" pull --no-rebase --no-edit origin "$TARGET" \
           && git -C "$MAIN_REPO" push origin "$TARGET"; }
    ```
-   If the `pull --no-rebase` itself hits a merge conflict → `git -C "$MAIN_REPO" merge --abort`, output 「整合 origin/{TARGET} 有衝突，已中止；主 repo 保持乾淨，請手動整合後再 ship。」 and stop — the main repo is never left mid-merge (which would poison the next $ship's item-1 cleanliness check). If the push still fails for any other reason → output 「Push {TARGET} 失敗：{error}」 and stop. Never `--force` (use `--force-with-lease` only if the user explicitly asks).
+   If the `pull --no-rebase` itself hits a merge conflict → `git -C "$MAIN_REPO" merge --abort`, output 「整合 origin/{TARGET} 有衝突，已中止；主 repo 保持乾淨，請手動整合後再 ship。」 and stop — the main repo is never left mid-merge (which would poison the next $baransu:ship's item-1 cleanliness check). If the push still fails for any other reason → output 「Push {TARGET} 失敗：{error}」 and stop. Never `--force` (use `--force-with-lease` only if the user explicitly asks).
 
 On success → output 「已合併 {BRANCH} → {TARGET} 並推送至 origin/{TARGET}。」 (The main repo is left on `$TARGET`.)
 
@@ -284,7 +285,7 @@ If the output contains `.git/worktrees/`:
    BRANCH=$(git rev-parse --abbrev-ref HEAD)
    MAIN_REPO=$(dirname "$(git rev-parse --git-common-dir)")
    ```
-2. **Teardown** — Run `bash "./scripts/cleanup-worktree.sh" "$WORKTREE_PATH" "$BRANCH" "$SAFE_REF" "$MAIN_REPO"` — execute it; do not read it as a reference. The script encapsulates the whole chain: the merge-base safety gate (INV-4; the ancestor check is exact — it never falsely refuses a merged branch and never silently discards unmerged work), the three-tier removal chain whose `rm -rf` fallback runs only behind the INV-6 guard plus a worktree-registry check, and the `branch -D` deletion (INV-5). It prints one machine-readable status line. If `"./scripts/cleanup-worktree.sh"` does not exist or cannot be executed (bash reports no such file / permission denied, so no machine-readable status line is produced) → treat it as the conservative GATE_FAIL branch: do NOT substitute a manual `git worktree remove` or `rm -rf` chain; leave the worktree and branch exactly as they are, output 「清理腳本遺失或無法執行，保留 worktree；請確認 plugin 安裝完整後重跑 $ship。」, and record this status in the Session end output's Worktree field.
+2. **Teardown** — Run `bash "./scripts/cleanup-worktree.sh" "$WORKTREE_PATH" "$BRANCH" "$SAFE_REF" "$MAIN_REPO"` — execute it; do not read it as a reference. The script encapsulates the whole chain: the merge-base safety gate (INV-4; the ancestor check is exact — it never falsely refuses a merged branch and never silently discards unmerged work), the three-tier removal chain whose `rm -rf` fallback runs only behind the INV-6 guard plus a worktree-registry check, and the `branch -D` deletion (INV-5). It prints one machine-readable status line. If `"./scripts/cleanup-worktree.sh"` does not exist or cannot be executed (bash reports no such file / permission denied, so no machine-readable status line is produced) → treat it as the conservative GATE_FAIL branch: do NOT substitute a manual `git worktree remove` or `rm -rf` chain; leave the worktree and branch exactly as they are, output 「清理腳本遺失或無法執行，保留 worktree；請確認 plugin 安裝完整後重跑 $baransu:ship。」, and record this status in the Session end output's Worktree field.
 3. Render the status line as the user-facing 繁中 message:
    - `GATE_FAIL …` → the work is **not** yet on `$SAFE_REF`; nothing was destroyed. Output 「分支 {BRANCH} 的工作尚未確認落地到 {SAFE_REF}，保留 worktree 以免遺失；請確認 merge/push 後再清理。」
    - `GUARD_REFUSED …` → the destructive fallback was refused and the worktree is left intact. Output 「worktree 路徑無法安全確認，停止強制刪除以免誤刪」
@@ -299,7 +300,7 @@ If not in a worktree → skip silently.
 ## Session end output
 
 ```
-$ship 完成。
+$baransu:ship 完成。
 
 歸檔：{N} 個項目（或「無可歸檔檔案」；read/learn/book/design 產物保留）
 整合：{「拉入 N 個 commit」、「無需整合」或「新分支，略過」}

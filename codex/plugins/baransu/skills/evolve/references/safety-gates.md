@@ -13,7 +13,7 @@ Writing a kept mutation back into the target SKILL.md is an **Authorization PAUS
   2. **Blind-judge bar tightened to 3/3** strict_improvement (not the interactive 2/3) — automation has no human backstop, so the panel must be unanimous.
   3. **File-level snapshot retained** (Gate 2) for one-command rollback.
   4. **Audit**: every auto-adopted change is logged to `log.md` with `decision: standing-auth auto-adopt`, the votes, and the snapshot path.
-  5. **End-state verification is the final arbiter**: after the run's adoptions, the driver's end-state check (`make test` / structure gate) decides go/no-go for downstream steps (e.g. $ship). A red end-state must block the ship and surface the failing files, not proceed.
+  5. **End-state verification is the final arbiter**: after the run's adoptions, the driver's end-state check (`make test` / structure gate) decides go/no-go for downstream steps (e.g. $baransu:ship). A red end-state must block the ship and surface the failing files, not proceed.
 
 Diagnosis, mutation-into-a-scratch-copy, scoring, and rollback are *not* Authorization PAUSEs — only the write-back of an adopted change is.
 

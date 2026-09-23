@@ -1,8 +1,8 @@
-# loop-pauses — $health PAUSE classification
+# loop-pauses — $baransu:health PAUSE classification
 
 PAUSE classification for non-interactive drivers; semantics in `../../_shared/loop-contract.md` §2.
 
-$health is `loop=assisted`: an audit runs end-to-end without a human. It has
+$baransu:health is `loop=assisted`: an audit runs end-to-end without a human. It has
 two Authorization mutation checkpoints that never take a default (INV-4), plus
 one sanctioned report write (the non-interactive report persist below — an
 Input-class output obligation, not a gated mutation). The audit itself

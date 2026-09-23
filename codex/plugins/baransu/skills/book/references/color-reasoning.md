@@ -11,7 +11,7 @@ produce a chart that looks fine to the author but fails a colorblind reader, a
 grayscale printout, or basic honesty about what the axes mean. Each entry
 names the default pattern to avoid, spells out the causal mechanism that
 makes it fail (not just "this is wrong"), and shows a concrete before/after
-correction. This file is read only when `$book`'s Render stage generates a
+correction. This file is read only when `$baransu:book`'s Render stage generates a
 `statistical`-type section under a declared chart-capability (SKILL.md Stage
 3 §4's "Statistical-type color-capability degrade" note) — it does not affect
 any of the other 16 diagram types. It absorbs the reasoning behind dataviz's

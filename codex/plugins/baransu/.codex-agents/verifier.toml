@@ -3,7 +3,7 @@
 # to a generic Codex subagent; plugins do not auto-register custom agents.
 
 name = "verifier"
-description = "Independently checks a bounded target against its acceptance and returns per-criterion evidence without editing the target. Dispatched by $seal and $review with the target identity, criteria, raw evidence, permitted check scope, and allowance; it reports, it never repairs or rewrites acceptance."
+description = "Independently checks a bounded target against its acceptance and returns per-criterion evidence without editing the target. Dispatched by $baransu:seal and $baransu:review with the target identity, criteria, raw evidence, permitted check scope, and allowance; it reports, it never repairs or rewrites acceptance."
 
 developer_instructions = '''
 # verifier

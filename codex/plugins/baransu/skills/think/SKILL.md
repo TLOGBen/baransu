@@ -6,8 +6,8 @@ description: Deliberates before building when the user has an undecided idea, fe
   already made when the user wants it tested (拷問我, grill me). Aligns on a restatement
   of what they actually want, then leaves a stance with its bets named and a plan
   file under .codex/think/ for review; never code, never a handoff to implementation.
-  Not for debugging an existing error ($hunt) or pinning acceptance for settled work
-  ($contract). 繁體中文輸出。
+  Not for debugging an existing error ($baransu:hunt) or pinning acceptance for settled
+  work ($baransu:contract). 繁體中文輸出。
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex
@@ -35,7 +35,7 @@ All user-facing output is in Traditional Chinese; keep technical terms in Englis
 - **Outcome**: A confirmed restatement of what the user wants, a stance with its bets named, and — for buildable work — a five-section plan at `.codex/think/<slug>.md`; for a verdict (Kill / Pivot) or a decision under test, the stance alone. Never code, scaffolding, or a handoff to implementation.
 - **Done when**: The restatement is confirmed by the user or unchanged after a round of answers; the stance is stated with its bets; every premise it leans on is tagged verified or 未實查; both attacks (breakage and excess) have run; the result has been presented; and, when buildable, the plan file exists and its path was reported. The turn ends there — no downstream skill is chosen and no approval gate is opened.
 - **Evidence**: The confirmed restatement, the verified / 未實查 tags with their commands and quoted output, and the plan file path (or the verdict line).
-- **Output**: Traditional Chinese conversation; `.codex/think/<slug>.md` with the restatement on top and the five sections below. `$ship` archives that directory.
+- **Output**: Traditional Chinese conversation; `.codex/think/<slug>.md` with the restatement on top and the five sections below. `$baransu:ship` archives that directory.
 - **Automation**: ultracode=neutral, loop=not-drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 - **Telemetry**: on invocation, append one selection record per `../_shared/selection-telemetry.md`.
 
@@ -95,16 +95,16 @@ When the deliberation produced a buildable direction (not a verdict, not a one-l
 - Key decisions — three to five, each "could have done X, doing Y because Z"; activities are not decisions.
 - Unknowns — each with the specific question, why deferring is safe, and who decides when; or 無 with the reason this scale needs no deferral.
 
-No TBD or TODO, no "standard approach", no unnamed library or unnamed flow; every non-obvious claim carries its verified or 未實查 tag. Success criteria and scope land here, as outputs of the deliberation, not as inputs demanded at the start. Never overwrite another task's file; if `.codex/think/<slug>.md` already exists, write `<slug>-2.md` and count up. Do not also write an acceptance record; that is `$contract`'s job, reading from this plan.
+No TBD or TODO, no "standard approach", no unnamed library or unnamed flow; every non-obvious claim carries its verified or 未實查 tag. Success criteria and scope land here, as outputs of the deliberation, not as inputs demanded at the start. Never overwrite another task's file; if `.codex/think/<slug>.md` already exists, write `<slug>-2.md` and count up. Do not also write an acceptance record; that is `$baransu:contract`'s job, reading from this plan.
 
 Tell the user the path and the single most consequential open decision, if any:
 「計畫已落檔：.codex/think/{slug}.md。最關鍵的未決點：{一句話，或「無」}。」
-Then end the turn. This skill does not implement, does not choose a downstream skill, does not ask permission to proceed, and does not open another approval gate. The user decides what happens next — `$contract` to pin acceptance, `$review` to get a second opinion on the plan, or nothing — and the file is written so a person or a reviewer can judge it without the conversation.
+Then end the turn. This skill does not implement, does not choose a downstream skill, does not ask permission to proceed, and does not open another approval gate. The user decides what happens next — `$baransu:contract` to pin acceptance, `$baransu:review` to get a second opinion on the plan, or nothing — and the file is written so a person or a reviewer can judge it without the conversation.
 
 If the user pushes back on the plan, ask which section is wrong, revise with the changed assumption named up front, and rewrite the file. If the pushback is about what they wanted rather than how to build it, the restatement was wrong: go back to it, not to the plan. If the objections spread across sections instead of narrowing, ask for an anti-example — a version they would never accept — before revising again.
 
 ## Not-for boundaries
 
-- An existing error or failing behavior → `$hunt`; 「判斷一下這個報錯」 is debugging, not a value judgment.
-- Pinning assertable acceptance for work already decided → `$contract`.
+- An existing error or failing behavior → `$baransu:hunt`; 「判斷一下這個報錯」 is debugging, not a value judgment.
+- Pinning assertable acceptance for work already decided → `$baransu:contract`.
 - A single-file fix with a clear scope → `../_shared/tdd.md` §7 directly; a plan would be ceremony.

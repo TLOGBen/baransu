@@ -3,7 +3,7 @@
 # to a generic Codex subagent; plugins do not auto-register custom agents.
 
 name = "evolve-judge"
-description = "Blind-scores two neutrally-named versions of a SKILL.md against the fixed 9-dimension rubric and returns whether the change is a strict improvement. Dispatched in parallel (3 per round) by $evolve. Blind — does not know which version is the mutation."
+description = "Blind-scores two neutrally-named versions of a SKILL.md against the fixed 9-dimension rubric and returns whether the change is a strict improvement. Dispatched in parallel (3 per round) by $baransu:evolve. Blind — does not know which version is the mutation."
 
 developer_instructions = '''
 # evolve-judge

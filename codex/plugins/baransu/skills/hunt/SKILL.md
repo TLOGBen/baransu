@@ -3,8 +3,8 @@ name: hunt
 description: 'Tracks a bug from symptom to root cause before any fix: picks the right
   observability tool (playwright / MCP db / LSP / logs / static analysis), bisects,
   confirms or discards hypotheses before touching code. Trigger On 「排查」「查 bug」「追問題」「為什麼失敗」,
-  ''debug'', "what''s wrong", ''not working''. Not For: subjective UI taste (→ $ui);
-  worth-fixing value calls / 值不值得修 (→ $think 存廢判決 Kill/Keep/Pivot).
+  ''debug'', "what''s wrong", ''not working''. Not For: subjective UI taste (→ $baransu:ui);
+  worth-fixing value calls / 值不值得修 (→ $baransu:think 存廢判決 Kill/Keep/Pivot).
 
   '
 metadata:
@@ -133,7 +133,7 @@ After selecting a tool in Tool Scan, answer these five questions before adding a
 
 These five questions determine where the first instrument goes. Adding a log before answering these questions = setting traps in a forest without knowing where the prey is.
 
-Before instrumenting, run `python3 "./scripts/hunt-search.py" --keyword "<symptom term>"` to check whether a similar case was already solved; the search covers `.codex/hunt-report/` plus `$ship`-archived cases in `.codex/archived/`. Cite any hit in the report. (If no case dirs exist at all, apply the Fast Path's case-memory rule: skip the search and log 「首獵：無既往案例」.)
+Before instrumenting, run `python3 "./scripts/hunt-search.py" --keyword "<symptom term>"` to check whether a similar case was already solved; the search covers `.codex/hunt-report/` plus `$baransu:ship`-archived cases in `.codex/archived/`. Cite any hit in the report. (If no case dirs exist at all, apply the Fast Path's case-memory rule: skip the search and log 「首獵：無既往案例」.)
 
 **Create the case file now, at the Locate stage — not after completion.** Allocate NNN = max(existing ids found by hunt-search.py across `.codex/hunt-report/` and archived cases) + 1, create `.codex/hunt-report/HUNT-YYYY-NNN.md` (format: `references/hunt-case-template.md`) with a `status: scoping` frontmatter field, and update the status as the hunt progresses: scoping → confirmed → fixed / handoff. On the Fast Path, scoping → fixed is a legal collapse — the `confirmed` hop may fold into the fix transition; off the Fast Path the three-state ladder stands. At creation, the trace entry recording the case file MUST quote the file's `status: scoping` frontmatter line verbatim, so early creation is externally checkable against the trace even in single-commit hunts.
 
@@ -261,7 +261,7 @@ Treat the reference as **evidence, not decoration**. Five-step flow:
 4. **Compare current vs. reference and name the exact delta**. Do not generalize an observed defect into "style polish" when the evidence points to a broken render, race, font pipeline, or state path.
 5. **If the same symptom remains after one attempted fix**: this triggers the Hard Rule「Same symptom recurs after fix」(see Hard Rules — stop; no further fix attempts until the hypothesis is rebuilt, though 🎯HUNT-tagged instruments for re-diagnosis remain allowed). Then rebuild the hypothesis from the evidence collected in steps 1–4 above; do not stack more patches onto a disproven explanation.
 
-If the issue is purely subjective UI taste, route to `$ui` instead. Stay in `$hunt` when the issue is rendering, state, timing, build output, font generation, or a regression from a known-good version.
+If the issue is purely subjective UI taste, route to `$baransu:ui` instead. Stay in `$baransu:hunt` when the issue is rendering, state, timing, build output, font generation, or a regression from a known-good version.
 
 ---
 
@@ -279,7 +279,7 @@ If the issue is purely subjective UI taste, route to `$ui` instead. Stay in `$hu
 | Investigation involves file writes / external API calls | Use mocks to prevent real writes; emails and webhooks must not actually send. |
 | Working tree dirty (`git status --porcelain` non-empty) when bisect is about to start | Stop — apply Bisect Mode step 3 gate before `git bisect start`. |
 | git bisect identified the commit | Run `git bisect reset` per Bisect Mode step 6 before any other git operation. |
-| Fix plan or current diff touches 6 or more files (without a Scope Blast pattern justification) | Stop **before adding the 6th file**. Check at two points: (i) when drafting the fix plan, (ii) after each edit. If the scope is genuinely a class-of-bug sweep, route through Scope Blast Mode (which is an explicit exception). If it is symptom-patch creep growing into a refactor, narrow back, or slice it and open a `$contract` on the first slice. |
+| Fix plan or current diff touches 6 or more files (without a Scope Blast pattern justification) | Stop **before adding the 6th file**. Check at two points: (i) when drafting the fix plan, (ii) after each edit. If the scope is genuinely a class-of-bug sweep, route through Scope Blast Mode (which is an explicit exception). If it is symptom-patch creep growing into a refactor, narrow back, or slice it and open a `$baransu:contract` on the first slice. |
 | Someone (user or agent) deflects suspicion from a specific area — semantic trigger, not literal string match. Examples: 「那段沒問題」「不是那邊的問題」「先別管那個」「我已經檢查過了」, "that part doesn't matter", "I already checked there" | Treat as a signal. The area being deflected from is often where the bug lives — especially in multi-stage pipelines (CI segments, data pipeline stages, baransu plane handoffs) where one stage is excluded from suspicion. Re-examine that area with one targeted instrument before accepting the deflection. |
 
 > In an ultracode session you may dispatch Workflows only for parallel inventory/context scans that answer no hypothesis. They may inform the next serialized probe, but never explore multiple hypothesis lines in parallel.
@@ -323,7 +323,7 @@ For a bug that was previously fixed and then recurred, the conditions for 「已
 
 After confirming root cause, route the fix by task scope:
 - Single change point, small amount of code → implement directly, building your own red/green task list under the _shared/tdd.md discipline (read `../_shared/tdd.md` §7 before implementing)
-- Multiple files, design decision needed, or cross-module impact → slice the fix and run each slice through `$contract` → implement → `$seal`
+- Multiple files, design decision needed, or cross-module impact → slice the fix and run each slice through `$baransu:contract` → implement → `$baransu:seal`
 
 ### Handoff format (use after three hypothesis failures)
 

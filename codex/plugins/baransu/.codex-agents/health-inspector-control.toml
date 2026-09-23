@@ -3,7 +3,7 @@
 # to a generic Codex subagent; plugins do not auto-register custom agents.
 
 name = "health-inspector-control"
-description = "Inspects the control and verification layer (hooks, allowedTools, MCP config, model names, cache hygiene) plus observed behavior patterns from collected health data. Dispatched by $health as an isolated inspector."
+description = "Inspects the control and verification layer (hooks, allowedTools, MCP config, model names, cache hygiene) plus observed behavior patterns from collected health data. Dispatched by $baransu:health as an isolated inspector."
 
 developer_instructions = '''
 # health-inspector-control

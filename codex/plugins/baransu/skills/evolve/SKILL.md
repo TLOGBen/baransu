@@ -5,9 +5,9 @@ description: Improves, scores, or evolves a SKILL.md via a forward-only ratchet 
   judges; kept only on strict improvement, else the snapshot is restored. Dual-axis
   evaluation (structure + effectiveness), held-out validation, Kami result card; adoption
   is an Authorization PAUSE. Not for authoring a brand-new SKILL.md, or deciding whether
-  a skill should exist ($think 存廢判決 Kill/Keep/Pivot). Trigger on '$evolve', '優化 skill',
-  'skill 評分', '演化 skill', 'optimize skill', 'improve skill quality', 'evolve a skill',
-  '幫我改 skill'. 繁體中文輸出。
+  a skill should exist ($baransu:think 存廢判決 Kill/Keep/Pivot). Trigger on '$baransu:evolve',
+  '優化 skill', 'skill 評分', '演化 skill', 'optimize skill', 'improve skill quality', 'evolve
+  a skill', '幫我改 skill'. 繁體中文輸出。
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex
@@ -112,7 +112,7 @@ Blind the panel mechanically, not by instruction alone: copy the pre- and post-m
 
 - **Converge** when the no-progress counter reaches **N=3** consecutive rounds, or the round cap **R=6** total rounds is hit. Otherwise loop back to Stage 1.
 - **Held-out**: validate the converged version on the held-out set by rerunning Stage 5's blinding mechanism verbatim on the held-out prompts — byte-identical panel copies to `.codex/evolve/<slug>/panel/held-out/alpha.md` and `beta.md` (no added headers or annotations), the same odd/even round-parity assignment rule (treat the held-out pass as the next round number), and three fresh held-out judges dispatched in parallel, passed ONLY the two neutral panel paths. Fresh held-out judges are the baseline (judges are single-use anyway), NOT an independence layer; an independence layer changes the ruler — a different rubric dimension weighting, or human ground-truth. Write `held-out.md` with the evidence-strength label (`硬證據` only if a ruler-changing independence layer was applied; otherwise `題目泛化證據`). **Regression branch**: if ≥ 2 of 3 held-out judges vote the pre-evolution version `better`, mark the run 未通過 held-out prominently in `report.md`, the result card, and the convergence summary, and offer a rollback to `snapshot/1.md` — a second Authorization PAUSE (never auto-rollback in either direction; non-interactive runs flag the regression and stop there). See `references/output-contract.md`.
-- **Package**: write `results.tsv`, `convergence.svg` (the score-over-rounds curve; the effective baseline steps up on keeps only), and `report.md` (start/end score, effectiveness mode + Gate 3 reason, per-axis evidence source) — every artifact lands in `.codex/evolve/<slug>/`. **Make the user-facing surfaces human-readable — draft the convergence summary and the card copy through `$write` (zh), then render the result card through the `$book` entry (never hand-assemble HTML) and copy the `$book` output HTML to `.codex/evolve/<slug>/card.html` (the durable card artifact named in `references/output-contract.md`); see that file's §Human-readable delivery.** Surface the `$write`-refined 繁中 convergence summary, not the raw round-by-round trace. **Lighter exit**: if zero mutations were adopted, skip `$write` + `$book` — report a one-paragraph 繁中 convergence summary in-conversation, omit the result card, and note the omission in `report.md`.
+- **Package**: write `results.tsv`, `convergence.svg` (the score-over-rounds curve; the effective baseline steps up on keeps only), and `report.md` (start/end score, effectiveness mode + Gate 3 reason, per-axis evidence source) — every artifact lands in `.codex/evolve/<slug>/`. **Make the user-facing surfaces human-readable — draft the convergence summary and the card copy through `$baransu:write` (zh), then render the result card through the `$baransu:book` entry (never hand-assemble HTML) and copy the `$baransu:book` output HTML to `.codex/evolve/<slug>/card.html` (the durable card artifact named in `references/output-contract.md`); see that file's §Human-readable delivery.** Surface the `$baransu:write`-refined 繁中 convergence summary, not the raw round-by-round trace. **Lighter exit**: if zero mutations were adopted, skip `$baransu:write` + `$baransu:book` — report a one-paragraph 繁中 convergence summary in-conversation, omit the result card, and note the omission in `report.md`.
 
 ## Provenance + optional engine
 

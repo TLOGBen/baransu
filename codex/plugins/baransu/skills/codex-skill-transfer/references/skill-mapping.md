@@ -25,9 +25,9 @@ Authoritative translation table from Claude Code SKILL.md frontmatter to Codex s
 | `arguments` | — | Drop. Use the names to rewrite `$name` placeholders in the body. |
 | `model` | — | Drop. Codex model is set via CLI flag, `config.toml`, or profile overlay files (`$CODEX_HOME/<profile>.config.toml` with `--profile`; legacy `[profiles.x]` deprecated 0.134.0). Optionally surface as a comment in the body. |
 | `effort` | — | Drop. No Codex equivalent. |
-| `context: fork` | `.codex/agents/{name}.toml` (user-side) | **Manual review required.** Three Codex paths exist (see §5); choice depends on isolation needs. |
+| `context: fork` | `.codex/agents/{name}.toml` (user-side) | **Manual review required.** Two Codex paths exist (see §5); choice depends on isolation needs. |
 | `agent` | `.codex/agents/{name}.toml` `name` field | **Manual review required.** Coupled with `context: fork`. |
-| `hooks` | — | Drop from skill frontmatter (Codex skills have no frontmatter hooks). Codex lifecycle hooks belong in `~/.codex/hooks.json`, project `.codex/hooks.json`, config TOML, or a plugin's `hooks/hooks.json`. Hooks are enabled by default but non-managed command definitions are trust-gated through `/hooks`; only `type="command"` executes. A whole-plugin transfer handles bundled hooks at the plugin layer; a single-skill transfer reports the field for manual relocation. Source: developers.openai.com/codex/hooks |
+| `hooks` | — | Drop from skill frontmatter (Codex skills have no frontmatter hooks). Codex lifecycle hooks belong in `~/.codex/hooks.json`, project `.codex/hooks.json`, config TOML, or a plugin's `hooks/hooks.json`. Hooks are enabled by default but non-managed command definitions are trust-gated through `/hooks`; `command` and `mcp_tool` handlers execute; `prompt` and `agent` handlers are parsed but skipped. A whole-plugin transfer handles bundled hooks at the plugin layer; a single-skill transfer reports the field for manual relocation. Source: learn.chatgpt.com/docs/hooks |
 | `paths` | — | Drop. No Codex equivalent for glob-scoped activation. Note in report. |
 | `shell` | — | Drop. Codex skills run shell via tool calls, not a pre-declared shell. |
 
@@ -35,7 +35,7 @@ Authoritative translation table from Claude Code SKILL.md frontmatter to Codex s
 
 ### 1. Open-standard fields
 
-`name`, `description`, `license`, `compatibility`, `metadata`, `allowed-tools` are defined by [agentskills.io/specification](https://agentskills.io/specification); the official Codex skills docs ([developers.openai.com/plugins/build/skills](https://developers.openai.com/plugins/build/skills)) confirm the core `SKILL.md` shape and optional `agents/openai.yaml` metadata. Both Claude and Codex are supersets of this standard. Note the `compatibility` field caps at 500 chars — keep pass-through values within that limit.
+`name`, `description`, `license`, `compatibility`, `metadata`, `allowed-tools` are defined by [agentskills.io/specification](https://agentskills.io/specification); the official Codex skills docs ([learn.chatgpt.com/docs/build-skills](https://learn.chatgpt.com/docs/build-skills)) confirm the core `SKILL.md` shape and optional `agents/openai.yaml` metadata. Both Claude and Codex are supersets of this standard. Note the `compatibility` field caps at 500 chars — keep pass-through values within that limit.
 
 Pass these through unchanged. If `compatibility` is absent, set:
 
@@ -128,7 +128,7 @@ The intent is preserved (the model gets the same factual context); only the *who
 
 ### 5. The `context: fork` / `agent` problem
 
-Codex **does** have an equivalent for forked subagents — native Subagents at `.codex/agents/{name}.toml` — but the mapping crosses the skill-package boundary into the user's Codex configuration. The transfer refuses to auto-port skills with `context: fork` and surfaces three viable Codex paths (native Subagents / skill chain / Codex-as-MCP).
+Codex **does** have an equivalent for forked subagents — native Subagents at `.codex/agents/{name}.toml` — but the mapping crosses the skill-package boundary into the user's Codex configuration. The transfer refuses to auto-port skills with `context: fork` and surfaces two viable Codex paths (native Subagents / skill chain).
 
 For the full decision matrix, frontmatter mapping table, and body-rewrite pattern, see [`agent-mapping.md`](agent-mapping.md). That file owns this layer end-to-end so per-skill rules and per-plugin bundled-agent generation stay co-located.
 
@@ -181,7 +181,7 @@ Skill bodies cite sibling material by baransu-repo-root path (`plugins/baransu/a
 | `plugins/baransu/agents/<name>.md` (glob `<name>` allowed, e.g. `*-reviewer`) | Package-relative `.codex-agents/<name>.toml` (`SKILL.md` → `../../.codex-agents/…`, `references/*.md` → `../../../.codex-agents/…`); see [`agent-mapping.md`](agent-mapping.md) §4 |
 | `plugins/baransu/skills/<other>/…` | `<updots><other>/…` — sibling skill under `skills/` (`_shared` is just `<other>=_shared`); `<updots>` reaches the `skills/` dir from the file being rewritten (SKILL.md → `../`, `references/*.md` → `../../`) |
 | `[$VAR/]plugins/baransu/skills/<self>/…` | skill-root-relative — a self-reference drops the prefix (and any `$VAR/` bash anchor), e.g. health's `$REPO_ROOT/plugins/baransu/skills/health/scripts` → `scripts` |
-| `plugins/baransu/.claude-plugin/plugin.json` | `.codex-plugin/plugin.json` |
+| `plugins/baransu/.claude-plugin/plugin.json` | plugin-root `plugin.json`, relative (`<updots>../plugin.json`) |
 | `.claude/<dir>` (output/config dirs; never `.claude-plugin`) | `.codex/<dir>` |
 
 Applied to: SKILL.md bodies, the `description` frontmatter field, copied `references/*.md`, and verbatim-copied shared aux dirs (`_shared/*.md`).
@@ -196,8 +196,10 @@ Claude prose mentions sibling skills as slash commands (`/review`, `/baransu:rev
 
 | Claude mention | Codex rewrite | Condition |
 |---|---|---|
-| `/baransu:<name>` | `$<name>` | Always — the namespaced shape is unambiguous |
-| `/<name>` | `$<name>` | Only when `<name>` is a *known sibling skill* (the source skill plus every sibling dir carrying a SKILL.md), and the `/` is not part of a path/URL (`.claude/read/`, `skills/read`, `example.com/review` stay) and not a longer identifier (`/design-cores`, `/reads` stay) |
+| `/baransu:<name>` | plugin mode: `$<plugin>:<name>`; single-skill / batch: `$<name>` | Always — the namespaced shape is unambiguous |
+| `/<name>` | plugin mode: `$<plugin>:<name>`; single-skill / batch: `$<name>` | Only when `<name>` is a *known sibling skill* (the source skill plus every sibling dir carrying a SKILL.md), and the `/` is not part of a path/URL (`.claude/read/`, `skills/read`, `example.com/review` stay) and not a longer identifier (`/design-cores`, `/reads` stay) |
+
+Codex names a plugin skill `<plugin>:<skill>` and resolves an explicit mention only on that exact name (`codex-rs` `skills/src/selection.rs`; `:` is a legal mention character), so a bare `$review` never reaches `baransu:review` inside a plugin. Single-skill and batch output installs unnamespaced under `.agents/skills/`, where `$<name>` is the full name.
 
 Applied AFTER the §6.1 path rewrite (a `/name` inside a repo path has already been resolved to a relative path there, so what survives is invocation prose), to the same carriers: SKILL.md bodies, the `description` frontmatter field (trigger phrases like `'/design'`), copied `references/*.md`, shared aux dirs (`_shared/*.md`), plugin `rules/*.md`, and bundled agent TOML instructions. Code spans and fenced examples ARE rewritten — a quoted `` `/review` `` is an invocation mention, and the ported invocation surface is `` `$review` ``. The §6.1 exemptions apply unchanged; `scripts/` bodies are never mention-rewritten (their user-facing strings stay flagged territory, not rewrite territory). A lone single-skill source knows no sibling set, so only the namespaced form is rewritten there; the glob prose form `/baransu:*` is also left as-is.
 
@@ -224,7 +226,7 @@ The output `SKILL.md` must:
 
 ## See also
 
-- [`plugin-mapping.md`](plugin-mapping.md) — `.claude-plugin/plugin.json` → `.codex-plugin/plugin.json` plus bundled agents/rules.
+- [`plugin-mapping.md`](plugin-mapping.md) — `.claude-plugin/plugin.json` → portable root `plugin.json` plus bundled agents/rules.
 - [`marketplace-mapping.md`](marketplace-mapping.md) — `.claude-plugin/marketplace.json` → `.agents/plugins/marketplace.json` (manual).
 - [`CODEX_PORT_PLAN.md`](CODEX_PORT_PLAN.md) — behavior-weight plan for preserving counterweights against model inertia.
 

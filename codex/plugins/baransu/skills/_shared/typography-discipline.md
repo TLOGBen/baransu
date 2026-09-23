@@ -92,7 +92,7 @@ already strain, so the cheat lands on the weakest reading moment.
 ## 3. Text-adaptation gotcha trio (pre-ship sweeps)
 
 Concrete IF-THEN rules for regressions the source never betrays — they surface only once
-the page is rendered. Sources: the Waza `$ui` gotcha table and observed failure modes.
+the page is rendered. Sources: the Waza `$baransu:ui` gotcha table and observed failure modes.
 
 1. **Localized-text overflow** — IF a component ships with English-fitted fixed slots
    (buttons, tabs, nav, compact cards) THEN exercise those slots with worst-case long words and the longest

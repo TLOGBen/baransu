@@ -14,10 +14,10 @@ detected:
         runtime TOMLs for every `<source>/agents/*.md`, wires named-agent
         dispatch to those exact definitions, and copies normalized rules.
         Output tree:
-          <output>/.codex-plugin/plugin.json
-          <output>/skills/<name>/...
-          <output>/.codex-agents/*.toml
-          <output>/rules/...
+          <output>/plugins/<name>/plugin.json   (portable root manifest)
+          <output>/plugins/<name>/skills/<name>/...
+          <output>/plugins/<name>/.codex-agents/*.toml
+          <output>/plugins/<name>/rules/...
 
   - **Single skill** (source has SKILL.md directly):
         Transfers one skill into <output>/<skill-name>/.
@@ -119,7 +119,14 @@ CODEX_HOOK_EVENTS = {
     "SubagentStart",
     "SubagentStop",
     "Stop",
+    "SessionEnd",
 }
+
+# Codex caps SessionEnd handlers at 3 seconds (default 1). Claude's SessionEnd
+# budget is 1.5 seconds unless a handler sets a longer `timeout`.
+CODEX_SESSION_END_MAX_TIMEOUT = 3
+OPENAI_EXTENSION_KEY = "com.openai"
+CODEX_DESCRIPTION_MAX = 1024
 
 INLINE_BACKTICK_CMD = re.compile(r"!`([^`]+)`")
 BLOCK_BACKTICK_CMD = re.compile(r"^```!\s*\n(.*?)^```\s*$", re.MULTILINE | re.DOTALL)
@@ -601,6 +608,33 @@ def split_frontmatter(text: str) -> tuple[dict, str]:
     return data, body
 
 
+def trim_codex_description(desc: str, report: TransferReport) -> str:
+    """Trim `desc` to Codex's description limit, or return it unchanged.
+
+    Strips Claude-style trigger phrase sentences first, then hard-cuts at the
+    last sentence boundary. Called on the translated description AND again
+    after the plugin-mode namespaced mention rewrite, which lengthens every
+    mention by `<plugin>:` and can push a trimmed description back over.
+    """
+    if len(desc) <= CODEX_DESCRIPTION_MAX:
+        return desc
+    trimmed = re.sub(r"\s*Trigger immediately when[^.]*\.", "", desc)
+    trimmed = re.sub(r"\s*Also fires on the daily cron schedule[^.]*\.", "", trimmed)
+    trimmed = trimmed.strip()
+    if len(trimmed) > CODEX_DESCRIPTION_MAX:
+        cut = trimmed.rfind(".", 0, CODEX_DESCRIPTION_MAX)
+        if cut > 0:
+            trimmed = trimmed[: cut + 1]
+        else:
+            trimmed = trimmed[:CODEX_DESCRIPTION_MAX]
+    if trimmed != desc:
+        report.mapped.append(
+            f"`description` 從 {len(desc)} 字元縮到 {len(trimmed)} 字元 "
+            "(Codex 上限 1024；剝除 Claude 觸發片語)"
+        )
+    return trimmed
+
+
 def translate_frontmatter(fm: dict, report: TransferReport) -> tuple[dict, dict | None]:
     out: dict = {}
     openai_yaml: dict | None = None
@@ -638,30 +672,9 @@ def translate_frontmatter(fm: dict, report: TransferReport) -> tuple[dict, dict 
             report.rewrites.append(
                 f"`description` {desc_path_n} 處 repo 路徑參照改寫為 Codex 佈局"
             )
-    if len(desc) > 1024:
-        trimmed = re.sub(
-            r"\s*Trigger immediately when[^.]*\.",
-            "",
-            desc,
-        )
-        trimmed = re.sub(
-            r"\s*Also fires on the daily cron schedule[^.]*\.",
-            "",
-            trimmed,
-        )
-        trimmed = trimmed.strip()
-        if len(trimmed) > 1024:
-            cut = trimmed.rfind(".", 0, 1024)
-            if cut > 0:
-                trimmed = trimmed[: cut + 1]
-            else:
-                trimmed = trimmed[:1024]
-        if trimmed != desc:
-            out["description"] = trimmed
-            report.mapped.append(
-                f"`description` 從 {len(desc)} 字元縮到 {len(trimmed)} 字元 "
-                "(Codex 上限 1024；剝除 Claude 觸發片語)"
-            )
+    trimmed_desc = trim_codex_description(str(desc), report)
+    if trimmed_desc != str(desc):
+        out["description"] = trimmed_desc
 
     for k in ("license", "metadata"):
         if k in fm:
@@ -724,7 +737,7 @@ def translate_frontmatter(fm: dict, report: TransferReport) -> tuple[dict, dict 
 #                             (or `~/.codex/agents/...` only for flat manual stubs)
 #   - skills/<other>/...    -> `<updots><other>/...` (sibling skill under skills/)
 #   - skills/<self>/...     -> skill-root-relative (strip any `$VAR/` prefix)
-#   - .claude-plugin/plugin.json -> `.codex-plugin/plugin.json`
+#   - .claude-plugin/plugin.json -> plugin-root `plugin.json` (portable manifest)
 #   - `.claude/<dir>`       -> `.codex/<dir>` (output/config dirs; not .claude-plugin)
 #
 # Files whose baransu paths are documentation ABOUT the repo or the mapping
@@ -802,7 +815,10 @@ def rewrite_repo_paths(
     if skills_relative:
         text = _SKILLS_REF.sub(skills_sub, text)
 
-    text, k = _PLUGIN_JSON_REF.subn(".codex-plugin/plugin.json", text)
+    # The portable manifest sits at the plugin root: `updots` reaches skills/,
+    # one more `../` reaches the root. Flat stubs have no anchor.
+    manifest_ref = f"{updots}../plugin.json" if skills_relative else "plugin.json"
+    text, k = _PLUGIN_JSON_REF.subn(manifest_ref, text)
     n += k
     text, k = _CLAUDE_DIR_REF.subn(".codex/", text)
     n += k
@@ -843,21 +859,34 @@ def known_sibling_skills(source: Path) -> frozenset[str]:
     return frozenset(names)
 
 
+def _mention_form(namespace: str | None) -> str:
+    """Report label for the mention shape a rewrite actually emits."""
+    return f"`${namespace}:skill`" if namespace else "`$skill`"
+
+
 def rewrite_skill_mentions(
-    text: str, known_skills: frozenset[str] = frozenset()
+    text: str,
+    known_skills: frozenset[str] = frozenset(),
+    namespace: str | None = None,
 ) -> tuple[str, int]:
     """Rewrite `/baransu:name` and known bare `/name` mentions to `$name`.
+
+    `namespace` is the plugin name in plugin mode: Codex names a plugin skill
+    `<plugin>:<skill>` and resolves an explicit mention only on that exact
+    name, so the rewrite emits `$<plugin>:<skill>`. Single-skill and batch
+    output installs unnamespaced under `.agents/skills/`, so it stays `$name`.
 
     Returns (rewritten_text, change_count). Applies inside code spans too:
     mentions are quoted as invocations (`` `/review` ``), and the ported
     invocation surface IS `$review`.
     """
     n = 0
+    prefix = f"{namespace}:" if namespace else ""
 
     def sub(m: re.Match[str]) -> str:
         nonlocal n
         n += 1
-        return f"${m.group(1)}"
+        return f"${prefix}{m.group(1)}"
 
     text = _NAMESPACED_SKILL_MENTION.sub(sub, text)
     if known_skills:
@@ -876,6 +905,7 @@ def rewrite_body(
     positional_args: bool = False,
     skill_name: str | None = None,
     known_skills: frozenset[str] = frozenset(),
+    namespace: str | None = None,
 ) -> str:
     inline_count = 0
     block_count = 0
@@ -1172,10 +1202,10 @@ def rewrite_body(
         # AFTER the path rewrite: a `/name` that was part of a repo path has
         # already been resolved to a relative path there, so what remains is
         # invocation prose. Codex mentions skills as `$name`.
-        body, mention_n = rewrite_skill_mentions(body, known_skills)
+        body, mention_n = rewrite_skill_mentions(body, known_skills, namespace)
         if mention_n:
             report.rewrites.append(
-                f"{mention_n} 處 `/skill` 呼叫提及改寫為 Codex `$skill` mention"
+                f"{mention_n} 處 `/skill` 呼叫提及改寫為 Codex {_mention_form(namespace)} mention"
             )
 
     return body
@@ -1230,6 +1260,17 @@ def check_output_invariants(target: Path, report: TransferReport) -> None:
     if line_count > 500:
         report.manual_review.append(
             f"輸出 SKILL.md 共 {line_count} 行，超過開放規格建議的 500 行；建議拆分至 references/"
+        )
+
+    try:
+        out_fm, _ = split_frontmatter(skill_md.read_text(encoding="utf-8"))
+    except ValueError:
+        out_fm = {}
+    desc_len = len(str(out_fm.get("description") or ""))
+    if desc_len > CODEX_DESCRIPTION_MAX:
+        report.manual_review.append(
+            f"`description` 長度 {desc_len} 字元，超過 Codex 上限 "
+            f"{CODEX_DESCRIPTION_MAX}，skill 會載入失敗；請縮短"
         )
 
     name = target.name
@@ -1303,6 +1344,7 @@ def copy_aux(
     target: Path,
     report: TransferReport,
     known_skills: frozenset[str] = frozenset(),
+    namespace: str | None = None,
 ) -> None:
     # Standard auxiliary dirs. node_modules / __pycache__ are runtime-
     # regenerated install artifacts (never distributed); copying them bloats
@@ -1402,7 +1444,7 @@ def copy_aux(
             # references/foo.md (2 parts) -> `../../`.
             new_text, n = rewrite_repo_paths(text, "../" * len(rel.parts), skill_name)
             # Slash-invocation mentions after paths (see rewrite_body ordering).
-            new_text, k = rewrite_skill_mentions(new_text, known_skills)
+            new_text, k = rewrite_skill_mentions(new_text, known_skills, namespace)
             if n or k:
                 path.write_text(new_text, encoding="utf-8")
                 path_rewrites += n
@@ -1413,7 +1455,7 @@ def copy_aux(
             )
         if mention_rewrites:
             report.rewrites.append(
-                f"{mention_rewrites} 處 references/ 內 `/skill` 呼叫提及改寫為 `$skill`"
+                f"{mention_rewrites} 處 references/ 內 `/skill` 呼叫提及改寫為 {_mention_form(namespace)}"
             )
 
     # Claude-only token scan over copied references/*.md (TOKEN_SCAN_PATTERNS;
@@ -1433,7 +1475,9 @@ def copy_aux(
                 )
 
 
-def transfer_one(source: Path, output_root: Path) -> TransferReport:
+def transfer_one(
+    source: Path, output_root: Path, namespace: str | None = None
+) -> TransferReport:
     skill_md = source / "SKILL.md"
     name = source.name
     target = output_root / name
@@ -1490,8 +1534,6 @@ def transfer_one(source: Path, output_root: Path) -> TransferReport:
             "    1. 原生 Subagents（推薦，重 IO 隔離）：在 `~/.codex/agents/{name}.toml` "
             "建對應 TOML，body 改寫為「Spawn a `{name}` subagent...」。\n"
             "    2. Skill chain（輕量，無隔離）：拆兩個 skill，body 末加 `$next-skill` mention。\n"
-            "    3. Codex MCP + Agents SDK（重型，程式化）：跑 `codex mcp-server`，"
-            "外部 SDK 用 handoffs 編排。\n"
             "    詳見 `references/skill-mapping.md` §5。"
         )
         return report
@@ -1517,12 +1559,12 @@ def transfer_one(source: Path, output_root: Path) -> TransferReport:
     # "Trigger On '/design'") point Codex users at the right mention form.
     if name not in REPO_PATH_REWRITE_EXEMPT_SKILLS:
         desc_mentions, desc_mention_n = rewrite_skill_mentions(
-            str(new_fm["description"]), known
+            str(new_fm["description"]), known, namespace
         )
         if desc_mention_n:
-            new_fm["description"] = desc_mentions
+            new_fm["description"] = trim_codex_description(desc_mentions, report)
             report.rewrites.append(
-                f"`description` {desc_mention_n} 處 `/skill` 呼叫提及改寫為 `$skill`"
+                f"`description` {desc_mention_n} 處 `/skill` 呼叫提及改寫為 {_mention_form(namespace)}"
             )
     new_body = rewrite_body(
         body,
@@ -1531,6 +1573,7 @@ def transfer_one(source: Path, output_root: Path) -> TransferReport:
         positional_args=positional_args,
         skill_name=name,
         known_skills=known,
+        namespace=namespace,
     )
     new_body = inject_codex_port_adapter(new_body, report)
     if CLAUDE_PLUGIN_ROOT_ENV.search(new_body):
@@ -1540,7 +1583,7 @@ def transfer_one(source: Path, output_root: Path) -> TransferReport:
         )
     write_skill(target, new_fm, new_body, openai_yaml)
     check_output_invariants(target, report)
-    copy_aux(source, target, report, known_skills=known)
+    copy_aux(source, target, report, known_skills=known, namespace=namespace)
     return report
 
 
@@ -1553,7 +1596,7 @@ def transfer_one(source: Path, output_root: Path) -> TransferReport:
 #   - plugin:       <dir>/.claude-plugin/plugin.json  (NEW; full plugin port)
 #
 # Plugin mode produces:
-#   <out>/.codex-plugin/plugin.json     ← translated manifest
+#   <out>/plugin.json                   ← portable root manifest
 #   <out>/skills/<name>/...               ← each skill via existing pipeline
 #   <out>/.codex-agents/*.toml          ← bundled runtime definitions
 #   <out>/rules/...                     ← normalized package rules
@@ -1577,13 +1620,17 @@ def detect_mode(source: Path) -> str:
 
 
 def translate_plugin_manifest(claude_pj: dict, has_skills: bool) -> tuple[dict, list[str], list[str]]:
-    """Translate Claude Code plugin.json → Codex .codex-plugin/plugin.json.
+    """Translate Claude Code plugin.json → Codex portable root `plugin.json`.
 
-    Returns (codex_pj, mapped_notes, dropped_notes). Codex requires only
-    `name` (kebab-case) + `version` (semver); `description` is optional per
-    the official build docs but recommended, and (per the same docs) an
-    explicit `skills` pointer is needed when the plugin bundles skills.
+    Returns (codex_pj, mapped_notes, dropped_notes). The portable Agent
+    Plugins manifest requires only `$schema` + `name`; `version` and
+    `description` are optional release/discovery metadata, so an absent one is
+    omitted rather than invented. Skills are discovered from the fixed
+    `skills/` path — a `skills` pointer has no effect and is not emitted.
+    OpenAI-specific settings (`hooks`, `interface`) live under
+    `extensions."com.openai"`.
     """
+    # `$schema` comes from the golden template (single source), not from here.
     out: dict = {}
     mapped: list[str] = []
     dropped: list[str] = []
@@ -1592,36 +1639,33 @@ def translate_plugin_manifest(claude_pj: dict, has_skills: bool) -> tuple[dict, 
         raise ValueError("plugin.json missing required `name`")
     out["name"] = claude_pj["name"]
 
-    out["version"] = str(claude_pj.get("version") or "0.1.0-codex")
-    if "version" not in claude_pj:
-        mapped.append("`version` 缺，補入 `0.1.0-codex` (Codex 必填 semver)")
-
-    out["description"] = str(claude_pj.get("description") or claude_pj["name"])
-    if "description" not in claude_pj:
-        mapped.append("`description` 缺，以 `name` 暫代 (建議補上；Codex 選填)")
+    for k in ("version", "description"):
+        if claude_pj.get(k):
+            out[k] = str(claude_pj[k])
+        else:
+            mapped.append(f"來源缺 `{k}`：portable manifest 選填，省略不補")
 
     for k in ("author", "homepage", "repository", "license", "keywords"):
         if k in claude_pj:
             out[k] = claude_pj[k]
 
-    # Codex is manifest-driven: components must be pointed at explicitly.
-    # Claude is filesystem-driven, so plugin.json typically omits these.
+    interface = {"displayName": str(out["name"]).replace("-", " ").title()}
+    if out.get("description"):
+        interface["shortDescription"] = out["description"][:120]
+    out["extensions"] = {OPENAI_EXTENSION_KEY: {"interface": interface}}
+    mapped.append(
+        "輸出 portable root `plugin.json`（`$schema` agent-plugins.org）；"
+        f"`interface` 置於 `extensions.\"{OPENAI_EXTENSION_KEY}\"`"
+    )
     if has_skills:
-        out["skills"] = "./skills/"
-        mapped.append("加入 `skills: \"./skills/\"` 指標 (Codex manifest-driven)")
-
-    out["interface"] = {
-        "displayName": str(out["name"]).replace("-", " ").title(),
-        "shortDescription": out["description"][:120],
-    }
-    mapped.append("加入 `interface` 預設 (display_name + short_description)")
+        mapped.append("skills 由固定路徑 `skills/` 探索（portable 格式不讀 `skills` 指標）")
 
     # Claude-side fields that have no Codex equivalent at the plugin level.
     # (`commands` is handled separately in transfer_plugin — it needs
     # actionable manual-review guidance, not a plain drop line.)
     for k in ("lspServers", "agents"):
         if k in claude_pj:
-            dropped.append(f"`{k}` (Claude-only at plugin level; agents 走 user-side `.codex/agents/*.toml`)")
+            dropped.append(f"`{k}` (Claude-only at plugin level; agents 走 package-local `.codex-agents/*.toml`)")
 
     return out, mapped, dropped
 
@@ -1685,18 +1729,16 @@ def emit_agent_stub(agent_md: Path, dest: Path) -> None:
     name_quoted = json.dumps(name, ensure_ascii=False)
     desc_quoted = json.dumps(desc, ensure_ascii=False)
 
-    # Render `tools` (Claude) as a commented mcp_servers suggestion. Codex
-    # treats mcp_servers as MCP server ids, NOT as Claude tool names, so this
-    # is provided as documentation only — user enables and renames after
-    # mapping each Claude tool to the appropriate Codex MCP server.
+    # Codex `mcp_servers` is a config TABLE (`[mcp_servers.<id>]`), not a list
+    # of ids, and agent role files reject unknown or mistyped keys — so the
+    # stub shows the table shape and records the Claude tool names as a plain
+    # comment only. Claude built-in tools have no MCP equivalent.
+    mcp_line = (
+        "# [mcp_servers.<id>]                  # per-agent MCP server table (TOML table, not a list)\n"
+        "# url = \"https://example.com/mcp\""
+    )
     if tools:
-        tools_json = json.dumps(tools, ensure_ascii=False)
-        mcp_line = (
-            f"# mcp_servers = {tools_json}"
-            "  # ported from Claude `tools:`; rename to Codex MCP server ids before enabling"
-        )
-    else:
-        mcp_line = "# mcp_servers = []                     # list of MCP server ids the agent may invoke"
+        mcp_line += "\n# Claude tools: " + ", ".join(tools) + " (no direct Codex field; review sandbox_mode instead)"
 
     tool_names = {t.split("(", 1)[0].strip().lower() for t in tools}
     write_or_exec = bool(tool_names & {"write", "edit", "multiedit", "bash"})
@@ -1728,16 +1770,18 @@ def emit_agent_stub(agent_md: Path, dest: Path) -> None:
         f"\n"
         f"# Choose what to fill in below; omit optional fields to inherit from the parent session.\n"
         f"#\n"
-        f"# model = \"gpt-5.6\"                   # demanding agents; use gpt-5.6-terra for light read-heavy scans\n"
-        f"# model_reasoning_effort = \"high\"      # minimal | low | medium | high | xhigh\n"
+        f"# model = \"<model>\"                   # omit to inherit the parent session's model\n"
+        f"# model_reasoning_effort = \"high\"      # low | medium | high | xhigh | max | ultra (model-dependent)\n"
         f"# sandbox_mode = \"workspace-write\"     # read-only | workspace-write | danger-full-access; parent runtime overrides win\n"
-        f"{mcp_line}\n"
         f"{sandbox_hint}\n"
         f"# nickname_candidates = []             # cosmetic names for spawned instances\n"
         f"#\n"
+        f"# Tables go last: every key after a [table] header belongs to that table.\n"
         f"# [[skills.config]]                    # optional per-agent skill enable/disable override\n"
         f"# path = \"/path/to/skill/SKILL.md\"\n"
         f"# enabled = false\n"
+        f"#\n"
+        f"{mcp_line}\n"
     )
     dest.write_text(stub, encoding="utf-8")
 
@@ -1760,7 +1804,9 @@ def _toml_multiline(text: str) -> str:
 
 
 def rewrite_bundled_agent_instructions(
-    text: str, known_skills: frozenset[str] = frozenset()
+    text: str,
+    known_skills: frozenset[str] = frozenset(),
+    namespace: str | None = None,
 ) -> str:
     """Translate one Claude agent body into a package-local Codex definition.
 
@@ -1791,12 +1837,15 @@ def rewrite_bundled_agent_instructions(
     text = text.replace(".claude/", ".codex/")
     text, _ = normalize_codex_subagent_terms(text)
     text = re.sub(r"\bTask tool\b", "subagent dispatch", text, flags=re.IGNORECASE)
-    text, _ = rewrite_skill_mentions(text, known_skills)
+    text, _ = rewrite_skill_mentions(text, known_skills, namespace)
     return text
 
 
 def emit_bundled_agent_definition(
-    agent_md: Path, dest: Path, known_skills: frozenset[str] = frozenset()
+    agent_md: Path,
+    dest: Path,
+    known_skills: frozenset[str] = frozenset(),
+    namespace: str | None = None,
 ) -> None:
     """Emit a runtime-consumable Codex agent TOML inside the plugin package."""
     name = agent_md.stem
@@ -1810,9 +1859,11 @@ def emit_bundled_agent_definition(
                 desc = str(fm.get("description") or "").splitlines()[0]
         except yaml.YAMLError:
             pass
-    desc = rewrite_bundled_agent_instructions(desc, known_skills)
+    desc = rewrite_bundled_agent_instructions(desc, known_skills, namespace)
     instructions = body[fm_end + 4 :].lstrip("\n") if fm_end > 0 else body
-    instructions = rewrite_bundled_agent_instructions(instructions, known_skills)
+    instructions = rewrite_bundled_agent_instructions(
+        instructions, known_skills, namespace
+    )
     dest.write_text(
         "\n".join(
             [
@@ -1915,7 +1966,10 @@ def wire_bundled_agent_references(
 
 
 def copy_plugin_rules(
-    plugin_root: Path, plugin_out: Path, known_skills: frozenset[str] = frozenset()
+    plugin_root: Path,
+    plugin_out: Path,
+    known_skills: frozenset[str] = frozenset(),
+    namespace: str | None = None,
 ) -> int:
     """Copy and Codex-normalize package-level rule documents."""
     source = plugin_root / "rules"
@@ -1929,7 +1983,7 @@ def copy_plugin_rules(
         new = text.replace("CLAUDE.md", "AGENTS.md")
         new = re.sub(r"(?<![./])skills/", "../skills/", new)
         new = new.replace(".claude/", ".codex/")
-        new, _ = rewrite_skill_mentions(new, known_skills)
+        new, _ = rewrite_skill_mentions(new, known_skills, namespace)
         if new != text:
             path.write_text(new, encoding="utf-8")
         count += 1
@@ -2051,7 +2105,7 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
     not the plugin tree itself. Codex's marketplace schema requires the plugin
     tree at `<marketplace-root>/plugins/<plugin-name>/`, so:
       output_root/.agents/plugins/marketplace.json
-      output_root/plugins/<name>/.codex-plugin/plugin.json
+      output_root/plugins/<name>/plugin.json   (portable root manifest)
       output_root/plugins/<name>/skills/<skill>/...
       output_root/plugins/<name>/.codex-agents/*.toml
       output_root/plugins/<name>/rules/...
@@ -2086,8 +2140,8 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
 
     # Plugin-level lifecycle hooks now have a first-class Codex package
     # surface. Preserve supported command handlers and report every rejected
-    # event/handler explicitly; never invent an event mapping (notably,
-    # Claude SessionEnd is NOT Codex Stop).
+    # event/handler explicitly; never invent an event mapping (a Claude event
+    # Codex lacks is dropped, never rewritten to a neighbouring lifecycle event).
     source_hooks_path = plugin_root / "hooks" / "hooks.json"
     codex_hooks_doc: dict | None = None
     if source_hooks_path.is_file():
@@ -2111,6 +2165,7 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
                 hook_env_rewrites = 0
                 hook_windows_noops = 0
                 hook_windows_native = 0
+                session_end_default_notes = 0
                 for event, groups in raw_events.items():
                     if event not in CODEX_HOOK_EVENTS:
                         dropped_events.append(event)
@@ -2131,12 +2186,38 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
                         kept_handlers: list[dict] = []
                         for handler in handlers:
                             handler_type = handler.get("type") if isinstance(handler, dict) else None
-                            if handler_type != "command":
+                            if handler_type not in ("command", "mcp_tool"):
                                 manual.append(
                                     f"Codex hooks 不支援 handler：{event}/{handler_type or 'unknown'}；已捨棄"
                                 )
                                 continue
+                            if event == "SessionEnd" and handler_type == "mcp_tool":
+                                # Codex runs only command handlers on SessionEnd;
+                                # keeping it would ship a hook that never fires.
+                                manual.append(
+                                    "Codex SessionEnd 不支援 mcp_tool handler；已捨棄"
+                                )
+                                continue
                             kept_handler = dict(handler)
+                            if event == "SessionEnd":
+                                timeout = kept_handler.get("timeout")
+                                if timeout is None:
+                                    session_end_default_notes += 1
+                                elif (
+                                    isinstance(timeout, (int, float))
+                                    and timeout > CODEX_SESSION_END_MAX_TIMEOUT
+                                ):
+                                    manual.append(
+                                        f"SessionEnd handler timeout {timeout} 秒超過 Codex 上限 "
+                                        f"{CODEX_SESSION_END_MAX_TIMEOUT} 秒，已改為 "
+                                        f"{CODEX_SESSION_END_MAX_TIMEOUT}"
+                                    )
+                                    kept_handler["timeout"] = CODEX_SESSION_END_MAX_TIMEOUT
+                            if handler_type == "mcp_tool":
+                                # Same server/tool/input fields on both sides;
+                                # no shell, so no Windows override applies.
+                                kept_handlers.append(kept_handler)
+                                continue
                             command = kept_handler.get("command")
                             if isinstance(command, str):
                                 command, root_count = re.subn(
@@ -2189,6 +2270,11 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
                             kept_groups.append(kept_group)
                     if kept_groups:
                         codex_events[event] = kept_groups
+                if session_end_default_notes:
+                    manual.append(
+                        "SessionEnd handler 未設 timeout，Codex 預設 1 秒（上限 3 秒）；"
+                        "工作超過就會被中斷，請確認腳本能在時限內結束"
+                    )
                 if dropped_events and isinstance(codex_hooks_doc.get("description"), str):
                     codex_hooks_doc["description"] += (
                         " [Codex transfer omitted unsupported events: "
@@ -2197,7 +2283,7 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
                     )
                 if codex_events:
                     codex_hooks_doc["hooks"] = codex_events
-                    codex_pj["hooks"] = "./hooks/hooks.json"
+                    codex_pj["extensions"][OPENAI_EXTENSION_KEY]["hooks"] = "./hooks/hooks.json"
                     mapped.append("hooks/hooks.json → plugin-bundled Codex lifecycle hooks")
                     if hook_env_rewrites:
                         mapped.append(
@@ -2290,54 +2376,43 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
 
     plugin_out = output_root / "plugins" / plugin_name
     plugin_out.mkdir(parents=True)
-    cp_dir = plugin_out / ".codex-plugin"
-    cp_dir.mkdir()
-    # Render plugin.json against the golden template when the manifest's
-    # shape fits the standard set (skills + the common pass-through fields).
-    # The template uses string scalars for the simple fields; complex fields
-    # like `author` (dict) and `keywords` (list) are merged in after parsing.
-    # Empty pass-through values get pruned so absent source fields don't
-    # leak as empty entries.
-    STANDARD_PLUGIN_KEYS = {
-        "name", "version", "description", "skills", "interface",
-        "author", "homepage", "repository", "license", "keywords", "hooks",
-    }
-    if has_skills and set(codex_pj.keys()) <= STANDARD_PLUGIN_KEYS:
-        rendered = render_template(
-            "codex-plugin.template.json",
-            {
-                "name": codex_pj["name"],
-                "version": codex_pj["version"],
-                "description": codex_pj["description"],
-                "display_name": codex_pj["interface"]["displayName"],
-                "short_description": codex_pj["interface"]["shortDescription"],
-                "homepage": codex_pj.get("homepage") or "",
-                "repository": codex_pj.get("repository") or "",
-                "license": codex_pj.get("license") or "",
-                "hooks": codex_pj.get("hooks") or "",
-            },
-            mode="json",
-        )
-        parsed = json.loads(rendered)
-        # Drop empty-string pass-through scalars (template includes them so
-        # the canonical shape stays visible; runtime omits them when absent).
-        for k in ("homepage", "repository", "license", "hooks"):
-            if parsed.get(k) == "":
-                parsed.pop(k)
-        # Merge complex fields directly from the translated manifest.
-        if "author" in codex_pj:
-            parsed["author"] = codex_pj["author"]
-        if codex_pj.get("keywords"):
-            parsed["keywords"] = codex_pj["keywords"]
-        (cp_dir / "plugin.json").write_text(
-            json.dumps(parsed, indent=2, ensure_ascii=False) + "\n",
-            encoding="utf-8",
-        )
-    else:
-        (cp_dir / "plugin.json").write_text(
-            json.dumps(codex_pj, indent=2, ensure_ascii=False) + "\n",
-            encoding="utf-8",
-        )
+    # Portable root manifest only — no `.codex-plugin/` compatibility overlay
+    # (an inline `extensions."com.openai"` replaces that overlay wholesale).
+    # Render the golden template, prune empty scalars so absent source fields
+    # don't leak, then merge the complex fields (`author`, `keywords`).
+    ext = codex_pj["extensions"][OPENAI_EXTENSION_KEY]
+    rendered = json.loads(render_template(
+        "codex-plugin.template.json",
+        {
+            "name": codex_pj["name"],
+            "version": codex_pj.get("version", ""),
+            "description": codex_pj.get("description", ""),
+            "homepage": codex_pj.get("homepage") or "",
+            "repository": codex_pj.get("repository") or "",
+            "license": codex_pj.get("license") or "",
+            "hooks": ext.get("hooks", ""),
+            "display_name": ext["interface"]["displayName"],
+            "short_description": ext["interface"].get("shortDescription", ""),
+        },
+        mode="json",
+    ))
+    for k in ("version", "description", "homepage", "repository", "license"):
+        if rendered.get(k) == "":
+            rendered.pop(k)
+    r_ext = rendered["extensions"][OPENAI_EXTENSION_KEY]
+    if r_ext.get("hooks") == "":
+        r_ext.pop("hooks")
+    if r_ext["interface"].get("shortDescription") == "":
+        r_ext["interface"].pop("shortDescription")
+    manifest_out = {k: v for k, v in rendered.items() if k != "extensions"}
+    for k in ("author", "keywords"):
+        if codex_pj.get(k):
+            manifest_out[k] = codex_pj[k]
+    manifest_out["extensions"] = rendered["extensions"]
+    (plugin_out / "plugin.json").write_text(
+        json.dumps(manifest_out, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
 
     if codex_hooks_doc is not None:
         hooks_out = plugin_out / "hooks"
@@ -2366,7 +2441,9 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
             if not child.is_dir():
                 continue
             if (child / "SKILL.md").is_file():
-                skill_reports.append(transfer_one(child, out_skills))
+                skill_reports.append(
+                    transfer_one(child, out_skills, namespace=plugin_name)
+                )
             else:
                 # Non-skill sibling dirs under skills/ (e.g. _shared/) carry
                 # cross-skill content referenced by SKILL.md bodies (e.g.
@@ -2388,7 +2465,9 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
                     new_text, n = rewrite_repo_paths(
                         text, "../" * len(rel_to_aux.parts), child.name
                     )
-                    new_text, k = rewrite_skill_mentions(new_text, plugin_known)
+                    new_text, k = rewrite_skill_mentions(
+                        new_text, plugin_known, plugin_name
+                    )
                     if n or k:
                         path.write_text(new_text, encoding="utf-8")
                         text = new_text
@@ -2414,7 +2493,10 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
         agent_dir.mkdir()
         for md in sorted(agents_dir.glob("*.md")):
             emit_bundled_agent_definition(
-                md, agent_dir / f"{md.stem}.toml", known_skills=plugin_known
+                md,
+                agent_dir / f"{md.stem}.toml",
+                known_skills=plugin_known,
+                namespace=plugin_name,
             )
             agent_names.append(md.stem)
             summary["agent_definitions"] += 1
@@ -2425,7 +2507,7 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
     # into an improvised agent.
     wire_bundled_agent_references(plugin_out, skill_reports, agent_names)
     summary["rules_copied"] = copy_plugin_rules(
-        plugin_root, plugin_out, known_skills=plugin_known
+        plugin_root, plugin_out, known_skills=plugin_known, namespace=plugin_name
     )
     source_rule_count = (
         sum(1 for path in (plugin_root / "rules").rglob("*") if path.is_file())
@@ -2445,7 +2527,7 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
     marketplace = {
         "name": plugin_name,
         "interface": {
-            "displayName": codex_pj.get("interface", {}).get("displayName") or plugin_name,
+            "displayName": codex_pj["extensions"][OPENAI_EXTENSION_KEY]["interface"]["displayName"],
         },
         "plugins": [
             {
@@ -2512,7 +2594,7 @@ def main(argv: list[str]) -> int:
         print(f"# Codex Transfer — Plugin Mode\n")
         print(f"- 來源 plugin: `{source_root}`")
         print(f"- 輸出 plugin: `{output_root}`")
-        print(f"- 寫入 `.codex-plugin/plugin.json`")
+        print(f"- 寫入 portable root `plugin.json`")
         if summary["manifest_mapped"]:
             print(f"- Manifest 翻譯：")
             for n in summary["manifest_mapped"]:
