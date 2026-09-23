@@ -645,6 +645,16 @@ def translate_frontmatter(fm: dict, report: TransferReport) -> tuple[dict, dict 
         out[k] = fm[k]
         report.lossless.append(f"`{k}`")
 
+    # Claude lists `when_to_use` beside `description` (shared 1,536-char
+    # listing cap); Codex reads only `description` for implicit invocation, so
+    # the trigger phrases are merged in before the 1024 trim below.
+    when_to_use = str(fm.get("when_to_use") or "").strip()
+    if when_to_use:
+        out["description"] = f"{str(out['description']).rstrip()} Also use when: {when_to_use}"
+        report.mapped.append(
+            "`when_to_use` 併入 `description`（Codex 只以 description 判斷隱式觸發）"
+        )
+
     # Codex enforces a 1024-char limit on `description`. Beyond that hard
     # limit, short descriptions matter systemically: the skills list shares a
     # context cap (~2% of the window / 8,000 chars per official docs), so
@@ -721,6 +731,16 @@ def translate_frontmatter(fm: dict, report: TransferReport) -> tuple[dict, dict 
                 )
             else:
                 report.dropped.append(f"`{k}` (no Codex equivalent)")
+
+    # Any key this function does not know is reported, never silently lost —
+    # Claude keeps adding frontmatter fields (`disallowed-tools`, `background`, …).
+    # `context` / `agent` never reach here: transfer_one skips those skills.
+    handled = OPEN_STANDARD | CLAUDE_ONLY_DROP | {
+        "when_to_use", "disable-model-invocation", "context", "agent",
+    }
+    for k in fm:
+        if k not in handled:
+            report.dropped.append(f"`{k}` (no Codex equivalent)")
 
     return out, openai_yaml
 

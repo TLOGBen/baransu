@@ -2,6 +2,11 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [6.1.1] - 2026-09-23
+
+### Fixed
+- **`/codex-skill-transfer` 不再默默丟掉 frontmatter 欄位**（skill metadata 0.18.0）：`when_to_use` 改為併入 Codex `description`（`{description} Also use when: {when_to_use}`，在 1024 字截短之前），`health`／`hunt` 的中文觸發詞在 Codex 版保留下來；其他未列入對應表的欄位（如 `disallowed-tools`、`background`）一律列入報告「已捨棄」，不再無聲消失。
+
 ## [6.1.0] - 2026-09-23
 
 ### Changed

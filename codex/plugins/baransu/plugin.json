@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "baransu",
-  "version": "6.1.0",
+  "version": "6.1.1",
   "description": "バランス — deliberate before executing, verify after. Fourteen governance skills covering the full development lifecycle.",
   "author": {
     "name": "ben.tsai",

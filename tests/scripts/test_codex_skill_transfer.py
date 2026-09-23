@@ -1196,7 +1196,7 @@ class TestPluginModeGeneration(unittest.TestCase):
             self.assertIn(
                 # Re-pinned 0.16.0 -> 0.17.0: portable root plugin.json,
                 # namespaced `$plugin:skill` mentions, SessionEnd kept.
-                "version: 0.17.0",
+                "version: 0.18.0",
                 (codex_transfer / "SKILL.md").read_text(encoding="utf-8"),
             )
             baransu_hooks = json.loads(
@@ -1958,6 +1958,56 @@ class TestCodexCurrentFormat(unittest.TestCase):
             rpt2 = report()
             transfer.check_output_invariants(target, rpt2)
             self.assertFalse(any("超過 Codex 上限 1024" in m for m in rpt2.manual_review))
+
+
+class TestFrontmatterNoSilentDrop(unittest.TestCase):
+    """Every Claude frontmatter key is either carried, mapped, or reported."""
+
+    def test_when_to_use_merged_into_description(self):
+        rpt = report()
+        out, _ = transfer.translate_frontmatter(
+            {"name": "hunt", "description": "Tracks a bug.", "when_to_use": "排查, debug"},
+            rpt,
+        )
+        self.assertEqual("Tracks a bug. Also use when: 排查, debug", out["description"])
+        self.assertNotIn("when_to_use", out)
+        self.assertIn(
+            "`when_to_use` 併入 `description`（Codex 只以 description 判斷隱式觸發）",
+            rpt.mapped,
+        )
+
+    def test_unknown_frontmatter_keys_reported(self):
+        rpt = report()
+        out, _ = transfer.translate_frontmatter(
+            {
+                "name": "x",
+                "description": "d",
+                "license": "MIT",
+                "disable-model-invocation": False,
+                "disallowed-tools": "Bash",
+                "background": True,
+                "future-field": 1,
+            },
+            rpt,
+        )
+        for key in ("disallowed-tools", "background", "future-field"):
+            self.assertNotIn(key, out)
+            self.assertIn(f"`{key}` (no Codex equivalent)", rpt.dropped)
+        for key in ("license", "disable-model-invocation", "name", "description"):
+            self.assertFalse(any(f"`{key}`" in d for d in rpt.dropped), key)
+
+    def test_baransu_hunt_port_keeps_trigger_phrases(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "out"
+            out.mkdir()
+            rpt = transfer.transfer_one(REPO_ROOT / "plugins" / "baransu" / "skills" / "hunt", out)
+            fm, _ = transfer.split_frontmatter(
+                (out / "hunt" / "SKILL.md").read_text(encoding="utf-8")
+            )
+        self.assertIn("Also use when: 排查", fm["description"])
+        self.assertNotIn("when_to_use", fm)
+        self.assertLessEqual(len(fm["description"]), 1024)
+        self.assertFalse(any("when_to_use" in d for d in rpt.dropped))
 
 
 if __name__ == "__main__":

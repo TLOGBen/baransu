@@ -30,6 +30,8 @@ Authoritative translation table from Claude Code SKILL.md frontmatter to Codex s
 | `hooks` | — | Drop from skill frontmatter (Codex skills have no frontmatter hooks). Codex lifecycle hooks belong in `~/.codex/hooks.json`, project `.codex/hooks.json`, config TOML, or a plugin's `hooks/hooks.json`. Hooks are enabled by default but non-managed command definitions are trust-gated through `/hooks`; `command` and `mcp_tool` handlers execute; `prompt` and `agent` handlers are parsed but skipped. A whole-plugin transfer handles bundled hooks at the plugin layer; a single-skill transfer reports the field for manual relocation. Source: learn.chatgpt.com/docs/hooks |
 | `paths` | — | Drop. No Codex equivalent for glob-scoped activation. Note in report. |
 | `shell` | — | Drop. Codex skills run shell via tool calls, not a pre-declared shell. |
+| `when_to_use` | `description` | Merge: appended as `{description} Also use when: {when_to_use}` before the 1024-char trim. Codex reads only `description` for implicit invocation, so dropping it would lose the trigger phrases. |
+| any other key (`disallowed-tools`, `background`, …) | — | Drop and name it in the report under 已捨棄 — an unlisted key is never lost silently. Add a row here when a new key earns a real mapping. |
 
 ## Rules in detail
 

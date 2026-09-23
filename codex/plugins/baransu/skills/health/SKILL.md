@@ -7,9 +7,10 @@ description: 'Audits a project''s agent configuration and AI-coding maintainabil
   not found（環境急診：預設修法＝官方一步全域安裝）. Trigger On ''$baransu:health'', ''健康檢查'', ''配置體檢'',
   ''檢查配置'', ''AI 可維護性'', ''agents ignoring instructions''. Not for verifying baransu''s
   own skill structure (scripts/verify-skills.py), reviewing a single model output
-  ($baransu:review), or substituting for lint/typecheck. 繁體中文輸出。
-
-  '
+  ($baransu:review), or substituting for lint/typecheck. 繁體中文輸出。 Also use when: 檢查
+  claude, 檢查 codex, 配置對不對, 健康度, AI coding 腐化, 程式碼變爛, 上下文混亂, 驗證缺失, hooks 沒生效, MCP 壞了,
+  AGENTS.md, agent instructions, check config, audit config, health check, config
+  drift, command not found, 環境問題, 依賴缺失, SDK 沒裝'
 metadata:
   version: 1.2.0
   scope: user-project-agent-config-and-maintainability
