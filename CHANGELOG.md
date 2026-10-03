@@ -2,6 +2,13 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [6.2.1] - 2026-10-03
+
+### Fixed
+- **`/read` peek 失敗字串統一**：Stage 2 §2 在 peek 模式記錄的失敗字串補上「（未存檔）」，和 Peek finish 實際回報的 `{slug}: markitdown 轉換失敗（未存檔）` 一致，避免日後為了「對齊」而改壞回報常數。
+- **`/learn` 路由 eval 改指向 `/read --save`**：「只要離線原文」的 eval 原本寫 routes to /read，6.2.0 之後那樣不會存檔。
+- **peek 圖片守門測試放寬**：`test-read-peek-default.sh` 改為抓任何提到 image／`assets/` 的下載指示，不再只認 `download relevant images` 一種措辭。
+
 ## [6.2.0] - 2026-10-03
 
 ### Changed

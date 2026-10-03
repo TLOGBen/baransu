@@ -56,7 +56,7 @@
       "prompt": "只要把原文存下來就好，不用整理",
       "should_trigger": false,
       "expected_skill": "read",
-      "expected_behavior": "Raw offline capture without digestion routes to /read."
+      "expected_behavior": "Raw offline capture without digestion routes to /read --save."
     },
     {
       "id": 9,

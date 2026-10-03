@@ -70,7 +70,8 @@ else
 fi
 
 # F2: lanes download images only in save mode
-UNGATED=$(grep -rn 'download relevant images' "${READ_DIR}/references/acquisition" | grep -vF 'Save mode only:' || true)
+# Any download instruction that names images or assets/, in any wording, needs the gate.
+UNGATED=$(grep -rniE 'download[^.]*(image|assets/)|(image|assets/)[^.]*download' "${READ_DIR}/references/acquisition" | grep -vF 'Save mode only:' || true)
 if [[ -z "${UNGATED}" ]]; then
   pass "peek_writes_nothing: lane image downloads are save-mode only"
 else
@@ -92,6 +93,13 @@ if has "${SKILL}" 'after §3 it reports exactly `{slug}: markitdown 轉換失敗
   pass "peek_writes_nothing: failed peek conversion reports the failure line only"
 else
   fail "peek_writes_nothing: failed peek conversion can fall through to the success report"
+fi
+
+# O1: the Stage 2 §2 peek record and the Peek finish failure report are one string
+if has "${SKILL}" '(peek mode: 「{slug}: markitdown 轉換失敗（未存檔）」)'; then
+  pass "peek_writes_nothing: Stage 2 §2 peek record matches the failure constant"
+else
+  fail "peek_writes_nothing: Stage 2 §2 peek record drifted from the failure constant"
 fi
 
 # ---------------------------------------------------------------
@@ -131,6 +139,13 @@ if [[ -z "${BARE}" ]]; then
   pass "learn_calls_read_with_save: every /learn → /read call carries --save"
 else
   fail "learn_calls_read_with_save: /read call without --save:"$'\n'"${BARE}"
+fi
+
+STALE_EVAL=$(grep -nE 'routes to /read\.?"' "${LEARN_DIR}/evals/evals.json" || true)
+if [[ -z "${STALE_EVAL}" ]]; then
+  pass "learn_calls_read_with_save: /learn evals route raw capture to /read --save"
+else
+  fail "learn_calls_read_with_save: /learn eval routes to a save-less /read:"$'\n'"${STALE_EVAL}"
 fi
 
 for needle in 'Call `/read --save <url>`' 'Call `/read --save --topic "keyword"`' 'Stage 1 §1 `/read --save` route' \

@@ -183,7 +183,7 @@ Always use quoted paths. Suppress onnxruntime warnings with `2>/dev/null`.
 
 ### 2. Check output
 
-If `/tmp/{slug}-convert.md` is empty (0 bytes) or missing: consult `references/conversion/markitdown-guide.md` (supported formats, OCR/audio extras, `--keep-data-uris` flag) before giving up; if still failing, record 「{slug}: markitdown 轉換失敗，raw/ 已保留」 (peek mode: 「{slug}: markitdown 轉換失敗」) — in save mode skip Stage 3 §§1–6 and go directly to Stage 3 §7 (Completion report), and do NOT create a `material/` entry for this item; in peek mode go to Peek finish §3 and close with the failure report there — never §4. Non-empty output whose inline data-URI images come out truncated also counts as a failure here — rerun with `--keep-data-uris` per the same guide.
+If `/tmp/{slug}-convert.md` is empty (0 bytes) or missing: consult `references/conversion/markitdown-guide.md` (supported formats, OCR/audio extras, `--keep-data-uris` flag) before giving up; if still failing, record 「{slug}: markitdown 轉換失敗，raw/ 已保留」 (peek mode: 「{slug}: markitdown 轉換失敗（未存檔）」) — in save mode skip Stage 3 §§1–6 and go directly to Stage 3 §7 (Completion report), and do NOT create a `material/` entry for this item; in peek mode go to Peek finish §3 and close with the failure report there — never §4. Non-empty output whose inline data-URI images come out truncated also counts as a failure here — rerun with `--keep-data-uris` per the same guide.
 
 ### 3. Image handling
 
