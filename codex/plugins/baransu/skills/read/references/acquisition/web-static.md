@@ -7,7 +7,7 @@
 
 # Web — Static Content Acquisition
 
-Path convention: define `$READ_ROOT=.codex/read` (relative to the repository root); every `raw/` path in this file lives under it. Each lane runs `mkdir -p` before its first write into `$READ_ROOT/raw/{slug}/`. Fetches land in a temp path first and move into `raw/` only after quality checks pass — so `raw/{slug}/` is written exactly once and immutability holds by construction.
+Path convention: `$READ_ROOT` is the root SKILL.md's Mode section set — `.codex/read` (relative to the repository root) in save mode, the run's scratch directory in peek mode; every `raw/` path in this file lives under it. Each lane runs `mkdir -p` before its first write into `$READ_ROOT/raw/{slug}/`. Fetches land in a temp path first and move into `raw/` only after quality checks pass — so `raw/{slug}/` is written exactly once and immutability holds by construction.
 
 ## Local-First Fetch (default)
 
@@ -148,4 +148,4 @@ mkdir -p "$READ_ROOT/raw/{slug}"
 curl -sL "{url}" -o "$READ_ROOT/raw/{slug}/index.pdf"
 ```
 
-Save as `index.pdf` (extension `pdf`). Then hand the saved raw file to SKILL.md Stage 2 (Convert) — the Stage 2/3 pipeline (tmp intermediate, image handling, final slug + dedup, frontmatter, index row) applies unchanged.
+Save as `index.pdf` (extension `pdf`). Then hand the saved raw file to SKILL.md Stage 2 (Convert) — Stage 2 (tmp intermediate, image handling) and then Peek finish in peek mode, or Stage 3 (final slug + dedup, frontmatter, index row) in save mode, apply unchanged.

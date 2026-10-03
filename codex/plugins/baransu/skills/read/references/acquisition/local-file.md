@@ -20,7 +20,7 @@ cp "{path}" "raw/{slug}/index.{ext}"
 
 4. Derive the slug from the filename stem (see Slug Rules below).
 
-5. Proceed with the standard Convert → Organize pipeline.
+5. Proceed with the standard Convert → Organize pipeline (Organize runs in save mode only; peek mode ends at Peek finish).
 
 ---
 
@@ -47,8 +47,8 @@ done
 
 3. For each matched file, run the full pipeline independently:
    - Each file gets its own slug derived from its filename stem.
-   - Each file produces its own `raw/{slug}/` and `material/{slug}/` directories.
-   - Each file appends its own row to `.codex/read/index.md`.
+   - Each file produces its own `raw/{slug}/` directory (and, in save mode only, its own `material/{slug}/` directory).
+   - In save mode only, each file appends its own row to `.codex/read/index.md`.
 
 Process files sequentially to avoid index append collisions.
 

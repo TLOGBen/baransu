@@ -50,4 +50,4 @@ Use a timestamp-based slug because there is no title or URL to derive one from.
 
 ## Conversion Note
 
-Clipboard text that is already valid Markdown is acceptable input to markitdown. The conversion output may look identical or nearly identical to the input — this is expected behavior, not an error. Proceed normally through the Convert → Organize pipeline regardless.
+Clipboard text that is already valid Markdown is acceptable input to markitdown. The conversion output may look identical or nearly identical to the input — this is expected behavior, not an error. Proceed normally through the Convert → Organize pipeline (Organize runs in save mode only; peek mode ends at Peek finish) regardless.

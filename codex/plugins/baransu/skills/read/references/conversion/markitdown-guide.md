@@ -100,7 +100,7 @@ markitdown fetches the raw static HTML when given a URL. Single-page application
 
 Correct workflow:
 1. Use the browser layer to render the page and extract the HTML text.
-2. Save that text to `.codex/read/raw/{slug}/index.html`.
-3. Hand the saved raw file to SKILL.md Stage 2 (Convert) — the Stage 2/3 pipeline (tmp intermediate, image handling, final slug + dedup, frontmatter, index row) applies unchanged. Never convert straight into `material/`.
+2. Save that text to `$READ_ROOT/raw/{slug}/index.html`.
+3. Hand the saved raw file to SKILL.md Stage 2 (Convert) — Stage 2 (tmp intermediate, image handling) and then Peek finish in peek mode, or Stage 3 (final slug + dedup, frontmatter, index row) in save mode, apply unchanged. Never convert straight into `material/`.
 
 Never pass the original URL to markitdown after saving via the browser layer — pass the saved file path.

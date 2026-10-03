@@ -1,23 +1,37 @@
 ---
 name: read
 description: >
-  Captures and converts any content source — URL / path / glob / --chrome / --clipboard / --topic / --web / --gh / --x — to offline-readable Markdown under .claude/read/. Use when the user wants to archive content for offline reading. Trigger On '/read', '存下來', '抓網頁', '轉成 markdown', '存檔'. Not For digesting captured content into notes (use /learn) or producing browser-ready HTML output (use /book) — /read only captures raw offline Markdown.
-argument-hint: "[URL | path | glob | --topic 'keyword' | --web 'keyword' | --gh 'keyword' | --x 'keyword' | --chrome | --clipboard] [--use-proxy]"
+  Reads any web page, file, or search result into the conversation as clean Markdown; keeps an offline copy under .claude/read/ only with --save or an explicit save request. Use when the user wants a page, PDF, or doc fetched, read, or converted. Trigger On '/read', '抓網頁', '看一下這篇', '轉成 markdown', '存下來', '存檔'. Not For digesting into notes (/learn) or browser-ready HTML (/book).
+argument-hint: "[URL | path | glob | --topic 'keyword' | --web 'keyword' | --gh 'keyword' | --x 'keyword' | --chrome | --clipboard] [--save] [--use-proxy]"
 user-invocable: true
 ---
 
-This skill captures any content source and converts it to clean, offline-readable Markdown via a three-stage pipeline: Acquire → Convert → Organize.
+This skill reads any content source into clean Markdown via Acquire → Convert. By default (peek mode) the result goes into the conversation and nothing is kept on disk; only save mode runs the third stage, Organize, which archives an offline-readable copy under `.claude/read/`.
 
 **User-facing language**: 繁體中文. All output shown to the user (stage notices, completion reports, error messages) must be in Traditional Chinese.
 
 ## Outcome Contract
 
-- **Outcome**: The given content source is captured as clean, offline-readable Markdown with its images localized.
-- **Done when**: `.claude/read/material/{final-slug}/index.md` exists with full frontmatter, downloaded images sit in `material/{final-slug}/assets/`, and `.claude/read/index.md` carries a matching row.
-- **Evidence**: The 繁中 completion report listing the saved path, image success/failure counts, and the markitdown version used.
-- **Output**: `material/{final-slug}/index.md` (+ `assets/`), an updated `.claude/read/index.md` row, and the immutable original under `raw/{slug}/`.
+- **Outcome**: The given content source is converted to clean Markdown and read into the conversation; in save mode it is also archived as offline-readable Markdown with its images localized.
+- **Done when**: Peek mode — the converted Markdown has been read into the conversation, the run's scratch directory is deleted, and no path under `.claude/read/` was created, modified, or deleted. Save mode — `.claude/read/material/{final-slug}/index.md` exists with full frontmatter, downloaded images sit in `material/{final-slug}/assets/`, and `.claude/read/index.md` carries a matching row.
+- **Evidence**: Peek mode — the 繁中 peek report (title, source, character count). Save mode — the 繁中 completion report listing the saved path, image success/failure counts, and the markitdown version used.
+- **Output**: Peek mode — nothing on disk. Save mode — `material/{final-slug}/index.md` (+ `assets/`), an updated `.claude/read/index.md` row, and the immutable original under `raw/{slug}/`.
 - **Automation**: ultracode=neutral, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
   In the same non-interactive pass, read `references/loop-pauses.md` for this skill's own PAUSE classification.
+
+## Mode — peek (default) or save
+
+Decide the run's mode once, before Stage 0:
+
+- **save** when the arguments contain `--save`, or the user's request contains a save trigger: 存下來｜存檔｜離線保存｜存成離線｜保存下來｜archive.
+- **peek** otherwise — including requests phrased as 抓網頁, 看一下這篇, or 轉成 markdown.
+
+Set `$READ_ROOT` from the mode. Every `raw/` path in this file and in `references/acquisition/` lives under it:
+
+- save: `$READ_ROOT=.claude/read` — the offline archive; every rule below about `raw/`, `material/`, and `index.md` applies.
+- peek: `$READ_ROOT=$(mktemp -d)` — a per-run scratch directory outside `.claude/read/`. A peek run MUST NOT create, modify, or delete any path under `.claude/read/`, and it downloads no images.
+
+In peek mode every `/tmp/{slug}-*` intermediate that this file or its references name (`-fetch.html`, `-fetch.md`, `-convert.md`) is written under `$READ_ROOT` instead (`$READ_ROOT/{slug}-convert.md`, and so on), so deleting `$READ_ROOT` removes every trace of the run.
 
 ## Stage 0 — Environment Self-Check
 
@@ -72,7 +86,7 @@ Chrome being unavailable is NOT an early exit for the run as a whole — only th
 
 **Forward-reference map** — the lanes below jump to two routing targets: URL routing → §9 (defined below in this stage); candidate presentation → `references/acquisition/candidate-selection.md` (read it before the first AskUserQuestion round).
 
-Parse the argument(s) passed to `/read`. `--use-proxy` is a modifier flag, not a mode: if present, strip it from the argument list before routing and record `$USE_PROXY=true` (default `false`). Route as follows (check in order):
+Parse the argument(s) passed to `/read`. `--use-proxy` and `--save` are modifier flags, not input modes: strip both from the argument list before routing; record `$USE_PROXY=true` when `--use-proxy` is present (default `false`) — `--save` was already consumed by the Mode section. Route as follows (check in order):
 
 ### 1. `--topic "keyword"`
 
@@ -142,7 +156,7 @@ Output 「無法識別輸入：{input}。請使用 URL、本地路徑、glob、-
 
 ### After Acquire
 
-All acquired content must be saved to `.claude/read/raw/{slug}/index.{ext}` before proceeding to Stage 2. Images found during acquisition are downloaded to `.claude/read/raw/{slug}/assets/`.
+All acquired content must be saved to `$READ_ROOT/raw/{slug}/index.{ext}` before proceeding to Stage 2. In save mode, images found during acquisition are downloaded to `$READ_ROOT/raw/{slug}/assets/`; peek mode downloads none.
 
 Generate an initial slug from the URL path's last segment or filename stem using slug rules: lowercase, ASCII, hyphens, max 60 chars.
 
@@ -153,7 +167,7 @@ If `raw/{slug}/` already exists (recapture of the same source), do NOT overwrite
 ### 1. Run markitdown
 
 ```bash
-python3 -m markitdown ".claude/read/raw/{slug}/index.{ext}" -o "/tmp/{slug}-convert.md" 2>/dev/null
+python3 -m markitdown "$READ_ROOT/raw/{slug}/index.{ext}" -o "/tmp/{slug}-convert.md" 2>/dev/null
 ```
 
 Invoke markitdown as `python3 -m markitdown` (matching the Stage 0 §3 check) — never the bare `markitdown` form, which may not be on PATH.
@@ -162,9 +176,11 @@ Always use quoted paths. Suppress onnxruntime warnings with `2>/dev/null`.
 
 ### 2. Check output
 
-If `/tmp/{slug}-convert.md` is empty (0 bytes) or missing: consult `references/conversion/markitdown-guide.md` (supported formats, OCR/audio extras, `--keep-data-uris` flag) before giving up; if still failing, record 「{slug}: markitdown 轉換失敗，raw/ 已保留」; skip Stage 3 §§1–6 and go directly to Stage 3 §7 (Completion report); do NOT create a `material/` entry for this item. Non-empty output whose inline data-URI images come out truncated also counts as a failure here — rerun with `--keep-data-uris` per the same guide.
+If `/tmp/{slug}-convert.md` is empty (0 bytes) or missing: consult `references/conversion/markitdown-guide.md` (supported formats, OCR/audio extras, `--keep-data-uris` flag) before giving up; if still failing, record 「{slug}: markitdown 轉換失敗，raw/ 已保留」 (peek mode: 「{slug}: markitdown 轉換失敗」) — in save mode skip Stage 3 §§1–6 and go directly to Stage 3 §7 (Completion report), and do NOT create a `material/` entry for this item; in peek mode go to Peek finish §3 and close with the failure report there — never §4. Non-empty output whose inline data-URI images come out truncated also counts as a failure here — rerun with `--keep-data-uris` per the same guide.
 
 ### 3. Image handling
+
+Peek mode skips this section: download nothing and leave every image ref exactly as the converted Markdown has it, then go to Peek finish.
 
 Extract ALL image refs from the converted markdown — absolute AND relative:
 
@@ -188,7 +204,28 @@ Leave the downloaded images in `raw/{slug}/assets/`; they are copied into `mater
 
 In the converted markdown, replace each original image ref (absolute or relative) with `./assets/{filename}`, using the same URL→filename mapping built above (including uniquified names).
 
-## Stage 3 — Organize
+## Peek finish (peek mode only)
+
+Stage 3 is save-only. In peek mode, after Stage 2:
+
+1. Read `$READ_ROOT/{slug}-convert.md` into the conversation with the file-reading tool. This is the run's deliverable: use it for whatever the user asked of the content.
+2. Take the title with the Stage 3 §1 rules (no slug, dedup, or index step follows).
+3. Delete the run's scratch: `rm -rf "$READ_ROOT"`.
+4. Report, exactly:
+
+```
+📄 已讀取（未存檔）：{title}
+來源：{source_url 或 local:{path}}｜{N} 字
+要存成離線檔請加 --save
+```
+
+`{N}` is the converted Markdown's character count. The report never quotes the converted body.
+
+A conversion that failed in Stage 2 §2 skips §1, §2 and §4: after §3 it reports exactly `{slug}: markitdown 轉換失敗（未存檔）` and nothing else for that item. A glob of 10+ items reports once instead: `已讀取 {N} 筆（未存檔），失敗 {M} 筆；要存成離線檔請加 --save`.
+
+Non-interactive (loop-driven) runs append the `LOOP_OUTCOME:` terminal line per `../_shared/loop-contract.md` after the report.
+
+## Stage 3 — Organize (save mode only)
 
 ### 1. Extract title
 
@@ -287,6 +324,7 @@ Non-interactive (loop-driven) runs append the `LOOP_OUTCOME:` terminal line per 
 - **Image filenames are confined to assets/**: an image filename is derived from a remote, attacker-controllable URL; never write a downloaded image to a path containing `..`, a path separator, or an absolute prefix. Skip any image whose sanitized filename is empty or still escapes `assets/` (recorded as `[image skipped: unsafe filename ...]`), never the unsanitized remote segment.
 - **No LLM post-processing**: The converted markdown content is markitdown's raw output. Never summarize, rewrite, translate, or annotate the content.
 - **raw/ is immutable**: Once `raw/{slug}/` is written, never modify it. It is the original archive.
+- **Peek leaves no trace**: a peek run touches nothing under `.claude/read/` — no `raw/`, no `material/`, not even an empty `index.md` — and deletes its scratch directory before reporting. Saving happens only on `--save` or a save trigger, never as a side effect.
 - **chrome-tab in degraded mode**: When `$CHROME_AVAILABLE=false`, always report unavailability — never attempt to call chrome MCP tools.
 - **Partial failure does not stop the pipeline**: Image failures, individual glob items failing, or convert failures are recorded and reported; the successful items complete normally.
 - **Completion report is compact**: Show path + counts + failure list only. Never print the full converted markdown content to the user.
@@ -294,7 +332,7 @@ Non-interactive (loop-driven) runs append the `LOOP_OUTCOME:` terminal line per 
 ## Gotchas
 
 - **onnxruntime GPU warning**: Non-fatal. Appears on WSL2 with NVIDIA drivers. Use `2>/dev/null` when calling markitdown CLI to suppress.
-- **markitdown accepts file path, not live URL**: After Acquire, always pass `raw/{slug}/index.{ext}` to markitdown — never pass the original URL; applies to ALL input types including PDF.
+- **markitdown accepts file path, not live URL**: After Acquire, always pass `$READ_ROOT/raw/{slug}/index.{ext}` to markitdown — never pass the original URL; applies to ALL input types including PDF.
 - **SPA false positive** (`<div id="root">` in static HTML): upgrading to browser layer will produce richer content. This is acceptable behavior.
 - **Windows environment**: Call `install-deps.bat` not `install-deps.sh`. Platform detection in Stage 0 determines which to call.
 - **Slug collision naming**: Use `_v2`, `_v3` etc. — never `_1`, `_2`. The dedup logic in Stage 3 and index.md use the `_vN` convention consistently.

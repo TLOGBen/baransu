@@ -37,7 +37,7 @@ mcp__claude-in-chrome__get_page_text
 Save the returned text to:
 
 ```
-.claude/read/raw/{slug}/index.html
+$READ_ROOT/raw/{slug}/index.html
 ```
 
 where `slug` is derived from the tab's `title` using the standard slug rules.
@@ -50,12 +50,12 @@ mcp__claude-in-chrome__javascript_tool
   code: "[...document.querySelectorAll('img')].map(i=>i.src).join('\\n')"
 ```
 
-Use the returned URL list to download relevant images into `raw/{slug}/assets/` if needed.
+Save mode only: use the returned URL list to download relevant images into `raw/{slug}/assets/` if needed. Peek mode downloads no images.
 
 ---
 
 ## After Extraction
 
-The extracted content is already saved under `.claude/read/raw/{slug}/index.html` (Step 2). Hand the saved raw file to SKILL.md Stage 2 (Convert) — the Stage 2/3 pipeline (tmp intermediate, image handling, final slug + dedup, frontmatter, index row) applies unchanged. Never convert straight into `material/`.
+The extracted content is already saved under `$READ_ROOT/raw/{slug}/index.html` (Step 2). Hand the saved raw file to SKILL.md Stage 2 (Convert) — Stage 2 (tmp intermediate, image handling) and then Peek finish in peek mode, or Stage 3 (final slug + dedup, frontmatter, index row) in save mode, apply unchanged. Never convert straight into `material/`.
 
 Set `source_url` in the frontmatter to the tab's `url` (recorded in Step 1).

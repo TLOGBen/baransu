@@ -4,7 +4,8 @@ description: 'Produces a structured learning brief from any content: a 5-column 
   brief per source plus an optional filled outline, from URLs / --topic / captured
   slugs / mixed. Use when the user wants sources digested into a learning note. Trigger
   On ''$baransu:learn'', ''研究主題'', ''整理筆記'', ''學一下''. Not for capturing raw offline
-  Markdown only (→ $baransu:read) nor producing a browser-ready HTML artifact (→ $baransu:book).
+  Markdown only (→ $baransu:read --save) nor producing a browser-ready HTML artifact
+  (→ $baransu:book).
 
   '
 compatibility: Designed for Claude Code; ported to Codex.
@@ -48,13 +49,13 @@ Route each argument as follows (check in order per argument):
 
 ### 1. URL input (`http://` or `https://` prefix)
 
-Call `$baransu:read <url>` for each URL sequentially. After `$baransu:read` completes, the material is available at `.codex/read/material/{slug}/index.md` where `{slug}` is the slug assigned by `$baransu:read`. Append that path to `$SOURCES`.
+Call `$baransu:read --save <url>` for each URL sequentially — `$baransu:read` keeps nothing on disk without `--save`, and this pipeline needs the saved material. After `$baransu:read` completes, the material is available at `.codex/read/material/{slug}/index.md` where `{slug}` is the slug assigned by `$baransu:read`. Append that path to `$SOURCES`.
 
 Process multiple URLs one at a time, not in parallel.
 
 ### 2. `--topic "keyword"`
 
-Call `$baransu:read --topic "keyword"`. The paper-list display and user-selection prompt from `$baransu:read` **must surface to the user as-is** — do not hide, automate, or skip the selection step. After the user selects a paper and `$baransu:read` completes acquisition, append the resulting `.codex/read/material/{slug}/index.md` path to `$SOURCES`.
+Call `$baransu:read --save --topic "keyword"`. The paper-list display and user-selection prompt from `$baransu:read` **must surface to the user as-is** — do not hide, automate, or skip the selection step. After the user selects a paper and `$baransu:read` completes acquisition, append the resulting `.codex/read/material/{slug}/index.md` path to `$SOURCES`.
 
 Note: the paper selection UI is shown to the user, not performed silently inside $baransu:learn.
 
@@ -97,7 +98,7 @@ Triggered when §3 matches the syntactic shape of a slug but `.codex/read/materi
 **Soft-failure invariant**:
 - Any single lane failure (timeout / API error / 0 results / schema-check fail / Chrome unavailable) does NOT stop the other lanes.
 - At least 1 lane returning ≥1 candidate is sufficient to continue to Stage 2.
-- All four lanes failing → first emit the per-lane status surface (the three-state lines below) so the user sees which lanes were `0 hits (no results)` vs `failed (timeout|api_error|...)`, then output 「所有 lane 均無結果，請嘗試其他關鍵字或手動跑 $baransu:read」 and stop. The aggregate message MUST NOT replace the per-lane breakdown — both appear, in that order.
+- All four lanes failing → first emit the per-lane status surface (the three-state lines below) so the user sees which lanes were `0 hits (no results)` vs `failed (timeout|api_error|...)`, then output 「所有 lane 均無結果，請嘗試其他關鍵字或手動跑 $baransu:read --save」 and stop. The aggregate message MUST NOT replace the per-lane breakdown — both appear, in that order.
 - (intentional divergence from `$baransu:read`, which stops on any failure)
 
 **Lane status surface** (one line per lane, three states):
@@ -109,7 +110,7 @@ Triggered when §3 matches the syntactic shape of a slug but `.codex/read/materi
 - Each lane's candidates are written into `$SOURCES` as `{url, path|null, lane}` tuples (the `lane` field carries `academic|web|gh|x`; `path` is `null` until the capture step below fills it; for inputs from §1/§2/§3, the `lane` field is `null` and `path` is already resolved).
 - Deduplicate across lanes by the candidate's `url` field, exact-string equality (no fuzzy normalization; trailing slash / query string differences are kept distinct, Stage 2 will surface them and the user can drop duplicates during the trim step).
 
-**Capture step (main flow, after merging, before Stage 2)**: the MAIN flow — never the lanes themselves — routes each surviving candidate URL through the Stage 1 §1 `$baransu:read` route to produce `.codex/read/material/{slug}/index.md`, filling the tuple's `path` field. Only those captured paths enter Stage 2 scoring. A candidate whose capture fails is dropped from `$SOURCES` with a one-line 繁中 notice naming the URL.
+**Capture step (main flow, after merging, before Stage 2)**: the MAIN flow — never the lanes themselves — routes each surviving candidate URL through the Stage 1 §1 `$baransu:read --save` route to produce `.codex/read/material/{slug}/index.md`, filling the tuple's `path` field. Only those captured paths enter Stage 2 scoring. A candidate whose capture fails is dropped from `$SOURCES` with a one-line 繁中 notice naming the URL.
 
 **Disambiguation note** (slug vs topic):
 - `$baransu:learn react` (single word, slug shape, slug-file exists) → §3 reads existing material.
@@ -286,7 +287,7 @@ Store the outline as `$OUTLINE` for use in Stage 4.
 
 If `$OUTLINE` contains any entries marked `⚠️ 需補充調查`, output the following reminder **before** proceeding:
 
-「以下段落缺乏來源支撐（標記 ⚠️ 需補充調查），可補充 $baransu:read 資料後繼續。」
+「以下段落缺乏來源支撐（標記 ⚠️ 需補充調查），可補充 $baransu:read --save 資料後繼續。」
 
 Followed by a list of the affected outline sections (section titles and/or bullet points that carry the `⚠️ 需補充調查` marker).
 
@@ -321,7 +322,7 @@ When a gap trigger fires for a section:
 1. Output a 繁中 notice identifying the trigger and section:
    「[第N節] 偵測到缺口（{觸發原因}），回退至 Stage 2 補充來源。」
 
-2. Return to Stage 2 — Digest with the following scoped call: present the user with the gap description and ask them to provide additional sources (URLs or slugs) for that section specifically. URL supplements first pass through the Stage 1 §1 route (`$baransu:read` capture) to obtain their `material/{slug}/index.md` paths, and only then enter the scoped Stage 2 scoring; slug supplements resolve directly as Stage 1 §3 does. Re-run Stage 2 scoring on these new sources only. Append accepted sources to `$FILTERED_SOURCES`.
+2. Return to Stage 2 — Digest with the following scoped call: present the user with the gap description and ask them to provide additional sources (URLs or slugs) for that section specifically. URL supplements first pass through the Stage 1 §1 route (`$baransu:read --save` capture) to obtain their `material/{slug}/index.md` paths, and only then enter the scoped Stage 2 scoring; slug supplements resolve directly as Stage 1 §3 does. Re-run Stage 2 scoring on these new sources only. Append accepted sources to `$FILTERED_SOURCES`.
 
 3. Track the number of consecutive retreats for this section in `$RETREAT_COUNT[section]`.
 

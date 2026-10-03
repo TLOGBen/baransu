@@ -2,6 +2,13 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [6.2.0] - 2026-10-03
+
+### Changed
+- **`/read` 預設改為只讀不存**：沒有 `--save`、也沒有「存下來／存檔／離線保存」這類說法時，`/read` 只把來源抓下來轉成 Markdown 交給 Claude 讀，`.claude/read/` 底下什麼都不寫、也不下載圖片，暫存檔用完即刪；回報改為「📄 已讀取（未存檔）」格式。加 `--save`（或用存檔說法）才走原本的完整離線存檔流程，行為不變。
+- **`/read` 的 description 改寫**：照官方 skill 撰寫建議，只寫「做什麼＋什麼時候用」與觸發詞，拿掉旗標清單（`argument-hint` 已列），字數由 441 降到 377。
+- **`/learn` 一律以 `/read --save` 擷取來源**：研究流程需要 `.claude/read/material/` 的存檔，URL、`--topic` 與候選擷取步驟都改帶 `--save`。
+
 ## [6.1.1] - 2026-09-23
 
 ### Fixed

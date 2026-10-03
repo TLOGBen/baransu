@@ -2,7 +2,7 @@
 
 ## Directory Structure
 
-All captured content lives under `.codex/read/` relative to the repository root.
+In save mode, all captured content lives under `.codex/read/` relative to the repository root. A peek-mode run (the default) writes nothing here — see SKILL.md's Mode section.
 
 ```
 .codex/read/

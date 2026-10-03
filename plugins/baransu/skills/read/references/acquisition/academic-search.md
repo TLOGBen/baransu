@@ -77,7 +77,7 @@ Then present candidates via AskUserQuestion per `references/acquisition/candidat
 
 ## User Selection
 
-User selection happens via AskUserQuestion (single-pick semantics; selection terminates the round sequence). The selected paper proceeds through the Acquire → Convert → Organize pipeline; if the user picks the escape option (`「以上都不選」`), terminate with no material output.
+User selection happens via AskUserQuestion (single-pick semantics; selection terminates the round sequence). The selected paper proceeds through the Acquire → Convert → Organize pipeline (Organize runs in save mode only; peek mode ends at Peek finish); if the user picks the escape option (`「以上都不選」`), terminate with no material output.
 
 For `N = 10` candidates from `search-papers.py` (default), the round mapping in `references/acquisition/candidate-selection.md` truncates to the first 7 by `search-papers.py`'s native ranking and presents 3 rounds (2 + 2 + 3 result slots, plus escape per round and `「下一批」` on non-final rounds).
 

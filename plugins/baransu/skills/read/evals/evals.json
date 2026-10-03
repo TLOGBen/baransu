@@ -7,21 +7,21 @@
       "prompt": "幫我把這篇存下來 https://example.com/post",
       "should_trigger": true,
       "expected_skill": "read",
-      "expected_behavior": "Capture the URL to offline Markdown under .claude/read/."
+      "expected_behavior": "Save trigger 「存下來」: save mode — capture the URL to offline Markdown under .claude/read/."
     },
     {
       "id": 2,
       "prompt": "抓網頁轉成 markdown",
       "should_trigger": true,
       "expected_skill": "read",
-      "expected_behavior": "Capture-and-convert intent: raw offline Markdown, no digestion."
+      "expected_behavior": "Peek mode (no save trigger): fetch and convert into the conversation as clean Markdown; nothing written under .claude/read/."
     },
     {
       "id": 3,
       "prompt": "/read --topic \"vector databases\"",
       "should_trigger": true,
       "expected_skill": "read",
-      "expected_behavior": "Academic topic mode: paper search (academic-search lane) with a user-selection prompt, then capture the selected paper's PDF/DOI to offline Markdown."
+      "expected_behavior": "Academic topic mode in peek: paper search (academic-search lane) with a user-selection prompt, then read the selected paper's PDF/DOI into the conversation; nothing written under .claude/read/."
     },
     {
       "id": 4,
@@ -43,6 +43,20 @@
       "should_trigger": false,
       "expected_skill": "review",
       "expected_behavior": "Second-opinion review routes to /review."
+    },
+    {
+      "id": 7,
+      "prompt": "看一下這篇 https://example.com/post",
+      "should_trigger": true,
+      "expected_skill": "read",
+      "expected_behavior": "Peek mode default for a bare URL: content read into the conversation, peek report shown, nothing written under .claude/read/."
+    },
+    {
+      "id": 8,
+      "prompt": "/read --save https://example.com/post",
+      "should_trigger": true,
+      "expected_skill": "read",
+      "expected_behavior": "--save flag: save mode — full capture pipeline to .claude/read/material/{slug}/index.md with images localized and an index row."
     }
   ]
 }

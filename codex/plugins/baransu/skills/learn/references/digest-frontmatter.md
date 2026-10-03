@@ -70,7 +70,7 @@ The list of phases that have been completed for this digest. Valid values (in or
 
 | Value      | Phase |
 |------------|-------|
-| `collect`  | Collect — fetch and store source materials via `$baransu:read` |
+| `collect`  | Collect — fetch and store source materials via `$baransu:read --save` |
 | `digest`   | Digest — extract key points and filter noise |
 | `outline`  | Outline — build the article structure |
 | `fill_in`  | Fill-in — write the full draft from the outline |
