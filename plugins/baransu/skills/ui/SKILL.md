@@ -94,7 +94,7 @@ When the brief points at a reference — a URL, a screenshot, a poster, an art m
 
 How to look depends on what the environment gives you. When a Chrome browser tool is available, open the page, read computed styles (font-family, font-size, line-height, colors, spacing) from the real DOM and take a screenshot — measured values beat guesses. When it is not, read the screenshot or image the user gave you and describe what you see. When there is neither, ask the user for one screenshot rather than designing from a memory of the site. None of these tools is a precondition; the reading is.
 
-Write the result as a short prose note at `.claude/design/reference-<slug>.md`, first line naming the source, so a later session can reuse it without re-reading the reference. Then design from the note the way you would from any brief: plan, review against the brief, build, critique.
+Write the result as a short prose note at `.claude/design/reference-<slug>.md`, first line naming the source, so a later session can reuse it without re-reading the reference. `/draw` reads that note as a brand source when it skins an explanatory diagram, so capture it once here and let diagram work reuse it; when a finished diagram must sit inside the user's site, `/draw` exports the SVG and this skill places it. Then design from the note the way you would from any brief: plan, review against the brief, build, critique.
 
 Extract properties, never assets. 只抽性質，不抽素材、文案、logo. Type choices, palettes, proportions, spacing systems and motion patterns are ideas; the reference's images, illustrations, icons, copy, logos and brand marks belong to their owner and do not enter the user's project.
 

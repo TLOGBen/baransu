@@ -51,7 +51,7 @@ A floor plan can reveal by zone the same way. Give each zone's furniture a `step
 
 ## Metadata contract
 
-`scripts/verify-axonometric-plan.py` reprojects each element from what it declares:
+`scripts/diagram/repo/verify-axonometric-plan.py` reprojects each element from what it declares:
 
 - The figure: one `<g data-axo-plan data-origin="ox oy">`.
 - The plate: one `<g data-plate data-rect="x0 y0 x1 y1 r" data-z="0" data-t="t">`.

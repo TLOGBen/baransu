@@ -183,7 +183,7 @@
     // Controls (scoped to this root); absent under reduced motion and in print via CSS.
     const ctrl = root.querySelector('[data-seek-controls]'), btn = ctrl.querySelector('button'), range = ctrl.querySelector('input'), out = ctrl.querySelector('output');
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let t = 0, playing = !reduced && !navigator.webdriver && !window.__RENDER__, prev = performance.now();
+    let t = 0, playing = false, prev = performance.now();                 // never autoplays: the reader presses play or scrubs
     const paint = () => { seek(t); range.value = t; out.textContent = 't = ' + t.toFixed(2) + ' s'; btn.textContent = playing ? '❚❚' : '▶'; btn.setAttribute('aria-label', playing ? 'Pause' : 'Play'); };
     btn.addEventListener('click', () => { playing = !playing; paint(); });
     range.addEventListener('input', () => { playing = false; t = Number(range.value); paint(); });
