@@ -2,6 +2,12 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [7.1.0] - 2026-10-07
+
+### Added
+- **`/draw` seek overlay：diagram × 時間軸**。SKILL.md 開頭改用兩個正交軸說明——「這一格上有什麼」（diagram 系統）與「它怎麼隨時間變」（`seek(t)` 方法）——四條 lane 是常見組合。diagram lane 新增 `references/diagram/seek-overlay.md` 與 `assets/diagram/template-seek.html`：完整的靜態圖 + 一層 `aria-hidden` 裝飾（沿真實連接線走的 token、節點高亮、時鐘）+ 一支 `<script data-seek-overlay>` 提供 `window.seek(t)` 與時間軸；reduced-motion／列印／無 JS 看到的是原本的靜態圖。`scripts/diagram/seek_split.py` 剝掉 overlay 產出靜態雙胞胎並跑 `self_check.py`；同一個 `seek(t)` 契約讓 `render.mjs` 能把圖直接輸出成影片。page lane 補一句：圖本身是架構圖／流程圖時用 seek-overlay SVG，不用 canvas 近似。
+- 測試：`test_draw_skill.py` 新增 seek 模板拆分＋`verify-geometry` 通過；`test-draw-toolchain.sh` T5 用 `--selector svg` 跑 hash 決定性。
+
 ## [7.0.0] - 2026-10-07
 
 ### Added

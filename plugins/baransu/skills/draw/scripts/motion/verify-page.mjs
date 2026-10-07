@@ -54,7 +54,7 @@ try {
     const page = await browser.newPage({ viewport: { width: 1280, height: 900 }, colorScheme: scheme, reducedMotion: 'reduce' });
     page.on('pageerror', (e) => report.errors.push(`${scheme}: ${e.message}`));
     page.on('console', (m) => { if (m.type() === 'error') report.errors.push(`${scheme} console: ${m.text()}`); });
-    await page.goto(pathToFileURL(HTML).href);
+    await page.goto(pathToFileURL(HTML).href, { waitUntil: 'networkidle' });
     await page.evaluate(() => document.fonts && document.fonts.ready);
     await page.waitForTimeout(600);
     const figs = page.locator(SEL);
