@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Opus 5.5 動態設計片場</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<style>
+/* Layout: one reading column (~44rem) with figures breaking out to ~70rem, like an editor's cut sheet. */
+:root {
+  --bg: #EEF0F4;
+  --surface: #FFFFFF;
+  --ink: #14161B;
+  --muted: #596070;
+  --line: #D3D8E1;
+  --accent: #2B45F0;
+  --accent-soft: #DDE2FF;
+  --tally: #D24C06;
+  --ok: #157F51;
+  --f-display: "Bricolage Grotesque", "Noto Sans TC", system-ui, sans-serif;
+  --f-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0D0F14; --surface: #161922; --ink: #E8EBF2; --muted: #9098A8; --line: #2A303C;
+    --accent: #8696FF; --accent-soft: #232A52; --tally: #FF8B42; --ok: #3FCB8B; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0D0F14; --surface: #161922; --ink: #E8EBF2; --muted: #9098A8; --line: #2A303C;
+  --accent: #8696FF; --accent-soft: #232A52; --tally: #FF8B42; --ok: #3FCB8B; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 1.0625rem; line-height: 1.8; }
+.wrap { max-width: 70rem; margin: 0 auto; padding-inline: 20px; padding-block: 48px 80px; display: flex; flex-direction: column; gap: 56px; }
+.col { max-width: 44rem; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; line-height: 1.25; margin: 0; }
+h1 { font-size: clamp(2.3rem, 6vw, 4rem); font-weight: 900; letter-spacing: -0.01em; }
+h2 { font-size: clamp(1.6rem, 3.4vw, 2.2rem); font-weight: 800; }
+h3 { font-size: 1.25rem; font-weight: 700; }
+p { margin: 0; }
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.eyebrow { font-family: var(--f-mono); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.lead { font-size: 1.25rem; line-height: 1.75; }
+.tc { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.meta { display: flex; flex-wrap: wrap; gap: 10px 22px; font-size: 0.92rem; color: var(--muted); }
+.meta b { color: var(--ink); font-family: var(--f-mono); font-weight: 500; }
+.note { border-left: 3px solid var(--accent); padding: 4px 0 4px 16px; color: var(--muted); font-size: 0.98rem; }
+.chap { display: flex; align-items: baseline; gap: 14px; }
+.chap .tc { color: var(--accent); font-size: 0.95rem; font-weight: 700; }
+ul, ol { margin: 0; padding-left: 1.3em; display: flex; flex-direction: column; gap: 8px; }
+li::marker { color: var(--muted); }
+code { font-family: var(--f-mono); font-size: 0.88em; background: var(--surface); border: 1px solid var(--line); padding: 1px 6px; border-radius: 4px; }
+pre { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px; overflow-x: auto; font-family: var(--f-mono); font-size: 0.84rem; line-height: 1.65; }
+pre code { background: none; border: 0; padding: 0; font-size: inherit; }
+.tldr { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 22px 24px; display: flex; flex-direction: column; gap: 12px; }
+.tldr ol { gap: 12px; }
+
+/* Figures */
+.fig { margin: 0; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.fig-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+.fig-no { font-family: var(--f-mono); font-size: 0.8rem; letter-spacing: 0.08em; color: var(--accent); font-weight: 700; }
+.fig-title { font-family: var(--f-display); font-weight: 700; font-size: 1.15rem; }
+.stage { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.stage canvas { display: block; width: 100%; min-width: 620px; aspect-ratio: 1200 / 675; }
+.ctrl { display: flex; align-items: center; gap: 14px; }
+.ctrl button { flex: none; width: 40px; height: 32px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; font-family: var(--f-mono); font-size: 0.9rem; }
+.ctrl button:hover { border-color: var(--accent); color: var(--accent); }
+.ctrl input[type=range] { flex: 1; min-width: 0; accent-color: var(--accent); }
+.ctrl output { flex: none; font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 0.85rem; color: var(--muted); min-width: 8.5em; text-align: right; }
+figcaption { color: var(--muted); font-size: 0.95rem; max-width: 52rem; }
+
+/* Level cards */
+.levels { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: 16px; }
+.lvl { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.lvl .k { font-family: var(--f-mono); font-weight: 700; color: var(--accent); font-size: 0.9rem; }
+.lvl p, .lvl li { font-size: 0.97rem; }
+.feel { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: 12px; }
+.feel div { border-top: 2px solid var(--accent); padding-top: 8px; font-size: 0.93rem; }
+.feel b { display: block; font-family: var(--f-display); font-size: 1rem; }
+.repos { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 8px 24px; padding: 0; list-style: none; }
+.repos li { font-size: 0.95rem; display: flex; flex-direction: column; min-width: 0; }
+.repos span { color: var(--muted); font-size: 0.82rem; }
+.repos a { overflow-wrap: anywhere; }
+footer { color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--line); padding-top: 18px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header class="col">
+  <span class="eyebrow">讀書筆記 · X 長文 · @0xMovez · 2026-09-27</span>
+  <h1>Opus 5.5 動態設計片場</h1>
+  <p class="lead">這篇長文拆解了 Opus 5.5 上市後一週內爆紅的「一句 prompt 做出動態影片」。結論只有一句：prompt 只佔影片的 10%，其他 90% 是 harness，也就是渲染引擎、參考素材、節拍，以及讓模型回頭看自己畫面的評審迴圈。</p>
+  <div class="meta">
+    <span>原文 <a href="https://x.com/0xMovez/status/2104216919033192746">How to build motion design studio with Opus 5.5</a></span>
+    <span>瀏覽 <b>1,945,082</b></span>
+    <span>收藏 <b>23,240</b></span>
+    <span>結構 <b>12 步 · 4 部分</b></span>
+  </div>
+  <p class="note">頁面裡的六張動畫圖都用了文章教的方法：每一格畫面都是時間 t 的純函數。按暫停後拖動時間軸，任何一格都能一模一樣地重現。</p>
+</header>
+
+<section class="col">
+  <div class="tldr">
+    <h3>一分鐘看懂</h3>
+    <ol>
+      <li><b>模型不輸出影片，它寫程式。</b>一個 <code>seek(t)</code> 函數畫出任意時刻的畫面，再由無頭瀏覽器逐格截圖、ffmpeg 合成 MP4。</li>
+      <li><b>「一句話 one-shot」是真的，但只夠測試你的環境。</b>爆紅作品背後多半是上萬字的 brief、skills、API key，以及好幾個小時的自主執行。</li>
+      <li><b>擺脫 AI 感靠三件事：</b>給參考（點名一種風格勝過描述它）、寫狀態清單、用彈簧取代固定緩動曲線。</li>
+      <li><b>聲音不是後製。</b>先量出節拍或用程式合成音樂，把轉場、狀態變化和音效都釘在同一張節拍網格上。</li>
+      <li><b>關鍵習慣是讓 Opus 看自己的畫面。</b>渲染靜態格、打分、修最差的 3 項，直到每項 ≥ 8 才全片渲染。最後把整條流程包成一個 skill。</li>
+    </ol>
+  </div>
+</section>
+
+<section class="col">
+  <div class="chap"><span class="tc">01–02</span><h2>原理：模型寫的是程式</h2></div>
+  <p>Opus 5.5 只吐得出文字，生不出 MP4。這波每一支影片，都是 Opus 寫的一段程式，再由別的工具把程式轉成畫面。</p>
+  <p>核心技巧是<strong>決定性</strong>。Opus 寫一個 <code>draw(t)</code> 或 <code>seek(t)</code>，給它任何時間點，它就畫出那一格的精確畫面。15 秒 60fps 就是無頭瀏覽器呼叫 900 次、截 900 張圖，再交給 ffmpeg 接起來。整個流程不依賴計時器，所以每次渲染結果都相同，要修改只要改一行再重渲染。</p>
+</section>
+
+<figure class="fig" data-fig="pipeline" data-dur="8" data-rest="7.4">
+  <div class="fig-head"><span class="fig-no">圖 1</span><span class="fig-title">渲染管線：從 prompt 到 MP4</span></div>
+  <div class="stage"><canvas width="1200" height="675" aria-label="渲染管線動畫：prompt、index.html、Playwright、ffmpeg、final.mp4 五個階段，影格逐一被截下並排進膠卷"></canvas></div>
+  <div class="ctrl"></div>
+  <figcaption>影格從 Playwright 截下、送進 ffmpeg，再排進膠卷。每一格的內容只由 i ÷ 60 決定。下方是動態模糊的做法：每格先渲染 4 個子格，再用 <code>tmix</code> 平均。</figcaption>
+</figure>
+
+<section class="col">
+  <h3>兩條路線</h3>
+  <ul>
+    <li><strong>Route A（Opus 的預設）</strong>：零依賴，一個 <code>index.html</code> 加上 Playwright 和 ffmpeg。Tommy Rossi 發現就算環境裡裝了 Remotion 或 HyperFrames，Opus 還是選這條。想用框架要在 prompt 裡明講。</li>
+    <li><strong>Route B（框架）</strong>：Remotion（React）適合系列、模板、資料驅動的影片；HyperFrames（HTML + GSAP）適合習慣用網頁思考的人。兩者都有現成的 Claude skills。</li>
+  </ul>
+  <p>只有 Claude Code 這種有 shell 的 agent 能渲染、聽聲音、看自己的影格。聊天介面寫得出動畫，但做不到這個回饋迴圈，而這個迴圈正是「第一版很普通」和爆紅作品的差別。</p>
+  <p>Effort 的建議：小修和重渲染用 <code>medium</code>，新片用 <code>xhigh</code>，開頭 3 秒要撐起一次產品發表時用 <code>max</code>。文中每一支爆紅的 one-shot 都跑在 xhigh 或 max。</p>
+</section>
+
+<section class="col">
+  <div class="chap"><span class="tc">03–06 · 10</span><h2>Prompt 的四個層級</h2></div>
+  <p>作者把九篇爆紅貼文的 prompt 排成一道梯子。越往上 prompt 越長，但真正變多的是右邊那欄：模型手上能用的素材、規格和流程。</p>
+</section>
+
+<figure class="fig" data-fig="ladder" data-dur="10" data-rest="9.6">
+  <div class="fig-head"><span class="fig-no">圖 2</span><span class="fig-title">Prompt 長度 vs. Harness</span></div>
+  <div class="stage"><canvas width="1200" height="675" aria-label="四個 prompt 層級逐一亮起，左側是 prompt 長度的對數長條，右側是每一級解鎖的 harness 元件"></canvas></div>
+  <div class="ctrl"></div>
+  <figcaption>左邊是 prompt 長度（對數刻度，從約 190 到 19,000 字元）；右邊是每一級新增的工具和文件。從 L1 到 L4，prompt 長了 50 倍，harness 從 1 項變成 9 項。</figcaption>
+</figure>
+
+<section class="levels">
+  <div class="lvl">
+    <span class="k">L1 · 一句話 showreel</span>
+    <pre><code>make a dynamic 15-second motion graphics video that shows
+what an incredible motion designer you are, like it's your
+showreel for a résumé. go all out.</code></pre>
+    <ul>
+      <li>「résumé showreel」指定了一種規則明確的類型：快剪、每鏡一招、最強的放最前面。</li>
+      <li>「你是多厲害的動態設計師」讓模型當主角，它只需要秀技巧，沒有內容會出錯。</li>
+      <li>「15 秒」短到能一次做完，又夠放 6 到 8 個鏡頭；「go all out」是疊在 xhigh/max 上的加乘。</li>
+    </ul>
+    <p>弱點是 athemeroy 資料集說的「brief contagion」：幾百個人用同一句 prompt，做出的片子彼此押韻。一句話測的是引擎，測不到點子，因為裡面根本沒有點子。</p>
+  </div>
+  <div class="lvl">
+    <span class="k">L2 · 指向你的品牌</span>
+    <p>Tony Dinh 一年前花 1,000 美元以上請人做的發表影片，這次不到 30 分鐘。他只多寫了三行：產品網址、「用真實的產品截圖、logo、素材」、「一定要有音樂」。Opus 會自己去網站抓素材。</p>
+    <ul>
+      <li>同一品牌固定用同一個 session：渲染器、音效合成、輸出流程都已經在了，第二支更快。</li>
+      <li>API key 放 <code>.env</code>，在 prompt 裡只寫變數名，別把真 key 貼進會截圖的 prompt。</li>
+      <li>加一個會說話的吉祥物（ElevenLabs 配音），achxvi 現在就拿這個接案。</li>
+    </ul>
+  </div>
+  <div class="lvl">
+    <span class="k">L3 · 參考 + 狀態清單</span>
+    <p>沒有參考時，Opus 會退回預設長相：置中標題、漸層背景、所有東西淡入。給參考的三種方式：</p>
+    <ul>
+      <li><strong>一張影格</strong>：附圖，講明要拿什麼（配色、字體、顆粒）、不拿什麼（主題）。</li>
+      <li><strong>一支影片</strong>：叫它用 ffmpeg 每 0.5 秒抽一格，先逐鏡描述節奏再寫程式。</li>
+      <li><strong>你的圖庫</strong>：先產出 <code>style_guide.md</code>。自己的作品集是別人抄不走的參考。</li>
+    </ul>
+    <p>@twoclipping 的 UI morph（90.7 萬瀏覽、1.9 萬收藏）用 XML 規格寫成：<code>&lt;inputs&gt;</code> <code>&lt;direction&gt;</code> <code>&lt;structure&gt;</code> <code>&lt;build&gt;</code> <code>&lt;gotchas&gt;</code> <code>&lt;start&gt;</code>，描述的是逐拍的狀態清單，沒有任何氛圍形容詞。</p>
+  </div>
+  <div class="lvl">
+    <span class="k">L4 · 導演 brief</span>
+    <p>Donald 口述 5 分鐘就去睡了，Claude 跑了 12 小時，交出 142 秒的 MV，有 210 萬次瀏覽。brief 約 9,500 字元，Pip 機器人那支有 19,000 字元。骨架都一樣，寫的是一整個劇組的分工：</p>
+    <ul>
+      <li>一句話的片子、參考、工具與 key、角色聖經、分鏡節拍表、畫面文字規則、帶關卡的流程、評審迴圈、交付清單。</li>
+      <li><strong>Generate-then-trace</strong>：先用 Seedance 2.5 生成有角色與物理的基底鏡頭，再由 Opus 用 JS 整支重畫一層蓋上去，觀眾只看到程式畫的那層。</li>
+      <li>PDoom repo 的子代理模式：先寫 <code>ANIMATION_GUIDE.md</code> 統一風格，再讓子代理平行做 9 個章節。</li>
+    </ul>
+  </div>
+</section>
+
+<section class="col">
+  <div class="chap"><span class="tc">07–08</span><h2>引擎：讓動態看起來很貴</h2></div>
+  <p>便宜的動態沿著固定曲線從 A 走到 B；貴的動態有質量感，會加速、微微超出目標、再回穩。爆紅的 morph 影片全都指定用 <strong>closed-form 彈簧</strong>，因為它的公式直接算出任一時刻的值，<code>seek(t)</code> 還是純函數。</p>
+  <p>多數人漏掉的技巧：一個值多次換目標時（游標、容器寬度），不要重啟彈簧，而是每次變化疊加一條從那一刻開始的彈簧。動作保持連續，而且要畫第 812 格時，不必先模擬第 0 到 811 格。</p>
+</section>
+
+<figure class="fig" data-fig="spring" data-dur="6" data-rest="1.15">
+  <div class="fig-head"><span class="fig-no">圖 3</span><span class="fig-title">緩動曲線、彈簧、與疊加彈簧</span></div>
+  <div class="stage"><canvas width="1200" height="675" aria-label="左邊比較 ease-in-out 與彈簧的位移與曲線；右邊是 tab 指示條，前緣與後緣用不同彈簧因此移動時會拉長"></canvas></div>
+  <div class="ctrl"></div>
+  <figcaption>左：同樣從 0 走到 1，彈簧多了加速和一點點超出。右：tab 指示條的前緣用硬彈簧、後緣用軟彈簧，移動時自然拉長；下方曲線的填色區就是被拉長的量。</figcaption>
+</figure>
+
+<section class="col">
+  <div class="feel">
+    <div><b>Snappy UI</b>按鈕、開關、前緣</div>
+    <div><b>Default</b>卡片、容器、鏡頭</div>
+    <div><b>Heavy</b>大字、3D 物件、logo</div>
+    <div><b>Playful</b>吉祥物、貼紙，明顯超出</div>
+  </div>
+  <p>文章提供的 <code>track()</code> 就是這個疊加公式，只有四行：</p>
+  <pre><code>export function track(t, keys, k = 170, d = 26) {
+  let v = keys[0][1];
+  for (let i = 1; i &lt; keys.length; i++)
+    v += (keys[i][1] - keys[i - 1][1]) * spring(t - keys[i][0], k, d);
+  return v;
+}</code></pre>
+  <h3>One shape, never cut</h3>
+  <p>@twoclipping 和 @verbove 的影片都用同一個概念：整支片只有一個元素，從按鈕變成載入圈、播放器、滑桿、圖表、指令面板，一次都不剪接。游標用真實的點擊驅動每次變化，最後一格等於第一格，所以能無縫循環。</p>
+</section>
+
+<figure class="fig" data-fig="morph" data-dur="8" data-rest="3.95">
+  <div class="fig-head"><span class="fig-no">圖 4</span><span class="fig-title">一個形狀，從頭到尾不剪接</span></div>
+  <div class="stage"><canvas width="1200" height="675" aria-label="一個圓角矩形依序變形為按鈕、載入圈、勾勾、播放器、開關，再回到按鈕，游標負責點擊"></canvas></div>
+  <div class="ctrl"></div>
+  <figcaption>寬、高、圓角、顏色各自走 <code>track()</code>。內容在變形開始 0.08 秒後才進場，下一次變形前 0.1 秒先退場，文字就不會疊在一起。注意第 0 格和第 8 秒那格完全相同。</figcaption>
+</figure>
+
+<section class="col">
+  <p>規格裡的兩個坑：不要對會被鏡頭縮放的元素加 <code>will-change</code>，文字會變糊；最後一格必須和第一格相同，連游標的位置和速度都要一樣，否則循環接縫會頓一下。</p>
+</section>
+
+<section class="col">
+  <div class="chap"><span class="tc">09</span><h2>聲音：釘在節拍上</h2></div>
+  <p>Rob Hallam 以為音樂是後製加上去的，其實不是。聲音是「AI 影片」開始有電影感的地方，作法有兩條：有現成音軌就量它，沒有就在同一條時間軸上用程式合成。</p>
+  <p>量測用 <code>librosa</code> 找出節拍輸出 <code>beats.json</code>，動畫直接讀這個檔：小的狀態變化放在每一拍，大轉場放在每小節第一拍（downbeat），音效放在量到的峰值（hits）。整體響度調到 −14 LUFS。</p>
+</section>
+
+<figure class="fig" data-fig="beats" data-dur="8" data-rest="4.6">
+  <div class="fig-head"><span class="fig-no">圖 5</span><span class="fig-title">120 BPM 節拍網格</span></div>
+  <div class="stage"><canvas width="1200" height="675" aria-label="播放頭掃過 8 秒的時間軸，場景在每小節第一拍切換，音軌波形與節拍刻度、音效標記同步閃動"></canvas></div>
+  <div class="ctrl"></div>
+  <figcaption>120 BPM 時每拍 0.5 秒、每小節 2 秒。四個場景都從 downbeat 開始，音效落在量到的 hits。這是文中產品 reel 範本的結構：Hook、產品登場、三個功能、Logo 加 CTA。</figcaption>
+</figure>
+
+<section class="col">
+  <p>實例：@oozn 的賈伯斯 2 分鐘傳記片，配樂在 Node 裡合成，每個剪接點都鎖在 120 BPM；Vox 的〈small print〉用 Python 合成音樂，再對著渲染結果逐秒打磨。文章還附了一支 <code>sfx.mjs</code>，用程式直接合成 click、whoosh 等 UI 音效寫成 WAV。</p>
+</section>
+
+<section class="col">
+  <div class="chap"><span class="tc">11</span><h2>評審迴圈：讓 Opus 看自己的畫面</h2></div>
+  <p>Opus 5.5 看得懂圖片，所以它能檢查自己渲染出來的東西。這一個習慣，就是爆紅作品和「感覺有點普通」的作品之間的分界。</p>
+  <p>@mablesjoseph 那支水彩短片講得很坦白：163 次模型呼叫、約 6¾ 小時（親自操作約 1½ 小時）、API 牌價約 34 美元、6,270 萬 token（96% 是 cache read），完全不是 one-shot。迭代是方法本身，不代表失敗。</p>
+</section>
+
+<figure class="fig" data-fig="critique" data-dur="12" data-rest="11.4">
+  <div class="fig-head"><span class="fig-no">圖 6</span><span class="fig-title">評審迴圈與計分卡</span></div>
+  <div class="stage"><canvas width="1200" height="675" aria-label="渲染、接觸印樣、評分、修正四個節點的循環跑三輪，右側六個評分項逐輪上升，全部達到 8 分後才進行全片渲染"></canvas></div>
+  <div class="ctrl"></div>
+  <figcaption>每輪先渲染 3 到 5 張靜態格，用 ffmpeg 拼成接觸印樣，按六個項目打分，挑最低的 3 項修正。低於 8 分的項目標成橘色。三輪後全部 ≥ 8，才跑全片渲染。分數為示意。</figcaption>
+</figure>
+
+<section class="col">
+  <p>文章給的五個檢查都是一行 ffmpeg：</p>
+  <ul>
+    <li><strong>接觸印樣</strong>：每秒 2 格、6 欄拼成一張圖，一眼看完整支片。</li>
+    <li><strong>連續格條</strong>：快速動作前後 12 格連排，抓跳格和重疊。</li>
+    <li><strong>手機測試</strong>：縮到 360px 寬，看字還讀不讀得到。</li>
+    <li><strong>循環檢查</strong>：首尾相接播兩次，盯接縫。</li>
+    <li><strong>決定性檢查</strong>：同一段渲染兩次，md5 必須相同。</li>
+  </ul>
+  <p>評審 prompt 的重點是要它「當嚴厲的動態導演，不要當驕傲的作者」，並且主動找這些問題：切換時文字重疊、物件滑動而非緩動、角落標籤和外框、置中漸層鏡頭、縮放後模糊的文字、沒有事情發生的空拍、循環接縫的頓點。修完只重渲染受影響的秒數。</p>
+  <p>文章建議把這套規則寫進專案根目錄的 <code>CLAUDE.md</code>，每支片都自動套用：</p>
+  <pre><code># Motion studio rules
+
+## Render contract
+- Every film is a pure function of time: `window.seek(t)` paints frame t.
+- No CSS transitions, no setTimeout, no requestAnimationFrame in render mode,
+  no state carried between frames. Seeded noise only (mulberry32), never Math.random.
+
+## Look
+- Banned defaults: centered title on gradient, everything fading in,
+  corner labels and frame borders, glow on UI chrome, generic particle bursts.
+- Every 2 to 4 seconds something new must happen on screen.
+
+## Loop before you show me anything
+1. Render one frame per beat as a contact sheet and LOOK at it.
+2. Score it 1-10 on: hook in first 2s, readability at phone size,
+   motion quality, variety, brand accuracy, sound sync.
+3. Fix the 3 worst problems. Repeat until every score is 8+.
+4. Only then do the full render.</code></pre>
+</section>
+
+<section class="col">
+  <div class="chap"><span class="tc">12</span><h2>規模化：一條時間軸、一個 skill、一門生意</h2></div>
+  <ul>
+    <li><strong>所有比例來自同一條時間軸。</strong>場景寫在 layout 函數上，不寫死像素，請 Opus 平行渲染 9:16、1:1、16:9。每個比例要重新排字和 UI，不要把 16:9 直接裁成直式。</li>
+    <li><strong>打包成 skill。</strong>文末的 <code>motion-reel</code> SKILL.md 把流程收成 8 步：抓素材、寫 style guide、量或合成音樂、在節拍網格上寫分鏡並等確認、用彈簧寫 <code>seek(t)</code>、至少 3 輪評審、渲染並混音到 −14 LUFS、交付。之後只要一句 <code>/motion-reel for [URL], 20s, vertical, reference ./refs/frame.png</code>。</li>
+    <li><strong>變成收入。</strong>achxvi 同一週就開始接案：音樂、任意風格的吉祥物、產品功能、結尾優惠、任何語言、最多改 3 次。Tony Dinh 的 1,000 美元是定價錨點；有了 skill 和評審迴圈，一個下午就能交件。</li>
+  </ul>
+</section>
+
+<section class="col">
+  <h2>我的讀後看法</h2>
+  <ul>
+    <li><strong>價值在整理和可直接用的程式碼。</strong>這是一篇整理文，也是 Substack 的導流文。它把 9 篇爆紅貼文的 prompt 模式收在一起，並附上幾段能直接用的程式：<code>render.mjs</code>、<code>spring</code>/<code>track</code>、<code>beats.py</code>、<code>sfx.mjs</code>、ffmpeg 檢查指令。</li>
+    <li><strong>原文看得出趕工。</strong>文中留著「Put it directly under the anatomy diagram」「Place under the brand prompt」這類排版備註，部分嵌入推文和說明的順序對不上。瀏覽數、1,000 美元、12 小時這些數字都是原 po 自述，沒有獨立驗證。</li>
+    <li><strong>Route A 的程式碼不適合長期維護。</strong>Tommy Rossi 自己說產出是滿是 magic number 的義大利麵，程式碼只是產物。要做系列或長期維護，用 Remotion 加上一份共用的 <code>lib/motion.js</code> 比較實際。</li>
+    <li><strong>成本要先算。</strong>xhigh/max 加上數小時的自主執行，再加上 fal、ElevenLabs 等外部額度。Donald 的 brief 直接寫了「把 Max 方案額度全部用掉」和約 2,000 美元的 fal 額度。</li>
+    <li><strong>最划算的起手式：</strong>先用 L1 確認 Playwright 加 ffmpeg 的環境能跑，然後直接跳到 L3，也就是一張參考影格、一份狀態清單、加上評審迴圈。</li>
+  </ul>
+</section>
+
+<section class="col">
+  <h2>跟你的工作流程怎麼接</h2>
+  <p>導演 brief 的關卡（plan → stills → animatic → full pass → polish → audio → render）加上評審迴圈，就是「動手前先想清楚、做完要驗證」，跟 baransu 的 governance 精神同一路。</p>
+  <p>如果想把它收進 common-dev，文末的 <code>motion-reel</code> 結構（先收集輸入、管線、硬規則）很適合做成一個通用 skill：<code>render.mjs</code>、<code>beats.py</code>、<code>motion.js</code> 放在 skill 目錄裡，用 <code>${CLAUDE_PLUGIN_ROOT}</code> 引用。這是可以另外評估的選項，不是這篇文章的結論。</p>
+</section>
+
+<section class="col">
+  <h2>文中推薦的 repo</h2>
+  <ul class="repos">
+    <li><span>音樂 MV（子代理範例）</span><a href="https://github.com/JohnHeibel/PDoomVideo">JohnHeibel/PDoomVideo</a></li>
+    <li><span>起手模板</span><a href="https://github.com/JohnHeibel/ClaudeAnimationBase">JohnHeibel/ClaudeAnimationBase</a></li>
+    <li><span>Node canvas 手繪風 plugin</span><a href="https://github.com/buildwithhanif/claude-animation-skill">buildwithhanif/claude-animation-skill</a></li>
+    <li><span>框架（HTML + GSAP）</span><a href="https://github.com/heygen-com/hyperframes">heygen-com/hyperframes</a></li>
+    <li><span>框架（React）</span><a href="https://www.remotion.dev/docs/ai/skills">Remotion AI skills</a></li>
+    <li><span>長片</span><a href="https://github.com/WinterArc21/Battle-of-Austerlitz-Film">WinterArc21/Battle-of-Austerlitz-Film</a></li>
+    <li><span>Prompt 收集</span><a href="https://github.com/guanmo-ai/awesome-ai-motion">guanmo-ai/awesome-ai-motion</a></li>
+    <li><span>作品資料集</span><a href="https://github.com/athemeroy/awesome-opus-5-5-videos">athemeroy/awesome-opus-5-5-videos</a></li>
+  </ul>
+</section>
+
+<footer class="col">依據 2026-10-07 擷取的原文與 21 則嵌入推文整理。圖中的分數、場景名稱與時間點為示意，數據則引自原文。</footer>
+</div>
+
+<script>
+(() => {
+const FD = '"Bricolage Grotesque","Noto Sans TC",system-ui,sans-serif';
+const FB = '"Noto Sans TC","PingFang TC",system-ui,sans-serif';
+const FM = '"JetBrains Mono",ui-monospace,Menlo,monospace';
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, p) => a + (b - a) * p;
+const ease = (x) => { x = clamp(x); return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+function spring(t, k = 170, d = 26) {
+  if (t <= 0) return 0;
+  const w0 = Math.sqrt(k), z = d / (2 * w0);
+  if (z < 1) {
+    const wd = w0 * Math.sqrt(1 - z * z);
+    return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t));
+  }
+  return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+}
+function track(t, keys, k = 170, d = 26) {
+  let v = keys[0][1];
+  for (let i = 1; i < keys.length; i++) v += (keys[i][1] - keys[i - 1][1]) * spring(t - keys[i][0], k, d);
+  return v;
+}
+const swapAlpha = (t, tIn, tOut) => Math.min(clamp((t - tIn - 0.08) / 0.12), clamp((tOut - 0.1 - t) / 0.1));
+const hex = (h) => { h = h.replace('#', ''); if (h.length === 3) h = h.split('').map(c => c + c).join(''); const n = parseInt(h, 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
+const rgb = (a) => `rgb(${a.map(v => Math.round(clamp(v, 0, 255))).join(',')})`;
+
+function colors() {
+  const s = getComputedStyle(document.documentElement);
+  const C = {};
+  for (const k of ['bg', 'surface', 'ink', 'muted', 'line', 'accent', 'accent-soft', 'tally', 'ok']) C[k.replace('-s', 'S')] = s.getPropertyValue('--' + k).trim();
+  return C;
+}
+function tx(g, s, x, y, o = {}) {
+  g.font = `${o.w || 500} ${o.s || 20}px ${o.f || FB}`;
+  g.fillStyle = o.c; g.textAlign = o.a || 'left'; g.textBaseline = o.b || 'alphabetic';
+  g.globalAlpha = o.al ?? 1; g.fillText(s, x, y); g.globalAlpha = 1;
+}
+function rr(g, x, y, w, h, r) { g.beginPath(); g.roundRect(x, y, w, h, Math.max(0, Math.min(r, w / 2, h / 2))); }
+function arrow(g, x1, y1, x2, y2, c, off = 0) {
+  g.save(); g.strokeStyle = c; g.lineWidth = 2.5; g.setLineDash([8, 7]); g.lineDashOffset = off;
+  g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2 - 10, y2); g.stroke(); g.setLineDash([]);
+  g.fillStyle = c; g.beginPath(); g.moveTo(x2, y2); g.lineTo(x2 - 13, y2 - 7); g.lineTo(x2 - 13, y2 + 7); g.closePath(); g.fill(); g.restore();
+}
+
+const D = {};
+
+/* 圖 1 — pipeline */
+D.pipeline = (g, t, C) => {
+  const boxes = [['你的 prompt', '需求・參考・規格'], ['index.html', 'window.seek(t)'], ['Playwright', '無頭瀏覽器逐格截圖'], ['ffmpeg', 'tmix 模糊・H.264'], ['final.mp4', '1080p・60fps']];
+  const BX = (i) => 30 + i * 232, BY = 46, BW = 200, BH = 210;
+  boxes.forEach(([a, b], i) => {
+    rr(g, BX(i), BY, BW, BH, 12); g.fillStyle = C.bg; g.fill();
+    g.lineWidth = (i === 2 || i === 3) ? 2.5 : 1.5; g.strokeStyle = (i === 2 || i === 3) ? C.accent : C.line; g.stroke();
+    tx(g, a, BX(i) + 18, BY + 42, { f: FD, s: 25, w: 700, c: C.ink });
+    tx(g, b, BX(i) + 18, BY + 70, { s: 16, c: C.muted });
+    if (i < 4) arrow(g, BX(i) + BW + 4, BY + BH / 2, BX(i + 1) - 4, BY + BH / 2, C.muted, -t * 30);
+  });
+  // box contents
+  const hi = Math.floor(t * 1.5) % 3;
+  [150, 118, 140].forEach((w, k) => { rr(g, BX(0) + 18, BY + 100 + k * 26, w, 12, 6); g.fillStyle = k === hi ? C.accent : C.line; g.fill(); });
+  const st = (t / 8) * 15;
+  ['seek(t) {', '  draw(t);', '}'].forEach((l, k) => tx(g, l, BX(1) + 18, BY + 108 + k * 24, { f: FM, s: 16, c: C.ink }));
+  tx(g, 't = ' + st.toFixed(3) + 's', BX(1) + 18, BY + 190, { f: FM, s: 16, w: 700, c: C.accent });
+  const fr = Math.floor((t / 8) * 900);
+  tx(g, 'frame ' + String(fr).padStart(3, '0') + '/900', BX(2) + 18, BY + 112, { f: FM, s: 17, w: 700, c: C.accent });
+  tx(g, '-crf 16', BX(3) + 18, BY + 112, { f: FM, s: 17, c: C.ink });
+  tx(g, '-pix_fmt yuv420p', BX(3) + 18, BY + 138, { f: FM, s: 15, c: C.muted });
+  rr(g, BX(4) + 18, BY + 96, 120, 80, 8); g.fillStyle = C.ink; g.fill();
+  g.fillStyle = C.surface; g.beginPath(); g.moveTo(BX(4) + 68, BY + 118); g.lineTo(BX(4) + 96, BY + 136); g.lineTo(BX(4) + 68, BY + 154); g.closePath(); g.fill();
+  // film strip
+  tx(g, '膠卷：每一格都是 seek(i ÷ 60) 的輸出', 30, 312, { s: 17, w: 700, c: C.ink });
+  rr(g, 30, 326, 1140, 82, 8); g.fillStyle = C.ink; g.fill();
+  for (let x = 44; x < 1160; x += 24) { g.fillStyle = C.surface; g.fillRect(x, 332, 10, 7); g.fillRect(x, 395, 10, 7); }
+  const mini = (cx, cy, i, a = 1) => {
+    g.globalAlpha = a; rr(g, cx - 21, cy - 15, 42, 30, 3); g.fillStyle = C.bg; g.fill();
+    g.fillStyle = C.accent; g.beginPath(); g.arc(cx - 13 + 26 * (0.5 - 0.5 * Math.cos(i / 23 * Math.PI * 2)), cy - 2, 6, 0, 7); g.fill();
+    g.fillStyle = C.line; g.fillRect(cx - 15, cy + 8, 30, 3); g.globalAlpha = 1;
+  };
+  for (let i = 0; i < 24; i++) {
+    const sx = 64 + i * 47, sy = 367;
+    rr(g, sx - 21, sy - 15, 42, 30, 3); g.strokeStyle = C.muted; g.lineWidth = 1; g.globalAlpha = 0.4; g.stroke(); g.globalAlpha = 1;
+    const e = 0.3 + i * 0.28; if (t < e) continue;
+    const p1 = ease((t - e) / 0.5), p2 = ease((t - e - 0.5) / 0.6);
+    const ax = BX(2) + BW / 2 + 40, ay = BY + 170, bx = BX(3) + BW / 2 + 40, by = BY + 170;
+    const x = p2 > 0 ? lerp(bx, sx, p2) : lerp(ax, bx, p1), y = p2 > 0 ? lerp(by, sy, p2) : ay;
+    mini(x, y, i);
+  }
+  // determinism notes
+  tx(g, '決定性 = 可以無限重渲染', 30, 470, { f: FD, s: 24, w: 700, c: C.ink });
+  [['✕', 'setTimeout / requestAnimationFrame'], ['✕', 'Math.random（改用 seeded 亂數）'], ['✕', '跨格保留狀態、CSS transition'], ['✓', '同一個 t → 同一張畫面，改一行就重渲染']].forEach(([m, s], k) => {
+    tx(g, m, 30, 510 + k * 32, { f: FM, s: 18, w: 700, c: m === '✓' ? C.ok : C.tally });
+    tx(g, s, 60, 510 + k * 32, { f: k === 3 ? FB : FM, s: 17, c: C.ink });
+  });
+  // subframes
+  tx(g, '動態模糊：1 格 = 4 個子格的平均', 640, 470, { f: FD, s: 24, w: 700, c: C.ink });
+  const sub = (x, y, offs, a) => {
+    rr(g, x, y, 92, 64, 6); g.fillStyle = C.bg; g.fill(); g.strokeStyle = C.line; g.lineWidth = 1.5; g.stroke();
+    offs.forEach((o) => { g.globalAlpha = a; g.fillStyle = C.accent; g.beginPath(); g.arc(x + 30 + o, y + 32, 13, 0, 7); g.fill(); });
+    g.globalAlpha = 1;
+  };
+  const wob = Math.sin(t * 2) * 3;
+  [0, 1, 2, 3].forEach((k) => sub(640 + k * 104, 500, [k * 9 + wob], 1));
+  tx(g, 't + 0/240 … t + 3/240', 640, 596, { f: FM, s: 14, c: C.muted });
+  arrow(g, 1058, 532, 1076, 532, C.muted, -t * 30);
+  sub(1080, 500, [wob, 9 + wob, 18 + wob, 27 + wob], 0.3);
+  tx(g, 'tmix=frames=4', 1080, 596, { f: FM, s: 14, w: 700, c: C.accent });
+  tx(g, '60fps 輸出，每格其實渲染了 4 次（240 次/秒）', 640, 640, { s: 16, c: C.muted });
+};
+
+/* 圖 2 — ladder */
+D.ladder = (g, t, C) => {
+  const L = [
+    { k: 'L1', name: '一句話 showreel', n: 190, lab: '≈ 190 字元', note: '測試引擎，測不到點子' },
+    { k: 'L2', name: '指向你的品牌', n: 900, lab: '≈ 900 字元', note: '+ 網址、真實截圖、要有音樂' },
+    { k: 'L3', name: '參考 + 狀態清單', n: 2600, lab: '≈ 2,600 字元', note: 'style_guide.md・XML 規格' },
+    { k: 'L4', name: '導演 brief', n: 14000, lab: '9,500–19,000 字元', note: '口述 5 分鐘，跑 12 小時' },
+  ];
+  const act = Math.min(3, Math.floor(t / 2.5)), loc = t - act * 2.5;
+  tx(g, 'PROMPT 長度（對數刻度）', 40, 50, { f: FM, s: 15, w: 700, c: C.muted });
+  tx(g, '周邊 HARNESS（模型手上的素材、規格、流程）', 680, 50, { f: FM, s: 15, w: 700, c: C.muted });
+  L.forEach((l, i) => {
+    const y0 = 70 + i * 140;
+    if (i === act) { rr(g, 30, y0, 610, 124, 10); g.fillStyle = C.accentSoft; g.fill(); }
+    tx(g, l.k, 48, y0 + 52, { f: FD, s: 36, w: 800, c: i <= act ? C.accent : C.muted });
+    tx(g, l.name, 120, y0 + 42, { s: 22, w: 700, c: i <= act ? C.ink : C.muted });
+    tx(g, l.note, 120, y0 + 70, { s: 16, c: C.muted });
+    const full = Math.log10(l.n) / Math.log10(20000) * 340;
+    rr(g, 120, y0 + 88, 340, 14, 7); g.fillStyle = C.line; g.globalAlpha = 0.6; g.fill(); g.globalAlpha = 1;
+    const p = i < act ? 1 : i === act ? clamp(spring(loc - 0.1, 120, 20), 0, 1.05) : 0;
+    if (p > 0) { rr(g, 120, y0 + 88, full * p, 14, 7); g.fillStyle = C.accent; g.fill(); }
+    if (i <= act) tx(g, l.lab, 472, y0 + 101, { f: FM, s: 14, w: 500, c: C.ink, al: i === act ? clamp(loc * 3) : 1 });
+  });
+  const tiles = [[['seek(t)', '渲染器'], 0], [['真實素材', '截圖・logo'], 1], [['合成音效', '配樂'], 1], [['參考影格', '／影片'], 2], [['style_guide', '.md'], 2], [['狀態清單', 'XML 規格'], 2], [['beats.json', '節拍網格'], 2], [['評審迴圈', '分數 ≥ 8'], 3], [['子代理', 'ANIMATION_GUIDE'], 3]];
+  tiles.forEach(([lines, lv], j) => {
+    const col = j % 3, row = Math.floor(j / 3);
+    const x = 680 + col * 164, y = 70 + row * 124, w = 150, h = 110;
+    const on = lv <= act;
+    const p = lv < act ? 1 : lv === act ? clamp(spring(loc - 0.25 - (j % 3) * 0.08, 220, 18), 0, 1.15) : 0;
+    g.save(); g.translate(x + w / 2, y + h / 2);
+    if (on) {
+      const s = 0.85 + 0.15 * p; g.scale(s, s);
+      rr(g, -w / 2, -h / 2, w, h, 10); g.fillStyle = C.accentSoft; g.globalAlpha = clamp(p); g.fill(); g.globalAlpha = 1;
+      g.strokeStyle = C.accent; g.lineWidth = 2; g.stroke();
+      tx(g, lines[0], 0, -6, { s: 19, w: 700, c: C.ink, a: 'center', al: clamp(p) });
+      tx(g, lines[1], 0, 20, { f: FM, s: 13, c: C.muted, a: 'center', al: clamp(p) });
+    } else {
+      rr(g, -w / 2, -h / 2, w, h, 10); g.setLineDash([6, 6]); g.strokeStyle = C.line; g.lineWidth = 1.5; g.stroke(); g.setLineDash([]);
+      tx(g, lines[0], 0, 6, { s: 17, w: 500, c: C.muted, a: 'center', al: 0.55 });
+    }
+    g.restore();
+  });
+  const n = tiles.filter(([, lv]) => lv <= act).length;
+  tx(g, '已解鎖 ' + n + ' / 9', 680, 470, { f: FM, s: 16, w: 700, c: C.accent });
+  tx(g, '10%', 680, 548, { f: FD, s: 54, w: 800, c: C.accent });
+  tx(g, 'prompt', 812, 548, { f: FD, s: 26, w: 700, c: C.ink });
+  tx(g, '90%', 680, 614, { f: FD, s: 54, w: 800, c: C.ink });
+  tx(g, 'harness', 812, 614, { f: FD, s: 26, w: 700, c: C.ink });
+  tx(g, '影片的差距拉開在右邊這一欄', 680, 650, { s: 16, c: C.muted });
+};
+
+/* 圖 3 — springs */
+D.spring = (g, t, C) => {
+  const ev = (x) => ease((x - 0.5) / 0.6) - ease((x - 3.5) / 0.6);
+  const sv = (x) => spring(x - 0.5, 170, 16) - spring(x - 3.5, 170, 16);
+  tx(g, '固定曲線 vs. 彈簧', 40, 48, { f: FD, s: 24, w: 700, c: C.ink });
+  [[ev, 'ease-in-out 0.6s', C.muted, 120], [sv, 'spring  k=170  d=16', C.accent, 210]].forEach(([f, lab, c, y]) => {
+    tx(g, lab, 70, y - 22, { f: FM, s: 15, c });
+    g.strokeStyle = C.line; g.lineWidth = 4; g.beginPath(); g.moveTo(70, y); g.lineTo(530, y); g.stroke();
+    g.fillStyle = c; g.beginPath(); g.arc(70 + 460 * f(t), y, 17, 0, 7); g.fill();
+  });
+  const top = 270, bot = 600, X = (x) => 60 + x / 6 * 500, Y = (v) => bot - (v + 0.15) / 1.35 * (bot - top);
+  g.strokeStyle = C.line; g.lineWidth = 1; g.setLineDash([4, 5]);
+  [0, 1].forEach((v) => { g.beginPath(); g.moveTo(60, Y(v)); g.lineTo(560, Y(v)); g.stroke(); tx(g, String(v), 46, Y(v) + 5, { f: FM, s: 13, c: C.muted, a: 'right' }); });
+  g.setLineDash([]);
+  [[ev, C.muted, 2.5], [sv, C.accent, 3.5]].forEach(([f, c, w]) => {
+    g.strokeStyle = c; g.lineWidth = w; g.beginPath();
+    for (let i = 0; i <= 240; i++) { const x = i / 240 * 6; i ? g.lineTo(X(x), Y(f(x))) : g.moveTo(X(x), Y(f(x))); }
+    g.stroke(); g.fillStyle = c; g.beginPath(); g.arc(X(t), Y(f(t)), 6, 0, 7); g.fill();
+  });
+  g.strokeStyle = C.ink; g.globalAlpha = 0.35; g.lineWidth = 1.5; g.beginPath(); g.moveTo(X(t), top - 10); g.lineTo(X(t), bot + 6); g.stroke(); g.globalAlpha = 1;
+  tx(g, '彈簧在 0.5s 出發，微微超過 1 再回穩', 60, 630, { s: 15, c: C.muted });
+
+  tx(g, 'Tab 指示條：兩個邊，兩種彈簧', 640, 48, { f: FD, s: 24, w: 700, c: C.ink });
+  tx(g, '前緣 k=320（硬）· 後緣 k=140（軟）', 640, 76, { f: FM, s: 15, c: C.muted });
+  const stops = [[0, 660], [1.0, 820], [2.2, 980], [3.6, 660]];
+  const lead = (x) => track(x, stops, 320, 30), trail = (x) => track(x, stops, 140, 22);
+  const L = Math.min(lead(t), trail(t)), R = Math.max(lead(t), trail(t)) + 150;
+  rr(g, 650, 100, 500, 84, 14); g.fillStyle = C.bg; g.fill();
+  rr(g, L, 112, R - L, 60, 30); g.fillStyle = C.accentSoft; g.fill();
+  rr(g, L + 12, 176, R - L - 24, 5, 3); g.fillStyle = C.accent; g.fill();
+  ['總覽', '活動', '設定'].forEach((s, i) => { const cx = 660 + i * 160 + 75; tx(g, s, cx, 150, { s: 20, w: 700, c: (cx > L && cx < R) ? C.ink : C.muted, a: 'center' }); });
+  const Y2 = (v) => bot - (v - 640) / 380 * (bot - top), X2 = (x) => 660 + x / 6 * 500;
+  g.fillStyle = C.accent; g.globalAlpha = 0.16; g.beginPath();
+  for (let i = 0; i <= 240; i++) { const x = i / 240 * 6; i ? g.lineTo(X2(x), Y2(lead(x))) : g.moveTo(X2(x), Y2(lead(x))); }
+  for (let i = 240; i >= 0; i--) { const x = i / 240 * 6; g.lineTo(X2(x), Y2(trail(x))); }
+  g.closePath(); g.fill(); g.globalAlpha = 1;
+  [[lead, C.accent, '前緣'], [trail, C.muted, '後緣']].forEach(([f, c, lab], k) => {
+    g.strokeStyle = c; g.lineWidth = 3; g.beginPath();
+    for (let i = 0; i <= 240; i++) { const x = i / 240 * 6; i ? g.lineTo(X2(x), Y2(f(x))) : g.moveTo(X2(x), Y2(f(x))); }
+    g.stroke(); tx(g, lab, 1160, 290 + k * 22, { s: 15, w: 700, c, a: 'right' });
+  });
+  g.strokeStyle = C.ink; g.globalAlpha = 0.35; g.lineWidth = 1.5; g.beginPath(); g.moveTo(X2(t), top - 10); g.lineTo(X2(t), bot + 6); g.stroke(); g.globalAlpha = 1;
+  tx(g, 'value(t) = v₀ + Σ Δᵢ · spring(t − tᵢ)', 660, 630, { f: FM, s: 16, w: 700, c: C.ink });
+  tx(g, '畫第 812 格，不必先算第 0–811 格', 660, 656, { s: 15, c: C.muted });
+};
+
+/* 圖 4 — morph */
+D.morph = (g, t, C) => {
+  const CX = 600, CY = 300;
+  const T = [0, 1.2, 2.4, 3.4, 5.2, 6.6];
+  const S = [
+    { w: 340, h: 100, r: 50, c: C.ink, n: '按鈕' }, { w: 124, h: 124, r: 62, c: C.ink, n: '載入' }, { w: 124, h: 124, r: 62, c: C.ok, n: '完成' },
+    { w: 620, h: 190, r: 30, c: C.ink, n: '播放器' }, { w: 240, h: 120, r: 60, c: C.accent, n: '開關' }, { w: 340, h: 100, r: 50, c: C.ink, n: '按鈕' },
+  ];
+  const k = (f) => T.map((ti, i) => [ti, f(S[i])]);
+  const w = track(t, k((s) => s.w), 190, 24), h = track(t, k((s) => s.h), 190, 24), r = track(t, k((s) => s.r), 190, 24);
+  const col = [0, 1, 2].map((ch) => track(t, k((s) => hex(s.c)[ch]), 190, 26));
+  tx(g, 'One shape, never cut', 40, 52, { f: FD, s: 24, w: 700, c: C.ink });
+  let cur = 0; T.forEach((ti, i) => { if (t >= ti) cur = i; });
+  tx(g, 'state → ' + S[cur].n, 1160, 52, { f: FM, s: 16, w: 700, c: C.accent, a: 'right' });
+  rr(g, CX - w / 2, CY - h / 2, w, h, r); g.fillStyle = rgb(col); g.fill();
+  const A = (i) => swapAlpha(t, i === 0 ? -1 : T[i], i === 5 ? 99 : T[i + 1]);
+  [0, 5].forEach((i) => { const a = A(i); if (a > 0) tx(g, 'Get started  →', CX, CY + 10, { f: FD, s: 30, w: 700, c: C.bg, a: 'center', al: a }); });
+  let a = A(1);
+  if (a > 0) { g.globalAlpha = a; g.strokeStyle = C.bg; g.lineWidth = 8; g.lineCap = 'round'; g.beginPath(); g.arc(CX, CY, 32, t * 7, t * 7 + 4.2); g.stroke(); g.globalAlpha = 1; }
+  a = A(2);
+  if (a > 0) {
+    const p = clamp(spring(t - 2.5, 260, 22), 0, 1.1);
+    g.globalAlpha = a; g.strokeStyle = C.bg; g.lineWidth = 10; g.lineCap = 'round'; g.lineJoin = 'round';
+    g.beginPath(); g.moveTo(CX - 24 * p, CY); g.lineTo(CX - 6 * p, CY + 18 * p); g.lineTo(CX + 26 * p, CY - 18 * p); g.stroke(); g.globalAlpha = 1;
+  }
+  a = A(3);
+  if (a > 0) {
+    const x0 = CX - w / 2, y0 = CY - h / 2;
+    g.globalAlpha = a;
+    rr(g, x0 + 34, y0 + 34, 122, 122, 16); g.fillStyle = C.accent; g.fill();
+    const playing = t > 3.75;
+    g.fillStyle = C.bg;
+    if (!playing) { g.beginPath(); g.moveTo(x0 + 82, y0 + 70); g.lineTo(x0 + 116, y0 + 95); g.lineTo(x0 + 82, y0 + 120); g.closePath(); g.fill(); }
+    else { g.fillRect(x0 + 78, y0 + 72, 11, 46); g.fillRect(x0 + 101, y0 + 72, 11, 46); }
+    tx(g, 'Opus 5.5 Showreel', x0 + 186, y0 + 70, { f: FD, s: 27, w: 700, c: C.bg, al: a });
+    tx(g, 'motion-studio · 0:15', x0 + 186, y0 + 102, { f: FM, s: 16, c: C.bg, al: a * 0.7 });
+    const bw = w - 226; rr(g, x0 + 186, y0 + 132, bw, 8, 4); g.fillStyle = C.bg; g.globalAlpha = a * 0.25; g.fill();
+    g.globalAlpha = a; rr(g, x0 + 186, y0 + 132, bw * clamp((t - 3.8) / 1.25), 8, 4); g.fill(); g.globalAlpha = 1;
+  }
+  a = A(4);
+  if (a > 0) { g.globalAlpha = a; g.fillStyle = C.bg; g.beginPath(); g.arc(lerp(CX - 60, CX + 60, clamp(spring(t - 5.9, 260, 24), 0, 1.08)), CY, 46, 0, 7); g.fill(); g.globalAlpha = 1; }
+  // cursor
+  const P0 = [CX + 110, CY + 22];
+  const CK = [[0, P0], [2.6, [CX - 205, CY + 12]], [4.6, [CX - 60, CY + 14]], [6.05, [CX + 60, CY + 14]], [6.75, P0]];
+  const cx = track(t, CK.map(([ti, p]) => [ti, p[0]]), 120, 20), cy = track(t, CK.map(([ti, p]) => [ti, p[1]]), 120, 20);
+  [[1.12, P0], [3.75, [CX - 205, CY + 12]], [5.85, [CX - 60, CY + 14]], [6.52, [CX + 60, CY + 14]]].forEach(([ct, p]) => {
+    const q = (t - ct) / 0.45; if (q < 0 || q > 1) return;
+    g.strokeStyle = C.accent; g.lineWidth = 3; g.globalAlpha = 1 - q; g.beginPath(); g.arc(p[0], p[1], 10 + 36 * q, 0, 7); g.stroke(); g.globalAlpha = 1;
+  });
+  g.save(); g.translate(cx, cy);
+  g.beginPath(); [[0, 0], [0, 28], [7, 21], [12, 32], [18, 29], [13, 19], [22, 19]].forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath();
+  g.fillStyle = C.ink; g.strokeStyle = C.surface; g.lineWidth = 2.5; g.stroke(); g.fill(); g.restore();
+  // chips
+  const names = S.map((s) => s.n); let x = 0; const widths = names.map((n) => n.length * 18 + 34), total = widths.reduce((s, v) => s + v, 0) + 5 * 36;
+  x = 600 - total / 2;
+  names.forEach((n, i) => {
+    const on = i === cur;
+    rr(g, x, 520, widths[i], 40, 20); g.fillStyle = on ? C.accentSoft : C.surface; g.fill(); g.strokeStyle = on ? C.accent : C.line; g.lineWidth = 1.5; g.stroke();
+    tx(g, n, x + widths[i] / 2, 546, { s: 17, w: on ? 700 : 500, c: on ? C.ink : C.muted, a: 'center' });
+    x += widths[i];
+    if (i < 5) { tx(g, '→', x + 18, 546, { f: FM, s: 17, c: C.muted, a: 'center' }); x += 36; }
+  });
+  tx(g, '只改尺寸、圓角、顏色。內容在變形開始後進場、下一次變形前退場；最後一格 = 第一格。', 600, 612, { s: 17, c: C.muted, a: 'center' });
+  tx(g, 'w ' + w.toFixed(0) + '  h ' + h.toFixed(0) + '  r ' + r.toFixed(0), 600, 645, { f: FM, s: 15, c: C.accent, a: 'center' });
+};
+
+/* 圖 5 — beats */
+D.beats = (g, t, C) => {
+  const X = (x) => 70 + x / 8 * 1070;
+  const beats = []; for (let b = 0; b < 8; b += 0.5) beats.push(b);
+  tx(g, '畫面', 70, 40, { f: FM, s: 14, w: 700, c: C.muted });
+  [[0, 2, 'Hook：5 個字的巨型標題'], [2, 4, '產品 UI 自己組裝'], [4, 6, '三個功能・游標實際操作'], [6, 8, 'Logo + CTA']].forEach(([s, e, lab]) => {
+    const on = t >= s && t < e;
+    rr(g, X(s) + 3, 52, X(e) - X(s) - 6, 70, 8); g.fillStyle = on ? C.accentSoft : C.bg; g.fill();
+    g.strokeStyle = on ? C.accent : C.line; g.lineWidth = on ? 2.5 : 1.5; g.stroke();
+    const fl = on ? Math.exp(-(t - s) * 4) : 0;
+    if (fl > 0.02) { rr(g, X(s) + 3, 52, X(e) - X(s) - 6, 70, 8); g.fillStyle = C.accent; g.globalAlpha = fl * 0.35; g.fill(); g.globalAlpha = 1; }
+    tx(g, lab, X(s) + 16, 94, { s: 17, w: 700, c: on ? C.ink : C.muted });
+  });
+  tx(g, '音軌', 70, 160, { f: FM, s: 14, w: 700, c: C.muted });
+  const env = (x) => { let v = 0; for (const b of beats) if (x >= b) v += Math.exp(-(x - b) * 9) * (b % 2 === 0 ? 1 : 0.6); return v; };
+  for (let px = 70; px <= 1140; px += 5) {
+    const x = (px - 70) / 1070 * 8;
+    const n = 0.5 + 0.5 * Math.sin(x * 93.1) * Math.sin(x * 17.3);
+    const a = Math.min(1, env(x) * 0.85 * (0.6 + 0.4 * n) + 0.07);
+    g.fillStyle = x <= t ? C.accent : C.muted; g.globalAlpha = x <= t ? 1 : 0.35;
+    g.fillRect(px, 240 - a * 62, 3, a * 124); g.globalAlpha = 1;
+  }
+  tx(g, '節拍 120 BPM', 70, 340, { f: FM, s: 14, w: 700, c: C.muted });
+  g.strokeStyle = C.line; g.lineWidth = 1.5; g.beginPath(); g.moveTo(70, 380); g.lineTo(1140, 380); g.stroke();
+  beats.forEach((b) => {
+    const down = b % 2 === 0;
+    g.strokeStyle = down ? C.ink : C.muted; g.lineWidth = down ? 3 : 2;
+    g.beginPath(); g.moveTo(X(b), 380 - (down ? 22 : 11)); g.lineTo(X(b), 380 + (down ? 22 : 11)); g.stroke();
+    tx(g, String((b / 0.5) % 4 + 1), X(b), 424, { f: FM, s: 14, w: down ? 700 : 400, c: down ? C.ink : C.muted, a: 'center' });
+    if (t >= b) { const f = Math.exp(-(t - b) * 6); if (f > 0.02) { g.fillStyle = C.accent; g.globalAlpha = f * 0.6; g.beginPath(); g.arc(X(b), 380, 8 + 14 * (1 - f), 0, 7); g.fill(); g.globalAlpha = 1; } }
+  });
+  tx(g, '音效 hits', 70, 456, { f: FM, s: 14, w: 700, c: C.muted });
+  [[0.5, 'click'], [1.25, 'whoosh'], [2, 'impact'], [3, 'click'], [3.5, 'click'], [4.75, 'whoosh'], [5.5, 'click'], [6, 'impact'], [7.25, 'chime']].forEach(([h, lab]) => {
+    const f = t >= h ? Math.exp(-(t - h) * 5) : 0, s = 9 + 7 * f;
+    g.save(); g.translate(X(h), 484); g.rotate(Math.PI / 4); g.fillStyle = C.tally; g.globalAlpha = t >= h ? 1 : 0.45; g.fillRect(-s / 2, -s / 2, s, s); g.restore(); g.globalAlpha = 1;
+    tx(g, lab, X(h), 516, { f: FM, s: 13, c: C.muted, a: 'center' });
+  });
+  g.strokeStyle = C.accent; g.lineWidth = 2.5; g.beginPath(); g.moveTo(X(t), 48); g.lineTo(X(t), 500); g.stroke();
+  g.fillStyle = C.accent; g.beginPath(); g.moveTo(X(t) - 8, 44); g.lineTo(X(t) + 8, 44); g.lineTo(X(t), 54); g.closePath(); g.fill();
+  const beatNo = Math.floor(t / 0.5) + 1;
+  tx(g, 't = ' + t.toFixed(2) + 's · 第 ' + beatNo + ' 拍', 1140, 160, { f: FM, s: 15, w: 700, c: C.accent, a: 'right' });
+  const code = [['beats.json', null], ['{ "bpm": 120,', null], ['  "beats":     [0, 0.5, 1.0, 1.5, …]', '小的狀態變化'], ['  "downbeats": [0, 2.0, 4.0, 6.0]', '大轉場'], ['  "hits":      [0.5, 1.25, 2.0, …] }', '音效']];
+  code.forEach(([l, n], i) => {
+    tx(g, l, 70, 562 + i * 24, { f: FM, s: 16, w: i === 0 ? 700 : 400, c: i === 0 ? C.accent : C.ink });
+    if (n) tx(g, '← ' + n, 520, 562 + i * 24, { s: 16, w: 700, c: i === 4 ? C.tally : C.ink });
+  });
+  tx(g, '響度 −14 LUFS', 1140, 658, { f: FM, s: 15, c: C.muted, a: 'right' });
+};
+
+/* 圖 6 — critique */
+D.critique = (g, t, C) => {
+  const crit = ['開頭 2 秒鉤子', '手機尺寸可讀', '動態品質', '變化節奏', '品牌準確', '聲音同步'];
+  const fix = ['前 2 秒沒有鉤子', '360px 寬時文字太小', '切換時文字重疊、物件在滑動', '2.0–2.5s 空拍沒事發生', 'UI 是自己畫的，品牌色不對', '音效沒落在節拍上'];
+  const R = [[5, 6, 4, 6, 7, 5], [7, 8, 6, 7, 8, 7], [8, 9, 8, 8, 9, 8]];
+  const done = t >= 9.0;
+  const r = Math.min(2, Math.floor(t / 3.6)), loc = done ? 3.6 : t - r * 3.6;
+  const idx = done ? -1 : Math.min(3, Math.floor(loc / 0.9));
+  const CX = 290, CY = 300, RR = 170;
+  const nodes = [['渲染', '3–5 張靜態格'], ['接觸印樣', 'contact.png'], ['評分', '1–10 × 6 項'], ['修最差', '3 個問題']];
+  g.strokeStyle = C.line; g.lineWidth = 4; g.beginPath(); g.arc(CX, CY, RR, 0, 7); g.stroke();
+  const ang = -Math.PI / 2 + (done ? 0 : loc / 3.6 * Math.PI * 2);
+  if (!done) { g.strokeStyle = C.accent; g.lineWidth = 4; g.beginPath(); g.arc(CX, CY, RR, -Math.PI / 2, ang); g.stroke(); }
+  nodes.forEach(([a, b], i) => {
+    const an = -Math.PI / 2 + i * Math.PI / 2, x = CX + Math.cos(an) * RR, y = CY + Math.sin(an) * RR, on = i === idx;
+    g.beginPath(); g.arc(x, y, 60, 0, 7); g.fillStyle = on ? C.accent : C.bg; g.fill(); g.strokeStyle = on ? C.accent : C.line; g.lineWidth = 2; g.stroke();
+    tx(g, a, x, y - 2, { s: 19, w: 700, c: on ? C.surface : C.ink, a: 'center' });
+    tx(g, b, x, y + 22, { f: FM, s: 12, c: on ? C.surface : C.muted, a: 'center' });
+  });
+  if (!done) { g.fillStyle = C.accent; g.beginPath(); g.arc(CX + Math.cos(ang) * RR, CY + Math.sin(ang) * RR, 10, 0, 7); g.fill(); }
+  tx(g, done ? '通過' : '第 ' + (r + 1) + ' 輪', CX, CY + 8, { f: FD, s: 38, w: 800, c: done ? C.ok : C.ink, a: 'center' });
+  tx(g, '至少跑 3 輪', CX, CY + 40, { s: 15, c: C.muted, a: 'center' });
+  ['ffmpeg … tile=6x5     → contact.png', 'ffmpeg … scale=360   → phone.png', 'ffmpeg -stream_loop 1 → loop_check.mp4'].forEach((l, i) => tx(g, l, 40, 590 + i * 26, { f: FM, s: 14, c: C.muted }));
+
+  tx(g, 'Critique scorecard', 600, 58, { f: FD, s: 24, w: 700, c: C.ink });
+  tx(g, '嚴厲的動態導演打分，低於 8 就改', 600, 86, { s: 16, c: C.muted });
+  const BX = 800, U = 34;
+  const cur = crit.map((_, i) => track(t, [[0, 0], [1.8, R[0][i]], [5.4, R[1][i]], [9.0, R[2][i]]], 150, 20));
+  crit.forEach((c, i) => {
+    const y = 116 + i * 50, v = Math.max(0, cur[i]);
+    tx(g, c, 600, y + 18, { s: 17, w: 500, c: C.ink });
+    rr(g, BX, y, 10 * U, 24, 5); g.fillStyle = C.bg; g.fill();
+    if (v > 0.05) { rr(g, BX, y, v * U, 24, 5); g.fillStyle = v >= 7.95 ? C.ok : C.tally; g.fill(); }
+    tx(g, v.toFixed(1), BX + 10 * U + 10, y + 18, { f: FM, s: 15, w: 700, c: v >= 7.95 ? C.ok : C.ink });
+  });
+  g.strokeStyle = C.ink; g.globalAlpha = 0.5; g.lineWidth = 1.5; g.setLineDash([5, 5]);
+  g.beginPath(); g.moveTo(BX + 8 * U, 106); g.lineTo(BX + 8 * U, 116 + 6 * 50); g.stroke(); g.setLineDash([]); g.globalAlpha = 1;
+  tx(g, '8', BX + 8 * U, 100, { f: FM, s: 14, w: 700, c: C.ink, a: 'center' });
+  if (done) {
+    rr(g, 600, 450, 560, 110, 12); g.fillStyle = C.ok; g.globalAlpha = 0.14; g.fill(); g.globalAlpha = 1; g.strokeStyle = C.ok; g.lineWidth = 2; g.stroke();
+    tx(g, '全部 ≥ 8 → 才跑全片渲染', 624, 496, { f: FD, s: 27, w: 800, c: C.ok });
+    tx(g, 'node render.mjs → out/final.mp4', 624, 534, { f: FM, s: 16, c: C.ink });
+  } else if (loc >= 1.8) {
+    const sc = R[r].map((v, i) => [v, i]).filter(([v]) => v < 8).sort((a, b) => a[0] - b[0]).slice(0, 3);
+    tx(g, '第 ' + (r + 1) + ' 輪要修的問題', 600, 460, { f: FM, s: 15, w: 700, c: C.muted });
+    sc.forEach(([, i], k) => {
+      const y = 496 + k * 34;
+      g.fillStyle = C.tally; g.beginPath(); g.arc(610, y - 6, 6, 0, 7); g.fill();
+      tx(g, fix[i], 628, y, { s: 18, w: 500, c: C.ink });
+      if (idx === 3) { const p = clamp((loc - 2.7 - k * 0.15) / 0.4); if (p > 0) { g.font = `500 18px ${FB}`; const tw = g.measureText(fix[i]).width; g.strokeStyle = C.ok; g.lineWidth = 2.5; g.beginPath(); g.moveTo(628, y - 6); g.lineTo(628 + tw * p, y - 6); g.stroke(); } }
+    });
+  } else {
+    tx(g, r === 0 ? '尚未評分：先渲染靜態格、拼接觸印樣' : '重新渲染受影響的秒數，再看一次', 600, 470, { s: 17, c: C.muted });
+  }
+};
+
+/* player */
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const figs = [];
+document.querySelectorAll('.fig').forEach((el, n) => {
+  const cv = el.querySelector('canvas'), ctrl = el.querySelector('.ctrl');
+  const dur = +el.dataset.dur, rest = +el.dataset.rest;
+  const btn = document.createElement('button'); btn.type = 'button';
+  const range = document.createElement('input'); range.type = 'range'; range.min = 0; range.max = dur; range.step = 0.01; range.id = 'scrub-' + el.dataset.fig; range.setAttribute('aria-label', '時間軸');
+  const out = document.createElement('output'); out.setAttribute('for', range.id);
+  ctrl.append(btn, range, out);
+  const f = { el, cv, g: cv.getContext('2d'), dur, t: rest, playing: !reduce, visible: false, draw: D[el.dataset.fig], btn, range, out };
+  const sync = () => { btn.textContent = f.playing ? '❚❚' : '▶'; btn.setAttribute('aria-label', f.playing ? '暫停' : '播放'); };
+  btn.addEventListener('click', () => { f.playing = !f.playing; sync(); });
+  range.addEventListener('input', () => { f.playing = false; f.t = +range.value; sync(); render(f); });
+  sync(); figs.push(f);
+});
+function render(f) {
+  const w = Math.round(f.cv.getBoundingClientRect().width * Math.min(2, devicePixelRatio || 1));
+  if (w > 0 && f.cv.width !== w) { f.cv.width = w; f.cv.height = Math.round(w * 675 / 1200); }
+  const g = f.g, s = f.cv.width / 1200, C = colors();
+  g.setTransform(s, 0, 0, s, 0, 0); g.globalAlpha = 1; g.fillStyle = C.surface; g.fillRect(0, 0, 1200, 675);
+  f.draw(g, f.t, C);
+  f.range.value = f.t; f.out.textContent = 't = ' + f.t.toFixed(2) + ' s';
+}
+const io = new IntersectionObserver((es) => es.forEach((e) => { const f = figs.find((x) => x.el === e.target); if (f) f.visible = e.isIntersecting; }), { rootMargin: '100px' });
+figs.forEach((f) => io.observe(f.el));
+let prev = performance.now();
+function tick(now) {
+  const dt = Math.min(0.1, (now - prev) / 1000); prev = now;
+  for (const f of figs) if (f.playing && f.visible) { f.t = (f.t + dt) % f.dur; render(f); }
+  requestAnimationFrame(tick);
+}
+const all = () => figs.forEach(render);
+all();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(all);
+addEventListener('resize', all);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', all);
+new MutationObserver(all).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

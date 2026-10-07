@@ -3,7 +3,7 @@
 
 Advisory-only, non-blocking colorblind-simulation distinguishability check
 for a list of hex colors. Called by both `/design` (baking candidate
-chart-category colors into tokens.css) and `/book` (re-validating the
+chart-category colors into tokens.css) and `/draw` (re-validating the
 color subset actually selected for one chart) — see
 plugins/baransu/skills/_shared/scripts/ as the shared home for a tool
 genuinely used by two skills.

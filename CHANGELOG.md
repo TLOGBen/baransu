@@ -2,6 +2,25 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [7.0.0] - 2026-10-07
+
+### Added
+- **`/draw`——把任何東西畫出來的獨立 skill**（以裁換建：退 `/book`、進 `/draw`，技能數維持 14）。四條 lane 共一條骨幹（一則訊息出計畫 → 建 → 自己看圖 → 計分修到 8 分 → 交付到 `.claude/draw/<slug>/`）：
+  - **diagram**：vendored `cathrynlavery/diagram-design` v2.6（MIT）全部內容——44 型 reference、語意模式、風格指南、六條連接線規則、無障礙 SVG 契約、可選 reveal/step/loop 動畫、draw.io／Mermaid／Excalidraw 匯入、211 個範例與全部模板、`self_check.py` 與上游 `verify-*.py`／`lint-*.py` 驗證器（`scripts/diagram/repo/`）。
+  - **map**：vendored `tt-a1i/archify` v3.0.1（MIT）整包 CLI（`scripts/map/`）——architecture／workflow／sequence／dataflow／lifecycle 五型 JSON IR → 可探索互動 HTML，`finalize` 收據（validate → deliver → strict check → browser check）為交付證據；repo-backed 證據引用；update notifier 明示不跑。
+  - **motion**：自寫的 `seek(t)` 工具鏈——`assets/motion/motion.js`（closed-form spring／track／stretch／swapAlpha／loopT／seeded rng／beatGrid）、`scripts/motion/render.mjs`（still／hash／beats／contact／strip／phone／full，子格 tmix 動態模糊）、`beats.py`（numpy 節拍網格：beats／downbeats／hits）、`sfx.mjs`（由 `window.timeline()` cue 合成 UI 音效、依量測峰值對位、混音）、`checks.sh`、`verify-page.mjs`；手繪風子 lane vendored `buildwithhanif/claude-animation-skill`（MIT）lib／scripts／templates／references，附 `ClaudeAnimationBase` 動畫規則（MIT，裁去角色套件）。
+  - **page**：多圖解說頁——`assets/motion/explainer-template.html` 為完整範本（六張可拖時間軸的 canvas 圖、雙主題、手機寬度）。
+  - references：`critique-loop.md`（計分卡＋三輪規則）、`motion/{pipeline,springs,beat-grid,storyboard,chapters,prompt-ladder,explainer-page}.md`（prompt 階梯 L1–L4、XML 狀態清單、導演 brief 範本、長片分章與子代理模式，皆為改寫並附出處）、`loop-pauses.md`（全片渲染為 Authorization PAUSE）。`NOTICE.md` 列出全部第三方來源、授權與路徑改寫。
+- `scripts/verify-skills.py` 殘留掃描新增 `RESIDUE_VENDORED_PREFIXES`：vendored 第三方目錄整體排除並計數（上游文件裡的 dev／bridge 是一般用語）。
+- `tests/scripts/test_draw_skill.py`、`tests/skills/test-draw-toolchain.sh`：結構、授權檔、vendored 工具可執行（archify doctor、self_check、驗證器）、motion.js 數學、sfx 合成；Playwright＋ffmpeg 存在時實跑 render hash／contact 與 verify-page。
+
+### Removed
+- **`/book` 整個退役**（目錄、`validate-output.ts`／`html2pptx.js`／`install-deps.ts`、17 型 diagram-types、golden templates、十一支 `test_book_*`／`test-book-*`／`test-install-deps-format` 測試、codex 鏡像）。它依賴 `tokens.css` 與已退役的 `/design`，PDF／PPTX 管線與 Stage 0b 訪談不再提供；等價能力走 `/draw`。
+
+### Changed
+- 跨 skill 改指：`read`／`learn`／`ui` description 的 Not-For、`ship` 的保留產物清單（`read/learn/draw/design`）、`write` proofread 不再對照 book 視覺語言、`evolve` 的 `card.html` 改經 `/draw` page lane、`_shared/output-journal.md` 渲染基準改指 `draw/assets/motion/explainer-template.html`、`_shared/loop-contract.md` §4 註冊列、`agents/style-reviewer.md` 技術閘門指向、`.gitignore` 新增 `.claude/draw/`。`codex-skill-transfer` reference 裡對 `/book` 四題訪談的歷史描述與 `transfer.py` 的對應改寫規則保留不動（歷史敘述，非現行路由）。
+- `CLAUDE.md`／`README.md` 技能表與 `tests/integration/claude-md-skills-baseline.txt` 同步；`plugin.json`／`marketplace.json` 關鍵字 `book` → `draw`。
+
 ## [6.2.1] - 2026-10-03
 
 ### Fixed

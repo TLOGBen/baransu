@@ -1,0 +1,35 @@
+{
+  "skill_name": "draw",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/draw 幫我把這個畫成架構圖：瀏覽器打 API，API 先查 Redis，miss 的話查 PostgreSQL 再回填快取。給技術同事看的，要能點。",
+      "expected_output": "Map lane: an archify architecture candidate (browser → API → Redis → PostgreSQL with the cache-fill return edge), `finalize` receipt passing, output at .claude/draw/<slug>/<slug>.html, report in Traditional Chinese with the validation summary and browser-evidence status.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "/draw 我們的部署流程：PR merge → CI build → staging → 手動核准 → production，核准失敗退回 staging。做一張放 README 用的靜態圖，淺色。",
+      "expected_output": "Diagram lane: a flowchart (or swimlane if roles are implied) as a self-contained HTML with inline SVG, doc-inline size, one accent on the approval gate, legend strip, passes scripts/diagram/self_check.py; the plan (type, size, cuts) was stated before drawing.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "/draw 做一支 15 秒直式的產品 reel：登入按鈕變成載入圈、打勾、然後變成一張 dashboard 卡片，游標要真的點；120 BPM，要有音效。",
+      "expected_output": "Motion lane: index.html with window.seek(t) built on assets/motion/motion.js (one shape morphing through states via track(), swapAlpha for labels, seeded noise only), beats via Motion.beatGrid(120), cues from window.timeline(), beats.png and contact.png reviewed and scored before `render.mjs full`, final.mp4 1080×1920 with mix.wav; review log with ≥3 rounds.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "/draw 用一頁 HTML 跟我解釋 TCP 三次握手和四次揮手，要有會動的圖，我會在手機上看。",
+      "expected_output": "Page lane: an explainer HTML built from assets/motion/explainer-template.html mechanics — 2–3 scrubbable canvas figures (sequence over time), light/dark tokens, phone width without horizontal scroll, captions that add a dimension, verify-page.mjs clean (no console errors, no hscroll).",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "把這段 mermaid 轉成好看的：flowchart LR; A[Client]-->B[Gateway]; B-->C[Orders]; B-->D[Auth]; C-->E[(Postgres)]",
+      "expected_output": "Triggers /draw diagram lane via the import path: mermaid_extract.py digest, four dials stated (html, doc-inline, balanced, mixed), redrawn (not converted) as an architecture diagram, fidelity ledger reported.",
+      "files": []
+    }
+  ]
+}

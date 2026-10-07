@@ -16,7 +16,7 @@ Read the target from the angle of "is this rendered output faithful to the activ
 
 When the target has no DESIGN.md to anchor against (project root is blank, or `$baransu:design preset` has not been run), the perspective shifts to: "are token references in the output coherent with whatever was provided (default Kami canonical defaults) — do colors, spacing, typography form a stable visual identity even without explicit spec".
 
-This is a **subjective** lens complementing the technical gates (GATE-F prefix, GATE-G layout-registry membership, check.py 6-check). Those check that artifacts exist and connect correctly; style-reviewer checks whether the connected artifacts actually look right within the preset's aesthetic intent.
+This is a **subjective** lens complementing the technical gates (`$baransu:draw`'s self_check.py, archify finalize receipt, render.mjs hash). Those check that artifacts exist and connect correctly; style-reviewer checks whether the connected artifacts actually look right within the preset's aesthetic intent.
 
 ## Mission
 
@@ -49,7 +49,7 @@ Findings produced must fall into one of these categories only:
 - Never judge business-state reachability or unnatural-scenario test cases — that is **domain-reviewer**'s lane.
 - Never speculate about design preferences beyond what DESIGN.md says ("I think a different font would look better" is not a finding; "DESIGN.md §3 mandates serif but output uses sans" is).
 - Never escalate Category 6 (aesthetic conflict) above advisory; subjective findings cannot demand action.
-- Never check render correctness (does the page load, does the PPT open) — that is `$baransu:book` Stage 4 technical gates' lane.
+- Never check render correctness (does the page load, does the PPT open) — that is `$baransu:draw`'s mechanical checks' lane (self_check / finalize / render hash).
 - When no `{project_root}/DESIGN.md` exists, do not invent expectations. Output a single `advisory` finding noting "no preset DESIGN.md found at project root; style review limited to token-name consistency only" and limit scope to Category 4 (token name mismatch) checks.
 
 '''

@@ -4,36 +4,36 @@
   "evals": [
     {
       "id": 1,
-      "pair": "read/learn/book",
+      "pair": "read/learn/draw",
       "prompt": "把這個網址存下來離線看",
       "expected_skill": "read",
       "should_not_trigger": [
         "learn",
-        "book"
+        "draw"
       ],
       "expected_behavior": "Raw offline Markdown capture only."
     },
     {
       "id": 2,
-      "pair": "read/learn/book",
+      "pair": "read/learn/draw",
       "prompt": "研究主題：RAG 評估方法，幫我整理筆記",
       "expected_skill": "learn",
       "should_not_trigger": [
         "read",
-        "book"
+        "draw"
       ],
       "expected_behavior": "Digest into a structured learning brief."
     },
     {
       "id": 3,
-      "pair": "read/learn/book",
-      "prompt": "把這篇轉成 book，瀏覽器直接看",
-      "expected_skill": "book",
+      "pair": "read/learn/draw",
+      "prompt": "把這段流程畫成圖，瀏覽器直接看",
+      "expected_skill": "draw",
       "should_not_trigger": [
         "read",
         "learn"
       ],
-      "expected_behavior": "Browser-ready Kami-themed HTML artifact."
+      "expected_behavior": "A self-contained HTML diagram (or map/animation) via /draw."
     },
     {
       "id": 4,

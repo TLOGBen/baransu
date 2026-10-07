@@ -4,8 +4,8 @@ description: 'Produces a structured learning brief from any content: a 5-column 
   brief per source plus an optional filled outline, from URLs / --topic / captured
   slugs / mixed. Use when the user wants sources digested into a learning note. Trigger
   On ''$baransu:learn'', ''研究主題'', ''整理筆記'', ''學一下''. Not for capturing raw offline
-  Markdown only (→ $baransu:read --save) nor producing a browser-ready HTML artifact
-  (→ $baransu:book).
+  Markdown only (→ $baransu:read --save) nor drawing it as a diagram, map, or animation
+  (→ $baransu:draw).
 
   '
 compatibility: Designed for Claude Code; ported to Codex.

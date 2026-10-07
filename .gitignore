@@ -43,6 +43,8 @@
 # .claude/settings.json stays tracked.
 .claude/read/
 .claude/learn/
+.claude/draw/
+.codex/draw/
 .claude/research/
 .claude/loop-state.json
 .claude/loop-final-report.md

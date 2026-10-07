@@ -39,8 +39,8 @@ the execution pipeline's Step 7) matches by slug, so the derivation must stay de
 
 ## Rendering basis
 
-Render with the book golden template — `../book/references/golden-template.html`
-— consuming the Kami tokens it carries. The journal is a standalone,
+Render with the draw explainer template — `../draw/assets/motion/explainer-template.html`
+— using its page contract (theme tokens, one reading column, phone-safe). The journal is a standalone,
 browser-ready HTML file; no external assets.
 
 ## Required sections

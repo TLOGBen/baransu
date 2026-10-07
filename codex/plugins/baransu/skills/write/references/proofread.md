@@ -8,7 +8,7 @@ The 頁數 column must be precise, so acquisition must preserve page provenance:
 
 - **PDF** (`.pdf`): read page by page with the Read tool's `pages` parameter, recording each finding's page verbatim from the page being read. If the PDF exceeds 20 pages, read in successive 20-page windows (`pages: "1-20"`, then `"21-40"`, and so on) and accumulate findings from every window into one ordered list keyed by **absolute** page number — never reset the page counter per window, and never stop after the first window. If any window's Read returns no extractable text (scanned or image-only pages), record that page range as 「無法擷取」 in the completion report rather than dropping it silently.
 - **Markdown / plain text / inline body**: there is no pagination. Set 頁數 = 「—」 and make 段落／上下文 carry the locating anchor (nearest heading + a verbatim snippet) so the user can still jump to the spot.
-- **DOCX / PPTX / other office formats**: convert with `markitdown` (same tool $baransu:book Stage 1 uses). If `markitdown` errors out or returns empty / no extractable text for the file (a total conversion failure, distinct from the page-loss case below), do NOT proceed to scan an empty body — that would emit an empty findings table that falsely reads as a clean document. Instead emit the completion-report line 「⚠️ 校對未執行：{file} 轉換失敗（markitdown 無法擷取內容），請改提供 PDF／Markdown／純文字」 and stop. When conversion succeeds, markitdown drops page boundaries (the usual case), so do NOT attempt to recover or guess a page: set 頁數 = 「—」 for every finding and locate each one entirely through 段落／上下文 (nearest heading + a verbatim snippet). State the page-boundary limitation in the completion report rather than fabricating page numbers.
+- **DOCX / PPTX / other office formats**: convert with `markitdown`. If `markitdown` errors out or returns empty / no extractable text for the file (a total conversion failure, distinct from the page-loss case below), do NOT proceed to scan an empty body — that would emit an empty findings table that falsely reads as a clean document. Instead emit the completion-report line 「⚠️ 校對未執行：{file} 轉換失敗（markitdown 無法擷取內容），請改提供 PDF／Markdown／純文字」 and stop. When conversion succeeds, markitdown drops page boundaries (the usual case), so do NOT attempt to recover or guess a page: set 頁數 = 「—」 for every finding and locate each one entirely through 段落／上下文 (nearest heading + a verbatim snippet). State the page-boundary limitation in the completion report rather than fabricating page numbers.
 
 Never invent a page number. If a finding's page cannot be determined with confidence, write 「—」, not a guess.
 
@@ -39,9 +39,9 @@ Each finding is a six-field record matching the output columns exactly:
 - **建議修正** — the corrected wording.
 - **修改原因** — one concise sentence on why (e.g. 「『質量』為大陸用語，台灣商業慣用『品質』」).
 
-## 4. Render to `錯字修改.html` (book visual language, self-contained)
+## 4. Render to `錯字修改.html` (self-contained)
 
-Match $baransu:book's Kami visual style **without** routing through the $baransu:book pipeline — a proofreading table is analysis output (which $baransu:book's "no LLM commentary" red line forbids) and carries no SVG (which $baransu:book's quality gate requires). So render directly here:
+A proofreading table is analysis output, not a visual, so it never routes through $baransu:draw. Render directly here with a quiet paper-and-ink style:
 
 1. **Palette / type**: use a clean, modern, light-theme palette (neutral paper background, one restrained accent, system-ui / serif reading font), inlined into a `<style>` block so the file opens standalone. Proofread carries its own styling; it reads no design-system file from the project.
 2. **Structure**: a single self-contained HTML document — a header (document title + scan summary: total findings and a per-type count), then one `<table>` with the six columns in this order: 頁數 ｜ 段落／上下文 ｜ 原文內容 ｜ 錯誤類型 ｜ 建議修正 ｜ 修改原因. Render 錯誤類型 as a color-coded badge (one hue per label) and wrap the problematic span in 原文內容 with `<mark>` so it stands out. Keep the reading column comfortable and the table zebra-striped for scanability.

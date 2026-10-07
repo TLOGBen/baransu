@@ -1,0 +1,83 @@
+<!doctype html>
+<!--
+  seek-template.html — a film as a pure function of time.
+  Every frame is window.seek(t). No CSS transitions, no timers, no state carried
+  between frames, no Math.random. Open in a browser to preview (it loops);
+  render with  node render.mjs full --html index.html  (uses window.seek + timeline()).
+  Copy this file and motion.js into your film folder, then edit the [EDIT] regions.
+-->
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>film</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap">
+<style>
+  html, body { margin: 0; background: #141413; }
+  body.preview { display: grid; place-items: center; min-height: 100vh; }
+  body.preview #stage { transform: scale(var(--fit, .4)); transform-origin: center; }
+  #stage { width: 1080px; height: 1920px; display: block; }
+</style>
+</head>
+<body>
+<canvas id="stage" width="1080" height="1920"></canvas>
+<script src="motion.js"></script>
+<script>
+const { spring, track, swapAlpha, loopT, rng, clamp, lerp, beatGrid } = Motion;
+const W = 1080, H = 1920;                                   // [EDIT] format: 1080×1920 (9:16) / 1440×1440 / 1920×1080
+const DUR = 8;                                              // [EDIT] seconds
+const GRID = beatGrid(120);                                 // [EDIT] measured bpm from beats.json
+const g = document.getElementById('stage').getContext('2d');
+const noise = rng(7);                                       // seeded, never Math.random
+const FONT = '"Noto Sans TC", "PingFang TC", sans-serif';
+const INK = '#F0EEE6', PAPER = '#141413', ACCENT = '#2B45F0';
+
+// [EDIT] One object per shot. Each draw(t) gets local time; everything derives from t.
+const SCENES = [
+  { from: 0, to: 3, draw(t) {                               // kinetic title on a spring
+      const s = spring(t - 0.1, 220, 22);
+      g.save(); g.translate(W / 2, H / 2); g.scale(0.6 + 0.4 * s, 0.6 + 0.4 * s);
+      g.globalAlpha = clamp(t * 4);
+      g.fillStyle = INK; g.font = `900 190px ${FONT}`; g.textAlign = 'center'; g.fillText('MOTION', 0, 0);
+      g.fillStyle = ACCENT; g.fillRect(-320 * s, 50, 640 * s, 18);
+      g.restore();
+  }},
+  { from: 3, to: 6, draw(t) {                               // staggered grid, every square on its own spring
+      const r = rng(11);
+      for (let i = 0; i < 48; i++) {
+        const x = (i % 6) * 170 + 115, y = Math.floor(i / 6) * 170 + 360;
+        const s = spring(t - i * 0.03 - r() * 0.1, 260, 20);
+        g.fillStyle = i % 7 ? INK : ACCENT;
+        g.fillRect(x - 60 * s, y - 60 * s, 120 * s, 120 * s);
+      }
+  }},
+  { from: 6, to: 8, draw(t) {                               // one shape, several targets: track() sums springs
+      const w = track(t, [[0, 120], [0.5, 640], [1.3, 320]], 170, 24);
+      const h = track(t, [[0, 120], [0.5, 120], [1.3, 320]], 170, 24);
+      g.fillStyle = INK; g.beginPath(); g.roundRect(W / 2 - w / 2, H / 2 - h / 2, w, h, Math.min(60, h / 2)); g.fill();
+      const a = swapAlpha(t, 0.5, 1.3);
+      if (a > 0) { g.globalAlpha = a; g.fillStyle = PAPER; g.font = `700 54px ${FONT}`; g.textAlign = 'center'; g.fillText('Get started →', W / 2, H / 2 + 18); g.globalAlpha = 1; }
+  }},
+];
+
+function draw(t) {
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.fillStyle = PAPER; g.fillRect(0, 0, W, H);
+  for (const s of SCENES) if (t >= s.from && t < s.to) s.draw(t - s.from);
+}
+// The render contract: seek(t) paints frame t; timeline() tells the renderer how long and where the sounds go.
+window.seek = (t) => { draw(t); return true; };
+window.timeline = () => ({
+  duration: DUR,
+  cues: [{ t: 0.1, type: 'whoosh' }, { t: 3.0, type: 'impact' }, ...Array.from({ length: 6 }, (_, i) => ({ t: 3 + i * 0.5, type: 'tick' })), { t: 6.5, type: 'pop' }, { t: 7.3, type: 'click' }],
+});
+// Live preview in a normal browser; off under the headless renderer.
+if (!navigator.webdriver && !window.__RENDER__) {
+  document.body.classList.add('preview');
+  document.documentElement.style.setProperty('--fit', String(Math.min(innerWidth / W, innerHeight / H) * 0.96));
+  const t0 = performance.now();
+  (function loop() { draw(loopT((performance.now() - t0) / 1000, DUR)); requestAnimationFrame(loop); })();
+}
+</script>
+</body>
+</html>

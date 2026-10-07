@@ -190,6 +190,6 @@ Outcome Contract still applies.
 | $baransu:think | `../think/references/loop-pauses.md` |
 | $baransu:write | `../write/references/loop-pauses.md` |
 | $baransu:read | `../read/references/loop-pauses.md` |
-| $baransu:book | `../book/references/loop-pauses.md` |
+| $baransu:draw | `../draw/references/loop-pauses.md` |
 | $baransu:health | `../health/references/loop-pauses.md` |
 | $baransu:codex-skill-transfer | `../codex-skill-transfer/references/loop-pauses.md` |
