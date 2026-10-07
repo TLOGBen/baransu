@@ -30,6 +30,30 @@
       "prompt": "把這段 mermaid 轉成好看的：flowchart LR; A[Client]-->B[Gateway]; B-->C[Orders]; B-->D[Auth]; C-->E[(Postgres)]",
       "expected_output": "Triggers /draw diagram lane via the import path: mermaid_extract.py digest, four dials stated (html, doc-inline, balanced, mixed), redrawn (not converted) as an architecture diagram, fidelity ledger reported.",
       "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "/draw 幫 https://example.com 做一支 20 秒的產品 reel，用真的截圖、真的 logo 和配色，要有音樂；直式、方形、橫式各一支。",
+      "expected_output": "Motion lane, L2: scripts/motion/grab.mjs run on the URL first and assets/manifest.json listed in the plan message (no UI redrawn from memory); docs/style_guide.md from the manifest; hook ≤ 5 words of huge type then the UI assembles and a cursor does real actions; music bed from music.mjs at the film's bpm mixed under sfx; three formats from one timeline via render.mjs --all (final-9x16 / 1x1 / 16x9), none cropped.",
+      "files": []
+    },
+    {
+      "id": 7,
+      "prompt": "/draw 這首歌 track.wav 從第 12 秒開始剪 15 秒，做一支 1:1 的 kinetic type 影片，歌詞我貼給你：『先把它做出來 / 再把它做對 / 最後做漂亮』。每個字要落在拍子上。",
+      "expected_output": "Motion lane: beats.py --start 12 --dur 15 run first and beats.json read; words placed with Motion.words on beats/downbeats (not a stopwatch); type rules from references/motion/type.md (one display face, ≥ ⅓ frame height, nothing in corners); render.mjs beats reviewed to confirm the grid lands on the kicks; 1:1 via --format 1:1; cuts on downbeats; loop check.",
+      "files": [{"path": "track.wav", "description": "any 30 s+ music file the eval runner supplies; a synthesized one from scripts/hand-drawn/scripts/music.mjs is acceptable"}]
+    },
+    {
+      "id": 8,
+      "prompt": "/draw 做一支 90 秒的「HTTP 的歷史」解說影片，橫式，旁白我之後再配，先把分鏡和畫面做出來。",
+      "expected_output": "Motion lane, long form: three storyboard variants in the plan message, one chosen; docs/ANIMATION_GUIDE.md + one chapter file per act with transitions assigned at every seam; stills of every shot critiqued before motion; animatic at 24 fps before polish; chunked renders (--from/--to) per chapter; stops at the contact sheet for authorization before the full render under a non-interactive driver; no narration invented — timing slots left for the user's track.",
+      "files": []
+    },
+    {
+      "id": 9,
+      "prompt": "/draw 畫一支 20 秒手繪風的小短片：一隻紙飛機從桌上起飛，繞過一杯咖啡，飛出窗外。要有紙的質感。",
+      "expected_output": "Motion lane, hand-drawn sub-lane: scripts/hand-drawn/ film-template.mjs as the start, references/motion/hand-drawn/workflow.md + motion.md + traps.md read; beat sheet with exposure (ones/twos/holds) and a sound cue per beat; paper texture and boil from styles.md; original props only; contact sheet and strips reviewed ≥ 3 rounds; 24 fps node-canvas render path stated in the report.",
+      "files": []
     }
   ]
 }

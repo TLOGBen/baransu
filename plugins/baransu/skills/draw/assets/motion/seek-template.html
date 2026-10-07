@@ -4,6 +4,8 @@
   Every frame is window.seek(t). No CSS transitions, no timers, no state carried
   between frames, no Math.random. Open in a browser to preview (it loops);
   render with  node render.mjs full --html index.html  (uses window.seek + timeline()).
+  One timeline, three formats: open with ?f=9:16 | 1:1 | 16:9 (render.mjs --format / --all
+  passes it). Scenes draw against L (the layout for the current format), never fixed pixels.
   Copy this file and motion.js into your film folder, then edit the [EDIT] regions.
 -->
 <html lang="zh-Hant">
@@ -16,60 +18,111 @@
   html, body { margin: 0; background: #141413; }
   body.preview { display: grid; place-items: center; min-height: 100vh; }
   body.preview #stage { transform: scale(var(--fit, .4)); transform-origin: center; }
-  #stage { width: 1080px; height: 1920px; display: block; }
+  #stage { display: block; }
 </style>
 </head>
 <body>
-<canvas id="stage" width="1080" height="1920"></canvas>
+<canvas id="stage"></canvas>
 <script src="motion.js"></script>
 <script>
-const { spring, track, swapAlpha, loopT, rng, clamp, lerp, beatGrid } = Motion;
-const W = 1080, H = 1920;                                   // [EDIT] format: 1080×1920 (9:16) / 1440×1440 / 1920×1080
+const { spring, track, swapAlpha, loopT, rng, clamp, lerp, beatGrid, cursor, words, swapBlur, countUp, wipe } = Motion;
+const FORMATS = { '9:16': [1080, 1920], '1:1': [1440, 1440], '16:9': [1920, 1080] };
+const F = new URLSearchParams(location.search).get('f') || '9:16';   // [EDIT] default format
+const [W, H] = FORMATS[F] || FORMATS['9:16'];
 const DUR = 8;                                              // [EDIT] seconds
 const GRID = beatGrid(120);                                 // [EDIT] measured bpm from beats.json
-const g = document.getElementById('stage').getContext('2d');
-const noise = rng(7);                                       // seeded, never Math.random
+const stage = document.getElementById('stage'); stage.width = W; stage.height = H;
+const g = stage.getContext('2d');
 const FONT = '"Noto Sans TC", "PingFang TC", sans-serif';
 const INK = '#F0EEE6', PAPER = '#141413', ACCENT = '#2B45F0';
 
+// [EDIT] The layout: every position and size a scene needs, derived from W×H once.
+// Reflow per format here (type smaller on 16:9, the card narrower on 9:16); never crop.
+const L = {
+  cx: W / 2, cy: H / 2,
+  // safe area: what the platform's own UI covers (9:16 caption + action bar); nothing the viewer must read goes there
+  safe: F === '9:16' ? { top: 220, bottom: 340, left: 60, right: 120 } : { top: H * 0.05, bottom: H * 0.05, left: W * 0.05, right: W * 0.05 },
+  show: { secondary: F !== '9:16' },                       // vertical = fewer simultaneous elements, not smaller ones
+  title: Math.round(Math.min(W, H) * 0.17),               // hook type ≥ 1/3 of the short side across two lines
+  card: { w: Math.min(W * 0.76, 860), h: Math.min(H * 0.28, 520) },   // inside L.safe on every format
+  button: { w: 420, h: 112 },
+};
+
 // [EDIT] One object per shot. Each draw(t) gets local time; everything derives from t.
 const SCENES = [
-  { from: 0, to: 3, draw(t) {                               // kinetic title on a spring
-      const s = spring(t - 0.1, 220, 22);
-      g.save(); g.translate(W / 2, H / 2); g.scale(0.6 + 0.4 * s, 0.6 + 0.4 * s);
-      g.globalAlpha = clamp(t * 4);
-      g.fillStyle = INK; g.font = `900 190px ${FONT}`; g.textAlign = 'center'; g.fillText('MOTION', 0, 0);
-      g.fillStyle = ACCENT; g.fillRect(-320 * s, 50, 640 * s, 18);
-      g.restore();
+  { from: 0, to: 3, draw(t) {                               // hook: ≤ 5 words, one spring per word
+      const ws = words(t, 'MOTION IS A PROGRAM', 0.1, 0.07, 'heavy');
+      g.fillStyle = INK; g.font = `900 ${L.title}px ${FONT}`; g.textAlign = 'center';
+      const lines = [ws.slice(0, 2), ws.slice(2)];
+      lines.forEach((line, li) => {
+        const y = L.cy + (li - 0.5) * L.title * 1.1;
+        const widths = line.map((w) => g.measureText(w.word + ' ').width), total = widths.reduce((a, b) => a + b, 0);
+        let x = L.cx - total / 2;
+        line.forEach((w, i) => {
+          g.save(); g.globalAlpha = clamp(w.p * 3); g.translate(x + widths[i] / 2, y + 16 * (1 - w.p));
+          g.scale(0.92 + 0.08 * w.p, 0.92 + 0.08 * w.p); g.fillText(w.word, 0, 0); g.restore();
+          x += widths[i];
+        });
+      });
+      const s = spring(t - 0.5, 220, 22);
+      g.fillStyle = ACCENT; g.fillRect(L.cx - 320 * s, L.cy + L.title * 0.9, 640 * s, 18);
   }},
-  { from: 3, to: 6, draw(t) {                               // staggered grid, every square on its own spring
+  { from: 3, to: 6, draw(t) {                               // the UI assembles itself, then a cursor really clicks
       const r = rng(11);
-      for (let i = 0; i < 48; i++) {
-        const x = (i % 6) * 170 + 115, y = Math.floor(i / 6) * 170 + 360;
-        const s = spring(t - i * 0.03 - r() * 0.1, 260, 20);
-        g.fillStyle = i % 7 ? INK : ACCENT;
-        g.fillRect(x - 60 * s, y - 60 * s, 120 * s, 120 * s);
+      const cw = L.card.w, ch = L.card.h, cx = L.cx - cw / 2, cy = L.cy - ch / 2;
+      const parts = [                                       // each part on its own spring, staggered
+        { x: cx, y: cy, w: cw, h: ch, c: INK, r: 28 },
+        { x: cx + 48, y: cy + 56, w: cw * 0.55, h: 28, c: PAPER, r: 6 },
+        ...(L.show.secondary ? [{ x: cx + 48, y: cy + 108, w: cw * 0.35, h: 20, c: '#9A9890', r: 5 }] : []),
+        { x: cx + 48, y: cy + ch - L.button.h - 48, w: L.button.w, h: L.button.h, c: ACCENT, r: 20 },
+      ];
+      parts.forEach((p, i) => {
+        const s = spring(t - i * 0.08 - r() * 0.04, 200, 24);
+        g.fillStyle = p.c; g.beginPath();
+        g.roundRect(p.x + p.w / 2 - (p.w / 2) * s, p.y + p.h / 2 - (p.h / 2) * s, p.w * s, p.h * s, p.r * s); g.fill();
+      });
+      const btn = parts[parts.length - 1], bx = btn.x + btn.w / 2, by = btn.y + btn.h / 2;
+      const click = 1.6;                                    // on a beat: GRID.at(n) if the film has a track
+      const pressed = spring(t - click, 320, 30) - spring(t - click - 0.14, 320, 30);
+      const a = swapAlpha(t, 0.4, 9); if (a > 0) {
+        const bl = swapBlur(t, click, 9, 4);
+        g.save(); g.globalAlpha = a; if (bl > 0.05) g.filter = `blur(${bl.toFixed(1)}px)`;   // filter only while blurring: blur(0) is a different raster path
+        g.fillStyle = INK; g.font = `700 40px ${FONT}`; g.textAlign = 'center'; g.fillText(t > click + 0.07 ? '已送出 ✓' : '送出', bx, by + 14); g.restore();
       }
+      const n = countUp(t, 0, 3393, click + 0.2);           // one number that proves it works
+      if (t > click + 0.2) { g.fillStyle = PAPER; g.font = `900 ${Math.round(L.title * 0.5)}px ${FONT}`; g.textAlign = 'right'; g.fillText(Math.round(n).toLocaleString(), cx + cw - 48, cy + 64 + L.title * 0.42); }
+      const c = cursor(t, [[0, L.cx + cw * 0.45, L.cy + ch * 0.6], [0.9, bx + 30, by + 22]], [click]);
+      g.save(); g.translate(c.x, c.y); g.scale(c.scale * (1 - 0.06 * pressed), c.scale * (1 - 0.06 * pressed));
+      g.fillStyle = INK; g.strokeStyle = PAPER; g.lineWidth = 3; g.beginPath();
+      g.moveTo(0, 0); g.lineTo(0, 34); g.lineTo(9, 26); g.lineTo(15, 40); g.lineTo(21, 37); g.lineTo(15, 24); g.lineTo(26, 23); g.closePath(); g.fill(); g.stroke(); g.restore();
   }},
   { from: 6, to: 8, draw(t) {                               // one shape, several targets: track() sums springs
       const w = track(t, [[0, 120], [0.5, 640], [1.3, 320]], 170, 24);
       const h = track(t, [[0, 120], [0.5, 120], [1.3, 320]], 170, 24);
-      g.fillStyle = INK; g.beginPath(); g.roundRect(W / 2 - w / 2, H / 2 - h / 2, w, h, Math.min(60, h / 2)); g.fill();
+      g.fillStyle = INK; g.beginPath(); g.roundRect(L.cx - w / 2, L.cy - h / 2, w, h, Math.min(60, h / 2)); g.fill();
       const a = swapAlpha(t, 0.5, 1.3);
-      if (a > 0) { g.globalAlpha = a; g.fillStyle = PAPER; g.font = `700 54px ${FONT}`; g.textAlign = 'center'; g.fillText('Get started →', W / 2, H / 2 + 18); g.globalAlpha = 1; }
+      if (a > 0) { g.globalAlpha = a; g.fillStyle = PAPER; g.font = `700 54px ${FONT}`; g.textAlign = 'center'; g.fillText('Get started →', L.cx, L.cy + 18); g.globalAlpha = 1; }
   }},
 ];
+// [EDIT] Seams: a wipe carries the eye from the hook into the UI; the other seams cut on the downbeat.
+const SEAMS = [{ at: 3, dur: 0.3, dir: 'right' }];
 
+function drawScene(t) { for (const s of SCENES) if (t >= s.from && t < s.to) s.draw(t - s.from); }
 function draw(t) {
-  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.filter = 'none';
   g.fillStyle = PAPER; g.fillRect(0, 0, W, H);
-  for (const s of SCENES) if (t >= s.from && t < s.to) s.draw(t - s.from);
+  const seam = SEAMS.find((s) => t >= s.at - s.dur && t < s.at);
+  if (!seam) return drawScene(t);
+  drawScene(seam.at - 0.001);                               // outgoing underneath
+  const r = wipe(t, seam.at - seam.dur, seam.dur, W, H, seam.dir);
+  g.save(); g.beginPath(); g.rect(r.x, r.y, r.w, r.h); g.clip();
+  g.fillStyle = PAPER; g.fillRect(0, 0, W, H); drawScene(seam.at); g.restore();   // incoming inside the clip
 }
 // The render contract: seek(t) paints frame t; timeline() tells the renderer how long and where the sounds go.
 window.seek = (t) => { draw(t); return true; };
 window.timeline = () => ({
-  duration: DUR,
-  cues: [{ t: 0.1, type: 'whoosh' }, { t: 3.0, type: 'impact' }, ...Array.from({ length: 6 }, (_, i) => ({ t: 3 + i * 0.5, type: 'tick' })), { t: 6.5, type: 'pop' }, { t: 7.3, type: 'click' }],
+  duration: DUR, format: F, width: W, height: H,
+  cues: [{ t: 0.1, type: 'whoosh' }, { t: 2.7, type: 'whoosh' }, { t: 3.0, type: 'impact' }, ...Array.from({ length: 4 }, (_, i) => ({ t: 3.05 + i * 0.08, type: 'tick' })), { t: 4.6, type: 'click' }, { t: 4.8, type: 'success' }, { t: 6.5, type: 'pop' }, { t: 7.3, type: 'click' }],
 });
 // Live preview in a normal browser; off under the headless renderer.
 if (!navigator.webdriver && !window.__RENDER__) {

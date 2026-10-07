@@ -33,7 +33,7 @@ Lock beats to word timestamps (`data/timings.json`), never to a stopwatch; the s
 
 ## Rendering long pieces
 
-- Render in resumable chunks (10 s each): finished chunks are kept, a crash costs one chunk.
+- Render in resumable chunks (10 s each): `render.mjs full --from 10 --to 20` per chunk, finished chunks are kept, a crash costs one chunk; `ffmpeg -f concat` joins the parts with the mix at the end (the command is printed after each chunk).
 - Several page workers in parallel; frames are pure functions of time so order does not matter.
 - Sound derived from the picture: each gun / click / footstep becomes a cue with distance and pan; sound travels at 343 m/s, so far events are heard late.
 - A painterly finish (grain, vignette, letterbox, a filter blended over the frame) applied once in post, not per element.

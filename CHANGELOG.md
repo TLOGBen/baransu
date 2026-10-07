@@ -2,6 +2,24 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [7.2.0] - 2026-10-07
+
+### Added（motion lane：三篇文章的 gap review 全部併入）
+- **畫面上出現什麼的詞彙**（@0xMovez 文章 review）：`motion.js` 新增 `cursor`（沿 UI 彈簧移動、按下縮放）、`typed`（seeded 逐字打字）、`drag`（握住時聽手、放開回彈）、`camera`（每個狀態一個 rect，push-in 即較小的 rect）、`words`（逐字落地）、`wipe / iris / whip`（轉場為幾何而非淡出）、`drawOn`、`swapBlur`、`countUp`。新 reference `references/motion/type.md`（兩個字型＋accent、hook ≤ 5 字 ≥ ⅓ 畫面高、不放角落）與 `transitions.md`（每個接縫一個決定、accent 帶過去、不黑場）；`springs.md` 補 cursor／camera 段與 ease 的唯一例外。
+- **一條 timeline 三種格式**：`seek-template.html` 讀 `?f=9:16|1:1|16:9`、所有位置從 layout 物件 `L` 推導（`L.safe` 安全區、`L.show` 直式少放東西）；範本改為 hook 逐字落地 → UI 自組裝＋游標真的點＋一個數字 → morph，接縫用 wipe。`render.mjs` 新增 `--format` / `--all`（full、animatic、contact、phone、stills 皆可，輸出加 `-9x16` 等後綴）、`--safe`（每格畫出安全區）、`stills --at`、`animatic`（24 fps、無模糊、半尺寸看節奏）、`--from/--to --keep` 分段渲染並印出 concat 指令。
+- **素材與參考**：`scripts/motion/grab.mjs`（使用者貼的 URL → 三格式截圖＋整頁＋`manifest.json` 含計算後的字型與顏色）；`checks.sh refs`（參考影片每 0.5 s 一格＋拼圖）、`checks.sh audio`（純音訊＋波形圖：閉眼聽有沒有形狀）；`music.mjs` / `chiptune.mjs` 明列為任何影片可用的 Route A 音樂底；`beats.py` 限制說明（漂移節奏給 `--bpm --start`）。
+- **流程規矩**（@0xwhrrari「Motion Engineering」review）：`storyboard.md` 新增 `docs/brief.md` 骨架（事實 vs 選擇、什麼算不可接受、主要格式）、三個分鏡變體先選一、每鏡 `enter / exit / why`（寫不出 why 的鏡頭砍掉）、HOOK→PROBLEM→REVEAL→PROOF→CLOSE、style_guide 補 Composition／Motion 欄；`pipeline.md` 新增五層工作室對照表（每層一個檔，沒檔就是跳過）、片夾固定結構、續跑先讀 review_log；`loop-pauses.md` 新增素材清單與每鏡 stills 兩個 Input PAUSE，**brief 點名的真實素材缺了就是錯誤出口**不是預設；`critique-loop.md` 加 Continuity 列、安全區、海報幀、純音訊、鏡頭移動後眼睛在哪等 hunt 項，review_log 要寫證據（哪一格）；完成報告加「素材清單／待人工確認／重渲指令」。
+- **631 構圖原理**（南鸢文章 review）：計分卡 Composition 改為三層讀圖（安靜底、引導層、單一差異的焦點）；「先修什麼」診斷順序（找不到焦點→砍競爭者而非放大主角；空間看不懂→回大形；風格變淡→查 Keep 清單）；storyboard 每鏡 `stage / life / focus` 欄與「最大 ≠ 最被看」規則；prompt-ladder `<inputs>` 加「風格必須保留的二三特徵」、`<direction>` 與 L4 Look 加三層句；taste-gate 加縮圖測試（320 px 寬焦點是否先被看到）；手繪 lane `detail.md` 加光的三個職責（主光／補光／局部光，不是三盞燈）與 set dressing。色相三分與 6:3:1 數字不進（與一色 accent 衝突，依文章自己的「保留顏色、改變亮度」處理）。
+- evals 6–9：L2 品牌 reel（grab → 三格式）、歌詞 kinetic type 落拍、90 秒長片分章＋animatic＋分段渲染、手繪短片。
+
+### Fixed
+- `render.mjs` warm-up 先把整條 timeline 掃一遍：canvas 第一次 `ctx.font` 指到某個字重才會觸發載入，`fonts.ready` 不知道，第一幀畫到 fallback 導致 `hash` 非決定性。
+- `lint-skin.py`：輸出檔是 `<slug>/index.html` 時 a11y ID 前綴取資料夾名，不再要求 `index-title`。
+- SKILL.md：lane 觸發詞補 cursor-driven demo／logo sting／kinetic type／lyric video／history film；紅線加 glow on UI chrome、particle bursts、UI 狀態間黑場；「visibly empty」只適用 diagram／map。
+
+### Verified
+- 五個 evals prompt 以子代理實跑（1 map／2 diagram／3 motion／4 page／5 mermaid 匯入）全部產出符合 expected_output 並獨立複驗；子代理環境解析不到 plugin skill，自動觸發那一半需在真實 session 驗。
+
 ## [7.1.1] - 2026-10-07
 
 ### Fixed（獨立 review 的 7 項發現）
