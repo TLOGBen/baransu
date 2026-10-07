@@ -12,7 +12,7 @@ For each artifact evolve ships, record one of `獨立得出` (independently deri
 | rubric dims 3/4/6 — **concepts** | 概念對齊 darwin 但措辭自寫 |
 | rubric dims 1/2/5/7/8/9 | 獨立得出（from baransu skill conventions） |
 | rubric scoring language + weights | 獨立得出 |
-| result-card fields/layout | 獨立得出（Kami design system, via /book） |
+| result-card fields/layout | 獨立得出（via /draw page lane） |
 | ratchet / snapshot / keep-restore mechanism | 概念對齊（autoresearch/darwin ratchet）但措辭自寫 |
 | blind-judge / diagnostician prompts | 獨立得出 |
 | stage structure of SKILL.md | 獨立得出（baransu skill house style） |

@@ -63,7 +63,7 @@
       "prompt": "把這份研究做成瀏覽器可看的 HTML",
       "should_trigger": false,
       "expected_skill": "book",
-      "expected_behavior": "Browser-ready HTML artifact routes to /book."
+      "expected_behavior": "Drawing it as a diagram, map, or animation routes to /draw."
     },
     {
       "id": 10,

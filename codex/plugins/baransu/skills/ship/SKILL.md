@@ -1,7 +1,7 @@
 ---
 name: ship
 description: 'Wraps up a session: archives baransu working dirs under .codex/ (except
-  read/learn/book/design products) into the gitignored, local-only .codex/archived/,
+  read/learn/draw/design products) into the gitignored, local-only .codex/archived/,
   commits, pushes (optionally `$baransu:ship BRANCH`), and tears down the worktree
   once work is on origin. Trigger On ''$baransu:ship'', ''收工'', ''上傳收尾'', ''結束這輪''.
   Not For writing copy ($baransu:write) or reviewing output ($baransu:review) — $baransu:ship
@@ -32,7 +32,7 @@ No user confirmation required. The steps below run automatically.
 
 Named red-lines, each enforced by the step in parentheses; none is optional. The step keeps its own if-then recovery — these name the rule it enforces.
 
-- **INV-1 — Two named archive sources, nothing else.** Exactly two sources feed the archive: (1) the Step 1 `ARCHIVE_DIRS` allowlist, swept dir by dir; (2) sealed root `CONTRACT*.md` files, identified by the sealed marker in their first 3 lines. Everything outside those two is never archived — the `read` / `learn` / `book` products, unsealed contracts, and all Claude Code infrastructure (`worktrees/`, `projects/`, `jobs/`, `plugins/`, `settings*.json`) stay in place. The allowlist spirit is unchanged: naming the second source enumerates it just as explicitly, it does not open a discretionary sweep. (Step 2)
+- **INV-1 — Two named archive sources, nothing else.** Exactly two sources feed the archive: (1) the Step 1 `ARCHIVE_DIRS` allowlist, swept dir by dir; (2) sealed root `CONTRACT*.md` files, identified by the sealed marker in their first 3 lines. Everything outside those two is never archived — the `read` / `learn` / `draw` products, unsealed contracts, and all Claude Code infrastructure (`worktrees/`, `projects/`, `jobs/`, `plugins/`, `settings*.json`) stay in place. The allowlist spirit is unchanged: naming the second source enumerates it just as explicitly, it does not open a discretionary sweep. (Step 2)
 - **INV-2 — Source dirs are emptied, never deleted.** Archiving moves items out; the source directory itself stays in place. (Step 2)
 - **INV-3 — Never force-push.** `--force` is forbidden on every push; `--force-with-lease` is used only when the user explicitly asks. (Step 4)
 - **INV-4 — No worktree teardown until the work is on origin.** A worktree is destroyed only after `git merge-base --is-ancestor` confirms the branch is on `$SAFE_REF`. (Step 5)
@@ -120,7 +120,7 @@ Before moving any item, enforce the local-only boundary:
 
 **Archive allowlist** — exactly the Step 1 `ARCHIVE_DIRS` value, in the same order: `tmp`, `think`, `hunt-report`, `evolve`, `review`, `write`, `seal`. The two lists MUST stay identical; a dir detected in Step 1 but absent here would leave Step 1's detect output unconsumed.
 
-**Never archived**: the `read`, `learn`, `book`, and `design` dirs are kept products and stay in place. Claude Code infrastructure (`worktrees/`, `projects/`, `jobs/`, `plugins/`, `settings*.json`, …) is never touched — the allowlist is explicit precisely so infra is never swept up.
+**Never archived**: the `read`, `learn`, `draw`, and `design` dirs are kept products and stay in place. Claude Code infrastructure (`worktrees/`, `projects/`, `jobs/`, `plugins/`, `settings*.json`, …) is never touched — the allowlist is explicit precisely so infra is never swept up.
 
 For each dir in the allowlist, for each item directly inside the source directory:
 - Destination: `.codex/archived/{item_name}`
@@ -138,7 +138,7 @@ A sealed contract is a completed artifact, so `$baransu:ship` collects it; an **
 
 (Archiving here is collision-only timestamping — the plain `{filename}` destination is used when it is free. `$baransu:contract` Step 3 archives a sealed contract it is about to overwrite and always timestamps. The asymmetry is deliberate: `$baransu:contract` is mid-write and cannot afford to reason about the destination, `$baransu:ship` keeps archive names readable. Do not unify them.)
 
-Output: 「已歸檔：{N} 個項目 → .codex/archived/（read/learn/book/design 產物保留；含 sealed 合約 {S} 份）」
+Output: 「已歸檔：{N} 個項目 → .codex/archived/（read/learn/draw/design 產物保留；含 sealed 合約 {S} 份）」
 
 `{N}` is the total moved — allowlist items plus sealed contracts — and `{S}` is how many of those `{N}` were sealed contracts (`{S}` is `0` when none).
 
@@ -302,7 +302,7 @@ If not in a worktree → skip silently.
 ```
 $baransu:ship 完成。
 
-歸檔：{N} 個項目（或「無可歸檔檔案」；read/learn/book/design 產物保留）
+歸檔：{N} 個項目（或「無可歸檔檔案」；read/learn/draw/design 產物保留）
 整合：{「拉入 N 個 commit」、「無需整合」或「新分支，略過」}
 Commit：{commit message 或「跳過」}
 Push：{origin/BRANCH 或「BRANCH → TARGET，origin/TARGET」}

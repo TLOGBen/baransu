@@ -35,7 +35,7 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 | `/evolve` | 把既有 SKILL.md 對著固定標準一輪輪磨好，只保留確有改進的改動。 |
 | `/read` | 萬用讀取：URL／路徑／glob／Chrome／剪貼簿轉成 Markdown 給 Claude 讀；加 `--save` 才存成離線檔。 |
 | `/learn` | 把素材整理成五欄重點摘要，可續寫成完整大綱筆記。 |
-| `/book` | 把任何來源渲染成紙質風格的瀏覽器 HTML 閱讀頁，含 SVG 圖解與排版。 |
+| `/draw` | 把任何東西畫出來：編輯級靜態圖（44 型）、可點可探索的互動圖、程式渲染的動態影片、或一頁可拖時間軸的動畫說明頁；全部自包含，先出計畫、再做、再自己看圖打分修到 8 分。 |
 | `/codex-skill-transfer` | 把 Claude 的 skill／plugin 單向轉成 Codex 對應格式。 |
 | `/ship` | session 收尾：歸檔工作檔與 root 的 sealed 合約、commit、push、清理 worktree。 |
 

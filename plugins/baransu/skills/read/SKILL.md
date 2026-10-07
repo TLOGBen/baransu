@@ -1,7 +1,7 @@
 ---
 name: read
 description: >
-  Reads any web page, file, or search result into the conversation as clean Markdown; keeps an offline copy under .claude/read/ only with --save or an explicit save request. Use when the user wants a page, PDF, or doc fetched, read, or converted. Trigger On '/read', '抓網頁', '看一下這篇', '轉成 markdown', '存下來', '存檔'. Not For digesting into notes (/learn) or browser-ready HTML (/book).
+  Reads any web page, file, or search result into the conversation as clean Markdown; keeps an offline copy under .claude/read/ only with --save or an explicit save request. Use when the user wants a page, PDF, or doc fetched, read, or converted. Trigger On '/read', '抓網頁', '看一下這篇', '轉成 markdown', '存下來', '存檔'. Not For digesting into notes (/learn) or drawing it as a diagram, map, or animation (/draw).
 argument-hint: "[URL | path | glob | --topic 'keyword' | --web 'keyword' | --gh 'keyword' | --x 'keyword' | --chrome | --clipboard] [--save] [--use-proxy]"
 user-invocable: true
 ---

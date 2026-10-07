@@ -1,0 +1,200 @@
+#!/usr/bin/env python3
+"""Structural and executable guarantees for /draw (plugins/baransu/skills/draw).
+
+/draw is a prose skill plus a bundle of vendored tooling. The prose is covered by
+scripts/verify-skills.py; this file pins the parts that would silently rot:
+
+- the four lanes name their entry references and every named file exists;
+- every vendored block ships its license and is listed in NOTICE.md;
+- the vendored tools run from their new location (archify `doctor`,
+  diagram-design `self_check.py`, the repo verifiers);
+- the motion library's math holds (spring settles at 1, track sums springs,
+  the loop wraps, swapAlpha gates);
+- sfx.mjs synthesizes a WAV from a cue list with no dependencies;
+- no vendored file reaches outside the skill for a file it needs.
+
+Browser-dependent checks (render, page verification) live in
+tests/skills/test-draw-toolchain.sh so they can SKIP when Playwright/ffmpeg are
+absent without weakening this file.
+"""
+
+from __future__ import annotations
+
+import json
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+SKILL = ROOT / "plugins" / "baransu" / "skills" / "draw"
+SKILL_MD = SKILL / "SKILL.md"
+
+
+def run(cmd, cwd=None, timeout=120):
+    return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=timeout)
+
+
+class TestStructure(unittest.TestCase):
+    def setUp(self):
+        self.assertTrue(SKILL_MD.is_file(), f"missing {SKILL_MD}")
+        self.body = SKILL_MD.read_text(encoding="utf-8")
+
+    def test_frontmatter_name_and_pushy_description(self):
+        self.assertRegex(self.body, r"^---\nname: draw\n", "frontmatter must open with name: draw")
+        m = re.search(r'^description: "(.+)"$', self.body, re.M)
+        self.assertIsNotNone(m)
+        desc = m.group(1)
+        self.assertLessEqual(len(desc), 1024)
+        for word in ("diagram", "map", "motion", "explainer", "畫", "動畫", "/draw"):
+            self.assertIn(word, desc, f"description should carry trigger word {word!r}")
+
+    def test_four_lanes_and_spine(self):
+        for h in ("## Lane: diagram", "## Lane: map", "## Lane: motion", "## Lane: page", "## The spine", "## Red lines", "## Completion report", "### Type router"):
+            self.assertIn(h, self.body, f"missing section {h}")
+
+    def test_every_referenced_bundled_path_exists(self):
+        tokens = set(re.findall(r"(?:references|scripts|assets)/[A-Za-z0-9_./<>-]+", self.body))
+        missing = []
+        for tok in tokens:
+            tok = tok.rstrip(".,;:)")
+            if "<" in tok or tok.endswith("/"):
+                continue
+            if not (SKILL / tok).exists():
+                missing.append(tok)
+        self.assertEqual(missing, [], f"SKILL.md names bundled paths that do not exist: {missing}")
+
+    def test_self_contained_wording(self):
+        self.assertIn("Self-contained by design", self.body)
+        self.assertNotIn("tokens.css", self.body)
+        self.assertNotIn("/baransu:design", self.body)
+        self.assertNotIn("WebSearch", self.body)
+
+    def test_loop_pauses_registered(self):
+        lp = SKILL / "references" / "loop-pauses.md"
+        self.assertTrue(lp.is_file())
+        self.assertIn("Authorization", lp.read_text(encoding="utf-8"))
+        contract = (ROOT / "plugins/baransu/skills/_shared/loop-contract.md").read_text(encoding="utf-8")
+        self.assertIn("| /draw | `../draw/references/loop-pauses.md` |", contract)
+
+    def test_no_nested_references_dir_under_references(self):
+        nested = [p for p in (SKILL / "references").rglob("references") if p.is_dir()]
+        self.assertEqual(nested, [])
+
+
+class TestLicenses(unittest.TestCase):
+    def test_license_files_present(self):
+        for rel in ("references/diagram/LICENSE", "references/diagram/THIRD_PARTY_LICENSES.md", "scripts/map/LICENSE", "scripts/map/THIRD_PARTY_NOTICES.md", "references/map/LICENSE", "scripts/hand-drawn/LICENSE", "references/motion/hand-drawn/LICENSE", "NOTICE.md"):
+            self.assertTrue((SKILL / rel).is_file(), f"missing {rel}")
+
+    def test_notice_lists_every_vendored_block(self):
+        notice = (SKILL / "NOTICE.md").read_text(encoding="utf-8")
+        for upstream in ("cathrynlavery/diagram-design", "tt-a1i/archify", "buildwithhanif/claude-animation-skill", "JohnHeibel/ClaudeAnimationBase"):
+            self.assertIn(upstream, notice)
+        for word in ("MIT", "CC BY 4.0"):
+            self.assertIn(word, notice)
+
+
+class TestVendoredToolsRun(unittest.TestCase):
+    def test_diagram_references_complete(self):
+        refs = SKILL / "references" / "diagram"
+        types = sorted(p.name for p in refs.glob("type-*.md"))
+        self.assertGreaterEqual(len(types), 44, f"expected the 44 upstream type references, found {len(types)}")
+        for core in ("style-guide.md", "primitives-core.md", "layout-budget.md", "output-spec.md", "semantic-patterns.md", "animation.md", "README.md"):
+            self.assertTrue((refs / core).is_file(), core)
+        assets = SKILL / "assets" / "diagram"
+        self.assertGreaterEqual(len(list(assets.glob("example-*.html"))), 200, "all upstream examples should be bundled")
+        for t in ("template.html", "template-dark.html", "template-full.html", "template-motion.html", "template-terminal.html", "icons.html"):
+            self.assertTrue((assets / t).is_file(), t)
+
+    def test_self_check_runs_on_bundled_examples(self):
+        for ex in ("example-architecture.html", "example-queue-animated.html", "example-sequence.html"):
+            r = run([sys.executable, str(SKILL / "scripts/diagram/self_check.py"), str(SKILL / "assets/diagram" / ex)])
+            self.assertEqual(r.returncode, 0, f"{ex}: {r.stdout}\n{r.stderr}")
+
+    def test_repo_verifiers_point_at_draw_layout(self):
+        repo = SKILL / "scripts/diagram/repo"
+        stale = [p.name for p in repo.glob("*.py") if "skills/diagram-design" in p.read_text(encoding="utf-8")]
+        self.assertEqual(stale, [], "vendored verifiers still resolve the upstream repo layout")
+        for script, example in (("verify-geometry.py", "example-sequence.html"), ("verify-motion.py", "example-queue-animated.html"), ("lint-skin.py", "example-architecture.html")):
+            r = run([sys.executable, str(repo / script), str(SKILL / "assets/diagram" / example)])
+            self.assertEqual(r.returncode, 0, f"{script}: {r.stdout[-400:]}\n{r.stderr[-400:]}")
+
+    @unittest.skipUnless(shutil.which("node"), "node not installed")
+    def test_archify_doctor_and_validate(self):
+        pkg = SKILL / "scripts/map"
+        r = run(["node", "bin/archify.mjs", "doctor"], cwd=pkg, timeout=180)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("Archify is ready", r.stdout)
+        r = run(["node", "bin/archify.mjs", "validate", "architecture", "examples/web-app.architecture.json", "--json"], cwd=pkg, timeout=180)
+        self.assertEqual(r.returncode, 0, r.stdout[-600:] + r.stderr[-600:])
+
+    def test_archify_package_keeps_what_the_cli_resolves(self):
+        pkg = SKILL / "scripts/map"
+        for rel in ("bin/archify.mjs", "renderers/shared/validator.mjs", "schemas/architecture.schema.json", "examples/web-app.architecture.json", "assets/template.html", "references/authoring-contract.md", "recipes/scenarios.mjs"):
+            self.assertTrue((pkg / rel).exists(), rel)
+        self.assertFalse((pkg / "test").exists(), "upstream test/ is deliberately not bundled")
+        self.assertFalse((pkg / "node_modules").exists())
+
+
+class TestMotionLibrary(unittest.TestCase):
+    @unittest.skipUnless(shutil.which("node"), "node not installed")
+    def test_spring_track_loop_swap(self):
+        js = (
+            "const M=require(process.argv[1]);"
+            "const out={s0:M.spring(0),sInf:M.spring(10),sOver:Math.max(...Array.from({length:200},(_,i)=>M.spring(i/100,200,14))),"
+            "tr:M.track(10,[[0,0],[1,100],[2,50]]),trMid:M.track(0.5,[[0,0],[1,100]]),loop:M.loopT(-1,8),"
+            "swapIn:M.swapAlpha(0.0,0,1),swapMid:M.swapAlpha(0.5,0,1),swapOut:M.swapAlpha(0.99,0,1),"
+            "rngA:M.rng(7)(),rngB:M.rng(7)(),grid:M.beatGrid(120).at(4),feel:M.feel('snappy',5)};"
+            "console.log(JSON.stringify(out));"
+        )
+        r = run(["node", "-e", js, str(SKILL / "assets/motion/motion.js")])
+        self.assertEqual(r.returncode, 0, r.stderr)
+        o = json.loads(r.stdout)
+        self.assertEqual(o["s0"], 0)
+        self.assertAlmostEqual(o["sInf"], 1.0, places=5)
+        self.assertGreater(o["sOver"], 1.0, "playful feel should overshoot")
+        self.assertAlmostEqual(o["tr"], 50.0, places=3)
+        self.assertEqual(o["trMid"], 0.0, "a spring that has not started contributes nothing")
+        self.assertEqual(o["loop"], 7)
+        self.assertEqual(o["swapIn"], 0)
+        self.assertEqual(o["swapMid"], 1)
+        self.assertEqual(o["swapOut"], 0)
+        self.assertEqual(o["rngA"], o["rngB"], "seeded rng must be reproducible")
+        self.assertAlmostEqual(o["grid"], 2.0)
+        self.assertAlmostEqual(o["feel"], 1.0, places=5)
+
+    @unittest.skipUnless(shutil.which("node"), "node not installed")
+    def test_sfx_writes_wav_without_dependencies(self):
+        with tempfile.TemporaryDirectory() as d:
+            cues = Path(d) / "cues.json"
+            cues.write_text(json.dumps({"duration": 2, "cues": [{"t": 0.25, "type": "click"}, {"t": 1.0, "type": "impact", "gain": 0.8}, {"t": 1.9, "type": "chime"}]}))
+            out = Path(d) / "mix.wav"
+            r = run(["node", str(SKILL / "scripts/motion/sfx.mjs"), str(cues), str(out), "--loop"])
+            self.assertEqual(r.returncode, 0, r.stderr)
+            b = out.read_bytes()
+            self.assertEqual(b[:4], b"RIFF")
+            self.assertEqual(b[8:12], b"WAVE")
+            self.assertEqual(len(b), 44 + 2 * 48000 * 4, "2 s stereo 16-bit at 48 kHz")
+
+    def test_beats_script_compiles_and_documents_fields(self):
+        src = (SKILL / "scripts/motion/beats.py").read_text(encoding="utf-8")
+        compile(src, "beats.py", "exec")
+        for field in ("beats", "downbeats", "hits"):
+            self.assertIn(f'"{field}"', src)
+
+    def test_seek_template_keeps_the_render_contract(self):
+        t = (SKILL / "assets/motion/seek-template.html").read_text(encoding="utf-8")
+        self.assertIn("window.seek", t)
+        self.assertIn("window.timeline", t)
+        self.assertIn("navigator.webdriver", t)
+        self.assertNotIn("Math.random(", t)
+        self.assertNotIn("setTimeout", t)
+        self.assertNotIn("transition:", t)
+
+
+if __name__ == "__main__":
+    unittest.main()

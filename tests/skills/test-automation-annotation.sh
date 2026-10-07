@@ -31,7 +31,7 @@ expected = {
     "ship": ("neutral", "assisted"),
     "write": ("neutral", "drivable"),
     "read": ("neutral", "drivable"),
-    "book": ("neutral", "drivable"),
+    "draw": ("neutral", "assisted"),
     "ui": ("neutral", "not-drivable"),
 }
 auto_pat = re.compile(

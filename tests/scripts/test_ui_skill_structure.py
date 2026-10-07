@@ -32,7 +32,7 @@ NOTICE_LINES = [
     "Modified: sections on learning from a reference and refining an existing UI were added; frontmatter and Outcome Contract are baransu's.",
 ]
 TRIGGERS = ["'/ui'", "'設計 UI'", "'美化'", "'調 UI'", "'介面設計'", "'照這個網站的風格'", "'styling'", "'beautifying any web UI'", "'frontend design'"]
-NOT_FOR = ["Claude Design 畫布 mockup", "/book", "design.md"]
+NOT_FOR = ["Claude Design 畫布 mockup", "/draw", "design.md"]
 EXTRACT_RED_LINE = "只抽性質，不抽素材、文案、logo"
 NOTE_SENTENCE = "Write the result as a short prose note at `.claude/design/reference-<slug>.md`, first line naming the source"
 LEARNING_SECTION = "## Learning a design language from a reference"
@@ -40,10 +40,10 @@ CLOSING_PROHIBITION = "Say only what you actually did: if you could not take a s
 REFINE_NO_NEW_FACTS = "Rewording changes how existing content is said, never what it says: add no fact the page does not already hold"
 ARCHIVE_DIRS_LINE = 'ARCHIVE_DIRS="tmp think hunt-report evolve review write seal"'
 SHIP_KEEP_LIST = [
-    "(except read/learn/book/design products)",
-    "the `read`, `learn`, `book`, and `design` dirs are kept products",
-    "「已歸檔：{N} 個項目 → .claude/archived/（read/learn/book/design 產物保留；含 sealed 合約 {S} 份）」",
-    "歸檔：{N} 個項目（或「無可歸檔檔案」；read/learn/book/design 產物保留）",
+    "(except read/learn/draw/design products)",
+    "the `read`, `learn`, `draw`, and `design` dirs are kept products",
+    "「已歸檔：{N} 個項目 → .claude/archived/（read/learn/draw/design 產物保留；含 sealed 合約 {S} 份）」",
+    "歸檔：{N} 個項目（或「無可歸檔檔案」；read/learn/draw/design 產物保留）",
 ]
 REMOVED_REFERENCES = [
     ("plugins/baransu/skills/write/references/proofread.md", r"tokens\.css"),

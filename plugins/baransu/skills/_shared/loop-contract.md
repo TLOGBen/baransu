@@ -190,6 +190,6 @@ Outcome Contract still applies.
 | /think | `../think/references/loop-pauses.md` |
 | /write | `../write/references/loop-pauses.md` |
 | /read | `../read/references/loop-pauses.md` |
-| /book | `../book/references/loop-pauses.md` |
+| /draw | `../draw/references/loop-pauses.md` |
 | /health | `../health/references/loop-pauses.md` |
 | /codex-skill-transfer | `../codex-skill-transfer/references/loop-pauses.md` |

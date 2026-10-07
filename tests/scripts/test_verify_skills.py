@@ -36,8 +36,8 @@ FIXTURE_AGENTS_DIR = THIS_FILE.parent / "fixtures" / "verify-skills-agents"
 LISTING_TOTAL_ADVISORY = 7000
 
 EXPECTED_SKILLS = [
-    "book",
     "codex-skill-transfer",
+    "draw",
     "ui",
     "contract",
     "evolve",

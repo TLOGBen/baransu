@@ -1,7 +1,7 @@
 ---
 name: learn
 description: >
-  Produces a structured learning brief from any content: a 5-column digest brief per source plus an optional filled outline, from URLs / --topic / captured slugs / mixed. Use when the user wants sources digested into a learning note. Trigger On '/learn', '研究主題', '整理筆記', '學一下'. Not for capturing raw offline Markdown only (→ /read --save) nor producing a browser-ready HTML artifact (→ /book).
+  Produces a structured learning brief from any content: a 5-column digest brief per source plus an optional filled outline, from URLs / --topic / captured slugs / mixed. Use when the user wants sources digested into a learning note. Trigger On '/learn', '研究主題', '整理筆記', '學一下'. Not for capturing raw offline Markdown only (→ /read --save) nor drawing it as a diagram, map, or animation (→ /draw).
 argument-hint: "[URL... | --topic 'keyword' | slug... | mixed]"
 user-invocable: true
 ---

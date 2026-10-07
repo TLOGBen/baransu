@@ -3,7 +3,7 @@
 
 REQ-002 (TASK-shared-01) — color-distance validation tool: advisory-only,
 non-blocking colorblind-simulation distinguishability check, callable by
-both `/design` (bakes candidate color sets into tokens.css) and `/book`
+both `/design` (bakes candidate color sets into tokens.css) and `/draw`
 (re-validates a chart's actually-selected color subset).
 
 Coverage:

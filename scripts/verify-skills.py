@@ -11,7 +11,8 @@ Repo mode（無參數）執行全部檢查：
   3. SKILL.md 引用的 references/ 檔存在，且 references/ 內不得再巢狀 references/
   4. 被裁名稱（grade/triage/bridge/dev/full_review）word-boundary ＋ 被裁指令
      （/execute）slash 形式，零功能殘留
-     （掃描面與排除規則內嵌於本腳本，見 RESIDUE_* 常數；git 歷史不掃）
+     （掃描面與排除規則內嵌於本腳本，見 RESIDUE_* 常數；git 歷史不掃；
+     vendored 第三方目錄整體排除並計數，見 RESIDUE_VENDORED_PREFIXES）
   5. 三發行面（plugin.json / marketplace.json / codex 鏡像）version 一致
   6. Outcome Contract 四行（Outcome / Done when / Evidence / Output）齊備且值非空
   7. 契約區塊第五行 Automation 標注存在且值非空
@@ -138,6 +139,19 @@ REMOVED_NAMES_RE = re.compile(
     r"\b(?:grade|triage|bridge|dev|full_review)\b|\B/execute\b(?!/)"
 )
 RESIDUE_SCAN_EXTS = {".md", ".py", ".json"}
+
+# Vendored 第三方材料（/draw 捆綁的 diagram-design / archify / claude-animation）
+# 整個目錄排除：這些檔案逐字保留上游授權內容（NOTICE.md 列明），
+# 裡面的 dev / bridge 是上游一般用語，不是本倉被裁名稱的殘留。
+# 排除以 (label, 相對路徑前綴) 表示；命中數隨輸出落盤，不是靜默跳過。
+RESIDUE_VENDORED_PREFIXES = (
+    ("draw vendored diagram-design", "plugins/baransu/skills/draw/references/diagram/"),
+    ("draw vendored diagram-design scripts", "plugins/baransu/skills/draw/scripts/diagram/"),
+    ("draw vendored archify", "plugins/baransu/skills/draw/scripts/map/"),
+    ("draw vendored archify refs", "plugins/baransu/skills/draw/references/map/"),
+    ("draw vendored claude-animation", "plugins/baransu/skills/draw/scripts/hand-drawn/"),
+    ("draw vendored claude-animation refs", "plugins/baransu/skills/draw/references/motion/hand-drawn/"),
+)
 
 # (label, path-suffix 或 None=不限路徑, line regex)
 RESIDUE_WHITELIST = (
@@ -367,6 +381,10 @@ def check_residue():
     excluded: dict[str, int] = {}
     for path in iter_residue_files():
         rel = path.relative_to(REPO_ROOT).as_posix()
+        vendored = next((lb for lb, pre in RESIDUE_VENDORED_PREFIXES if rel.startswith(pre)), None)
+        if vendored is not None:
+            excluded[vendored] = excluded.get(vendored, 0) + 1
+            continue
         try:
             text = path.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError) as exc:

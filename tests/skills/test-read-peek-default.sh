@@ -192,7 +192,7 @@ else
 fi
 
 DESC=$(awk '/^description: >/{getline; sub(/^  /,""); print; exit}' "${SKILL}" | tr -d '\r')
-EXPECTED_DESC="Reads any web page, file, or search result into the conversation as clean Markdown; keeps an offline copy under .claude/read/ only with --save or an explicit save request. Use when the user wants a page, PDF, or doc fetched, read, or converted. Trigger On '/read', '抓網頁', '看一下這篇', '轉成 markdown', '存下來', '存檔'. Not For digesting into notes (/learn) or browser-ready HTML (/book)."
+EXPECTED_DESC="Reads any web page, file, or search result into the conversation as clean Markdown; keeps an offline copy under .claude/read/ only with --save or an explicit save request. Use when the user wants a page, PDF, or doc fetched, read, or converted. Trigger On '/read', '抓網頁', '看一下這篇', '轉成 markdown', '存下來', '存檔'. Not For digesting into notes (/learn) or drawing it as a diagram, map, or animation (/draw)."
 if [[ "${DESC}" == "${EXPECTED_DESC}" ]]; then
   pass "peek_report_format: description verbatim"
 else
