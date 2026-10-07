@@ -10,7 +10,7 @@ Editorial diagrams as self-contained HTML + inline SVG: 44 visual types, 9 seman
 4. `layout-budget.md` — the 4 px grid, allowed values, per-type complexity limits, the summary-card pattern.
 5. `output-spec.md` — format × size × detail × audience dials and the type ramp per size preset (also required for any import).
 6. When behaviour carries the meaning: `semantic-patterns.md` first, then the nearest type.
-7. When motion is requested: `animation.md`, and copy the controller from `../../assets/diagram/template-motion.html` verbatim.
+7. When motion is requested: `animation.md` (reveal / step / loop; copy the controller from `../../assets/diagram/template-motion.html` verbatim), or `seek-overlay.md` when the reader should scrub a token through the diagram (start from `../../assets/diagram/template-seek.html`; `scripts/diagram/seek_split.py` gates the static twin).
 
 Templates: `../../assets/diagram/template.html` (minimal light), `template-dark.html`, `template-full.html` (editorial card), `template-motion.html`, `template-terminal.html`. Every type has `example-<type>.html`, `-dark`, `-full` and, where motion is sanctioned, `-animated` examples beside them; `index.html` flips through all of them, `icons.html` is the icon gallery.
 

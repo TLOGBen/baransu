@@ -85,10 +85,15 @@ async function openPage(browser) {
   page.on('pageerror', (e) => console.error('[pageerror]', e.message));
   page.on('console', (m) => { if (m.type() === 'error') console.error('[console]', m.text()); });
   await page.addInitScript(() => { window.__RENDER__ = true; });
-  await page.goto(pathToFileURL(HTML).href);
+  await page.goto(pathToFileURL(HTML).href, { waitUntil: 'networkidle' }); // web fonts and any linked assets are in before the first frame
   await page.evaluate(() => document.fonts && document.fonts.ready);
   const ok = await page.evaluate(() => typeof window.seek === 'function');
   if (!ok) die('page does not define window.seek(t)');
+  // Warm up: web fonts swap in and the first paint settles a frame or two after
+  // fonts.ready; one discarded screenshot keeps the first measured frame honest.
+  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+  await page.evaluate(() => window.seek(0));
+  await (await target(page)).screenshot({ type: 'png', animations: 'disabled' });
   return page;
 }
 
@@ -151,11 +156,27 @@ async function main() {
       console.log(`wrote ${f}`);
     } else if (mode === 'hash') {
       const t = num('t', 0);
-      const a = createHash('md5').update(await shot(page, t)).digest('hex');
+      const pa = await shot(page, t);
       await page.evaluate((tt) => window.seek(tt + 1), t); // disturb, then come back
-      const b = createHash('md5').update(await shot(page, t)).digest('hex');
-      console.log(`${a}\n${b}\n${a === b ? 'DETERMINISTIC' : 'NOT DETERMINISTIC — frame depends on history'}`);
-      process.exitCode = a === b ? 0 : 1;
+      const pb = await shot(page, t);
+      const a = createHash('md5').update(pa).digest('hex'), b = createHash('md5').update(pb).digest('hex');
+      let verdict = a === b ? 'DETERMINISTIC' : 'NOT DETERMINISTIC — frame depends on history';
+      let ok = a === b;
+      if (!ok && haveFfmpeg()) {
+        // SVG/DOM frames can differ by a few anti-aliased pixels after an element toggles
+        // visibility (rasterizer cache), without any history in the page. Decode both and
+        // measure: ≥ 80 dB PSNR is sub-visible noise, not a state leak.
+        const d = tmp();
+        fs.writeFileSync(path.join(d, 'a.png'), pa); fs.writeFileSync(path.join(d, 'b.png'), pb);
+        const r = spawnSync('ffmpeg', ['-v', 'info', '-i', path.join(d, 'a.png'), '-i', path.join(d, 'b.png'), '-filter_complex', 'psnr', '-f', 'null', '-'], { encoding: 'utf8' });
+        const m = /average:([\d.]+|inf)/.exec(r.stderr || '');
+        const psnr = m ? (m[1] === 'inf' ? Infinity : Number(m[1])) : NaN;
+        fs.rmSync(d, { recursive: true, force: true });
+        if (psnr >= 80) { ok = true; verdict = `DETERMINISTIC (raster noise only, PSNR ${psnr.toFixed(1)} dB)`; }
+        else if (Number.isFinite(psnr)) verdict += ` (PSNR ${psnr.toFixed(1)} dB)`;
+      }
+      console.log(`${a}\n${b}\n${verdict}`);
+      process.exitCode = ok ? 0 : 1;
     } else if (mode === 'beats') {
       let beats;
       if (opt.beats) beats = JSON.parse(fs.readFileSync(path.resolve(opt.beats), 'utf8')).beats;

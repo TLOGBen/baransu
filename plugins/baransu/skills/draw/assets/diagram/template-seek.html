@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seek-overlay diagram template</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Noto+Serif:ital@0;1&family=Noto+Sans+KR:wght@400;500;600&family=Noto+Serif+KR:wght@400&family=Noto+Sans+TC:wght@400;500;600&family=Noto+Serif+TC:wght@400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f5f5f5;
+      --color-ink:     #2d3142;
+      --color-muted:   #4f5d75;
+      --color-soft:    #7a8399;
+      --color-accent:  #eb6c36;
+      --color-link:    #2e5aa8;
+      --color-rule:    rgba(45,49,66,0.12);
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', 'Noto Serif', 'Noto Serif KR', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1200px; width: 100%; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 960px; display: block; }
+    @media print { .diagram-container { overflow-x: visible; } svg { min-width: 0; } }
+
+    /* ── Seek overlay ──────────────────────────────────────────────────────
+       The semantic diagram above is complete without any of this. The overlay
+       is decorative only: it never hides, moves, or re-labels a semantic
+       element. It appears only once the script has initialised (.seek-ready),
+       so a no-JS reader, print, reduced motion, and the static export all see
+       the plain diagram. */
+    [data-seek-decorative] { display: none; }
+    .seek-ready [data-seek-decorative] { display: initial; }
+    [data-seek-controls] { display: none; align-items: center; gap: 12px; margin-top: 12px; font-family: var(--font-mono); font-size: 12px; color: var(--color-muted); }
+    .seek-ready [data-seek-controls] { display: flex; }
+    [data-seek-controls] button { width: 40px; height: 30px; border: 1px solid var(--color-rule); border-radius: 6px; background: #fff; color: var(--color-ink); font: inherit; cursor: pointer; }
+    [data-seek-controls] button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+    [data-seek-controls] input[type=range] { flex: 1; min-width: 0; accent-color: var(--color-accent); }
+    [data-seek-controls] output { min-width: 7em; text-align: right; font-variant-numeric: tabular-nums; }
+    @media (prefers-reduced-motion: reduce) {
+      [data-seek-decorative], [data-seek-controls] { display: none !important; }
+    }
+    @media print { [data-seek-decorative], [data-seek-controls] { display: none !important; } }
+  </style>
+</head>
+<body>
+  <div class="frame" data-seek-root>
+    <p class="eyebrow">Architecture · Diagram Design · seek overlay</p>
+    <h1>A request through the order service</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="seek-template-title seek-template-desc">
+        <title id="seek-template-title">A request through the order service</title>
+        <desc id="seek-template-desc">A client calls the gateway, which calls the orders service; orders reads Postgres and the response returns along the same path.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+        <!-- Arrows first (orthogonal only), then nodes. All geometry on the 4px grid. -->
+        <!-- Client → Gateway -->
+        <line x1="208" y1="200" x2="300" y2="200" stroke="#2e5aa8" stroke-width="1" marker-end="url(#arrow-link)"/>
+        <rect x="224" y="186" width="60" height="12" fill="#f5f5f5"/>
+        <text x="254" y="195" font-family="Geist Mono" font-size="8" letter-spacing="0.06em" fill="#4f5d75" text-anchor="middle">HTTPS</text>
+        <!-- Gateway → Orders (focal path) -->
+        <line x1="468" y1="200" x2="560" y2="200" stroke="#eb6c36" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+        <rect x="484" y="186" width="60" height="12" fill="#f5f5f5"/>
+        <text x="514" y="195" font-family="Geist Mono" font-size="8" letter-spacing="0.06em" fill="#4f5d75" text-anchor="middle">GRPC</text>
+        <!-- Orders → Postgres: elbow r=8 down from the orders box -->
+        <path d="M 644 248 L 644 320 Q 644 328 652 328 L 700 328" fill="none" stroke="#4f5d75" stroke-width="1" marker-end="url(#arrow)"/>
+        <rect x="652" y="300" width="36" height="12" fill="#f5f5f5"/>
+        <text x="670" y="309" font-family="Geist Mono" font-size="8" letter-spacing="0.06em" fill="#4f5d75" text-anchor="middle">SQL</text>
+        <!-- Return path: dashed, below the request path, own attach points -->
+        <line x1="560" y1="224" x2="468" y2="224" stroke="#4f5d75" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+        <line x1="300" y1="224" x2="208" y2="224" stroke="#4f5d75" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+        <rect x="224" y="230" width="68" height="12" fill="#f5f5f5"/>
+        <text x="258" y="239" font-family="Geist Mono" font-size="8" letter-spacing="0.06em" fill="#4f5d75" text-anchor="middle">200 OK</text>
+
+        <!-- Nodes -->
+        <g id="n-client">
+          <rect x="40" y="176" width="168" height="56" rx="6" fill="#f5f5f5"/>
+          <rect x="40" y="176" width="168" height="56" rx="6" fill="rgba(79,93,117,0.10)" stroke="#7a8399" stroke-width="1"/>
+          <text x="124" y="200" font-family="Geist" font-size="12" font-weight="600" fill="#2d3142" text-anchor="middle">Client</text>
+          <text x="124" y="216" font-family="Geist Mono" font-size="9" fill="#4f5d75" text-anchor="middle">browser · mobile</text>
+        </g>
+        <g id="n-gateway">
+          <rect x="300" y="176" width="168" height="56" rx="6" fill="#f5f5f5"/>
+          <rect x="300" y="176" width="168" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+          <text x="384" y="200" font-family="Geist" font-size="12" font-weight="600" fill="#2d3142" text-anchor="middle">API Gateway</text>
+          <text x="384" y="216" font-family="Geist Mono" font-size="9" fill="#4f5d75" text-anchor="middle">auth · rate limit</text>
+        </g>
+        <g id="n-orders">
+          <rect x="560" y="176" width="168" height="72" rx="6" fill="#f5f5f5"/>
+          <rect x="560" y="176" width="168" height="72" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+          <text x="644" y="204" font-family="Geist" font-size="12" font-weight="600" fill="#2d3142" text-anchor="middle">Orders Service</text>
+          <text x="644" y="222" font-family="Geist Mono" font-size="9" fill="#4f5d75" text-anchor="middle">POST /v2/orders</text>
+        </g>
+        <g id="n-db">
+          <rect x="700" y="300" width="168" height="56" rx="6" fill="#f5f5f5"/>
+          <rect x="700" y="300" width="168" height="56" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+          <text x="784" y="324" font-family="Geist" font-size="12" font-weight="600" fill="#2d3142" text-anchor="middle">Postgres</text>
+          <text x="784" y="340" font-family="Geist Mono" font-size="9" fill="#4f5d75" text-anchor="middle">orders · idempotency keys</text>
+        </g>
+
+        <!-- Legend strip (bottom 60px) -->
+        <line x1="40" y1="540" x2="920" y2="540" stroke="rgba(45,49,66,0.12)" stroke-width="1"/>
+        <text x="40" y="566" font-family="Geist Mono" font-size="8" letter-spacing="0.18em" fill="#7a8399">LEGEND</text>
+        <line x1="120" y1="562" x2="150" y2="562" stroke="#eb6c36" stroke-width="1.2"/><text x="158" y="566" font-family="Geist Mono" font-size="8" fill="#4f5d75">FOCAL PATH</text>
+        <line x1="260" y1="562" x2="290" y2="562" stroke="#2e5aa8" stroke-width="1"/><text x="298" y="566" font-family="Geist Mono" font-size="8" fill="#4f5d75">EXTERNAL CALL</text>
+        <line x1="420" y1="562" x2="450" y2="562" stroke="#4f5d75" stroke-width="1" stroke-dasharray="5,4"/><text x="458" y="566" font-family="Geist Mono" font-size="8" fill="#4f5d75">RESPONSE</text>
+
+        <!-- ── Seek overlay: decorative only, hidden until the script initialises ──
+             Guide paths retrace the semantic connectors so the token follows them
+             exactly; highlights sit on node bounds. Nothing here carries meaning
+             the static diagram lacks. -->
+        <g data-seek-decorative aria-hidden="true" focusable="false">
+          <path data-seek-guide="req" d="M 208 200 L 560 200 L 644 200 L 644 320 Q 644 328 652 328 L 700 328" fill="none" stroke="none"/>
+          <path data-seek-guide="res" d="M 700 328 L 652 328 Q 644 328 644 320 L 644 224 L 208 224" fill="none" stroke="none"/>
+          <rect data-seek-hl="n-client"  x="38" y="174" width="172" height="60" rx="8" fill="none" stroke="#eb6c36" stroke-width="2" opacity="0"/>
+          <rect data-seek-hl="n-gateway" x="298" y="174" width="172" height="60" rx="8" fill="none" stroke="#eb6c36" stroke-width="2" opacity="0"/>
+          <rect data-seek-hl="n-orders"  x="558" y="174" width="172" height="76" rx="8" fill="none" stroke="#eb6c36" stroke-width="2" opacity="0"/>
+          <rect data-seek-hl="n-db"      x="698" y="298" width="172" height="60" rx="8" fill="none" stroke="#eb6c36" stroke-width="2" opacity="0"/>
+          <circle data-seek-token r="6" fill="#eb6c36" opacity="0"/>
+          <text data-seek-clock x="920" y="40" font-family="Geist Mono" font-size="9" fill="#7a8399" text-anchor="end"></text>
+        </g>
+      </svg>
+    </div>
+
+    <div data-seek-controls>
+      <button type="button" data-seek-action="toggle" aria-label="Play">▶</button>
+      <input type="range" min="0" max="6" step="0.01" value="0" aria-label="Timeline">
+      <output>t = 0.00 s</output>
+    </div>
+  </div>
+
+  <!-- ── Seek overlay script. Pure functions of time; no state between frames.
+       render.mjs can drive this page through window.seek(t) to export a video,
+       and scripts/diagram/seek_split.py strips this block to produce the static
+       twin that self_check.py gates. -->
+  <script data-seek-overlay>
+  (() => {
+    const root = document.querySelector('[data-seek-root]');
+    const svg = root.querySelector('svg');
+    const DUR = 6;                                                        // [EDIT] seconds
+    const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+    function spring(t, k = 170, d = 26) {                                 // closed-form damped spring 0 → 1
+      if (t <= 0) return 0; const w0 = Math.sqrt(k), z = d / (2 * w0);
+      if (z < 1) { const wd = w0 * Math.sqrt(1 - z * z); return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t)); }
+      return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+    }
+    const guide = (n) => svg.querySelector(`[data-seek-guide="${n}"]`);
+    const hl = (id) => svg.querySelector(`[data-seek-hl="${id}"]`);
+    const token = svg.querySelector('[data-seek-token]'), clock = svg.querySelector('[data-seek-clock]');
+    // [EDIT] the timeline: which guide the token rides, and which node lights up, as windows on t.
+    const LEGS = [{ path: 'req', from: 0.2, to: 2.6 }, { path: 'res', from: 3.2, to: 5.4 }];
+    const LIGHTS = [['n-client', 0.0, 0.6], ['n-gateway', 0.9, 1.5], ['n-orders', 1.7, 2.3], ['n-db', 2.6, 3.4], ['n-orders', 3.9, 4.4], ['n-gateway', 4.6, 5.0], ['n-client', 5.3, 6.0]];
+    function seek(t) {
+      t = clamp(t, 0, DUR);
+      let placed = false;
+      for (const leg of LEGS) {
+        if (t < leg.from || t > leg.to) continue;
+        const p = guide(leg.path), L = p.getTotalLength();
+        const x = clamp((t - leg.from) / (leg.to - leg.from));
+        const u = x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;   // ease in/out: a token travels, it does not spring
+        const pt = p.getPointAtLength(u * L);
+        token.setAttribute('cx', pt.x); token.setAttribute('cy', pt.y); token.setAttribute('opacity', '1'); placed = true;
+      }
+      if (!placed) token.setAttribute('opacity', '0');
+      for (const r of svg.querySelectorAll('[data-seek-hl]')) r.setAttribute('opacity', '0');
+      for (const [id, a, b] of LIGHTS) if (t >= a && t <= b) hl(id).setAttribute('opacity', String(clamp(spring(t - a, 220, 22)) * (1 - clamp((t - b + 0.15) / 0.15))));
+      clock.textContent = 't = ' + t.toFixed(2) + ' s';
+      return true;
+    }
+    window.seek = seek;                                                   // render.mjs entry point
+    window.timeline = () => ({ duration: DUR, cues: LIGHTS.map(([, a]) => ({ t: a, type: 'tick' })) });
+    // Controls (scoped to this root); absent under reduced motion and in print via CSS.
+    const ctrl = root.querySelector('[data-seek-controls]'), btn = ctrl.querySelector('button'), range = ctrl.querySelector('input'), out = ctrl.querySelector('output');
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let t = 0, playing = !reduced && !navigator.webdriver && !window.__RENDER__, prev = performance.now();
+    const paint = () => { seek(t); range.value = t; out.textContent = 't = ' + t.toFixed(2) + ' s'; btn.textContent = playing ? '❚❚' : '▶'; btn.setAttribute('aria-label', playing ? 'Pause' : 'Play'); };
+    btn.addEventListener('click', () => { playing = !playing; paint(); });
+    range.addEventListener('input', () => { playing = false; t = Number(range.value); paint(); });
+    root.classList.add('seek-ready');
+    paint();
+    if (!navigator.webdriver && !window.__RENDER__) {
+      (function loop(now) { const dt = Math.min(0.1, (now - prev) / 1000); prev = now; if (playing) { t = (t + dt) % DUR; paint(); } requestAnimationFrame(loop); })(performance.now());
+    }
+  })();
+  </script>
+</body>
+</html>

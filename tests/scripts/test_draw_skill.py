@@ -107,13 +107,34 @@ class TestVendoredToolsRun(unittest.TestCase):
             self.assertTrue((refs / core).is_file(), core)
         assets = SKILL / "assets" / "diagram"
         self.assertGreaterEqual(len(list(assets.glob("example-*.html"))), 200, "all upstream examples should be bundled")
-        for t in ("template.html", "template-dark.html", "template-full.html", "template-motion.html", "template-terminal.html", "icons.html"):
+        for t in ("template.html", "template-dark.html", "template-full.html", "template-motion.html", "template-terminal.html", "template-seek.html", "icons.html"):
             self.assertTrue((assets / t).is_file(), t)
 
     def test_self_check_runs_on_bundled_examples(self):
         for ex in ("example-architecture.html", "example-queue-animated.html", "example-sequence.html"):
             r = run([sys.executable, str(SKILL / "scripts/diagram/self_check.py"), str(SKILL / "assets/diagram" / ex)])
             self.assertEqual(r.returncode, 0, f"{ex}: {r.stdout}\n{r.stderr}")
+
+    def test_seek_overlay_template_splits_into_a_clean_static_twin(self):
+        """The seek template is a complete static diagram plus one overlay script:
+        seek_split.py must strip exactly that and the twin must pass self_check."""
+        with tempfile.TemporaryDirectory() as d:
+            seek = Path(d) / "flow.seek.html"
+            seek.write_text((SKILL / "assets/diagram/template-seek.html").read_text(encoding="utf-8"), encoding="utf-8")
+            r = run([sys.executable, str(SKILL / "scripts/diagram/seek_split.py"), str(seek)])
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+            twin = Path(d) / "flow.html"
+            self.assertTrue(twin.is_file())
+            t = twin.read_text(encoding="utf-8")
+            self.assertNotIn("data-seek-overlay", t)
+            self.assertNotRegex(t, r"<div[^>]*data-seek-controls", "the controls element is stripped (its CSS selectors may stay)")
+            self.assertIn("data-seek-decorative", t, "decorative group stays in the twin, hidden by CSS")
+            r = run([sys.executable, str(SKILL / "scripts/diagram/repo/verify-geometry.py"), str(twin)])
+            self.assertEqual(r.returncode, 0, r.stdout[-400:])
+        src = (SKILL / "assets/diagram/template-seek.html").read_text(encoding="utf-8")
+        self.assertIn("window.seek", src)
+        self.assertIn("window.timeline", src)
+        self.assertNotIn("Math.random(", src)
 
     def test_repo_verifiers_point_at_draw_layout(self):
         repo = SKILL / "scripts/diagram/repo"

@@ -37,5 +37,8 @@ if out=$(node "$SKILL/scripts/motion/verify-page.mjs" "$SKILL/assets/motion/expl
   if echo "$out" | grep -q '"errors": \[\]' && ! echo "$out" | grep -q '"hscroll": true'; then ok "T4 explainer template verifies clean"; else bad "T4 verify-page report" "$out"; fi
 else bad "T4 verify-page exit" "$out"; fi
 
+cp "$SKILL/assets/diagram/template-seek.html" "$W/flow.seek.html"
+if out=$(node "$R" hash --html flow.seek.html --selector svg --w 1200 --h 750 --t 2.0 --out out-seek 2>&1) && echo "$out" | grep -q DETERMINISTIC; then ok "T5 seek-overlay diagram renders deterministically through the same pipeline"; else bad "T5 seek hash" "$out"; fi
+
 echo "Results: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]
