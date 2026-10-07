@@ -19,7 +19,7 @@ Variants that shipped and still worked: a 60-second 16:9 reel with an original p
 
 ## L2 — point it at a product
 
-Three lines did the work in the published examples: the product URL, "use actual product screenshots, logo, assets", "must have music". The model gathers the assets itself (with a browser it can screenshot). Keep one session per brand: the renderer, audio synth and export pipeline already exist, so the second video is faster. Never redraw product UI from imagination; crop and animate the real thing. API keys go in `.env`; the prompt names the variable, never the key.
+Three lines did the work in the published examples: the product URL, "use actual product screenshots, logo, assets", "must have music". The URL the user pasted is input: `node scripts/motion/grab.mjs <url> --out assets` screenshots it at the three formats plus the full page and writes `assets/manifest.json` (title, og:image, theme colour, the body font and colours the page computes); list the manifest in the plan message before drawing. Keep one session per brand: the renderer, audio synth and export pipeline already exist, so the second video is faster. Never redraw product UI from imagination; crop and animate the real thing. Component libraries the user already has (a design system, a UI kit) are inputs too — screenshot them, do not reinvent them. API keys go in `.env`; the prompt names the variable, never the key.
 
 Template:
 
@@ -30,23 +30,23 @@ Assets: real screenshots, the real logo, real colours and fonts, saved to ./asse
 Story (one beat each, 2–4 s): hook in 5 words of huge type → the UI assembles itself →
 three features, each a UI moment with a cursor doing a real action → one number that proves it → logo + CTA.
 Sound: original music at 120 BPM synthesized in code; clicks and whooshes on the beat.
-Format: 1080×1920 first, then 1:1 and 16:9 from the same timeline.
+Format: [primary format] first, then the other two from the same timeline; a contact sheet for each.
 Before the full render, show me a contact sheet of one frame per beat.
 ```
 
 ## L3 — a reference and a state list
 
-Without a reference the model falls back to its defaults: centred text, gradient background, everything fading in. Naming a style beats describing one; a frame or a video gives pacing, type and transitions to copy.
+Without a reference the model falls back to its defaults: centred text, gradient background, everything fading in. Naming a style beats describing one; a frame or a video gives pacing, type and transitions to copy. The reference comes from the user (this skill does not browse galleries for one); when none is offered, ask for a frame, a clip or a folder of their own work before building.
 
 - **A frame**: attach it; say what to take (palette, type, grain) and what not to take (subject).
-- **A video**: extract one frame every 0.5 s with ffmpeg; describe pacing shot by shot before any code.
-- **A library**: a folder of the user's own work; write `docs/style_guide.md` from it first. Their own library is a reference nobody else can copy.
+- **A video**: `bash scripts/motion/checks.sh refs ref.mp4` extracts one frame every 0.5 s and a tile; describe pacing shot by shot before any code.
+- **A library**: a folder of the user's own work; write `docs/style_guide.md` from it first (skeleton in `storyboard.md`). Their own library is a reference nobody else can copy.
 
 Then write the **state list**, not the vibe. The most-bookmarked prompts of the trend were XML specs: `<inputs>` to ask for, `<direction>`, a beat-by-beat `<structure>`, `<build>` rules, `<gotchas>`, `<start>`. The concept behind them: **one shape, never cut** — a single element morphs size, radius and colour from state to state, a cursor drives each change with real clicks, and the last frame equals the first so it loops.
 
 ```
-<inputs>  product + URL · 8–12 UI states that tell its story · the real data in each · brand colours + fonts + one accent · a royalty-free track near 120 BPM · formats </inputs>
-<direction> Product-film UI motion. A single container that never cuts away: each state is that same element changing size, radius and fill while its contents swap under a brief blur. A cursor drives every change. Warm neutral canvas, one accent. Springs with at most a tiny overshoot. Not allowed: bouncy easing, glows, gradients on UI chrome, particle bursts, dead time. </direction>
+<inputs>  product + URL · 8–12 UI states that tell its story · the real data in each · brand colours + fonts + one accent · the two or three features the look must keep (what would make it stop being this brand) · a royalty-free track near 120 BPM · formats </inputs>
+<direction> Product-film UI motion. A single container that never cuts away: each state is that same element changing size, radius and fill while its contents swap under a brief blur. A cursor drives every change. Warm neutral canvas, one accent. Every frame: one quiet base that fills most of it, a few supporting elements that point at the focus, one focus marked by value or the accent, never by extra detail. Springs with at most a tiny overshoot. Not allowed: bouncy easing, glows, gradients on UI chrome, particle bursts, dead time. </direction>
 <structure> 120 BPM, 8 bars, something happens on every beat. logo → CTA button → email field (typed) → loader → success check → dashboard card → chart draws itself → tooltip → ⌘K palette → toast → logo. </structure>
 <build> One HTML file, one canvas, window.seek(t); no CSS transitions, timers, or carried state. Closed-form springs; a value with many targets = sum of one spring per change. Text inside a morphing container enters after the morph starts, leaves before the next. Tab indicators: leading and trailing edges on different springs. Beat grid from the track; start on a downbeat; UI sounds on measured peaks. Headless Chrome at 60 fps, 4 subframes blended for motion blur. </build>
 <gotchas> Never will-change on anything the camera scales. The last frame equals the first, cursor position and velocity included. </gotchas>
@@ -69,7 +69,7 @@ A five-minute dictated brief became a 142-second music video after a 12-hour run
 - **Critique loop.** Render stills, score them, write the three worst problems, fix, repeat until every score is 8+ (`../critique-loop.md`).
 - **Deliverables.** Final MP4, loop check, poster frame, contact sheet, clean source with a README.
 
-The *generate-then-trace* move: an external video model renders base shots with characters and physics, then the code layer redraws the whole video on top, so the viewer only sees the drawn layer. Video models give motion that is hard to hand-code; the code layer gives a consistent, ownable look.
+The *generate-then-trace* move: an external video model renders base shots with characters and physics, then the code layer redraws the whole video on top, so the viewer only sees the drawn layer. Video models give motion that is hard to hand-code; the code layer gives a consistent, ownable look. This skill does not call image, video or voice models itself (it renders only pixels it drew): base shots or a voice track the user already has are *inputs* — trace over the frames in `refs/`, lock beats to the words' `timings.json` — and the brief names them as such.
 
 Template (fill every bracket; cut sections the piece does not need):
 
@@ -83,13 +83,14 @@ This is a multi-session production; the final render comes last, not first.
 - ./audio/track.wav : use it unchanged. Measure beats with beats.py first.
 - APIs in .env: [NAMES]. Budget: [$X]. Spend sparingly.
 ## Look
-[3–5 lines: palette, type, texture, camera language. Banned looks.]
+[3–5 lines: palette, type, texture, camera language. What fills the frame / what leads the eye / what the viewer must find, and the single difference that marks it. Banned looks.]
 ## Beat sheet
 0:00–0:02 hook: [the single most striking image]
 0:02–0:10 [act 1] … a new visual payoff every 3–5 seconds
 [END] the last frame sets up the first frame (loop)
 ## Workflow, with gates
-1. docs/style_guide.md + docs/shotlist.md (every shot: frames, camera, text, SFX). Show the shot list; continue without waiting if no answer in 10 minutes.
+0. docs/brief.md + assets/manifest.json: every asset the brief names as real is present, or stop and say which is missing. No brand decision is taken by default.
+1. docs/style_guide.md + docs/shotlist.md (every shot: enter state, exit state, why it exists, frames, camera, text, SFX). Show the shot list; continue without waiting if no answer in 10 minutes — this applies to the shot list only, never to the asset list. When the reference reads two ways, render the hook still both ways and ask.
 2. Stills for every shot → contact sheet → critique.
 3. Animatic at 960×540 with placeholder audio; fix pacing before polish.
 4. Full animation, polish pass, sound pass, final render.

@@ -541,6 +541,9 @@ def display_path(path):
 
 
 def diagram_slug(path):
+    # The draw lane delivers `.claude/draw/<slug>/index.html`; the slug is the folder.
+    if path.stem == "index":
+        return path.resolve().parent.name
     return path.stem.removeprefix("example-")
 
 

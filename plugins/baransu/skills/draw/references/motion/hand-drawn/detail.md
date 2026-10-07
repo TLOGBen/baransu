@@ -68,7 +68,10 @@ foam claws along the crest, darker body, lighter face, white foam arcs at the ba
 
 **Light**: warm light = radial gradient drawn *over* a darkened scene (the candle in 1965, the door to
 democracy): darken the whole plate with a multiply radial, then add the glow source-over. Colour grading
-after the fact can't give you a light source.
+after the fact can't give you a light source. A lit scene has three jobs, not three lamps: a dominant
+light that sets the mood (the bands, the sky), a fill that keeps the dark side readable (never crush the
+background to flat black), and a local light only where the beat's focus is. Write where each comes from
+and what it hits; a scene lit evenly has no focus, a scene with three bright spots has three.
 
 ## Characters: the detail checklist
 
@@ -97,6 +100,9 @@ Before a character appears on screen, it has all of these (the ant rig is the re
   rulers with ticks) — they explain the geometry of growth. Fade them as the real thing takes over.
 - **Tally marks** to count time passing; a **day/night strip** that flips every ~0.33 s with the sun/moon
   stepping across.
+- **Set dressing** says who uses this place and what just happened: two or three props with a use (a worn
+  case by the door, footprints to it), placed near the focus; never a floor evenly scattered with clutter,
+  and never in the quiet areas the stage needs.
 
 ## Before you render: the detail pass
 

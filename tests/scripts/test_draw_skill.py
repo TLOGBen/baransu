@@ -215,6 +215,63 @@ class TestMotionLibrary(unittest.TestCase):
         self.assertNotIn("Math.random(", t)
         self.assertNotIn("setTimeout", t)
         self.assertNotIn("transition:", t)
+        # one timeline, three formats: the page reflows on ?f= and draws against the layout object
+        for s in ("FORMATS", "get('f')", "const L = {", "cursor(", "words(", "countUp(", "wipe("):
+            self.assertIn(s, t, s)
+
+    @unittest.skipUnless(shutil.which("node"), "node not installed")
+    def test_on_screen_helpers_are_pure_functions_of_t(self):
+        js = (
+            "const M=require(process.argv[1]);"
+            "const c=M.cursor(1.0,[[0,100,100],[0.5,400,300]],[0.9]);"
+            "const out={cx:c.x,down:c.down,scaleDip:c.scale<1,"
+            "typedDone:M.typed(5,'hello',0,14,3).done,typedEmpty:M.typed(0,'hello',0.5).text,"
+            "dragRest:M.drag(0,1,2,t=>t*100,0),dragHeld:M.drag(1.5,1,2,t=>t*100,0),dragBack:M.drag(20,1,2,t=>t*100,0),"
+            "cam:M.camera(5,[[0,{x:0,y:0,w:1080,h:1920}],[1,{x:0,y:0,w:540,h:960}]],1080,1920).s,"
+            "wordsN:M.words(1,'a b c',0).length,wordsStagger:M.words(0.1,'a b c',0).map(w=>w.p),"
+            "wipeMid:M.wipe(0.15,0,0.3,1080,1920,'right').w,irisEnd:M.iris(1,0,0.3,100,100).p,whipBlur:M.whip(0,0,0.3,1080).blur,"
+            "drawOnEnd:M.drawOn(5,0),blurAtIn:M.swapBlur(0,0,1)>0,blurMid:M.swapBlur(0.5,0,1),count:M.countUp(9,0,3393,0),"
+            "sameT:JSON.stringify(M.cursor(0.7,[[0,0,0],[0.3,50,50]],[0.5]))===JSON.stringify(M.cursor(0.7,[[0,0,0],[0.3,50,50]],[0.5]))};"
+            "console.log(JSON.stringify(out));"
+        )
+        r = run(["node", "-e", js, str(SKILL / "assets/motion/motion.js")])
+        self.assertEqual(r.returncode, 0, r.stderr)
+        o = json.loads(r.stdout)
+        self.assertGreater(o["cx"], 350, "cursor has travelled on its spring")
+        self.assertTrue(o["down"] and o["scaleDip"], "a click 0.1 s ago is still pressed and scaled down")
+        self.assertTrue(o["typedDone"]); self.assertEqual(o["typedEmpty"], "")
+        self.assertEqual(o["dragRest"], 0); self.assertAlmostEqual(o["dragHeld"], 150); self.assertAlmostEqual(o["dragBack"], 0, places=3)
+        self.assertAlmostEqual(o["cam"], 2.0, places=3, msg="a half-size rect fills the frame at 2×")
+        self.assertEqual(o["wordsN"], 3); self.assertTrue(o["wordsStagger"][0] > o["wordsStagger"][1] > o["wordsStagger"][2])
+        self.assertAlmostEqual(o["wipeMid"], 540); self.assertEqual(o["irisEnd"], 1); self.assertEqual(o["whipBlur"], 0)
+        self.assertAlmostEqual(o["drawOnEnd"], 1.0, places=5); self.assertTrue(o["blurAtIn"]); self.assertEqual(o["blurMid"], 0)
+        self.assertAlmostEqual(o["count"], 3393, places=3); self.assertTrue(o["sameT"])
+
+    def test_motion_toolchain_grew_with_the_screen_vocabulary(self):
+        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        render = (SKILL / "scripts/motion/render.mjs").read_text(encoding="utf-8")
+        for mode in ("stills", "animatic", "--format", "--all", "--from", "--keep", "--safe", "safeArea"):
+            self.assertIn(mode, render, mode)
+        # the process rules the studio articles insisted on
+        self.assertIn("safe:", (SKILL / "assets/motion/seek-template.html").read_text(encoding="utf-8"))
+        self.assertIn("## The brief file", (SKILL / "references/motion/storyboard.md").read_text(encoding="utf-8"))
+        self.assertIn("## The film folder", (SKILL / "references/motion/pipeline.md").read_text(encoding="utf-8"))
+        self.assertIn("| Continuity |", (SKILL / "references/critique-loop.md").read_text(encoding="utf-8"))
+        pauses = (SKILL / "references/loop-pauses.md").read_text(encoding="utf-8")
+        self.assertIn("asset manifest", pauses); self.assertIn("names a real asset", pauses)
+        self.assertIn("audio)", (SKILL / "scripts/motion/checks.sh").read_text(encoding="utf-8"))
+        self.assertIn("?f=", render)
+        self.assertIn("refs)", (SKILL / "scripts/motion/checks.sh").read_text(encoding="utf-8"))
+        self.assertTrue((SKILL / "scripts/motion/grab.mjs").is_file())
+        for ref in ("references/motion/type.md", "references/motion/transitions.md"):
+            self.assertTrue((SKILL / ref).is_file(), ref)
+            self.assertIn(ref.split("/")[-1], skill, f"SKILL.md must point at {ref}")
+        for s in ("grab.mjs", "Motion.cursor", "Motion.camera", "Motion.words", "animatic", "--all"):
+            self.assertIn(s, skill, s)
+        beat = (SKILL / "references/motion/beat-grid.md").read_text(encoding="utf-8")
+        self.assertIn("music.mjs", beat); self.assertIn("--bed", beat)
+        evals = json.loads((SKILL / "evals/evals.json").read_text(encoding="utf-8"))["evals"]
+        self.assertGreaterEqual(sum("Motion lane" in e["expected_output"] for e in evals), 4, "four motion evals")
 
 
 if __name__ == "__main__":

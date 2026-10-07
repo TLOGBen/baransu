@@ -45,6 +45,7 @@ Type-specific anti-patterns live in each type reference.
 **Signal:**
 
 - [ ] Accent used on ≤ 2 elements? If more, which actually deserve focal status?
+- [ ] At ~320 px wide (the phone capture from `verify-page.mjs`), do the focal nodes and the main path still read first — before any label is legible? (A large boundary box must not out-shout the focal node.)
 - [ ] Legend covers every type used — and nothing extra?
 - [ ] Within the type's complexity budget (`layout-budget.md`)?
 

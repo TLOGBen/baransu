@@ -44,9 +44,9 @@ All user-facing output is Traditional Chinese (繁體中文); code, identifiers,
 ## Outcome Contract
 
 - **Outcome**: A self-contained artifact under `.codex/draw/<slug>/` — `index.html` (diagram, map, page) or `out/final.mp4` plus its source (motion) — that passes the lane's mechanical check and a scored critique loop, built only from what the user supplied and what this skill bundles.
-- **Done when**: The plan (lane, type, size, what the budget cuts) was stated before any file was written; the lane check exits 0 (`self_check.py` / `archify finalize` / `render.mjs hash` + contact sheet / `verify-page.mjs`); the critique scorecard shows every row ≥ 8 or three rounds were logged; the completion report names the file, the lane, the checks that ran, and the scores.
+- **Done when**: The plan (lane, type, size, what the budget cuts) was stated before any file was written; the lane check exits 0 (`self_check.py` / `archify finalize` / `render.mjs hash` + a contact sheet for every delivered format / `verify-page.mjs`); the critique scorecard shows every row ≥ 8 or three rounds were logged; the completion report names the file, the lane, the checks that ran, and the scores.
 - **Evidence**: The check command output, `docs/review_log.md` in the output folder, and the captures (`contact.png` / screenshots / the finalize receipt).
-- **Output**: `.codex/draw/<slug>/` with the artifact, its source, `docs/review_log.md`, captures; Traditional Chinese status and completion messages.
+- **Output**: `.codex/draw/<slug>/` with the artifact, its source, `docs/review_log.md` (and for a film `docs/brief.md`, the folder in `references/motion/pipeline.md`), captures; Traditional Chinese status and completion messages.
 - **Automation**: ultracode=neutral, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
   In the same non-interactive pass, read `references/loop-pauses.md` for this skill's own PAUSE classification.
 - **Telemetry**: on invocation, append one selection record per `../_shared/selection-telemetry.md`.
@@ -63,7 +63,7 @@ Runtime needs, by lane: Node 18+ (map, motion, page checks), Python 3 (diagram c
 |---|---|---|---|
 | see structure, logic, data, or a comparison at a glance, in a doc, README, slide, or post; or watch something travel through such a diagram on a scrubber | **diagram** | one HTML, inline SVG, light / dark / full-editorial variants, optional reveal / step / loop motion, or a seek overlay (scrubber + exportable to video) | `references/diagram/README.md` → `style-guide.md` → the type reference; `seek-overlay.md` for the scrubber |
 | explore a system: click a node, trace a path, see what is upstream, share a card, prove it against a repo | **map** | one HTML with the viewer runtime; `finalize` receipt | `references/map/README.md` → `authoring-defaults.md` |
-| watch it: a reel, launch video, showreel, UI morph, music-driven piece, hand-drawn short | **motion** | `out/final.mp4` (and 1:1 / 16:9 siblings) from `index.html` + `motion.js` | `references/motion/pipeline.md` → `springs.md` → `beat-grid.md` |
+| watch it: a reel, launch video, showreel, UI morph, cursor-driven product demo, logo sting, kinetic-type piece, music or lyric video, animated explainer or history film, hand-drawn short | **motion** | `out/final.mp4` (and 1:1 / 16:9 siblings from the same timeline) from `index.html` + `motion.js` | `references/motion/pipeline.md` → `springs.md` → `beat-grid.md`; `type.md` and `transitions.md` for what is on screen |
 | read and understand it, with figures that move and can be scrubbed, on a phone | **page** | one HTML page with 3–8 canvas figures | `references/motion/explainer-page.md` |
 
 Decide by the verb and the audience, not by the subject: the same checkout flow is a flowchart for a README, a map for an engineer who will click through it, a reel for a launch tweet, and a page for someone learning it. When two lanes fit, pick the one the user will *use*, and say the other exists. `--lane` overrides the guess.
@@ -72,8 +72,8 @@ Before any of them, ask the upstream question the diagram system asks: *would a 
 
 ## The spine (every lane)
 
-1. **Brief.** Restate in one or two sentences what must be obvious to the viewer and who they are. Missing facts (a date, a number, a real service name) are asked for, never invented.
-2. **Plan — one message, then build.** State the lane, the visual type or film structure, the size or format, the palette decision, and what the complexity budget forces out. This is an Input PAUSE: an interactive user may redirect; a non-interactive run proceeds and reports the plan (`references/loop-pauses.md`). Skip the pause only when the request already pins all of it.
+1. **Brief.** Restate in one or two sentences what must be obvious to the viewer and who they are; for a film also which elements must be real and what would make the result unacceptable even if it looks good (`docs/brief.md`, `references/motion/storyboard.md`). Facts about the subject are fixed and asked for when missing (a date, a number, a real service name — never invented); choices about the picture are yours to improve, so propose rather than ask. A real asset the brief names and the user did not supply stops a film (`references/loop-pauses.md`).
+2. **Plan — one message, then build.** State the lane, the visual type or film structure, the size or primary format (and for a film the route: A unless the brief says otherwise), the palette decision, and what the complexity budget forces out. This is an Input PAUSE: an interactive user may redirect; a non-interactive run proceeds and reports the plan (`references/loop-pauses.md`). Skip the pause only when the request already pins all of it.
 3. **Build** under the lane's rules below. Write the full file; never a partial skeleton.
 4. **Look.** Run the lane's check and open the captures. Score the card in `references/critique-loop.md`, list the three worst problems with ids or timestamps, fix them at module level, repeat; at least three rounds for motion and page, until every row ≥ 8. Log rounds in `docs/review_log.md`.
 5. **Deliver** with the report at the end of this file.
@@ -128,13 +128,14 @@ A film is a program: `window.seek(t)` paints the exact frame for any instant; Pl
 
 - **Determinism.** No CSS transitions, no timers, no `requestAnimationFrame` in render mode, no state between frames, seeded noise only (`Motion.rng`), fonts awaited. `node scripts/motion/render.mjs hash --html index.html --t <t>` must print `DETERMINISTIC`.
 - **Start** from `assets/motion/seek-template.html` + `assets/motion/motion.js` copied into the film folder. One object per shot; everything derives from local t.
-- **Springs, not curves** (`references/motion/springs.md`): `spring` for anything that moves, by the mass of the thing (snappy / ui / heavy / playful); a value with several targets is `track()` — one spring per change, never a restart; `stretch()` for two-edge indicators; `swapAlpha()` so content enters after a morph starts and leaves before the next; the last frame equals the first for a loop, cursor included.
+- **Springs, not curves** (`references/motion/springs.md`): `spring` for anything that moves, by the mass of the thing (snappy / ui / heavy / playful); a value with several targets is `track()` — one spring per change, never a restart; `stretch()` for two-edge indicators; `swapAlpha()` + `swapBlur()` so content enters after a morph starts and leaves before the next; the last frame equals the first for a loop, cursor included. Fixed easing only where mass would lie: fades, `drawOn` (a chart drawing itself), `countUp` (one number that proves it), wipes.
+- **What the viewer sees.** A cursor that really clicks, types and drags (`Motion.cursor / typed / drag`), each click on a beat with the UI answering a frame later; a camera that re-frames every state (`Motion.camera`, push-ins as smaller rects); type that lands word by word (`Motion.words`, `references/motion/type.md`: one display face + one UI face + the accent, hook ≤ 5 words ≥ ⅓ frame height, nothing in corners); a named transition at every seam, drawn as geometry (`wipe / iris / whip`, `references/motion/transitions.md`), never a fade to black between UI states.
 - **Beat grid** (`references/motion/beat-grid.md`): a supplied track is measured with `python3 scripts/motion/beats.py` (`beats` → small changes, `downbeats` → cuts, `hits` → SFX); without one, synthesize at the film's tempo. UI sounds come from `window.timeline()` cues through `node scripts/motion/sfx.mjs`, placed by measured peak, mixed to about −14 LUFS.
-- **Structure.** A storyboard with timed reads before scene code (`references/motion/storyboard.md`): one read at a time, snap then hold, an event in every shot, a transition at every seam, something new every 2–4 s, a hook in the first 2 s, frame 0 never empty. Longer than a minute → chapters, a shared `ANIMATION_GUIDE.md`, one file per chapter, subagents per chapter (`references/motion/chapters.md`).
-- **Prompts and briefs.** When the user's ask is a one-liner, climb the ladder for them: ask for a reference and a state list before building a "showreel" nobody can tell from the thousand others (`references/motion/prompt-ladder.md`; the XML state-list spec and the director's brief template live there).
+- **Structure.** Three storyboard variants that differ in idea, one chosen in the plan message; then a storyboard with timed reads before scene code (`references/motion/storyboard.md`): one read at a time, snap then hold, an event in every shot, a transition at every seam, something new every 2–4 s, a hook in the first 2 s, frame 0 never empty; every frame a quiet stage, a few supporting elements, one focus marked by a single difference. Stills of every shot (`render.mjs stills --at …`) are critiqued before anything moves. Longer than a minute → chapters, a shared `ANIMATION_GUIDE.md`, one file per chapter, subagents per chapter, chunked renders (`references/motion/chapters.md`).
+- **Prompts and briefs.** When the user's ask is a one-liner, climb the ladder for them: ask for a reference and a state list before building a "showreel" nobody can tell from the thousand others (`references/motion/prompt-ladder.md`; the XML state-list spec and the director's brief template live there). A product URL the user pastes becomes real assets through `node scripts/motion/grab.mjs <url>` (screenshots at the three formats, `manifest.json` with the computed fonts and colours); a reference video becomes frames through `checks.sh refs`; both are written into `docs/style_guide.md` before the storyboard.
 - **Hand-drawn look** (storybook, brush-ink, watercolour, low-poly, game feel, characters): the bundled canvas library under `scripts/hand-drawn/` (`npm install` there once for `@napi-rs/canvas`), its references under `references/motion/hand-drawn/` (start at `workflow.md`, `motion.md`, `traps.md`), its `templates/film-template.mjs` as the starting point. Original characters only.
-- **Look before the full render.** `render.mjs beats` (one frame per beat), `contact`, `strip --t <time>` around every fast action, `phone`; score, fix, repeat ≥ 3 rounds. Only then `render.mjs full --fps 60 --sub 4 --audio out/mix.wav`, then `scripts/motion/checks.sh contact|strip|loop|probe` on the encoded master. A full render is an Authorization PAUSE under a non-interactive driver.
-- **Formats.** Write scenes against a layout function so 9:16, 1:1 and 16:9 come from one timeline; reflow, never crop.
+- **Look before the full render.** `render.mjs beats` (one frame per beat), `contact`, `strip --t <time>` around every fast action, `phone`, and `animatic` (24 fps, no blur, half size) to judge pacing; score, fix, repeat ≥ 3 rounds, writing the fixes as director's notes. Only then `render.mjs full --fps 60 --sub 4 --audio out/mix.wav`, then `scripts/motion/checks.sh contact|strip|loop|probe` on the encoded master. A full render is an Authorization PAUSE under a non-interactive driver.
+- **Formats.** Scenes draw against the layout object `L` derived from `W×H`, so 9:16, 1:1 and 16:9 come from one timeline (`?f=` on the page, `render.mjs --format` / `--all`); reflow, never crop — vertical gets fewer simultaneous elements (`L.show`), not smaller ones. Nothing the viewer must read sits in the format's safe area (`L.safe`; `--safe` draws it on every sheet). A contact sheet per delivered format (`contact --all`) before the siblings ship.
 
 ## Lane: page
 
@@ -147,14 +148,14 @@ Scan these by the 🛑 marker. Each restates a rule above; breaking one means th
 | 🛑 Anti-pattern | Why it fails | Correct approach |
 |---|---|---|
 | 🛑 Looking outside the skill for content, or depending on another skill being installed | breaks the self-contained contract; the result depends on something the user did not supply | use what the user gave and what is bundled; a brand source the user points at is input, read it once and save a profile |
-| 🛑 Inventing data, names, dates, or UI to fill a slot | the viewer cannot tell invented from real; the artifact becomes a liar | keep the identifier, ask, or leave the slot visibly empty |
+| 🛑 Inventing data, names, dates, or UI to fill a slot | the viewer cannot tell invented from real; the artifact becomes a liar | keep the identifier, ask, or (diagram and map) leave the slot visibly empty; a film stops on a missing real asset |
 | 🛑 Writing files before the plan message | the user's one cheap chance to redirect is gone | one plan message, then build (Input PAUSE) |
 | 🛑 Accent on more than two elements; a second hue; shadows; rounded-2xl; dark + neon glow | the signals that mark a generated diagram | one accent, borders not shadows, radius ≤ 8, the vendored style guide |
 | 🛑 Diagonal connectors, labels on the stroke, overlapping paths, transit behind a box | automatic fail of the six connector rules | orthogonal elbows, masked labels with a gap, reroute or hop over the single crossing |
 | 🛑 A map delivered after a non-zero `finalize` | the receipt is the evidence; without it there is none | repair and rerun; deliver the last passing artifact or report the gate |
 | 🛑 `Math.random`, timers, or CSS transitions in a `seek(t)` film | frames depend on history; renders drift; parallel workers disagree | seeded noise, closed-form springs, `hash` check |
 | 🛑 Full render before the contact sheet scores 8+ | an hour of rendering to find a dead beat at 4 s | beats → contact → strip → fix, three rounds, then full |
-| 🛑 Centered title on a gradient, everything fading in, corner labels, frame borders | the default look everyone recognises | a reference and a state list; the anti-slop rows of the scorecard |
+| 🛑 Centered title on a gradient, everything fading in, corner labels, frame borders, glow on UI chrome, particle bursts, a fade to black between two UI states | the default look everyone recognises | a reference and a state list; the anti-slop rows of the scorecard; a transition drawn as geometry with the accent carried across |
 | 🛑 A caption that restates the title | adds nothing; reads as filler | a trade-off, a next step, or a dimension the figure does not show |
 | 🛑 Claiming a visual check that did not run | the report lies about the evidence | name the command that ran and what it showed; say when a look was impossible |
 
@@ -164,12 +165,12 @@ Scan these by the 🛑 marker. Each restates a rule above; breaking one means th
 ✅ 已完成：.codex/draw/{slug}/{artifact}
 Lane：{diagram | map | motion | page}　型別／結構：{type or film structure}　尺寸：{preset or format}
 檢查：{command} → {result}（{captures or receipt path}）
-評分：{hook}/{readability}/{motion}/{variety}/{composition}/{accuracy}/{sound}（{N} 輪，review_log.md）
+評分：{hook}/{readability}/{continuity}/{motion}/{variety}/{composition}/{accuracy}/{sound}（{N} 輪，review_log.md）
 砍掉的：{what the budget cut, or 無}
 下一步可以更好：{one line}
 ```
 
-Add the lines the lane needs: a fidelity ledger for an import; the finalize summary for a map; sibling formats for a film; 「此處採預設」 annotations under a non-interactive driver.
+Add the lines the lane needs: a fidelity ledger for an import; the finalize summary for a map; for a film the sibling formats with their contact sheets, `out/loop_check.mp4`, the poster frame (`render.mjs still --t <best frame>` → `out/poster.png`), 「素材清單」 (the real assets used, from `manifest.json`), 「待人工確認」 (what could not be verified: brand colour exactness, the track's licence, a number the user gave), and 「重渲指令」 (the exact `render.mjs full …` line, also in the folder's README); 「此處採預設」 annotations under a non-interactive driver.
 
 ## Not for
 
