@@ -46,7 +46,7 @@ Then write the **state list**, not the vibe. The most-bookmarked prompts of the 
 
 ```
 <inputs>  product + URL · 8–12 UI states that tell its story · the real data in each · brand colours + fonts + one accent · a royalty-free track near 120 BPM · formats </inputs>
-<direction> Product-film UI motion. One container never cuts: every state is the same element changing size, radius and fill while its content swaps behind a short blur. A cursor drives every change. Warm neutral canvas, one accent. Springs with at most a tiny overshoot. Banned: bouncy easing, glows, gradients on UI chrome, particle bursts, dead time. </direction>
+<direction> Product-film UI motion. A single container that never cuts away: each state is that same element changing size, radius and fill while its contents swap under a brief blur. A cursor drives every change. Warm neutral canvas, one accent. Springs with at most a tiny overshoot. Not allowed: bouncy easing, glows, gradients on UI chrome, particle bursts, dead time. </direction>
 <structure> 120 BPM, 8 bars, something happens on every beat. logo → CTA button → email field (typed) → loader → success check → dashboard card → chart draws itself → tooltip → ⌘K palette → toast → logo. </structure>
 <build> One HTML file, one canvas, window.seek(t); no CSS transitions, timers, or carried state. Closed-form springs; a value with many targets = sum of one spring per change. Text inside a morphing container enters after the morph starts, leaves before the next. Tab indicators: leading and trailing edges on different springs. Beat grid from the track; start on a downbeat; UI sounds on measured peaks. Headless Chrome at 60 fps, 4 subframes blended for motion blur. </build>
 <gotchas> Never will-change on anything the camera scales. The last frame equals the first, cursor position and velocity included. </gotchas>
@@ -57,11 +57,11 @@ Let the model pick the technique: specify the look and the constraints, not the 
 
 ## L4 — the director's brief
 
-A five-minute dictated brief became a 142-second music video after a 12-hour run. The published briefs (9 500 and 19 000 characters) share one skeleton: they do not describe a video, they hire a crew.
+A five-minute dictated brief became a 142-second music video after a 12-hour run. The published briefs (9 500 and 19 000 characters) share one skeleton: they do not describe a video, they staff a production.
 
 - **The film in one line.** The logline and the joke, so every decision can be checked against it.
 - **References.** Source video, song, image library, a repo of prior work; what to keep, what to push.
-- **Tools and keys.** Skills to load, APIs available (image, video, voice), budget, where docs live. "Spend it economically."
+- **Tools and keys.** Skills to load, APIs available (image, video, voice), budget, where docs live, and an instruction to spend sparingly.
 - **Character bible.** Proportions, palette sampled from a sheet, expressions, an identity lock that survives every style change.
 - **Beat sheet.** Acts with timestamps; a visual payoff every 3–5 s; a hook in the first 2.
 - **Text on screen.** When lyrics/captions go huge, when they sit like subtitles; composition leaves room for them.
@@ -74,14 +74,14 @@ The *generate-then-trace* move: an external video model renders base shots with 
 Template (fill every bracket; cut sections the piece does not need):
 
 ```
-You are the director, animator, sound designer and render engineer for a [DURATION] film made in code.
-Treat this as a multi-session production. Don't rush to a final render.
+Act as director, animator, sound designer and render engineer on a [DURATION] film made entirely in code.
+This is a multi-session production; the final render comes last, not first.
 ## The film in one line
 [LOGLINE. What the viewer should feel at the end.]
 ## References and inputs
-- ./refs/ : [video / frames / image library]. Take the grammar, never the content.
+- ./refs/ : [video / frames / image library]. Borrow the grammar, not the content.
 - ./audio/track.wav : use it unchanged. Measure beats with beats.py first.
-- APIs in .env: [NAMES]. Budget: [$X]. Be economical.
+- APIs in .env: [NAMES]. Budget: [$X]. Spend sparingly.
 ## Look
 [3–5 lines: palette, type, texture, camera language. Banned looks.]
 ## Beat sheet
@@ -104,4 +104,4 @@ out/final.mp4 · out/loop_check.mp4 · out/poster.png · out/contact.png · READ
 
 A 45-second hand-painted short that was upfront about its process: 163 model calls, about 6¾ hours (1½ hands-on), ~62 M tokens (96 % cache reads), ~$34 at API list price, a 12-minute render on a laptop. A launch-day showreel with 1.7 M views had visible cleanup rounds. Budget for iteration; it is the method.
 
-Attribution: the ladder, the showreel analysis and the brief skeleton paraphrase a public X article by @0xMovez (2026-09-27) and the public posts it cites; the dataset figures come from `athemeroy/awesome-opus-5-5-videos` (CC BY 4.0) and `guanmo-ai/awesome-ai-motion` (MIT). Nothing here is copied verbatim beyond the widely-shared one-line showreel prompt.
+Attribution: the ladder, the showreel analysis and the brief skeleton follow a public X article by @0xMovez (2026-09-27) and the public posts it cites, restated in this skill's own words; the one-line showreel prompt and the published XML tag names are quoted as they circulated. Dataset figures come from `athemeroy/awesome-opus-5-5-videos` (CC BY 4.0) and `guanmo-ai/awesome-ai-motion` (MIT).

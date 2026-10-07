@@ -1,6 +1,6 @@
 # Springs — make motion feel expensive
 
-Cheap motion eases from A to B on a fixed curve. Expensive motion has mass: it accelerates, overshoots a hair, settles. Use closed-form springs everywhere a thing *moves*; keep fixed easing for fades and camera settles where mass would be wrong.
+A fixed easing curve reads as cheap: the value simply slides from A to B. Motion that reads as expensive behaves like something with mass — it gets going, overshoots a touch, and settles. Use closed-form springs everywhere a thing *moves*; keep fixed easing for fades and camera settles where mass would be wrong.
 
 `assets/motion/motion.js` ships the primitives. All are pure functions of t.
 

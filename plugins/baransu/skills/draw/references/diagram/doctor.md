@@ -14,7 +14,7 @@ Use two diagnostic modes:
   installation. Do not require maintainer-only repository files.
 - **Maintainer-checkout mode**: use this only when the resolved installation
   root contains `CONTRIBUTING.md`, `.github/workflows/ci.yml`, and
-  `scripts/verify-plugin-package.py`. Add the repository integrity checks below.
+  `scripts/diagram/repo/verify-plugin-package.py`. Add the repository integrity checks below.
 
 ## Inputs
 
@@ -49,12 +49,12 @@ Run all checks in this order and report each as `pass`, `warn`, or `fail`.
 
 3. Expected script presence (maintainer-checkout mode only)
 - Verify these repository scripts exist:
-  - `scripts/verify-drawio-import.py`
-  - `scripts/verify-mermaid-import.py`
-  - `scripts/verify-excalidraw-import.py`
-  - `scripts/verify-motion.py`
+  - `scripts/diagram/repo/verify-drawio-import.py`
+  - `scripts/diagram/repo/verify-mermaid-import.py`
+  - `scripts/diagram/repo/verify-excalidraw-import.py`
+  - `scripts/diagram/repo/verify-motion.py`
   - `scripts/lint-skin.py`
-  - `scripts/verify-docs-sync.py`
+  - `scripts/diagram/repo/verify-docs-sync.py`
 - Missing scripts are `fail` in maintainer-checkout mode.
 - In installed-skill mode, report that maintainer scripts are not applicable;
   their absence is not a warning or failure.

@@ -6,7 +6,7 @@ The single habit that separates the work people share from the work they post wi
 
 The model can read images. A rendered frame is evidence the code is not: text that overlaps during a swap, a dead beat where nothing happens, a node whose label spills out of its box, an accent painted on five things. None of that is visible in source. Reading the frame closes the gap between "the code says it moves" and "a viewer would see it move".
 
-Iteration is the method, not a failure. Public "one prompt" clips that held up under scrutiny were preceded by 100+ model calls and several hours; the honest ones said so.
+Several rounds are the normal route, not a sign that something went wrong. Public "one prompt" clips that held up under scrutiny were preceded by 100+ model calls and several hours; the honest ones said so.
 
 ## The loop
 
@@ -31,7 +31,7 @@ Open the images and read them. A render that exits 0 proves nothing.
 
 ## The scorecard
 
-Score each item 1–10. Be a harsh motion director, not a proud author.
+Score each item 1–10. Judge it the way a demanding director would, not the way its maker would.
 
 | Item | What 8+ looks like |
 |---|---|
@@ -43,7 +43,7 @@ Score each item 1–10. Be a harsh motion director, not a proud author.
 | Brand / fact accuracy | real UI, real data, real names; nothing invented to fill a slot |
 | Sound sync | hits land on measured peaks; a cut without a sound reads as a mistake |
 
-For a static diagram, swap the motion rows for the diagram taste gate (`references/diagram/README.md` → SKILL §9 of the upstream guide): the remove test, the signal test, the six connector rules, the accessibility contract.
+For a static diagram, swap the motion rows for the diagram taste gate in `references/diagram/taste-gate.md`: the remove test, the signal test, the six connector rules, the accessibility contract.
 
 ## Hunt specifically for
 

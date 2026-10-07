@@ -4,7 +4,7 @@
 
 The model cannot emit a video. It writes a program, and something else turns the program into frames. Write one function, `seek(t)`, that paints the exact frame for any instant. A headless browser calls it 900 times for a 15-second 60 fps piece, screenshots each call, and ffmpeg stitches the result. Nothing depends on a timer, so:
 
-- the render is identical every run (`render.mjs hash` proves it: the same frame rendered twice must hash the same),
+- the render is identical every run (`render.mjs hash` proves it: a canvas frame rendered twice must hash the same; an SVG/DOM frame may differ by rasterizer noise after an element toggles, so `hash` also accepts ≥ 80 dB PSNR with the DOM unchanged),
 - frame 812 renders without simulating frames 0–811, so workers can render in parallel and a reviewer can jump to any instant,
 - a change is a one-line edit plus a re-render of the affected seconds.
 

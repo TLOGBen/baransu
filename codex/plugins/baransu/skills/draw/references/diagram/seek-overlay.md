@@ -25,7 +25,7 @@ The upstream `animation.md` modes (`reveal` / `step` / `loop`) stay the right ch
 
 ```
 python3 scripts/diagram/seek_split.py out/diagram.seek.html   # writes the static twin, runs self_check on it
-node scripts/motion/render.mjs hash --html out/diagram.seek.html --selector svg --t 2.0   # DETERMINISTIC
+node scripts/motion/render.mjs hash --html out/diagram.seek.html --selector svg --t 2.0   # DETERMINISTIC (an SVG frame may pass on the ≥ 80 dB PSNR rule: rasterizer noise after an element toggles, DOM identical)
 node scripts/motion/verify-page.mjs out/diagram.seek.html --selector svg                 # light / dark / phone, no errors
 ```
 

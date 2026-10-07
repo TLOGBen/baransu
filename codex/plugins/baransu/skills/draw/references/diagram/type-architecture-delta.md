@@ -117,7 +117,7 @@ This excerpt shows one changed component; a complete diagram also needs its othe
 
 ## Verification and its boundaries
 
-Run `python3 scripts/diagram/verify-architecture-delta.py --all` (or pass explicit HTML paths) and `python3 scripts/diagram/test-verify-architecture-delta.py`. No arguments also checks shipped examples. The stdlib HTML parser reads real attributes, including unquoted values and entities, ignores comments, and rejects malformed SVG nesting. Synthetic fixtures prove both legal cases and adversarial changes independently of the shipped coordinates; the light, dark, and full variants are checked too.
+Run `python3 scripts/diagram/repo/verify-architecture-delta.py <file.html>` (the upstream `test-verify-*` harness is not bundled). No arguments also checks shipped examples. The stdlib HTML parser reads real attributes, including unquoted values and entities, ignores comments, and rejects malformed SVG nesting. Synthetic fixtures prove both legal cases and adversarial changes independently of the shipped coordinates; the light, dark, and full variants are checked too.
 
 The verifier enforces the declared structure, differential semantics, grid/bounds geometry, drawn relationship endpoints, budgets, and exact ledger coverage. It rejects CSS transforms/position overrides, CSS sizing that could change bounds, escaped CSS declarations, explicit hidden objects/ledger, and common CSS hiding rules. Ordinary responsive sizing of the outer SVG remains legal.
 

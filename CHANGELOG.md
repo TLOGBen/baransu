@@ -2,6 +2,17 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [7.1.1] - 2026-10-07
+
+### Fixed（獨立 review 的 7 項發現）
+- **Taste gate 補齊**：新增 `references/diagram/taste-gate.md`（上游 §4 反模式表 + §9 畫前檢查表，路徑改指本 skill）；SKILL.md、critique-loop、import-*、output-spec、primitives-core、type-high-level、commands/* 原本指向不存在的「SKILL.md §9」全部改指此檔。
+- **map lane 環境提示**：SKILL.md 與 `references/map/README.md` 明寫 archify 的瀏覽器閘只認 `ARCHIFY_CHROME`（容器加 `ARCHIFY_CHROME_NO_SANDBOX=1`），附指向 Playwright Chromium 的一行；`chrome-unavailable` 是環境問題不是候選問題。同一行設 `ARCHIFY_UPDATE_CHECK_DISABLED=1`，`finalize` 收據實測 `update: disabled`、四道閘全過。
+- **品牌來源明示允許**：自包含段改寫——不連網找內容、不依賴其他 skill 安裝，但使用者指定的品牌來源（網址、token、資料夾、其他 skill 的 token 檔、`/ui` 的 `reference-<slug>.md`）可經 `onboarding.md` 讀一次並存成 profile；style-guide gate 改為上游 §0 的「第一張圖先問」Input PAUSE，與 `loop-pauses.md` 對齊。
+- **路徑改寫補漏**：`animation.md`、`type-architecture-delta.md` 與各型 reference 的 `scripts/verify-*.py` 改指 `scripts/diagram/repo/`；上游 `test-verify-*` 標為未 bundled。
+- **seek overlay**：模板預設不自動播放（開頁停在 t=0）；`seek-overlay.md` 明列與 `animation.md` 的三處刻意差異（JS 驅動屬性、彈簧、runtime path measurement）及 `.seek.html` 本體不受 `self_check` 管、由雙胞胎＋verify-page＋hash 把關；`pipeline.md` 說明 SVG 幀的 PSNR 容忍。
+- **授權聲明對齊事實**：補 `LICENSE-ClaudeAnimationBase`；NOTICE 改為 62 份 reference、說明 verifier 搬家與 taste-gate 再安置；prompt-ladder／springs／critique-loop 把貼近文章原文的句子改成自己的措辭，attribution 改為「依其方法重述」。
+- **與 `/ui` 的交接**：draw 的 Not-for 寫明「嵌進使用者站內 → `export_svg.py` 後交 `/ui`」、`/ui` 的品牌筆記是合法品牌來源；`/ui` 的 reference 筆記段落補一句讓圖的工作交給 `/draw` 並重用筆記。
+
 ## [7.1.0] - 2026-10-07
 
 ### Added

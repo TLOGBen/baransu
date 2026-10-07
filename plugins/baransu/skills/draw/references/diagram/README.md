@@ -63,7 +63,7 @@ Templates: `../../assets/diagram/template.html` (minimal light), `template-dark.
 | Backbone × release slices | Story map | `type-story-map.md` |
 | Physical tables + column FKs | Database schema | `type-db-schema.md` |
 
-Rules of thumb from upstream: if a 3-column table says the same thing, use the table; above 9 nodes it is probably two diagrams; a semantic pattern adds behaviour-specific primitives, never a second layout grammar.
+Before drawing, confirm the plan in one message; after drawing, run `taste-gate.md`. Rules of thumb from upstream: if a 3-column table says the same thing, use the table; above 9 nodes it is probably two diagrams; a semantic pattern adds behaviour-specific primitives, never a second layout grammar.
 
 ## Optional primitives and variants
 
@@ -75,7 +75,7 @@ Rules of thumb from upstream: if a 3-column table says the same thing, use the t
 
 ## Export and checks
 
-`export.md` / `export-registry.md`: PNG via a browser capture, SVG via `scripts/diagram/export_svg.py`. `doctor.md`: the diagnostic walk-through. `scripts/diagram/self_check.py <file>` is the shipped gate (accessible-SVG contract, single-file safety, motion basics). The upstream repository gates are vendored under `scripts/diagram/repo/` (`verify-geometry.py`, `verify-motion.py`, `lint-skin.py`, `lint-render.py`, `verify-skin-polarity.py`, `verify-block-registry.py`, and the per-type `verify-*.py` for architecture-delta, axonometric-plan, beeswarm, bubble, dumbbell, exploded, heatmap, marimekko, polar, ridgeline, sankey, sequence-oauth, slopegraph, streamgraph, treemap, waterfall); run the one the type reference names when it names one. Upstream repository-maintenance checks are not bundled.
+`export.md` / `export-registry.md`: PNG via a browser capture, SVG via `scripts/diagram/export_svg.py`. `taste-gate.md`: the universal anti-patterns and the pre-output checklist (remove test, signal test, technical, typography) — run it on every finished diagram. `doctor.md`: the diagnostic walk-through. `scripts/diagram/self_check.py <file>` is the shipped gate (accessible-SVG contract, single-file safety, motion basics). The upstream repository gates are vendored under `scripts/diagram/repo/` (`verify-geometry.py`, `verify-motion.py`, `lint-skin.py`, `lint-render.py`, `verify-skin-polarity.py`, `verify-block-registry.py`, and the per-type `verify-*.py` for architecture-delta, axonometric-plan, beeswarm, bubble, dumbbell, exploded, heatmap, marimekko, polar, ridgeline, sankey, sequence-oauth, slopegraph, streamgraph, treemap, waterfall); run the one the type reference names when it names one. Upstream repository-maintenance checks are not bundled.
 
 ## Commands
 

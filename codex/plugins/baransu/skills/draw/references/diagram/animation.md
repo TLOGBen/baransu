@@ -104,7 +104,7 @@ Use [`assets/template-motion.html`](../../assets/diagram/template-motion.html) r
 
 Motion does not raise the static diagram budget: ≤8 semantic steps (target 3–6), ≤12 marked items, ≤2 simultaneous reveals, ≤2 drawn paths, one flow-token loop, 160–600ms transitions, 400–1200ms holds, ≤24px translation, and 3–8s total autoplay.
 
-One scoped exception to the translation limit: a part in an exploded axonometric may travel straight up by exactly its explode distance, the declared `--lift` that `scripts/verify-exploded.py` checks against its geometry (`type-exploded.md`). Nothing else in that figure moves further than 24px, and every other type keeps the limit.
+One scoped exception to the translation limit: a part in an exploded axonometric may travel straight up by exactly its explode distance, the declared `--lift` that `scripts/diagram/repo/verify-exploded.py` checks against its geometry (`type-exploded.md`). Nothing else in that figure moves further than 24px, and every other type keeps the limit.
 
 Declare `data-step-count`; do not infer steps from transition events. Set `--motion-total` to step count × `--motion-hold` and keep it within the 8-second budget. Use one `setTimeout` chain per root, derive its hold from `--motion-hold`, clear it on Pause/Replay/page hide and immediately after rendering the final step, and never use `setInterval` for semantic playback. Pause when `document.visibilityState` becomes hidden and do not catch up later. `?motion=step&step=N` may expose an exact zero-duration frame for visual regression only when `N` is a non-negative base-10 integer from 0 through `data-step-count`; missing, fractional, negative, and over-budget values leave normal playback in place.
 
@@ -117,9 +117,8 @@ PNG and SVG exports are static final-state artifacts unless the user explicitly 
 Run:
 
 ```bash
-python3 scripts/diagram/verify-motion.py path/to/animated-diagram.html
-python3 scripts/diagram/test-verify-motion.py
-python3 scripts/diagram/lint-skin.py path/to/animated-diagram.html
+python3 scripts/diagram/repo/verify-motion.py path/to/animated-diagram.html
+python3 scripts/diagram/repo/lint-skin.py path/to/animated-diagram.html
 ```
 
 The verifier checks mode/state declarations, contiguous steps, motion budgets, complete SVG naming, no-JS source visibility, decorative accessibility, the full control set, live status, reduced-motion/print CSS, keyboard handling, page-hide pause, bounded static/test overrides, immediate final-step stop, and exact canonical-controller identity. Its adversarial tests mutate the canonical template to prove each failure is rejected.

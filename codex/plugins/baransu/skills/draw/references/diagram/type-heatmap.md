@@ -35,7 +35,7 @@ Every cell is two overlapping `<rect>` elements: a paper-fill underlay (no data 
 
 **One ink ramp, one accent.** Non-focal cells use a single tonal ramp: `rgba(INK, opacity)` where opacity is a non-decreasing function of the data value. The shipped example uses `opacity = max(0.07, value / max_non_focal × 0.65)`. Any monotone formula (linear, sqrt, log) passes the verifier as long as opacity never decreases with value.
 
-**One focal cell only.** The accent marks the editorially focal cell — the one whose combination of row and column is the figure's argument. It is not the automatically highest value; choose the cell whose story the title is about. `data-focal="true"` is required; `scripts/verify-heatmap.py` counts all accent-fill and `data-focal` cells and fails if more than one is found.
+**One focal cell only.** The accent marks the editorially focal cell — the one whose combination of row and column is the figure's argument. It is not the automatically highest value; choose the cell whose story the title is about. `data-focal="true"` is required; `scripts/diagram/repo/verify-heatmap.py` counts all accent-fill and `data-focal` cells and fails if more than one is found.
 
 **Ramp bounds:** the lowest-value non-focal cell should land at ≥ 0.05 opacity (the cell must be visually distinct from the paper background) and the highest-value non-focal cell at ≤ 0.70 (the ramp must not bleed into the focal accent's territory).
 
@@ -54,7 +54,7 @@ Every cell is two overlapping `<rect>` elements: a paper-fill underlay (no data 
 
 **The ramp scale is declared.** The legend strip shows the range the ramp covers for non-focal cells, stated as "LOW" to "HIGH" rather than a continuous scale — because the ramp's job is comparative, not absolute. If the footnote states bounds, those bounds must match the actual minimum and maximum non-focal values in the figure.
 
-**The focal cell is excluded from the ramp's scale.** Its value (often an outlier) would collapse every other cell into near-identical opacity if included. The footnote must state the focal cell's value explicitly. `scripts/verify-heatmap.py` checks that the focal cell carries `data-focal="true"` and that no non-focal cell uses accent fill.
+**The focal cell is excluded from the ramp's scale.** Its value (often an outlier) would collapse every other cell into near-identical opacity if included. The footnote must state the focal cell's value explicitly. `scripts/diagram/repo/verify-heatmap.py` checks that the focal cell carries `data-focal="true"` and that no non-focal cell uses accent fill.
 
 ## Declaring the values
 
@@ -67,6 +67,6 @@ Every cell is two overlapping `<rect>` elements: a paper-fill underlay (no data 
 | `data-value` on the data rect | The fill cannot be verified as monotone; any opacity passes. |
 | `data-focal="true"` on the focal rect | The focal cell is counted as a non-focal cell with an unexplained accent fill. |
 
-`scripts/verify-heatmap.py` enforces the complete `rows × cols` grid, the monotone fill ramp on non-focal cells, and at most one focal cell. It does **not** verify cell geometry (position, width, height) because both axes are categorical — position encodes "which row/column", and that is carried by the label, not by a scale the checker can measure against.
+`scripts/diagram/repo/verify-heatmap.py` enforces the complete `rows × cols` grid, the monotone fill ramp on non-focal cells, and at most one focal cell. It does **not** verify cell geometry (position, width, height) because both axes are categorical — position encodes "which row/column", and that is carried by the label, not by a scale the checker can measure against.
 
 **No `transform` on any verified element.** Bake any coordinate offsets directly into `x`/`y` attributes.

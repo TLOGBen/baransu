@@ -51,7 +51,7 @@ Don't use the dot pattern when the diagram sits inside a product page, slide, or
 
 ## Mandatory connector rules
 
-These six rules are **non-negotiable**. Run the pre-output checklist (SKILL.md §9) to verify before producing any diagram.
+These six rules are **non-negotiable**. Run the pre-output checklist (`taste-gate.md`) to verify before producing any diagram.
 
 1. **Rounded right-angle (orthogonal) connectors are mandatory.** Never use diagonal `<line>` or straight slanted paths between nodes that don't share an x or y axis. Every bend must be a quarter-arc with `r=8` (or `r=6` minimum for tight layouts). See `references/type-architecture.md` for the elbow-path formula. Reserve plain straight `<line>` only for connections whose endpoints share the same x or y coordinate. Diagonal connectors are an automatic fail. A connector also leaves and enters each box perpendicular to the edge it touches, at a port on the straight part of that edge at least 8px from a corner. A horizontal segment that starts on a top or bottom edge, or a vertical one that starts on a side edge, runs along the border behind the node fill and reads as an arrow coming out of the corner. From a repository checkout, `python3 <repo-root>/scripts/verify-geometry.py <file>` reports diagonal connectors, border-riding segments, and corner ports.
 

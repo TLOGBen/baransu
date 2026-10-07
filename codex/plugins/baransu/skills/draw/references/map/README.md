@@ -1,6 +1,6 @@
 # Map lane — vendored from tt-a1i/archify (MIT, v3.0.1)
 
-Interactive, validated diagrams from typed JSON: `architecture`, `workflow`, `sequence`, `dataflow`, `lifecycle`. The output is one standalone HTML with inline SVG, light/dark themes, focus / route / reach / lens exploration, deep links, a presentation stage, and PNG / JPEG / WebP / SVG / WebM export. The runnable package lives in `scripts/map/` (CLI `bin/archify.mjs`, renderers, schemas, examples, template); these references are copies of its authoring docs with paths rewritten (see `../../NOTICE.md`). The package needs only Node ≥ 18; its browser checks use the same Chromium Playwright provides.
+Interactive, validated diagrams from typed JSON: `architecture`, `workflow`, `sequence`, `dataflow`, `lifecycle`. The output is one standalone HTML with inline SVG, light/dark themes, focus / route / reach / lens exploration, deep links, a presentation stage, and PNG / JPEG / WebP / SVG / WebM export. The runnable package lives in `scripts/map/` (CLI `bin/archify.mjs`, renderers, schemas, examples, template); these references are copies of its authoring docs with paths rewritten (see `../../NOTICE.md`). The package needs only Node ≥ 18. Its browser gate finds a browser only through `ARCHIFY_CHROME` (plus `ARCHIFY_CHROME_NO_SANDBOX=1` in a container); point it at Playwright's Chromium or a local Chrome before `finalize`, as SKILL.md § Lane: map shows. `ARCHIFY_UPDATE_CHECK_DISABLED=1` keeps `finalize` off the network.
 
 ## Authoring path
 
