@@ -2,6 +2,12 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [7.3.3] - 2026-10-08
+
+### Fixed（Codex skill 圖示載入）
+- 將 14 個 skill 的 `icon-small.png`／`icon-large.png` 原檔移至各 skill 的 `assets/`，同步 `agents/openai.yaml`，避免 Codex 以 `icon path must be under assets/` 忽略圖示。
+- Codex parity 檢查的專屬圖檔規則改為 `assets/icon-*.png`；Claude 與 Codex plugin 版號同步為 7.3.3。
+
 ## [7.3.2] - 2026-10-08
 
 ### Added（plugin icon 與 skill icon，Krea 2 產生）

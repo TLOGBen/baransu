@@ -6,7 +6,7 @@ Codex 版（codex/plugins/baransu/）改為手動維護後，不再以 transfer.
 本腳本只檢查「結構上沒有漏同步」：
 
   1. plugins/baransu/skills/** 每個檔案在 codex/plugins/baransu/skills/** 有同路徑對應，
-     反之亦然；CODEX_ONLY 樣式（skill 內的 agents/openai.yaml 與 agents/icon-*.png）允許只存在於 Codex 版。
+     反之亦然；CODEX_ONLY 樣式（skill 內的 agents/openai.yaml 與 assets/icon-*.png）允許只存在於 Codex 版。
   2. Claude 版 plugin.json 與 Codex 版 plugin.json 的 version 相同。
 
 內容是否正確移植不在本腳本範圍——那是 /codex-skill-transfer 檢查清單的工作。
@@ -32,7 +32,7 @@ DEFAULT_CODEX = REPO_ROOT / "codex" / "plugins" / "baransu"
 
 IGNORED_PARTS = {"__pycache__", "node_modules", ".DS_Store"}
 # 相對於 skills/ 的路徑樣式：只允許存在於 Codex 版。
-CODEX_ONLY = ("*/agents/openai.yaml", "*/agents/icon-*.png")
+CODEX_ONLY = ("*/agents/openai.yaml", "*/assets/icon-*.png")
 
 
 def skill_files(root: Path) -> set[str]:
