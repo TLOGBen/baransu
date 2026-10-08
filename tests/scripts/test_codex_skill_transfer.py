@@ -1196,7 +1196,8 @@ class TestPluginModeGeneration(unittest.TestCase):
             self.assertIn(
                 # Re-pinned 0.16.0 -> 0.17.0: portable root plugin.json,
                 # namespaced `$plugin:skill` mentions, SessionEnd kept.
-                "version: 0.18.0",
+                # 0.19.0: repositioned as hand-maintenance checklist.
+                "version: 0.19.0",
                 (codex_transfer / "SKILL.md").read_text(encoding="utf-8"),
             )
             baransu_hooks = json.loads(

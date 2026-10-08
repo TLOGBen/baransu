@@ -7,14 +7,14 @@
       "prompt": "把 /think 轉成 codex 版",
       "should_trigger": true,
       "expected_skill": "codex-skill-transfer",
-      "expected_behavior": "Single-skill mode: one-way port of the Claude Code skill to Codex format."
+      "expected_behavior": "Port-by-hand mode for a single skill: walks the Step 3.1 skill checklist (frontmatter Codex reads, relative paths, $plugin:skill invocation, tool rewrites, extra folders kept) and writes or updates the Codex copy by hand; the script is not the default path."
     },
     {
       "id": 2,
       "prompt": "Port this plugin to codex so my teammate can use it",
       "should_trigger": true,
       "expected_skill": "codex-skill-transfer",
-      "expected_behavior": "Plugin mode: every Claude agent becomes a reachable package-local Codex TOML, consuming skills use a fail-closed resolver, and rules/hooks/skills become equivalent package artifacts."
+      "expected_behavior": "Plugin shape: walks checklist sections 3.1-3.3 and 3.5 — manifest format choice, bundled-agent option A/B/C (Codex plugins do not register agents), hooks reduced to the 12 Codex events, Claude-only components (mods, monitors, userConfig, dependencies, LSP) removed and recorded, both versions bumped."
     },
     {
       "id": 3,
@@ -43,6 +43,13 @@
       "should_trigger": false,
       "expected_skill": "evolve",
       "expected_behavior": "Improving an existing SKILL.md routes to /evolve."
+    },
+    {
+      "id": 7,
+      "prompt": "幫我檢查 codex/plugins 底下的 Codex 版跟 Claude 版有沒有對齊",
+      "should_trigger": true,
+      "expected_skill": "codex-skill-transfer",
+      "expected_behavior": "Checklist mode (default, read-only): compares the hand-maintained pair and returns the 繁中 parity report with per-item status and Next-port follow-ups; edits nothing."
     }
   ]
 }

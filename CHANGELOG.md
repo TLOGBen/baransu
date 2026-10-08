@@ -2,6 +2,18 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [7.3.0] - 2026-10-08
+
+### Changed（`/codex-skill-transfer` 0.19.0：從轉換器改為手動維護的對照表＋檢查清單）
+- **定位**：Claude 版與 Codex 版改為並列手動維護、各自是自己平台的正本。SKILL.md 改成四種模式——Checklist（預設，唯讀，輸入一對 Claude／Codex 目錄、輸出落差報告）、Port by hand、Generate（選用，`transfer.py` 只寫 scratch 目錄，不得覆蓋手動維護的 Codex 版）、Reference question；Outcome Contract、報告骨架（一致／需修正／刻意省略／降級風險／待查＋`Next-port follow-ups`，新增 `fix-now` 處置）與 Boundaries 同步改寫。
+- **對照基準更新到 Claude Code 2.1.293／Codex CLI 0.161.0（`rust-v0.161.0`，2026-10-08）**，並保留【推論】／官方未公布標記（*(inferred)*／*(unpublished)*）不升格為事實。Step 2 刷新清單改指 `learn.chatgpt.com/docs/*`、`developers.openai.com/plugins/*` 與 OpenAI 的 Claude plugin 移植指引。
+- **新增 Step 3 檢查清單**：skill（Codex 只讀 `name`／`description`／`metadata.short-description`、內文無路徑變數改相對路徑、`$plugin:skill` 呼叫、工具改寫、`templates/` 等額外資料夾一律保留）、plugin（manifest 格式二選一、欄位去向、bundled agent 選項 A／B／C、hooks 12 事件）、Claude 專用元件表（mods、monitors、userConfig、dependencies、LSP 等）、marketplace 讀取順序與 `.claude-plugin` fallback、版本與快取。
+- **references**：`skill-mapping.md` 加「Codex reads?」欄、補 `disallowed-tools`／`background` 列、修正 description 長度說明與 `agents/openai.yaml` 全欄位、工具表補 `Monitor`／`Artifact`／`Workflow` 等列、32 KiB 上限標為未驗證、`copy_aux` 改為「手動保留全部資料夾，腳本行為是已知缺口」；`plugin-mapping.md` 重寫（讀取順序、格式選擇、欄位去向、元件表、hooks 細節、選項 A／B／C、新增版本與快取段）；`agent-mapping.md` 補 `spawn_agent` v1／v2 參數與乾淨 context 寫法、resolver 改建議內嵌 `developer_instructions`；`marketplace-mapping.md` 補讀取順序、來源對照、啟用方式；`CODEX_PORT_PLAN.md`、`loop-pauses.md`、`evals.json` 對齊新模式。範例改用通用名稱。
+- `AGENTS.md` 的 Codex 版說明改為「手動維護、腳本選用」。
+- Codex 版 `codex/plugins/baransu/skills/codex-skill-transfer/` 手動同步（未用腳本產生），frontmatter 加 `metadata.short-description`；`test_codex_skill_transfer.py` 的 skill 版本釘選改為 0.19.0。
+- **Makefile**：移除以腳本重產 Codex 版的 `mirror`，`mirror-check` 換成 `parity-check`——新增 `scripts/verify-codex-parity.py`，不跑 `transfer.py`，只檢查 `plugins/baransu/skills/**` 與 `codex/plugins/baransu/skills/**` 逐檔對應（允許 Codex 專有的 `agents/openai.yaml`）及兩份 manifest 版本一致；`ship-check` = `test` + `parity-check`。`test_ship_check_gate.py` 改釘新閘門（plan 不得出現 `transfer.py`），並加 parity 腳本的 fixture 測試。
+- `README.md`（技能表與 Codex 版說明）、`CLAUDE.md` 技能表 `/codex-skill-transfer` 列與 `tests/integration/claude-md-skills-baseline.txt` 同步改為「手動維護的移植對照＋檢查清單，草稿腳本選用」。
+
 ## [7.2.0] - 2026-10-07
 
 ### Added（motion lane：三篇文章的 gap review 全部併入）

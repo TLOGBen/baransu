@@ -11,18 +11,28 @@
 
 # Marketplace Mapping (`.claude-plugin/marketplace.json` → `.agents/plugins/marketplace.json`)
 
-⚠️ **Not script-automated.** Marketplace publication is a deliberate act and the converted catalog should be reviewed by hand. The schema below comes from the official Codex plugin build docs ([developers.openai.com/plugins/build/plugins](https://developers.openai.com/plugins/build/plugins), primary) and the Codex marketplace loader at `rust-v0.156.1` (`codex-rs/core-plugins/src/marketplace.rs`), not guesswork. Where the two differ, the docs state authoring guidance and the loader states what actually fails.
+⚠️ **Maintained by hand.** Marketplace publication is a deliberate act; the script never writes the repo-root catalog. The schema below comes from the official Codex plugin build docs ([developers.openai.com/plugins/build/plugins](https://developers.openai.com/plugins/build/plugins), primary) and the Codex marketplace loader at `rust-v0.161.0` (`codex-rs/core-plugins/src/marketplace.rs`), not guesswork. Where the two differ, the docs state authoring guidance and the loader states what actually fails. Claude side: Claude Code 2.1.293 marketplace reference. Labels: *(inferred)* = derived, not stated officially; *(unpublished)* = not documented.
 
-For automated layers, see [`skill-mapping.md`](skill-mapping.md) (skill files) and [`plugin-mapping.md`](plugin-mapping.md) (plugin manifests).
+For the layers below, see [`skill-mapping.md`](skill-mapping.md) (skill files) and [`plugin-mapping.md`](plugin-mapping.md) (plugin manifests).
 
-## 1. Marketplace location
+## 1. Marketplace location and lookup order
 
 | Scope | Path |
 |---|---|
-| Repo plugin | `<marketplace-root>/.agents/plugins/marketplace.json` |
-| Local plugin | `~/.agents/plugins/marketplace.json` |
+| Repo marketplace | `<marketplace-root>/.agents/plugins/marketplace.json` |
+| Personal marketplace | `~/.agents/plugins/marketplace.json` |
+| Claude marketplace (for comparison) | `<root>/.claude-plugin/marketplace.json` |
 
-For the codex variant of a Claude plugin, use the repo form: write to `<codex-root>/.agents/plugins/marketplace.json` where `<codex-root>` is the directory you're treating as a self-contained marketplace (e.g., `codex/` if mirroring a Claude plugin into a sibling tree).
+Codex reads the **first existing** file of:
+
+1. `.agents/plugins/marketplace.json`
+2. `.agents/plugins/api_marketplace.json`
+3. `.claude-plugin/marketplace.json`
+4. `.cursor-plugin/marketplace.json`
+
+Consequence: a repo that ships a Claude catalog and no `.agents/plugins/marketplace.json` makes Codex load the Claude catalog — Claude-shaped plugins, mods included *(inferred)*. Keep a Codex catalog at every root a user can add, and never delete it while a Claude catalog sits next to it.
+
+For the Codex copy of a Claude plugin, write `<codex-root>/.agents/plugins/marketplace.json` where `<codex-root>` is the directory treated as a self-contained marketplace (e.g., `codex/` when the Codex copy lives in a sibling tree), plus a repo-root catalog when users install from a git URL (§8).
 
 ## 2. Top-level shape
 
@@ -42,11 +52,11 @@ For the codex variant of a Claude plugin, use the repo form: write to `<codex-ro
 | `interface.displayName` | recommended | derive from Claude `metadata.description` or hand-write |
 | `plugins[]` | yes | one entry per Claude plugin |
 
-Drop on the Codex side: `$schema`, `owner`, `metadata`, `strict`. Codex has no equivalent fields. (The loader tolerates unknown keys — it keeps them as fallback plugin metadata — so dropping them is for a clean catalog, not to avoid a load failure.)
+Drop on the Codex side: `$schema`, `owner`, `description`, `version`, `metadata`, `forceRemoveDeletedPlugins`, `allowCrossMarketplaceDependenciesOn`, `renames`. Codex has no equivalent top-level fields. (Unknown keys do not fail the load, so dropping them is for a clean catalog.)
 
 ## 3. Per-plugin entry shape
 
-The loader requires only `name` and `source`; the build docs say to always include `policy.installation`, `policy.authentication`, and `category`, so the transfer writes this shape:
+The loader requires only `name` and `source` (an entry whose source cannot be resolved is skipped); the build docs say to always include `policy.installation`, `policy.authentication`, and `category`, so every entry carries this shape:
 
 ```json
 {
@@ -68,19 +78,25 @@ The loader requires only `name` and `source`; the build docs say to always inclu
 - **`name`** — Plugin id. Match the plugin folder name and the plugin's own `plugin.json` `name`. Port verbatim from Claude.
 - **`source`** — An object, or a plain relative-path string for a local plugin. The transfer always writes the object form.
   - `source.source`: four source types — `"local"` (`path`), `"url"` (`url`, optional `path` / `ref` / `sha`), `"git-subdir"` (`url`, `path`, optional `ref` / `sha`), and `"npm"` (`package`, optional `version` / `registry`). Use `"local"` for the in-repo workflow this file describes.
+  - Claude source mapping: relative path → `local`; `github` → `url` with the repository's git URL; `url` → `url`; `git-subdir` → `git-subdir`; `npm` → `npm`; `archive` and `command` have **no** Codex counterpart — host the plugin some other way or leave it out.
   - `source.path`: `./plugins/<plugin-name>`. The path is relative to the marketplace root (the dir containing `.agents/`), not the marketplace.json file.
 - **`policy`** — Recommended by the docs (the loader defaults to `AVAILABLE` / `ON_INSTALL`). Always include `installation` and `authentication`.
-  - `installation`: `NOT_AVAILABLE` | `AVAILABLE` | `INSTALLED_BY_DEFAULT`. Default to `AVAILABLE`.
+  - `installation`: `NOT_AVAILABLE` | `AVAILABLE` | `INSTALLED_BY_DEFAULT`. Default to `AVAILABLE`. Claude's `defaultEnabled: true` is the closest match to `INSTALLED_BY_DEFAULT`; Codex has no `defaultEnabled`.
   - `authentication`: `ON_INSTALL` | `ON_USE`. Default to `ON_INSTALL`.
   - `products`: omit unless the user explicitly asks for product gating.
 - **`category`** — Recommended by the docs; a marketplace `category` overrides the plugin's own. Codex spec example uses Capitalized form (`Productivity`). Map Claude's lowercase categories accordingly.
+- **Other keys** (`displayName`, `interface`, …) are kept by the loader as fallback manifest fields for that plugin; the plugin's own manifest is still the right home for them.
+- **Claude-only plugins** (mods, or plugins that are nothing but Claude-only components) get no entry.
 
 ### Drop these Claude fields
 
 - `description` — Codex plugin entry has no `description`; the user-facing copy lives in the plugin's own `plugin.json`.
 - `version` — Codex resolves the version from the plugin's `plugin.json`.
 - `homepage` — no Codex equivalent at the marketplace layer.
-- `tags` — Claude-specific.
+- `tags`, `relevance`, `metadata` — Claude-specific.
+- `dependencies` — Codex has no plugin dependencies.
+- `defaultEnabled` — replaced by `policy.installation` (above).
+- `headers`, `headersHelper` — Claude-specific source auth.
 - `lspServers` — Codex plugins don't host LSP.
 - `strict` — Claude-specific.
 
@@ -91,7 +107,7 @@ Codex's `source.path: "./plugins/<plugin-name>"` is a structural requirement, no
 ```
 codex/                                  ← marketplace root
 ├── .agents/plugins/marketplace.json
-└── plugins/baransu/                    ← plugin tree (was at codex/ root)
+└── plugins/<plugin>/                   ← plugin tree (was at codex/ root)
     ├── plugin.json
     ├── .codex-agents/
     ├── rules/
@@ -104,13 +120,13 @@ Claude marketplace entry:
 
 ```json
 {
-  "name": "baransu",
-  "owner": { "name": "ben.tsai", "email": "ben.tsai@hy-tech.com.tw" },
+  "name": "my-market",
+  "owner": { "name": "<owner>" },
   "metadata": { "description": "...", "version": "0.2.0" },
   "plugins": [
     {
-      "name": "baransu",
-      "source": "./plugins/baransu",
+      "name": "my-plugin",
+      "source": "./plugins/my-plugin",
       "description": "...",
       "category": "governance",
       "tags": ["planning", "design", "..."]
@@ -123,12 +139,12 @@ Becomes:
 
 ```json
 {
-  "name": "baransu",
-  "interface": { "displayName": "baransu (Codex variant)" },
+  "name": "my-market",
+  "interface": { "displayName": "my-market (Codex variant)" },
   "plugins": [
     {
-      "name": "baransu",
-      "source": { "source": "local", "path": "./plugins/baransu" },
+      "name": "my-plugin",
+      "source": { "source": "local", "path": "./plugins/my-plugin" },
       "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
       "category": "Productivity"
     }
@@ -179,7 +195,13 @@ When the source is a git URL (or git shorthand), Codex clones into a staging dir
 
 `--sparse <PATH>` filters the checkout but does **NOT** rebase the marketplace root inside `<PATH>`. Empirically (Codex CLI as of 2026-05): even with `--sparse codex`, the staging dir still contains repo-root files, and Codex looks for the manifest at staging root, not at `staging/codex/`. So `--sparse <PATH>` alone is not enough to make a `<repo>/codex/.agents/plugins/marketplace.json` reachable via git install.
 
-> **Resolved (2026-09, loader `rust-v0.156.1`):** `git-subdir` is a source type for a *plugin entry*, not a way to relocate the marketplace root. Marketplace discovery only looks at root-relative paths (`.agents/plugins/marketplace.json`, `.agents/plugins/api_marketplace.json`, `.claude-plugin/marketplace.json`), so `marketplace add <git-url>` still needs the repo-root Layout A catalog. `git-subdir` is for a *different* catalog repo pointing at `codex/plugins/baransu`. Whether `--sparse` rebases the root remains undocumented; the loader matches the 2026-05 empirical finding above.
+> **Resolved (2026-09, loader `rust-v0.156.1`; still true at `rust-v0.161.0`):** `git-subdir` is a source type for a *plugin entry*, not a way to relocate the marketplace root. Marketplace discovery only looks at root-relative paths (the §1 lookup order), so `marketplace add <git-url>` still needs the repo-root Layout A catalog. `git-subdir` is for a *different* catalog repo pointing at `codex/plugins/<plugin>`. Whether `--sparse` rebases the root remains *(unpublished)*; the loader matches the 2026-05 empirical finding above.
+
+### After install: enabling, disabling, updating
+
+- The Codex CLI has `codex plugin add | list | remove` and `codex plugin marketplace add | list | upgrade | remove` — **no enable/disable command**. Toggle a plugin in `config.toml`: `[plugins."<plugin>@<marketplace>"] enabled = true|false`.
+- `codex plugin marketplace upgrade <marketplace>` refreshes a git marketplace; the plugin cache is keyed by the manifest version (see [`plugin-mapping.md`](plugin-mapping.md) §8), so publish a version bump with every change.
+- Claude's equivalents (`claude plugin install | enable | disable | update`, `claude plugin marketplace add | update`) differ — write the two install sections separately in the README.
 
 ### Two layouts that actually work
 
@@ -220,20 +242,20 @@ codex plugin add <plugin-name>@<marketplace-name>
 
 Alternatively, push the codex/ subtree as a dedicated branch and register it with `--ref <branch>` before the `plugin add` step.
 
-### What transfer.py emits
+### Which catalogs to maintain
 
-`transfer.py` outputs Layout B inside `<output>/`. To support Layout A in a monorepo, **manually maintain a second catalog at repo root** (or write tooling that splits/promotes between the two — out of scope for this skill today).
+Both layouts are hand-maintained. A monorepo that installs from a git URL needs Layout A (and must keep it, or Codex falls back to the Claude catalog — §1); Layout B is optional for local-path installs. The optional script draft emits Layout B inside its scratch output only.
 
 ```bash
 # Layout A end-user install
 codex plugin marketplace add https://example.com/owner/repo.git
-codex plugin add baransu@baransu
+codex plugin add <plugin>@<marketplace>
 codex plugin marketplace add https://example.com/owner/repo.git --ref v1.2.3   # pinned
-codex plugin add baransu@baransu
+codex plugin add <plugin>@<marketplace>
 
 # Layout B end-user install (requires local clone or codex-only branch)
 codex plugin marketplace add /local/path/to/repo/codex
-codex plugin add baransu@baransu
+codex plugin add <plugin>@<marketplace>
 ```
 
 Document the chosen layout's exact incantation in the consuming project's README — `codex plugin marketplace add --help` does not describe these path conventions and `--sparse` does not do what its name suggests.

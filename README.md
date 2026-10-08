@@ -36,7 +36,7 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 | `/read` | 萬用讀取：URL／路徑／glob／Chrome／剪貼簿轉成 Markdown 給 Claude 讀；加 `--save` 才存成離線檔。 |
 | `/learn` | 把素材整理成五欄重點摘要，可續寫成完整大綱筆記。 |
 | `/draw` | 把任何東西畫出來：編輯級靜態圖（44 型）、可點可探索的互動圖、程式渲染的動態影片、或一頁可拖時間軸的動畫說明頁；全部自包含，先出計畫、再做、再自己看圖打分修到 8 分。 |
-| `/codex-skill-transfer` | 把 Claude 的 skill／plugin 單向轉成 Codex 對應格式。 |
+| `/codex-skill-transfer` | Claude 版與 Codex 版並列手動維護時的移植對照表＋對齊檢查清單；另附選用的草稿腳本。 |
 | `/ship` | session 收尾：歸檔工作檔與 root 的 sealed 合約、commit、push、清理 worktree。 |
 
 ### 三頻段路由（v3.0 起）
@@ -67,4 +67,4 @@ codex plugin marketplace add https://github.com/TLOGBen/baransu.git
 codex plugin add baransu@baransu
 ```
 
-Codex 版是 Claude 的單向衍生產物，放在 `codex/` 子樹；不要直接編輯，會在下次 `/codex-skill-transfer` 轉換時被覆蓋。
+Codex 版放在 `codex/` 子樹，與 Claude 版並列手動維護：Claude 版有改動時同一次一併同步，以 `/codex-skill-transfer` 當對照表與檢查清單；`make ship-check` 會檢查兩邊檔案逐一對應、版本一致。草稿腳本 `transfer.py` 是選用工具，只輸出到暫存目錄，不覆蓋 `codex/`。
