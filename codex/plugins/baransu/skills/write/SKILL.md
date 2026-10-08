@@ -67,6 +67,8 @@ When the user is clarifying intent or asking a clarification question rather tha
 3. **Numbers**: Use half-width Arabic numerals (123, not 一二三) for quantities, measurements, dates, and percentages.
 4. **Proper nouns**: Preserve original capitalization for brand names, product names, and technical terms (iPhone, GitHub, macOS, Claude Code).
 
+**Standard terms** (not a numbered rule): use the Taiwan government-standard form where models habitually write a variant that reads fine but is non-standard — 介接 (system integration / interfacing), never 界接. Proofread flags the variant as 用語不妥.
+
 #### 文體規則 — 反 AI 腔
 
 5. **禁用二元對仗句（翻案腔全類）**：禁的是修辭動作，不是字面——先立一個讀者並沒有的誤解，再推翻它替下文抬價。「不是X，而是Y」是最常見外衣；換一套字繼續做同一個動作仍然命中：「並非…而是…」「不在於…而在於…」「與其說…不如說…」「表面…實際…」「看似…實則…」「你以為…其實…」「回頭才發現」「說到底」「A不重要，重要的是B」，以及省字（「不是A，是B」）與跨句（「不是A。而是B。」）變形。清單是舉例不是邊界。改法：判斷從正面下——先給判斷，再把依據放在旁邊（例：「她哀悼的不是過去，而是童年」→「她哀悼那個還相信故事有結局的童年」）。只有文章真的用材料走過從誤解到修正的過程，自我修正才可保留，且不得套用上述任何句式。「不只…還…」是正常中文遞進可用；出現在翻案位置替下文抬價時，按本條處理。

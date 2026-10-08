@@ -22,7 +22,7 @@ Six author-facing concerns collapse into the **three fixed 錯誤類型 labels**
 | 用詞不妥、不符合繁體中文（台灣）商業習慣 | **用語不妥** |
 | 贅字（多餘字詞）、語意模糊、語句不通順 | **語句不通順** |
 
-For zh, apply the **Taiwan business-usage lens** on top of typo detection — flag mainland-Chinese or non-idiomatic vocabulary and suggest the Taiwan business-standard term. Anchor examples (not exhaustive): 質量→品質、信息→資訊、軟件→軟體、硬件→硬體、視頻→影片、默認→預設、用戶→使用者、激活→啟用、登錄→登入、屏幕→螢幕、打印→列印、網絡→網路、數據→資料／數據（依語境）、項目→專案、優化→最佳化／優化（依語境）. The zh format/style rule sets embedded in SKILL.md (spacing, punctuation, numbers, anti-AI-voice) are also valid sources of 語句不通順 / 用語不妥 findings.
+For zh, apply the **Taiwan business-usage lens** on top of typo detection — flag mainland-Chinese or non-idiomatic vocabulary and suggest the Taiwan business-standard term. Anchor examples (not exhaustive): 質量→品質、信息→資訊、軟件→軟體、硬件→硬體、視頻→影片、默認→預設、用戶→使用者、激活→啟用、登錄→登入、屏幕→螢幕、打印→列印、網絡→網路、數據→資料／數據（依語境）、項目→專案、優化→最佳化／優化（依語境）、界接→介接（政府標準用字；AI 常寫成「界接」）. The zh format/style rule sets embedded in SKILL.md (spacing, punctuation, numbers, anti-AI-voice) are also valid sources of 語句不通順 / 用語不妥 findings.
 
 For en, scan the typo / word-choice subset only (misspellings, wrong-word, awkward phrasing) and map to the same three labels.
 

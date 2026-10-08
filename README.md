@@ -6,7 +6,7 @@
 
 <p align="center"><b>バランス。動手前先想，做完後驗證。</b></p>
 
-<p align="center">14 個 skill · Claude Code 與 Codex · v7.3.0</p>
+<p align="center">14 個 skill · Claude Code 與 Codex · v7.3.1</p>
 
 ---
 

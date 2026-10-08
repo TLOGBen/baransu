@@ -2,6 +2,12 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [7.3.1] - 2026-10-08
+
+### Changed（`/write`：標準用字「介接」）
+- zh 規則新增「標準用字」說明（不編號，不影響既有規則編號）：模型常把「介接」寫成「界接」，讀起來通順但不是政府標準用字；Refine／Generate 一律寫「介接」。
+- Proofread 的台灣商業用語對照補上「界接→介接」，列為 用語不妥。Codex 版同步。
+
 ## [7.3.0] - 2026-10-08
 
 ### Docs（README 改為概念首頁，細節移到 docs/）
