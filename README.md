@@ -1,10 +1,16 @@
-# baransu
+<p align="center">
+  <img src="docs/images/hero.png" width="100%" alt="baransu 概念圖">
+</p>
 
-> バランス。動手前先想，做完後驗證。
+<h1 align="center">baransu</h1>
 
-baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重的決策不省思考」這套平衡哲學，包成一個 Claude Code plugin。共 14 個 skill，每個都有清楚的觸發界線——什麼能省、什麼一定要做。
+<p align="center"><b>バランス。動手前先想，做完後驗證。</b></p>
+
+<p align="center">14 個 skill · Claude Code 與 Codex · v7.3.0</p>
 
 ---
+
+該輕的任務走輕量路徑，該重的決策不省思考。平衡不是妥協，而是知道什麼時候可以輕、什麼時候不准輕。每個 skill 都畫清楚界線：什麼能省、什麼一定要做。
 
 ## 核心理念
 
@@ -13,58 +19,101 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 | 理念 | 一句話 | 機制錨點 |
 |---|---|---|
 | 規則是天花板 | 只寫防真實翻車的規則；容器只能變深、不能變長 | `plugins/baransu/rules/anti-patterns.md` |
-| 結構是地板 | 確定性檢查全走腳本閘門，不靠模型自律；14 個技能是上限（2026-07 修憲 14→15，2026-08 隨 `/analyze` 退役收回 14；附 codex-skill-transfer 三個月零使用即退役回 13 的可證偽條款） | `scripts/verify-skills.py` |
+| 結構是地板 | 確定性檢查全走腳本閘門，不靠模型自律；14 個技能是上限 | `scripts/verify-skills.py` |
 | 人在授權點 | Input PAUSE 可走預設；Authorization PAUSE 不可覆寫 | `plugins/baransu/skills/_shared/loop-contract.md` |
 | 證據優先 | 非顯然主張依賴前先引查證來源；乾淨的 review 也是有效的 review | `plugins/baransu/skills/review/SKILL.md` |
 | 狀態落盤 | 長流程的結論落檔交付、不賭終端顯示 | `plugins/baransu/skills/_shared/output-journal.md` |
 
----
+由來、上限的修憲紀錄與可證偽條款：[理念全文](docs/philosophy.md)。
 
-## Skills
+## 五個家族
 
-| Skill | 用途 |
-|---|---|
-| `/think` | 動手前審議：先復述你要的東西對焦，表態並說明押在什麼上，查證前提，正反兩向攻擊，呈現，落一份五段計畫到 `.claude/think/`。不寫程式、不交棒；已定的決定也可拿來拷問。 |
-| `/review` | 派一個乾淨 context 的 verifier 獨立重驗任何產出，視角只為不同的實質風險才加；不改目標；乾淨的 review 也是有效的 review。 |
-| `/hunt` | 從症狀追到根因：選對觀測層、log 二分法定位，指到 file:line 才動手修。 |
-| `/health` | 體檢專案的 agent 配置與 AI 可維護性：五層審計，預算姿態先行。 |
-| `/ui` | 你 repo 裡的 UI 設計主導：定調色／字／版／動效後直接寫改 UI 檔；能從參考網站、截圖、藝術流派抽出設計語言，也能拿既有 UI 對照參考修整。 |
-| `/contract` | 中頻段開工合約：一頁釘死目標、可斷言條文、錯不起表面、照抄常數，實作前先立約；sealed 合約覆蓋前先歸檔。 |
-| `/seal` | 中頻段收工封緘：派遣乾淨 context 的 verify-only seal-agent 跑五點驗收（逐條對約、掃未釘表面、跨介面一致、常數逐字比對、突變抽查），findings 回主 session 修＋補釘死測試，複驗上限 2，全清才在合約蓋 sealed 標記。 |
-| `/write` | 雙語寫作／潤色：套排版與風格規則，輸出 Before/After 與每處改動理由。 |
-| `/evolve` | 把既有 SKILL.md 對著固定標準一輪輪磨好，只保留確有改進的改動。 |
-| `/read` | 萬用讀取：URL／路徑／glob／Chrome／剪貼簿轉成 Markdown 給 Claude 讀；加 `--save` 才存成離線檔。 |
-| `/learn` | 把素材整理成五欄重點摘要，可續寫成完整大綱筆記。 |
-| `/draw` | 把任何東西畫出來：編輯級靜態圖（44 型）、可點可探索的互動圖、程式渲染的動態影片、或一頁可拖時間軸的動畫說明頁；全部自包含，先出計畫、再做、再自己看圖打分修到 8 分。 |
-| `/codex-skill-transfer` | Claude 版與 Codex 版並列手動維護時的移植對照表＋對齊檢查清單；另附選用的草稿腳本。 |
-| `/ship` | session 收尾：歸檔工作檔與 root 的 sealed 合約、commit、push、清理 worktree。 |
+<table>
+<tr>
+<td width="300"><img src="docs/images/family-plan.png" width="280" alt="構想"></td>
+<td>
+<h3><a href="docs/skills/plan.md">構想</a></h3>
+<p><i>動手之前，先把「要什麼」和「怎樣才算做完」說清楚。</i></p>
+<b><code>/baransu:think</code></b>：復述對焦、表態、兩向攻擊，留一份計畫，不寫程式<br>
+<b><code>/baransu:contract</code></b>：中型任務開工前，一頁釘死可斷言的驗收條文
+</td>
+</tr>
+<tr>
+<td width="300"><img src="docs/images/family-verify.png" width="280" alt="驗證"></td>
+<td>
+<h3><a href="docs/skills/verify.md">驗證</a></h3>
+<p><i>換一雙乾淨的眼睛看，拿證據說話；乾淨的結果也是有效的結果。</i></p>
+<b><code>/baransu:seal</code></b>：對著合約五點驗收，全清才蓋 sealed 標記<br>
+<b><code>/baransu:review</code></b>：乾淨 context 的 verifier 獨立重驗任何產出，不改目標<br>
+<b><code>/baransu:hunt</code></b>：從症狀追到根因，指到 file:line 才動手修
+</td>
+</tr>
+<tr>
+<td width="300"><img src="docs/images/family-make.png" width="280" alt="創作"></td>
+<td>
+<h3><a href="docs/skills/make.md">創作</a></h3>
+<p><i>每個選擇都有理由：先出計畫，再動手，做完自己看過、評過再交。</i></p>
+<b><code>/baransu:draw</code></b>：靜態圖、互動圖、程式渲染影片、可拖時間軸的說明頁<br>
+<b><code>/baransu:ui</code></b>：為你 repo 裡的介面定調色字版，直接寫改 UI 檔<br>
+<b><code>/baransu:write</code></b>：雙語潤稿、生成、校對，附每處改動理由
+</td>
+</tr>
+<tr>
+<td width="300"><img src="docs/images/family-learn.png" width="280" alt="學習"></td>
+<td>
+<h3><a href="docs/skills/learn.md">學習</a></h3>
+<p><i>先把原文完整讀進來，再決定要不要消化成自己的筆記。</i></p>
+<b><code>/baransu:read</code></b>：網頁、檔案、搜尋結果轉成 Markdown；加 <code>--save</code> 才存檔<br>
+<b><code>/baransu:learn</code></b>：評分篩選來源，整理成五欄摘要或完整大綱筆記
+</td>
+</tr>
+<tr>
+<td width="300"><img src="docs/images/family-ops.png" width="280" alt="維運"></td>
+<td>
+<h3><a href="docs/skills/ops.md">維運</a></h3>
+<p><i>收好每一輪、照顧工具本身。</i></p>
+<b><code>/baransu:ship</code></b>：歸檔工作檔、commit、push、清理 worktree<br>
+<b><code>/baransu:health</code></b>：體檢專案的 agent 配置與 AI 可維護性<br>
+<b><code>/baransu:evolve</code></b>：對固定標準一輪輪磨 SKILL.md，只留確有改進的改動<br>
+<b><code>/baransu:codex-skill-transfer</code></b>：Claude／Codex 雙版本的移植對照與對齊檢查
+</td>
+</tr>
+</table>
 
-### 三頻段路由（v3.0 起）
+## 一件事怎麼走
 
-- **小**：直接實作（紅綠紀律見 `_shared/tdd.md` §7），不走任何 skill。
-- **中**：`/contract` 開工立約 → 實作 → `/seal` 收工封緘。
-- **大**：先把整件事畫成決策圖、切成片，每片各自走中頻段（`/contract` → 實作 → `/seal`）。裝了 common 套件（wayfinder／delegate／strategic-advance）時，畫圖與執行可以走那條路——先偵測，不要假設有裝。
+```
+小　單檔、範圍清楚     →  直接實作（紅綠紀律）
+中　一個功能、幾個檔案 →  /contract  →  實作  →  /seal
+大　多個互相依賴的模組 →  畫成決策圖、切片  →  每片走「中」
+```
 
-任務不遷就工具：小任務不硬上全套，大任務不偷走輕量路。
+方向未定先 `/think`，出錯了 `/hunt`，想要第二雙眼睛 `/review`，收工 `/ship`。小任務不硬上全套，大任務不偷走輕量路。session 結束時，seal-guard hook 會擋下沒封緘的 user-facing 變更（可降級）。完整說明：[三頻段路由](docs/routing.md)。
 
-> ⚠️ **seal-guard hook（隨 plugin 生效，預設阻擋）**：session 結束時若偵測到未 `/seal` 的 user-facing 變更，會擋下並提示補 seal。降級：`SEAL_GUARD=log`（只記錄）或 `SEAL_GUARD=off`。遙測集中在 `~/.claude/baransu/telemetry/{專案}/{類型}-{YYYY-MM}.jsonl`，月回看檢討誤擋率（過高即降回 log 預設——可證偽條款）。
+## 快速開始
 
----
-
-## 安裝
-
-### Claude Code
+**Claude Code**
 
 ```
 /plugin marketplace add https://github.com/TLOGBen/baransu.git
 /plugin install baransu@baransu
 ```
 
-### Codex CLI（衍生變體）
+**Codex CLI**（衍生變體，`codex/` 子樹手動維護；skill 以 `$baransu:<name>` 呼叫）
 
 ```
 codex plugin marketplace add https://github.com/TLOGBen/baransu.git
 codex plugin add baransu@baransu
 ```
 
-Codex 版放在 `codex/` 子樹，與 Claude 版並列手動維護：Claude 版有改動時同一次一併同步，以 `/codex-skill-transfer` 當對照表與檢查清單；`make ship-check` 會檢查兩邊檔案逐一對應、版本一致。草稿腳本 `transfer.py` 是選用工具，只輸出到暫存目錄，不覆蓋 `codex/`。
+試試看：
+
+> 想一下：通知系統要不要從輪詢改成 WebSocket？　→ `/think`
+>
+> `/baransu:contract 匯出 CSV 時支援自訂欄位順序`，做完再 `/baransu:seal`
+>
+> 登入後偶爾白畫面，幫我排查　→ `/hunt`
+
+## 更多
+
+[文件索引](docs/README.md) · [安裝](docs/install.md) · [開發指南](docs/development.md) · [CHANGELOG](CHANGELOG.md) · [授權與第三方來源](docs/README.md#授權與第三方來源)

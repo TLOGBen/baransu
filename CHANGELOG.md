@@ -4,6 +4,11 @@
 
 ## [7.3.0] - 2026-10-08
 
+### Docs（README 改為概念首頁，細節移到 docs/）
+- README 改寫為短首頁：橫幅概念圖、核心理念、五個家族卡片（各一張概念圖）、一件事怎麼走（三頻段）、快速開始與範例 prompt。
+- 細節移到 `docs/`：`README.md`（索引與 skill 總表）、`philosophy.md`、`routing.md`、`install.md`、`development.md`、`skills/{plan,verify,make,learn,ops}.md`；舊 README 內容逐段搬入。
+- 新增概念圖 `docs/images/hero.png`、`docs/images/family-*.png`（GPT-6 Astra 產生）。skill 內容未變。
+
 ### Changed（`/codex-skill-transfer` 0.19.0：從轉換器改為手動維護的對照表＋檢查清單）
 - **定位**：Claude 版與 Codex 版改為並列手動維護、各自是自己平台的正本。SKILL.md 改成四種模式——Checklist（預設，唯讀，輸入一對 Claude／Codex 目錄、輸出落差報告）、Port by hand、Generate（選用，`transfer.py` 只寫 scratch 目錄，不得覆蓋手動維護的 Codex 版）、Reference question；Outcome Contract、報告骨架（一致／需修正／刻意省略／降級風險／待查＋`Next-port follow-ups`，新增 `fix-now` 處置）與 Boundaries 同步改寫。
 - **對照基準更新到 Claude Code 2.1.293／Codex CLI 0.161.0（`rust-v0.161.0`，2026-10-08）**，並保留【推論】／官方未公布標記（*(inferred)*／*(unpublished)*）不升格為事實。Step 2 刷新清單改指 `learn.chatgpt.com/docs/*`、`developers.openai.com/plugins/*` 與 OpenAI 的 Claude plugin 移植指引。
