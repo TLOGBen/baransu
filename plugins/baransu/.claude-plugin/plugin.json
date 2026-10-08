@@ -1,7 +1,8 @@
 {
   "name": "baransu",
-  "version": "7.3.1",
+  "version": "7.3.2",
   "description": "バランス — deliberate before executing, verify after. Fourteen governance skills covering the full development lifecycle.",
+  "icon": "./assets/logo.png",
   "author": {
     "name": "ben.tsai",
     "email": "ben.tsai@hy-tech.com.tw"

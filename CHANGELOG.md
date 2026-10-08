@@ -2,6 +2,13 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [7.3.2] - 2026-10-08
+
+### Added（plugin icon 與 skill icon，Krea 2 產生）
+- `assets/icon.png`（256）、`logo.png`、`logo-dark.png`（512），水墨平衡意象：Claude 版 `plugin.json` 設 `icon`（Anthropic plugin 目錄用，Claude Code 執行時不讀）；Codex 版 `extensions."com.openai".interface` 設 `composerIcon`、`logo`、`logoDark`、`brandColor`（#C2452D）。
+- Codex 版 14 個 skill 在 `agents/` 放 `icon-small.png`（128）、`icon-large.png`（512），新增 `agents/openai.yaml` 設 `icon_small`、`icon_large`、`brand_color`。`verify-codex-parity.py` 的 Codex 專屬樣式加上 `agents/icon-*.png`。
+- `transfer.py`（選用草稿腳本）把 plugin 頂層 `assets/` 視為已知元件並原樣複製，不再列為無轉換規則的 component。
+
 ## [7.3.1] - 2026-10-08
 
 ### Changed（`/write`：標準用字「介接」）

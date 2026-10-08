@@ -2361,7 +2361,7 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
 
     # Inventory the source before writing output. The converter must not imply
     # a complete port while silently ignoring a new plugin component.
-    known_components = {".claude-plugin", "agents", "hooks", "rules", "skills"}
+    known_components = {".claude-plugin", "agents", "assets", "hooks", "rules", "skills"}
     source_components = sorted(p.name for p in plugin_root.iterdir())
     unhandled_components = [
         name
@@ -2529,6 +2529,9 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
     summary["rules_copied"] = copy_plugin_rules(
         plugin_root, plugin_out, known_skills=plugin_known, namespace=plugin_name
     )
+    # Plugin-level `assets/` (icons, logos) are binary media: copy verbatim.
+    if (plugin_root / "assets").is_dir():
+        shutil.copytree(plugin_root / "assets", plugin_out / "assets", dirs_exist_ok=True)
     source_rule_count = (
         sum(1 for path in (plugin_root / "rules").rglob("*") if path.is_file())
         if (plugin_root / "rules").is_dir()
