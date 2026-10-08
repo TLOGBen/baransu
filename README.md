@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/hero.png" width="100%" alt="baransu 概念圖">
+  <img src="docs/images/hero.jpg" width="100%" alt="baransu 概念圖">
 </p>
 
 <h1 align="center">baransu</h1>

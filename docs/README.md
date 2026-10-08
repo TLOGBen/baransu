@@ -49,4 +49,4 @@ repo 根目錄目前沒有授權檔。以下子模組 vendored 自第三方專�
 
 ## 圖片
 
-首頁與家族頁的概念圖放在 [`images/`](images/)：`hero.png`、`family-plan.png`、`family-verify.png`、`family-make.png`、`family-learn.png`、`family-ops.png`。
+首頁與家族頁的概念圖放在 [`images/`](images/)：`hero.jpg`（Krea 2 產生）、`family-plan.png`、`family-verify.png`、`family-make.png`、`family-learn.png`、`family-ops.png`。
