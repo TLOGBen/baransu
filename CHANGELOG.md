@@ -2,6 +2,12 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [7.4.2] - 2026-10-12
+
+### Fixed（`/draw` 後製，實際做一支 15 秒影片時發現）
+- `sfx.mjs`：配樂底的取樣率或位元深度不符時，自動用 ffmpeg 轉成 48 kHz 16-bit 再混音。`music.mjs`、`chiptune.mjs` 輸出 44.1 kHz，原本照 `beat-grid.md` 的流程串起來一定會失敗。已記入 `pipeline.md` § Known environment failures。
+- `beat-grid.md` 的 true peak 規則：AAC 抬高峰值的幅度依瞬態而不同，實測從約 1 dB 到 2.6 dB。改成先對 WAV 做響度標準化，再量解碼後的 MP4，峰值不到 −1 dBTP 就把 WAV 的上限往下壓（−2.2 → −3.2）。並註明不可直接對 MP4 做標準化，實測會把峰值推到 +0.2 dBTP。
+
 ## [7.4.1] - 2026-10-12
 
 ### Added（`/draw`：6 : 3 : 1 畫面層級原則）

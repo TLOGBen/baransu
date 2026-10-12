@@ -12,7 +12,9 @@
 // and RMS-trimmed toward roughly -14 LUFS (a simple RMS stand-in, not K-weighted).
 // A bed must be a 16-bit PCM WAV (convert anything else with ffmpeg first).
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 
 const argv = process.argv.slice(2);
 const pos = argv.filter((a) => !a.startsWith('--'));
@@ -59,14 +61,22 @@ const SOUNDS = {
 
 function peakIndex(x) { const k = Math.max(1, Math.round(SR * 0.002)); let best = 0, bi = 0, acc = 0; const q = []; for (let i = 0; i < x.length; i++) { acc += Math.abs(x[i]); q.push(Math.abs(x[i])); if (q.length > k) acc -= q.shift(); if (acc > best) { best = acc; bi = i; } } return bi; }
 
-function readWav(file) {
+// A bed at another rate or bit depth (music.mjs and chiptune.mjs write 44.1 kHz) is converted with ffmpeg
+// to 16-bit PCM at SR before mixing, so the documented chain runs without a manual step.
+function conformBed(file) {
+  const out = path.join(os.tmpdir(), `sfx-bed-${process.pid}.wav`);
+  const r = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', file, '-ar', String(SR), '-ac', '2', '-c:a', 'pcm_s16le', out], { encoding: 'utf8' });
+  if (r.status !== 0) throw new Error(`bed needs ${SR} Hz 16-bit PCM and ffmpeg could not convert it: ${(r.stderr || r.error || '').toString().trim()}`);
+  return out;
+}
+function readWav(file, converted = false) {
   const b = fs.readFileSync(file);
   if (b.toString('ascii', 0, 4) !== 'RIFF' || b.toString('ascii', 8, 12) !== 'WAVE') throw new Error('bed is not a WAV');
   let p = 12, fmt = null, data = null;
   while (p < b.length) { const id = b.toString('ascii', p, p + 4), sz = b.readUInt32LE(p + 4); if (id === 'fmt ') fmt = { ch: b.readUInt16LE(p + 10), sr: b.readUInt32LE(p + 12), bits: b.readUInt16LE(p + 22) }; if (id === 'data') data = b.subarray(p + 8, p + 8 + sz); p += 8 + sz + (sz & 1); }
   if (!fmt || !data) throw new Error('bad WAV');
-  if (fmt.bits !== 16) throw new Error('bed must be 16-bit PCM (convert with ffmpeg -c:a pcm_s16le)');
-  if (fmt.sr !== SR) throw new Error(`bed sample rate ${fmt.sr} ≠ ${SR}; resample with ffmpeg -ar ${SR}`);
+  if ((fmt.bits !== 16 || fmt.sr !== SR) && !converted) return readWav(conformBed(file), true);
+  if (fmt.bits !== 16 || fmt.sr !== SR) throw new Error(`bed is ${fmt.sr} Hz ${fmt.bits}-bit after conversion; expected ${SR} Hz 16-bit`);
   const n = data.length / 2 / fmt.ch; const L = new Float64Array(n), R = new Float64Array(n);
   for (let i = 0; i < n; i++) { L[i] = data.readInt16LE(i * 2 * fmt.ch) / 32768; R[i] = fmt.ch > 1 ? data.readInt16LE(i * 2 * fmt.ch + 2) / 32768 : L[i]; }
   return { L, R };
