@@ -1,8 +1,10 @@
 # Transitions — every seam is a decision
 
+Technique reference for the cut: Phase 2 chooses a transition for every seam (`2-draft.md` § 6), Phase 4 uses the in-shot ones (carries, camera pushes), Phase 5 executes the seams and writes J- and L-cuts as cue times (`5-post.md` § 1).
+
 A film with twenty shots has twenty-one seams. A fade at each one is the slideshow look; a hard cut at each one is a stepped look. The storyboard names a transition at every seam, and the transition belongs to the story: it carries an element across, it moves in the direction the eye is already moving, it lands on the beat.
 
-`assets/motion/motion.js` ships the geometry; the scene code does the drawing. The outgoing scene draws first and the incoming scene draws inside the clip or offset the helper returns, so the seam is a shape, not an alpha.
+The camera moves inside a shot (pan, dolly, rack focus, speed ramp, and the rest of the 24 named moves) are in `camera.md`. `assets/motion/motion.js` ships the geometry; the scene code does the drawing. The outgoing scene draws first and the incoming scene draws inside the clip or offset the helper returns, so the seam is a shape, not an alpha.
 
 | Transition | Helper | When it belongs | How it is drawn |
 |---|---|---|---|
@@ -14,6 +16,11 @@ A film with twenty shots has twenty-one seams. A fade at each one is the slidesh
 | Push / camera carry | `camera(t, keys, W, H)` | the next state is somewhere in the same space | one camera key per state; the move *is* the transition |
 | Accent carry | springs | between any two UI states | the accent element (a button, a bar, a cursor) travels from the old layout to the new one via `track`; never fade to black and back into the accent |
 | Push from paper / brush wipe | hand-drawn lane | painterly or hand-drawn pieces | `references/motion/hand-drawn/motion.md` (node-canvas route) |
+| Jump cut | none | time passes in the same place; restless energy; three or more in a row become a rhythm | keep the framing identical (same camera key) and cut the subject's story time forward (`retime`, `camera.md`); the subject's position jumps. Cut on beats. A near-identical framing that differs by a few percent reads as a mistake: either the same framing exactly, or a scale change of 20 % or more |
+| Cross dissolve | none | time has passed, a memory, two places that are one idea | draw the outgoing shot, then the incoming one at `globalAlpha = ease.inOut((t − t0) / dur)` over 0.5–1.5 s. It is not a fade to black (the paper never shows), but it is the slideshow look if it sits at every seam: one or two per film |
+| Smash cut | none | a hard cut on the biggest contrast: loud to silent, chaos to calm, fast to still | a hard cut on a downbeat with the sound cut at the same frame (the music stops, a room tone or one small sound starts). The picture contrast and the sound contrast together are the joke or the shock; either one alone is just a cut |
+| J-cut | none (sound) | lead the viewer into the next shot by ear: a voice, a crowd, a click before we see it | in `window.timeline()`, give the incoming shot's sound cues a time 0.3–1.0 s before the picture cut, so `sfx.mjs` places them under the outgoing picture. Bring the incoming sound up under the outgoing sound, not on top of it |
+| L-cut | none (sound) | let a moment linger: the last line, a ring-out, an ambience | let the outgoing shot's sound cues run 0.3–1.5 s past the picture cut (cue tails past the seam) and fade them under the new picture. Check the seam with `checks.sh audio`: the mix should have a shape without the picture |
 
 ## Rules
 

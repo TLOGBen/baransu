@@ -1,5 +1,7 @@
 # The explainer page — several animated figures on one reading page
 
+Technique reference for the page lane. The five phases still apply per figure: design the caption and point (Phase 1), draft the figure list (Phase 2), draw each rest frame as its key (Phase 3), animate (Phase 4), verify the page (Phase 5).
+
 When the deliverable is "explain this to me", one video is the wrong shape: a reader wants to scrub, pause, re-read. The explainer page puts 4–8 `seek(t)` figures inside a reading column, each with its own play/pause and time scrubber, each a pure function of time so any instant can be reproduced exactly. `assets/motion/explainer-template.html` is a complete worked example (a 12-step course rendered as six scrubbable figures); copy its mechanics, not its content.
 
 ## Mechanics
@@ -30,3 +32,5 @@ When the deliverable is "explain this to me", one video is the wrong shape: a re
 ## What the template demonstrates
 
 Figure types that recur in explainers and are already solved in the template: a pipeline with items flowing stage to stage; a ladder/bar chart with tiles unlocking in sequence; a curve comparison with a moving playhead; a single shape morphing through states with a cursor; a beat/timeline grid with a playhead, waveform and markers; a loop/cycle with a scorecard that fills over rounds. Reuse the drawing helpers (`tx`, `rr`, `arrow`, `spring`, `track`, `swapAlpha`) rather than inventing new ones.
+
+When a figure must show *how something works*, not only that it happens, draw it as a machine whose moving parts behave the way the idea does (`../mechanism/mechanism.md`; 52 worked mappings in `../mechanism/mechanism-catalog.md`). A mechanism figure keeps this page's contract: a `data-rest` frame, a scrubbable tour, theme tokens, reduced motion; it adds the four-corner card and, when the user asks for it, pointer and keyboard.

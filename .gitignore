@@ -45,6 +45,7 @@
 .claude/learn/
 .claude/draw/
 .codex/draw/
+.claude/show-me/
 .claude/research/
 .claude/loop-state.json
 .claude/loop-final-report.md

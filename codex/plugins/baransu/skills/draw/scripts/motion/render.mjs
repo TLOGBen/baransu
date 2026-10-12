@@ -34,6 +34,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { loadPlaywright as findPlaywright, chromiumPath, INSTALL_HINT } from './browser.mjs';
 
 const argv = process.argv.slice(2);
 const mode = argv[0] && !argv[0].startsWith('--') ? argv[0] : 'contact';
@@ -51,8 +52,9 @@ if (!opt.html) die('usage: render.mjs <still|stills|beats|contact|strip|phone|ha
 const HTML = path.resolve(opt.html);
 if (!fs.existsSync(HTML)) die(`html not found: ${HTML}`);
 const OUT = path.resolve(opt.out || 'out');
-const FORMATS = { '9:16': [1080, 1920], '1:1': [1440, 1440], '16:9': [1920, 1080] };
-if (opt.format && !FORMATS[opt.format]) die(`unknown --format ${opt.format}; use 9:16, 1:1 or 16:9`);
+const FORMATS = { '9:16': [1080, 1920], '1:1': [1440, 1440], '16:9': [1920, 1080], '4:5': [1080, 1350] };
+const ALL_FORMATS = ['9:16', '1:1', '16:9'];   // --all renders these; 4:5 (feed posts) only when asked with --format 4:5
+if (opt.format && !FORMATS[opt.format]) die(`unknown --format ${opt.format}; use 9:16, 1:1, 16:9 or 4:5`);
 let FORMAT = opt.format;
 let W = num('w', FORMAT ? FORMATS[FORMAT][0] : 1080), H = num('h', FORMAT ? FORMATS[FORMAT][1] : 1920);
 const SCALE = mode === 'animatic' ? num('scale', 0.5) : num('scale', 1);
@@ -64,32 +66,11 @@ function die(msg) { console.error(msg); process.exit(2); }
 function haveFfmpeg() { return spawnSync('ffmpeg', ['-version'], { stdio: 'ignore' }).status === 0; }
 
 async function loadPlaywright() {
-  const candidates = [opt.playwright, process.env.PLAYWRIGHT_MODULE, 'playwright'];
-  const req = createRequire(path.join(process.cwd(), 'package.json'));
-  for (const c of candidates) {
-    if (!c) continue;
-    try { const m = await import(c === 'playwright' ? req.resolve('playwright') : c); if (m.chromium || m.default?.chromium) return m.chromium ? m : m.default; } catch {}
-  }
-  const g = spawnSync('npm', ['root', '-g'], { encoding: 'utf8' }).stdout?.trim();
-  if (g) { try { const m = await import(path.join(g, 'playwright', 'index.mjs')); return m.chromium ? m : m.default; } catch {} }
-  die('playwright not found: npm i -D playwright && npx playwright install chromium');
+  const pw = await findPlaywright(opt.playwright);
+  if (!pw) die(INSTALL_HINT);
+  return pw;
 }
 
-function chromiumPath() {
-  if (process.env.CHROME_PATH && fs.existsSync(process.env.CHROME_PATH)) return process.env.CHROME_PATH;
-  const roots = [process.env.PLAYWRIGHT_BROWSERS_PATH, path.join(os.homedir(), '.cache', 'ms-playwright')].filter(Boolean);
-  for (const r of roots) {
-    if (!fs.existsSync(r)) continue;
-    const dirs = fs.readdirSync(r).filter((n) => /^chromium-\d+$/.test(n)).sort((a, b) => b.split('-')[1] - a.split('-')[1]);
-    for (const d of dirs) {
-      for (const rel of ['chrome-linux/chrome', 'chrome-linux64/chrome', 'chrome-mac/Chromium.app/Contents/MacOS/Chromium', 'chrome-win/chrome.exe']) {
-        const p = path.join(r, d, rel);
-        if (fs.existsSync(p)) return p;
-      }
-    }
-  }
-  return undefined; // let playwright use its own default
-}
 
 async function openPage(browser) {
   const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: SCALE });
@@ -222,7 +203,7 @@ async function renderFull(browser, page) {
 }
 
 async function main() {
-  if (!haveFfmpeg() && mode !== 'still' && mode !== 'hash') die('ffmpeg not found on PATH');
+  if (!haveFfmpeg() && mode !== 'still' && mode !== 'hash') die('ffmpeg not found on PATH.\n' + INSTALL_HINT);
   const pw = await loadPlaywright();
   const exe = chromiumPath();
   const browser = await pw.chromium.launch(exe ? { executablePath: exe } : {});
@@ -230,7 +211,7 @@ async function main() {
     if (opt.all && ['full', 'animatic', 'contact', 'phone', 'stills'].includes(mode)) {
       // every format from the one timeline: the page reflows on ?f=, the viewport follows;
       // a sheet per format, because "reflow, never crop" is only checkable by looking at the reflow
-      for (const f of Object.keys(FORMATS)) {
+      for (const f of ALL_FORMATS) {
         FORMAT = f; [W, H] = FORMATS[f];
         const page = await openPage(browser);
         if (mode === 'full' || mode === 'animatic') await renderFull(browser, page);

@@ -1,5 +1,7 @@
 # Long form — chapters, guides, and subagents
 
+Technique reference for pieces longer than a minute: the guide and chapter split are written in Phase 2 (`2-draft.md` § 11); chapters are animated in Phase 4 and rendered in chunks in Phase 5.
+
 A 2-minute music video or a 5-minute history film is not one `seek(t)` scene; it is a dozen chapters that must look like one film. Two published productions show the pattern that holds up: a shared guide written *before* the chapters, one file per chapter, and a renderer that treats the film as chunks.
 
 ## The shape
@@ -38,5 +40,3 @@ Lock beats to word timestamps (`data/timings.json`), never to a stopwatch; the s
 - Sound derived from the picture: each gun / click / footstep becomes a cue with distance and pan; sound travels at 343 m/s, so far events are heard late.
 - A painterly finish (grain, vignette, letterbox, a filter blended over the frame) applied once in post, not per element.
 - Software WebGL on a headless box runs around 1–2 s per 1080p frame; budget the full render accordingly and iterate on strips.
-
-Attribution: the chapter/guide/subagent structure is described from `JohnHeibel/PDoomVideo` (ISC); the chunked renderer, picture-derived sound and narration timing from the public description of `WinterArc21/Battle-of-Austerlitz-Film` (no license granted, so nothing from it is copied — only the pattern is described).

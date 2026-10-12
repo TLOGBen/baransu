@@ -21,7 +21,7 @@ Run at least three rounds before the full render, and stop when every score is 8
 Which fix first, when a round scores low:
 
 - the focus cannot be found → cut or dim what competes with it (equal brightness, equal detail); never enlarge the focus or add a second signal
-- the frame cannot be read as a space → go back to the big shapes and the shot's still (`motion/storyboard.md`); detail comes last
+- the frame cannot be read as a space → go back to the big shapes and the shot's still (`motion/2-draft.md`, `motion/3-keys.md`); detail comes last
 - the look went bland after cleanup → check the `Keep:` list in `docs/style_guide.md`; hierarchy comes from value and position, not from greying the style away
 
 ## How to look, per lane

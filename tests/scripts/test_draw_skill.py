@@ -53,7 +53,7 @@ class TestStructure(unittest.TestCase):
             self.assertIn(word, desc, f"description should carry trigger word {word!r}")
 
     def test_four_lanes_and_spine(self):
-        for h in ("## Lane: diagram", "## Lane: map", "## Lane: motion", "## Lane: page", "## The spine", "## Red lines", "## Completion report", "### Type router"):
+        for h in ("## Lane: diagram", "## Lane: map", "## Lane: motion", "## Lane: page", "## The flow (every request)", "## Red lines", "## Completion report", "### Type router"):
             self.assertIn(h, self.body, f"missing section {h}")
 
     def test_every_referenced_bundled_path_exists(self):
@@ -254,7 +254,7 @@ class TestMotionLibrary(unittest.TestCase):
             self.assertIn(mode, render, mode)
         # the process rules the studio articles insisted on
         self.assertIn("safe:", (SKILL / "assets/motion/seek-template.html").read_text(encoding="utf-8"))
-        self.assertIn("## The brief file", (SKILL / "references/motion/storyboard.md").read_text(encoding="utf-8"))
+        self.assertIn("### 1. Write the brief", (SKILL / "references/motion/1-design.md").read_text(encoding="utf-8"))
         self.assertIn("## The film folder", (SKILL / "references/motion/pipeline.md").read_text(encoding="utf-8"))
         self.assertIn("| Continuity |", (SKILL / "references/critique-loop.md").read_text(encoding="utf-8"))
         pauses = (SKILL / "references/loop-pauses.md").read_text(encoding="utf-8")
@@ -272,6 +272,65 @@ class TestMotionLibrary(unittest.TestCase):
         self.assertIn("music.mjs", beat); self.assertIn("--bed", beat)
         evals = json.loads((SKILL / "evals/evals.json").read_text(encoding="utf-8"))["evals"]
         self.assertGreaterEqual(sum("Motion lane" in e["expected_output"] for e in evals), 4, "four motion evals")
+
+    def test_motion_references_are_five_phases_plus_a_technique_library(self):
+        motion = SKILL / "references/motion"
+        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        readme = (motion / "README.md").read_text(encoding="utf-8")
+        phases = ["1-design.md", "2-draft.md", "3-keys.md", "4-shoot.md", "5-post.md"]
+        for i, name in enumerate(phases, 1):
+            text = (motion / name).read_text(encoding="utf-8")
+            self.assertTrue(text.startswith(f"# Phase {i} — "), name)
+            self.assertIn("## Gate checklist", text, name)
+            self.assertIn(name, readme, f"README must route to {name}")
+            self.assertIn(f"references/motion/{name}", skill, f"SKILL.md must route to {name}")
+        self.assertIn("references/motion/README.md", skill)
+        # every motion reference is reachable from the map; no orphans
+        for p in motion.glob("*.md"):
+            if p.name != "README.md":
+                self.assertIn(f"`{p.name}`", readme, f"README must list {p.name}")
+        # the retired files stay retired; their content lives in the phases and the library
+        for gone in ("storyboard.md", "keyframes.md", "prompt-ladder.md", "directing.md", "brief.md"):
+            self.assertFalse((motion / gone).exists(), gone)
+        draft = (motion / "2-draft.md").read_text(encoding="utf-8")
+        self.assertIn("6 → 3 → 1", draft); self.assertIn("docs/camera_plan.md", draft)
+        self.assertIn("## The key card", (motion / "3-keys.md").read_text(encoding="utf-8"))
+
+    def test_flow_is_preflight_form_approach_production_check(self):
+        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        steps = ["### 0. Preflight", "### 1. Choose the form", "### 2. Choose the approach", "### 3. Production", "### 4. Check and deliver"]
+        pos = [skill.index(h) for h in steps]
+        self.assertEqual(pos, sorted(pos), "the five steps appear in order")
+        self.assertIn("node scripts/motion/doctor.mjs --install", skill)
+        for a in ("**Diagram system**", "**Mechanism**", "**Free creative**"):
+            self.assertIn(a, skill)
+        for f in ("**page**", "**diagram**", "**map**", "**motion**"):
+            self.assertIn(f, skill.split("### 1. Choose the form")[1].split("### 2.")[0])
+
+    def test_toolchain_finds_browsers_on_every_os_and_ships_a_loop_template(self):
+        browser = (SKILL / "scripts/motion/browser.mjs").read_text(encoding="utf-8")
+        for s in ("pathToFileURL", "LOCALAPPDATA", "Library", "chrome-win64/chrome.exe", "chrome-mac-arm64"):
+            self.assertIn(s, browser, s)
+        for f in ("render.mjs", "grab.mjs", "verify-page.mjs", "doctor.mjs"):
+            self.assertIn("./browser.mjs", (SKILL / "scripts/motion" / f).read_text(encoding="utf-8"), f)
+        render = (SKILL / "scripts/motion/render.mjs").read_text(encoding="utf-8")
+        self.assertIn("'4:5': [1080, 1350]", render); self.assertIn("ALL_FORMATS", render)
+        loop = (SKILL / "assets/motion/loop-template.html").read_text(encoding="utf-8")
+        for s in ("window.seek", "loopNoise", "wrappedSpring", "seam", "TAU * p"):
+            self.assertIn(s, loop, s)
+        self.assertIn("## Known environment failures", (SKILL / "references/motion/pipeline.md").read_text(encoding="utf-8"))
+
+    def test_mechanism_figures_are_a_cross_lane_section(self):
+        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("## Mechanism figures (any form)", skill)
+        sec = skill.split("## Mechanism figures (any form)")[1].split("\n## ")[0]
+        for lane in ("**page**", "**motion**", "**diagram**"):
+            self.assertIn(lane, sec, f"the section must say how it lands in {lane}")
+        self.assertIn("怎麼運作", sec)
+        for f in ("mechanism.md", "mechanism-catalog.md"):
+            self.assertTrue((SKILL / "references/mechanism" / f).is_file(), f)
+            self.assertFalse((SKILL / "references/motion" / f).exists(), f"{f} moved out of motion/")
+            self.assertIn(f"references/mechanism/{f}", skill)
 
 
 if __name__ == "__main__":

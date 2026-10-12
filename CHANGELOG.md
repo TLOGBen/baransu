@@ -2,6 +2,36 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [7.4.0] - 2026-10-12
+
+### Changed（`/draw` motion：重組為「五階段工作指引＋技術手冊」）
+- `references/motion/` 改為兩層：第 1 層是五個階段的工作指引，依序閱讀——`1-design.md`（設計）→ `2-draft.md`（草稿）→ `3-keys.md`（關鍵幀／首尾幀）→ `4-shoot.md`（攝影）→ `5-post.md`（後製）。每份寫明這一步解決什麼、核心觀念、步驟、產出與過關清單。第 2 層是技術手冊，執行到某一步才翻：`pipeline`、`prompts`、`springs`、`camera`、`transitions`、`type`、`beat-grid`、`review`、`finishing`、`chapters`、`commission`、`explainer-page`、`mechanism`、`mechanism-catalog`。`README.md` 是地圖與查詢索引。
+- 退役 `storyboard.md`、`prompt-ladder.md`，內容拆入 `1-design.md`、`2-draft.md`、`prompts.md`、`review.md`。重組前後以腳本比對每個數字、程式碼片段與程式碼行，再逐句比對 4-gram，確認資訊未遺漏。
+- 草稿階段新增：方向以 6 → 3 → 1 收斂（6 個一句話方向 → 3 個各做一張 style frame → 選 1，並寫下落選理由）、color script、攝影計畫 `docs/camera_plan.md`（景別、角度、焦段感、具名運鏡與時長曲線、停留、畫面方向與 180° 規則）、節奏強度曲線、時長表（X-sheet），以及配臨時聲音的 keys-only animatic。
+- 關鍵幀階段新增 key card：每張 key 定稿時須含 read、why、構圖（stage／life／focus）、framing（鏡頭框、深度層、焦平面）、主體狀態、文字、look、motion in／out、聲音、各格式重排、檢查項。layout 跟著 key 一起定，攝影階段只在已核准的 framing 之間移動。
+- `SKILL.md` 的 motion lane 改為五階段表＋技術手冊清單；新增測試鎖住結構（五階段與過關清單、README 不留孤兒檔、退役檔不再出現）。
+- 出處段落移出 reference：12 份 motion reference 底部的 `Attribution:` 段落，搬到 `NOTICE.md` 的「Sources by reference file」，agent 讀的檔案只留指示。會過時的事實（X 上傳限制、引擎的授權與價格）改在原句旁標「截至 2026-10」。
+- draw 的 `description` 精簡為三句（做什麼、何時用加觸發詞、何時不用），從約 1010 字元降到 476；全 repo listing 總量從 8259 降到 7500。
+
+### Changed（`/draw` 整體流程：preflight → 形式 → 畫法 → 產製 → 檢查）
+- `SKILL.md` 改成一條固定流程：**0. Preflight**（`node scripts/motion/doctor.mjs --install` 直到 `READY`）→ **1. 選形式**（page／diagram／map／motion，map 為獨立形式）→ **2. 選畫法**（Diagram 系統／機構／自由創意，與形式交叉成立）→ **3. 產製**（靜態直接做；會動的走草稿 → 關鍵幀 → 攝影 → 後製，並依形式調整份量）→ **4. 檢查與交付**。
+- 環境原則改為「缺工具就安裝，不回報停工」；每次執行遇到新的環境錯誤，都要在結束前補進 `pipeline.md` § Known environment failures。
+
+### Added（工具鏈）
+- `scripts/motion/doctor.mjs`：開工前一次檢查 Node、ffmpeg、Playwright、Chromium、Python UTF-8，`--install` 自動用官方指令補裝；最後實際渲染範本兩次比對 hash，並用 ffmpeg 編碼，通過才印 `READY`。
+- `scripts/motion/browser.mjs`：render／grab／verify-page 共用的 Playwright 與 Chromium 搜尋，修正 Windows 上絕對路徑 `import()` 失敗，涵蓋 Windows、macOS 的 Playwright 快取位置與 `chrome-win64`、`chrome-mac-arm64`；任何已安裝的 Chromium 版本都能用；找不到時印出各平台安裝指令。
+- `assets/motion/loop-template.html`：首尾銜接的 loop 範本（整數圈運動、沿圓周取樣的 `loopNoise()`、跨接縫的 `wrappedSpring()`、`?seam=1` 並排檢查），已驗證最後一格與第 0 格連續。
+- `render.mjs --format 4:5`（`--all` 仍為三種格式）。
+- `finishing.md` § Loops 補上：強調元素也要跑整數圈、文字不跨接縫、渲染前用 stills 檢查接縫。
+
+### Added（`/draw` motion 新內容）
+- `camera.md`：24 種具名運鏡與轉場（pan、tilt、dolly、zoom、tracking、orbit、crane、dolly zoom、rack focus、handheld、FPV、dutch、slow motion、speed ramp、time-lapse、freeze frame…），以 parallax 規則在 canvas 上實作，並附 `layerCam`、`retime`、`handheld`。`transitions.md` 補上 jump cut、cross dissolve、smash cut、J-cut、L-cut。
+- 機構圖（跨 lane 的獨立章節 `SKILL.md` § Mechanism figures，檔案在 `references/mechanism/`）：寫明觸發情境（「X 怎麼運作」、原理、機制、互動式說明）、與流程圖的分界（重點在連接與流向→流程圖；重點在零件行為、狀態變化與失敗情境→機構圖），以及落在哪條 lane（預設 page；影片裡是一個鏡頭；靜態需求用剖視或爆炸圖）。`mechanism.md`（「物件本身就是解釋」、Figure／Hero／Epic 規模、十步驟、繪製／動態／shader／3D／驗證規則，以及「自己發明機構」的指引：動詞 → 機構家族對照表、零件與意義的對照模板、上線前檢驗）；`mechanism-catalog.md`（Anatomy collection 全部 52 個概念與機構）。
+- `commission.md`：接案流程（範圍、方便改版的建置方式、匯出審查、打包、Remotion Route B、找案子、報價公式、提案寫法）。
+- 動作數字與審查技法：cubic-bezier 表、damping ratio 換算（含本 skill 各 feel 的對應值）、時長與 stagger、一個主角動作的層級規則、動畫原則寫成數字、以影格編號下筆記、onion skin、速度曲線、把感覺翻成數字的對照、常見故障修正表。
+- 聲音同步與量測：命中點落在畫面後 1 影格（保留「緩慢接觸前約 0.03 s」作為例外並寫明取捨）、高出 bed 3–6 dB、手機頻段響度、AAC 補白與 true peak、cosine phase 起音；收尾：GIF 延遲陷阱、X 上傳限制、4:5 版面、180° 快門外觀。
+- 出處列入 `NOTICE.md`：@showheyohtaki、@flxrnc、@0xCodila、@rexan_wong 的公開貼文，以及 wheresryan22/anatomy（MIT）。
+
 ## [7.3.3] - 2026-10-08
 
 ### Fixed（Codex skill 圖示載入）

@@ -1,0 +1,139 @@
+<!doctype html>
+<!--
+  loop-template.html — a seamless loop as a pure function of time.
+  The last frame flows into the first: every motion is driven by phase = t / DUR and completes
+  a whole number of cycles; organic drift samples noise along a circle so it comes home; a settle
+  runs straight through frame 0 so the seam is inside a motion, not at a hold.
+  Same contract as seek-template.html: window.seek(t), window.timeline(), ?f=9:16|1:1|16:9|4:5.
+  Render frames 0 .. N-1 only (render.mjs does); check the seam with  bash checks.sh loop out/final.mp4.
+  Open with ?seam=1 to see frame N-1 beside frame 0 (they must read as consecutive frames).
+  Copy this file and motion.js into your film folder, then edit the [EDIT] regions.
+-->
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>loop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap">
+<style>
+  html, body { margin: 0; background: #141413; }
+  body.preview { display: grid; place-items: center; min-height: 100vh; }
+  body.preview #stage { transform: scale(var(--fit, .4)); transform-origin: center; }
+  #stage { display: block; }
+</style>
+</head>
+<body>
+<canvas id="stage"></canvas>
+<script src="motion.js"></script>
+<script>
+const { spring, rng, clamp, lerp, loopT } = Motion;
+const FORMATS = { '9:16': [1080, 1920], '1:1': [1440, 1440], '16:9': [1920, 1080], '4:5': [1080, 1350] };
+const Q = new URLSearchParams(location.search);
+const F = Q.get('f') || '1:1';                              // [EDIT] default format
+const [W, H] = FORMATS[F] || FORMATS['1:1'];
+const DUR = 6;                                              // [EDIT] loop length in seconds
+const FPS = 60;                                             // frames 0 .. DUR*FPS-1 are the loop; frame DUR*FPS is frame 0 again
+const stage = document.getElementById('stage'); stage.width = W; stage.height = H;
+const g = stage.getContext('2d');
+const FONT = '"Noto Sans TC", "PingFang TC", sans-serif';
+const INK = '#F0EEE6', PAPER = '#141413', ACCENT = '#C2452D', DIM = '#5A5852';
+const TAU = Math.PI * 2;
+const L = { cx: W / 2, cy: H / 2, s: Math.min(W, H) };
+
+// --- loop tools ---------------------------------------------------------------------------
+// phase in [0, 1): the only clock a loop uses. Anything periodic in phase with a whole number of
+// cycles lands back on its first value at the seam.
+const phaseOf = (t) => loopT(t, DUR) / DUR;
+// Seeded 2D value noise (deterministic, smooth).
+const hash = (x, y, seed) => { const r = rng((x * 73856093) ^ (y * 19349663) ^ seed); return r(); };
+function noise2(x, y, seed = 1) {
+  const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+  const s = (v) => v * v * (3 - 2 * v), u = s(xf), v = s(yf);
+  const a = hash(xi, yi, seed), b = hash(xi + 1, yi, seed), c = hash(xi, yi + 1, seed), d = hash(xi + 1, yi + 1, seed);
+  return lerp(lerp(a, b, u), lerp(c, d, u), v) * 2 - 1;
+}
+// Loopable noise: walk a circle of radius r through the noise field once per loop, so it returns home.
+const loopNoise = (phase, r = 1.4, seed = 1, ox = 0) => noise2(ox + r * Math.cos(TAU * phase), r * Math.sin(TAU * phase), seed);
+// A settle that runs through the seam: an impulse at `at` (in phase), evaluated on both sides of the
+// wrap so the wobble that starts near the end keeps ringing into frame 0.
+function wrappedSpring(phase, at, k = 120, d = 9) {
+  let dtp = phase - at; if (dtp < -0.5) dtp += 1; if (dtp > 0.5) dtp -= 1;
+  const t = dtp * DUR;
+  return t < 0 ? 0 : 1 - spring(t, k, d);                   // 1 at the impulse, rings to 0
+}
+
+// --- the picture --------------------------------------------------------------------------
+function draw(t) {
+  const p = phaseOf(t);
+  g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.filter = 'none';
+  g.fillStyle = PAPER; g.fillRect(0, 0, W, H);
+
+  // [EDIT] 1. Whole cycles: a ring of 12 dots makes exactly one full turn per loop. A 1/12 turn would
+  // look seamless for 12 identical dots (each lands where its neighbour started), but the one accent
+  // dot would jump a slot at the seam: anything that marks one member of a repeated set must itself
+  // complete whole cycles.
+  const R = L.s * 0.32;
+  for (let i = 0; i < 12; i++) {
+    const a = TAU * (i / 12) + TAU * p;
+    const pulse = 0.5 + 0.5 * Math.cos(TAU * (2 * p - i / 12));   // two pulses travel round per loop
+    g.fillStyle = i === 0 ? ACCENT : INK; g.globalAlpha = 0.35 + 0.65 * pulse;
+    g.beginPath(); g.arc(L.cx + R * Math.cos(a), L.cy + R * Math.sin(a), L.s * (0.012 + 0.01 * pulse), 0, TAU); g.fill();
+  }
+  g.globalAlpha = 1;
+
+  // [EDIT] 2. Organic drift that comes home: a blob whose outline is loop noise.
+  const wob = wrappedSpring(p, 0.92);                        // 3. a settle that rings through frame 0
+  g.beginPath();
+  for (let k = 0; k <= 96; k++) {
+    const ang = TAU * k / 96;
+    const n = loopNoise(p, 1.2, 7, Math.cos(ang) * 0.9) * 0.6 + loopNoise(p, 1.2, 9, Math.sin(ang) * 0.9) * 0.4;
+    const rad = L.s * (0.16 + 0.025 * n) * (1 + 0.14 * wob * Math.cos(3 * ang + TAU * p));
+    const x = L.cx + rad * Math.cos(ang), y = L.cy + rad * Math.sin(ang);
+    k ? g.lineTo(x, y) : g.moveTo(x, y);
+  }
+  g.closePath(); g.fillStyle = INK; g.fill();
+
+  // [EDIT] 4. Text enters after the seam and leaves before it (in 0.05–0.13, out 0.72–0.80), so the
+  // seam falls in the gap; text never straddles the seam, where a cut mid-read would show.
+  const word = 'LOOP';
+  const inOut = clamp(Math.min((p - 0.05) / 0.08, (0.8 - p) / 0.08));   // in 0.05–0.13, out 0.72–0.80
+  g.save(); g.globalAlpha = inOut; g.fillStyle = PAPER; g.font = `900 ${Math.round(L.s * 0.09)}px ${FONT}`;
+  g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(word, L.cx, L.cy + (1 - inOut) * L.s * 0.03); g.restore();
+
+  // seam readout while iterating (remove for the final render): which frame of the loop this is
+  if (Q.has('debug')) {
+    g.fillStyle = DIM; g.font = `500 ${Math.round(L.s * 0.022)}px ui-monospace, monospace`; g.textAlign = 'left';
+    g.fillText(`frame ${Math.round(loopT(t, DUR) * FPS)} / ${DUR * FPS}  phase ${p.toFixed(3)}`, L.s * 0.04, H - L.s * 0.04);
+  }
+}
+
+// ?seam=1: frame N-1 on the left, frame 0 on the right, same scale. They must look like neighbours.
+function drawSeam() {
+  const tmp = document.createElement('canvas'); tmp.width = W; tmp.height = H;
+  const out = g; const half = W / 2;
+  draw((DUR * FPS - 1) / FPS); const a = g.getImageData(0, 0, W, H);
+  draw(0); const b = g.getImageData(0, 0, W, H);
+  tmp.getContext('2d').putImageData(a, 0, 0);
+  out.fillStyle = PAPER; out.fillRect(0, 0, W, H);
+  out.drawImage(tmp, 0, H / 4, half, H / 2);
+  tmp.getContext('2d').putImageData(b, 0, 0);
+  out.drawImage(tmp, half, H / 4, half, H / 2);
+  out.fillStyle = INK; out.font = `700 ${Math.round(L.s * 0.03)}px ${FONT}`; out.textAlign = 'center';
+  out.fillText(`frame ${DUR * FPS - 1}`, half / 2, H / 4 - 20); out.fillText('frame 0', half * 1.5, H / 4 - 20);
+}
+
+window.seek = (t) => { draw(t); return true; };
+window.timeline = () => ({
+  duration: DUR, format: F, width: W, height: H,
+  // [EDIT] Cues land one frame after their picture (t + 1/FPS); sfx.mjs --loop wraps tails past the end to the start.
+  cues: [{ t: 0.05 * DUR + 1 / FPS, type: 'pop' }, { t: 0.92 * DUR + 1 / FPS, type: 'impact' }],
+});
+if (!navigator.webdriver && !window.__RENDER__) {
+  document.body.classList.add('preview');
+  document.documentElement.style.setProperty('--fit', String(Math.min(innerWidth / W, innerHeight / H) * 0.96));
+  if (Q.has('seam')) drawSeam();
+  else { const t0 = performance.now(); (function loop() { draw(loopT((performance.now() - t0) / 1000, DUR)); requestAnimationFrame(loop); })(); }
+}
+</script>
+</body>
+</html>

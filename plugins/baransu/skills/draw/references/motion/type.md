@@ -1,5 +1,7 @@
 # Type on screen — kinetic typography that reads at 360 px
 
+Technique reference for type: Phase 1 chooses the faces (`1-design.md` § 5), Phase 3 sets the hook and every caption key at final size (`3-keys.md`), Phase 4 animates it.
+
 Most reels open with words. The hook is five words of huge type, the metric is one number, captions either go huge (a lyric, a punchline) or sit like subtitles. Type is also where AI-made video gives itself away: a centred title fading in over a gradient, body text in a corner, three typefaces. These rules keep type a design decision instead of a default.
 
 ## Faces
@@ -18,7 +20,9 @@ Most reels open with words. The hook is five words of huge type, the metric is o
 ## Captions and lyrics
 
 - Huge when the words *are* the event (a lyric, a line of narration that lands the joke); subtitle-sized at the lower third when they only accompany. Decide per line in the storyboard; mixing within a line is noise.
-- One caption at a time, on screen for as long as it takes to read twice.
+- One caption at a time, on screen for as long as it takes to read twice, and never less than 0.3 s per word + 0.5 s (a two-word title: 1.1 s). Text never moves while it is being read; a slow 2 % push on the frame keeps a hold alive instead.
+- Text keeps 4.5 : 1 contrast on every frame, including over moving backgrounds (WCAG); never more than 3 flashes per second.
+- Resting text snaps to whole pixels; render at 2× and scale down if it shimmers.
 - Nothing in corners, and nothing in the format's safe margins (`L.safe`: the platform's caption bar and controls). Text sits in the composition or on the subject; corner text is a watermark.
 
 ## Numbers

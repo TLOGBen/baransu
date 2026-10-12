@@ -17,6 +17,7 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { loadPlaywright as findPlaywright, chromiumPath, INSTALL_HINT } from './browser.mjs';
 
 const argv = process.argv.slice(2);
 const url = argv.find((a) => !a.startsWith('--'));
@@ -27,23 +28,9 @@ const OUT = path.resolve(opt.out || 'assets');
 fs.mkdirSync(OUT, { recursive: true });
 
 async function loadPlaywright() {
-  const req = createRequire(path.join(process.cwd(), 'package.json'));
-  for (const c of [process.env.PLAYWRIGHT_MODULE, 'playwright']) {
-    if (!c) continue;
-    try { const m = await import(c === 'playwright' ? req.resolve('playwright') : c); if (m.chromium || m.default?.chromium) return m.chromium ? m : m.default; } catch {}
-  }
-  const g = spawnSync('npm', ['root', '-g'], { encoding: 'utf8' }).stdout?.trim();
-  if (g) { try { const m = await import(path.join(g, 'playwright', 'index.mjs')); return m.chromium ? m : m.default; } catch {} }
-  console.error('playwright not found: npm i -D playwright && npx playwright install chromium'); process.exit(2);
-}
-function chromiumPath() {
-  if (process.env.CHROME_PATH && fs.existsSync(process.env.CHROME_PATH)) return process.env.CHROME_PATH;
-  for (const r of [process.env.PLAYWRIGHT_BROWSERS_PATH, path.join(os.homedir(), '.cache', 'ms-playwright')].filter(Boolean)) {
-    if (!fs.existsSync(r)) continue;
-    for (const d of fs.readdirSync(r).filter((n) => /^chromium-\d+$/.test(n)).sort((a, b) => b.split('-')[1] - a.split('-')[1]))
-      for (const rel of ['chrome-linux/chrome', 'chrome-linux64/chrome', 'chrome-mac/Chromium.app/Contents/MacOS/Chromium', 'chrome-win/chrome.exe'])
-        if (fs.existsSync(path.join(r, d, rel))) return path.join(r, d, rel);
-  }
+  const pw = await findPlaywright();
+  if (!pw) { console.error(INSTALL_HINT); process.exit(2); }
+  return pw;
 }
 
 const FORMATS = { '9x16': [1080, 1920], '1x1': [1440, 1440], '16x9': [1920, 1080] };
