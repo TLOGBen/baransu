@@ -13,7 +13,7 @@ Render a contact sheet of every shot's first, middle and last frame; a strip of 
 | one frame per beat | `render.mjs beats` | dead beats, a beat with nothing happening |
 | contact sheet | `render.mjs contact` (2 fps, 6 across); or from frames: `ffmpeg -framerate 24 -i out/frames/%04d.png -vf "select='not(mod(n\,12))',scale=400:-1,tile=4x3" -frames:v 1 out/contact.png` | composition, hierarchy, two things moving at once |
 | strip | `render.mjs strip --t <time> --n 12` | jumps, restarts, overlap during a swap, a carry lost mid-seam |
-| phone | `render.mjs phone` (360 px tiles) | type too small, a hold too short |
+| phone | `render.mjs phone` (360 px tiles) | type too small, a hold too short; the thumbnail test — is the 10 % still found (`composition.md`) |
 | keys | `render.mjs stills --at <key times>` | a key no longer settled at its time |
 | animatic | `render.mjs animatic` (24 fps, no blur, half size) | pacing: does each read get its time |
 

@@ -11,7 +11,7 @@ The order is the one an animation studio runs: setting and design → storyboard
 | Phase | Guide | What it settles | Gate |
 |---|---|---|---|
 | 1 Design (設計) | `1-design.md` | what the film is for, what must be real, the look and sound, numbers instead of adjectives, the route and formats | `docs/brief.md` + `docs/style_guide.md`; every real asset present or the film stops |
-| 2 Draft (草稿) | `2-draft.md` | the direction chosen 6 → 3 → 1 (art concept, theme, story idea, with style frames); the colour script; the story with timed reads and events; the cinematography plan (shot size, angle, lens feel, moves and their durations, holds, screen direction); a transition for every seam; the pacing curve and timing sheet; draft key cards | the checklist passes; a keys-only animatic with temp sound reads as a story |
+| 2 Draft (草稿) | `2-draft.md` | the direction funnel wide → 3 → 1 (art concept, theme, story idea, with style frames); every shot's 6 : 3 : 1 hierarchy and the colour script; the story with timed reads and events; the cinematography plan (shot size, angle, lens feel, moves and their durations, holds, screen direction); a transition for every seam; the pacing curve and timing sheet; draft key cards | the checklist passes; a keys-only animatic with temp sound reads as a story |
 | 3 Keys (關鍵幀／首尾幀) | `3-keys.md` | the first and last frames as a pair, then every key finalised on its key card (read, composition, framing, subject state, type, look, motion in / out, sound, formats, checks) and written as data | every key card complete; every key passes the critique card as a still |
 | 4 Shoot (攝影) | `4-shoot.md` | each interval designed, the in-betweens computed from the keys, the camera moving between approved framings, dailies | keys re-render settled; every score ≥ 8 or three rounds logged |
 | 5 Post (後製) | `5-post.md` | seams executed, sound scored and synced, the master rendered, loops and exports finished, the encoded file reviewed, delivery | the encoded master passes its review; the report names files, checks, scores |
@@ -25,6 +25,7 @@ The order is the one an animation studio runs: setting and design → storyboard
 | Springs and easing primitives, the motion numbers (cubic-beziers, damping ratio, durations, stagger, holds), hierarchy, the animation principles | `springs.md` | 1 (tokens), 4 |
 | 24 named camera moves and how time runs (slow motion, ramps, freezes), the parallax rule, director's camera words | `camera.md` | 2 (language), 3 (layout), 4 (moves) |
 | Every transition and when it belongs, sound-led cuts (J / L) | `transitions.md` | 2 (choose), 5 (execute) |
+| Visual hierarchy, the 6 : 3 : 1 rule: foundation 60 % / dressing 30 % / focal anchor 10 % in composition, light, colour, layout, form and density; space → life → plot focus in film; the scene prompt structure; the thumbnail test | `composition.md` | 2 (art direction), 3 (every key), review |
 | Type on screen: faces, the hook, captions, numbers, type in UI | `type.md` | 1 (faces), 3 (hook and caption keys), 4 |
 | The beat grid, measuring a track, synthesized score and SFX, cues, sync and loudness measurement | `beat-grid.md` | 1 (measure a track), 5 (score and sync) |
 | How to look: contact sheets, notes by frame number, onion skin, speed graph, follow-up prompts, feelings → numbers, the export review, fixes for common failures, receipts | `review.md` (+ `../critique-loop.md` for the scorecard) | 3–5 |
@@ -49,6 +50,7 @@ The order is the one an animation studio runs: setting and design → storyboard
 | `spring`, `track`, `stretch`, `swapAlpha`, `cursor`, `typed`, `drag`, `camera` | `springs.md` § The primitives |
 | 24 named camera moves and transitions | `camera.md`, `transitions.md` |
 | hook size, faces, captions, count-ups | `type.md` |
+| why a frame has no focus, 60 / 30 / 10, the scene prompt structure | `composition.md` |
 | sound one frame after picture, phone-band loudness, AAC padding | `beat-grid.md` § Sync and measurement |
 | notes in camera words, onion skin, speed graph, follow-up prompts | `review.md` |
 | GIF timing trap, X limits, loop seam | `finishing.md` |

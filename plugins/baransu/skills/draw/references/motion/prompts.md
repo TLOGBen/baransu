@@ -106,7 +106,8 @@ GOAL:    what the viewer should feel or do, in one sentence
 OUTPUT:  one self-contained HTML file (Route A) or a named framework with its numbers; W × H
 TIME:    seconds × fps = total frames; BPM and frames per beat; loop yes / no
 MODEL:   (3D or mechanism) real sizes in units, parts, materials
-LOOK:    palette in hex, one accent, typeface + weight + size + tracking; lights with colour and strength
+LOOK:    palette in hex, one accent, typeface + weight + size + tracking; lights with colour and strength;
+         the 6 : 3 : 1 order — what is the quiet 60 %, the leading 30 %, the found 10 % (composition.md has a scene prompt structure)
 MOTION:  easing as cubic-bezier, springs as damping ratio, durations in frames, stagger
 SHOTS:   frame ranges, one hero move per shot, how each shot hands off (a cut, a match cut, a wipe)
 CAMERA:  field of view, distance, the named moves with their curves

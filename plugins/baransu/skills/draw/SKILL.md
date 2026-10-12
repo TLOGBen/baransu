@@ -58,7 +58,7 @@ Each form is a lane: its rules are in § Lane: page / diagram / map / motion bel
 |---|---|---|
 | **Diagram system** | structure: who connects to whom, where data flows, the order of steps, a comparison, a dataset | `references/diagram/` (and the map engine for the map form): deletion first, one accent, orthogonal connectors, the type reference |
 | **Mechanism** | behaviour: what the parts *do*, state changing over time, a rule enforced, a limit hit, the failure the idea prevents — "explain how X works", 怎麼運作, 原理 | § Mechanism figures; `references/mechanism/` |
-| **Free creative** | feeling, brand, story, rhythm: a launch reel, a logo sting, a title sequence, an abstract loop, a hand-drawn short | the direction chosen 6 → 3 → 1 with style frames (`references/motion/2-draft.md` § 1), the reference read into a style guide, numbers instead of adjectives (`references/motion/1-design.md`); the hand-drawn library for a drawn look |
+| **Free creative** | feeling, brand, story, rhythm: a launch reel, a logo sting, a title sequence, an abstract loop, a hand-drawn short | the direction funnel (wide → 3 → 1) with style frames (`references/motion/2-draft.md` § 1), the reference read into a style guide, numbers instead of adjectives (`references/motion/1-design.md`); the hand-drawn library for a drawn look |
 
 Form and approach cross: page × mechanism is an interactive machine in an explainer, motion × mechanism a film whose shot is the machine running, diagram × mechanism a cut-away still, motion × diagram a diagram that animates into a video (seek overlay), page × free creative an editorial page with illustrated figures. The map form always uses the diagram system. When both structure and behaviour matter, draw the structure as a diagram and the one hard-to-see behaviour as a mechanism.
 
@@ -73,7 +73,7 @@ A static diagram or map is built under its form's rules below and goes straight 
 
 | Phase | Guide | A film | A page figure, seek overlay or mechanism tour |
 |---|---|---|---|
-| 2 Draft (草稿) | `2-draft.md` | direction 6 → 3 → 1, colour script, storyboard, camera plan, timing sheet, keys-only animatic | the figure's point (its caption), the sequence of states it steps through |
+| 2 Draft (草稿) | `2-draft.md` | direction funnel, 6 : 3 : 1 per shot, colour script, storyboard, camera plan, timing sheet, keys-only animatic | the figure's point (its caption), the sequence of states it steps through |
 | 3 Keys (關鍵幀／首尾幀) | `3-keys.md` | first and last frames as a pair, every key card, `KEYS` as data | the rest frame (`data-rest`) and each state as a still |
 | 4 Shoot (攝影) | `4-shoot.md` | interval design, in-betweens from `KEYS`, camera, dailies ≥ 3 rounds | in-betweens from the states, springs by mass |
 | 5 Post (後製) | `5-post.md` | seams, sound on frame + 1, full render, loops, export | the page check (`verify-page.mjs`) |
@@ -135,7 +135,7 @@ A film is a program: `window.seek(t)` paints the exact frame for any instant; Pl
 | Phase | Guide | Settles | Gate |
 |---|---|---|---|
 | 1 Design (設計) | `references/motion/1-design.md` | facts vs choices and the real assets (`docs/brief.md`); the reference read into `docs/style_guide.md`; numbers instead of adjectives, the ban list, identity locks; faces; a supplied track measured; route, formats, folder; the plan message | every real asset present or the film stops |
-| 2 Draft (草稿) | `references/motion/2-draft.md` | the direction 6 → 3 → 1 (art concept, theme, story idea, a style frame each for the three); the colour script; the storyboard with timed reads and an event per shot; the cinematography plan (shot size, angle, lens feel, named move with its duration and curve, hold, screen direction); a transition per seam; the pacing curve and timing sheet; draft key cards | a keys-only animatic with temp sound reads as a story |
+| 2 Draft (草稿) | `references/motion/2-draft.md` | the direction funnel wide → 3 → 1 (art concept, theme, story idea, a style frame each for the three); every shot's 6 : 3 : 1 hierarchy (`references/motion/composition.md`); the colour script; the storyboard with timed reads and an event per shot; the cinematography plan (shot size, angle, lens feel, named move with its duration and curve, hold, screen direction); a transition per seam; the pacing curve and timing sheet; draft key cards | a keys-only animatic with temp sound reads as a story |
 | 3 Keys (關鍵幀／首尾幀) | `references/motion/3-keys.md` | the first and last frames judged as a pair; every key finished on its key card (read, composition, framing, subject state, type, look, motion in / out, sound, formats, checks) and written as `KEYS` data | every key passes the critique card as a still |
 | 4 Shoot (攝影) | `references/motion/4-shoot.md` | one shot-list line per interval; in-betweens computed from `KEYS`; the camera moving between approved framings; dailies (beats, contact, strip, phone, animatic) ≥ 3 rounds | keys re-render settled; `hash` prints `DETERMINISTIC`; every score ≥ 8 or three rounds logged |
 | 5 Post (後製) | `references/motion/5-post.md` | seams executed; sound on frame + 1, measured on the decoded file; the full render; loops and exports; the encoded master reviewed; the package and report | the master passes its review; the report names only checks that ran |

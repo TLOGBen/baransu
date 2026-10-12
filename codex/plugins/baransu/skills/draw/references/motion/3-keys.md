@@ -20,7 +20,7 @@ A key is final when its card is complete and its still passes the critique card.
 KEY B  ·  t = 3.0 s (frame 90)  ·  shot A, exit          ← id, settled time, frame, which shot and whether it is the enter, a mid or the exit state
 READ        completes: "the Ads card is the one that matters"        ← the read this key lands (from the storyboard)
 WHY         the viewer now knows the cards can be picked up           ← what is known after this key that was not before
-COMPOSITION stage: the desk surface, quiet · life: two other cards dimmed to 40 %, cursor · focus: the Ads card, lifted 8 px with the accent edge
+COMPOSITION 6 : 3 : 1 (composition.md) — 60 % stage: the desk surface, quiet · 30 % life: two other cards dimmed to 40 %, cursor · 10 % focus: the Ads card, lifted 8 px with the accent edge
             single difference: the only element with the accent and a shadow
 FRAMING     shot size MS · angle eye level · lens feel normal (24mm)
             camera rect {x 480, y 160, w 1280, h 720} · depth layers: desk p 0.6, cards p 1.0, cursor p 1.0 (overlay) · focus plane p 1.0
@@ -32,7 +32,7 @@ MOTION IN   how the previous interval arrives here (feel, what carries) — fill
 MOTION OUT  how the next interval leaves (feel, camera move, transition if this key ends a shot)
 SOUND       the cue on this key's frame, if any (type, frame + 1)
 FORMATS     how the key reflows in the other two formats (what L.show hides in 9:16, what moves)
-CHECKS      readable at 360 px · one focus · nothing in L.safe margins · matches the chosen style frame · still path: out/keys/B.png
+CHECKS      readable at 360 px · the 10 % found on the thumbnail · one focus · nothing in L.safe margins · matches the chosen style frame · still path: out/keys/B.png
 ```
 
 Not every field carries weight on every key (a title card has no cursor; a mechanism key has a readout instead of copy), but every field is considered and either filled or marked "none".

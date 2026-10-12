@@ -46,7 +46,7 @@ Score each item 1–10. Judge it the way a demanding director would, not the way
 | Continuity | the same type scale, palette, screen direction and motion feel in every scene; an element that leaves on the right does not re-enter on the right |
 | Motion quality | springs settle, nothing slides linearly, no dead frames, no pops between consecutive frames |
 | Variety | something new every 2–4 s; no two consecutive shots use the same technique |
-| Composition | the frame reads at three levels: a quiet base that fills most of it, a few supporting elements that lead to the focus, one focus that differs from its surroundings in *one* way (value, the accent, isolation, a clean edge) — not every way; the accent on ≤ 2 things; nothing in the corners by default |
+| Composition | the frame reads at three levels, about 6 : 3 : 1 (`motion/composition.md`): a quiet base that fills most of it, a few supporting elements that lead to the focus, one focus that differs from its surroundings in *one* way (value, the accent, isolation, a clean edge) — not every way; the accent on ≤ 2 things; nothing in the corners by default |
 | Brand / fact accuracy | real UI, real data, real names; nothing invented to fill a slot |
 | Sound sync | hits land on measured peaks; a cut without a sound reads as a mistake |
 

@@ -1,31 +1,34 @@
 # Phase 2 — Draft (草稿)
 
-**Settles:** the direction (art concept, theme, story idea) chosen 6 → 3 → 1; the story — what the viewer understands, in what order, with what events, in which shots; the cinematography plan — shot sizes, angles, camera moves and how long each move and hold lasts; the art direction across the piece (colour script, light, texture); a seam for every cut; and a first key list. **Produces:** `docs/direction.md` (the 6-3-1 record and style frames), `docs/storyboard.md` (or `STORYBOARD.md` for a long piece), `docs/camera_plan.md`, the colour script, a key list in draft (key cards, `3-keys.md` § The key card), a keys-only animatic with temp sound; for long pieces `ANIMATION_GUIDE.md` and the chapter split. **Gate:** the checklist at the end passes and the animatic reads as a story. **Next:** `3-keys.md`.
+**Settles:** the direction (art concept, theme, story idea) chosen through the direction funnel (wide → 3 → 1); every shot's 6 : 3 : 1 hierarchy; the story — what the viewer understands, in what order, with what events, in which shots; the cinematography plan — shot sizes, angles, camera moves and how long each move and hold lasts; the art direction across the piece (colour script, light, texture); a seam for every cut; and a first key list. **Produces:** `docs/direction.md` (the 6-3-1 record and style frames), `docs/storyboard.md` (or `STORYBOARD.md` for a long piece), `docs/camera_plan.md`, the colour script, a key list in draft (key cards, `3-keys.md` § The key card), a keys-only animatic with temp sound; for long pieces `ANIMATION_GUIDE.md` and the chapter split. **Gate:** the checklist at the end passes and the animatic reads as a story. **Next:** `3-keys.md`.
 
 Code moves every part at once, at the same speed, by the same amount. A draft with chosen direction, timed *reads* and a camera plan is what turns a set of drawings into something a viewer can follow. Write it before any scene code: fixing a draft costs seconds, fixing a render costs a re-render, and you only find out scene 4 is wrong after the whole thing is animated.
 
 ## Concepts
 
-- **6 → 3 → 1.** Generate wide, develop few, commit to one. Six one-line directions cost nothing and escape the first idea; three developed directions show which one holds up as a picture; one is chosen with reasons. Picking among directions beats fixing the first idea the model had.
+- **The direction funnel: wide → 3 → 1.** (Not the 6 : 3 : 1 composition rule below — that one orders every frame.) Generate wide, develop few, commit to one. Six one-line directions cost nothing and escape the first idea; three developed directions show which one holds up as a picture; one is chosen with reasons. Picking among directions beats fixing the first idea the model had.
 - **Directions differ in idea, not colourway.** A different hook, motif, world, camera language or ending — never three palettes of one concept.
 - **Model the viewer, not the timeline.** Each shot is a list of things the viewer must understand, in order; the reads set the length, not a stopwatch.
 - **Every scene has an event.** Something changes between a shot's first and last frame: the subject wants, finds, tries, fails, reacts, gets. "X stands there looking nice" is not a shot. One focal action at a time, staged with a clear silhouette. Pay off what you set up.
 - **A shot whose `why:` cannot be written is cut, not polished.**
-- **Stage, life, focus.** Every frame is a quiet stage (what fills most of it), a little life (2–3 things that say who uses this place, or the real data), and one focus marked by a single difference. These are jobs, not screen-time shares: in a close-up the focus may fill the frame, and a push-in moves the focus from the stage to the subject. Change the focus with a camera move or a carry, never by lighting up a second thing.
+- **6 : 3 : 1 in every frame.** About 60 % quiet foundation, 30 % supporting structure that leads, 10 % focal anchor — in composition, light, colour, spatial layout, object form and information density alike; taking up the most of the frame and drawing the most attention are two different things (`composition.md`).
+- **Stage, life, focus** is the same rule named by job. Every frame is a quiet stage (what fills most of it), a little life (2–3 things that say who uses this place, or the real data), and one focus marked by a single difference. These are jobs, not screen-time shares: in a close-up the focus may fill the frame, and a push-in moves the focus from the stage to the subject. Change the focus with a camera move or a carry, never by lighting up a second thing.
 - **The camera is planned, not improvised.** Every move has a reason (a push-in moves the focus, a pan reveals, a crane opens or closes) and a duration; a static camera on a strong composition is a choice too.
 - **One piece.** One world (a palette and a setting that carry through, with a colour arc), one thread (beginning, middle, end), the ending rhyming with the opening, motion continuing across cuts, screen direction consistent.
 
 ## Steps
 
-### 1. Direction, 6 → 3 → 1 — `docs/direction.md`
+### 1. Direction funnel, wide → 3 → 1 — `docs/direction.md`
 
 A direction is the art concept and the story idea together: **theme** (what it is about underneath: speed, calm, order out of chaos), **world** (setting, materials, palette family, light), **hook** (the first image), **motif** (what recurs and pays off), **camera language** (the two or three moves it lives by), **ending**.
 
-- **6 — generate.** Six directions, one line each, all honouring `docs/brief.md` and the style guide's Keep / Leave. Force spread: at least one that breaks the reference's obvious reading, one that is the most literal, one built on a single motif. Cheap: text only.
+- **Wide — generate.** Six directions, one line each, all honouring `docs/brief.md` and the style guide's Keep / Leave. Force spread: at least one that breaks the reference's obvious reading, one that is the most literal, one built on a single motif. Cheap: text only.
 - **3 — develop.** Pick the three strongest and develop each into: a logline, a world line, a hook, the camera language, the ending, and **one style frame** — a single still at final quality that shows the look (palette, type, texture, light, composition) of that direction's most important moment (`render.mjs still`). Render the three style frames side by side.
 - **1 — choose.** Pick one in the plan message and write why the other two lost (and what, if anything, it borrows from them). The chosen style frame becomes the look reference for every key.
 
 ### 2. Art direction — the colour script and the look per shot
+
+Every line below is decided with the 6 : 3 : 1 rule (`composition.md`): name, per shot, the quiet 60 % (the space foundation), the leading 30 % (the dressing and structure that carry life and point the way), and the 10 % that must be found (the plot focus) — then how light, colour and detail each keep that order. First write what the style must keep, so hierarchy is built in brightness or position rather than by greying out the look.
 
 From the chosen direction, write the look across time:
 
@@ -130,7 +133,8 @@ Render one still per shot (`render.mjs stills --at <first frame of every shot>`)
 
 ## Gate checklist
 
-- [ ] 6 directions → 3 developed with a style frame each → 1 chosen; why the other two lost
+- [ ] the direction funnel: six one-line directions → three developed with a style frame each → one chosen; why the other two lost
+- [ ] every shot's 6 : 3 : 1 named (quiet 60 %, leading 30 %, found 10 %) in composition, light, colour and detail; the style's defining features kept
 - [ ] theme, world, motif, arc written; the colour script covers every shot
 - [ ] every shot: event, reads with times, stage / life / focus, enter, exit, `why:`
 - [ ] reads fit their shots; one read at a time; text holds long enough

@@ -293,7 +293,7 @@ class TestMotionLibrary(unittest.TestCase):
         for gone in ("storyboard.md", "keyframes.md", "prompt-ladder.md", "directing.md", "brief.md"):
             self.assertFalse((motion / gone).exists(), gone)
         draft = (motion / "2-draft.md").read_text(encoding="utf-8")
-        self.assertIn("6 → 3 → 1", draft); self.assertIn("docs/camera_plan.md", draft)
+        self.assertIn("wide → 3 → 1", draft); self.assertIn("6 : 3 : 1", draft); self.assertTrue((motion / "composition.md").is_file()); self.assertIn("docs/camera_plan.md", draft)
         self.assertIn("## The key card", (motion / "3-keys.md").read_text(encoding="utf-8"))
 
     def test_flow_is_preflight_form_approach_production_check(self):
