@@ -41,8 +41,8 @@ Run all checks in this order and report each as `pass`, `warn`, or `fail`.
 - `fail` if version is below 3.10.
 
 2. Playwright availability for PNG export
-- Check whether Playwright import works in the active Python interpreter (`import playwright`).
-- Check whether Chromium is installed for Playwright (`playwright install --help` availability is sufficient for command presence; prefer also checking browser cache when practical).
+- Check whether Playwright import works in the active Python interpreter (`import playwright`); an optional package version attribute is not required.
+- Verify the default headless Chromium can launch in that interpreter and close it after the probe. This includes a supported headless-shell-only installation; the full Chromium executable path is not required for default PNG export. Bound browser startup to 5 seconds and the subprocess probe to 10 seconds, then terminate the owned probe tree on timeout. Windows tree cleanup and parent reaping each have an additional 2-second limit; report cleanup failures as warnings.
 - If missing, mark `warn` and report that the host environment must provision
   an approved Playwright installation and compatible browser.
 - Never auto-install dependencies.
@@ -53,7 +53,7 @@ Run all checks in this order and report each as `pass`, `warn`, or `fail`.
   - `scripts/diagram/repo/verify-mermaid-import.py`
   - `scripts/diagram/repo/verify-excalidraw-import.py`
   - `scripts/diagram/repo/verify-motion.py`
-  - `scripts/lint-skin.py`
+  - `scripts/diagram/repo/lint-skin.py`
   - `scripts/diagram/repo/verify-docs-sync.py`
 - Missing scripts are `fail` in maintainer-checkout mode.
 - In installed-skill mode, report that maintainer scripts are not applicable;
@@ -98,7 +98,7 @@ Always print:
 2. A checklist with one line per check:
 - `[PASS] Python 3.11.9 found at ...`
 - `[WARN] Playwright not installed ...`
-- `[FAIL] Missing scripts/verify-docs-sync.py`
+- `[FAIL] Missing scripts/diagram/repo/verify-docs-sync.py`
 
 3. A `Next actions` section only when warn/fail exists.
 
@@ -118,7 +118,7 @@ Always print:
 Doctor summary: WARN (6 pass, 2 warn, 0 fail)
 [PASS] Python 3.11.9 found at /usr/bin/python3
 [WARN] Playwright package not found in active interpreter
-[PASS] scripts/verify-drawio-import.py present
+[PASS] scripts/diagram/repo/verify-drawio-import.py present
 ...
 
 Next actions

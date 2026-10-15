@@ -11,6 +11,11 @@ The vendored engine under `scripts/map/` renders typed JSON into an explorable H
 | `sequence` | API call chains, request lifecycles, async traces; a back-and-forth between people | `sequence.schema.json` | `cache-miss-request.sequence.json` |
 | `dataflow` | pipelines, ETL/ELT, lineage, consumers; where money or documents go | `dataflow.schema.json` | `product-analytics.dataflow.json` |
 | `lifecycle` | state / status transitions, retries, waiting and terminal states | `lifecycle.schema.json` | `deployment-release.lifecycle.json` |
+| `erd` | tables / entities, their attributes, primary / foreign / unique keys and the cardinality between them; a schema read as a table catalogue | `erd.schema.json` | `orders.erd.json`; a dense full schema: `subscription-billing.erd.json` |
+| `class` | classes, interfaces, selected members, and dependency / association / inheritance / realization / composition between types | `class.schema.json` | `payments.class.json`; mixed relationships: `payment-processors.class.json` |
+| `tree` | single-parent containment: a repository or module tree, a capability or feature breakdown, an org-style decomposition | `tree.schema.json` | `payment-platform.tree.json`; a repository: `archify-repository.tree.json` |
+| `timeline` | when things happened: an incident review, a release history, timestamped events on a proportional clock with source lanes | `timeline.schema.json` | `payment-incident.timeline.json`; a repository's commit history: the second `*.timeline.json` example |
+| `waterfall` | where the time went: span durations, overlap and nesting of one request or agent run on a common time axis (measured only with recorded trace evidence; authored values stay labelled illustrative) | `waterfall.schema.json` | `checkout-request.waterfall.json`; a build: `example-rebuild.waterfall.json` |
 
 Schemas sit in `scripts/map/schemas/`, examples in `scripts/map/examples/`. An example teaches the shape of a candidate, never its facts.
 
@@ -51,7 +56,7 @@ These replace the vendored `references/map/delivery-contract.md` wherever the tw
 
 ## Viewer features
 
-`meta.animation: "trace"`, share cards and presentation are opt-in: set them, and look up `references/map/viewer-runtime.md`, only when the user asks for them.
+Since archify 3.1 every rendered diagram carries reader-controlled Live / Still motion (a comet cascade along the authored step order, with a Still button); it is part of the viewer, not of the authored topology or the export geometry, so leave `meta.animation` unset and never author motion into the candidate to get it. Share cards, presentation and the trace recording are opt-in: set them, and look up `references/map/viewer-runtime.md`, only when the user asks for them.
 
 ## Without a shell
 

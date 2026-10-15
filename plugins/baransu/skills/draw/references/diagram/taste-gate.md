@@ -67,7 +67,7 @@ Type-specific anti-patterns live in each type reference.
 - [ ] `viewBox` expanded for the legend strip (~60px)?
 - [ ] `min-width` equals the viewBox width, and the SVG sits in a local `overflow-x: auto` wrapper (`output-spec.md`)?
 - [ ] Node origins, dimensions, gaps, padding on the 4px grid; type sizes on the role ramp?
-- [ ] `python3 scripts/diagram/self_check.py <file>` passed? (Accessible-SVG contract, single-file safety, motion basics.)
+- [ ] `python3 scripts/diagram/self_check.py <file>` passed? (Accessible-SVG contract, single-file safety, content inside the viewBox, motion basics.)
 - [ ] If animated with the upstream modes: the complete static/no-JS frame works, reduced motion hides/disables playback, the controller is copied verbatim from `assets/diagram/template-motion.html`, and `python3 scripts/diagram/repo/verify-motion.py <file>` passes. If a seek overlay: `seek_split.py` twin passes, `verify-page.mjs` clean, `render.mjs hash` deterministic (`seek-overlay.md`).
 
 **Typography:**
