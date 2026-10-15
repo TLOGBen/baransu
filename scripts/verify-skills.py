@@ -116,8 +116,8 @@ REF_DEPRECATION_LINE_RE = re.compile(r"已廢除|已移除|deprecated|removed")
 # 掃描面（內嵌，不外部設定）：
 #   plugins/**/*.{md,py,json} + tests/**/*.{md,py,json} + CLAUDE.md +
 #   README.md + 雙 manifest；git 歷史不掃。
-#   tests/ 自 v8.0.0 起只剩 tests/ab/（/ui 的 A/B 盲評題目與結果），仍在
-#   掃描面內；tests/**/fixtures/** 整體排除（刻意構造的輸入，非發行面）。
+#   tests/ 自 v8.0.0 起不存在（單元測試退役；盲評材料不進 repo），掃描面
+#   仍保留 tests/** 以防日後回流；tests/**/fixtures/** 整體排除。
 #
 # 白名單（residue-scan-classification.md 與兩輪 review 已落盤的同形/歷史例）：
 #   命中行若符合任一規則即排除並計數；分類計數隨輸出落盤，
