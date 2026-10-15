@@ -51,7 +51,7 @@ make ship-check   # test ＋ parity-check，發佈前跑這個
 ### 與文件相關的檢查
 
 - `scripts/verify-skills.py` 會讀 README.md 的 `## 核心理念` 段：理念表每一列都要有一個存在於倉內的反引號路徑錨點。改首頁時保留這個標題與表格。
-- 同一支腳本會掃 `plugins/`、`tests/`、CLAUDE.md、README.md 與兩份 manifest，不得出現已退役 skill 的名稱或指令（含 `/contract`、`/seal` 的 slash 形式與 sealed 標記字面）。
+- 同一支腳本會掃 `plugins/`、CLAUDE.md、README.md 與兩份 manifest（`tests/` 自 8.0.0 起不存在，掃描面仍保留它以防回流），不得出現已退役 skill 的名稱或指令（含 `/contract`、`/seal` 的 slash 形式與 sealed 標記字面）。
 - 技能數上限（12）也由它檢查；CLAUDE.md 的 skill 表沒有另外的 baseline 檔。
 
 ## 版本

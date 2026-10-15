@@ -6,7 +6,7 @@
 
 <p align="center"><b>バランス。動手前先想，做完後驗證。</b></p>
 
-<p align="center">12 個 skill · Claude Code 與 Codex · v8.0.0</p>
+<p align="center">12 個 skill · Claude Code 與 Codex · v8.1.0</p>
 
 Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引用。7.3.3 修正圖示路徑，既有安裝需更新 plugin。
 
@@ -36,7 +36,7 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 <td>
 <h3><a href="docs/skills/plan.md">構想</a></h3>
 <p><i>動手之前，先把「要什麼」和「怎樣才算做完」說清楚。</i></p>
-<b><code>/baransu:think</code></b>：復述對焦、表態、兩向攻擊，留一份計畫，不寫程式
+<b><code>/baransu:think</code></b>：復述對焦、借鏡、表態、兩向攻擊，留一份計畫，不寫程式
 </td>
 </tr>
 <tr>
@@ -44,7 +44,7 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 <td>
 <h3><a href="docs/skills/verify.md">驗證</a></h3>
 <p><i>換一雙乾淨的眼睛看，拿證據說話；乾淨的結果也是有效的結果。</i></p>
-<b><code>/baransu:review</code></b>：乾淨 context 的 verifier 獨立重驗任何產出，不改目標<br>
+<b><code>/baransu:review</code></b>：乾淨 context 的 verifier 獨立重驗任何產出，判定照規則算，不改目標<br>
 <b><code>/baransu:hunt</code></b>：從症狀追到根因，指到 file:line 才動手修
 </td>
 </tr>
@@ -53,7 +53,7 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 <td>
 <h3><a href="docs/skills/make.md">創作</a></h3>
 <p><i>每個選擇都有理由：先出計畫，再動手，做完自己看過、評過再交。</i></p>
-<b><code>/baransu:draw</code></b>：靜態圖、互動圖、程式渲染影片、可拖時間軸的說明頁<br>
+<b><code>/baransu:draw</code></b>：靜態圖、互動圖、程式渲染影片、互動元件；要整頁時交 <code>/ui</code> 組<br>
 <b><code>/baransu:ui</code></b>：為你 repo 裡的介面定調色字版，直接寫改 UI 檔<br>
 <b><code>/baransu:write</code></b>：雙語潤稿、生成、校對，附每處改動理由
 </td>
@@ -73,8 +73,8 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 <h3><a href="docs/skills/ops.md">維運</a></h3>
 <p><i>收好每一輪、照顧工具本身。</i></p>
 <b><code>/baransu:ship</code></b>：歸檔工作檔、commit、push、清理 worktree<br>
-<b><code>/baransu:health</code></b>：體檢專案的 agent 配置與 AI 可維護性<br>
-<b><code>/baransu:evolve</code></b>：對固定標準一輪輪磨 SKILL.md，只留確有改進的改動<br>
+<b><code>/baransu:health</code></b>：體檢專案的 agent 配置與 AI 可維護性，依證據與風險、不依 repo 大小<br>
+<b><code>/baransu:evolve</code></b>：對固定標準以減法一輪輪磨 SKILL.md，換掉肇事條文而非加規則<br>
 <b><code>/baransu:codex-skill-transfer</code></b>：Claude／Codex 雙版本的移植對照與對齊檢查
 </td>
 </tr>

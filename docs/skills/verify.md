@@ -14,17 +14,17 @@
 
 Claude Code：`/baransu:review`　Codex：`$baransu:review`
 
-**用途**　派一個乾淨 context 的 verifier 獨立重驗任何產出，視角只為不同的實質風險才加；不改目標；乾淨的 review 也是有效的 review。
+**用途**　派一個乾淨 context 的 verifier 獨立重驗任何產出，視角只為不同的實質風險才加；沒有驗收條文時問三題——做到了沒、多做了什麼、做小了沒；不改目標；乾淨的 review 也是有效的 review。
 
 **什麼時候用**
 - 任何模型產出之後——程式、計畫、主張——想要獨立重驗。
 - 目標必須具體：一個產物、一段 diff，或直接引用的一句主張。
 - 觸發語：看一下、看看、幫我看、check 一下、review 一下、take a look at X。
 
-**運作方式**　先釘住目標與要回答的問題 → 派一個窄 context 的 verifier → 只有遇到不同的、會造成後果的風險時才加派視角 agent（architecture／quality／security／style／domain reviewer）→ 判讀證據 → 報告。從頭到尾不修改目標。
+**運作方式**　先釘住目標與要回答的問題 → 一屏以內的 diff 或一句主張走快速路徑（一個 verifier、既有測試、不派視角）→ 派一個窄 context 的 verifier → 只有遇到不同的、會造成後果的風險時才加派視角 agent（architecture／quality／security／style／domain reviewer）→ canary 與 fresh inputs 兩個儀器依固定觸發實跑 → 判讀證據（只有真的跑過的才算發現）→ 報告。從頭到尾不修改目標。
 
 **產出**
-- 繁中 review 報告：檢查範圍、每個 finding 的位置／觸發條件／後果／證據、獨立性聲明、剩餘限制。
+- 繁中 review 報告：檢查範圍、每個 finding 的位置／觸發條件／後果／證據、三題各一行（做到了／多做了／做小了）、獨立性聲明、剩餘限制；結尾判定由印在報告裡的規則算出——PROVEN／PARTLY PROVEN／NOT PROVEN——再加「若只能改一處」。
 - 零 finding 加上明確範圍，就是完整結果。
 - 需要保存時寫到 `.claude/review/<slug>.md`（`/ship` 會歸檔）。
 
@@ -48,9 +48,10 @@ Claude Code：`/baransu:hunt`　Codex：`$baransu:hunt`
 
 **運作方式**
 - 先挑對觀測工具：playwright、MCP db、LSP、logs、靜態分析。
+- 靜態讀碼先開入口追控制流再 grep 名字，先找資料再找誰碰它；每句主張給 file:line 或說「不知道」。
 - 以 `🎯HUNT-id` 標記臨時探針，確認或排除每個假設後才碰程式；確認後探針全部移除。
-- 修之前先做呼叫鏈分析與測試矩陣。
-- 特殊模式：Fast Path（瑣碎 bug）、Scope Blast、Bisect、Repeated Regression；無法在本機重現時改用回報者探針。
+- 修之前先做呼叫鏈分析與測試矩陣；修復跨多檔時切片，每片實作 → `/review`。
+- 特殊模式：Fast Path（瑣碎 bug）、Scope Blast、Bisect（版本對時第一批假說從 delta 來）、Repeated Regression；無法在本機重現時改用回報者探針。
 - 三個假設都失敗時改出交接報告，不硬修。
 
 **產出**
