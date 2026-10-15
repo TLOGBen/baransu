@@ -708,6 +708,12 @@ class TestReferenceFidelity(unittest.TestCase):
                      "critique-loop", "assemble-page", "ledger-check", "deliver-report"):
             self.assertIn(must, ids)
         self.assertFalse([i for i in ids if i.startswith("page-")], "the page form is gone: no page-* steps")
+        # the rest frame is drawn before anything is made live, and the seeds stop right after it
+        self.assertLess(ids.index("component-rest-frame"), ids.index("mech-make-live"))
+        self.assertLess(ids.index("diagram-markup"), ids.index("component-rest-frame"))
+        self.assertEqual(ids[ids.index("component-rest-frame") + 1], "seed-pick")
+        self.assertEqual(ids[ids.index("keys-layout") + 1], "seed-pick-film")
+        self.assertEqual(ids[ids.index("progress-notes") + 1], "seed-hunt")
         self.assertEqual(ids[-3:], ["assemble-page", "ledger-check", "deliver-report"])
         by_id = {s["id"]: s for s in data["steps"]}
         # every form runs a browser check, so preflight applies to all of them
@@ -726,6 +732,15 @@ class TestReferenceFidelity(unittest.TestCase):
         self.assertIn("never redraw a published figure", catalog["do"])
         self.assertIn("scratch/", catalog["do"])
         self.assertIn("docs/catalog_notes.md", catalog["produces"])
+        # seed hunt: three independent seeds for every form but the map, a blind pick, no splicing
+        hunt = by_id["seed-hunt"]
+        self.assertEqual(hunt["applies_to"], ["form:diagram", "form:component", "form:film"])
+        self.assertIn("in parallel", hunt["do"]); self.assertIn("never opens a sibling seed", hunt["do"])
+        self.assertEqual(by_id["seed-pick"]["applies_to"], ["form:diagram", "form:component"])
+        self.assertEqual(by_id["seed-pick-film"]["applies_to"], ["form:film"])
+        self.assertIn("Never splice", by_id["seed-pick"]["do"])
+        for sid in ("seed-pick", "seed-pick-film"):
+            self.assertIn("fresh context", by_id[sid]["do"]); self.assertIn("shots/seeds/", by_id[sid]["produces"])
         # WebGL is not tied to an approach
         self.assertEqual(by_id["webgl-layer"]["applies_to"], ["when:webgl"])
         self.assertEqual(by_id["webgl-check"]["applies_to"], ["when:webgl"])
@@ -954,6 +969,36 @@ class TestReferenceFidelity(unittest.TestCase):
             r = run_ledger(out)
             self.assertEqual(r.returncode, 1, r.stdout)
             self.assertIn("no topic filled from type-{chosen}, type-ramp-{size}", row(r.stdout, "diagram-layout"))
+
+    def test_routing_lines_are_read_for_their_values_only(self):
+        """Prose after the value (a dash clause, a parenthesis, a reason) never adds a form or a
+        condition: a builder who wrote 'not a film' or 'no 3d' got film and 3d steps demanded."""
+        ledger = _load_module("draw_ledger_for_value_tests", LEDGER_CHECK)
+        with tempfile.TemporaryDirectory() as d:
+            out = Path(d)
+            (out / "docs").mkdir()
+            (out / "docs" / "brief.md").write_text(
+                "# Brief\n"
+                "Form: component — the user drags it; a film would only be watched\n"
+                "Approach: mechanism (behaviour, not a diagram)\n"
+                "When: needs-page, no webgl or 3d needed — the figure is flat\n"
+                "Why: the reader must press the pan and watch it tip\n",
+                encoding="utf-8")
+            forms, approaches, whens, _ = ledger.declared_conditions(out)
+            self.assertEqual(forms, {"component"})
+            self.assertEqual(approaches, {"mechanism"})
+            self.assertEqual(whens, {"needs-page"})
+        with tempfile.TemporaryDirectory() as d:
+            # bare values keep working: several conditions, a split approach
+            out = Path(d)
+            (out / "docs").mkdir()
+            (out / "docs" / "brief.md").write_text(
+                "Form: component\nApproach: diagram-system + mechanism\nWhen: needs-page, seek-overlay; 3d\n",
+                encoding="utf-8")
+            forms, approaches, whens, _ = ledger.declared_conditions(out)
+            self.assertEqual(forms, {"component"})
+            self.assertEqual(approaches, {"diagram-system", "mechanism"})
+            self.assertEqual(whens, {"needs-page", "seek-overlay", "3d"})
 
     def test_ledger_check_needs_a_form_and_a_log(self):
         with tempfile.TemporaryDirectory() as d:

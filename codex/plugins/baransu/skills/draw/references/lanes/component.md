@@ -29,7 +29,7 @@ $baransu:draw stays the only entry point and delivers the finished page; $barans
 
 ## Build order: caption, rest frame, then motion
 
-Write the caption or readout first: one that cannot add a dimension the figure does not show means the figure has no point yet. Then the figure's states and its rest frame (`data-rest`, the frame that carries the point and the one reduced motion shows). Draw the rest frame as a composed still and look at it in both themes; only then animate, with springs by mass (`references/motion/springs.md`). The figure runs the motion phases at its own scale (`references/lanes/motion.md` § Motion inside the other forms).
+Write the caption or readout first: one that cannot add a dimension the figure does not show means the figure has no point yet. Then the figure's states and its rest frame (`data-rest`, the frame that carries the point and the one reduced motion shows). Draw the rest frame as a composed still and look at it in both themes; only then animate (a mechanism captures it right after its card, `mech-frame-card`, and only then makes it live; a diagram-system component right after its markup), with springs by mass (`references/motion/springs.md`). The figure runs the motion phases at its own scale (`references/lanes/motion.md` § Motion inside the other forms).
 
 ## The mechanics example and the component's look
 

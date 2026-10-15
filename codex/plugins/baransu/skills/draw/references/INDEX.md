@@ -65,6 +65,15 @@ Every run: the step guide (SKILL.md), the critique loop and scorecards, the paus
 
 - `loop-pauses` — loop-pauses — $baransu:draw PAUSE classification — § loop-pauses — $baransu:draw PAUSE classification
 
+### `references/seed-hunt.md`
+
+- `seed-hunt` — Seed hunt — three first versions, one refined — § Seed hunt — three first versions, one refined
+- `seed-hunt-why-seeds` — Why seeds — § Why seeds
+- `seed-hunt-where-seeds-stop` — Where the seeds stop — § Where the seeds stop
+- `seed-hunt-dispatch-seeds` — Dispatch the seeds — § Dispatch the seeds
+- `seed-hunt-pick-blind` — Pick blind — § Pick blind
+- `seed-hunt-promote-winner` — Promote the winner — § Promote the winner
+
 ## diagram
 
 Diagram system (vendored diagram-design): types, tokens, primitives, layout, sizes, import, export, brand skins, taste gate.

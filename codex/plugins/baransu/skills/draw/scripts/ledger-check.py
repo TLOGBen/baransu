@@ -87,6 +87,10 @@ DETECTORS = (
 
 LINE_RE = {key: re.compile(rf"^[\s#>*\-|]*\**{key}\**\s*[:：]\s*(.+)$", re.I | re.M)
            for key in ("Form", "Approach", "When")}
+# A routing line holds values only; its reason goes on the brief's `Why:` line. Anything from the
+# first dash clause, parenthesis or reason word on is prose, so a 'not a film' or 'no 3d' written
+# there never adds a form or a condition.
+VALUE_END = re.compile(r"[—–]|\s-{1,2}\s|[(（:：]|\bbecause\b|因為")
 
 
 def setup_stdio() -> None:
@@ -132,9 +136,14 @@ def declared_conditions(folder: Path) -> tuple[set, set, set, list[str]]:
             for m in rx.finditer(text):
                 hit = True
                 value = m.group(1)
+                end = VALUE_END.search(value)
+                if end:
+                    value = value[:end.start()]
                 if key == "When":
-                    for tok in re.split(r"[,;、，/]+|\s+\+\s+", value):
-                        tok = norm_token(re.sub(r"\(.*?\)", "", tok))
+                    for tok in re.split(r"[,;、，；/]+|\s+\+\s+", value):
+                        if len(tok.split()) > 1:   # prose, not a condition name
+                            continue
+                        tok = norm_token(tok)
                         if tok and tok not in ("none", "-", "n/a"):
                             whens.add(tok)
                     continue

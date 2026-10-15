@@ -89,7 +89,7 @@ Pick by the verb, the one the user will *use*. Delivery: **one piece**, **severa
 
 | Before | Do → Done |
 |---|---|
-| `lookup.py --step choose-form` | → `docs/brief.md` `Form:`, delivery, reason |
+| `lookup.py --step choose-form` | → `docs/brief.md` `Form:` (the value only), delivery, `Why:` (the reason) |
 
 ### 2. Choose the approach — how the picture explains
 
@@ -103,7 +103,7 @@ A map always uses the diagram system; structure plus one hard-to-see behaviour i
 
 | Before | Do → Done |
 |---|---|
-| `lookup.py --step choose-approach` | → `docs/brief.md` `Approach:`, `When:` (needs-page, seek-overlay, webgl, 3d, pipes, import, track, loop, …) |
+| `lookup.py --step choose-approach` | → `docs/brief.md` `Approach:`, `When:` (needs-page, seek-overlay, webgl, 3d, pipes, import, track, loop, …), values only — prose goes on `Why:` |
 | `lookup.py --step mech-size` *(mechanism)* | Figure, Hero or Epic by part count and moving systems, not mechanism count; the name only → `Size:` |
 | `lookup.py --step brief-and-status-line` | → `docs/brief.md`; send the 開工狀態行, keep building |
 | `lookup.py --step progress-notes` | `date` per step, a progress line past twice a step's share → `docs/progress.md` |
@@ -117,10 +117,12 @@ A map always uses the diagram system; structure plus one hard-to-see behaviour i
 
 ### 3. Production — the lane's steps
 
-Run § Lane for the form; add § Mechanism figures for a mechanism and § Lane: diagram for anything drawn with the diagram system (a component included). Free-creative steps sit in the film lane. One step is a milestone in time, not a place in the list:
+Run § Lane for the form; add § Mechanism figures for a mechanism and § Lane: diagram for anything drawn with the diagram system (a component included). Free-creative steps sit in the film lane. A diagram, a component or a film starts as three seeds — independent first versions built in parallel by Codex subagents (`spawn_agent`, clean context) up to the pick step — and only the blind judge's winner is refined (`references/seed-hunt.md`); a map runs none. One step is a milestone in time, not a place in the list:
 
 | Before | Do → Done |
 |---|---|
+| `lookup.py --step seed-hunt` *(diagram, component, film)* | three seeds under `scratch/seed-{a,b,c}`, each from the brief alone, up to the pick step → `docs/seed_hunt.md` |
+| `lookup.py --step seed-pick` *(diagram, component)* / `seed-pick-film` *(film)* | shuffled captures, a judge in a fresh context, the winner promoted and its log appended → `docs/seed_hunt.md`, `shots/seeds/` |
 | `lookup.py --step first-version` | the moment the piece first opens and works, at the latest one hour in: send its path, keep deepening → `docs/first_version.md` |
 
 ### 4. Check and deliver
@@ -158,6 +160,7 @@ Phases, gates, rules (determinism, `Motion.cursor`, `Motion.camera`, `Motion.wor
 | `lookup.py --step draft-animatic` | → `out/<slug>.animatic.mp4` |
 | `lookup.py --step keys-bookends` | → `out/keys/bookends.png` |
 | `lookup.py --step keys-layout` | → `docs/key_layout.md` |
+| `lookup.py --step seed-pick-film` | the seeds stop here; the winner goes on → `docs/seed_hunt.md` |
 | `lookup.py --step keys-data-and-stills` | `KEYS` as data → `out/keys/contact.png` |
 | `lookup.py --step shoot-intervals` | → `docs/shotlist.md` |
 | `lookup.py --step shoot-animate` | → `docs/hash.txt` `DETERMINISTIC` |
@@ -171,7 +174,7 @@ Phases, gates, rules (determinism, `Motion.cursor`, `Motion.camera`, `Motion.wor
 
 ## Lane: component
 
-Rules and the $baransu:ui hand-off: `references/lanes/component.md`. One interactive figure per `<name>.html`, theme-aware, phone-safe, no page frame or prose; several pieces run the steps per file. Drawn with the diagram system, it also runs § Lane: diagram's plan, layout, markup (into `<name>.html`), check and taste-gate. A mechanism component runs, in order: caption-states, perf-plan; `mech-catalog-and-example` … `mech-painters-order`; figure-card, `mech-frame-card`, `mech-make-live`, `mech-join-lane`; rest-frame, interaction; `mech-audit` … `mech-review-checklist`; component-check.
+Rules and the $baransu:ui hand-off: `references/lanes/component.md`. One interactive figure per `<name>.html`, theme-aware, phone-safe, no page frame or prose; several pieces run the steps per file. Drawn with the diagram system, it also runs § Lane: diagram's plan, layout, markup (into `<name>.html`), check and taste-gate. A mechanism component runs, in order: caption-states, perf-plan; `mech-catalog-and-example` … `mech-painters-order`; figure-card, `mech-frame-card`, rest-frame (the seeds stop here: `seed-pick`); `mech-make-live`, `mech-join-lane`, interaction; `mech-audit` … `mech-review-checklist`; component-check.
 
 | Before | Do → Done |
 |---|---|

@@ -25353,6 +25353,84 @@
    "file": "references/mechanism/collection/watch.md",
    "heading": "Watch movement",
    "from": "## Install and usage (verbatim)"
+  },
+  {
+   "id": "seed-hunt",
+   "title": "Seed hunt — three first versions, one refined",
+   "area": "shared",
+   "keywords": [
+    "first",
+    "hunt",
+    "one",
+    "refined",
+    "seed",
+    "seed-hunt",
+    "three",
+    "versions"
+   ],
+   "file": "references/seed-hunt.md",
+   "heading": "Seed hunt — three first versions, one refined"
+  },
+  {
+   "id": "seed-hunt-why-seeds",
+   "title": "Why seeds",
+   "area": "shared",
+   "keywords": [
+    "seed-hunt",
+    "seeds",
+    "why"
+   ],
+   "file": "references/seed-hunt.md",
+   "heading": "Why seeds"
+  },
+  {
+   "id": "seed-hunt-where-seeds-stop",
+   "title": "Where the seeds stop",
+   "area": "shared",
+   "keywords": [
+    "seed-hunt",
+    "seeds",
+    "stop",
+    "where"
+   ],
+   "file": "references/seed-hunt.md",
+   "heading": "Where the seeds stop"
+  },
+  {
+   "id": "seed-hunt-dispatch-seeds",
+   "title": "Dispatch the seeds",
+   "area": "shared",
+   "keywords": [
+    "dispatch",
+    "seed-hunt",
+    "seeds"
+   ],
+   "file": "references/seed-hunt.md",
+   "heading": "Dispatch the seeds"
+  },
+  {
+   "id": "seed-hunt-pick-blind",
+   "title": "Pick blind",
+   "area": "shared",
+   "keywords": [
+    "blind",
+    "pick",
+    "seed-hunt"
+   ],
+   "file": "references/seed-hunt.md",
+   "heading": "Pick blind"
+  },
+  {
+   "id": "seed-hunt-promote-winner",
+   "title": "Promote the winner",
+   "area": "shared",
+   "keywords": [
+    "promote",
+    "seed-hunt",
+    "winner"
+   ],
+   "file": "references/seed-hunt.md",
+   "heading": "Promote the winner"
   }
  ]
 }

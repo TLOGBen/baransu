@@ -91,7 +91,7 @@ Score each item 1–10. Judge it the way a demanding director would, not the way
 
 | Item | What 8+ looks like |
 |---|---|
-| Hook in the first 2 s | the single most striking image is already on screen; frame 0 is not empty |
+| Hook in the first 2 s | the single most striking image is already on screen; frame 0 is not empty and is not a title card on a flat ground |
 | Readability at phone size | labels survive 360 px wide; nothing below the type floor; nothing the viewer must read sits in the format's safe margins (`--safe` on the sheet) |
 | Continuity | the same type scale, palette, screen direction and motion feel in every scene; an element that leaves on the right does not re-enter on the right |
 | Motion quality | springs settle, nothing slides linearly, no dead frames, no pops between consecutive frames |
@@ -114,7 +114,8 @@ Each approach adds its own rows. **The 8-point gate applies to these rows**: del
 | 0.6 px line weight | thin 0.6 px lines throughout, at 1× and at 4×; no heavier outline added by hand | judged (4× capture) |
 | No words in the drawing | no labels, leader lines, balloons or dimension arrows inside the drawing; at most one tiny engraved label; `Fig n`, title, hint and live readout in the card's corners, legend and caption under the card | judged |
 | 40+ parts, each with a job | the parts list (upstream workflow step 4 in `scripts/anatomy/ANATOMY-SKILL.md`, written to `docs/parts.md`) has at least 40 parts grouped as base, structure, mechanism, controls and subject; every part rests on another and does something | judged against the parts list |
-| One lit part | exactly one `lit` accent, on the part the reader should watch | judged |
+| One lit part | exactly one `lit` accent, on the part the reader should watch; one accent hue in the whole figure, controls and readout included | judged |
+| The machine shows the numbers | every value the figure explains is read off the parts (a height, an angle, a count of balls), not off an HTML strip, chart or button row beside the machine; the mapping is visible at rest | judged |
 | Lines resolve | every line ends on a face, another line or a terminal dot; `node scripts/anatomy/scripts/lines.mjs <name>.html --out shots/lines.png` prints `line ends: 0` on both themes and in every resting pose; with pipes, cables or round parts, `node build.mjs --audit` ends `audit passed` | machine |
 | 4× detail | at 4×, across the whole drawing at every size (Figure, Hero and Epic alike; `references/mechanism/mechanism.md` overrides the upstream Figure scope), every region still has something true to find; junction close-ups in both themes read | judged (`capture.mjs --zoom`) |
 | Direct manipulation | the figure answers the pointer and the keyboard (drag, press, hold a key), the focus ring shows, `aria-valuetext` reads the state in words; an idle tour runs when nobody touches it and pauses on interaction | machine + judged (`drive.mjs` sequences with `move` / `click` / `key` actions change the readout) |
@@ -128,7 +129,8 @@ Each approach adds its own rows. **The 8-point gate applies to these rows**: del
 | Accessible, single-file | `python3 scripts/diagram/self_check.py <file>` passes | machine |
 | Six connector rules | orthogonal elbows, masked labels with a gap, no overlaps, distinct attach points, no transit behind a box, no mask under a later node; `python3 scripts/diagram/repo/verify-geometry.py <file>` passes, and the type's own `scripts/diagram/repo/verify-*.py` when its reference names one | machine |
 | Remove test | no node, arrow or label can be removed or merged without the reader losing something | judged |
-| Signal test | the accent on ≤ 2 elements; at ~320 px the focal nodes and the main path read first; the legend covers every type used and nothing extra | judged (`verify-page.mjs --selector svg` phone capture) |
+| Signal test | the accent on ≤ 2 elements; at ~320 px the focal nodes and the main path read first; the legend covers every type used, line styles included, and nothing extra | judged (`verify-page.mjs --selector svg` phone capture) |
+| Source fidelity | every decision the source names (a size or scope judgment, a branch) is a decision node, not a plain box; every word on the drawing comes from the source or the brief | judged (against `docs/diagram_plan.md`'s node list) |
 | Type fit | the semantic pattern (when behaviour matters) and the visual type match the point; the type reference's own rules hold | judged |
 | Typography and skin | the style guide's families and ramp, the 4 px grid, no universal anti-pattern from the taste gate | judged |
 
@@ -182,6 +184,9 @@ Each approach adds its own rows. **The 8-point gate applies to these rows**: del
 - the last frame alone would not work as the poster (`render.mjs still --t <end>`); a logo on black is a weak close
 - the mix without the picture (`checks.sh audio`): a cut or click with no peak on the waveform, an ending that does not resolve, a bed that is a flat band
 - a mechanism line that stops in the air, a bare face or empty corner at 4×, a second lit part, a word floating inside the drawing
+- frame 0 as a title card on a flat grey or gradient ground; decorative floating particles that belong to no event; two shots that are empty or look the same on the contact sheet
+- a diagram that drops a decision the source names (a size or scope judgment, a branch) or flattens it into a plain box; a legend that explains the shapes but not the line styles; a word on the drawing that the source and the brief do not contain
+- a mechanism whose numbers live in an HTML strip, bar chart or row of buttons beside the machine, so the figure reads as a generic visualisation; a mapping (height ∝ value, angle ∝ load) that the parts never show; a second accent hue anywhere, including the controls
 
 ## Notes like a director
 
