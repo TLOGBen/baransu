@@ -21,6 +21,16 @@ Its weakness is **brief contagion**: hundreds of people ran the same sentence an
 
 Variants that shipped and still worked: a 60-second 16:9 reel with an original piano score and "S-tier sound design, no generic synth pads"; an anti-slop guardrail ("avoid frames and text in the corners, the usual giveaways of AI-made video"); a story instead of techniques ("the history of X from Y to today, surprise me with the storyboard"); an agency persona ("as if you were a niche branding studio; one accent colour; every shot a different technique").
 
+### What the public collections show
+
+Two public collections of code-rendered motion are large enough to say where the defaults come from and where a reference is worth looking for (their own analyses, restated; sources in `NOTICE.md`). The counts describe what was posted, not what works.
+
+- **A domain mostly has one look — except where it does not.** Of 1 119 classified files, games / interactive are 3D renders seven times in ten (161 / 230) and ads / launches are motion graphics / UI seven times in ten (154 / 215); those two cells alone hold 28 % of the sample, and they are where L1's rhyming reels live. Education and stories have no majority look (37 % motion graphics, 33 % flat cartoon): for them decide the explanation or the narrative first (`1-design.md` § 1) and pick the treatment that serves it, instead of inheriting a cell's look.
+- **One style is not one palette.** The 350 motion-graphics files split 198 dark-neutral / 152 light-neutral; music videos carry a median 45.5 % visibly colourful pixels, ads 17.6 %. A brief that says "motion graphics" has chosen neither a value nor a colourfulness; state the background value, the dominant and accent colours and the shot-to-shot consistency (`composition.md` § Colour, `2-draft.md` § 2).
+- **A short prompt can carry a long input.** Five public briefs run from 172 to 17 664 characters, and a two-line request often hands over a skill, a product repository, footage or a song. The ladder counts the harness, not the sentence: list the inputs before deciding the model's job (§ References and inputs).
+- **"One prompt" is not "one pass".** Creators who report a single human prompt also report the model rejecting its own intermediate renders many times. Keep three counts apart in the delivery log: human prompts, internal review passes (`../critique-loop.md`), and the time to the accepted master; compare whole-task cost with revisions, services and assets, never the price of one call.
+- **Where the mechanism approach stands.** In a gallery of 821 code-made motion pieces (2026-10-13: 3D & interactive 199, education 159, product 155, motion design 108, narrative 81, music 63, characters 56) a set of working-machine illustrations, at 6 400 bookmarks, is among the first pieces shown: a how-it-works object (`../mechanism/mechanism.md`) travels as far as a showreel.
+
 ### L2 — point it at a product
 
 Three lines did the work in the published examples: the product URL, "use actual product screenshots, logo, assets", "must have music" (`grab.mjs`, `1-design.md` § 1). Keep one session per brand: the renderer, audio synth and export pipeline already exist, so the second video is faster.

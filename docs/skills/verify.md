@@ -1,60 +1,12 @@
-# 驗證家族：seal · review · hunt
+# 驗證家族：review · hunt
 
 <img src="../images/family-verify.png" width="320" alt="驗證家族概念圖">
 
 > 換一雙乾淨的眼睛看，拿證據說話；乾淨的結果也是有效的結果。
 
-三個 skill 分工：`/seal` 對著合約收工、`/review` 獨立重驗任何產出、`/hunt` 從症狀追到根因。
+兩個 skill 分工：`/review` 獨立重驗任何產出、`/hunt` 從症狀追到根因。中頻段的收尾就是 `/review`——8.0.0 起沒有合約、沒有封緘。
 
 [← 回文件索引](../README.md)
-
----
-
-## `/seal`
-
-Claude Code：`/baransu:seal`　Codex：`$baransu:seal`
-
-**用途**　中頻段收工封緘：派遣乾淨 context 的 verify-only seal-agent 跑五點驗收（逐條對約、掃未釘表面、跨介面一致、常數逐字比對、突變抽查），findings 回主 session 修＋補釘死測試，複驗上限 2，全清才在合約蓋 sealed 標記。
-
-**什麼時候用**
-- `/contract` 立約的任務實作完成後，收尾驗收。
-- 觸發語：`/seal`、封緘、收尾驗收、驗收剛做完的、seal it。
-- 參數：`[CONTRACT.md 路徑 | base ref | 不給 = 尚未 commit 的 diff]`
-
-**運作方式**（主 session 是調度者）
-1. 組裝驗證 payload、先跑一次 baseline 測試。
-2. 派遣 seal-agent 在乾淨 context 執行五點：
-
-| # | 檢查 |
-|---|---|
-| 1 | 逐條對約（criteria audit） |
-| 2 | 掃描沒被釘住的表面 |
-| 3 | 跨介面一致 |
-| 4 | 常數逐字比對 |
-| 5 | 突變抽查（mutation spot-check） |
-
-3. seal-agent 只回報、不修；findings 回到主 session 修正，每個修正附一條釘死測試並在 session 內跑綠。
-4. 複驗上限 2 次；派遣前後比對指紋，確認探針沒有殘留。
-5. 全清才在 `CONTRACT.md` 第 2 行蓋 sealed 標記。
-
-**產出**
-- 對話中的繁中封緘報告：五點結果＋修正清單＋突變抽查記錄。
-- 修正落在工作目錄，附釘死測試。
-- 一行 JSON 證據寫到 `~/.claude/baransu/telemetry/{project}/seal-log-{YYYY-MM}.jsonl`（只由主 session 寫）。seal-guard hook 靠這筆記錄判斷有沒有封緘過，少了會在 session 結束時誤擋。
-
-**不適用**
-- 跨視角獨立重驗任何模型產出 → `/review`
-- 開工前釘條文 → `/contract`
-
-**非互動驅動**　`loop=drivable`。
-
-### seal-guard hook
-
-隨 plugin 生效，預設阻擋。session 結束（Stop 事件）時若偵測到未 `/seal` 的 user-facing 變更，會擋下並提示補 seal。
-
-- 降級：`SEAL_GUARD=log`（只記錄）或 `SEAL_GUARD=off`。
-- 遙測集中在 `~/.claude/baransu/telemetry/{專案}/{類型}-{YYYY-MM}.jsonl`，每月回看誤擋率；過高就降回 log 預設（可證偽條款）。
-- 實作：`plugins/baransu/hooks/seal-guard.sh` 與 `seal-guard.ps1`（Windows；必須保留 UTF-8 BOM）。
 
 ---
 
@@ -78,7 +30,7 @@ Claude Code：`/baransu:review`　Codex：`$baransu:review`
 
 **不適用**
 - 審「使用者專案」的 agent 配置與 AI 可維護性 → `/health`
-- 封緘合約任務 → `/seal`
+- 找根因 → `/hunt`
 
 **非互動驅動**　`loop=drivable`。
 

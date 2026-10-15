@@ -541,7 +541,6 @@ def display_path(path):
 
 
 def diagram_slug(path):
-    # The draw lane delivers `.claude/draw/<slug>/<slug>.html`; the file name is the slug.
     return path.stem.removeprefix("example-")
 
 

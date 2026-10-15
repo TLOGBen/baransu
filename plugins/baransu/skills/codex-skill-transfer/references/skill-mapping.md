@@ -170,7 +170,7 @@ Strong-inertia mechanisms must not silently degrade to soft prompts. If the orig
 | Claude API | Codex equivalent or rewrite |
 |-----------|----------------------------|
 | `Agent` tool (formerly the Task tool; subagent dispatch) | "spawn a Codex subagent" via `spawn_agent` — see [`agent-mapping.md`](agent-mapping.md) Path 1; or, if user opted for skill chaining (Path 2), rewrite as `$skill-name` mention. `spawn_agent` v1 takes `message`/`items`, `agent_type`, `fork_context`, `model`, `reasoning_effort`; v2 takes `task_name` (required), `message` (required), `agent_type`, `fork_turns` (`none` / `all` / N, default `all`), `model`, `reasoning_effort`. Claude's `effort` parameter (2.1.292) maps to `reasoning_effort`. |
-| `Dispatch **seal-agent** with:` / `Dispatch <agent> with:` | `Spawn a `seal-agent` subagent with:` / `Spawn a `<agent>` subagent with:` |
+| `Dispatch **verifier** with:` / `Dispatch <agent> with:` | `Spawn a `verifier` subagent with:` / `Spawn a `<agent>` subagent with:` |
 | `Dispatch 3 subagents in parallel Tasks` | `Spawn 3 Codex subagents in parallel` |
 | `parallel Task(s)` | `parallel Codex subagent(s)` |
 | `clean Task contexts` | `clean Codex subagent contexts` |

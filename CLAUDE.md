@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 
-`baransu` is a Claude Code plugin distributing fourteen governance skills. Theme: バランス — deliberate before executing, verify after.
+`baransu` is a Claude Code plugin distributing twelve governance skills. Theme: バランス — deliberate before executing, verify after.
 
 ## Philosophy — バランス (Balance)
 
@@ -19,13 +19,12 @@ plugins/
     .claude-plugin/
       plugin.json              # plugin manifest
     skills/
-      think/ review/ contract/ seal/ write/ ship/ hunt/ health/ read/ learn/ draw/ ui/ codex-skill-transfer/ evolve/
-      _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md, fact-check.md, contract-gate.md, selection-telemetry.md, distillation-candidate-matrix.md) + evals/ scripts/
+      think/ review/ write/ ship/ hunt/ health/ read/ learn/ draw/ ui/ codex-skill-transfer/ evolve/
+      _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md, fact-check.md, modeling.md, selection-telemetry.md, distillation-candidate-matrix.md) + evals/ scripts/
     rules/
       anti-patterns.md         # cross-skill behavioral guardrails
     agents/
       # Perspective: architecture-reviewer.md  quality-reviewer.md  security-reviewer.md  style-reviewer.md  domain-reviewer.md
-      # Seal:        seal-agent.md
       # Verify:      verifier.md  (dispatched by review)
       # Health:      health-inspector-context.md  health-inspector-control.md  health-inspector-maintainability.md
       # Evolve:      evolve-diagnostician.md  evolve-judge.md
@@ -39,30 +38,28 @@ Invoke with `/baransu:<name>`. To edit a skill, read its `SKILL.md` — design c
 
 | Skill | When to invoke | Not for（易混淆） |
 |-------|---------------|------------------|
-| `/think` | Deliberate before building: align on a restatement of what the user wants, take a stance with its bets named, verify premises, attack for breakage and excess, present, and leave a five-section plan under `.claude/think/` — never code, never a handoff; a settled decision can be brought for testing (拷問我) | 報錯/debugging → `/hunt`；釘驗收條文 → `/contract`；單檔小修 → `_shared/tdd.md` §7 |
-| `/review` | After any model output — code, plan, claim — for independent re-verification: a fresh verifier agent, perspectives only for distinct consequential risks, never edits the target; a clean review is a valid result | 審「使用者專案」的 agent 配置與 AI 可維護性 → `/health`；封緘合約任務 → `/seal` |
-| `/contract` | Medium tasks: pins a one-page work contract (goal / assertable criteria / surface inventory / verbatim constants) before implementing; owns the sealed-marker grammar and archives a sealed contract before writing over it | 跨模組大任務先切片，每片各自立約；事後驗收 → `/seal` |
-| `/seal` | After implementation, run as a dispatcher: assembles the payload, runs the baseline, dispatches a verify-only seal-agent in a clean context (criteria audit / unpinned-surface scan / cross-UI / constants byte-diff / mutation spot-check), fixes findings in the main session with re-verification capped at 2, and stamps the sealed marker only on a clean pass | 跨視角獨立重驗證 → `/review`；開工前釘條文 → `/contract` |
+| `/think` | Deliberate before building: align on a restatement of what the user wants, borrow the discipline that already solved that shape of problem (verbs → field → instrument → outside judge → what it changes; skipped for parameter choices and single-file changes) — naming the known problem class and, when a quantity is at stake, writing the model per `_shared/modeling.md` and presenting it in plain language — take a stance that names the goal behind the goal, the design's one idea and cost against effect, verify premises, attack for breakage and for size (excess hiding in abstraction or defence, and under-reach; a version move starts from the delta this code actually hits), present, and leave a five-section plan under `.claude/think/` whose criteria are conditions and whose first slice, when there are several, is a pilot — never code, never a handoff; a settled decision can be brought for testing (拷問我) | 報錯/debugging → `/hunt`；已定案的中型工作 → 直接實作（`_shared/tdd.md` 紅綠）再 `/review`；單檔小修 → `_shared/tdd.md` §7 |
+| `/review` | After any model output — code, plan, claim — for independent re-verification: a fresh verifier agent asks whether the work did what was asked, added what was not asked (guards, layers, options), or solved a smaller problem than asked; perspectives only for distinct consequential risks; a one-screen diff takes the fast path; canary and fresh-input instruments fire on fixed triggers; never edits the target; closes with a verdict computed by a printed rule — PROVEN / PARTLY PROVEN / NOT PROVEN — and 「若只能改一處」; a clean review is a valid result | 審「使用者專案」的 agent 配置與 AI 可維護性 → `/health`；找根因 → `/hunt` |
 | `/write` | Bilingual copywriting: `zh`/`en` prefix; Refine (existing text), Generate (new), or Proofread (findings table → `錯字修改.html`) | 寫完要 commit/push 的收尾 → `/ship` |
-| `/ship` | Session cleanup: archive `.claude/` dirs plus sealed root contracts, commit, push, optional worktree removal | 只收尾；不寫作、不審查 |
+| `/ship` | Session cleanup: archive `.claude/` working dirs, commit, push, optional worktree removal | 只收尾；不寫作、不審查 |
 | `/hunt` | Bug diagnosis: symptom → root cause via observability-first investigation | 「值不值得修」是價值判斷 → `/think` 存廢判決 (Kill/Keep/Pivot) |
 | `/health` | Audit the user project's agent configuration and AI-maintainability: budget-aware five-layer audit (config → instructions → tools → verifiers → maintainability) | baransu 自身結構驗證 → `scripts/verify-skills.py`；審單次模型輸出 → `/review` |
 | `/read` | Read any content into the conversation as Markdown — URL, path, glob, Chrome, `--topic`, `--web`, `--gh`, `--x`; keeps an offline copy under `.claude/read/` only with `--save` | 要消化成筆記 → `/learn`；要畫成圖或動畫 → `/draw` |
 | `/ui` | The design lead for the UI in your repo: builds or reshapes web UI with deliberate palette / type / layout / motion choices and writes the files directly; learns a design language from a reference (site, screenshot, art style) into `.claude/design/reference-<slug>.md` and refines an existing UI against it; designs explanatory pages (explain X with figures, a tutorial, several figures read together) that embed the components `/draw` produces — taken over from `/draw` automatically in the same turn, or called directly to adjust | Claude Design 畫布 mockup → 內建 `design` skill；單件圖、影片、機構、互動元件 → `/draw`；小寫 `design.md` 技術架構文件不歸這裡管 |
 | `/learn` | Research pipeline: Collect→Digest→Outline→Fill In→Refine; `--brief` stops at Digest | 只要離線原文不要筆記 → `/read --save` |
-| `/draw` | Draw one piece as a self-contained visual: an editorial static diagram (44 types, HTML + inline SVG → `<slug>.html` + `.svg`/`.png`), an explorable interactive map (architecture / workflow / sequence / data flow / lifecycle, validated by `archify finalize` → `<slug>.map.html`), a code-rendered film (`<slug>.film.html` with `seek(t)` → `<slug>.mp4`, camera moves, springs, beat grid, synthesized sound), or an interactive component (mechanism figure, draggable or animated figure → `<slug>.html`); the only entry point for "draw X" — when the request needs a whole page (explain X, a tutorial, several figures read together) it builds the components and hands them to `/ui` in the same turn without asking; state the plan in one status line, build, look (contact sheet / screenshots / receipt), score, fix, deliver under `.claude/draw/` | 版面、內文與多圖頁面 → `/ui`（draw 自動交棒；想單獨調整時直接叫 `/ui`）；抓網頁成 Markdown → `/read`；整理成筆記 → `/learn` |
+| `/draw` | Draw one piece as a self-contained visual: an editorial static diagram (45 types, HTML + inline SVG → `<slug>.html` + `.svg`/`.png`), an explorable interactive map (architecture / workflow / sequence / data flow / lifecycle / erd / class / tree / timeline / waterfall, validated by `archify finalize` → `<slug>.map.html`), a code-rendered film (`<slug>.film.html` with `seek(t)` → `<slug>.mp4`, camera moves, springs, beat grid, synthesized sound), or an interactive component (mechanism figure, draggable or animated figure → `<slug>.html`); the only entry point for "draw X" — when the request needs a whole page (explain X, a tutorial, several figures read together) it builds the components and hands them to `/ui` in the same turn without asking; state the plan in one status line, build, look (contact sheet / screenshots / receipt), score, fix, deliver under `.claude/draw/` | 版面、內文與多圖頁面 → `/ui`（draw 自動交棒；想單獨調整時直接叫 `/ui`）；抓網頁成 Markdown → `/read`；整理成筆記 → `/learn` |
 | `/codex-skill-transfer` | Porting reference + parity checklist for hand-maintained Claude Code / Codex copies of a skill, plugin, or marketplace: default mode audits a pair and reports gaps; port-by-hand mode edits the Codex copy on request; optional draft script (`transfer.py`) writes only to a scratch dir. | Claude→Codex 對照；不做反向移植 |
-| `/evolve` | Improve a SKILL.md against a fixed 9-dim rubric: forward-only ratchet, blind multi-judge, held-out validation | 寫新 skill 是 authoring 非演化 → 直接撰寫；存廢/價值判斷 → `/think` 存廢判決 (Kill/Keep/Pivot) |
+| `/evolve` | Improve a SKILL.md against a fixed 9-dim rubric by subtraction: each round names the clause behind an observed failure, the problem it was added for, and a shorter replacement — a new rule must displace one and append-only candidates are refused before judging; forward-only ratchet, blind multi-judge, held-out validation | 寫新 skill 是 authoring 非演化 → 直接撰寫；存廢/價值判斷 → `/think` 存廢判決 (Kill/Keep/Pivot) |
 
-**14 is the skill-count ceiling** — adding a 15th requires retiring one first (以裁換建). Mechanism anchor: the skill-count check in `scripts/verify-skills.py`. Falsifiable amendment clause (2026-07-19, 14→15): if selection telemetry shows `/codex-skill-transfer` at zero use for three consecutive months, retire it and restore the ceiling to 13.
+**12 is the skill-count ceiling** — adding a 13th requires retiring one first (以裁換建). Mechanism anchor: the skill-count check in `scripts/verify-skills.py`. The ceiling was 14 until v8.0.0, when the contract and seal skills were retired without replacement. Falsifiable amendment clause (2026-07-19, originally 14→15, carried over): if selection telemetry shows `/codex-skill-transfer` at zero use for three consecutive months, retire it and restore the ceiling to 11.
 
 **Three-band routing**:
 
 | Band | Route | Closure evidence |
 |------|-------|------------------|
 | Small — single-file, clear scope | Implement directly under the red/green discipline in `_shared/tdd.md` §7 (維5: behavior tests assert named values, never tautological "responds/all-green"; a broken feature MUST turn a test red); no skill ceremony | red → green run |
-| Medium — one feature, few files | `/contract` pins a one-page contract before work; `/seal` dispatches a verify-only seal-agent for one narrow verification pass, fixes findings in the main session (re-verification capped at 2), and stamps the sealed marker on a clean pass | seal five-point mandate result |
-| Large — ≥2 interdependent modules, context rot is real | Chart the effort as a decision map, slice it, then run each slice through the medium band: `/contract` pins that slice's criteria → implement → `/seal` closes it. When the common suite (wayfinder / delegate / strategic-advance) is installed, the charting and the execution MAY route through it — detect first, never assume it is present | per-slice seal mandate results |
+| Medium — one feature, few files | Implement directly under the red/green discipline in `_shared/tdd.md`, then `/review` for independent re-verification by a fresh verifier agent (perspectives only for distinct consequential risks); findings are fixed in the main session | red → green run + review verdict |
+| Large — ≥2 interdependent modules, context rot is real | Chart the effort as a decision map, slice it, then run each slice through the medium band as defined above: implement that slice under `_shared/tdd.md` red/green → `/review` closes it. When the common suite (wayfinder / delegate / strategic-advance) is installed, the charting and the execution MAY route through it — detect first, never assume it is present | per-slice red → green run + review verdict |
 
 Never force a task up-band (a small fix does not deserve a spec) or down-band (a cross-module change does not get to skip criteria pinning).
 
@@ -74,12 +71,10 @@ These have each caused regressions — do not "optimize" them away:
 
 - **No `skills` array in `plugin.json`**: Claude Code discovers skills from the filesystem. Adding one was done in v0.3.0 and immediately reverted.
 - **`/ship` branch deletion uses `-D` not `-d`**: after push the branch is unmerged locally, so `-d` always fails. Both steps need `git -C "$MAIN_REPO" branch -D`.
-- **Sealed-marker detection reads only the first 3 lines**: `/seal`, `/contract`, and `/ship` all detect it with `head -3 "$f" | grep -qF '> STATUS: sealed'` — never a whole-file grep, or a contract that merely pins the marker inside its own Verbatim Constants block reads as sealed (self-false-positive). The two archive paths are deliberately asymmetric: `/contract` always timestamps (`.claude/archived/{filename}-{unix_timestamp}`) because it is displacing a contract to write a new one in its place; `/ship` timestamps only on a name collision, matching the allowlist sweep it runs alongside.
 - **learn's full digest ends with the 批判層 four sections** (來源矛盾點／盲點／信度評分／後續角度): silence is non-compliant — 「查無矛盾」 must be stated affirmatively.
 - **read `raw/` is immutable by construction**: recaptures version to `raw/{slug}_vN`, cascade fetches go through `/tmp` then move — never write `raw/` twice.
-- **verify-skills.py Gate 10 is the contract** for loop-pauses registry completeness: adding or revising a skill's Automation line must clear it (a `loop=drivable`/`assisted` skill ships `references/loop-pauses.md` and owns a canonical row in `_shared/loop-contract.md` §4 — no orphan files, no dead rows). Gate 11 (`green_proof` field-name consistency) was retired in v4.0.0: all four of its surfaces went with the large-band pipeline, so the gate had nothing left to check. Its number is not reused — the gate list stops at 10.
+- **verify-skills.py Gate 10 is the contract** for loop-pauses registry completeness: adding or revising a skill's Automation line must clear it (a `loop=drivable`/`assisted` skill ships `references/loop-pauses.md` and owns a canonical row in `_shared/loop-contract.md` §4 — no orphan files, no dead rows; retiring a skill removes its row in the same change). Gate 11 (`green_proof` field-name consistency) was retired in v4.0.0: all four of its surfaces went with the large-band pipeline, so the gate had nothing left to check. Its number is not reused — the gate list stops at 10.
 - **No-git projects: ship fast-fails BEFORE any archive move** — archiving without git would strand the moved files with no commit to anchor them.
-- **`seal-guard.ps1` must keep its UTF-8 BOM**: Windows PowerShell 5.1 parses BOM-less non-ASCII scripts as ANSI (system codepage), which breaks the zh instruction string with a parse error — empirically hit on first Windows run. Gate: test-seal-guard-hook.sh G14. The `.sh`/`.ps1` pair must keep one behavioral contract (G14 string parity + G15 real-runtime suite); the transfer's same-name-`.ps1` rule wires `commandWindows` automatically.
 - **Cross-skill guardrails**: behavioral anti-patterns that apply across skills live in `plugins/baransu/rules/anti-patterns.md`; the skill-specific invariants above stay here.
 
 ## Install
@@ -99,7 +94,7 @@ Pick the smallest bump that is true. **Major only when an existing user workflow
 
 ## Verification
 
-The plugin itself ships no build toolchain. `make test` is the single stable entrypoint: it runs `scripts/verify-skills.py`, `python3 -m pytest tests/scripts/`, and every per-suite shell script under `tests/`. Individual suites stay runnable on their own.
+此 plugin 不寫單元測試，但測試照做。A skill working well has nothing to do with unit tests, a skill failing has nothing to do with them, and when skills change it is the tests that break, not the skills — so since v8.0.0 the repo deliberately keeps no unit tests. Testing still happens, in the forms that do track whether a skill works: the structural verifier (`make test`), the Codex parity gate (`make parity-check`), each skill's `evals/` prompt set run through `claude plugin eval`, a real dogfood run of the changed skill with its output looked at, and the `tests/ab/` A/B blind evaluation for `/ui`. The plugin ships no build toolchain. `make test` is the single stable entrypoint and now runs only `scripts/verify-skills.py`, the structural verifier — it is the mechanism anchor the principles above bind to, not a unit test. `make parity-check` runs `scripts/verify-codex-parity.py`; `make ship-check` runs both.
 
 ## Commit Style
 

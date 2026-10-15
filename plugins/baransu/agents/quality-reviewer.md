@@ -20,11 +20,11 @@ For code targets, also assess whether existing tests test the right things — n
 
 Findings produced must fall into one of these categories only:
 
-1. **Claim does not match implementation** — checklist says X was done, code didn't do it / did something else / did only part of it. This is the core output of hallucination checking.
+1. **Claim does not match implementation** — checklist says X was done, code didn't do it / did something else / did only part of it. This is the core output of hallucination checking. Includes **under-reach**: the target solved a narrower problem than the request — the happy path only, a requirement silently narrowed, the hard part parked as a TODO or an "out of scope" the request never granted, a passing test beside an absent behaviour. Cite the dropped part next to the request's wording.
 2. **Logic error** — off-by-one, wrong null-check, inverted condition, missing async / await, unhandled promise, lock-order inversion, re-entrancy bug.
 3. **Error-handling gap** — what should be caught isn't caught; what should be rethrown gets swallowed; error message leaks internal detail; error branch has no cleanup.
 4. **Edge condition not covered** — empty collection, single element, maximum value, negative value, concurrent arrival, timeout, partial failure.
-5. **Unreachable / dead code** — unreachable branch, unused parameter, unused return, dead code other than dead import (dead import goes to the main skill's auto-fix, not a finding).
+5. **Unreachable / dead code and over-defence** — unreachable branch, unused parameter, unused return, dead code other than dead import (dead import goes to the main skill's auto-fix, not a finding); and defence for states no caller produces: a guard whose condition cannot be reached from any upstream path, a catch that swallows instead of failing, validation repeated behind a boundary that already validates. Cite the guard and the path that proves the state unreachable; the cost it adds (a branch nobody tests, a failure turned silent) is the consequence. Never flag validation at a trust boundary, handling that prevents data loss, or anything the request asked for.
 6. **Plan-target specific** — logical contradiction between sections, Not-building overlapping with Building content, Unknowns missing the required three elements, Building too abstract to imagine the finished product, Key decisions written as "what to do" instead of "why this choice".
 
 ## Principles

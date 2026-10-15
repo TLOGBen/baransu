@@ -12,9 +12,8 @@
 .agents/plugins/marketplace.json # Codex marketplace 目錄（指向 codex/plugins/baransu）
 plugins/baransu/                 # Claude 版（Claude Code 的正本）
   .claude-plugin/plugin.json     # plugin manifest，權威版本號
-  skills/                        # 14 個 skill ＋ _shared/（跨 skill 參考、evals、scripts）
-  agents/                        # 派遣用 agent：視角 reviewer、seal-agent、verifier、health inspector、evolve
-  hooks/                         # seal-guard（.sh ＋ .ps1）
+  skills/                        # 12 個 skill ＋ _shared/（跨 skill 參考、evals、scripts）
+  agents/                        # 派遣用 agent：視角 reviewer、verifier、health inspector、evolve
   rules/anti-patterns.md         # 跨 skill 行為護欄
 codex/plugins/baransu/           # Codex 版（手動維護，Codex 的正本）
   plugin.json
@@ -23,7 +22,7 @@ codex/plugins/baransu/           # Codex 版（手動維護，Codex 的正本）
 scripts/
   verify-skills.py               # 結構驗證器（含 README 理念錨點檢查）
   verify-codex-parity.py         # Claude／Codex 逐檔配對＋版本一致
-tests/                           # integration／scripts（pytest）／skills（shell）
+tests/ab/                        # /ui 的 A/B 盲評題目與結果（不是單元測試；本倉不寫單元測試，但測試照做）
 docs/                            # 本文件
 ```
 
@@ -38,25 +37,23 @@ docs/                            # 本文件
 
 ## 驗證
 
+此 plugin 不寫單元測試，但測試照做。skill 好不好用跟單元測試無關，skill 壞掉也跟它們無關；skill 改版時壞的是測試、不是 skill。8.0.0 起刻意一支單元測試都不留；留下的是真的追得到 skill 好壞的測試：結構驗證器（`make test`，理念表綁定的機制錨點）、Codex parity（`make parity-check`）、各 skill `evals/` 用 `claude plugin eval` 跑、改過的 skill 真跑一次看輸出、以及 `/ui` 的 `tests/ab/` 盲評。
+
 ```bash
-make test         # verify-skills.py ＋ pytest tests/scripts/ ＋ tests/ 下每個 shell 測試
+make test         # 只跑 scripts/verify-skills.py（結構驗證器）
 make parity-check # scripts/verify-codex-parity.py
 make ship-check   # test ＋ parity-check，發佈前跑這個
 ```
 
-- `make test` 是單一穩定入口，各測試組也能單獨執行。
+- `make test` 是單一穩定入口。
 - `parity-check` 刻意不放進 `make test`：開發途中兩邊可能暫時不同步。repo 沒有 CI 也沒有排程，`make ship-check` 是唯一會跑它的入口。
-- 在 Windows 上透過 WSL 執行時，需要 pytest 與 PyYAML，例如：
-
-```bash
-uv run --no-project --with pytest --with pyyaml make ship-check
-```
+- 兩支腳本只用標準函式庫，Windows 上透過 WSL 直接 `make ship-check` 即可。
 
 ### 與文件相關的檢查
 
 - `scripts/verify-skills.py` 會讀 README.md 的 `## 核心理念` 段：理念表每一列都要有一個存在於倉內的反引號路徑錨點。改首頁時保留這個標題與表格。
-- 同一支腳本與 `tests/integration/test-distribution-metadata.sh`（D9）會掃 README.md，不得出現已退役 skill 的名稱。
-- `tests/integration/test-claude-md-skills-table.sh` 把 CLAUDE.md 的 skill 表釘在 `tests/integration/claude-md-skills-baseline.txt`：14 列、描述逐字比對。改 CLAUDE.md 技能表時要同步 baseline。
+- 同一支腳本會掃 `plugins/`、`tests/`、CLAUDE.md、README.md 與兩份 manifest，不得出現已退役 skill 的名稱或指令（含 `/contract`、`/seal` 的 slash 形式與 sealed 標記字面）。
+- 技能數上限（12）也由它檢查；CLAUDE.md 的 skill 表沒有另外的 baseline 檔。
 
 ## 版本
 
@@ -77,17 +74,15 @@ uv run --no-project --with pytest --with pyyaml make ship-check
 
 - `plugin.json` 不放 `skills` 陣列。
 - `/ship` 刪分支用 `-D` 不用 `-d`。
-- sealed 標記只讀檔案前 3 行偵測；`/contract` 歸檔一律加時間戳，`/ship` 只在名稱衝突時加。
 - `/learn` 完整筆記以批判層四段結尾，沒有矛盾也要明寫。
 - `/read` 的 `raw/` 不可變。
 - `verify-skills.py` Gate 10 是 loop-pauses 註冊表的契約；Gate 11 已退役，編號不再使用。
 - 沒有 git 的專案，`/ship` 在任何歸檔搬移之前就失敗。
-- `seal-guard.ps1` 必須保留 UTF-8 BOM；`.sh`／`.ps1` 行為要一致。
 - 跨 skill 的行為護欄放在 `plugins/baransu/rules/anti-patterns.md`。
 
 ## 新增或退役 skill
 
-- 上限 14：要加一個，先退役一個（以裁換建）。見 [理念](philosophy.md#14-個-skill-的上限)。
+- 上限 12：要加一個，先退役一個（以裁換建）。見 [理念](philosophy.md#12-個-skill-的上限)。
 - 新 skill 先用 `/baransu:think` 自己吃自己的狗糧。
 - 調整 skill 的 Automation 行時要通過 `verify-skills.py` Gate 10：`loop=drivable`／`assisted` 的 skill 要附 `references/loop-pauses.md`，並在 `_shared/loop-contract.md` §4 有一列正式註冊。
 

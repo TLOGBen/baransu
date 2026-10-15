@@ -114,6 +114,8 @@ Before investigating, pick the tool that can **observe the layer where the probl
 
 If the problem layer is uncertain, use bash logging first to confirm which module the symptom appears in, then choose the precise tool.
 
+Reading discipline, for every static read: open the entry point and trace control flow before grepping for names — names lie, control flow does not; map the data first (schemas, record layouts, stored state), then who touches it, because the data is more stable and more truthful than the procedure around it; every claim cites file:line or says 「不知道」; write 「是」 only for what the code shows and 「看起來是」 for what is inferred from names or structure; and note what is missing near the site — the unhandled error path, the commented-out block, the TODO, the magic number — as evidence about history and risk, not noise.
+
 ---
 
 ## Locate — Pin Down the Prey
@@ -233,6 +235,8 @@ If the blast surfaces unrelated bugs, list them in the case file but do not fix 
 
 Activate when: "It worked before and now it's broken" or "It broke after an update."
 
+When the update is a version pair (runtime, framework, dependency), the first hypotheses come from the delta: the known changes of that pair intersected with what this code actually uses, each cited file:line with its site count — a removed API nobody calls is not a hypothesis — and a change that compiles and runs with a different result (locale, encoding, collection order, floating point, a default) outranks one that fails loudly, because the loud one already named itself. Bisect confirms the commit; the delta names the line.
+
 **Precondition — git repo**: If the project is not a git repo, skip Bisect Mode entirely and fall back to static analysis + instrumentation (Tool Scan / Instrumentation sections). Never wedge trying to bisect what has no history.
 
 1. Find `last-known-good`: use the most recent tag, not a date or raw SHA. (`git tag --sort=-version:refname | head -5`) If the repo has **zero tags**, ask the user for a known-good ref; when driven non-interactively, pick the oldest commit touching the symptom file and label the choice 「此處採預設」 in the case file.
@@ -274,7 +278,7 @@ If the issue is purely subjective UI taste, route to `/baransu:ui` instead. Stay
 | Investigation involves file writes / external API calls | Use mocks to prevent real writes; emails and webhooks must not actually send. |
 | Working tree dirty (`git status --porcelain` non-empty) when bisect is about to start | Stop — apply Bisect Mode step 3 gate before `git bisect start`. |
 | git bisect identified the commit | Run `git bisect reset` per Bisect Mode step 6 before any other git operation. |
-| Fix plan or current diff touches 6 or more files (without a Scope Blast pattern justification) | Stop **before adding the 6th file**. Check at two points: (i) when drafting the fix plan, (ii) after each edit. If the scope is genuinely a class-of-bug sweep, route through Scope Blast Mode (which is an explicit exception). If it is symptom-patch creep growing into a refactor, narrow back, or slice it and open a `/baransu:contract` on the first slice. |
+| Fix plan or current diff touches 6 or more files (without a Scope Blast pattern justification) | Stop **before adding the 6th file**. Check at two points: (i) when drafting the fix plan, (ii) after each edit. If the scope is genuinely a class-of-bug sweep, route through Scope Blast Mode (which is an explicit exception). If it is symptom-patch creep growing into a refactor, narrow back, or slice it and run the first slice through the medium band (implement under the `../_shared/tdd.md` §7 red/green discipline, then `/baransu:review` for independent re-verification). |
 | Someone (user or agent) deflects suspicion from a specific area — semantic trigger, not literal string match. Examples: 「那段沒問題」「不是那邊的問題」「先別管那個」「我已經檢查過了」, "that part doesn't matter", "I already checked there" | Treat as a signal. The area being deflected from is often where the bug lives — especially in multi-stage pipelines (CI segments, data pipeline stages, baransu plane handoffs) where one stage is excluded from suspicion. Re-examine that area with one targeted instrument before accepting the deflection. |
 
 > In an ultracode session you may dispatch Workflows only for parallel inventory/context scans that answer no hypothesis. They may inform the next serialized probe, but never explore multiple hypothesis lines in parallel.
@@ -318,7 +322,7 @@ For a bug that was previously fixed and then recurred, the conditions for 「已
 
 After confirming root cause, route the fix by task scope:
 - Single change point, small amount of code → implement directly, building your own red/green task list under the _shared/tdd.md discipline (read `../_shared/tdd.md` §7 before implementing)
-- Multiple files, design decision needed, or cross-module impact → slice the fix and run each slice through `/baransu:contract` → implement → `/baransu:seal`
+- Multiple files, design decision needed, or cross-module impact → slice the fix and run each slice through the medium band: implement under the `../_shared/tdd.md` §7 red/green discipline → `/baransu:review` for independent re-verification
 
 ### Handoff format (use after three hypothesis failures)
 

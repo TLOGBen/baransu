@@ -3,14 +3,15 @@
 """verify-skills.py — baransu 結構驗證器（一條命令證明 C1/C2/C3/C6）。
 
 Repo mode（無參數）執行全部檢查：
-  1. plugins/baransu/skills/ 技能目錄數 = 14（_shared/ 除外，且每目錄有 SKILL.md）
+  1. plugins/baransu/skills/ 技能目錄數 = 12（_shared/ 除外，且每目錄有 SKILL.md）
   2. SKILL.md frontmatter 可解析（think 極簡式 / read-learn 完整式皆容納）
      ＋官方細目：name ≤64 字元小寫連字符、name == 目錄名、name 無保留字
      （anthropic/claude）、description 非空 ≤1024、第三人稱啟發式、
      description/when_to_use 無 XML tags、兩者合計 ≤1536 字元（listing 預算）
   3. SKILL.md 引用的 references/ 檔存在，且 references/ 內不得再巢狀 references/
-  4. 被裁名稱（grade/triage/bridge/dev/full_review）word-boundary ＋ 被裁指令
-     （/execute）slash 形式，零功能殘留
+  4. 被裁名稱（grade/triage/bridge/dev/full_review/seal-agent/seal-guard）
+     word-boundary ＋ 被裁指令（/execute、/contract、/seal、baransu:contract、
+     baransu:seal）slash 形式 ＋ 被裁 sealed 標記字面（STATUS: sealed），零功能殘留
      （掃描面與排除規則內嵌於本腳本，見 RESIDUE_* 常數；git 歷史不掃；
      vendored 第三方目錄整體排除並計數，見 RESIDUE_VENDORED_PREFIXES）
   5. 三發行面（plugin.json / marketplace.json / codex 鏡像）version 一致
@@ -30,17 +31,16 @@ Repo mode（無參數）執行全部檢查：
  全倉已無 green_proof 欄位可對齊，該閘門失去檢查對象。編號不重排：11 為末位，
  直接留白。）
 
-Advisory（不影響 exit code）：SKILL.md 本文 >500 行清單（官方上限）；repo mode 另印 14 skill description+when_to_use
+Advisory（不影響 exit code）：SKILL.md 本文 >500 行清單（官方上限）；repo mode 另印 12 skill description+when_to_use
 總量，超過 LISTING_TOTAL_ADVISORY 時印警示行（見 LISTING_* 常數註記）。
 
 Skills-root mode（一個位置參數 = 含技能目錄的根目錄）：只跑 per-skill 檢查
-（2/3/6/7）。供負向 fixture 測試證明可證偽性
-（tests/scripts/test_verify_skills.py）。
+（2/3/6/7）。供手動對一個 fixture 目錄證明可證偽性（本倉自 v8.0.0 起不
+附任何單元測試；這些模式保留給臨時驗證用）。
 
-Agents mode（--agents <目錄>）：只跑檢查 9。同樣供負向 fixture 測試。
+Agents mode（--agents <目錄>）：只跑檢查 9。
 
 Loop-registry mode（--loop-registry <skills 根目錄>）：只跑檢查 10。
-供負向 fixture 測試（tests/scripts/test_verify_skills_gates.py）。
 
 Exit 語義（沿用倉內 gate 慣例）：
   0 = pass
@@ -64,7 +64,7 @@ PLUGIN_MANIFEST = REPO_ROOT / "plugins" / "baransu" / ".claude-plugin" / "plugin
 MARKETPLACE_MANIFEST = REPO_ROOT / ".claude-plugin" / "marketplace.json"
 CODEX_MANIFEST = REPO_ROOT / "codex" / "plugins" / "baransu" / "plugin.json"
 
-EXPECTED_SKILL_COUNT = 14
+EXPECTED_SKILL_COUNT = 12
 BODY_LINE_ADVISORY_LIMIT = 500
 
 # 官方 frontmatter 細目
@@ -116,27 +116,33 @@ REF_DEPRECATION_LINE_RE = re.compile(r"已廢除|已移除|deprecated|removed")
 # 掃描面（內嵌，不外部設定）：
 #   plugins/**/*.{md,py,json} + tests/**/*.{md,py,json} + CLAUDE.md +
 #   README.md + 雙 manifest；git 歷史不掃。
-#   副檔名集合 {md,py,json} 同樣適用於 tests/ —— .sh gate 腳本（如
-#   tests/integration/test-distribution-metadata.sh）以字面列舉被裁名稱來
-#   「檢查其不存在」，屬 meta-checker 而非殘留。
-#   tests/**/fixtures/** 整體排除：fixture 為刻意構造的測試輸入
-#   （含本驗證器自己的 bad-skill stub，以及 TASK-verify-02 排程修剪的
-#   tdd-trigger dogfood 文件），非發行面。
+#   tests/ 自 v8.0.0 起只剩 tests/ab/（/ui 的 A/B 盲評題目與結果），仍在
+#   掃描面內；tests/**/fixtures/** 整體排除（刻意構造的輸入，非發行面）。
 #
 # 白名單（residue-scan-classification.md 與兩輪 review 已落盤的同形/歷史例）：
 #   命中行若符合任一規則即排除並計數；分類計數隨輸出落盤，
 #   不以「grep 無輸出」單獨作為 C2 證據。
 # ---------------------------------------------------------------------------
-# 兩類命中：
-#   (a) 被裁「名稱」word-boundary —— grade / triage / bridge / dev / full_review
-#   (b) 被裁「指令」slash 形式 —— `/execute`。不能用 word-boundary 掃裸 execute：
-#       execute 是本倉常用動詞，且 `.claude/execute/` 是刻意保留的執行階段目錄名
-#       （execution-pipeline.md Hard Constraints、/ship 歸檔規則以它為 key）。
+# 三類命中：
+#   (a) 被裁「名稱」word-boundary —— grade / triage / bridge / dev / full_review，
+#       以及 v8.0.0 退役的 seal-agent / seal-guard（agent 與 hook 名，無同形一般詞）。
+#   (b) 被裁「指令」slash 形式 —— `/execute`、`/contract`、`/seal`（v8.0.0），
+#       以及 `baransu:contract` / `baransu:seal`（含 Claude 的 `/baransu:` 與
+#       Codex 的 `$baransu:` 兩種前綴）。不能用 word-boundary 掃裸 execute /
+#       contract / seal：execute 是本倉常用動詞，`.claude/execute/` 是刻意保留的
+#       目錄名；contract 出現在 `loop-contract.md`、`Outcome Contract`、draw 的
+#       `delivery-contract.md` / `authoring-contract.md` 等合法處。
 #       `\B/` 只在斜線前方不是字元邊界時成立，`(?!/)` 再排除路徑段形式，故
-#       `/execute` 命中，而 `.claude/execute/`、`{slug}/execute/confirm.md`、
+#       `/execute`、`/contract`、`/seal` 命中，而 `.claude/execute/`、
+#       `../contract/references/`、`skills/seal/`、`{slug}/execute/confirm.md`、
 #       `worktrees/execute-{date}`、`-b execute/{date}` 皆不命中。
+#   (c) 被裁 sealed 標記字面 `STATUS: sealed`（/contract 的封緘標記語法，
+#       /seal 蓋印、/ship 偵測——三者皆退役，字面不得再出現）。
 REMOVED_NAMES_RE = re.compile(
-    r"\b(?:grade|triage|bridge|dev|full_review)\b|\B/execute\b(?!/)"
+    r"\b(?:grade|triage|bridge|dev|full_review|seal-agent|seal-guard)\b"
+    r"|\B/(?:execute|contract|seal)\b(?!/)"
+    r"|\bbaransu:(?:contract|seal)\b"
+    r"|STATUS: sealed"
 )
 RESIDUE_SCAN_EXTS = {".md", ".py", ".json"}
 

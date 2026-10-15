@@ -181,8 +181,6 @@ Outcome Contract still applies.
 | Skill | PAUSE classification |
 |---|---|
 | $baransu:review | `../review/references/loop-pauses.md` |
-| $baransu:contract | `../contract/references/loop-pauses.md` |
-| $baransu:seal | `../seal/references/loop-pauses.md` |
 | $baransu:hunt | `../hunt/references/loop-pauses.md` |
 | $baransu:learn | `../learn/references/loop-pauses.md` |
 | $baransu:ship | `../ship/references/loop-pauses.md` |

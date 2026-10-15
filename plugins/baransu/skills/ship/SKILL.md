@@ -24,14 +24,14 @@ No user confirmation required. The steps below run automatically.
 
 Named red-lines, each enforced by the step in parentheses; none is optional. The step keeps its own if-then recovery — these name the rule it enforces.
 
-- **INV-1 — Two named archive sources, nothing else.** Exactly two sources feed the archive: (1) the Step 1 `ARCHIVE_DIRS` allowlist, swept dir by dir; (2) sealed root `CONTRACT*.md` files, identified by the sealed marker in their first 3 lines. Everything outside those two is never archived — the `read` / `learn` / `draw` products, unsealed contracts, and all Claude Code infrastructure (`worktrees/`, `projects/`, `jobs/`, `plugins/`, `settings*.json`) stay in place. The allowlist spirit is unchanged: naming the second source enumerates it just as explicitly, it does not open a discretionary sweep. (Step 2)
+- **INV-1 — One named archive source, nothing else.** Exactly one source feeds the archive: the Step 1 `ARCHIVE_DIRS` allowlist, swept dir by dir. Everything outside it is never archived — the `read` / `learn` / `draw` products and all Claude Code infrastructure (`worktrees/`, `projects/`, `jobs/`, `plugins/`, `settings*.json`) stay in place. The allowlist is explicit; it does not open a discretionary sweep. (Step 2)
 - **INV-2 — Source dirs are emptied, never deleted.** Archiving moves items out; the source directory itself stays in place. (Step 2)
 - **INV-3 — Never force-push.** `--force` is forbidden on every push; `--force-with-lease` is used only when the user explicitly asks. (Step 4)
 - **INV-4 — No worktree teardown until the work is on origin.** A worktree is destroyed only after `git merge-base --is-ancestor` confirms the branch is on `$SAFE_REF`. (Step 5)
 - **INV-5 — Branch deletion uses `-D`, not `-d`.** After a merge the branch may read as unmerged locally, so `-d` fails. (Step 5)
 - **INV-6 — `rm -rf` is only run on a validated worktree path.** The third-tier `rm -rf "$WORKTREE_PATH"` fallback runs only after a precondition guard confirms `$WORKTREE_PATH` is non-empty, is not `/`, and carries `.git`/`.git/worktrees` lineage; if the guard fails, `rm -rf` is skipped and the worktree is left intact. (Step 5)
 - **INV-7 — No blind staging of secret-pattern files.** Before `git add -A`, every untracked/modified path from `git status --porcelain` is matched against the Step 3 closed pattern list; any match stops the commit before staging. (Step 3)
-- **INV-8 — The commit subject names the shipped outcome.** Derive one Conventional Commit message from the staged diff; archiving and session cleanup never displace a substantive code, behavior, or documentation outcome — including the staged deletion of a sealed root contract, which legitimately enters the staged diff but must never dominate the subject. (Step 3)
+- **INV-8 — The commit subject names the shipped outcome.** Derive one Conventional Commit message from the staged diff; archiving and session cleanup never displace a substantive code, behavior, or documentation outcome. (Step 3)
 - **INV-9 — Archive is local-only.** The archive root must be ignored and contain no tracked paths before any item is moved into it; existing tracked archives are removed from the index but retained on disk. (Step 2)
 - **INV-10 — Integrate before committing; never commit over an unverified resolution.** The remote is pulled into the stashed working tree before the commit, and the commit proceeds only after the unmerged-path check, the conflict-marker grep, structured-file parsing and the project's test entrypoint have each passed on their own exit status. (Step 2b)
 
@@ -46,15 +46,12 @@ The optional target-branch argument may be written as `<branch>`, `到 <branch>`
 
 Git probe first — run `git rev-parse --git-dir 2>/dev/null`. If it fails (the project is not a git repo), output 「此專案不是 git repo：/ship 的 commit／push／worktree 流程無法執行，已停止。如需歸檔請手動處理 .claude/ 工作目錄。」 and stop. The probe MUST run before any archive move: without git there is no commit to anchor moved files, so archiving first would strand them — and every later git step (commit, push, worktree teardown) would wedge.
 
-Check four inputs: whether the workspace dirs hold archivable items, whether the git working tree has pending changes, whether the repo root holds a sealed contract, AND whether HEAD carries commits that have not landed on origin yet. Stop only when **all four** are empty — otherwise there is still work to ship even when the other sides are empty. A clean tree does not mean the work is out: commits made earlier in the session (or in an earlier session) still need Step 4.
+Check three inputs: whether the workspace dirs hold archivable items, whether the git working tree has pending changes, AND whether HEAD carries commits that have not landed on origin yet. Stop only when **all three** are empty — otherwise there is still work to ship even when the other sides are empty. A clean tree does not mean the work is out: commits made earlier in the session (or in an earlier session) still need Step 4.
 
 ```bash
-ARCHIVE_DIRS="tmp think hunt-report evolve review write seal"
+ARCHIVE_DIRS="tmp think hunt-report evolve review write"
 ARCHIVE_ITEMS=$(python3 -c "import sys, pathlib; print(next((str(p) for d in sys.argv[1].split() if pathlib.Path('.claude', d).is_dir() for p in pathlib.Path('.claude', d).iterdir()), ''))" "$ARCHIVE_DIRS")
 GIT_DIRTY=$(git status --porcelain 2>/dev/null | head -1)
-SEALED_CONTRACTS=$(find . -maxdepth 1 -type f -name 'CONTRACT*.md' | while read -r f; do
-  head -3 "$f" | grep -qF '> STATUS: sealed' && printf '%s\n' "$f"
-done)
 LAND_REF="--remotes"
 if [ -n "$TARGET" ] && [ "$TARGET" != "$(git rev-parse --abbrev-ref HEAD)" ] \
    && git rev-parse --verify --quiet "origin/$TARGET" >/dev/null; then
@@ -65,25 +62,11 @@ UNLANDED=$(git rev-list HEAD --not $LAND_REF 2>/dev/null | head -1)
 
 `UNLANDED` names the first commit on HEAD that the landing ref does not contain. In current-branch mode the ref is every remote-tracking branch (`--remotes`), so a new branch with commits counts as unlanded too. In land-on-target mode it is `origin/$TARGET`, so a branch that is pushed but not yet merged into the target still counts. The remote refs are the ones from the last fetch. A ref that merely lags the remote can only make `UNLANDED` non-empty, which sends the run on to Step 4 where the push is a no-op. The one case it misses is a remote branch deleted or rewound since that fetch; Step 1 does not fetch, so that case stays out of scope here. (`$LAND_REF` is left unquoted on purpose: it is a single token, and `--remotes` must reach git as an option.)
 
-(The detect uses python3/pathlib rather than a shell loop over `$ARCHIVE_DIRS`: zsh does not word-split unquoted parameters, so a `for d in $ARCHIVE_DIRS` + `find` pattern silently yields an always-empty `ARCHIVE_ITEMS` under zsh-driven harnesses. For the same class of reason the contract scan uses `find` with a quoted pattern instead of a `for f in CONTRACT*.md` glob: under zsh an unmatched glob is an error, not an empty list, so the glob form aborts the scan on every repo that has no contract at all. Keep the loop variable named `f` — the detection line below is a verbatim constant.)
-
-**Sealed-contract detect.** The grammar authority for the marker is the contract template in `../contract/SKILL.md` Step 2 (sealed-marker grammar: single authority) — cite it, do not restate its rules here. `/ship` only ever reads it. The detection target is this exact line, which a sealed contract carries at line 2, immediately after the H1:
-
-```
-> STATUS: sealed（{ISO 日期}）— {五點結果一行摘要}
-```
-
-Only the first 3 lines of each candidate are scanned — never grep the whole file, or a contract that merely quotes the marker inside its own Verbatim Constants block reads as sealed:
-
-```bash
-head -3 "$f" | grep -qF '> STATUS: sealed'
-```
-
-The scan is root-only and non-recursive (`-maxdepth 1`): contracts kept at a user-chosen path outside the repo root are the user's to manage.
+(The detect uses python3/pathlib rather than a shell loop over `$ARCHIVE_DIRS`: zsh does not word-split unquoted parameters, so a `for d in $ARCHIVE_DIRS` + `find` pattern silently yields an always-empty `ARCHIVE_ITEMS` under zsh-driven harnesses.)
 
 Decision:
 
-- If `ARCHIVE_ITEMS` is empty AND `GIT_DIRTY` is empty AND `SEALED_CONTRACTS` is empty AND `UNLANDED` is empty → output 「沒有可歸檔的工作檔案，git 也乾淨，root 無 sealed 合約，也沒有待落地的 commit，結束。」 and stop. Do not proceed.
+- If `ARCHIVE_ITEMS` is empty AND `GIT_DIRTY` is empty AND `UNLANDED` is empty → output 「沒有可歸檔的工作檔案，git 也乾淨，也沒有待落地的 commit，結束。」 and stop. Do not proceed.
 - Otherwise → continue (Step 2 / Step 3 each have their own empty-input fallback; Step 4 lands work unconditionally so unpushed commits from earlier sessions still go out).
 
 ---
@@ -110,7 +93,7 @@ Before moving any item, enforce the local-only boundary:
    If either command fails, output 「archive ignore 驗證失敗：已停止歸檔，未移動
    任何工作檔案。」 and stop.
 
-**Archive allowlist** — exactly the Step 1 `ARCHIVE_DIRS` value, in the same order: `tmp`, `think`, `hunt-report`, `evolve`, `review`, `write`, `seal`. The two lists MUST stay identical; a dir detected in Step 1 but absent here would leave Step 1's detect output unconsumed.
+**Archive allowlist** — exactly the Step 1 `ARCHIVE_DIRS` value, in the same order: `tmp`, `think`, `hunt-report`, `evolve`, `review`, `write`. The two lists MUST stay identical; a dir detected in Step 1 but absent here would leave Step 1's detect output unconsumed.
 
 **Never archived**: the `read`, `learn`, `draw`, and `design` dirs are kept products and stay in place. Claude Code infrastructure (`worktrees/`, `projects/`, `jobs/`, `plugins/`, `settings*.json`, …) is never touched — the allowlist is explicit precisely so infra is never swept up.
 
@@ -119,20 +102,11 @@ For each dir in the allowlist, for each item directly inside the source director
 - If destination already exists: rename it to `.claude/archived/{item_name}-{unix_timestamp}` first
 - Move item to destination
 
-Source directories are left empty (not deleted).
+Source directories are left empty (not deleted). Archiving is collision-only timestamping — the plain `{item_name}` destination is used when it is free, so archive names stay readable.
 
-**Sealed root contracts** — after the allowlist sweep, take the `SEALED_CONTRACTS` list from Step 1 (the second archive source named by INV-1) and archive each one with the same collision semantics as above:
-- Destination: `.claude/archived/{filename}` — `{filename}` is the basename of the detected path (Step 1's `find` output carries a `./` prefix; strip it, e.g. `basename "$f"`)
-- If destination already exists: rename it to `.claude/archived/{filename}-{unix_timestamp}` first
-- Move the contract to destination
+Output: 「已歸檔：{N} 個項目 → .claude/archived/（read/learn/draw/design 產物保留）」
 
-A sealed contract is a completed artifact, so `/ship` collects it; an **unsealed** contract is live work and stays in place, untouched. Step 1's sealed-contract detect and this sweep MUST stay in sync — the same reason the two `ARCHIVE_DIRS` lists must: a contract detected in Step 1 but not swept here would leave Step 1's detect output unconsumed (and could early-stop nothing into a no-op run).
-
-(Archiving here is collision-only timestamping — the plain `{filename}` destination is used when it is free. `/contract` Step 3 archives a sealed contract it is about to overwrite and always timestamps. The asymmetry is deliberate: `/contract` is mid-write and cannot afford to reason about the destination, `/ship` keeps archive names readable. Do not unify them.)
-
-Output: 「已歸檔：{N} 個項目 → .claude/archived/（read/learn/draw/design 產物保留；含 sealed 合約 {S} 份）」
-
-`{N}` is the total moved — allowlist items plus sealed contracts — and `{S}` is how many of those `{N}` were sealed contracts (`{S}` is `0` when none).
+`{N}` is the total number of allowlist items moved.
 
 If any move fails → output 「歸檔失敗：{reason}」 and stop.
 
@@ -204,7 +178,7 @@ COMMIT_MESSAGE="chore: 收尾本次工作"
 - Use exactly one Conventional Commit type: `feat`, `fix`, `refactor`, `docs`, `test`, or `chore`.
 - Write a concise subject that names the **primary shipped outcome**, not the mechanics of committing, pushing, archiving, or "updating changes". Inspect the relevant staged hunks when filenames and stats are not enough to identify that outcome.
 - Keep `COMMIT_MESSAGE="chore: 收尾本次工作"` only when the staged evidence genuinely cannot support a more specific summary.
-- Archive files are ignored by INV-9 and therefore must never influence the staged outcome or commit subject. One case does reach the staged diff: a sealed contract that was tracked at the repo root shows up as a **deletion of the old root path** (its new copy under `.claude/archived/` is ignored, so no tracked path enters the archive and INV-9's pre-move check still holds). That deletion is a legitimate staged change — do not try to unstage it — but it is session cleanup, so it must never dominate the commit subject; name the substantive outcome instead.
+- Archive files are ignored by INV-9 and therefore must never influence the staged outcome or commit subject.
 
 Commit using the selected message:
 

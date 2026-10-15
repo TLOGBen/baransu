@@ -2,7 +2,7 @@
 
 [← 回首頁](../README.md)
 
-baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重的決策不省思考」這套平衡哲學，包成一個 Claude Code plugin（另有手動維護的 Codex 版）。共 14 個 skill，每個都有清楚的觸發界線——什麼能省、什麼一定要做。
+baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重的決策不省思考」這套平衡哲學，包成一個 Claude Code plugin（另有手動維護的 Codex 版）。共 12 個 skill，每個都有清楚的觸發界線——什麼能省、什麼一定要做。
 
 首頁只講概念；這裡放完整參考。
 
@@ -18,14 +18,12 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 
 ## Skill 參考
 
-14 個 skill 分成五個家族。每頁列出每個 skill 的用途、觸發語、參數、產出位置與不適用的情況。
+12 個 skill 分成五個家族。每頁列出每個 skill 的用途、觸發語、參數、產出位置與不適用的情況。
 
 | 家族 | Skill | 一句話 |
 |---|---|---|
 | [構想](skills/plan.md) | [`/think`](skills/plan.md#think) | 動手前審議，留下一份計畫，不寫程式 |
-| | [`/contract`](skills/plan.md#contract) | 中型任務開工前，一頁釘死驗收條文 |
-| [驗證](skills/verify.md) | [`/seal`](skills/verify.md#seal) | 對著合約做五點封緘驗收 |
-| | [`/review`](skills/verify.md#review) | 乾淨 context 獨立重驗任何產出 |
+| [驗證](skills/verify.md) | [`/review`](skills/verify.md#review) | 乾淨 context 獨立重驗任何產出 |
 | | [`/hunt`](skills/verify.md#hunt) | 從症狀追到根因，確認後才修 |
 | [創作](skills/make.md) | [`/draw`](skills/make.md#draw) | 靜態圖、互動圖、影片、說明頁 |
 | | [`/ui`](skills/make.md#ui) | 為你 repo 裡的介面定調並直接改檔 |

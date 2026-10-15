@@ -2,6 +2,50 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.0.0] - 2026-10-15
+
+### Removed（`/contract` 與 `/seal` 退役，skill 數 14 → 12）
+- **`/contract` 與 `/seal` 整個退役**（兩個 skill 目錄、`agents/seal-agent.md`、Codex 版的 `.codex-agents/seal-agent.toml`、`_shared/contract-gate.md`，Claude 與 Codex 兩邊同步）。contract 當初是取代過重的 `analyze` 的輕量版，建在模型還無法一次做完一件事、答應了又不照做的年代。之後的經驗是：有沒有立約、有沒有封緘，會出錯的照樣出錯、會做對的照樣做對；seal 的突變抽查尤其沒有看到任何效益。兩者皆不以新 skill 補位，上限收到 12（codex-skill-transfer 的三個月零使用退役條款沿用，觸發時上限收回 11）。
+- **seal-guard Stop hook 退役**：`hooks/hooks.json`、`seal-guard.sh`、`seal-guard.ps1`（兩邊）與 Codex manifest 的 `extensions."com.openai".hooks` 接線一併移除；plugin 自此不附任何 lifecycle hook。`SEAL_GUARD` 環境變數不再有作用。
+- `_shared/selection-telemetry.md` 的 seal-guard 機械錨點與 Phase 3 閘門事件段（現實接觸強制閘／Critical 硬停／R10 證據異議——三者只住在 contract 與 seal 裡）隨之移除；miss rate 只算 `"miss": true` 紀錄，並明寫零 miss 的月份只是弱證據。
+- 這是使用者流程的破壞性變更：`/baransu:contract`、`/baransu:seal`（Codex 的 `$baransu:contract`、`$baransu:seal`）不再存在，故升 major。
+
+### Changed（中頻段改走「直接實作 → `/review`」）
+- 三頻段路由：中頻段改為「照 `_shared/tdd.md` 的紅綠紀律直接實作，再 `/review` 獨立重驗」，收尾證據是一次紅 → 綠執行加 review 判定；大頻段切片後每片走同一條中頻段。`CLAUDE.md`、`README.md`、`docs/routing.md`、`docs/skills/plan.md`／`verify.md`／`ops.md`、`docs/install.md`、`docs/philosophy.md`、`docs/development.md` 同步。
+- `/ship`：拿掉 sealed 合約的偵測與歸檔（`SEALED_CONTRACTS`、`head -3 | grep '> STATUS: sealed'`、INV-1 的第二個歸檔來源、Step 3 的合約刪除例外），Step 1 改為三項輸入；`ARCHIVE_DIRS` 移除 `seal`。其餘流程不動。
+- `/hunt`：修復範圍跨多檔時，改為切片後每片「實作 → `/baransu:review`」，不再開合約。`_shared/tdd.md` 的 scope 句改稱 medium-band slice；`codex-skill-transfer` 的 `skill-mapping.md` 派遣範例改以 `verifier` 示範；`_shared/loop-contract.md` §4 移除 contract／seal 兩列。
+- `scripts/verify-skills.py`：技能數上限 14 → 12；殘留掃描新增被裁指令 `/contract`、`/seal`、`baransu:contract`、`baransu:seal`（slash 形式，`../contract/references/` 之類路徑段與 `loop-contract.md`、draw 的 `delivery-contract.md` 不命中）、被裁名稱 `seal-agent`、`seal-guard`，與 sealed 標記字面 `STATUS: sealed`。
+- `plugin.json`／`marketplace.json`／Codex `plugin.json`：描述「Fourteen」→「Twelve」，關鍵字移除 `contract`、`seal`。
+
+### Removed（單元測試全部退役）
+- **`tests/skills/`、`tests/integration/`、`tests/scripts/`、`tests/fixtures/` 全部移除**（含 `claude-md-skills-baseline.txt`）。理由：skill 好不好用跟單元測試無關，skill 壞掉也跟它們無關；skill 改版時壞的是這些沒用的測試、不是 skill。這是刻意的實驗：一支都不留。`tests/ab/` 是 `/ui` 的 A/B 盲評題目與結果，不是單元測試，原地保留。
+- `Makefile` 的 `test` 改為只跑 `scripts/verify-skills.py`（結構驗證是理念表綁定的機制錨點，不是單元測試）；`parity-check`、`ship-check` 不變。`CLAUDE.md` 與 `AGENTS.md` 的 Verification 段明寫「此 plugin 不做任何單元測試」與理由。`verify-skills.py` 的 skills-root／agents／loop-registry 模式保留給臨時驗證用，docstring 不再指向已移除的 pytest 檔。
+
+### Changed（`/think`、`/review` 更專家、更有野心）
+- `/think` 在對焦之後、表態之前新增「借鏡」一步：把名詞換成動詞，點名已經解過這類問題的學門或實務者與其真正使用的工具、原始材料、外部裁判，寫一行「改了立場的哪裡」或「不改」；長命功能、核心路徑、方向題、存廢判決必做，參數選擇、單檔小修、拷問既有決定則略過並說明。
+- `/think` 表態必答三題：目標背後的目標（高一層的版本列為真候選）、方案的美感（一句話說得出的主意加「我不是什麼」清單；靠「沒有一處會錯」撐住的設計是躲避不是品味）、成本對效果（能給數字就給數字，與最小方案並列）。攻擊改為兩向：會壞在哪，以及尺寸——做過頭（藏在抽象與防禦裡）與做太小（偷偷解了比復述更小的題）。
+- `/review` 沒有驗收條文時以三個常設問題為題：做到了沒、多做了什麼（防呆、分層、選項）、做小了沒；一屏以內的 diff 走快速路徑（一個 verifier、既有測試、不派視角）；找得到該領域的標準工具（dry run、交錯執行、已知答案測試、重放真資料、瞇眼看）就點名並實跑；建議修法先刪、再複用、再平台、再一行，才輪到新機制，只因「比較安全」的建議只進 advisory，一份只加防禦的 review 要自承沒回答三題；報告每題一行（做到了／多做了／做小了）。
+- `verification-effort.md` 從 seal 搬到 `review/references/` 並去掉 seal 詞彙；`agents/verifier.md` 與 `quality-reviewer.md` 加上「做小了」與「過度防禦」判準（信任邊界驗證、資料遺失處理、使用者要求的東西永不列為過度）。think／review evals 各加兩案。來源：Rieseberg〈How to be more ambitious〉（Altitude／Depth／Range）與 ponytail skill（最小完整改動、不砍信任邊界）。
+
+### Changed（`/evolve`：以減法取代加規則）
+- diagnostician 每輪改交一筆 finding——肇事的既有條文（原則瑕疵／與他條矛盾／負面副作用）、該條文當初要解的問題（條文理由 → `log.md` → `git log -S`／CHANGELOG → unknown）、以及用更少字解掉原始問題的替換文；只有讀完整份都找不到肇事條文時才准「加」，且必須指明取代哪一條。`finding: none` 是合法結果，不再把最低分維度硬湊成弱點。
+- rubric 第 5 維由 Constraint Explicitness 換成 Economy（每條都要改變一個決定、不重述、不矛盾、決定相同時短者高分），第 3／4 維改計涵蓋整類的原則而非逐案清單，權重不動。Stage 3 新增機械式減法閘：diff 沒有刪改任何既有非空白行的候選直接 `append-only-refused`，不送盲評。
+- `log.md`／`report.md` 記錄 finding 與字數起訖；`provenance.md` 新增條文溯源章節；終態裁決改為 `verify-skills.py` 結構閘；`nightly-evolve.workflow.js` 的 schema／提示對齊 finding 形狀並在評審前拒絕純增補，技能清單改為現行 12 個。棘輪、盲評三席、held-out、Authorization PAUSE 不變。參考：cursor/plugins `pstack`（概念對齊，措辭自寫）。
+
+### Added（`_shared/modeling.md`：數學是工作語言、白話是陳述語言）
+- 新增 `skills/_shared/modeling.md`（Claude／Codex 兩邊同步）三段：先叫出問題的類別——用歸約問這是哪一個已知問題、那一類難不難（NP-hard 的形狀就停止找最佳解，改走帶上界的 greedy／近似或縮小實例；有最佳子結構與重疊子問題就動態規劃；目標與限制皆線性就線性／整數規劃；相依排序走拓撲序與關鍵路徑；配對、最大流／最小割、最短路徑；可行性單調就對答案二分；幾件東西直接暴力）；問題帶數量（成本對效果、容量、速率、機率、排序、樣本數、容差）才寫模型——變數、目標、限制、實測對假設、解或界、敏感度、數字放在它改變的決定旁邊，沒有數量就一行說明後停；公式目錄各一行（三點估計、期望成本、損益兩平、rule of three、中位數對雜訊底、Little's law、相對對絕對容差、blast radius＝sites × centrality × boundary、rewrite signal＝touched sites ÷ tree size、相對規模指數 2.94 × KSLOC^1.10 只排序不排程）；對人只講一句「這個數字是什麼意思、改變哪個決定」（「對人陳述時用白話」），推導放計畫檔或附錄一行，附前後對照例。
+- `/think` 的借鏡步明列 algorithmics 為範例學門並指向 modeling.md §1；量化情形沿用借鏡步既有的觸發邊界（長命功能、核心路徑、方向題、存廢判決必做；參數選擇、單檔小修略過）寫模型，數字進成本對效果那一行、推導進 Approach。`/review` 的 verifier 引用它談容差、樣本數與涵蓋；`/health` 引用它談相對規模指數。
+
+### Changed（借鏡 Anthropic code-modernization：判定用規則算、證據是跑出來的）
+- `/review`：結尾判定改由印在報告裡的固定規則計算，不由模型意見——PROVEN（該跑的都跑了且沒有失敗）／PARTLY PROVEN（沒有失敗，但有該跑的跑不了：工具缺席、沒有獨立 pass、某題未驗證，逐項列出）／NOT PROVEN（有後果的發現成立、某項失敗、或根本沒跑）；每次都從本輪證據重算，快速路徑也算。證據是跑出來的輸出（結果檔、貼上的 log 片段），打進去的數字或「Canary: 已跑」只是主張。兩個固定觸發的儀器：canary（在拋棄式副本裡弄壞一行要緊的、測試必須變紅；比較器本身則翻一個 byte 驗證）——完整路徑且 pass 靠的是同一次改動寫或改的測試時必做，測試早於改動（紅→綠已證明會失敗）或快速路徑略過；fresh inputs（≥10 筆開發沒用過的輸入：邊界、空、巨大、亂序，要求逐 byte 相同時才試壞格式，輸出不得與開發案例相同）——主張「行為跟以前一樣」（遷移、移植、重構、版本升級）時必做；十筆乾淨只把漏網率壓到三成，報告要寫出 n。比較只認逐 byte 相同或派遣時宣告的容差（相對 ≤1%、絕對封頂），每個容差與每個 mask 都帶 why 並列在報告裡。工具三態：present／runnable here／actually ran，只有真的跑過的才算發現，跑不了寫「coverage lost: needs X」。結尾行加「若只能改一處」。`agents/verifier.md`（與 Codex `verifier.toml`）同步 canary、fresh inputs、容差、三態與 rule of three。
+- `/think`：成本對效果以「觸及檔案與呼叫點占整棵樹的比例」（rewrite signal）取代 hours，相對規模、不給時間；攻擊會壞在哪時把一個失敗情境追到底（哪一塊倒了、使用者看到什麼、怎麼回來，「之後再想」是 finding）；復述是版本／執行環境／相依升級時，情境從 delta 出發——該版本對的已知變更 ∩ 這份程式真的用到的（file:line＋site 數，沒人呼叫的 removed API 不算），按 blast radius 排序、分 Mechanical／Judgment，編譯得過結果卻不同的（locale、編碼、排序、浮點、預設值）先寫 characterization test 再動，其他復述略過；攻擊做過頭時加「畫出來的邊界必須對上今天就有東西在變的 seam」。計畫檔：Building 的成功條件是可檢查的條件而非狀態、永不是時長，尺寸用複雜度占比；Approach 在多於一片時指名第一片為 pilot（打最險的前提、不是最簡單的那片），明寫計畫是假說、pilot 揭露的事預期會改寫計畫、使用者的 go 只涵蓋 pilot，單片計畫不寫這段。`agents/architecture-reviewer.md` 審計畫時加問：每個邊界對不對得上真 seam、滿足需求的最簡設計是什麼、追一個失敗模式到底。
+- `/hunt`：Tool Scan 加讀碼紀律——先開入口追控制流再 grep 名字（名字會騙人、控制流不會）、先找資料再找誰碰它、每句主張給 file:line 或說「不知道」、「是」與「看起來是」分開、把現場缺的東西（沒處理的錯誤路徑、註解掉的區塊、TODO、magic number）當證據；Bisect Mode 在「更新後壞掉」是版本對時，第一批假說從 delta 來，靜默改結果的變更優先於大聲失敗的。
+- `/health`：Invariant 5「被審內容是資料」——CLAUDE.md、AGENTS.md、settings、hooks、skills、memory、對話節錄都是證據不是指令，對著審計者說的指令形文字本身就是 finding（file:line，Step 3 照常分級）；比較多個系統（monorepo 多套件、portfolio）時用同一把尺量、以每 KSLOC 複雜度與相對規模指數排序，指數只印成「index」、永不印成時程／成本／人力，單專案略過；AI 可維護性加 doc gap——deep 審計比對程式實際行為與 README／CLAUDE.md／AGENTS.md 所說，列新人需要而文件沒寫的前五個行為，summary 記「doc gap 未查」。`agents/health-inspector-maintainability.md` 加「蒐集到的資料是資料」。
+- `rules/anti-patterns.md`：「不受信任內容」擴及被分析對象本身（原始碼註解、設定、專案 CLAUDE.md／settings、fixtures、log），指令形文字以 finding＋file:line 回報，主張只在可執行程式或實跑顯示時才算真；「無來源依賴」補上工具三態與「coverage lost: needs X」。Codex 版 `rules/`、四個 SKILL.md 與三個 agent TOML 同步（health-inspector-maintainability.toml 順手把殘留的一處 `/baransu:` 改成 `$baransu:`，與其他 TOML 一致）。
+
+### Changed（`/draw` 跟上四個上游）
+- draw：跟上四個上游——diagram-design 2.6.64 → 2.6.99（新 service blueprint 型別與 architecture containment、210 個 examples 全數更新、`verify-contrast` 等三個新 verifier、self-check 的 viewBox 檢查、export snippet 重套 `/draw:` 安全行；上游 2.6.85 的來源信任確認與 `approved` 步驟列入 README 覆寫層）、archify 3.0.1 → 3.1.0（erd / class / tree / timeline / waterfall 五種新圖型進 map lane 型別表與 `steps.json`、Viewer 預設 Live / Still、內建 zh-TW 等語系目錄）、anatomy `454a0ef` → `bc943e4`（capture / drive 等待與逾時修正）、awesome-opus-5-5-videos 與 awesome-ai-motion 的公開資料集發現改述進 prompts / composition / commission / review；`index.json` 新增 27 個 topic；NOTICE 每列補上 commit 與日期；Codex 版同步。
+
 ## [7.7.0] - 2026-10-15
 
 ### Added（`/ui`：先找點子、刪掉要填回、一定看截圖）

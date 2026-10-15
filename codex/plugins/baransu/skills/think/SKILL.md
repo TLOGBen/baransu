@@ -1,13 +1,15 @@
 ---
 name: think
 description: Deliberates before building when the user has an undecided idea, feature,
-  refactor, or direction and asks how to design it, which way to go, or whether it
-  is worth doing (想一下, 幫我想, 怎麼設計, 值不值得, 該不該做, 「我想做 X 但還不確定」). Also takes a decision
-  already made when the user wants it tested (拷問我, grill me). Aligns on a restatement
-  of what they actually want, then leaves a stance with its bets named and a plan
-  file under .codex/think/ for review; never code, never a handoff to implementation.
-  Not for debugging an existing error ($baransu:hunt) or pinning acceptance for settled
-  work ($baransu:contract). 繁體中文輸出。
+  refactor, or direction and asks how to design it, which way to go, whether it is
+  worth doing, or whether there is a better or more elegant way (想一下, 幫我想, 怎麼設計, 值不值得,
+  該不該做, 有沒有更好的做法, 「我想做 X 但還不確定」). Also takes a decision already made when the user
+  wants it tested (拷問我, grill me). Aligns on a restatement of what they actually want,
+  borrows the discipline that already solved that shape of problem (naming the problem class and writing the model when a quantity is at stake, presented in plain language), then leaves a
+  stance with its bets named and a plan file under .codex/think/ for review; never
+  code, never a handoff to implementation. Not for debugging an existing error ($baransu:hunt)
+  or implementing settled work (red/green in _shared/tdd.md, then $baransu:review).
+  繁體中文輸出。
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex
@@ -26,15 +28,15 @@ When `request_user_input` is unavailable, present the same question as plain num
 
 Turn a fuzzy intent into a shared statement of what the user wants, then into a position someone else can read cold and judge. Never produce code, scaffolding, config, or pseudo-code; the deliverable is a stance and, when the work deserves one, a plan file.
 
-The default this skill corrects: the model assumes the user has already thought the request through, and answers before both sides agree on what is being asked. Everything in the opening exists to close that gap, and nothing in the opening may start solving.
+Two defaults this skill corrects. The model assumes the user has already thought the request through, and answers before both sides agree on what is being asked. And the model reaches for the answer that is hardest to call wrong — one more layer, one more guard, the problem quietly shrunk to the part it is sure of — instead of the answer that is right. Everything in the opening exists to close the first gap; the borrow, stance and attack sections exist to close the second.
 
 All user-facing output is in Traditional Chinese; keep technical terms in English and explain each one where it first appears.
 
 ## Outcome Contract
 
 - **Outcome**: A confirmed restatement of what the user wants, a stance with its bets named, and — for buildable work — a five-section plan at `.codex/think/<slug>.md`; for a verdict (Kill / Pivot) or a decision under test, the stance alone. Never code, scaffolding, or a handoff to implementation.
-- **Done when**: The restatement is confirmed by the user or unchanged after a round of answers; the stance is stated with its bets; every premise it leans on is tagged verified or 未實查; both attacks (breakage and excess) have run; the result has been presented; and, when buildable, the plan file exists and its path was reported. The turn ends there — no downstream skill is chosen and no approval gate is opened.
-- **Evidence**: The confirmed restatement, the verified / 未實查 tags with their commands and quoted output, and the plan file path (or the verdict line).
+- **Done when**: The restatement is confirmed by the user or unchanged after a round of answers; the borrow step has run or its skip was stated; the stance is stated with its bets and answers the three named questions; every premise it leans on is tagged verified or 未實查; the attack has run for breakage and for size; the result has been presented; and, when buildable, the plan file exists and its path was reported. The turn ends there — no downstream skill is chosen and no approval gate is opened.
+- **Evidence**: The confirmed restatement, the 借鏡 block (or its one-line skip), the verified / 未實查 tags with their commands and quoted output, and the plan file path (or the verdict line).
 - **Output**: Traditional Chinese conversation; `.codex/think/<slug>.md` with the restatement on top and the five sections below. `$baransu:ship` archives that directory.
 - **Automation**: ultracode=neutral, loop=not-drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 - **Telemetry**: on invocation, append one selection record per `../_shared/selection-telemetry.md`.
@@ -53,12 +55,31 @@ When the user arrives with a decision already made and wants it tested (拷問�
 
 Alignment ends when the user confirms the restatement, or when a round of answers leaves it unchanged; then stop asking. Two exits sit here:
 
-- If the confirmed restatement is a single-file change with one obvious fix, there is nothing to deliberate. Say so and point the user to the red/green discipline in `../_shared/tdd.md` §7; do not write a plan for it.
+- If the confirmed restatement is a single-file change with one obvious fix, or a parameter choice inside a shape already settled, there is nothing to deliberate. Answer it in a line or point the user to the red/green discipline in `../_shared/tdd.md` §7; do not write a plan for it and do not run the sections below.
 - If the restatement cannot fit in a few sentences because the effort has several independent destinations, say so. When the common suite's wayfinder is installed in the session (detect first, never assume), point there; otherwise say the effort needs to be charted before it can be deliberated, and stop.
+
+## Borrow the discipline that already solved this
+
+Most design problems are an old problem in a new costume, and the field that has lived with it longest has instruments the model will not reach for on its own. Before taking a stance, run this step with the model's own knowledge and the repo's prior art — no web research, no subagent; it is a few minutes of thinking, not a pipeline.
+
+1. **Replace the nouns with verbs.** Restate the restatement as what it does, for whom, under what constraint: not "a notification service" but "getting a person to notice one thing among many without teaching them to ignore all of it". The verbs name the fields.
+2. **Name the discipline, and the practitioner's instrument.** One or two fields or named practitioners whose standard problem this is — inside software or outside it: algorithmics (which named problem this reduces to and whether that class is hard — `../_shared/modeling.md` §1), queueing theory, double-entry accounting, cartography, aviation checklists, typography, library classification, epidemiology. For each, say the method they actually use (the instrument, the raw material they start from, the number they watch), not their vocabulary. Do what they do; never speak as them.
+3. **Name the outside judge.** What, other than the model or the user, would show the result is right: a benchmark, a replay of real data, a property, a known-answer test, a user's own behaviour.
+4. **Say what it changes.** One sentence: which part of the stance this borrowing moves, or 「不改」 with the reason. A borrowing that changes nothing is reported and dropped, not kept for decoration.
+
+Output the step as a short 借鏡 block in the conversation (verbs → discipline → instrument → outside judge → what it changes), and carry the surviving line into the plan's Approach.
+
+Trigger boundary, written so it can be checked: the step is **mandatory** when the restatement is a long-lived feature, a core path, a direction or architecture question, or a Kill / Keep / Pivot verdict. It is **skipped**, with the one-line skip stated, when the restatement is a parameter choice, a single-file change, or a decision brought for grilling — there the attack still borrows the field's known failure catalogue, nothing more. One or two disciplines, never a survey; the project's own prior decisions outrank any imported method. The quantitative case follows the same boundary: when the restatement carries a quantity — cost against effect, capacity, rate, probability, sample size, tolerance — write the model here per `../_shared/modeling.md` §2 (variables, objective, constraints, measured vs assumed, solve or bound, sensitivity) and carry its number into the cost-against-effect line; a parameter choice or a single-file change gets no model, and a restatement with no quantity says so in one line.
 
 ## Take a stance
 
 State the recommendation in one sentence with its decisive reason. It answers the restatement and nothing beyond it. Lay out the credible alternatives, always including the minimal one (do nothing, reuse existing Z) and the framework-native or official solution when it genuinely fits — as a real candidate, not an automatic winner. Then say what the recommendation is betting on, in one to three conditions, each as a sentence a person can act on: what it assumes, what happens if that assumption is wrong, and which alternative it switches to. Never write a bare "this would be overturned by Z".
+
+The stance answers three named questions, each in a line or two:
+
+- **The goal behind the goal.** What does the outcome serve, and what should happen next once it exists? When the request serves an ultimate outcome (the user will hold meetings about it, or will ask for the next step the moment this ships), put the higher-altitude version on the table as a real candidate — "keep the app crash-free" beside "fix this crash" — and let the stance choose between them with reasons. Creative or exploratory work is exempt; say so instead of inflating it.
+- **The aesthetic of the solution.** A good design has one idea a reader could restate in a sentence, and every part traces to it; name that idea, then write the 我不是什麼 list — two or three things this design refuses to be. A design that is right only because nothing in it can be called wrong — every case guarded, every choice deferred to a config, every concrete thing behind an interface — has no idea in it; that is hiding, not taste, and the stance says so when it sees it in its own draft.
+- **Cost against effect.** Put the recommendation and the minimal alternative side by side with what each costs and what each buys, in numbers wherever a number exists: files and call sites touched, and that count as a share of the tree (the rewrite signal in `../_shared/modeling.md`: the share says whether this keeps the code or replaces it), new services or processes, new runtime dependencies, callers that change, operational surface — relative sizes, never a duration, which agentic work does not follow; against the gain stated as something observable — p95 latency, cases handled, a user step removed. A number from the model is written here the way a person reads it (modeling.md §3: what it means and which decision it changes); its derivation goes to the plan's Approach. When the ambitious target is reachable, name it as the target and name the cheap one as the fallback, not the reverse; when the numbers say the cheap one buys nine-tenths of the effect, the stance says that too.
 
 Delete "it depends on your priorities", "both have trade-offs", "this is your decision to make": the user asked for a lead, not a survey. If the remaining choice is genuinely the user's (a value, a budget, an authority boundary), explain its consequence and wait; a missing question tool does not permit inventing the answer.
 
@@ -66,13 +87,18 @@ Judge existence too. If the honest stance is "do not build this" or "build somet
 
 ## Verify the premises the stance leans on
 
-Before writing anything durable, list every existence, count, or absence premise the stance leaned on ("no existing X", "Y already handles this", "tests cover this layer") and re-derive each from the repo root with a command whose output you quote, or from the authoritative document. Tag each claim verified (with the command and a quoted fragment) or 未實查; a bare tool name does not earn verified. A count carries the noun the command actually counted (files, classes, call sites, test cases) and never resurfaces as a different noun. A stance resting on a refuted premise is revised in one sentence, not carried forward. Check the project's own prior art — decision records, design docs, recent commits in the area — so the plan does not silently override a decision already made. Current state overrides memory.
+Before writing anything durable, list every existence, count, or absence premise the stance leaned on ("no existing X", "Y already handles this", "tests cover this layer"), and every number the cost-against-effect line used, and re-derive each from the repo root with a command whose output you quote, or from the authoritative document. Tag each claim verified (with the command and a quoted fragment) or 未實查; a bare tool name does not earn verified. A count carries the noun the command actually counted (files, classes, call sites, test cases) and never resurfaces as a different noun. A stance resting on a refuted premise is revised in one sentence, not carried forward. Check the project's own prior art — decision records, design docs, recent commits in the area — so the plan does not silently override a decision already made. Current state overrides memory.
 
 ## Attack your own proposal, in both directions
 
-Attack for breakage: list two to four concrete failure scenarios. Fold in cheap fixes and say you did; state fundamental ones plainly as accepted boundaries. Be loud about scope the user may not realize they are agreeing to: many files, a new service or process, a new runtime dependency or language, any key, account, or external service someone must provision. Before proposing any new mechanism — a rule, a check, a layer — ask whether it solves the problem or only produces a nicer failure log; a check that sits inside the path it governs can simply be skipped by that path.
+Attack for breakage: list two to four concrete failure scenarios, starting from the borrowed discipline's known failure catalogue when one was named, and trace one of them end to end — the part that is down, what the user sees, what brings it back; 「之後再想」 is a finding, not a plan. When the restatement moves a version, runtime or dependency, the scenarios start from the delta: the known changes of that pair intersected with what this code actually uses, each cited file:line with its site count — a removed API nobody calls is no scenario — ranked by blast radius (modeling.md) and classed Mechanical (a codemod does it) or Judgment (a person decides); a change that compiles and runs with a different result (locale, encoding, ordering, floating point, a default) is test-before-touch, and its characterization test goes into Building ahead of the move. Any other restatement skips the delta. Fold in cheap fixes and say you did; state fundamental ones plainly as accepted boundaries. Be loud about scope the user may not realize they are agreeing to: many files, a new service or process, a new runtime dependency or language, any key, account, or external service someone must provision. Before proposing any new mechanism — a rule, a check, a layer — ask whether it solves the problem or only produces a nicer failure log; a check that sits inside the path it governs can simply be skipped by that path.
 
-Attack for excess: for each part of the proposal, ask what the restatement would lose if that part were removed. If nothing, cut it and move it to Not building with one line on when it would become needed. The plan must fit the restatement's scale; a solution optimised for a need the user never stated is a defect, not thoroughness.
+Attack for size — too big and too small:
+
+- Attack for excess: for each part of the proposal, ask what the restatement would lose if that part were removed. If nothing, cut it and move it to Not building with one line on when it would become needed. Look hardest in the two places excess hides: abstraction — an interface with one implementation, an option or config nobody asked for, a layer kept "for later", a boundary (service, layer, module) that matches no seam where something varies today — and defence — a guard for a state no caller produces, error handling that swallows instead of failing, validation repeated behind a boundary that already validates. Never cut validation at a trust boundary, handling that prevents data loss, security, accessibility, or anything the user asked for. A shortcut kept on purpose is written down with its limit and the condition that upgrades it.
+- Attack for under-reach: compare the stance against the restatement and the goal behind the goal. Did it solve a narrower problem — the happy path, the part it was sure of, the version that cannot be wrong — and leave the asked-for part as an Unknown? A plan whose every section is safe is a plan that avoided the question; name the piece it ducked and either bring it back into Building or move it to Not building with a reason the user can accept.
+
+The plan must fit the restatement's scale; a solution optimised for a need the user never stated is a defect, and so is a solution that quietly stated a smaller need.
 
 ## Present it so a person can follow
 
@@ -83,28 +109,28 @@ Attack for excess: for each part of the proposal, ask what the restatement would
 - Keep each English technical term, but explain it in plain Traditional Chinese at its first use, in the same sentence or immediately after it.
 - Do not add facts that this run has not established. This is presentation-only: it adds no PAUSE and does not replace or rename the restatement, the stance, or the five plan sections.
 
-Before the file, show the result the way a person absorbs it: the whole shape first, then the part that matters to this user, in the smallest view that makes the key point clear — a before/after diff, one flow, a side-by-side comparison, or one focused HTML page when the shape is too dense for text — with each technical term explained where it first appears. When the common suite's show-me skill is installed in the session, hand the result to it; otherwise do the same inline. The user should also be able to see which questions were asked and what each answer changed, so the decisions are traceable, not just the conclusion. The conversation is the understanding version; the file is the durable version. Do not make the user read five sections to find out what you recommend.
+Before the file, show the result the way a person absorbs it: the whole shape first, then the part that matters to this user, in the smallest view that makes the key point clear — a before/after diff, one flow, a side-by-side comparison, or one focused page when the shape is too dense for text — with each technical term explained where it first appears. When the common suite's show-me skill is installed in the session, hand the result to it; otherwise do the same inline. The user should also be able to see which questions were asked and what each answer changed, so the decisions are traceable, not just the conclusion. The conversation is the understanding version; the file is the durable version. Do not make the user read five sections to find out what you recommend.
 
 ## Leave a plan on disk, then stop
 
 When the deliberation produced a buildable direction (not a verdict, not a one-line answer), write `.codex/think/<slug>.md` in Traditional Chinese with the confirmed restatement on top and exactly five sections:
 
-- Building — the observable outcome, concrete enough to picture the result; not the mechanism.
-- Not building — at least three concrete exclusions, including everything the excess attack cut, each with why and when it would become needed.
-- Approach — why this over the alternatives considered; the load-bearing premise, what happens if it fails, and how the design survives it; which failure modes are accepted boundaries.
+- Building — the observable outcome, concrete enough to picture the result; not the mechanism. The one idea the design has, in a sentence. Its success criteria are conditions a person can check（「第一片的所有 P0 行為經對比證實相同」）, never states（「P0 行為已證實」）and never a duration; a size, when one is wanted, is a share of the tree's complexity, not a time.
+- Not building — at least three concrete exclusions, including everything the size attack cut and the 我不是什麼 list, each with why and when it would become needed.
+- Approach — why this over the alternatives considered, with the cost-against-effect numbers and the model's derivation when one was written; the discipline borrowed and what it changed (or that it was skipped); the load-bearing premise, what happens if it fails, and how the design survives it; which failure modes are accepted boundaries. When the plan has more than one slice, the first slice is named as the pilot — the one that hits the riskiest premise, not the easiest — with the sentence that the plan is a hypothesis: what the pilot surfaces (a premise the reading missed, a prerequisite that reorders the slices, an environment fact nobody wrote down) is expected to revise it, the user's go covers the pilot only, and the rest is re-read after it. The surprises live in the build and the runtime, not in the source read. A single-slice plan says none of this.
 - Key decisions — three to five, each "could have done X, doing Y because Z"; activities are not decisions.
-- Unknowns — each with the specific question, why deferring is safe, and who decides when; or 無 with the reason this scale needs no deferral.
+- Unknowns — each with the specific question, why deferring is safe, and who decides when; or 無 with the reason this scale needs no deferral. An Unknown may not hold a piece of the restatement the stance ducked.
 
-No TBD or TODO, no "standard approach", no unnamed library or unnamed flow; every non-obvious claim carries its verified or 未實查 tag. Success criteria and scope land here, as outputs of the deliberation, not as inputs demanded at the start. Never overwrite another task's file; if `.codex/think/<slug>.md` already exists, write `<slug>-2.md` and count up. Do not also write an acceptance record; that is `$baransu:contract`'s job, reading from this plan.
+No TBD or TODO, no "standard approach", no unnamed library or unnamed flow; every non-obvious claim carries its verified or 未實查 tag. Success criteria and scope land here, as outputs of the deliberation, not as inputs demanded at the start. Never overwrite another task's file; if `.codex/think/<slug>.md` already exists, write `<slug>-2.md` and count up.
 
 Tell the user the path and the single most consequential open decision, if any:
 「計畫已落檔：.codex/think/{slug}.md。最關鍵的未決點：{一句話，或「無」}。」
-Then end the turn. This skill does not implement, does not choose a downstream skill, does not ask permission to proceed, and does not open another approval gate. The user decides what happens next — `$baransu:contract` to pin acceptance, `$baransu:review` to get a second opinion on the plan, or nothing — and the file is written so a person or a reviewer can judge it without the conversation.
+Then end the turn. This skill does not implement, does not choose a downstream skill, does not ask permission to proceed, and does not open another approval gate. The user decides what happens next — implement under the red/green discipline in `../_shared/tdd.md`, bring the plan to `$baransu:review` for a second opinion, or nothing — and the file is written so a person or a reviewer can judge it without the conversation.
 
 If the user pushes back on the plan, ask which section is wrong, revise with the changed assumption named up front, and rewrite the file. If the pushback is about what they wanted rather than how to build it, the restatement was wrong: go back to it, not to the plan. If the objections spread across sections instead of narrowing, ask for an anti-example — a version they would never accept — before revising again.
 
 ## Not-for boundaries
 
 - An existing error or failing behavior → `$baransu:hunt`; 「判斷一下這個報錯」 is debugging, not a value judgment.
-- Pinning assertable acceptance for work already decided → `$baransu:contract`.
+- Work already decided and ready to build → implement under `../_shared/tdd.md` §7, then `$baransu:review` for an independent re-verification; this skill writes no acceptance record.
 - A single-file fix with a clear scope → `../_shared/tdd.md` §7 directly; a plan would be ceremony.

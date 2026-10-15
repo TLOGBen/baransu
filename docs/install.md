@@ -29,9 +29,9 @@ Codex 版放在 `codex/` 子樹，與 Claude 版並列手動維護。Codex 以 `
 
 ## 安裝後會生效的東西
 
-- **14 個 skill**：見 [文件索引](README.md#skill-參考)。
-- **seal-guard hook**（Claude Code，預設阻擋）：session 結束時若有未 `/seal` 的 user-facing 變更會擋下。降級用環境變數 `SEAL_GUARD=log`（只記錄）或 `SEAL_GUARD=off`。詳見 [三頻段路由](routing.md#seal-guard-hook)。
-- **bundled agents**：review 的視角 reviewer、seal-agent、verifier、health inspector、evolve 的 diagnostician 與 judge，由對應 skill 派遣，不需要手動呼叫。
+- **12 個 skill**：見 [文件索引](README.md#skill-參考)。
+- **bundled agents**：review 的視角 reviewer 與 verifier、health inspector、evolve 的 diagnostician 與 judge，由對應 skill 派遣，不需要手動呼叫。
+- 沒有 hook：8.0.0 起 plugin 不再附任何 lifecycle hook。
 
 ## 更新
 
