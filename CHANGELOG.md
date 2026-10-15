@@ -2,6 +2,13 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.1.0] - 2026-10-15
+
+### Changed（`/health` 以證據而非庫存判健康）
+- **Step 0 改為「建立證據基礎」**：四類證據——風險（哪些路徑會丟資料、花錢、發布或部署、跨信任邊界、造成難以回復的狀態）、不明顯的限制（哪些穩定決定無法從程式碼或 manifest 便宜地還原，而且 agent 能否只在相關時才取得）、失效證據（使用者糾正、重複修復鏈、過期的產生物、壞掉的參照、空殼驗證器）、驗證器涵蓋（重要結果在它會失敗的那一層有沒有可執行的檢查）——取代以 git 追蹤檔案數分級的 Simple／Standard／Complex 表與每級「應有幾條 rule、幾個 skill」的庫存清單。少一張地圖、一個大檔、skill 多或少、TODO 數高，在綁到四類之一前都只是資訊；依證據與風險校準，不依 repo 大小。原本補在表格後面那段「不要把計數差距當 finding」的守衛是貼在症狀上的，連同根因一起刪。
+- **分級的每個消費端同步改寫**：升級 deep 審計不再看規模——「Complex 級」觸發刪除，改為摘要輸出解不開 Step 0 記下的失效證據或無法歸類的安全／控制問題時才升級；Step 2 路由由三級合併為摘要／深入兩路；inspector 改餵 Step 0 證據紀錄而非「偵測到的級別」，inspector 內的 SIMPLE／STANDARD+／COMPLEX 條件全部改成綁定風險、限制、失效證據或驗證器涵蓋；基準原則涵蓋與 docs／specs／HANDOFF 缺席的嚴重度改由證據類別決定，缺席本身永不 FAIL；報告標頭與「依級別評分」改為依證據類別。`collect-data.sh` 保留各項計數為資訊輸出，拿掉 `detected_tier` 與門檻（`=== TIER METRICS ===` 改名 `=== PROJECT METRICS ===`；`auto deep` 呼叫方式不變）。涉及 `skills/health/SKILL.md`、`references/baseline-principles.md`、`evals/evals.json`、`scripts/collect-data.sh`、`agents/health-inspector-context.md`／`-control.md`／`-maintainability.md`；Codex 版 `skills/health/**` 與 `.codex-agents/health-inspector-*.toml` 手動同步。
+- 這是 `CLAUDE.md` 新段落「從根部修、值不值得三問」的第一次套用：證據是檔內已經補上的守衛，改法是以更合身的原則取代條文、不在旁邊再加一條守衛，而 Waza 另外兩項判斷（nested AGENTS.md 實際載入什麼、permission 與 instruction 層的校準）因本 repo 尚無 `/health` 在那裡失誤的證據而不收。
+
 ## [8.0.0] - 2026-10-15
 
 ### Removed（`/contract` 與 `/seal` 退役，skill 數 14 → 12）

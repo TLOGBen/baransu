@@ -14,7 +14,7 @@
       "prompt": "Claude keeps ignoring instructions in this repo — audit the config",
       "should_trigger": true,
       "expected_skill": "health",
-      "expected_behavior": "Instruction-drift complaint: classify project tier, collect data via scripts, escalate to inspectors only for deep audits."
+      "expected_behavior": "Instruction-drift complaint: establish the evidence basis, collect data via scripts, escalate to inspectors only for deep audits."
     },
     {
       "id": 3,

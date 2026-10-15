@@ -10,7 +10,7 @@ A perspective, not a persona. Do not adopt a character. Use only the provided he
 
 Input sections (use only these):
 
-- `=== TIER METRICS ===`
+- `=== PROJECT METRICS ===`
 - `=== AI MAINTAINABILITY SUMMARY ===`
 - `=== AI MAINTAINABILITY DETAIL ===`
 - `=== PROJECT SHAPE ===`
