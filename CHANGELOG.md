@@ -21,6 +21,17 @@
 - **`tests/skills/`、`tests/integration/`、`tests/scripts/`、`tests/fixtures/` 全部移除**（含 `claude-md-skills-baseline.txt`）。理由：skill 好不好用跟單元測試無關，skill 壞掉也跟它們無關；skill 改版時壞的是這些沒用的測試、不是 skill。這是刻意的實驗：一支都不留。`tests/ab/` 是 `/ui` 的 A/B 盲評題目與結果，不是單元測試，原地保留。
 - `Makefile` 的 `test` 改為只跑 `scripts/verify-skills.py`（結構驗證是理念表綁定的機制錨點，不是單元測試）；`parity-check`、`ship-check` 不變。`CLAUDE.md` 與 `AGENTS.md` 的 Verification 段明寫「此 plugin 不做任何單元測試」與理由。`verify-skills.py` 的 skills-root／agents／loop-registry 模式保留給臨時驗證用，docstring 不再指向已移除的 pytest 檔。
 
+### Changed（`/think`、`/review` 更專家、更有野心）
+- `/think` 在對焦之後、表態之前新增「借鏡」一步：把名詞換成動詞，點名已經解過這類問題的學門或實務者與其真正使用的工具、原始材料、外部裁判，寫一行「改了立場的哪裡」或「不改」；長命功能、核心路徑、方向題、存廢判決必做，參數選擇、單檔小修、拷問既有決定則略過並說明。
+- `/think` 表態必答三題：目標背後的目標（高一層的版本列為真候選）、方案的美感（一句話說得出的主意加「我不是什麼」清單；靠「沒有一處會錯」撐住的設計是躲避不是品味）、成本對效果（能給數字就給數字，與最小方案並列）。攻擊改為兩向：會壞在哪，以及尺寸——做過頭（藏在抽象與防禦裡）與做太小（偷偷解了比復述更小的題）。
+- `/review` 沒有驗收條文時以三個常設問題為題：做到了沒、多做了什麼（防呆、分層、選項）、做小了沒；一屏以內的 diff 走快速路徑（一個 verifier、既有測試、不派視角）；找得到該領域的標準工具（dry run、交錯執行、已知答案測試、重放真資料、瞇眼看）就點名並實跑；建議修法先刪、再複用、再平台、再一行，才輪到新機制，只因「比較安全」的建議只進 advisory，一份只加防禦的 review 要自承沒回答三題；報告每題一行（做到了／多做了／做小了）。
+- `verification-effort.md` 從 seal 搬到 `review/references/` 並去掉 seal 詞彙；`agents/verifier.md` 與 `quality-reviewer.md` 加上「做小了」與「過度防禦」判準（信任邊界驗證、資料遺失處理、使用者要求的東西永不列為過度）。think／review evals 各加兩案。來源：Rieseberg〈How to be more ambitious〉（Altitude／Depth／Range）與 ponytail skill（最小完整改動、不砍信任邊界）。
+
+### Changed（`/evolve`：以減法取代加規則）
+- diagnostician 每輪改交一筆 finding——肇事的既有條文（原則瑕疵／與他條矛盾／負面副作用）、該條文當初要解的問題（條文理由 → `log.md` → `git log -S`／CHANGELOG → unknown）、以及用更少字解掉原始問題的替換文；只有讀完整份都找不到肇事條文時才准「加」，且必須指明取代哪一條。`finding: none` 是合法結果，不再把最低分維度硬湊成弱點。
+- rubric 第 5 維由 Constraint Explicitness 換成 Economy（每條都要改變一個決定、不重述、不矛盾、決定相同時短者高分），第 3／4 維改計涵蓋整類的原則而非逐案清單，權重不動。Stage 3 新增機械式減法閘：diff 沒有刪改任何既有非空白行的候選直接 `append-only-refused`，不送盲評。
+- `log.md`／`report.md` 記錄 finding 與字數起訖；`provenance.md` 新增條文溯源章節；終態裁決改為 `verify-skills.py` 結構閘；`nightly-evolve.workflow.js` 的 schema／提示對齊 finding 形狀並在評審前拒絕純增補，技能清單改為現行 12 個。棘輪、盲評三席、held-out、Authorization PAUSE 不變。參考：cursor/plugins `pstack`（概念對齊，措辭自寫）。
+
 ## [7.7.0] - 2026-10-15
 
 ### Added（`/ui`：先找點子、刪掉要填回、一定看截圖）
