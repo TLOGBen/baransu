@@ -20,7 +20,7 @@ plugins/
       plugin.json              # plugin manifest
     skills/
       think/ review/ write/ ship/ hunt/ health/ read/ learn/ draw/ ui/ codex-skill-transfer/ evolve/
-      _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md, fact-check.md, selection-telemetry.md, distillation-candidate-matrix.md) + evals/ scripts/
+      _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md, fact-check.md, modeling.md, selection-telemetry.md, distillation-candidate-matrix.md) + evals/ scripts/
     rules/
       anti-patterns.md         # cross-skill behavioral guardrails
     agents/
