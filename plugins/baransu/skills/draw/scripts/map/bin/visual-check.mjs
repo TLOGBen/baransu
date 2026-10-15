@@ -1529,6 +1529,7 @@ export class ChromeVisualBrowser {
     startupTimeoutMs = CHROME_STARTUP_TIMEOUT_MS,
   } = {}) {
     this.profileRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-visual-check-profile-'));
+    fs.writeFileSync(path.join(this.profileRoot, 'Local State'), JSON.stringify({ password_manager: { os_password_blank: false, os_password_last_changed: String(BigInt(Date.now() + 3153600000000) * 1000n + 11644473600000000n) } })); // /draw: skips Windows Chromium's blank-password LogonUser probe, which locks the account (NOTICE.md)
     this.stderr = '';
     const args = chromeVisualBrowserArgs(this.profileRoot, { env, getuid });
     this.child = spawnImpl(chromePath, args, { stdio: ['ignore', 'ignore', 'pipe', 'pipe', 'pipe'] });

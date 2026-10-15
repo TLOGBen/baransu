@@ -1,150 +1,159 @@
 # Mechanism figures — the object is the explanation
 
-A cross-lane unit: `SKILL.md` § Mechanism figures decides when it applies (a request to understand how or why something works) and which lane it lands in (page by default, a shot in a film, or a still). It maps onto the five phases: size, truth and the invented object are Design; the parts list and mapping table are Draft; the world plan, geometry and rest pose are Keys; motion and the idle tour are Shoot; verification is Post.
+A cross-lane unit: `SKILL.md` § Mechanism figures decides when it applies (a request to understand how or why something works) and which form it lands in (a component by default, a shot in a film, or a still in a diagram). This file is a router, not a method. The method is the vendored Anatomy skill in `../../scripts/anatomy/`, followed step by step; this file is its step table (what to look up before each of the ten steps), the upstream rules /draw overrides, the checks, how the finished figure joins the component and film forms, and where the performance rules live.
 
-Most "how it works" pictures are boxes and arrows: they say the parts exist, not what the parts do, and the reader has to imagine the motion the arrows stand for. A mechanism figure draws the thing itself: **a real, well-made object whose moving parts behave the way the idea does.** A queue is a marble run, an LRU cache is a bookcase, a bloom filter is a fruit machine. The reader understands the idea because they recognise the machine, and every number the figure shows comes from the same model that moves its parts.
+Nothing here is read up front, and no file is read whole. Before each step, run its step command, then do the step (`<skill>` is the absolute path of the skill folder, `<project>` the absolute path of the user's project):
 
-Use it on the **page** lane (a figure in an explainer, with a scrubber and, when asked, pointer and keyboard), as a shot in a **motion** film (the machine running is the shot), or as a still in the **diagram** lane (an exploded or cut-away object, `../diagram/type-exploded.md`). `mechanism-catalog.md` lists 52 published ideas with their machines; this file is the method, and § Inventing your own is the guideline for a new one.
+```
+python3 "<skill>/scripts/lookup.py" --step <step-id> --log "<project>/.claude/draw/<slug>" [--value fn=<builder> ...]
+```
+
+It prints every chapter the step's row names (the table below lists them so you know what to expect) and logs the step to `docs/lookups.log`; `references/steps.json` holds the same steps with their done-when lines, and `scripts/ledger-check.py` checks that each applicable step's command ran and printed its chapters. Any other chapter is looked up when a question comes up that it answers (`lookup.py <topic> --log …`). Inside the upstream files "SKILL.md" means `ANATOMY-SKILL.md`, and every path (`kit/…`, `scripts/…`, `examples/…`, `references/…`) is relative to `../../scripts/anatomy/`.
 
 ## The one rule
 
-**The object is the explanation.** No boxes, no arrows, no labels floating in space. Invent a real thing whose working *is* the concept, and say in one sentence what moves and what that motion means.
+**The object is the explanation.** No boxes, no arrows, no labels floating in space. Invent a real, well-made thing whose working *is* the concept, and say in one sentence what moves and what that motion means. A queue is a marble run, an LRU cache is a bookcase, a bloom filter is a fruit machine. Every number the figure shows comes from the same model that moves its parts.
 
-A figure fails in two ways:
+## Overrides: where /draw departs from upstream
 
-- **Too abstract.** Stacked plates, floating slabs, labelled boxes: they do not read as anything. Layers become drawers, trays in a rack, plates on guide pillars, cards in a holder.
-- **Too flat.** One big slab with a few lines: no volume, no parts, nothing to discover. Break it into a base, a carriage and parts; add a groove, screws, a ruler, a label plate.
+These replace the upstream text wherever the two disagree. The upstream files stay unedited (`NOTICE.md` records this override layer).
 
-The cure for both is the same: a recognisable machine built from many small parts that each do something.
+- **Size is a class name, nothing more.** Upstream workflow step 1 (Figure / Hero / Epic) names the size class, written in the 尺寸 field of the 開工狀態行 (for example `尺寸 Hero`). The class follows the part count and the number of moving systems, not how many mechanisms the idea has: Figure 40–80 parts and one moving system (at most one shader layer); Hero 80–150 parts, or several shader layers, or one turning subject; Epic past that, or many moving systems (a whole vehicle or plant), or turning in more than one subject. No time estimate is stated to the user; the progress clock stays, for progress notes only (next rule). The Epic tier's instruction not to start, to give an estimate, to propose a Hero version and to wait for the user's choice does not apply: an Epic is built directly. Never announce and wait, never propose a smaller tier, never ask the user to choose a size. Trade detail for time only when the user explicitly asked for something quick.
+- **The progress clock is kept, for progress notes only.** Step 1's timing stands, as /draw's own time rule (`SKILL.md` § Principles): a working page that opens in the browser within the first hour, sent to the user without waiting for a reply, then deepened; `date` at the start and at each step; when a step runs past twice what you expected, one progress line — where it stands, what is left — and the build goes on. The clock never becomes a question, a pause or a reason to cut the size.
+- **Invent your own object, even when the idea is listed.** The collection (`mechanism-catalog.md`) is a study of how concepts became objects, not a menu: a figure /draw builds is a new object invented for this request (§ Inventing your own), never a redraw of a published figure, even when the same idea has a row (binary search is not drawn as the lab balance with sixteen brass weights). Borrow the finish and the craft, never the machine.
+- **Examples are read for their source, not built by default.** Upstream says to open the closest example before starting. In /draw an example's source is read when the figure needs an API it shows (§ Study an example, then build with the upstream kit); the closest example is not built or captured by default, because for an idea outside the collection it helps little and its look pulls the figure toward it. When seeing an example run is worth it, it is built only in `<out>/scratch/`, and it never becomes the figure.
+- **No whole-file pre-reads.** `ANATOMY-SKILL.md` says to read `references/webgl.md` before writing any shader and `references/craft.md` before designing. Both are cancelled: look up the chapters the current step names (`webgl-*`, `craft-*`, `kit-*`), and any other chapter when a question comes up that it answers.
+- **The 4× detail sweep covers the whole drawing at every size.** Upstream scopes it to the subject and mechanism for a Figure; in /draw every figure gets the full-drawing sweep, in both themes, assembled and apart.
+- **Interactive is the default.** Any figure delivered as a component answers pointer and keyboard (upstream workflow step 9 and `motion.md`) without the user writing "interactive". Only a request for a still, or the diagram lane, drops input.
+- **WebGL and 3D are chosen by the idea, not by the prompt's words.** When the idea needs fire, exhaust, water, plasma, steam or real lamp light, the figure gets a shader layer (`webgl.md`); when a part turning in depth is the idea (a dial, a turntable, a globe whose axis holds its direction), it gets the 3D mode (`3d.md`). The user does not have to say "WebGL" or "3D". Both remain bound by § Performance below.
+- **No questions mid-build.** Real numbers and behaviour are researched and written into the model; the only stop is a fact only the user can supply (their own system's figures, a logo, a named asset), per `SKILL.md`.
+- **No publishing.** `references/publish.md` and `scripts/publish.mjs` (not vendored) belong to the upstream community gallery. /draw never publishes a figure there.
+- **Output location and names.** Everything a build writes (the figure's `build.mjs`, `model.mjs`, `live.js`, the component `<name>.html`, `shots/`, `docs/`) lives in `.claude/draw/<slug>/`, never inside the skill; the built file is named for what it shows, never a generic `index` or `page` name.
+- **Never build inside the skill, never outside `scratch/`.** An upstream example's `build.mjs` writes its page next to itself, so it is never run in place; when one is built, only the one example you study goes into `<out>/scratch/`, with the `kit/` and `scripts/` folders its imports resolve to (the command in § Study an example), never the whole vendored folder and never into the output folder itself. `ledger-check.py` never scans `<out>/scratch/` or `node_modules/`, so a scratch copy cannot be mistaken for the figure's code; anything outside `scratch/` is scanned as the figure.
 
-## Writing the request
+## The anatomy step table
 
-The prompt is the idea, not the drawing: "explain how an LRU cache evicts entries" is enough, and choosing the bookcase is the work. Three words change what is built, and are used only when the user writes them:
+The ten upstream workflow steps (`anatomy-workflow`), each with the topics its step command prints and the /draw step in `references/steps.json` that carries its done-when line. Before step 1, step `mech-catalog-and-example` prints `mech-catalog-index` and `anatomy-examples-table`: read three or four catalog rows near the idea to see how concepts became objects, and note which example's source shows an API the figure will need; the figure itself is invented at step 3.
 
-| Word | What it adds |
+| # | Upstream step (ANATOMY-SKILL.md § Workflow) | Look up first | /draw step |
+|---|---|---|---|
+| 1 | Size it before you start | `anatomy-size-classes`, `mech-overrides` | `mech-size` |
+| 2 | Truth first | `anatomy-truth-first`, `walkthrough-truth` | `mech-truth` |
+| 3 | Invent the object | `anatomy-invent-object`, `mech-invent-verb-family`, `mech-mapping-template`, `mech-mapping-tests` | `mech-invent-object` |
+| 4 | Parts list | `anatomy-parts-list`, `craft-parts-vocabulary`, `craft-anti-patterns` | `mech-parts-list` |
+| 5 | Plan the world | `anatomy-plan-world`, `kit-camera`, `craft-camera-composition`; with pipes, cables or turned parts also `craft-round-parts`, `craft-pipes-waypoints`, `craft-contacts-junctions`, `craft-clearance-crossings` | `mech-plan-world`, `mech-route-pipes` |
+| 6 | Build geometry once | `anatomy-build-geometry`, `craft-tones`, `mechanism-kit-limits`, and `kit-{fn}` for every kit builder the geometry calls | `mech-build-geometry` |
+| 7 | Paint back to front, bottom to top | `anatomy-painters-order`, `craft-painters-order`, `mechanism-draw-order-dynamic-scenes`, `kit-audit-hook` | `mech-painters-order` |
+| 8 | Frame it | `anatomy-frame-card`, `kit-card-page` | `mech-frame-card` |
+| 9 | Make it live | `anatomy-make-live`, `anatomy-motion-pointer`, `anatomy-motion-keyboard`, `anatomy-motion-vanilla-loop`, `mech-tour-as-seek`, `component-seek-idle-tour`, then `mech-join-{form}` (`mech-join-component` or `mech-join-film`) | `mech-make-live`, `mech-join-lane` (a still: `mech-join-diagram`, `type-exploded`, step `mech-still`) |
+| 10 | Verify like a critic | `anatomy-verify-critic`, `verify-audit`, `mechanism-verification-side-effects`, `verify-line-ends`, `verify-capture`, `verify-drive`, `verify-closeups`, `verify-review-checklist`, `verify-common-faults` | `mech-audit`, `mech-line-ends`, `mech-closeups`, `mech-review-checklist` |
+
+When the idea needs them:
+
+- **A shader layer** (before writing any shader, in any form or approach): `webgl-layer-stack`, `webgl-camera-contract`, `webgl-nothing-pops`, `webgl-light-theme`, `webgl-fallback`, `perf-shader-link`, `perf-small-shaders`, `perf-parallel-compile`; checked with `verify-light-theme-shaders`, `webgl-verify`. Steps `webgl-layer`, `webgl-check`.
+- **Turning groups** (before any turning group): `3d-model`, `3d-part-kinds`, `3d-painters-order`, `3d-performance`; checked with `verify-orbit`. Steps `mech-3d`, `mech-3d-check`.
+- **A React or Next.js destination:** `anatomy-react` and its sections.
+
+**The kit is looked up per tool, never read whole.** `kit.md` is the API: one topic per function row (`kit-cylinder`, `kit-slabOf`, `kit-tubePieces`, `kit-extrude`, `kit-lathe`, `kit-translateAlong`, `kit-fillet`, `kit-recorder`, `kit-settle`, `kit-auditOrExit`, …). Step `mech-build-geometry` prints the row of every builder you name: `--value fn=cylinder --value fn=slabOf …`, one per kit builder `geometry.mjs` calls; `python3 "<skill>/scripts/lookup.py" --list kit` lists them all. Read § Kit limits before choosing builders.
+
+## Study an example, then build with the upstream kit
+
+An example is a source to read, not a picture to start from. When the figure needs an API you have not used — the tour and pointer mapping, an explode with springs, a recorder and audit, a shader layer, a turning group — open the example that uses it (table below) and read its `build.mjs`, `geometry.mjs` and live script for exactly that API. `dial-indicator` is the smallest complete one and usually the most useful. Do not build or capture the closest example by default: for an idea outside the collection it teaches little, and its look pulls the figure toward it.
+
+When seeing an example run is worth it (a motion feel you cannot read from code), build only that one example, only in scratch, never inside the skill and never into the output folder itself. Copy that example's folder and the two folders its `../../kit/` and `../../scripts/` imports resolve to — never the whole vendored `scripts/anatomy/` folder:
+
+```
+mkdir -p "<project>/.claude/draw/<slug>/scratch/anatomy/examples"
+cp -r "<skill>/scripts/anatomy/kit" "<skill>/scripts/anatomy/scripts" "<project>/.claude/draw/<slug>/scratch/anatomy/"
+cp -r "<skill>/scripts/anatomy/examples/<name>" "<project>/.claude/draw/<slug>/scratch/anatomy/examples/"
+node "<project>/.claude/draw/<slug>/scratch/anatomy/examples/<name>/build.mjs"     # add --light for the light page
+```
+
+A capture of it, when taken, is `shots/example-<name>.png` (a picture, not code the ledger scans). The two React examples are read as source only. Nothing from `scratch/` is delivered, and `ledger-check.py` does not scan it.
+
+| Example | What it is the reference for |
 |---|---|
-| **interactive** | the figure answers the pointer and the keyboard (drag, press, hold a key). Without it: a still, or a scrubbable tour on the page lane. |
-| **WebGL** | shaders for fire, water, plasma, moving air and light, inside the same camera as the parts |
-| **3D** | parts that really turn in depth, re-projected and re-sorted every frame. Slow: hours, not minutes. |
+| `dial-indicator` | the smallest complete figure (~300 lines): build script, tour, pointer mapping, keyboard stops |
+| `desk-computer` | ~85 solids; text and a picture drawn in the plane of a face (a CRT), power-off collapse |
+| `arcade-cabinet` | a Hero cutaway (~240 solids, 15 cables): camera placed so the mechanism stays in view, a coin rolled at true speed, `--audit` |
+| `raptor-engine` | dense pipework (`lathe.mjs`, `tube.mjs`), an 11-assembly explode with staggered springs and per-frame re-sort, the full audit, a plume shader |
+| `ripple-tank` | two registered WebGL layers driven by a pure physics model, a change travelling through a history texture |
+| `turning-dial` | the 3D mode: turn, hinge and free groups, materials, a shader following moving parts; `stress.mjs` for performance |
+| `test-rig` (React, read `rig.ts` → `live.tsx`) | the quality bar for the drawing: springs, probe, dial gauge, the walkthrough's figure |
+| `spot-plate` (React, read as source) | shapes that morph into each other, one control driving many parts |
 
-When the user already knows the object, they name it with its true numbers ("a mechanical metronome on a small wooden plinth, swinging at 120 bpm, with a sliding weight you can drag"). When the figure has a destination, they say where ("as React components for our Next.js docs, dark theme"): the build follows that, and this skill's own default is one self-contained HTML file.
+Build the figure itself with the upstream kit, imported from the skill (`scripts/anatomy/kit/iso-kit.mjs`, `lathe.mjs`, `tube.mjs`, `audit.mjs`, `gl.mjs`, `turn*.mjs`) and inlined into the page with `scripts/anatomy/scripts/inline-kit.mjs` (`kitScript()`, `glScript()`, `turnScript()`). Import it by path from the figure's `build.mjs` in the output folder; never copy and edit the kit. `references/mechanism/collection/` holds the 52 published figures, indexed by `mechanism-catalog.md`; it is never read whole. Look up three or four catalog rows near the idea (`mech-catalog-index`, then a row's collection page only when it has one) to learn how a concept became an object and what a finished card says; the object for this request is still invented (§ Inventing your own).
 
-## Size it first
+## Kit limits
 
-Every request lands in one of three sizes. Say which, and roughly how long, before any other work (the plan message, `SKILL.md` spine step 2).
+Limits of the upstream kit that a builder otherwise finds by hitting them. Look this chapter up before choosing builders at step `mech-build-geometry`; a new limit found during a build is added here before the run ends.
 
-| Size | What it holds | Time |
-|---|---|---|
-| **Figure** | one mechanism, 40–80 parts, at most one shader layer | 30–90 min; build it without asking |
-| **Hero** | a dense object, 80–150 parts, several shader layers or one turning part | 2–4 h; announce it, then build unless the user asked for something quick |
-| **Epic** | a whole vehicle, building or plant with many moving systems | 6 h or more; never start it unasked: give the estimate, propose a Hero that keeps the core idea, list what the full version adds |
+- **`extrude` has no holes.** A floor outline is one ring; a ring wall (a dial rim, a track, a well) cannot be one `extrude` with an inner hole. Build it from pieces: split the ring into arc segments (each a convex or `convex: false` outline) and depth-sort them like any other parts, or use `lathe` with `hole` when the part is turned. A ring drawn as a filled disc with a second disc painted over the middle breaks the audit and the line-end check.
+- **Hashed placements collide.** Many objects placed at hashed or random positions on a ring or grid (keys on a hash ring, items in buckets) will overlap: with a few dozen items on a ring some land within one part's width of each other. Use thin parts (ticks, pins, narrow tabs) that can sit close without intersecting, or pick the names or keys so their positions are spread; never jitter positions by hand to hide a collision the model would produce.
+- **Solids are upright prisms.** `slabOf`, `cylinder` and `extrude` stand on the floor (z up); a part tilted out of that plane comes from `prismOf` in a frame, `lathe`, or a `tubePieces` route, not from a rotated prism.
+- **A `kit-{fn}` row is a signature, not a tutorial.** For how a builder is used in a finished figure, read it in an example's `geometry.mjs` (§ Study an example).
 
-Whatever the size, a working page opens in the browser within the first hour; the rest of the time deepens it. Note the time at each step, and when a step runs past twice its share, say where it stands. Measured active times from the published figures: a watch movement 1 h 54 min in one pass; a 3D tellurion 1 h 57 min; a rocket engine 38 min to a first working version and 10 h 33 min to right; a turbofan 4 h 41 min to a first build and 14 h after five review rounds. The first version comes fast; the time goes into the second look at four times the size.
+## Draw order for dynamic scenes
 
-## The ten steps
+The painter's order of the upstream steps assumes parts that stay in their slots. A figure where parts are added or removed (items arriving in a queue, keys joining a hash ring), change slots (an item moving between buckets) or rotate (a ring or turntable turning) needs an order that is recomputed from the scene, and one the audit can check.
 
-Most of the quality is decided in the first four, before any geometry exists. Write the concept and the parts list down first: once a drawing is on screen it is tempting to polish the wrong machine.
+- **Order by footprint, topologically.** For the parts on screen at a moment, build a "drawn before" graph from their floor footprints: A before B when A's footprint lies behind B's along the camera's depth axis where they overlap on screen (the same test `A.settle` makes). Sort that graph topologically; break ties with `depthOf` of the footprint centre. A plain sort by centre depth is wrong for long or wrapped parts (a ring segment, a rail) and flips as they rotate.
+- **Wrap what surrounds.** A part that encircles another (a ring around a hub, a cage around an item) is split into a back half and a front half, each ordered on its own.
+- **Recompute only on a change of state.** Recompute the order when a part is added, removed or changes slot, and at the rotation angles where two footprints start or stop overlapping (precompute those angles once); between them the order is fixed, which is also what keeps the reorder cheap (`../motion/component.md` § SVG reorder performance).
+- **Give the audit the settled order.** For each state the tour reaches, record the parts with `A.recorder` and set the order the page will actually draw (`R.settled`, or the order passed to `A.auditOrExit`) from the same function the page uses, so `--audit` checks the real order of every state, not a hand-tuned static one. Include the states mid-rotation at the overlap-change angles.
 
-1. **Size it** (above).
-2. **Truth first.** Collect the real numbers and behaviour: sizes, counts, thresholds, curves, rates. Write them as one small pure model (`model.js`: state plus `step(state, input, dt)` and `poseOf(state)`). The motion, the readout, the screen-reader text and the caption all read from it, so none of them can disagree. Facts are asked for when missing, never invented (`SKILL.md` red lines).
-3. **Invent the object** (§ Inventing your own). One sentence: what moves, and what that motion means.
-4. **List the parts.** At least 40, grouped: **base** (plate, feet, groove, corner screws, label plate, ruler strip), **structure** (posts, rails, frame bars, end stops), **mechanism** (carriage, bushings, springs, plunger, needle), **controls** (knurled knob, thumb screw, crown, lever), and **the subject**, the one lit part. Each part sits on another part and has a job.
-5. **Plan the world.** World units of about one pixel of the real thing; x and y on the floor, z up. Plans as rounded rectangles `{x, y, w, d, r}` and circles. Choose the camera (§ Drawing rules), then fit the drawing to the card.
-6. **Build the geometry once.** Compute every static path ahead of time. Moving parts are built once at rest and moved with a transform; only parts whose shape changes (a compressing spring, a swelling capsule, a turning needle) are rebuilt per frame.
-7. **Paint back to front, bottom to top** (§ Drawing rules).
-8. **Frame it** in a card (§ The card).
-9. **Make it live** (§ Motion).
-10. **Verify like a critic** (§ Verify).
+## Checks (the mechanism lane check)
 
-## Drawing rules
+All of these run to their pass line before the figure is delivered; the `verify-*` topics say how to read each output.
 
-These are what make it read as a solid, made thing rather than a sketch.
+- `node scripts/motion/doctor.mjs` first (step `preflight`). It reports the Chromium it found as `CHROME_PATH`; export that in the shell, because `capture.mjs`, `drive.mjs` and `lines.mjs` read only `CHROME_PATH`.
+- `node build.mjs --audit` ends `audit passed`, saved to `docs/audit.txt` (every figure with pipes, cables, round parts or an explode wires `kit/audit.mjs`; a 3D figure also ends `turn audit passed`, full run, in the background).
+- `node "<skill>/scripts/anatomy/scripts/lines.mjs" <name>.html --out shots/lines.png` prints `line ends: 0` on both themes and in every resting pose (`drive.mjs` `["lines"]`, run last: § Verification side effects).
+- `capture.mjs` desktop, 390 px, hover, `--times` across the tour, `--reduced`, and `--zoom` 4× crops covering the whole drawing in both themes, assembled and apart; `drive.mjs` for sequences, `["slow", 0.05]` contact sheets across every shader transition, and `--no-webgl`. Read every PNG.
+- The upstream review checklist (`verify-review-checklist`), every box, written to `docs/verify_checklist.md`.
+- `node "<skill>/scripts/motion/perf-check.mjs" <name>.html` passes (§ Performance).
+- As a component, `node "<skill>/scripts/motion/verify-page.mjs" <name>.html --out shots` too; in a film, `render.mjs hash` (§ How it joins /draw).
 
-- **One camera, no perspective.** Orthographic, looking down from a corner, so parallel edges stay parallel and a part keeps its size anywhere. The diagram lane's 2:1 dimetric `iso(x, y, z)` (`../diagram/type-exploded.md` § Projection) is the default and lands edges on whole pixels. When the mechanism's face must turn to the viewer, use the general camera with azimuth `A` (45° default, 35–60° to show a long side) and elevation `E` (30° default; ~44° to look into something open, like a tank):
-  `x′ = ox + k·(x·sinA − y·cosA)`, `y′ = oy + k·((x·cosA + y·sinA)·sinE − z·cosE)`, with depth toward the viewer `depth = (x·cosA + y·sinA)·cosE + z·sinE`. With `k = scale·√1.6`, one floor unit is one scale unit long at the default view.
-- **Solids, not wireframes.** Every part is filled with the paper colour and painted in order, so what is in front hides what is behind. No see-through edges, no dashed hidden lines.
-- **Four tones by facing.** Draw only the sides that face the viewer; put each in one of four shades by how squarely it faces the light (the light comes from the viewer's left and turns with the camera: `lit = (n·L + 1)/2`, `shade = floor(lit·4)`), and give tops their own lighter fill. Keep the four shades close, about 3 % apart in luminance.
-- **Tone hierarchy.** Base and feet `lo`, structure `mid`, the subject `hi`, and **exactly one `lit` accent**: the part the reader should watch now. Grooves `faint`, minor ticks `lo`, major ticks `mid`, the zero mark `hi`, screws as 0.4–0.55 dots.
-- **Monochrome unless colour is the subject** (red, green and blue channels; a hot body's blackbody colour). A fluid is a tint of the figure's own inks, not a new hue.
-- **Lines resolve.** Every line ends on a face, another line or a terminal dot. No leader lines, balloons, dimension arrows or floating labels. A seam on a box wraps its visible corners; ticks hang from a ruler strip's edge; a texture that must stop fades out. The only lines that may stop on a bare face are rule lines standing for printed text, a needle's tail and a pointer's tip.
-- **Small precise detail, never noise.** Bevels 0.4–1.6, grooves inset 3–5 from an edge, screws with a ring at plate corners, knurls on knobs, ruler ticks every 4–5 units with a major every fifth, a label plate with three rule lines. Every detail belongs to a part; density comes from structure (feet, rails, stops, bushings, knobs), not texture.
-- **Detail at 4×.** At 1× it reads as one clear machine. Zoomed to 4×, every region still has something true to find; a bare face or an empty corner is unfinished work.
-- **No words inside.** Text lives around the drawing, never on it, apart from at most one tiny engraved label. Text the machine itself displays (a counter, a typed line on a screen) is part of the object: draw it in the face's plane, fit its widest string, clip it to its window.
-- **Painter's order.** Base first, then what stands on it; repeated parts sorted by depth, far before near. **Split anything that wraps another part**: a coil spring round a rod is drawn as back half, rod, front half; a frame round a carriage likewise. A moving part is drawn in the slot where it physically sits; if it can pass both in front of and behind a neighbour, split the neighbour or bound the motion. Past a few dozen overlapping parts, measure true depth per overlapping pair rather than tuning order by eye.
-- **No pipe or cable passes through anything**, at rest, apart or mid-motion. Lines run beside the structure, cross on straights well apart in depth, and end on a flange, connector or terminal dot.
-- **Curves shade smoothly.** A round body is shaded from one continuous curve, never a staircase of flat tone blocks.
-- **Volume.** Real thickness, parts standing on parts, a soft halo under the base and under anything lifted.
-- **Composition.** The object fills about 55–65 % of the card, centred, clear of the corner labels, and still reads at 390 px wide. Keep one scale across a set of figures.
+## Verification side effects
 
-## The card
+The verify tools act on the live page, and two of their actions change what later actions see.
 
-A figure sits in a card with four corners: **`Fig n`** top left, a short **title** top right, the **interaction hint** bottom left (`Drag crown ↑ to wind · S slow · E apart`), and the **live readout** bottom right (`120.0 × 32.0 · lean 10.6 px`). Legend keys and a true caption sit under the card; the caption follows the page lane's rule and adds a dimension the figure does not show. On a page with margins, the hint and readout may move into the margin beside the figure so the drawing stands alone.
+- **`drive.mjs` `["lines"]` mutates the page.** The line-end check walks and marks the drawing (it adds its rings to the page, and with an output path captures and then removes them). Put `["lines", …]` last in a drive sequence, or run it in its own `drive.mjs` invocation, never before a `["shot"]` or a sheet that must show the untouched figure.
+- **`Escape` starts the resume timer.** Pressing `Escape` (or any key or pointer action) to take the figure over from the idle tour arms the figure's "resume the tour after N s" timer. A capture taken a few seconds later shows the tour moving again. Before shots, stop the timer: preload a stub for it (the "Slow mode doesn't slow timers" note in `verify-drive`), or call the figure's own seek, which cancels it (`../motion/component.md` § Seek and the idle tour), then wait for rest with `["until", …]`.
+- **Slow mode does not slow timers.** `["slow", f]` slows the rAF clock, not `setTimeout`; the same resume timer fires mid-sheet unless it is stubbed (upstream `verify.md`).
 
-Colours are tokens with one job each, so a theme is a token set (light, dark, paper, blueprint and sepia all come from the same roles):
+## How it joins /draw
 
-| Role | Paints |
+The anatomy figure is the drawing; /draw supplies the lane around it.
+
+- **Component (the default).** The figure is a component file `<name>.html` (`../motion/component.md`): its own `<figure>` holding the anatomy card (`plateHtml`: `Fig n`, title, hint, live readout, legend keys, caption under the card), with no page frame or prose. The caption follows the component rule: it adds a dimension the figure does not show. Inline `ISO_CSS` and `kitScript()` (plus `glScript()` / `turnScript()`) once per file, not once per figure: a second `const smooth` in the same module script is a SyntaxError. Put `class="iso"` on the figure's wrapper and switch its `data-theme` with the root theme; a shader that must follow a theme change takes `uLight` as a per-frame uniform or rebuilds its layer. When the request needs a whole page, /ui embeds the component (`../lanes/component.md` § Handing a page to /ui).
+- **The idle tour is `seek(t)`.** Write the tour as a pure function of time: `tourAt(t)` gives the targets, and the pose at `t` comes from the model in closed form, or from a deterministic replay of `step()` at a fixed `dt` from 0 to `t`. `seek(t)` writes that pose through the same refs the live loop uses. The figure carries `data-dur` (the tour length) and `data-rest` (the frame that carries the point), the component's scrubber calls the figure's `seek`, and reduced motion shows `data-rest`. The tour's keys are a key sequence (`keys-other-lanes`). Live input (pointer, keyboard, the take-over rules in `motion.md`) is a layer on top that stops the tour and leaves the state where it is. A seek clears the tour's queued future events, cancels the idle resume timer, and replays at a fixed step all the way to `t` (`../motion/component.md` § Seek and the idle tour).
+- **Film (the shot).** The machine running is the shot. Expose `window.seek(t)` and `window.timeline()` (or `window.DUR`) so `render.mjs` renders it, and `render.mjs hash` returns matching md5s (no wall-clock time, no `Math.random` without a seed, no state carried between seeks). Shaders draw from `t`, never from a running clock. The card's corners become the film's own type or drop out, per the film's type rules (`../motion/type.md`).
+- **Diagram.** A still is the figure at its rest or apart pose, built and checked with the same kit (`--audit`, `lines.mjs`); the exploded or cut-away conventions are in `../diagram/type-exploded.md`.
+
+## Performance
+
+Measured on the collection's turbofan figure: a 38 KB fragment shader that never finished linking on ANGLE D3D11 (Windows Chrome's backend) froze the whole browser, because the synchronous link status call blocks the GPU process that drives every tab. SwiftShader linked it in 2 ms, so a headless default run does not catch it. The rules bind every figure with a canvas, and every page /ui assembles from more than one heavy component. They are chapters of `../motion/component.md`; look up each one before the step it governs:
+
+| Rule | Topic |
 |---|---|
-| card · paper | the card, and the fill under every solid (keep them equal, so fills hide what is behind without showing as patches) |
-| top · shade 0–3 | top faces; side faces from turned furthest from the light (0) to facing it squarely (3) |
-| face · lit-top · lit-shade | the body, top and sides of the one lit part |
-| hi · mid · lo · faint | the subject's outline; structure, major ticks and engraved labels; base, feet and minor lines (the default); grooves and the faintest guides |
-| dot · halo | dot grids and screw heads; the soft shadow under the base and lifted parts (about 0.32 opacity in light, 0.9 in dark) |
-| lit | the one accent |
-| red · green · blue | only where colour is the subject |
-| text · muted · strong | figure number and readout; title and hint; the brightest text drawn |
-| weight · mono | every line's width (0.6 px); the corner and engraved-label font (a monospace) |
+| Shader link ≤ 200 ms on ANGLE D3D11, hard fail above 1 s | `perf-shader-link` |
+| About 8 KB of GLSL after the prelude, ≤ 2 nested loops, helpers called at most twice | `perf-small-shaders` |
+| Compile through `KHR_parallel_shader_compile`; SVG fallback until ready | `perf-parallel-compile` |
+| Start compiling a screen or two early; one offscreen draw before the first visible frame | `perf-warm-up` |
+| One heavy figure initialises at a time | `perf-one-heavy-at-a-time` |
+| Mount ≤ 200 ms, no later task over 50 ms, frame callback p90 ≤ 4 ms and p99 ≤ 16 ms | `perf-mount-budget` |
+| The loop runs only while something moves and is on screen | `perf-loop-while-moving` |
+| Redraw only the moving parts; re-sort through one DocumentFragment only when the order changed | `perf-redraw-moving-parts` |
+| Many SVG parts reordering: cached, quantised order keys; reorder only on change | `../motion/component.md` § SVG reorder performance |
+| No forced layout in observers | `perf-no-forced-layout` |
+| DPR capped at 1.5 (1.0 below 480 px), live canvas pixels under ~2 M | `perf-dpr-pixel-budget` |
 
-Design light first: on paper, a glow is ink, not added light (§ Shaders). A cavity that holds light (a furnace mouth, a vessel, a water column) gets its own darker token set (soot, refractory, depth), so a glow has a ground.
-
-## Motion
-
-Calm, time-based and true to the model.
-
-- **On a film or a scrubber, the tour is `seek(t)`.** The idle tour (rest → the action → the result → settled) is a sequence of keys (`../motion/3-keys.md`) whose in-betweens come from the model in closed form, so it renders to video, scrubs, and passes `render.mjs hash`. Live input is an extra layer on the page lane only.
-- **Live, motion is time-based, never per-frame.** Take `dt` from the frame timestamp and clamp it to 1/30 s. Input sets a target; the part follows by exponential easing `x += (target − x)·(1 − e^(−dt/τ))` with τ = 0.1–0.3 s (a pointer finger 0.09 s), or by a real spring sub-stepped about 240 times a second, snapping once error and velocity fall below ~5e-4. Parts never snap to the cursor.
-- **A level that must arrive without overshoot** (a needle, a reserve, a brightness) rides a critically damped spring. **A one-off event** (a flash, a click, a spark) rides an envelope: a smoothstep attack of 40–120 ms and an exponential decay, computed from the event's age, so overlapping events add and nothing pops.
-- **Idle tour.** Starts ~1.4 s after the figure comes into view and loops (the glass-button rig: every 7.6 s: rest, press, pull 80, release, settle). It pauses on hover, focus or press, resumes ~3.6 s after the last input, and drives the same targets the user would. When the user acts mid-tour, stop the tour and leave the state where it is; a step key steps from the value the reader sees, not the tour's target.
-- **Slow time and take apart.** A key that slows the world to 1/20 and 1/100 lets the reader watch a fast mechanism (a pallet fork letting an escape wheel through half a tooth); a key or hover that lifts the assemblies apart shows what is underneath. For an explode: one spring per assembly (just under critical: stiffness ~64, damping ~14), starts staggered ~35 ms in an order where whoever is outside leaves first, closing in reverse, depth re-sorted each frame; every part keeps a home and still ends on something when apart.
-- **Arming.** If an action needs the machine in a state (assembled before firing), bring it there first, say so in the readout, and start the action only when every spring has arrived.
-- **Readout from the parts, not the targets.** It says `taking apart` while springs move and `apart · 11 assemblies` only after; a phase word and its number come from the same instant.
-- **Restraint.** Stop the loop when everything has settled or the figure is off screen (IntersectionObserver, rootMargin 120 px; read the newest entry). Under reduced motion, springs become critically damped or jump to targets, no tour runs, and the figure still answers input. Rebuild a rotating part per frame, or precompute enough frames that one step moves at most 0.25 px.
-- **Accessibility.** The figure root is focusable, `role="slider"` (or a group of buttons for discrete choices) with an `aria-label` explaining the controls and `aria-valuetext` in words, written when the reader's choice changes, not every frame. Phase changes (`arming`, `main stage`, `cold`) go to a polite live region, never per-frame numbers. Keys: arrows step (Shift for bigger steps), Home and End go to the extremes, Space or Enter presses or toggles, Escape releases. A visible focus ring.
-
-## Three layers
-
-| Layer | When | Rule |
-|---|---|---|
-| **SVG** (or canvas solids) | nearly always | four tones by facing, painter's order re-solved when parts move apart; redraw only what moves |
-| **Shader (WebGL)** | only for what lines cannot draw: fire, exhaust, moving air, water, caustics, lamp light, plasma, steam | if deleting the effect leaves the explanation standing, the effect goes |
-| **3D** | only when a part moving in depth is the idea (a globe whose axis keeps its direction, a dial that turns) | still a beta even at its source: one turning subject, the rest static |
-
-### Shaders inside the drawing
-
-- **Stack it:** a back layer with what the effect can cover, the canvas (`pointer-events: none`), a front layer with what covers it. Split a part that is on both sides.
-- **Same camera, world space.** Hand the shader the drawing's own projection numbers, so a glow on the floor lands on the floor's lines; size everything in world units.
-- **Nothing pops.** Every uniform rides an envelope; a phase change is a crossfade driven by the physical quantity (pressure, temperature), never a flag; every term reaches zero before any bound or canvas edge; a fade-out only gets darker.
-- **Light on paper is ink.** Decide the colour the paper should show and solve for the ink, with an alpha floor so a pale core hides the lines behind it. A glow is a saturated body with a pale core and a coloured rim, never a darkened dark-theme colour (that reads as "red ink smoke"). Smoke and steam are light grey; hot bodies follow one blackbody table.
-- **Tonemap and dither**; cap the device pixel ratio at 1.5; render only while the effect is active and visible; reduced motion gets one representative still; without WebGL the drawing still reads.
-
-### Turning in 3D
-
-A turn by θ about the vertical is the same picture as the camera at azimuth `A − θ`, because the light turns with the camera: rebuild the camera, not the points. Turning parts are convex, every pair that can overlap gets a separating plane at build time, and each frame the sign of the plane's normal against the view says which is in front; a stable topological sort keyed by the previous order swaps two parts only when it must. Prove it with a sweep over every angle (fine steps for order and for continuity). A small turning figure runs at 60 fps; a 380-part hand ran at about 20.
-
-## Verify
-
-The figure is code the model cannot watch, so every check ends in something readable: a picture, a number, an exit code. Most of the time goes here.
-
-- **Captures.** Desktop, phone (390 px), hover, and several moments of the motion (`node scripts/motion/verify-page.mjs page.html` for the page lane; `render.mjs stills | strip | contact` for a film). Read every PNG.
-- **Slow the clock for fast events.** Run the tour at 0.05× and take a contact sheet across every transition: no one-frame flash, no colour switch, nothing cut off.
-- **4× crops of every junction, in both themes, assembled and apart**: every flange, clamp, spring, crossing and curved body. Faults hide at 1×: a cable through a duct, a nozzle shaded in steps, a blade folding into a sliver at a cut.
-- **Line ends.** In the browser, walk both ends of every drawn line; each must land on a stroke, a dot or an outline within a pixel, or sit under a fill painted after it. Count the ones that float; the count must be 0.
-- **Depth order and clearance.** Wherever two parts overlap on screen, the nearer one is drawn later, at rest, apart, and in every frame between; no line passes through a solid. Past a few dozen overlaps, compute it instead of eyeballing (cast a ray through each overlapping pair and compare depths). A pair that cannot be ordered interlocks: fix it with a cut in the geometry, never by nudging an order key.
-- **Then look like a critic.** Is it instantly a real object, rich in small parts with volume, every line ending on something? Rewarding at 4×? Does the readout change as things move, in true units? Do keyboard, focus ring and reduced motion work? The audit and the line check are necessary, not sufficient: neither replaces looking.
-- **Fresh eyes for big figures.** A Hero or an Epic is built in rounds: a builder, reviewers who each look through one lens and rebuild and re-capture for themselves instead of trusting the builder's report, then a fixer, until a round finds nothing (`/review` dispatches the fresh verifier). Keep a progress file (done, next, open decisions) after every step so a stopped run resumes.
+One addition for mechanism figures: past about 1000 depth-sorted items, precompute the points where the order changes instead of sorting per frame. `scripts/motion/perf-check.mjs` (`perf-check-usage`) measures shader link time, long tasks, frame-callback time, draw calls and rAF callbacks once every figure is off screen, and per-canvas draw time; it runs at device pixel ratio 1, so shader size, parallel compile, warm-up, staggered initialisation, the DPR cap, depth re-sort and observers are checked by reading the code.
 
 ## Inventing your own
 
-The catalog's 52 rows are examples, not a menu. A new idea gets its own machine through these steps; write the result into the plan message before any geometry.
+Upstream workflow step 3 says to invent the object and craft.md shows what a good one looks like; it does not say how to find one. Every /draw figure is invented this way, including an idea the collection already drew: write this into `docs/mapping.md` before any geometry, and record there the catalog rows read and why the object chosen is not one of theirs.
 
 ### 1. Find the idea's verb
 
@@ -152,7 +161,7 @@ Write what the idea *does* as one verb phrase, ignoring its nouns: "files items 
 
 ### 2. Pick a mechanism family with that verb
 
-These families cover every row in the catalog; start from the one whose verb matches, then choose a specific, nameable object in it.
+These families cover every figure in the collection; start from the one whose verb matches, then choose a specific, nameable object in it that the collection did not use for this idea.
 
 | The idea's verb | Mechanism family | Objects that have it |
 |---|---|---|
@@ -173,38 +182,34 @@ When the idea is itself a physical machine (an engine, a watch, a reactor), skip
 
 ### 3. Map part to meaning, one to one
 
-Fill a table before drawing anything; every row is a commitment the figure must keep.
-
 ```
 CONCEPT     one sentence: what it does
 OBJECT      the machine, one sentence: "When ___ moves, it means ___."
 PARTS       idea element → part            (every element of the idea has a part)
             moving part → meaning          (every moving part means something; nothing moves for decoration)
-NUMBERS     the true values the model holds: sizes, counts, rates, thresholds (asked for if unknown)
+NUMBERS     the true values the model holds: sizes, counts, rates, thresholds (researched, never invented)
 INPUT       the reader's verb → the idea's input   (drag = set a rate, tap = send one, press = acquire, key = step)
 FAILURE     the case the idea exists to handle, made triggerable: the collision, the overfill without the key,
             the arc from the wrong switching order, the cavitation, the false positive
 TOUR        the keys of the idle tour: rest → the normal case → the failure case → settled
 READOUT     the live line, in true units: "block 2 · reads 14.0 px"
-SIZE        Figure / Hero / Epic, and why
 ```
 
 ### 4. Test the mapping before building
 
 - **Recognisable.** A stranger names the object at a glance. A "box with slots" fails; a "post-office sorting desk" passes.
-- **Plausible.** It could be built: real materials, real joints, parts holding parts. Bench instruments, brass, steel, wood and glass in one era read as one world.
+- **Plausible.** It could be built: real materials, real joints, parts holding parts.
 - **One to one.** Read the PARTS table both ways: no element of the idea without a part, no moving part without a meaning.
-- **Honest at the edges.** Run the idea's edge cases through the object. Does the machine do what the idea does in the failure case, and nothing the idea does not? A bloom-filter machine must be able to pay out wrongly (a false positive) and never fail to pay out for a word that was added. A metaphor that shows a property the concept lacks teaches something false; pick another object.
-- **The failure is the best moment.** The strongest figures let the reader cause the bug: run two pumps without the key, open the disconnector first, starve the suction. If the failure case cannot be shown, the figure explains only the easy half.
-- **The lit part is the subject.** Exactly one part carries the accent: the thing whose motion *is* the idea (the needle, the capsule, the marble at the escapement).
-- **Not from a reference.** A photograph or a style gives the finish, the materials and the mood; the object is invented for the idea, never copied.
+- **Honest at the edges.** Run the idea's edge cases through the object. A bloom-filter machine must be able to pay out wrongly (a false positive) and never fail to pay out for a word that was added. A metaphor that shows a property the concept lacks teaches something false; pick another object.
+- **The failure is the best moment.** The strongest figures let the reader cause the bug: run two pumps without the key, open the disconnector first, starve the suction. If the failure cannot be shown, the figure explains only the easy half.
+- **The lit part is the subject.** Exactly one part carries the accent: the thing whose motion *is* the idea.
 
-### 5. Then the ten steps
+Then continue at upstream workflow step 4 (parts list): the table becomes the model (step 2) and the parts groups.
 
-Continue at step 4 (parts list) of § The ten steps: the mapping table becomes the model (step 2) and the parts groups.
+## Pointers kept for other files
 
-## Limits
+Other /draw references link here by these names; each now points upstream.
 
-- The model is better at building than at seeing: a part can be right in every number and still look wrong. The fixes that matter come from watching the figure play and saying what feels off; treat the first figure as a draft, then play with it, note what is wrong, and ask again.
-- Good is slow. At least forty parts is the floor; when the user needs something quick, offer a Figure, not a Hero.
-- 3D costs hours and a long proof run; ask for it only when a part must really move in depth.
+- **Drawing rules** — `craft.md` §§ 1–7 and the craft rules in `ANATOMY-SKILL.md` (`anatomy-craft-rules`).
+- **Turning in 3D** — `3d.md` (`3d-model`, `3d-painters-order`, `3d-performance`).
+- **Verify** — `verify.md` (the `verify-*` topics) and § Checks above.

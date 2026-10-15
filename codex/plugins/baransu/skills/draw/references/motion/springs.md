@@ -1,12 +1,14 @@
 # Springs, easing and the motion numbers
 
-Technique reference for how things move. Phase 1 picks the film's tokens from § The numbers; Phase 4 builds every in-between from § The primitives under § Hierarchy and § The animation principles.
+Technique reference for how things move. Phase 1 picks the film's tokens from § The numbers; Phase 4 builds every in-between from § The primitives under § Hierarchy and § The animation principles. Each primitive, each number family and each principle is its own chapter.
+
+## Why springs, not curves
 
 A fixed easing curve reads as cheap: the value simply slides from A to B. Motion that reads as expensive behaves like something with mass — it gets going, overshoots a touch, and settles. Use closed-form springs everywhere a thing *moves*; keep fixed easing for fades and camera settles where mass would be wrong. `assets/motion/motion.js` ships the primitives; all are pure functions of `t`.
 
 ## The primitives
 
-### `spring(t, k, d)`
+### `spring(t, k, d)` and the named feels
 
 The step response of a damped spring from 0 to 1. `k` is stiffness (how fast), `d` is damping (how much overshoot), unit mass. Closed-form, so `seek(t)` stays a pure function of time: no integration, no per-frame state, and frame 84 renders without computing frames 0–83.
 
@@ -47,17 +49,43 @@ Make the last frame equal the first — position, velocity, cursor included — 
 
 A product reel is a cursor doing real things. `cursor(t, [[t, x, y], …], [clickT, …])` moves on the `ui` spring through its positions (one spring per leg via `track`, so a retarget mid-flight stays smooth) and returns `{x, y, down, scale}`; draw an arrow or a 2 px ring at `x, y` and let `scale` dip on the press so the click reads at 360 px. Place each click on a beat (`GRID.at(n)`) and give the state change it causes its own spring starting at that click time — the cursor presses, *then* the UI answers, 1–2 frames later. For a loop the last key returns to the first position with time to settle.
 
-`typed(t, text, t0, cps, seed)` types with seeded per-character jitter (caret solid while typing); `drag(t, grabT, releaseT, held, rest)` is direct manipulation — while held the value is exactly what the hand says, on release it springs back from where it was let go.
+### `typed(t, text, t0, cps, seed)` — typing
+
+`typed(t, text, t0, cps, seed)` types with seeded per-character jitter (caret solid while typing).
+
+### `drag(t, grabT, releaseT, held, rest)` — direct manipulation
+
+`drag(t, grabT, releaseT, held, rest)` is direct manipulation — while held the value is exactly what the hand says, on release it springs back from where it was let go.
 
 ### `camera(t, keys, W, H, feel)` — re-frame every state
 
 Keys are the rects each state should fill (`[[t, {x, y, w, h}], …]`); the helper tracks every field on one spring and returns `{cx, cy, s}` to apply as `translate(W/2, H/2) · scale(s) · translate(-cx, -cy)`. A push-in is a later key with a smaller rect; a reveal is a larger one. "Slow every zoom to 0.7×" is a longer gap between keys or the `heavy` feel, never a different curve. Nothing the camera scales may carry `will-change`. Parallax, rack focus, handheld and time effects: `camera.md`.
 
-### Other helpers
+### `words(t, text, t0, gap, feel)` — kinetic type
 
-`words(t, text, t0, gap, feel)` (per-word springs for kinetic type, `type.md`), `wipe / iris / whip` (transitions, `transitions.md`), `drawOn(t, t0, dur)` (a line drawing itself), `countUp(t, from, to, t0, dur)` (one number that proves it), `beatGrid(bpm)` (`beat-grid.md`), `rng(seed)` (seeded noise; never `Math.random`), `ease.out / in / inOut / back`.
+Per-word springs for kinetic type (`type.md`).
 
-### When to use fixed easing instead
+### `wipe`, `iris`, `whip` — transition geometry
+
+The seam helpers; how each is drawn is in `transitions.md`.
+
+### `drawOn(t, t0, dur)` — a line drawing itself
+
+A line drawing itself, on fixed easing.
+
+### `countUp(t, from, to, t0, dur)` — one number that proves it
+
+One number that proves it, decelerating into the real value (`type.md` § Numbers on screen).
+
+### `beatGrid(bpm)` — the beat grid
+
+Beats and bars as functions of time (`beat-grid.md`).
+
+### `rng(seed)` — seeded noise
+
+Seeded noise; never `Math.random`.
+
+### When to use fixed easing instead — `ease.out / in / inOut / back`
 
 `Motion.ease.out / in / inOut / back` for: fades, a camera that settles after a cut, a progress bar whose rate is the data, a wipe or iris, a count-up, a line drawing itself, a lens move (rack focus, dolly zoom). Mass would lie there. This is the one place the skill departs from "replace every easing curve with a spring": a chart that overshoots its own value is a lie about the data.
 
@@ -136,17 +164,37 @@ A single orchestrated moment lands better than scattered effects. Each shot has 
 
 ## The animation principles, in numbers
 
-Five of the twelve classic principles do most of the work in a short loop, and each can be written as frames and sizes. From a 3D mascot loop:
+Five of the twelve classic principles do most of the work in a short loop, and each can be written as frames and sizes. The numbers in the chapters below come from a 3D mascot loop.
 
-| Principle | What it does | Write it as |
-|---|---|---|
-| Anticipation | winds up before the move | an 11-frame crouch (1.2 × 0.75); a 3-frame wind-up before a lid springs open |
-| Squash and stretch | shows weight and speed | stretch 0.85 × 1.28 at takeoff, squash 1.25 × 0.7 on landing |
-| Overlapping action | limbs start later than the body | arms lag 4 frames, legs 6; details land 2–3 frames after the body |
-| Follow-through | parts keep moving after the body stops | arms settle at 2.2 Hz, damping 0.22; a looser 0.5 spring on what hangs off |
-| Arcs | motion feels natural | a flip along a dotted arc, 3.5 high; props arrive on arcs, never pop in |
-| Slow in and slow out | speeds up and settles softly | spring back at damping 0.55 |
-| Timing | frame count sets weight | 25 frames of air per hop, 18 frames of crouch before the flip |
+### Anticipation
+
+Winds up before the move. Write it as an 11-frame crouch (1.2 × 0.75); a 3-frame wind-up before a lid springs open.
+
+### Squash and stretch
+
+Shows weight and speed. Write it as stretch 0.85 × 1.28 at takeoff, squash 1.25 × 0.7 on landing.
+
+### Overlapping action
+
+Limbs start later than the body. Write it as arms lagging 4 frames, legs 6; details land 2–3 frames after the body.
+
+### Follow-through
+
+Parts keep moving after the body stops. Write it as arms settling at 2.2 Hz, damping 0.22; a looser 0.5 spring on what hangs off.
+
+### Arcs
+
+Motion feels natural. Write it as a flip along a dotted arc, 3.5 high; props arrive on arcs, never pop in.
+
+### Slow in and slow out
+
+Speeds up and settles softly. Write it as a spring back at damping 0.55.
+
+### Timing — frame count sets weight
+
+Write it as 25 frames of air per hop, 18 frames of crouch before the flip.
+
+### Staging, exaggeration and living holds
 
 Staging is the one-hero rule. **Exaggeration** matters more at phone size: push key poses 10–30 % further than feels right, because the feed shrinks everything. Holds need life (breathing ±2 %, a blink every ~3 s); a frozen frame reads as a bug.
 

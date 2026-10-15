@@ -1,0 +1,6 @@
+# Built Anatomy example pages: `node scripts/anatomy/examples/<name>/build.mjs` writes them
+# next to their source. They are rebuildable and not vendored (see NOTICE.md).
+scripts/anatomy/examples/**/*.html
+# Upstream Anatomy check outputs (from its own .gitignore).
+scripts/anatomy/**/shots/
+scripts/anatomy/**/audit.txt

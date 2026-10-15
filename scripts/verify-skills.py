@@ -140,7 +140,7 @@ REMOVED_NAMES_RE = re.compile(
 )
 RESIDUE_SCAN_EXTS = {".md", ".py", ".json"}
 
-# Vendored 第三方材料（/draw 捆綁的 diagram-design / archify / claude-animation）
+# Vendored 第三方材料（/draw 捆綁的 diagram-design / archify / claude-animation / anatomy）
 # 整個目錄排除：這些檔案逐字保留上游授權內容（NOTICE.md 列明），
 # 裡面的 dev / bridge 是上游一般用語，不是本倉被裁名稱的殘留。
 # 排除以 (label, 相對路徑前綴) 表示；命中數隨輸出落盤，不是靜默跳過。
@@ -151,6 +151,8 @@ RESIDUE_VENDORED_PREFIXES = (
     ("draw vendored archify refs", "plugins/baransu/skills/draw/references/map/"),
     ("draw vendored claude-animation", "plugins/baransu/skills/draw/scripts/hand-drawn/"),
     ("draw vendored claude-animation refs", "plugins/baransu/skills/draw/references/motion/hand-drawn/"),
+    ("draw vendored anatomy", "plugins/baransu/skills/draw/scripts/anatomy/"),
+    ("draw vendored anatomy collection", "plugins/baransu/skills/draw/references/mechanism/collection/"),
 )
 
 # (label, path-suffix 或 None=不限路徑, line regex)
@@ -161,6 +163,10 @@ RESIDUE_WHITELIST = (
     ("color grade 攝影詞", None, re.compile(r"color grade")),
     ("可變字型 grade 軸", None, re.compile(r"\bgrade \(")),
     ("Codex CLI bridge 一般詞", None, re.compile(r"Codex CLI bridge")),
+    # draw 的書末索引逐字引用 vendored diagram-design 的標題「Crossing arrows — bridge / hop」
+    ("draw 索引引用 vendored 標題 bridge / hop", "draw/references/INDEX.md", re.compile(r"bridge / hop")),
+    ("draw 索引引用 vendored 標題 bridge / hop", "draw/references/index.json",
+     re.compile(r"bridge / hop|^\s*\"bridge\",$")),
     (
         "transfer.py 歷史註解",
         "codex-skill-transfer/scripts/transfer.py",

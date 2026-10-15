@@ -1,0 +1,151 @@
+<!doctype html>
+<!--
+  component-example.html — one interactive figure, delivered as a component.
+  Mechanics example only. Take from it: the figure registration (data-fig, data-dur, data-rest),
+  the draw function D(g, t, C) reading colour tokens at draw time, the scrubber and play / pause,
+  the theme switch, reduced motion, the visible-only frame loop, the DPR cap with the canvas box
+  cached per resize, and window.seek(t) for render and checks. Never take its look, its figure or
+  its wording: the component's look, composition and interaction come from the references and the
+  brief (references/motion/component.md, looked up with scripts/lookup.py at the step that needs it).
+  A component carries no page frame and no prose: the card, the figure, the control hint, the readout.
+  A page around it is designed by /ui, which embeds this file in an iframe or lifts its markup and script.
+-->
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Component mechanics example</title>
+<style>
+:root {
+  --bg: #F3F2EE; --surface: #FFFFFF; --ink: #18181B; --muted: #5E5E66; --line: #D9D7D0; --accent: #C2410C;
+  --f-ui: system-ui, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --f-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #111113; --surface: #1A1A1E; --ink: #ECECEF; --muted: #A0A0A8; --line: #2E2E34; --accent: #FB923C; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #111113; --surface: #1A1A1E; --ink: #ECECEF; --muted: #A0A0A8; --line: #2E2E34; --accent: #FB923C; color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-ui); padding: 16px; }
+.fig { margin: 0 auto; max-width: 70rem; display: flex; flex-direction: column; gap: 10px; min-width: 0;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+.fig-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 14px; }
+.fig-title { font-weight: 700; font-size: 1rem; }
+.fig-hint { color: var(--muted); font-size: 0.85rem; }
+.stage canvas { display: block; width: 100%; aspect-ratio: 1200 / 675; border-radius: 6px; touch-action: pan-y; }
+.ctrl { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.ctrl button { flex: none; min-width: 40px; height: 32px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; font: 0.85rem var(--f-mono); }
+.ctrl button:hover { border-color: var(--accent); color: var(--accent); }
+.ctrl input[type=range] { flex: 1 1 10rem; min-width: 0; accent-color: var(--accent); }
+.ctrl output { flex: none; font: 0.85rem var(--f-mono); font-variant-numeric: tabular-nums; color: var(--muted); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+</style>
+</head>
+<body>
+
+<figure class="fig" data-fig="demo" data-dur="6" data-rest="5.6" tabindex="0" aria-label="機制示意：一個點依彈簧移到三個停點，讀數顯示目前位置">
+  <div class="fig-head"><span class="fig-title">機制示意</span><span class="fig-hint">拖動時間軸 · 空白鍵播放／暫停</span></div>
+  <div class="stage"><canvas width="1200" height="675"></canvas></div>
+  <div class="ctrl"></div>
+</figure>
+
+<script>
+(() => {
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+// Damped spring step response and a track of spring-driven keys: [time, value] pairs.
+function spring(t, k = 170, d = 26) {
+  if (t <= 0) return 0;
+  const w0 = Math.sqrt(k), z = d / (2 * w0);
+  if (z < 1) { const wd = w0 * Math.sqrt(1 - z * z); return 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t)); }
+  return 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+}
+function track(t, keys, k = 170, d = 26) {
+  let v = keys[0][1];
+  for (let i = 1; i < keys.length; i++) v += (keys[i][1] - keys[i - 1][1]) * spring(t - keys[i][0], k, d);
+  return v;
+}
+// Colour tokens read at draw time, so the figure follows the theme.
+function colors() {
+  const s = getComputedStyle(document.documentElement), C = {};
+  for (const k of ['bg', 'surface', 'ink', 'muted', 'line', 'accent']) C[k] = s.getPropertyValue('--' + k).trim();
+  return C;
+}
+
+// The figure: a pure function of t in a 1200 x 675 design space. Replace it entirely.
+const STOPS = [[0, 200], [1.2, 600], [2.8, 1000], [4.2, 600]];
+function D(g, t, C) {
+  g.strokeStyle = C.line; g.lineWidth = 2;
+  g.beginPath(); g.moveTo(200, 400); g.lineTo(1000, 400); g.stroke();
+  for (const [, x] of STOPS) { g.fillStyle = C.line; g.fillRect(x - 2, 380, 4, 40); }
+  const x = track(t, STOPS);
+  g.fillStyle = C.accent; g.beginPath(); g.arc(x, 400, 26, 0, Math.PI * 2); g.fill();
+  return 'x = ' + Math.round(x);
+}
+
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const el = document.querySelector('.fig');
+const cv = el.querySelector('canvas'), ctrl = el.querySelector('.ctrl');
+const dur = +el.dataset.dur, rest = +el.dataset.rest;
+const btn = document.createElement('button'); btn.type = 'button';
+const range = document.createElement('input'); range.type = 'range'; range.min = 0; range.max = dur; range.step = 0.01; range.id = 'scrub-' + el.dataset.fig; range.setAttribute('aria-label', '時間軸');
+const out = document.createElement('output'); out.setAttribute('for', range.id); out.setAttribute('aria-live', 'off');
+const theme = document.createElement('button'); theme.type = 'button';
+ctrl.append(btn, range, out, theme);
+const f = { g: cv.getContext('2d'), t: rest, playing: !reduce, visible: false, box: 0, last: 0 };
+
+function render() {
+  // Canvas box cached per resize (no layout read per frame); DPR capped at 1.5, 1.0 below 480 px wide.
+  const box = f.box || (f.box = cv.getBoundingClientRect().width);
+  const dpr = Math.min(innerWidth < 480 ? 1 : 1.5, devicePixelRatio || 1);
+  const w = Math.round(box * dpr);
+  if (w > 0 && cv.width !== w) { cv.width = w; cv.height = Math.round(w * 675 / 1200); }
+  const C = colors(), s = cv.width / 1200;
+  f.g.setTransform(s, 0, 0, s, 0, 0); f.g.fillStyle = C.surface; f.g.fillRect(0, 0, 1200, 675);
+  const readout = D(f.g, f.t, C);
+  range.value = f.t; out.textContent = readout + ' · t = ' + f.t.toFixed(2) + ' s';
+}
+function sync() {
+  btn.textContent = f.playing ? '❚❚' : '▶'; btn.setAttribute('aria-label', f.playing ? '暫停' : '播放');
+  const dark = getComputedStyle(document.documentElement).colorScheme.includes('dark');
+  theme.textContent = dark ? '淺色' : '深色'; theme.setAttribute('aria-label', dark ? '切換為淺色' : '切換為深色');
+}
+const toggle = () => { f.playing = !f.playing; sync(); kick(); };
+btn.addEventListener('click', toggle);
+range.addEventListener('input', () => { f.playing = false; f.t = +range.value; sync(); render(); });
+el.addEventListener('keydown', (e) => { if (e.key === ' ' && e.target === el) { e.preventDefault(); toggle(); } });
+theme.addEventListener('click', () => {
+  const dark = getComputedStyle(document.documentElement).colorScheme.includes('dark');
+  document.documentElement.dataset.theme = dark ? 'light' : 'dark';
+});
+
+// The frame loop runs only while the figure plays and is on screen; it stops otherwise and
+// kick() re-arms it on visibility or play. A figure that loops forever advances at <= 30 fps.
+new IntersectionObserver((es) => { f.visible = es.some((e) => e.isIntersecting); kick(); }, { rootMargin: '120px' }).observe(el);
+let raf = 0;
+const live = () => f.playing && f.visible;
+function tick(now) {
+  raf = 0;
+  if (!live()) { f.last = 0; return; }
+  if (!f.last) f.last = now;
+  else if (now - f.last >= 33) { f.t = (f.t + Math.min(0.1, (now - f.last) / 1000)) % dur; f.last = now; render(); }
+  raf = requestAnimationFrame(tick);
+}
+function kick() { if (!raf && live()) raf = requestAnimationFrame(tick); }
+
+// seek(t) paints frame t and pauses: the hook render.mjs, checks and a host page use.
+window.DUR = dur;
+window.seek = (t) => { f.playing = false; f.t = clamp(+t, 0, dur); sync(); render(); };
+
+const redraw = () => { sync(); render(); };
+redraw();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(redraw);
+addEventListener('resize', () => { f.box = 0; render(); });
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redraw);
+new MutationObserver(redraw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+kick();
+})();
+</script>
+</body>
+</html>

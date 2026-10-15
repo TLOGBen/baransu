@@ -324,8 +324,46 @@ def launch(playwright, allow_fonts):
     channel = os.environ.get("DIAGRAM_LINT_BROWSER_CHANNEL")
     if channel:
         print(f"Using browser channel {channel!r} (DIAGRAM_LINT_BROWSER_CHANNEL).", file=sys.stderr)
-        return playwright.chromium.launch(channel=channel, args=args)
-    return playwright.chromium.launch(args=args)
+    return _SeededBrowser(playwright, args, channel)
+
+
+class _SeededBrowser:
+    """/draw: launch on a profile whose Local State already records a password check.
+
+    Windows Chromium calls LogonUser(user, ".", "") the first time a profile opens a tab, to learn
+    whether the account has a blank password; on a non-domain machine each call is a failed logon,
+    and a fresh profile per launch locks the user's account after ten runs (NOTICE.md). launch()
+    refuses a user-data-dir, so a persistent context stands in, with the calls this script makes.
+    """
+
+    def __init__(self, playwright, args, channel):
+        import json
+        import shutil
+        import tempfile
+        import time
+
+        self._dir = tempfile.mkdtemp(prefix="diagram-lint-")
+        future_us = int((time.time() + 100 * 365 * 86400) * 1_000_000) + 11644473600 * 1_000_000
+        with open(os.path.join(self._dir, "Local State"), "w", encoding="utf-8") as handle:
+            json.dump({"password_manager": {"os_password_blank": False, "os_password_last_changed": str(future_us)}}, handle)
+        self._rmtree = shutil.rmtree
+        kwargs = {"args": args, "viewport": VIEWPORT, "headless": True}
+        if channel:
+            kwargs["channel"] = channel
+        self._context = playwright.chromium.launch_persistent_context(self._dir, **kwargs)
+        browser = self._context.browser
+        self.version = browser.version if browser else "unknown"
+
+    def new_context(self, viewport=None):
+        if viewport and viewport != VIEWPORT:
+            raise ValueError("lint-render: the viewport is fixed at launch")
+        return self._context
+
+    def close(self):
+        try:
+            self._context.close()
+        finally:
+            self._rmtree(self._dir, ignore_errors=True)
 
 
 def block_network(context, allow_fonts):

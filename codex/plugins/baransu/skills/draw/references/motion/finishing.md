@@ -4,32 +4,69 @@ Technique reference for the last mile of Phase 5 (`5-post.md` § 4): a loop with
 
 ## Loops
 
-- **Render frames 0 to N − 1, never N.** Frame N is frame 0 again; showing it twice is the hiccup at the seam.
-- **The last frame equals the first**, position and velocity included, cursor included (`springs.md` § `loopT`): every `track()` ends on its starting value with enough time to settle.
-- **Drive every loop from `phase = frame / N` with whole cycles**: a square turns exactly 90° per loop, a wave completes exactly two cycles, all noise is periodic in the loop length. For organic drift, sample noise **along a circle** (`noise(cos(2π·phase)·r, sin(2π·phase)·r)`), so it returns to where it started.
-- **Run a motion through frame 0.** A wobble or a settle that continues across the seam (one loop's 3-bounce wobble at 14 % ran straight through frame 0) hides it better than a hold that waits for it.
-- **Frame 0 is a finished composition**: it is on screen while a GIF loads and as the poster.
-- **The codec pads the audio.** AAC adds about 16 ms of padding past the video, so the file starts on a hard step and a looping player stops the sound hard at the end, plays the padding as silence and restarts hard. Keep the seamless WAV as the master (and for a post that loops twice in the file); for a single-loop MP4, add a 2 ms raised-cosine fade to the first and last ~96 samples only. `sfx.mjs --loop` wraps tails past the end to the start.
-- **Anything that marks one member of a repeated set completes whole cycles too.** A ring of 12 identical dots turning 1/12 of a turn per loop looks seamless, because each dot lands where its neighbour started; give one dot the accent and it jumps a slot at the seam. Turn the ring a full turn (or move the accent with it).
-- **Text never straddles the seam**: it enters after frame 0 and leaves before the end, so the seam falls in a gap, not mid-read.
-- **Start from `assets/motion/loop-template.html`**: phase-driven whole cycles, `loopNoise()` (noise along a circle), `wrappedSpring()` (a settle evaluated across the wrap so it rings through frame 0), and `?seam=1`, which draws frame N − 1 beside frame 0.
-- **Check the seam on stills before any render**: `render.mjs stills --at <DUR − 1/fps>,0,<1/fps>` must read as three consecutive frames. Then, on the master, `checks.sh loop` (or `ffmpeg -stream_loop 2 -i out/anim.mp4 -c copy out/loop_check.mp4`) plays it three times back to back; watch and listen at the seam.
+Every rule below is one chapter; a loop needs all of them.
+
+### Render frames 0 to N − 1, never N
+
+Frame N is frame 0 again; showing it twice is the hiccup at the seam.
+
+### The last frame equals the first
+
+Position and velocity included, cursor included (`springs.md` § `loopT`): every `track()` ends on its starting value with enough time to settle.
+
+### Whole cycles driven from `phase = frame / N`
+
+Drive every loop from `phase = frame / N` with whole cycles: a square turns exactly 90° per loop, a wave completes exactly two cycles, all noise is periodic in the loop length. For organic drift, sample noise **along a circle** (`noise(cos(2π·phase)·r, sin(2π·phase)·r)`), so it returns to where it started.
+
+### Run a motion through frame 0
+
+A wobble or a settle that continues across the seam (one loop's 3-bounce wobble at 14 % ran straight through frame 0) hides it better than a hold that waits for it.
+
+### Frame 0 is a finished composition
+
+It is on screen while a GIF loads and as the poster.
+
+### The codec pads the audio at the seam
+
+AAC adds about 16 ms of padding past the video, so the file starts on a hard step and a looping player stops the sound hard at the end, plays the padding as silence and restarts hard. Keep the seamless WAV as the master (and for a post that loops twice in the file); for a single-loop MP4, add a 2 ms raised-cosine fade to the first and last ~96 samples only. `sfx.mjs --loop` wraps tails past the end to the start.
+
+### A marked member of a repeated set completes whole cycles too
+
+Anything that marks one member of a repeated set completes whole cycles too. A ring of 12 identical dots turning 1/12 of a turn per loop looks seamless, because each dot lands where its neighbour started; give one dot the accent and it jumps a slot at the seam. Turn the ring a full turn (or move the accent with it).
+
+### Text never straddles the seam
+
+It enters after frame 0 and leaves before the end, so the seam falls in a gap, not mid-read.
+
+### Loop mechanics from `loop-template.html`
+
+Take the loop mechanics from `assets/motion/loop-template.html`: phase-driven whole cycles, `loopNoise()` (noise along a circle), `wrappedSpring()` (a settle evaluated across the wrap so it rings through frame 0), and `?seam=1`, which draws frame N − 1 beside frame 0. It is a mechanics example, opened at this step after the loop's look is decided; the loop's look and composition come from the brief and the phase guides, not from the example's scene.
+
+### Check the seam on stills, then on the master
+
+Check the seam on stills before any render: `render.mjs stills --at <DUR − 1/fps>,0,<1/fps>` must read as three consecutive frames. Then, on the master, `checks.sh loop` (or `ffmpeg -stream_loop 2 -i out/<slug>.mp4 -c copy out/check/<slug>.loop_check.mp4`) plays it three times back to back; watch and listen at the seam.
 
 ## Export
 
+### MP4 and GIF commands
+
 ```
 # MP4 for a post: H.264 High, yuv420p, plays at once
-ffmpeg -framerate 24 -i out/frames/%04d.png -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 18 -movflags +faststart out/anim.mp4
+ffmpeg -framerate 24 -i out/frames/%04d.png -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 18 -movflags +faststart out/<slug>.mp4
 
 # GIF: one palette for the whole clip (no colour flicker between frames), 1200 px wide
-ffmpeg -framerate 24 -i out/frames/%04d.png -vf "scale=1200:-1:flags=lanczos,split[a][b];[a]palettegen=stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle" -loop 0 out/anim.gif
+ffmpeg -framerate 24 -i out/frames/%04d.png -vf "scale=1200:-1:flags=lanczos,split[a][b];[a]palettegen=stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle" -loop 0 out/<slug>.gif
 ```
 
 `render.mjs full` already encodes H.264 yuv420p CRF 16 with `+faststart`; the commands above are for frames rendered elsewhere or a GIF. MP4 for posts; GIF for articles and inline loops, only when asked.
 
-**The GIF timing trap.** GIF delays are stored in hundredths of a second, so a 24 fps frame (41.7 ms) cannot be stored exactly; rounding every frame to 40 ms runs the loop 4 % fast and off the beat grid. Alternate: five frames at 40 ms, then one at 50 ms, which keeps a 6-second loop at exactly 6.00 s. GIFs have no gradients that survive: flat colours, or a dithered palette.
+### The GIF timing trap
 
-**The poster.** `out/poster.png` is the last frame (or the strongest key, when the last frame is an end card that does not represent the film); it must stand alone.
+GIF delays are stored in hundredths of a second, so a 24 fps frame (41.7 ms) cannot be stored exactly; rounding every frame to 40 ms runs the loop 4 % fast and off the beat grid. Alternate: five frames at 40 ms, then one at 50 ms, which keeps a 6-second loop at exactly 6.00 s. GIFs have no gradients that survive: flat colours, or a dithered palette.
+
+### The poster
+
+`out/<slug>.poster.png` is the last frame (or the strongest key, when the last frame is an end card that does not represent the film); it must stand alone.
 
 ## Platform limits
 

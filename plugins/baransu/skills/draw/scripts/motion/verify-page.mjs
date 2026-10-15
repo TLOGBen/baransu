@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// verify-page.mjs — screenshot an explainer page the way a reviewer sees it.
+// verify-page.mjs — screenshot a component (<slug>.html) or a diagram the way a reviewer sees it.
 //
-//   node verify-page.mjs page.html [--out shots] [--selector "figure, .fig"] [--phone 400]
+//   node verify-page.mjs <slug>.html [--out shots] [--selector "figure, .fig"] [--phone 400]
 //
 // For light and dark colour schemes: screenshots every element matching
 // --selector (default: figures) and the full page; then a phone-width full page.
@@ -14,12 +14,12 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { loadPlaywright as findPlaywright, chromiumPath, INSTALL_HINT } from './browser.mjs';
+import { loadPlaywright as findPlaywright, chromiumPath, launchChromium, INSTALL_HINT } from './browser.mjs';
 
 const argv = process.argv.slice(2);
 const file = argv.find((a) => !a.startsWith('--'));
 const flag = (k, d) => { const i = argv.indexOf('--' + k); return i >= 0 ? argv[i + 1] : d; };
-if (!file) { console.error('usage: verify-page.mjs page.html [--out shots] [--selector css] [--phone 400]'); process.exit(2); }
+if (!file) { console.error('usage: verify-page.mjs <slug>.html [--out shots] [--selector css] [--phone 400]'); process.exit(2); }
 const HTML = path.resolve(file), OUT = path.resolve(flag('out', 'shots')), SEL = flag('selector', 'figure, .fig'), PHONE = Number(flag('phone', 400));
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -31,7 +31,7 @@ async function loadPlaywright() {
 
 const pw = await loadPlaywright();
 const exe = chromiumPath();
-const browser = await pw.chromium.launch(exe ? { executablePath: exe } : {});
+const browser = await launchChromium(pw, { executablePath: exe });
 const report = { file: HTML, schemes: {}, phone: {}, errors: [] };
 try {
   for (const scheme of ['light', 'dark']) {

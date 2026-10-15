@@ -22,5 +22,5 @@
 - **No continuous "pencil drawing" scratch.** It was built (loudness following the ink laid per frame)
   and rejected: it competes with everything. Draw-on is silent; contacts make sound.
 - Bed level under narration ≈ −22 dB relative; with no narration, bed at ~0.5 and SFX 0.3–0.6.
-- Check the final: `ffmpeg -i final.mp4 -af loudnorm=print_format=summary -f null -` → integrated near the
+- Check the final: `ffmpeg -i out/<slug>.mp4 -af loudnorm=print_format=summary -f null -` → integrated near the
   target, true peak ≤ −1.

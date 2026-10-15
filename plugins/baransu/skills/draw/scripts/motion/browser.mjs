@@ -77,6 +77,74 @@ export function chromiumPath() {
   return undefined; // let Playwright use its own default
 }
 
+// Windows Chromium calls LogonUser(user, ".", "") the first time a profile opens a tab, to learn
+// whether the account has a blank password (password_manager_util_win.cc, CheckBlankPasswordWithPrefs).
+// On a non-domain machine every call is a failed interactive logon (event 4625); Playwright's
+// launch() makes a fresh temp profile per run, so a test suite that opens ten browsers in ten
+// minutes locks the user's Windows account. Chromium skips the check when Local State already
+// records a password-change time at or after the real one, so every profile is seeded with that
+// record before Chromium starts. launchPersistentContext is used because launch() refuses a
+// user-data-dir; the wrapper below keeps the Browser calls these scripts make.
+const WIN_EPOCH_OFFSET_US = 11644473600n * 1000000n;          // 1601-01-01 to 1970-01-01, in µs
+export function seedProfile(dir) {
+  fs.mkdirSync(dir, { recursive: true });
+  const future = BigInt(Date.now() + 100 * 365 * 86400 * 1000) * 1000n + WIN_EPOCH_OFFSET_US;
+  const file = path.join(dir, 'Local State');
+  let state = {};
+  try { state = JSON.parse(fs.readFileSync(file, 'utf8')); } catch {}
+  state.password_manager = { ...(state.password_manager || {}), os_password_blank: false, os_password_last_changed: String(future) };
+  fs.writeFileSync(file, JSON.stringify(state));
+  return dir;
+}
+
+// Launch Chromium on a seeded temp profile. Returns an object with the Browser calls the draw
+// scripts use: newPage(opts), newContext(opts) -> { newPage, addInitScript, close }, close(), process().
+// deviceScaleFactor is per launch (a persistent context fixes it); viewport, colorScheme and
+// reducedMotion are applied per page.
+export async function launchChromium(pw, { executablePath, args = [], headless = true, deviceScaleFactor = 1 } = {}) {
+  const dir = seedProfile(fs.mkdtempSync(path.join(os.tmpdir(), 'draw-chromium-')));
+  const ctx = await pw.chromium.launchPersistentContext(dir, {
+    headless, args, deviceScaleFactor, ...(executablePath ? { executablePath } : {}),
+  });
+  const blank = ctx.pages();
+  const apply = async (page, o = {}) => {
+    if (o.deviceScaleFactor && o.deviceScaleFactor !== deviceScaleFactor) {
+      throw new Error(`deviceScaleFactor ${o.deviceScaleFactor} differs from the launch value ${deviceScaleFactor}; pass it to launchChromium`);
+    }
+    if (o.viewport) await page.setViewportSize(o.viewport);
+    if (o.colorScheme || o.reducedMotion) await page.emulateMedia({ colorScheme: o.colorScheme, reducedMotion: o.reducedMotion });
+    return page;
+  };
+  const newPage = async (o) => {
+    const page = await apply(await ctx.newPage(), o);
+    for (const b of blank.splice(0)) await b.close().catch(() => {});
+    return page;
+  };
+  return {
+    newPage,
+    newContext: async (o = {}) => ({
+      newPage: (p = {}) => newPage({ ...o, ...p }),
+      addInitScript: (script, arg) => ctx.addInitScript(script, arg),
+      close: async () => {},
+    }),
+    process: () => (ctx.browser() && ctx.browser().process ? ctx.browser().process() : null),
+    // A persistent context exposes no process handle, so a hung browser is found by its profile dir.
+    kill: () => {
+      if (WIN) {
+        const ps = `Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" | Where-Object { $_.CommandLine -like '*${path.basename(dir)}*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }`;
+        spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', ps], { stdio: 'ignore', timeout: 15000 });
+      } else {
+        spawnSync('pkill', ['-9', '-f', path.basename(dir)], { stdio: 'ignore', timeout: 8000 });
+      }
+      try { fs.rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }); } catch {}
+    },
+    close: async () => {
+      try { await ctx.close(); } finally { try { fs.rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }); } catch {} }
+    },
+    userDataDir: dir,
+  };
+}
+
 export function hasFfmpeg() {
   return spawnSync('ffmpeg', ['-version'], { encoding: 'utf8' }).status === 0;
 }

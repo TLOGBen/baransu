@@ -1,14 +1,16 @@
 ---
 name: ui
-description: 'UI/UX design lead for the code in your repo. Use whenever the user wants
-  a page or component to look better, less generic, more designed, or styled after
-  something — 美化、調 UI、加樣式、看起來太 AI／太模板／太陽春、make it look designed, add some styling
-  — it builds or reshapes the web UI with deliberate palette / type / layout / motion
-  choices and writes or edits the UI files directly; learns a design language from
-  a reference (a website, a screenshot, an art style) and refines an existing UI against
-  it. Trigger On ''$baransu:ui'', ''設計 UI'', ''美化'', ''調 UI'', ''介面設計'', ''照這個網站的風格'',
-  ''styling'', ''beautifying any web UI'', ''frontend design''. Not For: Claude Design
-  畫布 mockup（內建 design skill）; 說明性圖表與動畫（$baransu:draw）; 小寫 design.md 技術架構文件.'
+description: 'UI/UX design lead for the code in your repo. Use whenever the user wants a page or
+  component to look better, less generic, more designed, or styled after something — 美化、調
+  UI、加樣式、看起來太 AI／太模板／太陽春、make it look designed, add some styling — it builds or reshapes
+  the web UI with deliberate palette / type / layout / motion choices and writes or edits
+  the UI files directly; learns a design language from a reference (a website, a
+  screenshot, an art style) and refines an existing UI against it; designs explanatory
+  pages — 說明頁、教學頁、含圖解的頁面、多張圖一起看 — embedding the components $baransu:draw produces
+  ($baransu:draw hands these over automatically in the same turn). Trigger On
+  ''$baransu:ui'', ''設計 UI'', ''美化'', ''調 UI'', ''介面設計'', ''照這個網站的風格'', ''styling'',
+  ''beautifying any web UI'', ''frontend design''. Not For: Claude Design 畫布 mockup（內建
+  design skill）; 單件圖、影片、機構、互動元件（$baransu:draw）; 小寫 design.md 技術架構文件.'
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex
@@ -22,7 +24,7 @@ All user-facing output is Traditional Chinese (繁體中文); code, identifiers 
 
 - **Outcome**: The UI the user asked for exists in their files — built new or reshaped — with a visual direction chosen for this brief rather than a default; when a reference was given, its design language is captured in `.codex/design/reference-<slug>.md` and applied.
 - **Done when**: The design plan (palette, type roles, layout concept, principles) was shown in the conversation before any file changed; the files are written or edited; the closing message lists every changed file with one line each.
-- **Evidence**: The plan in the transcript, the changed-file list, and a screenshot when the environment can take one.
+- **Evidence**: The plan in the transcript, the changed-file list, and a screenshot when the environment can take one (taken only as § Browser checks allows).
 - **Output**: UI source files in the user's project; optionally `.codex/design/reference-<slug>.md`; Traditional Chinese status messages.
 - **Automation**: ultracode=neutral, loop=not-drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 - **Telemetry**: on invocation, append one selection record per `../_shared/selection-telemetry.md`.
@@ -79,6 +81,15 @@ When writing the code, be careful of structuring your CSS selector specificities
 
 Spend your boldness in one place. Let one element be the memorable thing, keep everything around it quiet and disciplined, and cut any decoration that does not serve the brief. Build to a quality floor without announcing it: responsive down to mobile, visible keyboard focus, reduced motion respected, visually accessible, harmonious color palettes. Critique your own work as you build, taking screenshots to review if your environment supports it — a picture is worth 1000 tokens. Consider Chanel's advice: before leaving the house, take a look in the mirror and remove one accessory. Human creatives have memory and always try to do something new, so if you have a space to quickly jot down notes about what you've tried, it can help you in future passes.
 
+## Browser checks
+
+Every screenshot, computed-style read or page check this skill runs goes through one of two kinds of tool, and no other:
+
+- The user's real Chrome, when a tool that drives it is connected (Claude in Chrome). It runs on the user's own profile.
+- `$baransu:draw`'s seeded scripts, run with the draw skill's directory `<draw>` = `../draw` beside this skill: `node "<draw>/scripts/motion/verify-page.mjs" <file>.html --out <dir>` (light and dark screenshots, a phone-width page, console errors, sideways scroll), `node "<draw>/scripts/motion/perf-check.mjs" <file>.html` (frame cost of embedded figures), and `node "<draw>/scripts/motion/grab.mjs" <url> --out <dir>` (a reference site's screenshots plus the fonts and colours it computes). Each starts Chromium through `scripts/motion/browser.mjs` `launchChromium()`.
+
+Never start a fresh Playwright browser (`chromium.launch()`, a new `launchPersistentContext`), agent-browser, a Playwright MCP or any other browser tool: on Windows, Chromium on a fresh profile probes the account with a blank-password logon each time it opens a tab, and a handful of those lock the user's Windows account; the draw scripts seed the profile so the probe never runs. When neither kind of tool is available, skip the screenshot and say so in the closing message.
+
 ## More on writing in design
 
 Words appear in a design for one reason: to make it easier to understand and use. They are design content, not decoration. Bring the same intentionality and minimalism to copywriting that you would bring to spacing and color. Before writing anything, ask what the design needs to say, and how it can best be said to help the person navigate the experience.
@@ -101,11 +112,31 @@ When the brief points at a reference — a URL, a screenshot, a poster, an art m
 - Layout: alignment (left, centered, justified), the grid or the deliberate lack of one, how sections are separated (whitespace, rules, color fields), where the eye lands first.
 - Motion: what moves, what triggers it, how fast, and whether it answers an action or only decorates.
 
-How to look depends on what the environment gives you. When a Chrome browser tool is available, open the page, read computed styles (font-family, font-size, line-height, colors, spacing) from the real DOM and take a screenshot — measured values beat guesses. When it is not, read the screenshot or image the user gave you and describe what you see. When there is neither, ask the user for one screenshot rather than designing from a memory of the site. None of these tools is a precondition; the reading is.
+How to look depends on what the environment gives you. When a tool driving the user's real Chrome is available, open the page, read computed styles (font-family, font-size, line-height, colors, spacing) from the real DOM and take a screenshot — measured values beat guesses. Otherwise `$baransu:draw`'s `grab.mjs` (§ Browser checks) captures the page and the fonts and colours it computes. When neither can reach the page, read the screenshot or image the user gave you and describe what you see. When there is neither, ask the user for one screenshot rather than designing from a memory of the site. None of these tools is a precondition; the reading is.
 
-Write the result as a short prose note at `.codex/design/reference-<slug>.md`, first line naming the source, so a later session can reuse it without re-reading the reference. `$baransu:draw` reads that note as a brand source when it skins an explanatory diagram, so capture it once here and let diagram work reuse it; when a finished diagram must sit inside the user's site, `$baransu:draw` exports the SVG and this skill places it. Then design from the note the way you would from any brief: plan, review against the brief, build, critique.
+Write the result as a short prose note at `.codex/design/reference-<slug>.md`, first line naming the source, so a later session can reuse it without re-reading the reference. `$baransu:draw` reads that note as a brand source when it skins a diagram or a component, so capture it once here and let drawing work reuse it; when a finished diagram must sit inside the user's site, `$baransu:draw` exports the SVG and this skill places it. Then design from the note the way you would from any brief: plan, review against the brief, build, critique.
 
 Extract properties, never assets. 只抽性質，不抽素材、文案、logo. Type choices, palettes, proportions, spacing systems and motion patterns are ideas; the reference's images, illustrations, icons, copy, logos and brand marks belong to their owner and do not enter the user's project.
+
+## Pages built around $baransu:draw components
+
+`$baransu:draw` makes single pieces only: a diagram (`<slug>.html` + `.svg`/`.png`), a map (`<slug>.map.html`), a film (`out/<slug>.mp4` from `<slug>.film.html`, poster `out/<slug>.poster.png`), or an interactive component (`<name>.html`, named for its figure — a mechanism figure, a draggable or animated figure). A page that explains something with figures, a tutorial, or several figures meant to be read together is a page, and this skill designs it: the layout, the reading column, the prose, the section rhythm, and how each figure is introduced and captioned.
+
+The user usually asks `$baransu:draw` ("draw X", "show me and draw it"), not this skill. When such a request needs a whole page, `$baransu:draw` builds and checks every component first, then loads this skill in the same turn and hands over the component paths and a summary of the request. The hand-off contract:
+
+- **Input**: `<project>/.codex/draw/<slug>/docs/ui_brief.md` (who reads the page, what they must understand, the order of the ideas, each component's path, point and caption, the facts the page text may use, the page file name) and the component paths `$baransu:draw` lists.
+- **Output**: one page, `<project>/.codex/draw/<slug>/<page-name>.html`, in the same folder as the components. Use the name the brief gives; if it gives none or it equals a component's file name, pick a name for the page's subject that no component uses. Never `index.html`, and never overwrite a component file.
+- **Components keep their own look** (step 4 below).
+- **No question to the user on this path.** The user is not waiting to approve a plan here: where § Ground your designs says to confirm the subject with the client, state it in the plan and continue; where anything is unclear, decide from `docs/ui_brief.md` and say what you decided in the closing message.
+
+1. Read the hand-off: `docs/ui_brief.md` first — what the page must explain, to whom, and the component list (path, what each one shows, its size and theme behaviour). Open each component file to see its markup, its script, its theme tokens and how it sizes itself.
+2. Design the page with the plan-review-build-critique process above; ground it in the subject the way any brief is grounded. State the plan in the conversation, then build — do not wait for a reply.
+3. Embed each component, choosing per component: an `<iframe>` (the default; it keeps the component's styles and scripts isolated — size it to the component's aspect and pass the page's theme through when the component reads one), or the component's markup and script lifted into the page when the page needs one shared document (scope its CSS under a wrapper so neither side restyles the other, and keep one copy of any shared script). Films go in as `<video>` with the poster `$baransu:draw` rendered.
+4. Keep each component's own look. Its palette, line weight, motion and internal layout were decided by `$baransu:draw` for that piece; the page sets the frame around it — spacing, captions, surrounding type, the page palette — and never restyles the inside. When the page palette and a component clash, adjust the page, or say in the closing message which component should be redrawn and why.
+5. Check the page as a whole: phone width with no sideways scroll, both colour schemes, every embedded component loading and responding, reduced motion respected. Run `node "<draw>/scripts/motion/verify-page.mjs" <page-name>.html --out shots` and `node "<draw>/scripts/motion/perf-check.mjs" <page-name>.html` from the output folder (§ Browser checks) and fix the page until both pass.
+6. Close as below, listing the page file and the embedded component paths; the closing message also says which components the page uses, how each is embedded, and the two check results.
+
+The user may also call this skill directly on a page that already holds `$baransu:draw` components, to adjust the page around them. The same rule applies: change the page, not the components; anything inside a component goes back to `$baransu:draw`.
 
 ## Refining an existing UI
 

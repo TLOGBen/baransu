@@ -2,6 +2,127 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [7.5.0] - 2026-10-13
+
+### Changed（`/draw`：只畫單件作品，需要整頁時自動交給 `/ui`）
+- 形式改為四種：diagram（靜態圖，可加 seek overlay）、map（可探索的架構圖）、film（影片，含運鏡）、component（可互動的動畫元件：機構圖、可拖動的圖、動畫小元件）。拿掉 page 形式：版面、閱讀欄、內文與多圖頁面不再由 draw 做。`--lane` 改收 `diagram|map|film|component`，`SKILL.md` 的 lane 章節改為 `Lane: film`、`Lane: component`，另新增「Shader layers (any form)」。
+- component 交付一個自足的 `<name>.html`：只有作品本身（圖、操作提示、讀數、圖說），主題感知、手機寬度可用，沒有頁面外框與段落文字，可被 `/ui` 用 iframe 嵌入，或把標記與腳本抽進頁面。`verify-page.mjs`、`perf-check.mjs` 直接對每個元件檔跑。`references/motion/explainer-page.md` 改為 `component.md`（元件的機制、元件契約、效能規則、建置順序），`references/lanes/page.md` 改為 `lanes/component.md`，`assets/motion/explainer-template.html` 改為單件元件的機制範例 `component-example.html`。
+- 自動交棒 `/ui`：使用者的用法是「幫我 draw xxx」「show me & draw it」，所以 draw 是唯一入口，負責端到端交付。由內容判斷要一件、多件，還是一整頁（說明 X、教學、多張圖一起看）。需要整頁時，brief 的 `When:` 加上 `needs-page`，各元件做完並通過檢查後走 `assemble-page` 一步：寫 `docs/ui_brief.md`，同一回合用 Skill 工具載入 `/ui`，不問使用者，預設不開 subagent。最後交付 `<slug>.html` 頁面加上各元件。開工狀態行與完成報告多一欄「交付」（單件／多件／元件＋/ui 組頁）。紅線新增：不准停下來問要不要做成頁面，也不准由 draw 自己做頁框、閱讀欄或段落。
+- `/ui`：描述與內文新增「說明頁、教學頁、含圖解的頁面由 `/ui` 設計，嵌入 `/draw` 產出的元件」。新增一節「Pages built around /draw components」：照交棒內容直接做、不等回覆；每個元件可選用 iframe 或抽出標記；保留元件自己的外觀，只調頁面。Not For 改為「單件圖、影片、機構、互動元件 → `/draw`」。`CLAUDE.md` 技能表同步更新。
+- 評分卡：page 列改為 component 列（圖說要補上圖沒畫出的資訊、rest frame 本身就能說明重點、元件契約、效能）。`critique-loop.md` 的「Looking at a page」改為「Looking at a component」，mechanism 列的指令改對 `<name>.html` 跑。mechanism 的「How it joins /draw」改為 component（預設）、film、diagram 三種接法，對應 `mech-join-component`、`mech-join-film`、`mech-join-diagram`。
+- `evals.json` 的期望輸出改為 film lane 與「元件＋/ui 組頁」。
+
+### Changed（`/draw`：有意義的檔名）
+- 檔名以主題 slug 命名，副檔名標出種類：film 原始檔 `<slug>.film.html`；母帶 `out/<slug>.mp4`，其他格式 `<slug>-9x16.mp4`、`<slug>-1x1.mp4`；diagram 是 `<slug>.html` 加上匯出的 `<slug>.svg`／`.png`；map 是 `<slug>.map.html`；component 是 `<name>.html`。`index.html`、`final.mp4` 不再當作 draw 的輸出名（`steps.json` 明文禁止）。
+- `render.mjs`：slug 取自 `--html` 檔名（去掉 `.film.html` 或 `.html`）。所有輸出都是 `out/<slug>[-<格式>][.<種類>].<副檔名>`，例如 `paper-plane.contact.png`、`paper-plane.animatic.mp4`、`paper-plane.part-10.00-20.00.mp4`。主格式不加後綴、其他格式一律加後綴（見下方「主格式」），兄弟格式不會再蓋掉母帶。新增 `--name SLUG`（換 slug）與 `--out-file PATH`（指定確切輸出檔；與 `--all` 一起用時，在啟動瀏覽器前就拒絕）。
+- `checks.sh`、`doctor.mjs`（smoke test 改用 `smoke.film.html`）、`verify-page.mjs`、`perf-check.mjs` 的用法說明，以及 `pipeline.md`、`1-design.md`、`3-keys.md`、`4-shoot.md`、`5-post.md`、`review.md`、`beat-grid.md`、`finishing.md`、`prompts.md`、hand-drawn 的 `sound.md`／`workflow.md`、seek／loop 範本的開頭註解，全部改用新檔名。diagram 的 `lint-skin.py` 改為一律從檔名取 slug，不再特別處理 `index.html`。
+
+### Changed（`/draw`：索引、步驟與參照帳，本輪整合）
+- 索引拆細：主題從 1764 增加到 1836，每個主題印出不超過 80 行。`map-delivery-validate-and-deliver`、`map-delivery-output-path-contracts`、`kit-round-parts`、`kit-audit`、`anatomy-page-in-your-code` 各拆成數個子主題，原 id 改為總覽（例如 `kit-audit-hook`、`kit-round-parts-solids`）。作品集每一頁各拆成圖的一半（`mech-collection-<頁>`）與安裝、使用的一半（`mech-collection-<頁>-code`）。
+- `lookup.py`：沒有子標題的長章節可用行範圍選取（`from`／`to`）。`--check` 另外列出沒有任何主題指到的標題，原有的 120 行上限與「`whole` 必須附理由」照舊。`--rebuild-index` 支援 `--rename`、`--add`、`--dry-run`。改名後的主題 id 一律改成 component 開頭（`component-contract`、`component-build-order`、`component-mechanics`、`lane-component-*`、`critique-rows-component` 等），不保留舊 id 當別名。另新增 `component-ui-handoff`、`skill-shader-layers`、`component-theme-switch-seek`。Codex 副本多一個 `codex-port-adapter` 主題，讓 adapter 章節也有主題指到。
+- `steps.json`：依四種形式重寫，共 82 步。新增 `component-caption-states`、`component-perf-plan`、`component-figure-card`、`component-rest-frame`、`component-interaction`、`component-check`、`assemble-page`，並補上 anatomy 上游的五章（`anatomy-invent-object`、`anatomy-build-geometry`、`anatomy-painters-order`、`anatomy-make-live`、`anatomy-verify-critic`）。preflight 適用所有形式。新增兩個步驟旗標：`ordered`（依列出的順序印出，例如 `mech-size` 先印 `mech-overrides` 再印 `anatomy-size-classes`）與 `all_products`（該步要交出每一個產出，例如 `assemble-page` 的 `docs/ui_brief.md` 與頁面），兩者都是給建置者的指引，`ledger-check.py` 不檢查。`camera-{move}`、`transition-{name}` 認得 push-in、whip pan、crossfade 這類別名。`mech-join-{form}` 依形式代入。
+- `ledger-check.py` 改為依四種形式判斷適用步驟（判斷方式見下方「參照帳簡化」）。`SKILL.md` 每個步驟表的列與 `steps.json` 逐列一致（82 步，必查主題完全相同）。查詢指令統一寫成 `python3 "<skill>/scripts/lookup.py" <主題> --log "<out>"`，腳本一律用絕對路徑呼叫。
+
+### Changed（`/draw`：步驟紀錄 `lookup.py --step`）
+- 每一步動手前只跑一條指令：`python3 "<skill>/scripts/lookup.py" --step <步驟 id> --log "<project>/.claude/draw/<slug>" [--value key=value ...]`。它印出該步 `lookup_before` 列的每一章（`camera-{move}`、`transition-{name}`、`type-{chosen}`、`type-ramp-{size}`、`kit-{fn}` 等範本由 `--value` 代入，別名經 `steps.json` 與索引解析，例如 `--value move=push-in` → `camera-dolly`；`{form}`／`{approach}` 預設讀 brief 的 `Form:`／`Approach:`），並在 `docs/lookups.log` 追加一筆 `step` 紀錄（UTC 時間、步驟 id、代入後的主題 id）與各主題的查詢列。未知的步驟或值以 exit 1 結束、什麼都不記。步驟中途冒出的問題仍用單一主題查詢 `lookup.py <主題> --log …`。新增 `--sync-aliases`，把範本別名寫進索引。
+- `SKILL.md` 每列改成 `Before: lookup.py --step <id>`，完整指令只在開頭定義一次，列內不再列主題清單（29.6 KB → 20.2 KB）。84 個步驟（新增 `progress-notes`、`first-version`）與 `steps.json` 一一對應，每張步驟表的列序與 `steps.json` 一致。各階段指引與 `motion/README.md` 改為「經由步驟指令一次查一章，不整份讀」。
+- `ledger-check.py` 改以 `step` 紀錄為準：每個適用的步驟都要有 `step` 紀錄；條件式步驟在成品出現其標記時適用（例如用到 WebGL 卻沒走 WebGL 步驟就 FAIL）；`<out>/scratch/` 與 `node_modules/` 一律不掃。實際檢查的項目見下方「參照帳簡化」。
+- 檔名與工具實際寫出的一致：`out/<slug>.mp4`、`out/<slug>.contact.png`、`out/<slug>.animatic.mp4`、`out/<slug>.poster.png`（原 `out/poster.png`，`3-keys.md`、`5-post.md`、`finishing.md`、`prompts.md` 同步）、元件 `<name>.html`、`/ui` 組的頁面 `<page-name>.html`（名稱不得與任何元件相同）。
+- 步驟 3 與 component lane 明寫：用 diagram system 畫的元件也要走 `diagram-plan`、`diagram-layout`、`diagram-markup`（寫進 `<name>.html`）、`diagram-check`、`diagram-taste-gate`。`diagram-semantic-pattern` 移到 `diagram-plan` 之前；`mech-line-ends` 列寫出 `shots/lines.png`；`mech-size` 依零件數與運動系統數判斷，不看機構數。
+
+### Changed（`/draw`：時間紀律與卡關規則）
+- 時間只記錄、不拿來換品質：每一步記下 `date` 到 `docs/progress.md`（`progress-notes` 步驟），某一步超過預期份額兩倍時送一行進度給使用者，然後在同一回合繼續。最晚開工一小時內送出第一個能開、能動的版本（`first-version` 步驟，`docs/first_version.md`），之後繼續加深。開工狀態行多一欄「交付」，完成報告多一行「用時：{總計}；第一版於 {經過時間} 送出」。原則、完成條件與紅線同步。
+- 卡關規則（`critique-loop.md` §「A stalled row moves on」）：一個門檻列連續兩輪、每輪都對它修正卻沒有提高分數，就判為 `stalled`，寫進完成報告的「未做到的」（最後分數、試過什麼、卡在哪），在 `docs/scorecard.md` 與 `docs/review_log.md` 標記，後續回合用在還會進步的列。卡住的列不得往上改分來結束迴圈，也不得因此停下來問使用者。每輪的開始時間寫進 `R<n>` 標題，超過預期兩倍時送一行進度。
+
+### Added（`/draw`：實作時踩到的技巧章節）
+- `mechanism.md`：「Kit limits」（`extrude` 不能挖洞、雜湊擺放會相撞、實體都是直立柱體等上游 kit 的限制，`mech-build-geometry` 前查）、「Draw order for dynamic scenes」（零件會增減、換位或旋轉時，依地面投影做拓撲排序、環狀物拆前後兩半、只在狀態改變時重算）、「Verification side effects」（`drive.mjs` 的 `["lines"]` 會改動頁面要放最後、`Escape` 會啟動恢復導覽的計時器、slow 模式不放慢 timer）。
+- `component.md`：「Seek and the idle tour」（seek 清掉排程中的未來事件、取消閒置計時器、固定步長重播不提早停）、「SVG reorder performance」（純 SVG 大量深度排序時快取並量化排序鍵、只在順序改變時用一個 `DocumentFragment` 重排、長導覽預先算好換序時間）。
+- 索引重建為 1842 個主題，`lookup.py --check` 0 個未解析。
+
+### Changed（`/ui`：組頁交棒的安全規則）
+- 新增「Browser checks」一節：截圖、讀 computed style、檢查頁面只能用兩種工具——使用者真正的 Chrome（有連上驅動它的工具時），或 `/draw` 已 seed 的 `verify-page.mjs`、`perf-check.mjs`、`grab.mjs`（都經 `browser.mjs` 的 `launchChromium()` 啟動）。不准開全新的 Playwright 瀏覽器、agent-browser、Playwright MCP 或其他瀏覽器工具，因為 Windows 上全新 profile 開分頁會以空白密碼探測帳號，幾次就鎖住使用者的 Windows 帳號。兩種都沒有就略過截圖並在結尾說明。
+- 交棒契約：輸入是 `<project>/.claude/draw/<slug>/docs/ui_brief.md` 加元件路徑；輸出是同資料夾的 `<page-name>.html`，名稱不與任何元件相同、不用 `index.html`、不覆蓋元件；保留每個元件自己的外觀；這條路上不問使用者，不清楚的地方依 brief 決定並在結尾說明。步驟 1 先讀 `docs/ui_brief.md`，步驟 5 對頁面跑 `verify-page.mjs` 與 `perf-check.mjs` 直到通過，步驟 6 回報兩者結果。Codex 副本同步。
+
+### Fixed（`render.mjs --all` 的母帶檔）
+- `render.mjs --all` 原本只寫 `out/<slug>-9x16.mp4` 等帶後綴的檔，從不寫出無後綴的 `out/<slug>.mp4`。現在主格式直接寫成無後綴的主檔（`out/<slug>.mp4`，`.animatic.mp4`、`.contact.png` 等同理），不再另外複製（見下方「主格式」）；`renderFull()`、`renderSheet()` 改為回傳寫出的檔案路徑。
+
+### Changed（`/draw`：參照帳簡化）
+- `ledger-check.py` 重寫（約 600 行 → 330 行），只證明步驟指令有跑，不再從檔名或檔案時間推論。PASS 的條件只有四項：`docs/lookups.log` 存在；`ledger-check` 之前每個適用的步驟都有 `step` 紀錄（適用與否看 brief 的 `Form:`／`Approach:`／`When:`，加上成品裡的四種標記：用到 anatomy kit 視為 `approach:mechanism`、WebGL、3D 轉動群組、有 `<svg>` 的 diagram 上的 seek overlay）；紀錄列出的每個主題都有同一時間的查詢列；`lookup_before` 有範本的步驟至少代入一個主題（可為 `none` 的範本如 `camera-{move}` 除外）。
+- 拿掉的檢查：產出檔是否存在與 `all_products`、產出檔時間、`kit-{fn}` 呼叫掃描（`set`、`draw`、`ring` 這類通用名稱會讓誠實的 `geometry.mjs` 被誤判）、從 `Move:`／`Seam:`／`Type:`／`Size:`／`candidate.json` 讀範本值、`ordered`、`docs/ui_brief.md` 的 `Page:` 行，以及會誤中 `fillet(` 的管線偵測（`when:pipes` 只看 brief）。`<out>/scratch/` 與 `node_modules/` 照舊不掃；每步一列的表照舊印出（`pass N record(s), M topic(s) printed`，跑了但 brief 不要求的步驟註明 ran; not required）。沒有 `Form:` 也偵測不到時仍 FAIL。
+- 只提示、不判失敗：第一版晚於第一筆查詢 60 分鐘以上；紀錄裡出現 `steps.json` 沒有的步驟。
+- 新增 `--upto <步驟>`：只檢查該步驟之前的步驟。評分迴圈每一輪改跑 `ledger-check.py <out> --upto critique-loop`，否則整頁說明的情況下，評分時還沒輪到的 `/ui` 組頁步驟會被誤判缺紀錄。
+- map：`references/lanes/map.md` 新增「Overrides on the delivery contract」，取消上游「最多兩輪修正」與修復次數上限，改由卡關規則收尾；`map-finalize` 與 `map-perceptual-review` 先印這一章。
+- 手繪影片：`design-hand-drawn` 改為只看 `film-template.mjs` 的機制，`film.mjs` 畫這支片自己的場景；影片 brief 的必填欄位改用範本實際的 FILM／ASSETS／VISUAL／UNACCEPTABLE／DELIVER；`pipeline.md` 的格式說明改為主格式不加後綴。
+- 散文同步：`critique-loop.md`「The reference ledger」、`mechanism.md`、`2-draft.md`（`Move:`／`Seam:` 行只用來列出該查的章節）、`5-post.md` 的檢查清單、`steps.json` 的 `_about`。
+
+### Changed（`/draw`：diagram 覆寫先讀、§3.9 章節接上步驟）
+- 每個 diagram 步驟（`diagram-import`、`-brand`、`-semantic-pattern`、`-plan`、`-layout`、`-markup`、`-cjk-labels`、`-animate`、`-seek-overlay`、`-check`、`-taste-gate`、`-export`）與 `mech-still` 的 `lookup_before` 第一個都是 `diagram-overrides`（`"ordered": true`），照步驟走的建置者一定先看到覆寫，例如品牌網址改用 `grab.mjs` 或一般 fetch，不用 agent-browser。
+- `diagram-markup`：範本只當設計系統骨架與 token 參考，SVG 構圖來自 type reference 與 `docs/layout.md`，元件不帶 eyebrow、h1 或頁框；另印出 `lane-diagram-templates-are-design-system-skeleton`。
+- `map-finalize` 多印 `lane-map-finalize`（完整的 `archify.mjs finalize … --quality showcase --json` 指令與 `docs/finalize.json`）。`map-perceptual-review` 改為一律執行 `archify.mjs visual-check`，產出照工具實際寫出的 `<slug>.map.visual-check.json` 與 `.<WxH>.<theme>.png`，不再要求沒有工具會寫的 `shots/map-*.png`。
+- §3.9 的章節接上步驟：`mechanism-kit-limits` → `mech-build-geometry`；`mechanism-draw-order-dynamic-scenes` → `mech-painters-order`；`mechanism-verification-side-effects` → `mech-line-ends`、`mech-closeups`；`component-seek-idle-tour` → `mech-make-live`、`component-interaction`；`component-svg-reorder-performance` → `component-perf-plan`；`perf-warm-up` → `webgl-layer`。
+- 開工狀態行：形式、畫法與交付確定就送出；型別或結構與尺寸在決定它們的步驟之前寫「待定」。
+
+### Changed（`render.mjs`：主格式）
+- 新增 `--primary 9:16|1:1|16:9|4:5`，未知值以 exit 2 拒絕。主格式依序取：`--primary`、頁面宣告（`window.timeline()` 的 `primary`，或 `window.PRIMARY_FORMAT`；不合法的宣告會被拒絕）、單獨的 `--format X`、9:16。主格式的輸出不加後綴（`out/<slug>.mp4`、`.animatic.mp4`、`.contact.png`、`.poster.png`），其他格式一律加後綴。`--all` 渲染 9:16、1:1、16:9（主格式是 4:5 時再加 4:5），不再複製檔案。沒有 `--format` 與 `--w`／`--h` 時渲染主格式；每次執行印出用了哪個主格式與原因，例如 `primary format 16:9 (declared by the page)`。
+- 16:9 的短片因此寫出 `out/<slug>.mp4`，不再是 `out/<slug>-16x9.mp4`。`design-film-folder` 要求在頁面宣告主格式，`post-render-master` 的完成條件改為「`out/<slug>.mp4` 是主格式，兄弟格式加後綴」；`pipeline.md` 的 render 契約表加上 `primary` 一列。
+
+### Changed（`checks.sh`：輸出以輸入檔命名）
+- 輸出以輸入檔名（去掉副檔名）命名，並放在輸入檔旁的 `check/` 資料夾：`out/<slug>.mp4` → `out/check/<slug>.contact.png`，兄弟 `out/<slug>-1x1.mp4` → `out/check/<slug>-1x1.contact.png`；`strip` 帶時間（`<slug>.strip-4.2.png`），另有 `.phone.png`、`.loop_check.mp4`、`.audio.wav`、`.waveform.png`。檢查母帶與每個兄弟格式不再互相覆蓋，也不會蓋掉 `render.mjs` 對頁面拍的 dailies（`out/<slug>.contact.png`、`.phone.png`）。`refs` 寫到 `refs/<base>/frames/` 與 `refs/<base>/tile.png`。`OUT=dir` 照舊可改輸出位置。
+- `pipeline.md`、`1-design.md`、`5-post.md`、`finishing.md`、`prompts.md` 與 `steps.json` 的 `post-finish`、`post-review-export` 同步新檔名。
+
+### Fixed（本輪整合）
+- `render.mjs` 用法錯誤時當掉：`die()` 用到一個還沒宣告的變數，任何用法錯誤都以 exit 1 當掉，而不是印出訊息、以 exit 2 結束。現在 `--all --out-file` 與缺少 `--html` 都會正確以 exit 2 結束。
+- `render.mjs` 印出的分段合併指令無法執行：ffmpeg 會以清單檔所在位置解讀清單裡的檔名，改為先 `cd <out>` 再合併，寫出 `<slug>.parts.txt` 與 `<slug>.mp4`。
+- 啟動檢查加嚴：`test_draw_skill.py` 對 Claude 與 Codex 兩份副本逐一檢查每個啟動點；手寫的 `Local State` seed 必須帶 `/draw:` 標記。同步腳本保留這個標記，不把它轉成 `$baransu:draw:`。
+- `test-draw-toolchain.sh` 拿掉找不到 `component-example.html` 時退回 `explainer-template.html` 的備援。
+- `test_draw_skill.py`、`test_draw_lookup.py` 的斷言改為 film／component 與新的主題 id（例如 lane 章節、表單區的 `**film**`／`**component**`、`### Component rows`、`mech-join-{form}` 的代入值）。
+
+### Changed（`/draw`：完整品質、不中途停下來問）
+- 拿掉預算：計畫、完成條件與完成報告不再有「預算」與「砍掉的」欄位。原因是模型會為了填這一欄而主動刪減內容。改成一條原則：預設做到 reference 要求的完整品質，不拿時間或成本換品質，只有使用者明說要快才降。完成報告的「砍掉的」改為「未做到的（原因）」，只在真的做不到（缺素材、環境不允許）時填。motion 各階段指引裡的 complexity budget 與 budget cuts 措辭一併移除。
+- 不中途確認：計畫訊息從 Input PAUSE 改為固定格式的「開工狀態行」（形式／畫法／型別或結構／尺寸／理由），送出後直接開工。拿掉的停點：計畫確認、品牌關卡（預設用內建外觀，使用者提到品牌才讀 `onboarding.md`）、「請提供參考」（改走 `1-design.md` 的克制字體方向並記入 `docs/style_guide.md`）、「兩種都渲染再問」（改為都渲染、自己選、理由記入 `review_log`）、「`<start>` Ask for the inputs」（改為寫明給定與假設的輸入），以及 diagram README 的「先確認計畫」。唯一保留的停點是 brief 指名、使用者卻沒給的真實素材或事實（數字、日期、logo、音軌）。完成報告加上「本輪未向使用者提問」一行。紅線「先寫檔再發計畫」換成「停下來問使用者選形式、畫法或規模」。`loop-pauses.md` 同步：只剩缺素材一個錯誤出口，full render 不再需要授權（只寫進本次輸出資料夾，品質門檻仍是 contact sheet 8 分）。
+- 自動路線：形式、畫法、尺寸依內容判斷，使用者明確指定的優先，不再問要哪一條路。原本「兩種都行就說另一種存在／附上表格」移到完成報告的附註。
+- 範本改稱「機制範例」：`component-example.html`（原 `explainer-template.html`）、`loop-template.html` 與 seek 範本只示範 `seek(t)` 契約、scrubber 與 render hooks，視覺、構圖與互動方式來自 reference，不照抄範例的樣子。起因是兩次實際執行都照範本畫、沒讀 reference。三個範本的開頭註解都改成同一句：只拿機制、設計來自 reference 與 brief，走到需要它的那一步、外觀定案後才打開，打開前先用 `lookup.py` 查該步的主題（seek／loop 範本原本的「複製這個檔再改 [EDIT] 區」拿掉，`component-example.html` 新增開頭註解）。diagram 的 `template*.html` 是設計系統骨架，維持原說法，只補一句 SVG 內容的構圖來自 type reference。
+
+### Changed（`/draw`：步驟指引＋書的目錄，用到再查）
+- `SKILL.md` 改寫成步驟指引加檔案目錄（46.7 KB → 29.6 KB）：每一步一列，寫明做什麼、做到什麼算完成、動手前要查哪些主題（topic id）。分成 0. Preflight、1. 選形式、2. 選畫法、各 lane 的步驟、機構圖步驟與 4. 檢查交付，後面是 reference 目錄、紅線與完成報告範本。各 lane 的細節移到新的 `references/lanes/diagram.md`、`map.md`、`motion.md`、`component.md`。不要求開工前把 reference 全文讀完：走到一步先查它指的章節再動手，其餘 reference 遇到問題才查。
+- 一主題一章：draw 自有的 reference 重整成一個主題一章。`camera.md` 24 種運鏡各一章、`transitions.md` 每種轉場與每條規則各一章、`springs.md` 每個 primitive、數值家族與動畫原則各一章、`composition.md` 每種應用各一章，motion 其餘 15 份與 `critique-loop.md` 同樣處理。被其他檔案引用的標題保留原名。原樣收錄的上游檔案不切，粒度由索引做到。
+- 機構圖路由（`mechanism.md`）改成 anatomy 十個步驟的步驟表，每步對到上游檔案的章節；`kit.md` 只在寫程式時依主題查（cylinder、slab、tube 各是獨立主題）。
+
+### Added（`/draw`：索引、查詢與查詢紀錄）
+- `references/index.json` 與由它產生的 `references/INDEX.md`（書末索引）：1836 個主題，指到檔案的章節，必要時指到表格某一列、清單某一項或某幾行指令。126 份檔案的每個標題都有主題；`kit.md` §2–8、§10–15 每個函式各一個主題（如 `kit-cylinder`、`kit-slabOf`、`kit-tubePieces`），24 種運鏡與 13 種轉場各一章。
+- `scripts/lookup.py <主題> [--log <輸出資料夾>]`：只印出那一章或那一列；`--log` 把每次查詢追加到 `docs/lookups.log`（時間、主題、檔案、章節、列）。另有關鍵字搜尋、`--list`、`--render-index`（重產 `INDEX.md`）與 `--check`（每個指標都解析得到、`INDEX.md` 與資料一致）。
+- `references/steps.json`：每個形式×畫法的步驟資料（適用條件、做什麼、完成條件、必查主題、產出檔案），共 82 步，與 `SKILL.md` 的步驟表一致。
+- `scripts/ledger-check.py`：參照帳就是 `lookups.log`。依 brief 的 `Form:`／`Approach:`／`When:` 判斷哪些步驟適用；每個適用步驟的必查主題都要由它的步驟指令印出並記在 log 裡（不看檔名與檔案時間，見「參照帳簡化」）。成品偵測保留：用到 anatomy kit 視為 mechanism，用到 WebGL、3D 或 diagram SVG 上的 `window.seek` 會加上對應條件。輸出每步一列，退出 0 才算完成。
+- `critique-loop.md`：每輪順序是查詢帳通過 → 機械檢查 → 評分。評分卡保留共用列，另加各畫法專用列（mechanism、diagram、motion／運鏡、component、map、free creative），8 分門檻看專用列，每列註明是機械檢查（附指令）還是人工判斷。
+- `tests/scripts/test_draw_lookup.py`：每個索引指標都解析到唯一章節、每個標題都有主題、cylinder／slab／tube 是三個主題、每個 kit 函式各一個主題、`steps.json` 的必查主題都解析得到、`--log` 的格式。`verify-skills.py` 的殘留掃描白名單加上索引逐字引用的 vendored 標題「Crossing arrows — bridge / hop」。
+
+### Added（`/draw`：anatomy 完整收錄）
+- `scripts/anatomy/`：上游 [wheresryan22/anatomy](https://github.com/wheresryan22/anatomy) commit `454a0ef`（2026-10-13）整份收錄，119 個檔案除 `capture.mjs`、`drive.mjs`、`turn-check.mjs` 各加一行 `/draw:` 安全修補（見 Fixed 的帳號被鎖）外，與上游逐位元組相同。`SKILL.md` 改名為 `ANATOMY-SKILL.md`，避免被當成獨立的 skill 載入。收：references（含 `publish.md`）、kit、8 個範例的原始碼、scripts、tests 與 `*.test.mjs`、evals、agents、LICENSE、README、CHANGELOG、CONTRIBUTING、`.github/assets/`。不收：範例建置出的 `*.html`（`node scripts/anatomy/examples/<name>/build.mjs` 可重建，已離線驗證 dial-indicator 重建結果與上游相同、raptor-engine `--audit` 通過）、`publish.mjs`、`session.mjs`、`fingerprint.mjs` 及其測試（會連網、git push、讀 `~/.claude` 逐字稿）。
+- `references/mechanism/collection/`：作品集 52 頁的說明與 prompt 逐字收錄，另有 `INDEX.md`。授權依 anatomy 首頁原文「MIT, for the skill and for the figures」。`mechanism-catalog.md` 改為索引，每列連到對應頁。
+- `references/mechanism/anatomy-page.md`：anatomy 首頁（skills.wheresryan.sh/anatomy）全文依閱讀順序收錄成 Markdown，`01 Objects, not diagrams` 到 `12 Questions`、程式碼區塊、三張表與註腳都在，開頭註明來源網址、擷取日期與 MIT 授權。
+- `references/mechanism/mechanism.md` 改為步驟表：照 anatomy 的十個步驟走，每步查 `ANATOMY-SKILL.md` 與 craft、walkthrough、kit、motion、verify（需要時 webgl、3d、react）裡對應的章節，開最接近的上游範例，用上游 kit 與 `build.mjs --audit`、`lines.mjs`。draw 只補與 component／film／diagram 的接合與效能規則，並明文覆寫上游兩處降規：Figure／Hero／Epic 只是尺寸類別的名稱，寫進開工狀態行，不估時間、不先問、不縮小、不拒做 Epic；4× 細節檢查不分尺寸，一律涵蓋整張圖；預設加上指標與鍵盤操作，內容需要時直接用 WebGL 或 3D，使用者說要靜態圖才不做。上游檔案一律不改，覆寫記在 `NOTICE.md`。
+- `NOTICE.md`、`verify-skills.py` 的 vendored 清單加上 `scripts/anatomy/` 與 `references/mechanism/collection/`；新增 `.gitignore` 排除建置出的範例頁與上游檢查輸出。
+
+### Added（`/draw`：效能檢查）
+- 「Two big machines」頁面讓整個瀏覽器卡死，根因是渦輪扇圖的 38 KB fragment shader 在 Windows ANGLE D3D11 上同步 link 超過 279 秒，卡住 GPU process 主執行緒。`component.md`（原 `explainer-page.md`）與 mechanism 路由加入效能規則：D3D11 上 link ≤ 200 ms、shader 尺寸上限、`KHR_parallel_shader_compile`、預熱、多張重圖錯開初始化、long task ≤ 50 ms、只在有動時跑 loop、只重畫動的零件、DPR 上限 1.5、不在 observer 內強制 layout。
+- `scripts/motion/perf-check.mjs`：headless 量測每張圖、全部一起與靜止時的表現，以及 shader link 與 draw 時間；設硬性逾時，超時就關掉瀏覽器並印出最後一個 GL 呼叫。Windows 上指定 `--backend d3d11` 而 renderer 不是 D3D11 時判為 NOT-EVIDENCE。component 與 mechanism 的 lane 檢查加跑它。
+- `doctor.mjs` 找到 Chromium 後印出 `export CHROME_PATH=…`，anatomy 的 `capture.mjs`／`drive.mjs` 只認這個變數。
+
+### Changed（`/draw`：驗證回合的修正）
+- diagram 覆寫層：`references/diagram/README.md` 新增「Overrides: where /draw departs from upstream」一節，逐句點名上游 diagram 檔案裡會停下來問的地方（四個參數、taste-gate 的確認列、匯入時的頁面／區塊／大小、品牌路徑、type reference 的 halt and ask、讀不到的品牌來源、匯出），一律改為自己決定並記入 `docs/brief.md`。只保留使用者必須提供的事實（空白標籤、圖片或讀不到的來源、沒給意義的識別碼、圖表缺的數值、匯入來源裡沒有的元件、完全沒給檔案）。品牌路徑不再需要核准、不改已安裝的 `style-guide.md`，profile 直接存檔，`.diagram-design` 只在使用者要求時才寫。「三欄表格能說清楚就不畫」改為照畫，表格放進完成報告的附註。上游檔案不改，`NOTICE.md` 記下這一層。
+- `ledger-check.py` 的成品偵測：用到 WebGL 或 3D、anatomy kit、`tubePieces(`／`fillet(`，或 SVG 頁面上有 `window.seek`，就加上對應的畫法或條件，那些步驟的必查主題也要在 `lookups.log` 裡；掃描範圍是 .html／.js／.mjs／.ts／.svg 等，不看 `node_modules`。
+- `perf-check.mjs` 加嚴：Windows 上不論 `--backend` 為何，renderer 不是 D3D11 都判為 NOT-EVIDENCE、退出碼非 0（`--backend swiftshader` 也不能在 Windows 上 PASS），且同時有 FAIL 列時 RESULT 仍是 NOT-EVIDENCE（量測環境不對，FAIL 也不算數）；靜止時只要還有 draw call 或 rAF 回呼就 FAIL（loop 停不下來）。`component.md` 改為照實寫出 perf-check 量得到與量不到的項目，量不到的（shader 大小、平行編譯、預熱、錯開重圖、observer、像素預算、閒置 fps）列為讀程式碼檢查。
+- 機制範例 `component-example.html` 照自己的效能規則改寫：靜止或圖全部捲出畫面時 frame loop 停止，可見或按下播放時重新啟動；循環圖每張最多 30 fps；DPR 上限 1.5（視窗寬度小於 480 px 時為 1）；canvas 尺寸在 resize 時才重新量。
+
+### Fixed
+- Windows 帳號被鎖：Windows 上的 Chromium 用全新 profile 開分頁時會呼叫 `LogonUser` 檢查空白密碼，每次都記一筆登入失敗，10 分鐘內 10 次就鎖帳號。`browser.mjs` 的 `launchChromium()` 改為先在 profile 的 `Local State` 寫入已檢查紀錄再啟動；五支 motion 腳本、anatomy 的 capture／drive／turn-check、map 的 `visual-check.mjs` 與 diagram 的 `lint-render.py` 都改走這條路。關閉或強制結束瀏覽器後，暫存 profile 資料夾改為重試刪除（最多 10 次、間隔 200 ms），等 Windows 放開檔案鎖，不再每跑一次就留下一個資料夾。
+- 範例程式也會鎖帳號：`references/diagram/export.md` 的 PNG 匯出範例與 `references/motion/pipeline.md` 的「三十行渲染器」原本直接 `chromium.launch()`，改為先在暫存 profile 寫入 `Local State` 再用 persistent context 開啟，用完刪掉 profile（export.md 的改動逐行標 `/draw:`，NOTICE 記錄）。`test_draw_skill.py` 的啟動檢查改掃 .md 的程式碼區塊與 .js／.sh 等檔，任何未 seed 的啟動都會讓測試失敗。
+- 暫存資料夾外漏：`render.mjs` 開啟瀏覽器後出錯不再直接 `process.exit`，改由 `finally` 關瀏覽器並刪掉所有自建的暫存影格資料夾（`beats`、`strip` 原本從不刪）；`doctor.mjs` 在 `finally` 關閉仍開著的瀏覽器；`perf-check.mjs` 逾時發生在啟動途中時，等啟動完成（最多 4 秒）再關掉瀏覽器並刪 profile。
+- 拿掉輪數上限：評分迴圈與匯出審查原本的「最多三輪」「at most three passes」全部移除（`4-shoot.md`、`motion/README.md`、`critique-loop.md`、`review.md` 等）。motion 與 component 至少三輪，之後一直跑到每個列都 ≥ 8，每一輪都記進 `docs/review_log.md`。
+- 措辭修正：`SKILL.md` 的「theme tokens」改為「`:root` 上的色彩 token，數值來自 brief」；mechanism 的尺寸只寫類別名稱；hand-drawn 不再「以範本為起點」，改為 `film.mjs` 只拿機制、場景整個換掉。
+- diagram 匯出：`export.md` 的「說明比例不合並提議重畫」改為直接用相符的 preset 重畫、匯出那一份，並在完成報告註明。motion 的 `review.md` 聽不到混音時不再請使用者聽，改列入完成報告的「待人工確認」。
+- `tests/skills/test-draw-toolchain.sh`：Windows 上瀏覽器測試原本因裸 `import()` C 槽路徑失敗而整段略過，改用 `browser.mjs` 找 Playwright；T10 的 `file://` URL 改用 `pathToFileURL` 建立。新增 T11–T16（perf-check 語法、範本通過且靜止時 loop 停止、卡住的頁面在逾時內失敗、非 D3D11 renderer 判為 NOT-EVIDENCE、Windows 上 `--backend swiftshader` 判為 NOT-EVIDENCE、非 D3D11 下同時有 FAIL 列仍判為 NOT-EVIDENCE）。
+
 ## [7.4.2] - 2026-10-12
 
 ### Fixed（`/draw` 後製，實際做一支 15 秒影片時發現）

@@ -122,28 +122,39 @@ passed detection: `python3 <tmp.py> <src.html> <out.png>` or
 ```python
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError, sync_playwright
 import sys, pathlib
+import json, shutil, tempfile, time  # /draw: seeded profile (NOTICE.md safety patch)
 
 src, out = sys.argv[1], sys.argv[2]
 scale = int(sys.argv[3]) if len(sys.argv) > 3 else 2
 
-with sync_playwright() as p:
-    browser = p.chromium.launch()
-    page = browser.new_page(device_scale_factor=scale)
-    page.goto(f"file://{pathlib.Path(src).resolve()}", wait_until="domcontentloaded")
-    try:
-        page.wait_for_load_state("networkidle", timeout=15000)
-    except PlaywrightTimeoutError:
-        # proxied networks may stall webfont subrequests past any deadline;
-        # cancel the outstanding load so the capture below can't block on it again
-        page.evaluate("window.stop()")
-        page.wait_for_timeout(4000)
-        print("warning: webfont request stalled - captured with fallback typography; the PNG may not match the intended fonts", file=sys.stderr)
-    svg = page.locator("svg").first
-    # Release every clipping ancestor (local scroller, overflow:hidden chrome)
-    # so an SVG wider than its frame is captured whole.
-    svg.evaluate("el => { for (let a = el.parentElement; a; a = a.parentElement) a.style.setProperty('overflow', 'visible', 'important'); }")
-    svg.screenshot(path=out, omit_background=True)
-    browser.close()
+# /draw: Windows Chromium calls LogonUser(user, ".", "") when a fresh profile opens a tab; ten failed logons lock the account. Record the password check in Local State (µs since 1601, far in the future) before launch.
+profile = tempfile.mkdtemp(prefix="diagram-export-")  # /draw:
+future_us = int((time.time() + 100 * 365 * 86400) * 1_000_000) + 11644473600 * 1_000_000  # /draw:
+pathlib.Path(profile, "Local State").write_text(json.dumps({"password_manager": {"os_password_blank": False, "os_password_last_changed": str(future_us)}}), encoding="utf-8")  # /draw:
+
+try:  # /draw: close the browser and remove the seeded profile on every path, not only on success
+    with sync_playwright() as p:
+        browser = p.chromium.launch_persistent_context(profile, device_scale_factor=scale)  # /draw: replaces the fresh-profile launch, which refuses a user-data-dir
+        try:
+            page = browser.new_page()  # /draw: device_scale_factor moved to the launch above
+            page.goto(f"file://{pathlib.Path(src).resolve()}", wait_until="domcontentloaded")
+            try:
+                page.wait_for_load_state("networkidle", timeout=15000)
+            except PlaywrightTimeoutError:
+                # proxied networks may stall webfont subrequests past any deadline;
+                # cancel the outstanding load so the capture below can't block on it again
+                page.evaluate("window.stop()")
+                page.wait_for_timeout(4000)
+                print("warning: webfont request stalled - captured with fallback typography; the PNG may not match the intended fonts", file=sys.stderr)
+            svg = page.locator("svg").first
+            # Release every clipping ancestor (local scroller, overflow:hidden chrome)
+            # so an SVG wider than its frame is captured whole.
+            svg.evaluate("el => { for (let a = el.parentElement; a; a = a.parentElement) a.style.setProperty('overflow', 'visible', 'important'); }")
+            svg.screenshot(path=out, omit_background=True)
+        finally:
+            browser.close()  # /draw:
+finally:
+    shutil.rmtree(profile, ignore_errors=True)  # /draw:
 ```
 
 If the `networkidle` wait times out (a stalled font or stylesheet behind a proxy), the snippet cancels the outstanding load with `window.stop()` and captures with fallback typography, printing a warning to stderr — pass that warning on to the user. Any other error propagates and fails the export normally.

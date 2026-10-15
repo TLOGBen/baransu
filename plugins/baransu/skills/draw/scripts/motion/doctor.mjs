@@ -1,20 +1,22 @@
 #!/usr/bin/env node
-// doctor.mjs — preflight before any motion, page or map work: the route with the fewest surprises.
+// doctor.mjs — preflight before any film, component or map work: the route with the fewest surprises.
 //
 //   node scripts/motion/doctor.mjs            check everything, print the fix for each miss, exit 0 only when READY
 //   node scripts/motion/doctor.mjs --install  also run the official install command for each miss, then check again
 //
 // Checks, in order: Node ≥ 18, ffmpeg + ffprobe, Playwright, a Chromium it can launch, Python 3 (and the
-// UTF-8 mode Windows needs), then a smoke test that exercises the real chain: open seek-template.html in
+// UTF-8 mode Windows needs), then a smoke test that exercises the real chain: copy seek-template.html to smoke.film.html, open it in
 // headless Chromium, render the same frame twice and compare hashes (determinism), encode two frames
-// with ffmpeg. A READY here means render.mjs, verify-page.mjs and grab.mjs will run.
+// with ffmpeg. A READY here means render.mjs, verify-page.mjs, grab.mjs and perf-check.mjs will run.
+// When it finds a Chromium it also prints `export CHROME_PATH='…'` (and sets it for its own children):
+// the vendored anatomy checks (scripts/anatomy/scripts/capture.mjs, drive.mjs) only look at $CHROME_PATH.
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { loadPlaywright, chromiumPath } from './browser.mjs';
+import { loadPlaywright, chromiumPath, launchChromium } from './browser.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ASSETS = path.join(HERE, '..', '..', 'assets', 'motion');
@@ -47,6 +49,8 @@ async function check() {
 
   const exe = chromiumPath();
   add('chromium', !!exe || !!pw, exe ? exe : pw ? "playwright's default build" : 'not found', exe ? '' : FIX.chromium);
+  // anatomy's capture.mjs / drive.mjs / turn-check.mjs only read $CHROME_PATH: hand them the same browser.
+  if (exe) process.env.CHROME_PATH = exe;
 
   const py = ['python3', 'python'].find((c) => ok(c, ['--version']));
   add('python', !!py, py ? run(py, ['--version']).stdout.trim() || run(py, ['--version']).stderr.trim() : 'not found', py ? '' : FIX.python);
@@ -59,19 +63,20 @@ async function check() {
   if (pw && ff) {
     let detail = '', pass = false;
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'draw-doctor-'));
+    let browser = null;   // closed in finally too, so a failing smoke step leaves no Chromium or profile behind
     try {
-      fs.copyFileSync(path.join(ASSETS, 'seek-template.html'), path.join(dir, 'index.html'));
+      fs.copyFileSync(path.join(ASSETS, 'seek-template.html'), path.join(dir, 'smoke.film.html'));
       fs.copyFileSync(path.join(ASSETS, 'motion.js'), path.join(dir, 'motion.js'));
-      const browser = await pw.chromium.launch(exe ? { executablePath: exe } : {});
+      browser = await launchChromium(pw, { executablePath: exe });
       const page = await browser.newPage({ viewport: { width: 540, height: 960 } });
       await page.addInitScript(() => { window.__RENDER__ = true; });
-      await page.goto(pathToFileURL(path.join(dir, 'index.html')).href + '?f=9:16');
+      await page.goto(pathToFileURL(path.join(dir, 'smoke.film.html')).href + '?f=9:16');
       // warm-up, as render.mjs does: sweep the timeline once so every canvas font and weight has loaded
       await page.evaluate(async () => { const d = (window.timeline && window.timeline().duration) || 8; for (let t = 0; t <= d; t += 0.25) window.seek(t); await document.fonts.ready; for (let t = 0; t <= d; t += 0.25) window.seek(t); });
       const shot = async (t) => { await page.evaluate((x) => window.seek(x), t); return page.locator('canvas').screenshot(); };
       const a = await shot(1.2), b = await shot(1.2);
       fs.writeFileSync(path.join(dir, 'f0.png'), a); fs.writeFileSync(path.join(dir, 'f1.png'), await shot(4.6));
-      await browser.close();
+      await browser.close(); browser = null;
       const same = createHash('md5').update(a).digest('hex') === createHash('md5').update(b).digest('hex');
       const enc = run('ffmpeg', ['-y', '-loglevel', 'error', '-framerate', '2', '-i', path.join(dir, 'f%d.png'), '-c:v', 'libx264', '-pix_fmt', 'yuv420p', path.join(dir, 'smoke.mp4')]);
       pass = same && enc.status === 0;
@@ -79,6 +84,7 @@ async function check() {
     } catch (e) {
       detail = String(e.message || e).split('\n')[0].slice(0, 140);
     } finally {
+      if (browser) await browser.close().catch(() => {});
       fs.rmSync(dir, { recursive: true, force: true });
     }
     add('smoke render', pass, detail, pass ? '' : 'see pipeline.md § Known environment failures for this message');
@@ -90,6 +96,8 @@ async function check() {
 
 function report(rows) {
   for (const r of rows) console.log(`${r.pass ? '✓' : '✗'} ${r.name.padEnd(13)} ${r.detail}${r.fix ? `\n    fix: ${r.fix}` : ''}`);
+  // Forward slashes: the line pastes into bash or zsh as is, and Node on Windows accepts the path.
+  if (process.env.CHROME_PATH) console.log(`export CHROME_PATH='${process.env.CHROME_PATH.replace(/\\/g, '/')}'`);
   const ready = rows.every((r) => r.pass);
   console.log(ready ? 'READY' : 'NOT READY');
   return ready;

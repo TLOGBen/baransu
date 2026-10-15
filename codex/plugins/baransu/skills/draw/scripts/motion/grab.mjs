@@ -17,7 +17,7 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { loadPlaywright as findPlaywright, chromiumPath, INSTALL_HINT } from './browser.mjs';
+import { loadPlaywright as findPlaywright, chromiumPath, launchChromium, INSTALL_HINT } from './browser.mjs';
 
 const argv = process.argv.slice(2);
 const url = argv.find((a) => !a.startsWith('--'));
@@ -36,7 +36,7 @@ async function loadPlaywright() {
 const FORMATS = { '9x16': [1080, 1920], '1x1': [1440, 1440], '16x9': [1920, 1080] };
 const pw = await loadPlaywright();
 const exe = chromiumPath();
-const browser = await pw.chromium.launch(exe ? { executablePath: exe } : {});
+const browser = await launchChromium(pw, { executablePath: exe });
 try {
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
   await page.goto(url, { waitUntil: 'networkidle', timeout: 60000 });

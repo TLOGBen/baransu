@@ -3,10 +3,10 @@
   seek-template.html — a film as a pure function of time.
   Every frame is window.seek(t). No CSS transitions, no timers, no state carried
   between frames, no Math.random. Open in a browser to preview (it loops);
-  render with  node render.mjs full --html index.html  (uses window.seek + timeline()).
+  render with  node render.mjs full --html <slug>.film.html  (uses window.seek + timeline()).
   One timeline, three formats: open with ?f=9:16 | 1:1 | 16:9 (render.mjs --format / --all
   passes it). Scenes draw against L (the layout for the current format), never fixed pixels.
-  Copy this file and motion.js into your film folder, then edit the [EDIT] regions.
+  Mechanics example only: take window.seek(t), window.timeline(), FORMATS and L from it; design the shots, look and composition from the references and the brief, never from this scene. Open it at the step that needs it, once the look is decided; look up the step's topics first with scripts/lookup.py.
 -->
 <html lang="zh-Hant">
 <head>

@@ -2,9 +2,11 @@
 
 **Settles:** every frame the viewer will stop on, designed as a frame — first the first and last frames, then every key between them, each with its layout (framing, depth layers, focus plane). **Produces:** the bookend stills, `KEYS` as data in the film file, one still per key, a key contact sheet with scores. **Gate:** the bookends rhyme and every key passes the critique card as a still. **Next:** `4-shoot.md`.
 
+This guide is not read whole. Each $baransu:draw step (`SKILL.md` § Lane: film) runs `python3 "<skill>/scripts/lookup.py" --step <step-id> --log "<project>/.codex/draw/<slug>"` first, which prints the chapters of this guide and of the library that the step needs; a question that comes up mid-step gets a single-topic lookup (`references/INDEX.md` lists the topics).
+
 The working order for every film and every moving figure: **draw the first and the last frame, then the key frames between them, then design how each key travels to the next, and only then generate the animation.** Animators call it pose-to-pose. It works for a model for the same reason it works for a person: a still is cheap to judge and cheap to change, and once the keys are right, the motion between them is mostly a choice of feel, not a search. Code that animates first and looks later moves everything at once and finds out at second 9 that the composition never worked. Keys first means every frame the viewer stops on was designed as a frame.
 
-## Concepts
+## Keys concepts
 
 - **The keys are the contract with the viewer.** They are the frames a person pauses on, screenshots, or sees as a thumbnail. Designing them as frames is what makes the film look composed rather than tweened.
 - **The cheapest place to fix is the earliest.** A bookend is two stills, a key is one still, an interval is one line in the shot list, a render is minutes. Each step is approved before the next spends effort.
@@ -37,20 +39,20 @@ CHECKS      readable at 360 px · the 10 % found on the thumbnail · one focus �
 
 Not every field carries weight on every key (a title card has no cursor; a mechanism key has a readout instead of copy), but every field is considered and either filled or marked "none".
 
-## Steps
+## Keys steps
 
 ### 1. Bookends — the first frame and the last frame
 
 Before anything else, render two stills and look at them side by side.
 
 - **The first frame** is the hook. It is never empty: the viewer who sees only this frame in a feed decides here. It sets the palette, the type, the stage and the one focus.
-- **The last frame** is the payoff and the poster (`out/poster.png`): the CTA, the finished state, the answer. It must be strong enough to stand alone.
+- **The last frame** is the payoff and the poster (`out/<slug>.poster.png`): the CTA, the finished state, the answer. It must be strong enough to stand alone.
 - **For a loop, the last frame is the first frame**, position and velocity included (`springs.md` § `loopT`). Then the bookends are one frame, and the film is a journey that comes home.
 
 Both are built to the chosen direction's style frame (`2-draft.md` § 1); if they do not match it, the look has drifted. Judge the pair together: does the last frame answer what the first frame promised? Does the same world carry from one to the other (palette, motif, screen direction)? If the two do not rhyme, no amount of in-between will fix it. Fix the bookends first.
 
 ```
-node scripts/motion/render.mjs stills --html index.html --at 0,<dur − 1/fps>
+node scripts/motion/render.mjs stills --html <slug>.film.html --at 0,<dur − 1/fps>
 ```
 
 ### 2. Keys — every state where meaning changes
@@ -87,14 +89,14 @@ The `seek(t)` of a keys-only build can simply draw the nearest key (a hold at ea
 Render one still per key and critique them as a contact sheet before anything moves:
 
 ```
-node scripts/motion/render.mjs stills --html index.html --at 0,3,7,12,14.97
+node scripts/motion/render.mjs stills --html <slug>.film.html --at 0,3,7,12,14.97
 ```
 
 Score the sheet on the critique card (`../critique-loop.md`): composition, type size, the one accent, the empty frame 0. Fix keys here; never plan to fix them with motion.
 
-## In the other lanes
+## Keys in the other lanes
 
-- **Explainer page** (`explainer-page.md`): each figure's `data-rest` frame is its key. Draw the rest frame first, then the frames where the figure's point changes, then animate between them.
+- **Component** (`component.md`): the figure's `data-rest` frame is its key. Draw the rest frame first, then the frames where the figure's point changes, then animate between them.
 - **Mechanism figure** (`../mechanism/mechanism.md`): the idle tour is a sequence of keys (rest, press, pull, release, settled); the live model computes the in-betweens.
 - **Hand-drawn shorts** (`hand-drawn/workflow.md`): the beat sheet's end state per beat is the key; exposure (ones, twos, holds) is decided per interval.
 - **Diagram seek overlay** (`../diagram/seek-overlay.md`): the static diagram is both bookends; each node lighting up is a key.

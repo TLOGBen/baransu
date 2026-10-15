@@ -4,7 +4,7 @@ Technique reference for visual hierarchy in every frame: Phase 1 decides the loo
 
 When generating scenes, images or assets there is a constant pull to add: buildings, neon, fog, reflections, rich texture, "a bit more cinematic". Every local area ends up beautiful and the whole has no focus; or the subject finally stands out and the style that was wanted has gone. The 6 : 3 : 1 rule is the fix, in one plain sentence: **do not make everything the protagonist, and the picture sorts itself into an order.**
 
-## The rule
+## The rule — 60 / 30 / 10
 
 The 6 : 3 : 1 principle comes from spatial design, film set dressing, game art and visual-asset planning. It sets a gradient in geometric mass, material frequency and contrast, so the picture has a clear visual order and stays efficient to produce:
 
@@ -14,11 +14,11 @@ The 6 : 3 : 1 principle comes from spatial design, film set dressing, game art a
 | **30 %** | narrative dressing, mid-frequency transition | the supporting structure and objects that give variation, organise the space and lead toward the focus |
 | **10 %** | focal anchor, high contrast | the small, clear area the viewer must find: a figure, a door, a prop |
 
-- **Taking up the most of the frame and drawing the most attention are two different things.** An empty station hall can fill the picture while a small figure in a lit doorway carries the story: the hall builds the environment, the figure holds the meaning. This is the entry point to the whole rule (and the same distinction as stage / life / focus, `2-draft.md` § Concepts).
+- **Taking up the most of the frame and drawing the most attention are two different things.** An empty station hall can fill the picture while a small figure in a lit doorway carries the story: the hall builds the environment, the figure holds the meaning. This is the entry point to the whole rule (and the same distinction as stage / life / focus, `2-draft.md` § Draft concepts).
 - **The numbers are an empirical starting point, not a fixed ratio.** A real frame may sit nearer 7 : 2 : 1, or use another organisation for its purpose; the point is to pull the three apart. Game-art writing on the rule calls it an empirical proportion, not a measurement.
 - **It is a choice, not a law.** A bustling street can let many neon signs build the atmosphere together; a confrontation can stage two equal subjects; a scene about chaos can use competition between elements on purpose. The goal and the style decide; 6 : 3 : 1 helps arrange the picture toward them.
 
-## It governs more than colour
+## Where the rule applies — composition, light, colour, layout, form, density
 
 The familiar 60–30–10 colour rule (dominant, secondary, accent) is one case. The same relation organises:
 
@@ -72,20 +72,28 @@ A machine whose pipes, panels and small parts cover every surface, against an eq
 
 Translated from asset design to production design and cinematography, the three layers become three questions: **What is this world? Who lives here? What must we notice in this scene?** — space foundation → character life → plot focus. 60 / 30 / 10 is a reminder for weighting; the three describe *functions*, not areas allotted to architecture, furniture and props. (Production-design interviews do not call the ratio an industry standard; it is a lens for reading films and borrowing their methods.)
 
-**Space foundation — make the world hold.** Walls, floor, ceiling, doors and windows, distant mountains and skylines tell us what world this is before anyone enters. Sometimes it recedes; sometimes it is the subject. The environment may carry strong colour and ornament; what matters is how it forms a whole.
+### Space foundation — make the world hold
+
+Walls, floor, ceiling, doors and windows, distant mountains and skylines tell us what world this is before anyone enters. Sometimes it recedes; sometimes it is the subject. The environment may carry strong colour and ornament; what matters is how it forms a whole.
 - *The Grand Budapest Hotel* (2014), the lobby: a large red carpet, textured columns, railings, chandeliers and furniture — its order comes from the central axis, symmetry, repeated structures and colour in groups; the reception desk and the people sit inside those relations while the hall keeps its own loud style. Borrow "one system of structure and colour unifies the space"; the background does not have to be greyed out to build hierarchy.
 - *Dune* (2021): walls and columns far taller than the figures, large shadows and close stone tones make the environment heavy; the complex relief on the right is organised into one block rather than cutting every wall into equally dense texture. The production design answers heat, wind and daylight as well as power and scale. In a prompt, turn "huge, oppressive" into visible relations: how much taller the wall is than the figure, where the entrance is, how light enters, which architectural shape leads.
 
-**Character life — make the space look used.** Architecture gives a place; furniture, dressing and traces of use let us read who lives there. A chair that is always sat in, work materials piled on the floor, a worn table edge reveal a way of life; ask first how an object relates to the character, then decide how many.
+### Character life — make the space look used
+
+Architecture gives a place; furniture, dressing and traces of use let us read who lives there. A chair that is always sat in, work materials piled on the floor, a worn table edge reveal a way of life; ask first how an object relates to the character, then decide how many.
 - *Parasite* (2019): a low interior, old walls, and pizza boxes pressed against the family; they fold boxes on the floor, so the material of their living occupies their living space. The objects have concrete uses and explain the characters' situation. A room heaped with random clutter and a room holding the objects that explain its owner express different things: for someone living alone, consider how many things are used and how they are placed; for a makeshift office, how work materials invade the living area.
 
-**Plot focus — what the shot leaves to the viewer in this scene.** Some objects become the focus only by entering the story: a letter, a ring, an actor's sudden stop. It need not be the brightest, most complex or largest thing.
+### Plot focus — what the shot leaves to the viewer
+
+Some objects become the focus only by entering the story: a letter, a ring, an actor's sudden stop. It need not be the brightest, most complex or largest thing.
 - *Inception* (2010): the small spinning top at the front left edge of the table among papers, drinks, a fruit bowl and window light. Out of context the fruit bowl or the window may catch the eye; with the story, the viewer watches this small object's state. Visual emphasis and narrative importance both steer attention, and in a close-up the key object may fill the frame: do not keep it small to honour "10 %".
 - *Schindler's List* (1993), the ghetto clearance: the crowd, clothes and street are not simple, and the girl's red coat has no fine detail; it stands out by the **scarcity** of colour in a black-and-white world. Leave one clear difference for the object the story needs; stacking high saturation, strong light and complex texture is not what makes a focus.
 
+### The three functions overlap
+
 The three functions overlap: a box in a corner is dressing; picked up by an actor, it enters the scene's plot. Use them to assign tasks, not as three separate object lists. In production, art builds space and dressing, props support use, and camera, lighting and blocking decide how all of it is seen: **make the world credible, give life its reasons, then let this scene's focus be read.**
 
-## Starting a scene
+## Starting a scene — five questions
 
 Write the purpose in plain words first ("an empty station at dusk, and one person still waiting"), then answer:
 
@@ -95,7 +103,9 @@ Write the purpose in plain words first ("an empty station at dusk, and one perso
 4. **What helps it stand out?** The lamp at the door, a lit surface behind the figure, benches angled toward the door. Two or three means are enough.
 5. **What around it can compete less?** Small lamps, posters, fine texture, reflections: keep their function and style, lower their presence.
 
-**The thumbnail test.** Shrink the result to a phone-sized thumbnail (`render.mjs phone`, or a 360 px still): can the person or object you want noticed still be found? Do the big light and dark masses and the space still read? If the focus is lost, check what competes with it; if the space does not read, go back to the big shapes and layout; if the style faded, check whether a defining feature was removed. **Change one main problem per round** and compare before and after; do not rewrite the whole prompt each time.
+## The thumbnail test
+
+Shrink the result to a phone-sized thumbnail (`render.mjs phone`, or a 360 px still): can the person or object you want noticed still be found? Do the big light and dark masses and the space still read? If the focus is lost, check what competes with it; if the space does not read, go back to the big shapes and layout; if the style faded, check whether a defining feature was removed. **Change one main problem per round** and compare before and after; do not rewrite the whole prompt each time.
 
 ## The scene prompt structure
 
@@ -117,6 +127,8 @@ Detail sits mainly where [function or story must be expressed]; elsewhere keep l
 Keep [the characters, costumes, architecture, props and spatial relations that must not change].
 Shot as [viewpoint and shot size], [aspect ratio, if the tool supports it].
 ```
+
+### A filled scene prompt
 
 A filled example (Chinese, as the user may write it):
 

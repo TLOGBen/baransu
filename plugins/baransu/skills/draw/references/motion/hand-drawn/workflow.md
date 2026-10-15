@@ -20,7 +20,7 @@
 6. **Detail pass** (`references/motion/hand-drawn/detail.md`, last section). This is where "fine" becomes "good".
 7. **Render** (`node film.mjs render`), then **sound**: write `cues.json` from the beat sheet's cue
    column, `music.mjs` for a bed if the piece wants one, `sound.mjs` to mix and loudnorm.
-8. **Check the master**: `ffmpeg -i out/final.mp4 -vf "fps=2,scale=480:-2,tile=6x6" -frames:v 1 sheet.jpg`
+8. **Check the master**: `ffmpeg -i out/<slug>.mp4 -vf "fps=2,scale=480:-2,tile=6x6" -frames:v 1 sheet.jpg`
    and read it scene by scene; check duration and loudness. Only then deliver.
 
 Speed reference (M-series Mac): the 32 s 1920×1080 colony film renders 768 frames in ~27 s; a 59 s

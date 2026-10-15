@@ -4,7 +4,7 @@ Technique reference for pieces longer than a minute: the guide and chapter split
 
 A 2-minute music video or a 5-minute history film is not one `seek(t)` scene; it is a dozen chapters that must look like one film. Two published productions show the pattern that holds up: a shared guide written *before* the chapters, one file per chapter, and a renderer that treats the film as chunks.
 
-## The shape
+## The shape of a long production's folder
 
 ```
 film/
@@ -35,8 +35,22 @@ Lock beats to word timestamps (`data/timings.json`), never to a stopwatch; the s
 
 ## Rendering long pieces
 
-- Render in resumable chunks (10 s each): `render.mjs full --from 10 --to 20` per chunk, finished chunks are kept, a crash costs one chunk; `ffmpeg -f concat` joins the parts with the mix at the end (the command is printed after each chunk).
-- Several page workers in parallel; frames are pure functions of time so order does not matter.
-- Sound derived from the picture: each gun / click / footstep becomes a cue with distance and pan; sound travels at 343 m/s, so far events are heard late.
-- A painterly finish (grain, vignette, letterbox, a filter blended over the frame) applied once in post, not per element.
-- Software WebGL on a headless box runs around 1–2 s per 1080p frame; budget the full render accordingly and iterate on strips.
+### Resumable chunks
+
+Render in resumable chunks (10 s each): `render.mjs full --from 10 --to 20` per chunk, finished chunks are kept, a crash costs one chunk; `ffmpeg -f concat` joins the parts with the mix at the end (the command is printed after each chunk).
+
+### Parallel page workers
+
+Several page workers in parallel; frames are pure functions of time so order does not matter.
+
+### Sound derived from the picture
+
+Each gun / click / footstep becomes a cue with distance and pan; sound travels at 343 m/s, so far events are heard late.
+
+### A painterly finish, once in post
+
+A painterly finish (grain, vignette, letterbox, a filter blended over the frame) applied once in post, not per element.
+
+### Software WebGL render time
+
+Software WebGL on a headless box runs around 1–2 s per 1080p frame; plan the full render's time around that and iterate on strips.
