@@ -114,6 +114,8 @@ Before investigating, pick the tool that can **observe the layer where the probl
 
 If the problem layer is uncertain, use bash logging first to confirm which module the symptom appears in, then choose the precise tool.
 
+Reading discipline, for every static read: open the entry point and trace control flow before grepping for names — names lie, control flow does not; map the data first (schemas, record layouts, stored state), then who touches it, because the data is more stable and more truthful than the procedure around it; every claim cites file:line or says 「不知道」; write 「是」 only for what the code shows and 「看起來是」 for what is inferred from names or structure; and note what is missing near the site — the unhandled error path, the commented-out block, the TODO, the magic number — as evidence about history and risk, not noise.
+
 ---
 
 ## Locate — Pin Down the Prey
@@ -232,6 +234,8 @@ If the blast surfaces unrelated bugs, list them in the case file but do not fix 
 ## Bisect Mode
 
 Activate when: "It worked before and now it's broken" or "It broke after an update."
+
+When the update is a version pair (runtime, framework, dependency), the first hypotheses come from the delta: the known changes of that pair intersected with what this code actually uses, each cited file:line with its site count — a removed API nobody calls is not a hypothesis — and a change that compiles and runs with a different result (locale, encoding, collection order, floating point, a default) outranks one that fails loudly, because the loud one already named itself. Bisect confirms the commit; the delta names the line.
 
 **Precondition — git repo**: If the project is not a git repo, skip Bisect Mode entirely and fall back to static analysis + instrumentation (Tool Scan / Instrumentation sections). Never wedge trying to bisect what has no history.
 

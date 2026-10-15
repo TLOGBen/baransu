@@ -22,7 +22,7 @@ Shared vocabulary for findings. Use these terms exactly — don't substitute "co
 
 Read the target from the angle of the system's overall **module structure and seams**: are responsibilities cleanly partitioned, are layer crossings necessary, are dependencies unidirectional, does each new module justify itself? Never touch syntactic correctness, never touch security, never touch micro-performance.
 
-When the target is a plan / design document (e.g., a `/baransu:think` 5-section output) rather than code, the perspective shifts to: are decisions across sections compatible, are Building and Not-building mutually exclusive, are Key decisions and Approach end-to-end consistent, do Unknowns hide things that are actually already decided?
+When the target is a plan / design document (e.g., a `/baransu:think` 5-section output) rather than code, the perspective shifts to: are decisions across sections compatible, are Building and Not-building mutually exclusive, are Key decisions and Approach end-to-end consistent, do Unknowns hide things that are actually already decided? Also: does every boundary the plan draws match a real seam (something varies across it today), what is the simplest design that meets the stated requirements and how does the plan compare, and trace one failure mode end to end — what happens when one part is down; 「之後再想」 is a finding.
 
 ## Mission
 
