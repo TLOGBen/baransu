@@ -45,6 +45,8 @@ So hierarchy can be built in another dimension while the vivid palette stays. Be
 
 When several colour families compete, shrink the range of one, or keep the colour and change its brightness. Pick one change, then check whether the picture moved toward the goal.
 
+**Decide the value before the swatches.** In a public sample of 350 motion-graphics pieces, 198 are dark-neutral and 152 light-neutral, and music videos carry a median 45.5 % visibly colourful pixels against 17.6 % for ads: a style name fixes neither the background value nor how much of the frame may be colourful. The colour script states both for every shot before the dominant / secondary / accent is picked (`2-draft.md` § 2).
+
 ## Lighting: write where it comes from and where it lands
 
 Light sets the mood and decides what is easy to see. In the station: dusk through the skylights establishes the hall; reflections from walls and floor keep the benches in the dark readable; a small lamp at the door picks out the figure. With even lighting, the ceiling lamps, walls and hall all compete; with the hierarchy, the doorway behind the figure becomes the place to look, though the space is the same.

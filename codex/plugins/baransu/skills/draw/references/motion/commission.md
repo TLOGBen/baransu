@@ -67,6 +67,7 @@ A few well-placed sounds are enough for a sample: a click at the selection, a so
 - The source without secrets or dependency folders, with the lockfile (if any), permitted assets, licence notes, and the exact install and render commands in `README.md`.
 - When a framework renders the film (Route B), check its licence for the commercial setup; Remotion, for one, has company licensing terms.
 - For repeat work, the folder itself is the template: the next film for the same brand copies it and replaces `docs/brief.md` and `assets/` (`1-design.md` § 1).
+- **Disclosure, in four separate claims.** The README and the caption say what the person supplied (brief, assets, components, a song), what an existing skill or template contributed, which external services actually rendered or generated anything, and what the model drew. "One prompt", "pure code", "no external assets" and "no human edits" are four independent statements; none implies another, and a tool that was not used is never named. Beside the render line, keep the three counts apart that public cost comparisons conflate — human prompts, internal review passes, time to the accepted master — and give the whole-task cost with revisions, services and assets, not the price of one call.
 - **A portfolio piece**: upload it where a prospect can view it without logging in, label it as self-initiated, and write a caption that names the problem, your contribution and the delivered formats, so a buyer understands your role without asking.
 
 ### Route B with Remotion (when the brief names it)

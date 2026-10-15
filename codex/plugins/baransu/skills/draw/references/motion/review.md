@@ -99,6 +99,7 @@ Read the live scene on every frame and compare it with the brief's numbers: a la
 
 Review the encoded file, not the page (Phase 5). Each look below is part of one review; repeat it until the master passes.
 
+- **The hardest two to four seconds first.** Before the whole-film pass, strip every frame of the densest moment (a contact, an occlusion, text landing on a beat, the loop seam) and clear it: adjacent frames, contact and overlap, the motion arc, the same frames from a second `seek` pass, sound against picture. A master whose hardest seconds pass rarely fails elsewhere; one that fails there is not ready for a full review.
 - A contact sheet at one-second intervals **and around every scene boundary** (`checks.sh contact|strip` on the master); read it for readable text at phone size, spacing, cursor continuity, scene coverage, and the **final three-second hold**.
 - Probe the export: duration, dimensions, frame rate, and that an audio stream exists (`checks.sh probe`).
 - Watch it once muted and once with sound: does the story still make sense? Can the closing line be read without pausing?

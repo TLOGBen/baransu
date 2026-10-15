@@ -222,6 +222,8 @@ Diagram system (vendored diagram-design): types, tokens, primitives, layout, siz
 - `brand-onboarding-folder-step-3` — Step 3 — map, validate, propose diff — § Step 3 — map, validate, propose diff
 - `brand-onboarding-when-folder-extraction-ambiguous` — When folder extraction is ambiguous — § When folder extraction is ambiguous
 - `brand-onboarding-multiple-clients-save-profile` — Multiple clients? Save a profile — § Multiple clients? Save a profile
+- `brand-onboarding-trust-confirmation` — Trust confirmation — § Trust confirmation
+- `brand-onboarding-final-step-user-verifies-output` — Final step — user verifies the output — § Final step — user verifies the output
 
 ### `references/diagram/output-spec.md`
 
@@ -456,6 +458,8 @@ Diagram system (vendored diagram-design): types, tokens, primitives, layout, siz
 - `style-node-type-treatment` — Node type → treatment — § Node type → treatment
 - `style-customizing-the-skin` — Customizing the skin — § Customizing the skin
 - `style-constraints` — Constraints (don't break these) — § Constraints (don't break these)
+- `style-guide-contrast-contract` — Contrast contract — § Contrast contract
+- `style-guide-font-source` — Font source — § Font source
 
 ### `references/diagram/taste-gate.md`
 
@@ -499,6 +503,7 @@ Diagram system (vendored diagram-design): types, tokens, primitives, layout, siz
 - `type-architecture-zone-grouping` — Zone grouping — § Zone grouping
 - `type-architecture-anti-patterns` — Anti-patterns — § Anti-patterns
 - `type-architecture-examples` — Examples — § Examples
+- `type-architecture-containment` — Containment — § Containment
 
 ### `references/diagram/type-axonometric-plan.md`
 
@@ -714,6 +719,7 @@ Diagram system (vendored diagram-design): types, tokens, primitives, layout, siz
 - `type-high-level-reproducibility-checklist` — 7. Reproducibility checklist (the taste gate) — § 7. Reproducibility checklist (the taste gate)
 - `type-high-level-anti-patterns` — 8. Anti-patterns — § 8. Anti-patterns
 - `type-high-level-examples` — 9. Examples — § 9. Examples
+- `type-high-level-6-1-phase-band-palette` — 6.1 Phase-band palette — § 6.1 Phase-band palette
 
 ### `references/diagram/type-it-state.md`
 
@@ -1102,6 +1108,16 @@ Diagram system (vendored diagram-design): types, tokens, primitives, layout, siz
 - `diagram-command-profile-routing` — Routing — § Routing
 - `diagram-command-profile-required-behavior` — Required behavior — § Required behavior
 
+### `references/diagram/type-service-blueprint.md`
+
+- `type-service-blueprint` — Service Blueprint — § Service Blueprint
+- `type-service-blueprint-layout-conventions` — Layout conventions — § Layout conventions
+- `type-service-blueprint-machine-readable-data-contract` — Machine-readable data contract — § Machine-readable data contract
+- `type-service-blueprint-service-blueprint-element-pattern` — Service-blueprint element pattern — § Service-blueprint element pattern
+- `type-service-blueprint-anti-patterns` — Anti-patterns — § Anti-patterns
+- `type-service-blueprint-honesty-rules` — Honesty rules — § Honesty rules
+- `type-service-blueprint-examples` — Examples — § Examples
+
 ## map
 
 Map form (vendored archify): authoring, contracts, finalize and delivery, viewer runtime.
@@ -1109,12 +1125,17 @@ Map form (vendored archify): authoring, contracts, finalize and delivery, viewer
 ### `references/lanes/map.md`
 
 - `lane-map` — Map lane — the vendored archify engine — § Map lane — the vendored archify engine
-- `map-type-router` — Map type router: architecture, workflow, sequence, dataflow, lifecycle — § Type router
+- `map-type-router` — Map type router: architecture, workflow, sequence, dataflow, lifecycle, erd, class, tree, timeline, waterfall — § Type router
 - `map-example-architecture` — Map architecture: use, schema and example file — § Type router → row `architecture`
 - `map-example-workflow` — Map workflow: use, schema and example file — § Type router → row `workflow`
 - `map-example-sequence` — Map sequence: use, schema and example file — § Type router → row `sequence`
 - `map-example-dataflow` — Map dataflow: use, schema and example file — § Type router → row `dataflow` [`map-example-data-flow`]
 - `map-example-lifecycle` — Map lifecycle: use, schema and example file — § Type router → row `lifecycle`
+- `map-example-erd` — Map erd: use, schema and example file — § Type router → row `erd` [`map-example-er`, `map-example-entity-relationship`]
+- `map-example-class` — Map class: use, schema and example file — § Type router → row `class` [`map-example-class-diagram`, `map-example-uml-class`]
+- `map-example-tree` — Map tree: use, schema and example file — § Type router → row `tree`
+- `map-example-timeline` — Map timeline: use, schema and example file — § Type router → row `timeline`
+- `map-example-waterfall` — Map waterfall: use, schema and example file — § Type router → row `waterfall`
 - `lane-map-an-ambiguous-scenario` — An ambiguous scenario — § An ambiguous scenario
 - `lane-map-authoring` — Authoring — § Authoring
 - `map-browser-env` — Map browser environment: ARCHIFY_CHROME and switches — § Environment first
@@ -1156,6 +1177,11 @@ Map form (vendored archify): authoring, contracts, finalize and delivery, viewer
 - `map-contract-repository-evidence` — Repository evidence — § Repository evidence
 - `map-contract-hand-placed-fallback` — Hand-placed fallback — § Hand-placed fallback
 - `map-contract-node-icons` — Node icons — § Node icons
+- `map-contract-erd` — ERD — § ERD
+- `map-contract-tree` — Tree — § Tree
+- `map-contract-class` — Class — § Class
+- `map-contract-timeline` — Timeline — § Timeline
+- `map-contract-waterfall` — Waterfall — § Waterfall
 
 ### `references/map/authoring-defaults.md`
 
@@ -1196,7 +1222,7 @@ Map form (vendored archify): authoring, contracts, finalize and delivery, viewer
 
 ### `references/map/README.md`
 
-- `map-readme` — Map lane — vendored from tt-a1i/archify (MIT, v3.0.1) — § Map lane — vendored from tt-a1i/archify (MIT, v3.0.1)
+- `map-readme` — Map lane — vendored from tt-a1i/archify (MIT, v3.1.0) — § Map lane — vendored from tt-a1i/archify (MIT, v3.1.0)
 - `map-readme-authoring-path` — Authoring path — § Authoring path
 - `map-readme-when-read-what` — When to read what — § When to read what
 - `map-readme-mermaid-in` — Mermaid in — § Mermaid in
@@ -1204,10 +1230,11 @@ Map form (vendored archify): authoring, contracts, finalize and delivery, viewer
 
 ### `references/map/repository-authoring.md`
 
-- `map-repo-authoring` — Repository-backed architecture authoring — § Repository-backed architecture authoring
 - `map-repo-authoring-explore-on-demand` — Explore on demand — § Explore on demand
 - `map-repo-authoring-choose-example-structure` — Choose an example by structure — § Choose an example by structure
 - `map-repo-authoring-author-from-evidence` — Author from evidence — § Author from evidence
+- `map-repo-authoring-repository-backed-authoring` — Repository-backed authoring — § Repository-backed authoring
+- `map-repo-authoring-evidence-by-diagram-type` — Evidence by diagram type — § Evidence by diagram type
 
 ### `references/map/schemas-README.md`
 
@@ -1233,6 +1260,7 @@ Map form (vendored archify): authoring, contracts, finalize and delivery, viewer
 - `map-viewer-runtime-route-share-card` — Route Share Card — § Route Share Card
 - `map-viewer-runtime-reach-share-card` — Reach Share Card — § Reach Share Card
 - `map-viewer-runtime-truth-boundary` — Truth boundary — § Truth boundary
+- `map-viewer-runtime-embedded-reading-addresses` — Embedded reading addresses — § Embedded reading addresses
 
 ## motion
 
@@ -1518,6 +1546,7 @@ Motion form: the five phases, camera, transitions, springs, composition, type, s
 - `prompts-b-evidence` — The A/B evidence — adjectives become numbers — § The A/B evidence — adjectives become numbers
 - `prompts-prompt-full-numbers` — A prompt full of numbers — the liquid-chrome loop — § A prompt full of numbers — the liquid-chrome loop
 - `prompts-the-honest-numbers` — The honest numbers — § The honest numbers
+- `prompts-what-public-collections-show` — What the public collections show — § What the public collections show
 
 ### `references/motion/README.md`
 
