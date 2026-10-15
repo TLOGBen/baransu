@@ -21,7 +21,7 @@
       "prompt": "我想幫 App 加上離線同步，怎麼設計比較好？",
       "should_trigger": true,
       "expected_skill": "think",
-      "expected_behavior": "Route 3 (對焦交棒): three alignment rounds (目的→約束→成功) then a four-field handoff sheet routed by band."
+      "expected_behavior": "Design question on a long-lived feature: restatement rounds, a 借鏡 block (verbs → discipline → instrument → outside judge → what it changes), a stance answering the goal behind the goal / aesthetic / cost-against-effect, then a five-section plan file."
     },
     {
       "id": 4,
@@ -36,6 +36,20 @@
       "should_trigger": false,
       "expected_skill": null,
       "expected_behavior": "Writing actual code/scaffolding is downstream implementation — /think produces verdicts and handoff sheets, never code."
+    },
+    {
+      "id": 6,
+      "prompt": "這個通知系統有沒有更好、更漂亮的做法？",
+      "should_trigger": true,
+      "expected_skill": "think",
+      "expected_behavior": "A 'better / more elegant way' ask on a core path: the borrow step is mandatory (name the discipline and its instrument), the stance names the design's one idea and its 我不是什麼 list; no code."
+    },
+    {
+      "id": 7,
+      "prompt": "cache TTL 設 5 分鐘還是 1 小時？",
+      "should_trigger": false,
+      "expected_skill": null,
+      "expected_behavior": "A parameter choice inside a settled shape is answered directly, not deliberated; if /think is invoked anyway, its alignment exit answers in a line and skips the borrow step and the plan file."
     }
   ]
 }
