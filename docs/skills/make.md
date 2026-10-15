@@ -14,30 +14,31 @@
 
 Claude Code：`/baransu:draw`　Codex：`$baransu:draw`
 
-**用途**　把任何東西畫出來：編輯級靜態圖（44 型）、可點可探索的互動圖、程式渲染的動態影片、或一頁可拖時間軸的動畫說明頁；全部自包含，先出計畫、再做、再自己看圖打分修到 8 分。
+**用途**　把一件東西畫成自包含的視覺：編輯級靜態圖（45 型）、可點可探索的互動圖、程式渲染的影片、或互動元件（機構圖、可拖或會動的圖）；要整頁說明時，元件做好同一輪交給 `/ui` 組頁。先出計畫、再做、再自己看圖打分修到 8 分。
 
 **什麼時候用**
 - 想把點子、系統、流程、資料或故事視覺化、畫成圖、做成動畫、分鏡、reel、發表影片、架構圖、流程圖、時序圖、時間軸、圖表或說明頁。
 - 觸發語：`/draw`、畫一下、畫成圖、圖解、做成動畫、做支影片、架構圖、流程圖、時序圖、說明頁、draw this、visualize、make a diagram、animate it、motion graphics；或貼上 Mermaid／draw.io／Excalidraw 要重畫。
-- 參數：`<要畫什麼 | 檔案 | repo 目錄 | 貼上的文字> [--lane diagram|map|motion|page] [--format 9:16|1:1|16:9] [--dark]`
+- 參數：`<要畫什麼 | 檔案 | repo 目錄 | 貼上的文字> [--lane diagram|map|film|component] [--format 9:16|1:1|16:9] [--dark]`
 
-**四條 lane**
+**四種形式**
 
-| Lane | 產出 | 機械檢查 |
+| 形式 | 產出 | 機械檢查 |
 |---|---|---|
-| diagram | 編輯級靜態圖，44 型，HTML ＋ inline SVG；可加 seek overlay 讓圖隨時間動 | `self_check.py` |
-| map | 可探索互動圖：architecture／workflow／sequence／data flow／lifecycle 五型 | `archify finalize` 收據 |
-| motion | 程式渲染影片：`seek(t)` → MP4／WebM，彈簧、節拍網格、合成音效；一條 timeline 可輸出 9:16／1:1／16:9 | `render.mjs hash` ＋ 每個格式的 contact sheet |
-| page | 一頁說明頁，內含可拖時間軸的動畫圖 | `verify-page.mjs` |
+| diagram | 編輯級靜態圖，45 型，HTML ＋ inline SVG；可加 seek overlay 讓圖隨時間動 | `self_check.py` |
+| map | 可探索互動圖：architecture／workflow／sequence／data flow／lifecycle／erd／class／tree／timeline／waterfall 十型 | `archify finalize` 收據 |
+| film | 程式渲染影片：`seek(t)` → MP4，運鏡、彈簧、節拍網格、合成音效；一條 timeline 可輸出 9:16／1:1／16:9 | `render.mjs` 渲染 ＋ 每個格式的 contact sheet |
+| component | 互動元件：機構圖、可拖或會動的圖，一件一個 `<name>.html`；要組頁時交 `/ui` | `verify-page.mjs`、`perf-check.mjs` |
 
-**共同骨幹**　一則訊息講清計畫（lane、類型、尺寸、預算砍掉什麼）→ 建 → 自己看（contact sheet／截圖／收據）→ 計分卡每列 ≥ 8 或跑滿三輪 → 交付。
+**共同骨幹**　一行開工狀態行講清計畫（形式、畫法、型別、尺寸、交付）→ 建（一小時內先給一版能在瀏覽器打開的）→ 自己看（contact sheet／截圖／收據）→ 計分卡每列 ≥ 8，停滯的列記入「未做到的」（影片與元件至少三輪）→ 交付。
 
-**產出**　`.claude/draw/<slug>/`：`index.html`（diagram、map、page）或 `out/final.mp4` 與原始碼（motion）、`docs/review_log.md`、擷圖；影片另有 `docs/brief.md`。完成報告列出檔案、lane、跑過的檢查與分數。
+**產出**　`.claude/draw/<slug>/`：`<slug>.html`（diagram）、`<slug>.map.html`（map）、`<slug>.film.html` 與 `out/<slug>.mp4`（film）、`<name>.html`（component）；`/ui` 組的頁另名 `<page-name>.html`。每件附 `docs/brief.md`、`docs/scorecard.md`、`docs/review_log.md` 與擷圖。完成報告列出檔案、形式、跑過的檢查與分數。
 
 **自包含**　不連網找內容、不依賴其他 skill 安裝；但使用者指定的品牌來源（網址、token、資料夾、`/ui` 的 `reference-<slug>.md`）可以讀一次存成 profile。
 
 **不適用**
 - 改你 app 的 UI → `/ui`（要嵌進站內的圖，先 `export_svg.py` 再交 `/ui`）
+- 版面、內文與多圖頁面 → `/ui`（draw 自動交棒；想單獨調整時直接叫 `/ui`）
 - 抓網頁成 Markdown → `/read`
 - 整理成筆記 → `/learn`
 - 接即時資料的數字儀表板
@@ -52,7 +53,7 @@ Claude Code：`/baransu:draw`　Codex：`$baransu:draw`
 
 Claude Code：`/baransu:ui`　Codex：`$baransu:ui`
 
-**用途**　你 repo 裡的 UI 設計主導：定調色／字／版／動效後直接寫改 UI 檔；能從參考網站、截圖、藝術流派抽出設計語言，也能拿既有 UI 對照參考修整。
+**用途**　你 repo 裡的 UI 設計主導：定調色／字／版／動效後直接寫改 UI 檔；能從參考網站、截圖、藝術流派抽出設計語言，也能拿既有 UI 對照參考修整；說明頁（講解 X、教學、多圖合讀）也歸這裡——把 `/draw` 做好的元件組成一頁。
 
 **什麼時候用**
 - 想讓頁面或元件更好看、不那麼制式、更有設計感，或照某個東西的風格做。
@@ -65,7 +66,7 @@ Claude Code：`/baransu:ui`　Codex：`$baransu:ui`
 
 **不適用**
 - Claude Design 畫布 mockup → 內建 `design` skill
-- 說明性圖表與動畫 → `/draw`
+- 單件圖、影片、機構、互動元件 → `/draw`
 - 小寫 `design.md` 技術架構文件不歸這裡管
 
 **非互動驅動**　`loop=not-drivable`。

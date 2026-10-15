@@ -9,6 +9,9 @@
 - **分級的每個消費端同步改寫**：升級 deep 審計不再看規模——「Complex 級」觸發刪除，改為摘要輸出解不開 Step 0 記下的失效證據或無法歸類的安全／控制問題時才升級；Step 2 路由由三級合併為摘要／深入兩路；inspector 改餵 Step 0 證據紀錄而非「偵測到的級別」，inspector 內的 SIMPLE／STANDARD+／COMPLEX 條件全部改成綁定風險、限制、失效證據或驗證器涵蓋；基準原則涵蓋與 docs／specs／HANDOFF 缺席的嚴重度改由證據類別決定，缺席本身永不 FAIL；報告標頭與「依級別評分」改為依證據類別。`collect-data.sh` 保留各項計數為資訊輸出，拿掉 `detected_tier` 與門檻（`=== TIER METRICS ===` 改名 `=== PROJECT METRICS ===`；`auto deep` 呼叫方式不變）。涉及 `skills/health/SKILL.md`、`references/baseline-principles.md`、`evals/evals.json`、`scripts/collect-data.sh`、`agents/health-inspector-context.md`／`-control.md`／`-maintainability.md`；Codex 版 `skills/health/**` 與 `.codex-agents/health-inspector-*.toml` 手動同步。
 - 這是 `CLAUDE.md` 新段落「從根部修、值不值得三問」的第一次套用：證據是檔內已經補上的守衛，改法是以更合身的原則取代條文、不在旁邊再加一條守衛，而 Waza 另外兩項判斷（nested AGENTS.md 實際載入什麼、permission 與 instruction 層的校準）因本 repo 尚無 `/health` 在那裡失誤的證據而不收。
 
+### Removed（盲評材料不進 repo）
+- `tests/ab/`（`/ui` 的 A/B 盲評題目與結果）移出 repo 並加入 `.gitignore`；8.0.0 條目裡「保留在原處」的說法自此作廢。實驗紀錄一律不進 repo。
+
 ## [8.0.0] - 2026-10-15
 
 ### Removed（`/contract` 與 `/seal` 退役，skill 數 14 → 12）
