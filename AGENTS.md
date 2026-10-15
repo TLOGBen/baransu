@@ -12,7 +12,7 @@
 
 ## Verification
 
-此 plugin 不做任何單元測試。A skill working well has nothing to do with unit tests, a skill failing has nothing to do with them, and when skills change it is the tests that break, not the skills — so since v8.0.0 the repo keeps none. `make test` now runs only the structural verifier.
+此 plugin 不寫單元測試，但測試照做。A skill working well has nothing to do with unit tests, a skill failing has nothing to do with them, and when skills change it is the tests that break, not the skills — so since v8.0.0 the repo keeps no unit tests. What still runs: `make test` (structural verifier), `make parity-check`, each skill's `evals/` through `claude plugin eval`, a real dogfood run of the changed skill, and `tests/ab/` for `/ui`.
 
 ```bash
 make test          # scripts/verify-skills.py only (structural verifier)
