@@ -112,3 +112,6 @@ build/
 # design skill working files (extraction notes) + skill-creator workspace
 .claude/design/
 .claude/skill-creator/
+
+# A/B 盲評材料不進 repo
+/tests/ab/

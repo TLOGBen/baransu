@@ -22,7 +22,6 @@ codex/plugins/baransu/           # Codex 版（手動維護，Codex 的正本）
 scripts/
   verify-skills.py               # 結構驗證器（含 README 理念錨點檢查）
   verify-codex-parity.py         # Claude／Codex 逐檔配對＋版本一致
-tests/ab/                        # /ui 的 A/B 盲評題目與結果（不是單元測試；本倉不寫單元測試，但測試照做）
 docs/                            # 本文件
 ```
 
@@ -37,7 +36,7 @@ docs/                            # 本文件
 
 ## 驗證
 
-此 plugin 不寫單元測試，但測試照做。skill 好不好用跟單元測試無關，skill 壞掉也跟它們無關；skill 改版時壞的是測試、不是 skill。8.0.0 起刻意一支單元測試都不留；留下的是真的追得到 skill 好壞的測試：結構驗證器（`make test`，理念表綁定的機制錨點）、Codex parity（`make parity-check`）、各 skill `evals/` 用 `claude plugin eval` 跑、改過的 skill 真跑一次看輸出、以及 `/ui` 的 `tests/ab/` 盲評。
+此 plugin 不寫單元測試，但測試照做。skill 好不好用跟單元測試無關，skill 壞掉也跟它們無關；skill 改版時壞的是測試、不是 skill。8.0.0 起刻意一支單元測試都不留；留下的是真的追得到 skill 好壞的測試：結構驗證器（`make test`，理念表綁定的機制錨點）、Codex parity（`make parity-check`）、各 skill `evals/` 用 `claude plugin eval` 跑、改過的 skill 真跑一次看輸出。盲評材料不進 repo。
 
 ```bash
 make test         # 只跑 scripts/verify-skills.py（結構驗證器）
