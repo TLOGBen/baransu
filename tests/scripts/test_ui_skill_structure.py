@@ -104,7 +104,7 @@ class TestDesignSkillStructure(unittest.TestCase):
         self.assertIn(NOTE_SENTENCE, section(self.skill, LEARNING_SECTION))
 
     def test_a6_directory_manifest(self):
-        files = sorted(str(p.relative_to(SKILL_DIR)) for p in SKILL_DIR.rglob("*") if p.is_file() and "__pycache__" not in p.parts)
+        files = sorted(p.relative_to(SKILL_DIR).as_posix() for p in SKILL_DIR.rglob("*") if p.is_file() and "__pycache__" not in p.parts)
         self.assertEqual(files, ["LICENSE.txt", "NOTICE.txt", "SKILL.md", "evals/evals.json"])
         self.assertLessEqual(self.skill.count("\n"), 250)
         for p in SKILL_DIR.rglob("*"):

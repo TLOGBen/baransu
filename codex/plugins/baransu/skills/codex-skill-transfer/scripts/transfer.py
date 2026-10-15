@@ -1454,7 +1454,7 @@ def copy_aux(
         mention_rewrites = 0
         for path in sorted(refs_root.rglob("*.md")):
             rel = path.relative_to(target)
-            if (skill_name, str(rel)) in REPO_PATH_REWRITE_EXEMPT_RELPATHS:
+            if (skill_name, rel.as_posix()) in REPO_PATH_REWRITE_EXEMPT_RELPATHS:
                 continue
             try:
                 text = path.read_text(encoding="utf-8")
@@ -1488,7 +1488,7 @@ def copy_aux(
                 continue
             found = [label for label, pat in TOKEN_SCAN_PATTERNS if pat.search(text)]
             if found:
-                rel = path.relative_to(target)
+                rel = path.relative_to(target).as_posix()
                 report.manual_review.append(
                     f"`{rel}` 含 Claude-only token（{', '.join(found)}）；"
                     "引用文件不自動改寫，請人工確認語境後處理"
@@ -2079,7 +2079,7 @@ def validate_plugin_content_closure(
         found = [token for token in forbidden_runtime_tokens if token in text]
         if found:
             errors.append(
-                f"{path.relative_to(plugin_out)} retains runtime token(s): "
+                f"{path.relative_to(plugin_out).as_posix()} retains runtime token(s): "
                 + ", ".join(found)
             )
 
@@ -2105,11 +2105,11 @@ def validate_plugin_content_closure(
                 if "*" in ref:
                     if not list(target.parent.glob(target.name)):
                         errors.append(
-                            f"{path.relative_to(plugin_out)} -> {ref} matches no file"
+                            f"{path.relative_to(plugin_out).as_posix()} -> {ref} matches no file"
                         )
                 elif not target.resolve().is_file():
                     errors.append(
-                        f"{path.relative_to(plugin_out)} -> {ref} is missing"
+                        f"{path.relative_to(plugin_out).as_posix()} -> {ref} is missing"
                     )
 
     if errors:
@@ -2497,7 +2497,7 @@ def transfer_plugin(plugin_root: Path, output_root: Path) -> tuple[list[Transfer
                         if pat.search(text)
                     ]
                     if found:
-                        rel = path.relative_to(plugin_out)
+                        rel = path.relative_to(plugin_out).as_posix()
                         aux_manual.append(
                             f"`{rel}` 含 Claude-only token（{', '.join(found)}）；"
                             "共用目錄整批拷貝、不自動改寫，請人工確認語境後處理"

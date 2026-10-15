@@ -46,11 +46,27 @@ fi
 # a worktree entry in `git -C "$MAIN_REPO" worktree list --porcelain` AND
 # differ from the main working tree's toplevel; otherwise GUARD_REFUSED and
 # the destructive fallback is skipped.
+# Git for Windows lists worktrees as `C:/...` while realpath under Git Bash
+# yields `/c/...` or `/tmp/...`; cygpath (absent on Linux) maps them to one form.
+posix_worktree_lines() {
+  if command -v cygpath >/dev/null 2>&1; then
+    local line
+    while IFS= read -r line; do
+      case "$line" in
+        "worktree "*) printf 'worktree %s\n' "$(cygpath -u "${line#worktree }")" ;;
+        *) printf '%s\n' "$line" ;;
+      esac
+    done
+  else
+    cat
+  fi
+}
+
 tier3_guarded_rm() {
   local wt_real porcelain main_toplevel main_real
   if [ -n "$WORKTREE_PATH" ] && [ "$WORKTREE_PATH" != "/" ] && [ -e "$WORKTREE_PATH/.git" ]; then
     wt_real=$(realpath "$WORKTREE_PATH" 2>/dev/null) || wt_real=""
-    porcelain=$(git -C "$MAIN_REPO" worktree list --porcelain 2>/dev/null) || porcelain=""
+    porcelain=$(git -C "$MAIN_REPO" worktree list --porcelain 2>/dev/null | posix_worktree_lines) || porcelain=""
     main_toplevel=$(printf '%s\n' "$porcelain" | sed -n 's/^worktree //p' | head -n 1)
     main_real=$(realpath "$main_toplevel" 2>/dev/null) || main_real=""
     if [ -n "$wt_real" ] && [ -n "$main_real" ] \

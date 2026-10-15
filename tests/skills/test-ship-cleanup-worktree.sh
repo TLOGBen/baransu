@@ -43,6 +43,14 @@ gitc() { # gitc <repo> <args…> — git with a fixed throwaway identity
     -c commit.gpgsign=false "$@"
 }
 
+posix_paths() { # Git for Windows prints C:/...; map to the MSYS form $WT uses
+  if command -v cygpath >/dev/null 2>&1; then
+    sed -n 's/^worktree //p' | while IFS= read -r p; do echo "worktree $(cygpath -u "$p")"; done
+  else
+    grep '^worktree '
+  fi
+}
+
 setup_fixture() { # $1 = name → sets MAIN, WT: main repo on main + worktree on feat
   local base="$TMP/$1"
   MAIN="$base/main-repo"
@@ -78,7 +86,7 @@ gitc "$WT" commit -q -m wip
 out=$(bash "$SCRIPT" "$WT" feat main "$MAIN")
 rc=$?
 if [ "$rc" -ne 0 ] && printf '%s\n' "$out" | grep -q '^GATE_FAIL ' \
-  && [ -d "$WT" ] && git -C "$MAIN" worktree list --porcelain | grep -qxF "worktree $WT" \
+  && [ -d "$WT" ] && git -C "$MAIN" worktree list --porcelain | posix_paths | grep -qxF "worktree $WT" \
   && git -C "$MAIN" show-ref -q refs/heads/feat; then
   pass "T2: GATE_FAIL, exit != 0, worktree and branch intact"
 else

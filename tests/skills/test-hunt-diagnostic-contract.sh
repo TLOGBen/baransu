@@ -88,9 +88,17 @@ def assert_hostile_targets_are_data(program):
             "MARKER": str(marker),
         }
         for target in hostile_targets:
+            argv_in = ["bash", "-c", program, "--", target, "-15 min"]
+            run_env = runtime_env
+            if os.name == "nt":
+                # Windows command-line serialization drops a whitespace-only
+                # argument ("\n") before bash sees it; hand the values over in
+                # the environment and rebuild the identical argv inside bash.
+                argv_in = ["bash", "-c", 'exec bash -c "$HUNT_PROG" -- "$HUNT_TARGET" "$HUNT_SINCE"']
+                run_env = runtime_env | {"HUNT_PROG": program, "HUNT_TARGET": target, "HUNT_SINCE": "-15 min"}
             result = subprocess.run(
-                ["bash", "-c", program, "--", target, "-15 min"],
-                env=runtime_env, text=True, capture_output=True, check=False,
+                argv_in,
+                env=run_env, text=True, capture_output=True, check=False,
             )
             if result.returncode != 0:
                 raise AssertionError(f"hostile target failed shell program: {target!r}: {result.stderr}")

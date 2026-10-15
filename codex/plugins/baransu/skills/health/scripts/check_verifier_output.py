@@ -85,7 +85,7 @@ def main() -> int:
     print("stale_paths:")
     if stale_paths:
         for path in stale_paths[:20]:
-            print(f"  {path}")
+            print(f"  {path.as_posix()}")
         if len(stale_paths) > 20:
             print(f"  ... {len(stale_paths) - 20} more")
     else:
@@ -93,7 +93,7 @@ def main() -> int:
     print("existing_tmp_paths:")
     if existing_paths:
         for path in existing_paths[:10]:
-            print(f"  {path}")
+            print(f"  {path.as_posix()}")
         if len(existing_paths) > 10:
             print(f"  ... {len(existing_paths) - 10} more")
     else:
