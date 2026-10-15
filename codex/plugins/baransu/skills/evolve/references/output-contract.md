@@ -6,11 +6,11 @@ Every run writes its working artifacts under `.codex/evolve/<slug>/`, where `<sl
 
 | File | Content |
 |------|---------|
-| `log.md` | Per-round trace: round #, dimension touched, mutation summary, structure-gate result, judge votes, keep/restore decision. Append-only; every round is one entry. This is the audit trail — a reader can reconstruct exactly which dimension changed each round and why it was kept or restored. |
-| `results.tsv` | 9 score columns (`d1`…`d9`) plus a `round` index, one row per round. The score trajectory. Rows carry the round's **diagnostician** scores — the only absolute per-dimension scores produced each round (judges return deltas only); `report.md` labels the trajectory `source: diagnostician (non-blind)`. |
+| `log.md` | Per-round trace, append-only, one entry per round: round #, the **finding** (failure / implicated clause / flaw / origin + source / replacement / `change_kind` / words before → after), subtraction-gate and structure-gate results, judge votes, decision (`kept` / `restored` / `no-finding` / `append-only-refused` / `user-declined` / `standing-auth auto-adopt` / `window-breach-restored`). This is the audit trail — and the next run's clause provenance: a reader can reconstruct which clause changed each round, what it was for, and why it was kept or restored. |
+| `results.tsv` | 9 score columns (`d1`…`d9`) plus `round` and `words` (body word count), one row per round. The score trajectory. Rows carry the round's **diagnostician** scores — the only absolute per-dimension scores produced each round (judges return deltas only); `report.md` labels the trajectory `source: diagnostician (non-blind)`. |
 | `convergence.svg` | Score-over-rounds curve. Effective-baseline line steps up only on keeps; restored rounds show as dips that do not lower the baseline. |
 | `held-out.md` | Held-out comparison: pre-evolution vs post-evolution score on the held-out prompt set, plus the **evidence-strength** label (see below). |
-| `report.md` | Run summary: start/end score, dimensions improved, convergence reason, **effectiveness_mode** (`real-exec` \| `offline-同源` \| `no-benchmark` — one value per run; Gate 3 decides once per run, so this is an enum, not a ratio) plus the Gate 3 reason, and per-axis evidence source. |
+| `report.md` | Run summary: start/end score and word count, change-kind tally (replace / delete / add / refused), dimensions improved, convergence reason, **effectiveness_mode** (`real-exec` \| `offline-同源` \| `no-benchmark` — one value per run; Gate 3 decides once per run, so this is an enum, not a ratio) plus the Gate 3 reason, and per-axis evidence source. |
 | `card.html` | Result card. Copy drafted through `$baransu:write`, then rendered **only through the `$baransu:draw` page lane** — never hand-assembled, never reaching into `draw`'s `references/` internals; copy the `$baransu:draw` output HTML to `.codex/evolve/<slug>/card.html` (`$baransu:draw` emits HTML, not PNG). Omitted on zero-adoption runs via SKILL.md Stage 7's lighter exit (noted in `report.md`). See §Human-readable delivery. |
 | `snapshot/<round>.md` | File-level snapshots (see `safety-gates.md` Gate 2). |
 
@@ -43,7 +43,8 @@ Never label a same-ruler held-out result as 硬證據.
 
 ## report.md required fields
 
-- start/end total score and per-dimension deltas
+- start/end total score and per-dimension deltas; start/end body word count
+- change-kind tally: rounds kept by `replace` / `delete` / `add`, and rounds refused at the subtraction gate
 - dimensions improved, rounds run, convergence reason
 - effectiveness_mode (`real-exec` / `offline-同源` / `no-benchmark`) + the Gate 3 reason + per-axis evidence source
 - `results.tsv` score source label (`source: diagnostician (non-blind)`)

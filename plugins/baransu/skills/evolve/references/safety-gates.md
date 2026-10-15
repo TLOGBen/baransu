@@ -13,7 +13,7 @@ Writing a kept mutation back into the target SKILL.md is an **Authorization PAUS
   2. **Blind-judge bar tightened to 3/3** strict_improvement (not the interactive 2/3) — automation has no human backstop, so the panel must be unanimous.
   3. **File-level snapshot retained** (Gate 2) for one-command rollback.
   4. **Audit**: every auto-adopted change is logged to `log.md` with `decision: standing-auth auto-adopt`, the votes, and the snapshot path.
-  5. **End-state verification is the final arbiter**: after the run's adoptions, the driver's end-state check (`make test` / structure gate) decides go/no-go for downstream steps (e.g. /ship). A red end-state must block the ship and surface the failing files, not proceed.
+  5. **End-state verification is the final arbiter**: after the run's adoptions, the driver's end-state check — the structure gate, `python3 scripts/verify-skills.py` in repo mode — decides go/no-go for downstream steps (e.g. /ship). A red end-state must block the ship and surface the failing files, not proceed.
 
 Diagnosis, mutation-into-a-scratch-copy, scoring, and rollback are *not* Authorization PAUSEs — only the write-back of an adopted change is.
 
@@ -30,7 +30,7 @@ The snapshot/restore mechanism touches exactly one file: the target SKILL.md.
 
 The effectiveness axis prefers running the skill under test, but only through both gates, in order:
 
-1. **Capability gate** — is the skill non-interactive and runnable unattended? Skills with `AskUserQuestion` / approval gates (think, review, contract, …) fail this gate and are forced offline. This is a capability fact, not a flaw.
+1. **Capability gate** — is the skill non-interactive and runnable unattended? Skills with `AskUserQuestion` / approval gates (think, review, …) fail this gate and are forced offline. This is a capability fact, not a flaw.
 2. **Trust gate** — only if the capability gate passes: is the target a skill the user themselves specified, living under the user's own plugin path, AND does its body contain none of the destructive patterns below? Unknown-origin / third-party / pattern-hit skills are forced offline.
 
 Destructive-pattern denylist (any hit → forced offline, reason disclosed in the report):
@@ -38,10 +38,12 @@ Destructive-pattern denylist (any hit → forced offline, reason disclosed in th
 
 When real-exec does run, mark that run **untrusted** in the report and advise post-run memory rotation, per `skills/health/SKILL.md` §third-party/subagent supply-chain stance. The capability gate asks "can it run?"; the trust gate asks "should it?" — never collapse the two.
 
-## Gate 4 — Structure gate before keep
+## Gate 4 — Subtraction gate, then structure gate, before keep
 
-No mutation is adopted unless it passes the structure gate, regardless of score:
+No mutation reaches the judge panel, let alone adoption, unless it passes both mechanical gates in Stage 3, regardless of score:
 
-- Run `python3 scripts/verify-skills.py` with no argument (repo mode), exactly as SKILL.md Stage 3 specifies — never pass the skill dir as an argument (Stage 3 explains why that form false-fails every skill with `references/`). The gate runs inside Stage 3's bounded write-verify-restore window (scratch bytes written to the target so the repo-mode scan can see the mutation, snapshot restored immediately after, pass or fail) — the window never survives past the gate and never constitutes adoption.
-- **Pass** = exit code 0 **AND** stdout contains no `⚠️ ADVISORY` line. Body-line advisory over-limit returns exit 0 but emits `⚠️ ADVISORY`; evolve MUST read stdout for that line and treat it as a structure-gate failure (a score gain that bloats the body past advisory is not kept).
-- A structure-gate failure forces restore (Gate 2), no matter how high the rubric score rose. Score never overrides structure — the gate is a sequential precondition to keep, not a parallel vote.
+- **Subtraction gate** (first, touches nothing): `diff snapshot/<round>.md <scratch>`. A diff that removes or rewrites no existing non-blank line is an append-only candidate — the accretion reflex the skill exists to refuse — and is rejected before any judge is dispatched (`log.md`: `decision: append-only-refused`). A sanctioned `change_kind: add` passes only because its displaced clause is a removed line.
+- **Structure gate**:
+  - Run `python3 scripts/verify-skills.py` with no argument (repo mode), exactly as SKILL.md Stage 3 specifies — never pass the skill dir as an argument (Stage 3 explains why that form false-fails every skill with `references/`). The gate runs inside Stage 3's bounded write-verify-restore window (scratch bytes written to the target so the repo-mode scan can see the mutation, snapshot restored immediately after, pass or fail) — the window never survives past the gate and never constitutes adoption.
+  - **Pass** = exit code 0 **AND** stdout contains no `⚠️ ADVISORY` line. Body-line advisory over-limit returns exit 0 but emits `⚠️ ADVISORY`; evolve MUST read stdout for that line and treat it as a structure-gate failure (a score gain that bloats the body past advisory is not kept).
+  - A structure-gate failure forces restore (Gate 2), no matter how high the rubric score rose. Score never overrides structure — the gate is a sequential precondition to keep, not a parallel vote.
