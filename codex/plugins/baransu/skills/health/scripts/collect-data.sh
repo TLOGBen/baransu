@@ -11,12 +11,12 @@
 #   MEMORY.md path          -> built via sed on pwd; unusual chars produce wrong project key; verify manually if (none) seems wrong
 #   Conversation scope      -> 2 most recent PREVIOUS .jsonl sampled (live session skipped); fewer than 2 = [LOW CONFIDENCE]
 #   MCP token estimate      -> assumes ~25 tools/server, ~200 tokens/tool; treat as directional, not precise
-#   Tier misclassification  -> .next/, __pycache__, .turbo/ can inflate file count; recheck manually if tier feels wrong
+#   project_files           -> non-git fallback walk can count .next/, __pycache__, .turbo/; the count is informational
 set -euo pipefail
 
 P=$(pwd)
 SETTINGS="$P/.claude/settings.local.json"
-TIER="${1:-auto}"
+# $1 is accepted and ignored so the documented "collect-data.sh auto deep" invocation keeps working; only $2 (mode) is read.
 MODE="${2:-${BARANSU_HEALTH_MODE:-summary}}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ "${BARANSU_HEALTH_DEEP:-0}" = "1" ]; then
@@ -435,28 +435,15 @@ PROJECT_FILES=$(count_project_files)
 CONTRIBUTORS=$(count_contributors)
 CI_WORKFLOWS=$(count_ci_workflows)
 
-echo "[1/12] Tier metrics..."
-echo "=== TIER METRICS ==="
+echo "[1/12] Project metrics..."
+echo "=== PROJECT METRICS ==="
 echo "project_files: $PROJECT_FILES"
 echo "contributors: $CONTRIBUTORS"
-echo "count_basis:   project_files (git-tracked file count) feeds detected_tier; the AI MAINTAINABILITY section's tracked_files uses a filtered walk and is informational only; contributors counts unique author emails over the last 500 commits (identities/aliases not deduped)"
+echo "count_basis:   project_files = git-tracked files (non-git fallback: filtered walk); tracked_files in AI MAINTAINABILITY uses a different filter; contributors = unique author emails over the last 500 commits (aliases not deduped)"
 echo "ci_workflows:  $CI_WORKFLOWS"
 echo "skills:        $(count_local_skills)"
 echo "claude_md_lines: $(count_file_lines "$P/CLAUDE.md")"
 echo "collection_mode: $MODE"
-
-# Auto-detect tier if not passed as argument.
-# Matches SKILL.md definition: Simple = <500 files AND <=1 contributor AND no CI.
-if [ "$TIER" = "auto" ]; then
-  if [ "${PROJECT_FILES:-0}" -lt 500 ] && [ "${CONTRIBUTORS:-0}" -le 1 ] && [ "${CI_WORKFLOWS:-0}" -eq 0 ]; then
-    TIER="simple"
-  elif [ "${PROJECT_FILES:-0}" -lt 5000 ]; then
-    TIER="standard"
-  else
-    TIER="complex"
-  fi
-fi
-echo "detected_tier: $TIER"
 
 echo "[2/12] CLAUDE.md (global + local)..."
 echo "=== CLAUDE.md (global) ==="
@@ -631,8 +618,7 @@ print_conversation_file_listing
 echo "=== CONVERSATION SIGNALS ==="
 print_conversation_signals
 
-# Deep sections gate on MODE alone: deep already implies user-approved cost,
-# and an explicit deep audit of a Simple-tier project must still get extracts.
+# Deep sections gate on MODE alone: deep already implies user-approved cost.
 if [ "$MODE" = "deep" ]; then
 echo "=== CONVERSATION EXTRACT ==="
 print_conversation_extract
