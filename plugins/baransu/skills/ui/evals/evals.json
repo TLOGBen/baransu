@@ -5,15 +5,15 @@
     {
       "id": 1,
       "name": "learn-from-reference",
-      "prompt": "照這個網站的風格幫我做一個獨立咖啡烘焙坊的首頁（單檔 HTML），參考頁在 tests/fixtures/design/reference-page.html。",
+      "prompt": "照這個網站的風格幫我做一個獨立咖啡烘焙坊的首頁（單檔 HTML），參考頁在 plugins/baransu/skills/ui/evals/fixtures/reference-page.html。",
       "files": [
-        "tests/fixtures/design/reference-page.html"
+        "plugins/baransu/skills/ui/evals/fixtures/reference-page.html"
       ],
       "expected_output": "A reference note at .claude/design/reference-<slug>.md whose first line names the source, describing type / color / spacing / layout / motion as properties; a design plan shown before code; a new HTML page for the roastery in that language with none of the reference's copy, images or brand marks; a closing message listing changed files.",
       "assertions": [
         {
           "name": "reference-note-exists",
-          "check": ".claude/design/reference-*.md exists under the run's project root and its first line names the source (tests/fixtures/design/reference-page.html or 'Meridian')"
+          "check": ".claude/design/reference-*.md exists under the run's project root and its first line names the source (plugins/baransu/skills/ui/evals/fixtures/reference-page.html or 'Meridian')"
         },
         {
           "name": "note-records-properties",
@@ -56,9 +56,9 @@
     {
       "id": 2,
       "name": "refine-existing-ui",
-      "prompt": "幫我調 UI，tests/fixtures/design/generic-dashboard.html 這頁看起來太 AI、太模板，改得有個性一點但別整個重做。",
+      "prompt": "幫我調 UI，plugins/baransu/skills/ui/evals/fixtures/generic-dashboard.html 這頁看起來太 AI、太模板，改得有個性一點但別整個重做。",
       "files": [
-        "tests/fixtures/design/generic-dashboard.html"
+        "plugins/baransu/skills/ui/evals/fixtures/generic-dashboard.html"
       ],
       "expected_output": "A short difference list in the conversation (current vs target) before any edit; the same file edited in place with the generic tells (cream #F4F1EA + #D97757 accent, all-caps eyebrow labels, identical rounded cards with the same soft shadow, middle-dot meta strings, arrow-suffixed links) replaced by deliberate choices; structure and content preserved; a closing message listing changed files.",
       "assertions": [

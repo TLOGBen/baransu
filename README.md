@@ -6,7 +6,7 @@
 
 <p align="center"><b>バランス。動手前先想，做完後驗證。</b></p>
 
-<p align="center">14 個 skill · Claude Code 與 Codex · v7.7.0</p>
+<p align="center">12 個 skill · Claude Code 與 Codex · v8.0.0</p>
 
 Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引用。7.3.3 修正圖示路徑，既有安裝需更新 plugin。
 
@@ -21,7 +21,7 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 | 理念 | 一句話 | 機制錨點 |
 |---|---|---|
 | 規則是天花板 | 只寫防真實翻車的規則；容器只能變深、不能變長 | `plugins/baransu/rules/anti-patterns.md` |
-| 結構是地板 | 確定性檢查全走腳本閘門，不靠模型自律；14 個技能是上限 | `scripts/verify-skills.py` |
+| 結構是地板 | 確定性檢查全走腳本閘門，不靠模型自律；12 個技能是上限 | `scripts/verify-skills.py` |
 | 人在授權點 | Input PAUSE 可走預設；Authorization PAUSE 不可覆寫 | `plugins/baransu/skills/_shared/loop-contract.md` |
 | 證據優先 | 非顯然主張依賴前先引查證來源；乾淨的 review 也是有效的 review | `plugins/baransu/skills/review/SKILL.md` |
 | 狀態落盤 | 長流程的結論落檔交付、不賭終端顯示 | `plugins/baransu/skills/_shared/output-journal.md` |
@@ -36,8 +36,7 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 <td>
 <h3><a href="docs/skills/plan.md">構想</a></h3>
 <p><i>動手之前，先把「要什麼」和「怎樣才算做完」說清楚。</i></p>
-<b><code>/baransu:think</code></b>：復述對焦、表態、兩向攻擊，留一份計畫，不寫程式<br>
-<b><code>/baransu:contract</code></b>：中型任務開工前，一頁釘死可斷言的驗收條文
+<b><code>/baransu:think</code></b>：復述對焦、表態、兩向攻擊，留一份計畫，不寫程式
 </td>
 </tr>
 <tr>
@@ -45,7 +44,6 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 <td>
 <h3><a href="docs/skills/verify.md">驗證</a></h3>
 <p><i>換一雙乾淨的眼睛看，拿證據說話；乾淨的結果也是有效的結果。</i></p>
-<b><code>/baransu:seal</code></b>：對著合約五點驗收，全清才蓋 sealed 標記<br>
 <b><code>/baransu:review</code></b>：乾淨 context 的 verifier 獨立重驗任何產出，不改目標<br>
 <b><code>/baransu:hunt</code></b>：從症狀追到根因，指到 file:line 才動手修
 </td>
@@ -86,11 +84,11 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 
 ```
 小　單檔、範圍清楚     →  直接實作（紅綠紀律）
-中　一個功能、幾個檔案 →  /contract  →  實作  →  /seal
+中　一個功能、幾個檔案 →  直接實作（紅綠紀律）  →  /review 獨立重驗
 大　多個互相依賴的模組 →  畫成決策圖、切片  →  每片走「中」
 ```
 
-方向未定先 `/think`，出錯了 `/hunt`，想要第二雙眼睛 `/review`，收工 `/ship`。小任務不硬上全套，大任務不偷走輕量路。session 結束時，seal-guard hook 會擋下沒封緘的 user-facing 變更（可降級）。完整說明：[三頻段路由](docs/routing.md)。
+方向未定先 `/think`，出錯了 `/hunt`，想要第二雙眼睛 `/review`，收工 `/ship`。小任務不硬上全套，大任務不偷走輕量路。完整說明：[三頻段路由](docs/routing.md)。
 
 ## 快速開始
 
@@ -112,7 +110,7 @@ codex plugin add baransu@baransu
 
 > 想一下：通知系統要不要從輪詢改成 WebSocket？　→ `/think`
 >
-> `/baransu:contract 匯出 CSV 時支援自訂欄位順序`，做完再 `/baransu:seal`
+> 做完「匯出 CSV 時支援自訂欄位順序」之後：`/baransu:review 看一下這個 diff`
 >
 > 登入後偶爾白畫面，幫我排查　→ `/hunt`
 

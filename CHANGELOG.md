@@ -2,6 +2,25 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.0.0] - 2026-10-15
+
+### Removed（`/contract` 與 `/seal` 退役，skill 數 14 → 12）
+- **`/contract` 與 `/seal` 整個退役**（兩個 skill 目錄、`agents/seal-agent.md`、Codex 版的 `.codex-agents/seal-agent.toml`、`_shared/contract-gate.md`，Claude 與 Codex 兩邊同步）。contract 當初是取代過重的 `analyze` 的輕量版，建在模型還無法一次做完一件事、答應了又不照做的年代。之後的經驗是：有沒有立約、有沒有封緘，會出錯的照樣出錯、會做對的照樣做對；seal 的突變抽查尤其沒有看到任何效益。兩者皆不以新 skill 補位，上限收到 12（codex-skill-transfer 的三個月零使用退役條款沿用，觸發時上限收回 11）。
+- **seal-guard Stop hook 退役**：`hooks/hooks.json`、`seal-guard.sh`、`seal-guard.ps1`（兩邊）與 Codex manifest 的 `extensions."com.openai".hooks` 接線一併移除；plugin 自此不附任何 lifecycle hook。`SEAL_GUARD` 環境變數不再有作用。
+- `_shared/selection-telemetry.md` 的 seal-guard 機械錨點與 Phase 3 閘門事件段（現實接觸強制閘／Critical 硬停／R10 證據異議——三者只住在 contract 與 seal 裡）隨之移除；miss rate 只算 `"miss": true` 紀錄，並明寫零 miss 的月份只是弱證據。
+- 這是使用者流程的破壞性變更：`/baransu:contract`、`/baransu:seal`（Codex 的 `$baransu:contract`、`$baransu:seal`）不再存在，故升 major。
+
+### Changed（中頻段改走「直接實作 → `/review`」）
+- 三頻段路由：中頻段改為「照 `_shared/tdd.md` 的紅綠紀律直接實作，再 `/review` 獨立重驗」，收尾證據是一次紅 → 綠執行加 review 判定；大頻段切片後每片走同一條中頻段。`CLAUDE.md`、`README.md`、`docs/routing.md`、`docs/skills/plan.md`／`verify.md`／`ops.md`、`docs/install.md`、`docs/philosophy.md`、`docs/development.md` 同步。
+- `/ship`：拿掉 sealed 合約的偵測與歸檔（`SEALED_CONTRACTS`、`head -3 | grep '> STATUS: sealed'`、INV-1 的第二個歸檔來源、Step 3 的合約刪除例外），Step 1 改為三項輸入；`ARCHIVE_DIRS` 移除 `seal`。其餘流程不動。
+- `/hunt`：修復範圍跨多檔時，改為切片後每片「實作 → `/baransu:review`」，不再開合約。`_shared/tdd.md` 的 scope 句改稱 medium-band slice；`codex-skill-transfer` 的 `skill-mapping.md` 派遣範例改以 `verifier` 示範；`_shared/loop-contract.md` §4 移除 contract／seal 兩列。
+- `scripts/verify-skills.py`：技能數上限 14 → 12；殘留掃描新增被裁指令 `/contract`、`/seal`、`baransu:contract`、`baransu:seal`（slash 形式，`../contract/references/` 之類路徑段與 `loop-contract.md`、draw 的 `delivery-contract.md` 不命中）、被裁名稱 `seal-agent`、`seal-guard`，與 sealed 標記字面 `STATUS: sealed`。
+- `plugin.json`／`marketplace.json`／Codex `plugin.json`：描述「Fourteen」→「Twelve」，關鍵字移除 `contract`、`seal`。
+
+### Removed（單元測試全部退役）
+- **`tests/skills/`、`tests/integration/`、`tests/scripts/`、`tests/fixtures/` 全部移除**（含 `claude-md-skills-baseline.txt`）。理由：skill 好不好用跟單元測試無關，skill 壞掉也跟它們無關；skill 改版時壞的是這些沒用的測試、不是 skill。這是刻意的實驗：一支都不留。`tests/ab/` 是 `/ui` 的 A/B 盲評題目與結果，不是單元測試，原地保留。
+- `Makefile` 的 `test` 改為只跑 `scripts/verify-skills.py`（結構驗證是理念表綁定的機制錨點，不是單元測試）；`parity-check`、`ship-check` 不變。`CLAUDE.md` 與 `AGENTS.md` 的 Verification 段明寫「此 plugin 不做任何單元測試」與理由。`verify-skills.py` 的 skills-root／agents／loop-registry 模式保留給臨時驗證用，docstring 不再指向已移除的 pytest 檔。
+
 ## [7.7.0] - 2026-10-15
 
 ### Added（`/ui`：先找點子、刪掉要填回、一定看截圖）

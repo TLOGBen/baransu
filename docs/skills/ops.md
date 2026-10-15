@@ -12,7 +12,7 @@
 
 Claude Code：`/baransu:ship`　Codex：`$baransu:ship`
 
-**用途**　session 收尾：歸檔工作檔與 root 的 sealed 合約、commit、push、清理 worktree。
+**用途**　session 收尾：歸檔工作檔、commit、push、清理 worktree。
 
 **什麼時候用**
 - 一輪工作結束要收工。
@@ -21,7 +21,7 @@ Claude Code：`/baransu:ship`　Codex：`$baransu:ship`
 
 **步驟**
 1. 偵測：沒有 git 的專案在搬任何檔案之前就直接失敗（否則歸檔的檔案沒有 commit 可錨定）。
-2. 歸檔：`.claude/` 下的 baransu 工作目錄（`read`／`learn`／`draw`／`design` 的成品除外）與 root 的 sealed 合約，搬到 gitignored、只留本機的 `.claude/archived/`；只有名稱衝突時才加時間戳。
+2. 歸檔：`.claude/` 下的 baransu 工作目錄（`read`／`learn`／`draw`／`design` 的成品除外），搬到 gitignored、只留本機的 `.claude/archived/`；只有名稱衝突時才加時間戳。
 3. commit 前先在本機整合上游。
 4. commit。
 5. push 目前分支，或合併到目標分支後 push 目標分支。
@@ -114,6 +114,6 @@ Claude Code：`/baransu:codex-skill-transfer`　Codex：`$baransu:codex-skill-tr
 - 反向移植（Codex→Claude）
 - 沒有 Claude 對應版本、全新撰寫的 Codex skill
 
-**存續條款**　這是第 14 個 skill 的附帶條件：若選用遙測連續三個月零使用，就退役並把上限收回 13。
+**存續條款**　這個 skill 帶一條附帶條件：若選用遙測連續三個月零使用，就退役並把上限收回 11（現行上限 12）。
 
 **非互動驅動**　`loop=assisted`。

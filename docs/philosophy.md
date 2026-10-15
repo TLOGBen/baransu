@@ -19,18 +19,18 @@
 | 理念 | 一句話 | 機制錨點 |
 |---|---|---|
 | 規則是天花板 | 只寫防真實翻車的規則；容器只能變深、不能變長 | `plugins/baransu/rules/anti-patterns.md` |
-| 結構是地板 | 確定性檢查全走腳本閘門，不靠模型自律；14 個技能是上限（2026-07 修憲 14→15，2026-08 隨 `/analyze` 退役收回 14；附 codex-skill-transfer 三個月零使用即退役回 13 的可證偽條款） | `scripts/verify-skills.py` |
+| 結構是地板 | 確定性檢查全走腳本閘門，不靠模型自律；12 個技能是上限（2026-07 修憲 14→15，2026-08 隨 `/analyze` 退役收回 14，2026-10 隨 contract／seal 退役收到 12；附 codex-skill-transfer 三個月零使用即退役回 11 的可證偽條款） | `scripts/verify-skills.py` |
 | 人在授權點 | Input PAUSE 可走預設；Authorization PAUSE 不可覆寫 | `plugins/baransu/skills/_shared/loop-contract.md` |
 | 證據優先 | 非顯然主張依賴前先引查證來源；乾淨的 review 也是有效的 review | `plugins/baransu/skills/review/SKILL.md` |
 | 狀態落盤 | 長流程的結論落檔交付、不賭終端顯示 | `plugins/baransu/skills/_shared/output-journal.md` |
 
 首頁 [README](../README.md) 的「核心理念」表是這張表的精簡版，同樣由 `scripts/verify-skills.py` 逐列檢查錨點存在。
 
-## 14 個 skill 的上限
+## 12 個 skill 的上限
 
-14 是上限——要加第 15 個，必須先退役一個（以裁換建）。機制錨點是 `scripts/verify-skills.py` 的 skill 數量檢查。
+12 是上限——要加第 13 個，必須先退役一個（以裁換建）。機制錨點是 `scripts/verify-skills.py` 的 skill 數量檢查。上限原為 14；8.0.0 退役 contract 與 seal 兩個 skill、不以新 skill 補位，上限隨之收到 12。
 
-可證偽的修憲條款（2026-07-19，14→15）：若選用遙測顯示 `/codex-skill-transfer` 連續三個月零使用，就退役它並把上限收回 13。
+可證偽的修憲條款（2026-07-19 立，原為 14→15，隨上限一併沿用）：若選用遙測顯示 `/codex-skill-transfer` 連續三個月零使用，就退役它並把上限收回 11。
 
 ## 任務不遷就工具
 

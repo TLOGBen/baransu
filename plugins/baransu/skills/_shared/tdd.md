@@ -2,7 +2,7 @@
 
 > **Scope**: Every trigger point that writes, modifies, or reviews tests under the
 > baransu framework — the main session implementing directly, a delegated executor
-> running one contract-band slice, or any task arriving after a `/think`／`/hunt`
+> running one medium-band slice, or any task arriving after a `/think`／`/hunt`
 > reroute — treats this document as the **single source of knowledge for "how to design a Test"**.
 > This file is translated/localized from mattpocock/skills' TDD skill, with baransu's
 > existing RED / GREEN / TDAID vocabulary as inline gloss.
