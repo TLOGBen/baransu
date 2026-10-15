@@ -7,7 +7,7 @@
       "prompt": "看一下這個 PR",
       "should_trigger": true,
       "expected_skill": "review",
-      "expected_behavior": "Colloquial second-opinion ask: dispatch isolated perspective agents over the PR diff."
+      "expected_behavior": "Colloquial second-opinion ask: dispatch a fresh verifier over the PR diff with the three standing questions (did what was asked / added what was not asked / solved a smaller problem); perspective agents only for distinct consequential risks."
     },
     {
       "id": 2,
@@ -43,6 +43,20 @@
       "should_trigger": false,
       "expected_skill": "health",
       "expected_behavior": "Auditing the user's own agent configuration routes to /health, not /review."
+    },
+    {
+      "id": 7,
+      "prompt": "看一下這個 PR 是不是做過頭了，加了一堆防呆",
+      "should_trigger": true,
+      "expected_skill": "review",
+      "expected_behavior": "Excess / over-defence question on a diff: standing question 2 is the review question; guards for unreachable states are findings with their cost as the consequence."
+    },
+    {
+      "id": 8,
+      "prompt": "幫我看這一行",
+      "should_trigger": true,
+      "expected_skill": "review",
+      "expected_behavior": "Fast path: one verifier with the standing questions and existing tests, no perspective agents, short report, and the report says the fast path was taken."
     }
   ]
 }
