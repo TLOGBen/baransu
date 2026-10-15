@@ -1,2 +1,4 @@
 SKILL.md derives from the frontend-design skill by Anthropic, licensed under the Apache License 2.0 (see LICENSE.txt).
 Modified: sections on learning from a reference and refining an existing UI were added; frontmatter and Outcome Contract are baransu's.
+Modified (2026-10-15): the subject inventory, idea sentence and competitor test, the argument before the plan, the rule for filling the space ornament leaves, and the screenshot checks are adapted in our own words from tasteskill v2 by Leonxlnx (https://github.com/Leonxlnx/taste-skill, MIT License); no script or data from it is included.
+Modified (2026-10-15): the main story sentence and the 6 : 3 : 1 hierarchy follow /draw's references/motion/composition.md, which credits its source in /draw's NOTICE.md.

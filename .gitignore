@@ -10,6 +10,9 @@
 /.claude/archived/
 /.codex/archived/
 
+# /ui A/B blind-comparison runs (builds, screenshots, mappings) — local only; the kit and results live in tests/ab/.
+/.claude/ab/
+
 # Transient baransu workspace dirs — local only, archived by /ship into .claude/archived/.
 .claude/dev/
 .claude/think/

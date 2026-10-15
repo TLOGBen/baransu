@@ -2,6 +2,24 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [7.7.0] - 2026-10-15
+
+### Added（`/ui`：先找點子、刪掉要填回、一定看截圖）
+- 新段落「The idea, the argument, and looking at the result」，放在 Restraint 之後、Browser checks 之前；與上方各段不同時以這段為準。從 frontend-design 搬來的五段逐字不動（`test_ui_skill_structure` 的 sha256 照舊）。
+- 先寫主敘事：第一步用一句話寫出誰來、來找什麼、離開時知道什麼並做了什麼。任何設計與視覺效果（配色、字體、圖騰、動態、裝飾、點子本身）只有在服務這個主敘事時才保留，否則刪掉。主敘事與點子是設計計畫的前兩項。
+- 6 : 3 : 1 層級（同 `/draw` 的 `composition.md`）：整頁與每屏都分成約 60% 安靜的舞台、30% 引導的中段、10% 主敘事需要的焦點，焦點只靠一個差異被找到；配色、字級、密度、段落輕重都照這個分。計畫裡要寫出整頁與每屏的舞台、中段、焦點；Squint 檢查改為在縮圖尺寸看 6 : 3 : 1，且首屏焦點必須是主敘事的焦點。
+- 先點子後配色：配色前列 8–12 項只屬於這個題材的清單，寫成點子句「On this page, [something only this subject has] becomes [the device that carries it].」，並用競爭對手測試審查計畫（取代原本「拿類似 prompt 想想看」）。點子是設計計畫的第一項。
+- 先論點後版面：每段一個主張加證據，沒有主張的段落刪掉。
+- 刪掉要填回：拿掉裝飾後只能用放大主角、完整內容、真實圖片或整片色塊填回，整頁刻意空白最多一處；範例細節列在收尾給使用者確認，絕不捏造客戶、推薦語、評論、媒體、logo 或營運數字。
+- 截圖自評改為必做：用 draw 的 `verify-page.mjs` 截圖，跑七項檢查（one-second focus · squint · cover the name · left edges · neighbouring sections · fullness · phone），只判通過或不通過，每輪修最多三項，最多兩輪。
+- 點子承載第一個問題、不取代它：首屏用大字回答需求裡訪客最想知道的事（價錢與時間、工具做什麼與怎麼裝、時間地點），點子是這個答案的呈現方式。One-second focus 檢查加上「首屏在桌面與手機都回答了第一個問題」；Phone 檢查禁止寬圖、表格、程式碼區塊在區塊內左右捲動。這兩條來自 A/B 第一輪的敗因。
+- 修改既有 UI 的模式不跑題材清單、點子與論點，也不新增段落或事實；fullness 不過時只能用放大或色塊處理。
+- 新測試 `test_codex_copy_body_matches_claude_with_known_substitutions`：Codex 版 SKILL.md 內文必須等於 Claude 版只做兩種替換的結果。`verify-codex-parity.py` 只檢查檔案是否成對，封緘時的突變探針證明，Codex 副本停在舊內容也能通過所有關卡。
+- 概念改寫自 tasteskill v2（Leonxlnx，MIT），NOTICE 已註明；未收錄其腳本或資料。
+
+### Added（A/B 盲評工具組 `tests/ab/ui/`）
+- 3 個題目、builder 與評審提示、`shuffle.py`（隨機分 A/B、對照表放在 `blind/` 外、不覆寫既有結果、`--shots` 指定截圖資料夾）。結果 `results-phase1.md`：第一輪新版 2 勝 1 負，輸掉的那題是點子佔滿首屏、把價目擠到下面；補上「點子承載第一個問題」、主敘事與 6 : 3 : 1 之後，第二輪新版 3 題全勝（三題新版剛好都洗在 A，位置偏差無法排除）。
+
 ## [7.5.0] - 2026-10-13
 
 ### Changed（`/draw`：只畫單件作品，需要整頁時自動交給 `/ui`）

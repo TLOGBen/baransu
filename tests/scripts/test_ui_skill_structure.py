@@ -30,7 +30,34 @@ LICENSE_SHA256 = "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e945
 NOTICE_LINES = [
     "SKILL.md derives from the frontend-design skill by Anthropic, licensed under the Apache License 2.0 (see LICENSE.txt).",
     "Modified: sections on learning from a reference and refining an existing UI were added; frontmatter and Outcome Contract are baransu's.",
+    "Modified (2026-10-15): the subject inventory, idea sentence and competitor test, the argument before the plan, the rule for filling the space ornament leaves, and the screenshot checks are adapted in our own words from tasteskill v2 by Leonxlnx (https://github.com/Leonxlnx/taste-skill, MIT License); no script or data from it is included.",
+    "Modified (2026-10-15): the main story sentence and the 6 : 3 : 1 hierarchy follow /draw's references/motion/composition.md, which credits its source in /draw's NOTICE.md.",
 ]
+MAIN_STORY = "**Name the main story first.**"
+RANK_631 = "**Rank everything 6 : 3 : 1.** Do not make everything the protagonist"
+IDEA_SECTION = "## The idea, the argument, and looking at the result"
+IDEA_SENTENCE = "On this page, [something only this subject has] becomes [the device that carries it]."
+FIRST_QUESTION = "The idea carries the answer to the visitor's first question; it never replaces it."
+PHONE_NO_SIDEWAYS = "is restacked, wrapped or redrawn for the phone, never left to scroll sideways inside its block"
+CODEX_SKILL = ROOT / "codex/plugins/baransu/skills/ui/SKILL.md"
+CODEX_NOTICE = ROOT / "codex/plugins/baransu/skills/ui/NOTICE.txt"
+COMPETITOR_TEST = "Competitor test: put the nearest real competitor into the sentence; if it still holds, the idea belongs to the category — find another."
+# Seal 2026-10-15: each rule the contract pins, as the sentence that carries it.
+IDEA_RULES = [
+    "instead of working through a similar prompt",                                      # A2
+    "delete any section that has no claim",                                            # A3
+    "Fill the space ornament leaves with one of four things only",                     # A4
+    "Leave a screen empty on purpose at most once per page.",                          # A4
+    "Fix at most the three most important failures",                                   # A5
+    "stop after two rounds",                                                            # A5
+    "When no browser tool in § Browser checks is available, skip this and say so in the closing message.",  # A5
+    "name the stage, the middle and the focus",                                        # A19
+    "On the `/draw` hand-off path (§ Pages built around /draw components), sample details come only from the facts in `docs/ui_brief.md`.",  # A8/A9
+]
+DONE_WHEN_PLAN = "The design plan (main story, idea, palette, type roles, layout concept with its 6 : 3 : 1 ranking, principles) was shown"
+OLD_VERSION_CONSTANT = "old version: git show 2574bc6:plugins/baransu/skills/ui/SKILL.md"
+MAX_SKILL_LINES = 175
+CHECKS_LINE = "Checks: one-second focus · squint · cover the name · left edges · neighbouring sections · fullness · phone"
 TRIGGERS = ["'/ui'", "'設計 UI'", "'美化'", "'調 UI'", "'介面設計'", "'照這個網站的風格'", "'styling'", "'beautifying any web UI'", "'frontend design'"]
 NOT_FOR = ["Claude Design 畫布 mockup", "/draw", "design.md"]
 EXTRACT_RED_LINE = "只抽性質，不抽素材、文案、logo"
@@ -102,6 +129,60 @@ class TestDesignSkillStructure(unittest.TestCase):
         for constant in (EXTRACT_RED_LINE, CLOSING_PROHIBITION, REFINE_NO_NEW_FACTS):
             self.assertIn(constant, self.skill, constant)
         self.assertIn(NOTE_SENTENCE, section(self.skill, LEARNING_SECTION))
+
+    def test_idea_section_constants_and_placement(self):
+        idea = section(self.skill, IDEA_SECTION)
+        for constant in (IDEA_SENTENCE, CHECKS_LINE, 'verify-page.mjs" <file>.html --out <dir>'):
+            self.assertIn(constant, idea, constant)
+        # Placed after the vendored Restraint section and before Browser checks, never inside a vendored one.
+        self.assertLess(self.skill.index("## Restraint and self-critique"), self.skill.index(IDEA_SECTION))
+        self.assertLess(self.skill.index(IDEA_SECTION), self.skill.index("## Browser checks"))
+        # Refine mode skips the new steps; proof is never invented.
+        self.assertIn("When refining an existing UI (§ Refining an existing UI), skip the inventory, the idea and the argument", idea)
+        self.assertIn("Proof is never invented: no customers, testimonials, reviews, press, logos or business figures", idea)
+        self.assertIsNone(re.search(r"\b(score|percent|rating)", idea, re.I))
+        # A/B phase 1 loss: the idea took the first screen and pushed the prices below the fold.
+        self.assertIn(FIRST_QUESTION, idea)
+        self.assertIn(PHONE_NO_SIDEWAYS, idea)
+        # The main story comes first and every visual choice serves it; 6 : 3 : 1 after the argument; squint checks it.
+        self.assertLess(idea.index(MAIN_STORY), idea.index("**The idea comes before the palette.**"))
+        self.assertIn("earns its place only by serving this story; one that does not is cut", idea)
+        self.assertLess(idea.index("**The argument comes before the layout.**"), idea.index(RANK_631))
+        self.assertIn("- Squint: at thumbnail size every screen reads 6 : 3 : 1", idea)
+        self.assertIn("references/motion/composition.md", idea)
+        self.assertTrue((SKILLS / "draw/references/motion/composition.md").is_file())
+
+    def test_idea_section_pins_every_contract_rule(self):
+        idea = section(self.skill, IDEA_SECTION)
+        for rule in [COMPETITOR_TEST] + IDEA_RULES:
+            self.assertIn(rule, idea, rule)
+        self.assertIn(DONE_WHEN_PLAN, self.skill)
+        self.assertLessEqual(len(self.skill.splitlines()), MAX_SKILL_LINES)
+
+    def test_no_self_assessment_numbers(self):
+        """A6: the 6 : 3 : 1 paragraph may name its shares; nothing else in the new section or the
+        closing may carry a percentage or an n/m count (a self-score in disguise)."""
+        idea = section(self.skill, IDEA_SECTION)
+        rank = next(p for p in idea.split("\n\n") if p.startswith(RANK_631))
+        for name, text in (("idea section", idea.replace(rank, "")), ("closing", section(self.skill, "## Closing the work"))):
+            self.assertIsNone(re.search(r"\d\s*%|\b\d+\s*/\s*\d+\b", text), name)
+
+    def test_codex_notice_matches(self):
+        self.assertEqual(CODEX_NOTICE.read_text(encoding="utf-8").splitlines(), NOTICE_LINES)
+
+    def test_ab_results_name_the_old_version(self):
+        self.assertIn(OLD_VERSION_CONSTANT, (ROOT / "tests/ab/ui/results-phase1.md").read_text(encoding="utf-8"))
+
+    def test_codex_copy_body_matches_claude_with_known_substitutions(self):
+        """The Codex SKILL.md body is the Claude body with only `/draw` → `$baransu:draw` and
+        `.claude/` → `.codex/`. verify-codex-parity.py checks file pairing only, so without this
+        a Codex copy left on an old body passes every other gate (seal 2026-10-15, probe 1)."""
+        def body(text: str) -> str:
+            return text.split("\n---\n", 1)[1]
+        expected = body(self.skill)
+        for old, new in (("`/draw`", "`$baransu:draw`"), ("/draw components", "$baransu:draw components"), (".claude/", ".codex/")):
+            expected = expected.replace(old, new)
+        self.assertEqual(body(CODEX_SKILL.read_text(encoding="utf-8")), expected)
 
     def test_a6_directory_manifest(self):
         files = sorted(p.relative_to(SKILL_DIR).as_posix() for p in SKILL_DIR.rglob("*") if p.is_file() and "__pycache__" not in p.parts)

@@ -95,6 +95,8 @@ These have each caused regressions — do not "optimize" them away:
 
 `plugins/baransu/.claude-plugin/plugin.json` holds the authoritative version. **Bump on every distributed change** — plugin caching means users won't see updates without a bump. `plugin.json` wins over `marketplace.json`.
 
+Pick the smallest bump that is true. **Major only when an existing user workflow breaks**: a command the user types stops working, or an output they rely on changes shape with no way back. Adding a skill, new rules inside a skill, reshaping a skill while its command keeps working, and new tests are minor; fixes are patch. Never lower the version to tidy the history — the plugin cache is keyed by the version string.
+
 ## Verification
 
 The plugin itself ships no build toolchain. `make test` is the single stable entrypoint: it runs `scripts/verify-skills.py`, `python3 -m pytest tests/scripts/`, and every per-suite shell script under `tests/`. Individual suites stay runnable on their own.
