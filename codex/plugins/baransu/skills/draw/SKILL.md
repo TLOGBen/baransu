@@ -1,10 +1,13 @@
 ---
 name: draw
-description: 'Draws an idea, system, dataset or story as a self-contained visual: a static diagram,
-  an interactive architecture map, a code-rendered motion video, or an explainer page
-  with scrubbable figures (including how-it-works machine figures). Use when the user
-  wants something drawn, diagrammed, animated or explained visually — 畫一下, 圖解, 架構圖, 流程圖,
-  做成動畫, 做支影片, 說明頁, 原理, 怎麼運作, 運鏡, ''visualize'', ''animate it''. Trigger On ''$baransu:draw''.'
+description: 'Draws an idea, system, dataset or story as a self-contained piece: a static diagram,
+  an interactive architecture map, a code-rendered motion video, or interactive animated
+  components (scrubbable figures, how-it-works machine figures); a request needing a
+  whole page gets its components assembled by $baransu:ui automatically in the same turn.
+  Use when the user wants something drawn, diagrammed, animated or explained visually
+  — 畫一下, 圖解, 架構圖, 流程圖, 做成動畫, 做支影片, 說明頁, 原理, 怎麼運作, 運鏡, ''visualize'', ''animate it'',
+  ''show me'', ''draw it''. Trigger On ''$baransu:draw''. Not For: restyling the user''s
+  own app UI ($baransu:ui) or a page as Markdown ($baransu:read).'
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex

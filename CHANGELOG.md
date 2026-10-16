@@ -2,6 +2,11 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.1.1] - 2026-10-16
+
+### Fixed（Codex 版同步）
+- Codex 版 `draw` 的 frontmatter `description` 還停在改版前（「explainer page」、沒有整頁交棒 `$baransu:ui`、少了 'show me'／'draw it' 觸發詞與 Not For 子句），改成與 Claude 版一致。其餘 12 個技能、`_shared/` 與 11 個 agent 逐檔核對過，差異都是 Codex 必要的改寫。
+
 ## [8.1.0] - 2026-10-15
 
 ### Changed（`/health` 以證據而非庫存判健康）
