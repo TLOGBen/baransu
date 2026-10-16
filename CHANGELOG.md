@@ -2,6 +2,12 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.2.1] - 2026-10-16
+
+### Fixed
+- `rules/anti-patterns.md` 舉例的「execution pipeline 的 `failure_count` 計數規則」屬於 v4.0.0 已退役的流程，刪掉這個例子；Codex 版原本指向 AGENTS.md 裡不存在的 Non-obvious Invariants 段，改回指向 CLAUDE.md（AGENTS.md 以它為準）。
+- `docs/development.md` 的殘留掃描說明補上 `/book`、`/design`、`style-reviewer`，並註明 `.claude/design/` 目錄名不算。
+
 ## [8.2.0] - 2026-10-16
 
 ### Removed（清掉 book／design 的殘留）
