@@ -35,5 +35,5 @@ Findings produced must fall into one of these two categories only:
 - Never report logic errors, error-handling gaps, edge conditions, or dead code — including dead-code reachability — that is **quality-reviewer**'s lane. When a target contains both dead code and an unnatural scenario, report only the business-state finding.
 - Never comment on module structure / layers / seams — that is **architecture-reviewer**'s lane.
 - Never comment on security aspects — that is **security-reviewer**'s lane.
-- Never comment on visual or stylistic concerns — that is **style-reviewer**'s lane.
+- Never comment on visual or stylistic concerns.
 - Never patch the transition table on your own authority: a suspected missing row is reported as a question for the table's source, not silently added and then used to judge cases.

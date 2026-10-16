@@ -2,6 +2,16 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.2.0] - 2026-10-16
+
+### Removed（清掉 book／design 的殘留）
+- book 與 design 已重做成 `/ui` 與 `/draw`，只為它們服務的檔案一併退役：`agents/style-reviewer.md`（依賴 design preset 的 DESIGN.md／tokens.css，`/review` 從未派發它）、`_shared/aesthetics-foundation.md`、`_shared/typography-discipline.md`、`_shared/scripts/color_distance.py`，Codex 版對應檔同步刪除。CLAUDE.md layout 與 domain-reviewer 的分工句同步。
+- `codex-skill-transfer`：`transfer.py` 拿掉 book／design 的 AskUserQuestion 分級、book 專用的 3+1 問題拆分與 design `slide-checklist.md` 豁免；`CODEX_PORT_PLAN.md`、`skill-mapping.md` 的列舉與範例改成現存技能。
+- `read`、`learn` 的 evals 不再期待路由到 book，改為 `draw`。
+
+### Changed
+- `scripts/verify-skills.py` 的 C2 殘留掃描加入 `/book`、`/design`、`baransu:book`、`baransu:design` 與 `style-reviewer`，之後再出現會被擋下；`.claude/design/`（`/ui` 的參考筆記目錄）不受影響。
+
 ## [8.1.1] - 2026-10-16
 
 ### Fixed（Codex 版同步）

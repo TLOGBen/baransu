@@ -476,8 +476,6 @@ ASK_USER_CAPABILITY_BY_SKILL: dict[str, str] = {
     "think": "AskUserQuestion:think",
     "review": "AskUserQuestion:authorization",
     "read": "AskUserQuestion:cosmetic",
-    "book": "AskUserQuestion:cosmetic",
-    "design": "AskUserQuestion:cosmetic",
     # Descriptive-only skills: their AskUserQuestion occurrences are noun
     # phrases about the tool (fan-out clauses), never a call site. Rewrite to
     # a plain noun; NEVER inject a stop instruction into these sentences.
@@ -762,14 +760,12 @@ def translate_frontmatter(fm: dict, report: TransferReport) -> tuple[dict, dict 
 #
 # Files whose baransu paths are documentation ABOUT the repo or the mapping
 # itself — not live cross-references — are exempt (rewriting corrupts meaning):
-# the codex-skill-transfer skill's own mapping tables, and design's
-# slide-checklist version-bump example. They are still Claude-token-scanned.
+# the codex-skill-transfer skill's own mapping tables. They are still
+# Claude-token-scanned.
 REPO_PATH_REWRITE_EXEMPT_SKILLS = frozenset({"codex-skill-transfer"})
 # Scoped to (skill, relpath): a bare relpath would exempt any same-named file
-# in an unrelated skill. slide-checklist.md is design's version-bump example.
-REPO_PATH_REWRITE_EXEMPT_RELPATHS = frozenset(
-    {("design", "references/slide-checklist.md")}
-)
+# in an unrelated skill. No file is exempt by relpath today.
+REPO_PATH_REWRITE_EXEMPT_RELPATHS: frozenset[tuple[str, str]] = frozenset()
 
 # Agent name may carry a glob (`*-reviewer`). Accept both repo-root and
 # plugin-root spellings because references commonly shorten
@@ -1137,22 +1133,6 @@ def rewrite_body(
         tool_count += ask_count
         for key in sorted(ask_keys_seen):
             note_capability(report, key)
-
-    if report.skill_name == "book":
-        oversized_batch = re.compile(
-            r"use a \*\*single `request_user_input`[^*]+ batch\*\* "
-            r"\(4 questions presented together, not blocking question-by-question\)"
-        )
-        body, batch_count = oversized_batch.subn(
-            "use **two sequential `request_user_input` calls** (3 questions in "
-            "the first call and 1 in the second; complete both before Stage 1, "
-            "rather than blocking after every individual question)",
-            body,
-        )
-        if batch_count:
-            report.rewrites.append(
-                "book 四問題 batch 依 runtime 上限拆為 3+1 兩次 `request_user_input`"
-            )
 
     # Single-token Claude API references.
     TOKEN_MAP: list[tuple[str, str, str | None]] = [
@@ -1576,7 +1556,7 @@ def transfer_one(
     positional_args = bool(fm.get("arguments") or fm.get("argument-hint"))
     known = known_sibling_skills(source)
     # Slash-invocation mentions in the description (trigger phrases like
-    # "Trigger On '/design'") point Codex users at the right mention form.
+    # "Trigger On '/draw'") point Codex users at the right mention form.
     if name not in REPO_PATH_REWRITE_EXEMPT_SKILLS:
         desc_mentions, desc_mention_n = rewrite_skill_mentions(
             str(new_fm["description"]), known, namespace

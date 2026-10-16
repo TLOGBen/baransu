@@ -32,9 +32,9 @@
     },
     {
       "id": 5,
-      "prompt": "把這篇轉成 book，瀏覽器直接看",
+      "prompt": "把這篇畫成圖，瀏覽器直接看",
       "should_trigger": false,
-      "expected_skill": "book",
+      "expected_skill": "draw",
       "expected_behavior": "Drawing it as a diagram, map, or animation routes to /draw."
     },
     {

@@ -107,7 +107,7 @@ LOOP_ROW_CANON_RE = re.compile(
 # 模板字樣的 token 略過不查）
 REF_TOKEN_RE = re.compile(r"references/[^\s`'\"()\[\]{}<>,;|，。：、」（）]+")
 # 行內含廢除/移除字樣 → 該行的 references/ 提及屬歷史說明，不查存在性
-# （如 design SKILL.md 對 v1.2 已廢除目錄 references/cores/ 的說明句）
+# （如某 SKILL.md 對已廢除目錄的說明句）
 REF_DEPRECATION_LINE_RE = re.compile(r"已廢除|已移除|deprecated|removed")
 
 # ---------------------------------------------------------------------------
@@ -125,9 +125,11 @@ REF_DEPRECATION_LINE_RE = re.compile(r"已廢除|已移除|deprecated|removed")
 # ---------------------------------------------------------------------------
 # 三類命中：
 #   (a) 被裁「名稱」word-boundary —— grade / triage / bridge / dev / full_review，
-#       以及 v8.0.0 退役的 seal-agent / seal-guard（agent 與 hook 名，無同形一般詞）。
+#       v8.0.0 退役的 seal-agent / seal-guard（agent 與 hook 名，無同形一般詞），
+#       以及 book／design 技能退役（改由 ui／draw 承接）後一併退役的 style-reviewer agent。
 #   (b) 被裁「指令」slash 形式 —— `/execute`、`/contract`、`/seal`（v8.0.0），
-#       以及 `baransu:contract` / `baransu:seal`（含 Claude 的 `/baransu:` 與
+#       `/book`、`/design`（book／design 技能退役，改由 ui／draw 承接），
+#       以及 `baransu:contract` / `baransu:seal` / `baransu:book` / `baransu:design`（含 Claude 的 `/baransu:` 與
 #       Codex 的 `$baransu:` 兩種前綴）。不能用 word-boundary 掃裸 execute /
 #       contract / seal：execute 是本倉常用動詞，`.claude/execute/` 是刻意保留的
 #       目錄名；contract 出現在 `loop-contract.md`、`Outcome Contract`、draw 的
@@ -139,9 +141,9 @@ REF_DEPRECATION_LINE_RE = re.compile(r"已廢除|已移除|deprecated|removed")
 #   (c) 被裁 sealed 標記字面 `STATUS: sealed`（/contract 的封緘標記語法，
 #       /seal 蓋印、/ship 偵測——三者皆退役，字面不得再出現）。
 REMOVED_NAMES_RE = re.compile(
-    r"\b(?:grade|triage|bridge|dev|full_review|seal-agent|seal-guard)\b"
-    r"|\B/(?:execute|contract|seal)\b(?!/)"
-    r"|\bbaransu:(?:contract|seal)\b"
+    r"\b(?:grade|triage|bridge|dev|full_review|seal-agent|seal-guard|style-reviewer)\b"
+    r"|\B/(?:execute|contract|seal|book|design)\b(?!/)"
+    r"|\bbaransu:(?:contract|seal|book|design)\b"
     r"|STATUS: sealed"
 )
 RESIDUE_SCAN_EXTS = {".md", ".py", ".json"}

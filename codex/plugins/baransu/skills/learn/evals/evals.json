@@ -62,7 +62,7 @@
       "id": 9,
       "prompt": "把這份研究做成瀏覽器可看的 HTML",
       "should_trigger": false,
-      "expected_skill": "book",
+      "expected_skill": "draw",
       "expected_behavior": "Drawing it as a diagram, map, or animation routes to /draw."
     },
     {

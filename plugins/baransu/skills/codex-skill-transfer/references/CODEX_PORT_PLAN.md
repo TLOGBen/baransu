@@ -73,7 +73,7 @@ Common principle: **the model cannot talk its way through, because the next step
 | Field | Content |
 |------|------|
 | **Counters** | None (these are mode selection, not countering inertia) |
-| **Why** | The AskUser in `/read`, `/book`, `/design` only selects gen/lint/source, with no behavioral ballast, so degrading is harmless. **Clearly mark as low priority to avoid spending effort in the wrong place.** |
+| **Why** | The AskUser in `/read` only selects gen/lint/source, with no behavioral ballast, so degrading is harmless. **Clearly mark as low priority to avoid spending effort in the wrong place.** |
 | **Codex action** | Use `request_user_input` with at most 3 questions per call and 2-3 options per question when exposed; split larger batches sequentially. Otherwise list numbered options, stop, and wait for a reply. No artifact-gate is needed for cosmetic selection. |
 | **Done when** | After porting all three, the structured menus work when the tool is exposed and the plain-text fallback still stops correctly when it is not. |
 
@@ -118,8 +118,8 @@ Common principle: **the model cannot talk its way through, because the next step
 
 The following is the result of scanning the execution-surface primitives of the canonical skills; this construction plan uses it to place mechanisms on the correct skill:
 
-- **AskUserQuestion**: book, design, hunt, read, review, think
-  → among them think is strong inertia (alignment); review/hunt are medium; read/book/design are cosmetic (mode selection).
+- **AskUserQuestion**: hunt, read, review, think
+  → among them think is strong inertia (alignment); review/hunt are medium; read is cosmetic (mode selection).
 - **Isolated subagent**: health, review
   → the key to isolation *as a tooth* lies in review / health.
 - **Red-green / test-first**: health, hunt, learn, think
