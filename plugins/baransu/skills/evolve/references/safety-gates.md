@@ -30,11 +30,11 @@ The snapshot/restore mechanism touches exactly one file: the target SKILL.md.
 
 The effectiveness axis prefers running the skill under test, but only through both gates, in order:
 
-1. **Capability gate** — is the skill non-interactive and runnable unattended? Skills with `AskUserQuestion` / approval gates (think, review, …) fail this gate and are forced offline. This is a capability fact, not a flaw.
+1. **Capability gate** — can the skill run unattended? Read the target's declared `Automation: loop=` value (`_shared/loop-contract.md` §1): only `drivable` passes; `assisted` (it runs only on substituted defaults, so its output is not the product), `not-drivable`, or no value is forced offline. This is a capability fact, not a flaw.
 2. **Trust gate** — only if the capability gate passes: is the target a skill the user themselves specified, living under the user's own plugin path, AND does its body contain none of the destructive patterns below? Unknown-origin / third-party / pattern-hit skills are forced offline.
 
 Destructive-pattern denylist (any hit → forced offline, reason disclosed in the report):
-`rm `, `git push`, `git reset`, `git clean`, `> ` (truncating redirect), `curl`/`wget`/network fetch, `sudo`, credential/secret tokens.
+`rm `, `git push`, `git reset`, `git clean`, `> ` (truncating redirect), `curl`/`wget`/network fetch, `sudo`, credential/secret tokens. Each pattern matches as a whole word, never inside another word (`platform ` is not `rm `).
 
 When real-exec does run, mark that run **untrusted** in the report and advise post-run memory rotation, per `skills/health/SKILL.md` §third-party/subagent supply-chain stance. The capability gate asks "can it run?"; the trust gate asks "should it?" — never collapse the two.
 
