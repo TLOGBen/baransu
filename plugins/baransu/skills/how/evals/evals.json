@@ -1,0 +1,41 @@
+{
+  "skill_name": "how",
+  "note": "Trigger-routing and behaviour fixtures. No built-in runner; run through `claude plugin eval` or a fresh-session dogfood.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/how scripts/verify-skills.py 怎麼檢查 skill 表和技能目錄有沒有對上？",
+      "should_trigger": true,
+      "expected_skill": "how",
+      "expected_behavior": "Simple path: no agents dispatched; names check_skill_table and discover_skills with file:line, explains that the CLAUDE.md '## Skills' table rows are compared as a set against the skill directories (excluding _shared)."
+    },
+    {
+      "id": 2,
+      "prompt": "帶我看 /draw 這整塊是怎麼運作的",
+      "should_trigger": true,
+      "expected_skill": "how",
+      "expected_behavior": "Complex path: entry points read first, then 2 to 4 read-only explorers on distinct angles; the answer uses 概觀／關鍵概念／怎麼運作／東西放在哪／陷阱 and every named file was read in this run."
+    },
+    {
+      "id": 3,
+      "prompt": "新的 hook 腳本應該放在哪一層？",
+      "should_trigger": true,
+      "expected_skill": "how",
+      "expected_behavior": "Placement answered from existing layering and the nearest precedent; if it is a tradeoff rather than a precedent, says so and points to /think."
+    },
+    {
+      "id": 4,
+      "prompt": "這段 retry 當初為什麼要設 3 次？",
+      "should_trigger": false,
+      "expected_skill": "why",
+      "expected_behavior": "Asks for the reason behind the shape: routes to /why."
+    },
+    {
+      "id": 5,
+      "prompt": "登入後一直跳回首頁，幫我查一下",
+      "should_trigger": false,
+      "expected_skill": "hunt",
+      "expected_behavior": "A current failure: routes to /hunt."
+    }
+  ]
+}

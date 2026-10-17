@@ -1,0 +1,41 @@
+{
+  "skill_name": "teach-me",
+  "note": "Trigger-routing and behaviour fixtures. No built-in runner; run through `claude plugin eval` or a fresh-session dogfood.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/teach-me 教我 /ship 收 worktree 那一段到底在做什麼",
+      "should_trigger": true,
+      "expected_skill": "teach-me",
+      "expected_behavior": "Runs the /how pass (and a narrow /why pass if reasons come up); first reply is a plain definition tied to this repo in one or two sentences, then stops with an offer to go deeper; no quiz, no 「這裡是重點」, no wall of text."
+    },
+    {
+      "id": 2,
+      "prompt": "/teach-me .claude/learn/digests/<an existing digest>.md",
+      "should_trigger": true,
+      "expected_skill": "teach-me",
+      "expected_behavior": "Teaches from the digest instead of running /how or /why; carries the digest's 信度評分 and 來源矛盾點 qualifiers through unchanged."
+    },
+    {
+      "id": 3,
+      "prompt": "教我 event sourcing 是什麼，我完全沒碰過",
+      "should_trigger": true,
+      "expected_skill": "teach-me",
+      "expected_behavior": "A topic outside the repo with no existing note: runs /learn --brief first (or uses a matching brief), then teaches from it starting with a plain definition."
+    },
+    {
+      "id": 4,
+      "prompt": "你剛剛那段我聽不懂，講白話一點",
+      "should_trigger": false,
+      "expected_skill": "huh",
+      "expected_behavior": "Restating the last message without investigation: routes to /huh."
+    },
+    {
+      "id": 5,
+      "prompt": "把這三篇文章整理成筆記",
+      "should_trigger": false,
+      "expected_skill": "learn",
+      "expected_behavior": "A note to keep: routes to /learn."
+    }
+  ]
+}
