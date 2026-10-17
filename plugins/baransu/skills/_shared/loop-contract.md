@@ -192,3 +192,4 @@ Outcome Contract still applies.
 | /health | `../health/references/loop-pauses.md` |
 | /codex-skill-transfer | `../codex-skill-transfer/references/loop-pauses.md` |
 | /why | `../why/references/loop-pauses.md` |
+| /how | `../how/references/loop-pauses.md` |
