@@ -12,7 +12,9 @@ metadata:
 
 Output 🥷 as the first line when hunt begins.
 
-A patch applied to a symptom creates a new bug somewhere else.
+The symptom is where a wrong state became visible. The root cause is the first place the system did something it should not do, or failed to handle a state it should handle. A fix at the symptom hides the evidence and leaves the fault free to surface somewhere else.
+
+Whether a guard is a fix turns on one question: is the state that broke the code legitimate? If the system may be in that state, the code that broke on it is the root cause, and handling the state there is the fix. If the state should never exist, a check, retry, swallowed error, or clamped value where it broke hides the bug — find what produced the state. When the deciding fact took a deep dig to find, the report's next step names the cheap, always-on signal that would have shown it at first look.
 
 **Do not touch code until you can state the root cause in one sentence:**
 > 「根因是 [X]，因為 [證據]。」
