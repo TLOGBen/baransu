@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-`baransu` is a Claude Code plugin distributing twelve governance skills. Theme: バランス — deliberate before executing, verify after.
+`baransu` is a Claude Code plugin distributing fourteen governance skills. Theme: バランス — deliberate before executing, verify after.
 
 ## Philosophy — バランス (Balance)
 
@@ -20,7 +20,7 @@ plugins/
     .claude-plugin/
       plugin.json              # plugin manifest
     skills/
-      think/ review/ write/ ship/ hunt/ health/ read/ learn/ draw/ ui/ codex-skill-transfer/ evolve/
+      think/ review/ write/ ship/ hunt/ health/ read/ learn/ draw/ ui/ codex-skill-transfer/ evolve/ bro/ roger/
       _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md, fact-check.md, modeling.md, selection-telemetry.md, distillation-candidate-matrix.md) + evals/ scripts/
     rules/
       anti-patterns.md         # cross-skill behavioral guardrails
@@ -51,6 +51,8 @@ Invoke with `/baransu:<name>`. Each row says only when to reach for a skill; its
 | `/draw` | Draw one piece as a self-contained visual under `.claude/draw/`: an editorial static diagram (45 types), an explorable interactive map (ten types, validated by `archify finalize`), a code-rendered film, or an interactive component; the only entry point for "draw X" — a request that needs a whole page builds the components and hands them to `/ui` in the same turn without asking | 版面、內文與多圖頁面 → `/ui`（draw 自動交棒；想單獨調整時直接叫 `/ui`）；抓網頁成 Markdown → `/read`；整理成筆記 → `/learn` |
 | `/codex-skill-transfer` | Porting reference + parity checklist for hand-maintained Claude Code / Codex copies of a skill, plugin, or marketplace: default mode audits a pair and reports gaps; port-by-hand mode edits the Codex copy on request; optional draft script (`transfer.py`) writes only to a scratch dir | Claude→Codex 對照；不做反向移植 |
 | `/evolve` | Improve a SKILL.md against a fixed 9-dim rubric by subtraction: one finding per round names the clause behind an observed failure, the problem it was added for, and a shorter replacement — a new rule must displace one and append-only candidates are refused before judging; forward-only ratchet, blind multi-judge, held-out validation | 寫新 skill 是 authoring 非演化 → 直接撰寫；存廢/價值判斷 → `/think` 存廢判決 (Kill/Keep/Pivot) |
+| `/bro` | Restate the last message in plain human language, with no jargon | 潤飾使用者自己的文字 → `/write` |
+| `/roger` | Restate in plain words what the user's goal is and what problem they are solving, so the user can confirm it was understood | 方向未定、要審議怎麼做 → `/think` |
 
 ## Three-band routing
 
@@ -65,7 +67,6 @@ Never force a task up-band (a small fix does not deserve a spec) or down-band (a
 ## Conventions
 
 - **English body.** All agent-facing prose — every `SKILL.md` body, every file under `references/`, the cross-skill docs in `skills/_shared/`, `rules/`, and the agent system prompts in `agents/` — MUST be written in English. The only sanctioned Traditional Chinese is: (1) user-facing output — completion / error / status messages, output-template content, 「」-quoted user strings, sample rendered output; (2) trigger keywords and routing cues in the frontmatter `description` and 易混淆 tables; (3) example artifacts demonstrating Chinese content; (4) the `/write` skill's bilingual-writing content (rules, before/after samples, voice presets). Instructional prose, conditions, branching logic, rationale, and internal headings are English everywhere. Do not change this convention in any skill.
-- **12 is the skill-count ceiling** — adding a 13th requires retiring one first (以裁換建). Mechanism anchor: the skill-count check in `scripts/verify-skills.py`. The ceiling was 14 until v8.0.0, when the contract and seal skills were retired without replacement. Falsifiable amendment clause (2026-07-19, originally 14→15, carried over): if selection telemetry shows `/codex-skill-transfer` at zero use for three consecutive months, retire it and restore the ceiling to 11.
 - **Versioning.** `plugins/baransu/.claude-plugin/plugin.json` holds the authoritative version and wins over `marketplace.json`. **Bump on every distributed change** — plugin caching means users won't see updates without a bump. Pick the smallest bump that is true: **major only when an existing user workflow breaks** (a command the user types stops working, or an output they rely on changes shape with no way back); adding a skill, new rules inside a skill, reshaping a skill while its command keeps working, and new tests are minor; fixes are patch. Never lower the version to tidy the history — the plugin cache is keyed by the version string.
 - **Commit style.** Conventional commits (`feat`, `fix`, `refactor`, `docs`, `chore`). Attribution lines disabled globally. For new skills, dogfood `/baransu:think`.
 

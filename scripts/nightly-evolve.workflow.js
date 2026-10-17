@@ -18,9 +18,9 @@ const ROOT = A.root
 if (!ROOT) throw new Error('args.root required — pass the baransu repo/worktree root')
 // The shipped skills = plugins/baransu/skills/ minus _shared. The sandbox cannot
 // list the directory, so the caller SHOULD pass args.skills from `ls`; this
-// fallback is kept in sync by hand (EXPECTED_SKILL_COUNT in scripts/verify-skills.py
-// is the count authority).
-const ALL = ['codex-skill-transfer','draw','evolve','health','hunt','learn','read','review','ship','think','ui','write']
+// fallback is kept in sync by hand (the CLAUDE.md Skills table, checked by
+// scripts/verify-skills.py, is the list authority).
+const ALL = ['bro','codex-skill-transfer','draw','evolve','health','hunt','learn','read','review','roger','ship','think','ui','write']
 const SKILLS = (Array.isArray(A.skills) && A.skills.length) ? A.skills : ALL
 const MARGIN = (typeof A.margin === 'number') ? A.margin : 2.0   // min per-judge structure-point improvement to adopt
 

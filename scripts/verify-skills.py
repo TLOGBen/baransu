@@ -3,7 +3,8 @@
 """verify-skills.py — baransu 結構驗證器（一條命令證明 C1/C2/C3/C6）。
 
 Repo mode（無參數）執行全部檢查：
-  1. plugins/baransu/skills/ 技能目錄數 = 12（_shared/ 除外，且每目錄有 SKILL.md）
+  1. plugins/baransu/skills/ 技能目錄（_shared/ 除外）每個都有 SKILL.md，且與
+     CLAUDE.md「## Skills」表列出的 skill 一一對應
   2. SKILL.md frontmatter 可解析（think 極簡式 / read-learn 完整式皆容納）
      ＋官方細目：name ≤64 字元小寫連字符、name == 目錄名、name 無保留字
      （anthropic/claude）、description 非空 ≤1024、第三人稱啟發式、
@@ -31,7 +32,7 @@ Repo mode（無參數）執行全部檢查：
  全倉已無 green_proof 欄位可對齊，該閘門失去檢查對象。編號不重排：11 為末位，
  直接留白。）
 
-Advisory（不影響 exit code）：SKILL.md 本文 >500 行清單（官方上限）；repo mode 另印 12 skill description+when_to_use
+Advisory（不影響 exit code）：SKILL.md 本文 >500 行清單（官方上限）；repo mode 另印全部 skill description+when_to_use
 總量，超過 LISTING_TOTAL_ADVISORY 時印警示行（見 LISTING_* 常數註記）。
 
 Skills-root mode（一個位置參數 = 含技能目錄的根目錄）：只跑 per-skill 檢查
@@ -62,9 +63,9 @@ SKILLS_DIR = REPO_ROOT / "plugins" / "baransu" / "skills"
 AGENTS_DIR = REPO_ROOT / "plugins" / "baransu" / "agents"
 PLUGIN_MANIFEST = REPO_ROOT / "plugins" / "baransu" / ".claude-plugin" / "plugin.json"
 MARKETPLACE_MANIFEST = REPO_ROOT / ".claude-plugin" / "marketplace.json"
+CLAUDE_MD = REPO_ROOT / "CLAUDE.md"
 CODEX_MANIFEST = REPO_ROOT / "codex" / "plugins" / "baransu" / "plugin.json"
 
-EXPECTED_SKILL_COUNT = 12
 BODY_LINE_ADVISORY_LIMIT = 500
 
 # 官方 frontmatter 細目
@@ -90,6 +91,7 @@ FIRST_PERSON_RE = re.compile(r"^(?:I|I'm|I've|My|We|We're|Our)\b")
 # Outcome Contract 四行 + 第五行 Automation 標注
 CONTRACT_KEYS = ("Outcome", "Done when", "Evidence", "Output")
 AUTOMATION_KEY = "Automation"
+CONTRACT_EXEMPT = ("bro", "roger")  # 單句 skill，依使用者指示不帶契約
 
 # ---------------------------------------------------------------------------
 # 檢查 10：loop-pauses 註冊表（常數）
@@ -351,7 +353,8 @@ def check_skill(skill: Path):
     v = []
     v += check_frontmatter(skill, fm)
     v += check_references(skill, body)
-    v += check_contract(skill, body)
+    if skill.name not in CONTRACT_EXEMPT:
+        v += check_contract(skill, body)
     listing = len(fm.get("description", "")) + len(fm.get("when_to_use", ""))
     return v, len(body), listing
 
@@ -597,6 +600,37 @@ def check_philosophy_anchors() -> list[str]:
     return v
 
 
+SKILL_TABLE_ROW_RE = re.compile(r"^\|\s*`/([a-z0-9-]+)`\s*\|")
+
+
+def check_skill_table(skills: list[Path]) -> list[str]:
+    """技能目錄與 CLAUDE.md「## Skills」表一一對應（檢查 1）。
+
+    只比對集合是否相同：新增或退役 skill 時，目錄與表要在
+    同一次變更裡一起改。"""
+    try:
+        lines = CLAUDE_MD.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeDecodeError) as exc:
+        raise Structural(f"{CLAUDE_MD}: 無法讀取（{exc}）")
+    start = next((i for i, l in enumerate(lines) if l.strip() == "## Skills"), None)
+    if start is None:
+        return ["CLAUDE.md 缺「## Skills」段（skill 表是技能清單的對照基準）"]
+    listed: set[str] = set()
+    for l in lines[start + 1:]:
+        if l.startswith("## "):
+            break
+        m = SKILL_TABLE_ROW_RE.match(l.strip())
+        if m:
+            listed.add(m.group(1))
+    on_disk = {d.name for d in skills}
+    v = []
+    for name in sorted(on_disk - listed):
+        v.append(f"技能目錄 {name}/ 不在 CLAUDE.md skill 表")
+    for name in sorted(listed - on_disk):
+        v.append(f"CLAUDE.md skill 表列了 /{name}，但 plugins/baransu/skills/ 沒有這個目錄")
+    return v
+
+
 def discover_skills(root: Path) -> list[Path]:
     if not root.is_dir():
         raise Structural(f"{root}: 技能根目錄不存在")
@@ -619,11 +653,9 @@ def main(argv: list[str]) -> int:
     try:
         skills = [] if flag_mode else discover_skills(skills_root)
 
-        if repo_mode and len(skills) != EXPECTED_SKILL_COUNT:
-            violations.append(
-                f"技能目錄數 {len(skills)} ≠ {EXPECTED_SKILL_COUNT}："
-                f"{', '.join(d.name for d in skills)}"
-            )
+        if repo_mode:
+            tv = check_skill_table(skills)
+            violations += tv
 
         for skill in skills:
             sv, body_count, listing_chars = check_skill(skill)
@@ -672,8 +704,10 @@ def main(argv: list[str]) -> int:
                     "✅ loop-pauses 註冊表完備"
                     "（drivable/assisted 檔案＋註冊列、無孤兒、無死鏈）"
                 )
-            if len(skills) == EXPECTED_SKILL_COUNT:
-                print(f"✅ 技能目錄數 = {EXPECTED_SKILL_COUNT}")
+            if not tv:
+                print(
+                    f"✅ 技能目錄與 CLAUDE.md skill 表一致（{len(skills)} 個）"
+                )
 
     except Structural as exc:
         print(f"STRUCTURAL: {exc}", file=sys.stderr)

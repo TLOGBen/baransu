@@ -2,6 +2,10 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.3.0] - 2026-10-17
+
+- 新增單句 skill `/bro`（白話重述上一則訊息）與 `/roger`（白話重述使用者的目標）；移除「技能數上限」理念，`verify-skills.py` 改為比對技能目錄與 CLAUDE.md skill 表。
+
 ## [8.2.1] - 2026-10-16
 
 ### Fixed

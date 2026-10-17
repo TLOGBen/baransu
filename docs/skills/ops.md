@@ -115,6 +115,6 @@ Claude Code：`/baransu:codex-skill-transfer`　Codex：`$baransu:codex-skill-tr
 - 反向移植（Codex→Claude）
 - 沒有 Claude 對應版本、全新撰寫的 Codex skill
 
-**存續條款**　這個 skill 帶一條附帶條件：若選用遙測連續三個月零使用，就退役並把上限收回 11（現行上限 12）。
+**存續條款**　這個 skill 帶一條附帶條件：若選用遙測連續三個月零使用，就退役。
 
 **非互動驅動**　`loop=assisted`。

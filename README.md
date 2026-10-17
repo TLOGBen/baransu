@@ -6,7 +6,7 @@
 
 <p align="center"><b>バランス。動手前先想，做完後驗證。</b></p>
 
-<p align="center">12 個 skill · Claude Code 與 Codex · v8.1.0</p>
+<p align="center">14 個 skill · Claude Code 與 Codex · v8.3.0</p>
 
 Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引用。7.3.3 修正圖示路徑，既有安裝需更新 plugin。
 
@@ -21,12 +21,12 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 | 理念 | 一句話 | 機制錨點 |
 |---|---|---|
 | 規則是天花板 | 只寫防真實翻車的規則；容器只能變深、不能變長 | `plugins/baransu/rules/anti-patterns.md` |
-| 結構是地板 | 確定性檢查全走腳本閘門，不靠模型自律；12 個技能是上限 | `scripts/verify-skills.py` |
+| 結構是地板 | 確定性檢查全走腳本閘門，不靠模型自律 | `scripts/verify-skills.py` |
 | 人在授權點 | Input PAUSE 可走預設；Authorization PAUSE 不可覆寫 | `plugins/baransu/skills/_shared/loop-contract.md` |
 | 證據優先 | 非顯然主張依賴前先引查證來源；乾淨的 review 也是有效的 review | `plugins/baransu/skills/review/SKILL.md` |
 | 狀態落盤 | 長流程的結論落檔交付、不賭終端顯示 | `plugins/baransu/skills/_shared/output-journal.md` |
 
-由來、上限的修憲紀錄與可證偽條款：[理念全文](docs/philosophy.md)。
+由來與完整說明：[理念全文](docs/philosophy.md)。
 
 ## 五個家族
 
@@ -36,7 +36,8 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 <td>
 <h3><a href="docs/skills/plan.md">構想</a></h3>
 <p><i>動手之前，先把「要什麼」和「怎樣才算做完」說清楚。</i></p>
-<b><code>/baransu:think</code></b>：復述對焦、借鏡、表態、兩向攻擊，留一份計畫，不寫程式
+<b><code>/baransu:think</code></b>：復述對焦、借鏡、表態、兩向攻擊，留一份計畫，不寫程式<br>
+<b><code>/baransu:roger</code></b>：用白話重述你的目標和想解決的問題，讓你確認它懂了
 </td>
 </tr>
 <tr>
@@ -64,7 +65,8 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 <h3><a href="docs/skills/learn.md">學習</a></h3>
 <p><i>先把原文完整讀進來，再決定要不要消化成自己的筆記。</i></p>
 <b><code>/baransu:read</code></b>：網頁、檔案、搜尋結果轉成 Markdown；加 <code>--save</code> 才存檔<br>
-<b><code>/baransu:learn</code></b>：評分篩選來源，整理成五欄摘要或完整大綱筆記
+<b><code>/baransu:learn</code></b>：評分篩選來源，整理成五欄摘要或完整大綱筆記<br>
+<b><code>/baransu:bro</code></b>：把上一則訊息用白話重講一次，不用術語
 </td>
 </tr>
 <tr>

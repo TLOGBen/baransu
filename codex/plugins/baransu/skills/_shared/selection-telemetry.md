@@ -40,7 +40,7 @@ Keep it to one line; this is telemetry, not a journal.
   (judged in hindsight) ÷ total records.
 - **Miss rate** = `"miss": true` records ÷ (those + total records).
 - Review outcomes feed two standing decisions: the `/codex-skill-transfer` retirement
-  clause (three consecutive zero-use months → retire, ceiling back to 11), and
+  clause (three consecutive zero-use months → retire), and
   routing-table wording fixes for whichever confusion pair actually fired.
 - **Zero-miss caveat**: a month with zero `"miss": true` records is ambiguous — it means
   either "no misses" or "nobody noticed". There is no mechanical cross-check; read it

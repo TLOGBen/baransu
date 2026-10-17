@@ -19,7 +19,7 @@
 | 理念 | 一句話 | 機制錨點 |
 |---|---|---|
 | 規則是天花板 | 只寫防真實翻車的規則；容器只能變深、不能變長 | `plugins/baransu/rules/anti-patterns.md` |
-| 結構是地板 | 確定性檢查全走腳本閘門，不靠模型自律；12 個技能是上限（2026-07 修憲 14→15，2026-08 隨 `/analyze` 退役收回 14，2026-10 隨 contract／seal 退役收到 12；附 codex-skill-transfer 三個月零使用即退役回 11 的可證偽條款） | `scripts/verify-skills.py` |
+| 結構是地板 | 確定性檢查全走腳本閘門，不靠模型自律 | `scripts/verify-skills.py` |
 | 人在授權點 | Input PAUSE 可走預設；Authorization PAUSE 不可覆寫 | `plugins/baransu/skills/_shared/loop-contract.md` |
 | 證據優先 | 非顯然主張依賴前先引查證來源；乾淨的 review 也是有效的 review | `plugins/baransu/skills/review/SKILL.md` |
 | 狀態落盤 | 長流程的結論落檔交付、不賭終端顯示 | `plugins/baransu/skills/_shared/output-journal.md` |
@@ -31,12 +31,6 @@
 平衡也關乎修正**落在哪一層**。一個失誤要在最高、能讓它不可能再發生的那一層處理：先是結構（skill 能做什麼、不能做什麼——review 從不改目標、ship 只在被點名時動手、Authorization PAUSE 不能走預設），其次是 skill 要達成的原則，最後才是它必須遵守的規則。結構就能解決的事卻寫成規則，等於替一個設計決定付利息。
 
 任何一行要加進 skill 之前，三個問題決定值不值得：（1）本倉有沒有證據——一次真實翻車，或一條已經貼在症狀上的守衛——證明既有條文或流程做出了錯的判斷；（2）這個改動是不是用更合身、更清楚的條文**取代**那一條——不一定更多、不一定更少——而不是在旁邊再加一條守衛；（3）對著今天的模型預設，這一行還會不會改變行為——每條指令都有半衰期，路由衰減最快，目標、紅線、證據與授權最慢。三問有一問不過，就不收。機制錨點：`/evolve` 的單一 finding 形狀（肇事條文 → 來源 → 替換文）與它的減法閘。實例：8.0.0 退役 contract 與 seal，不是因為它們錯了，而是半衰期到了——對一個模型已經不再犯的問題用了太大的力。
-
-## 12 個 skill 的上限
-
-12 是上限——要加第 13 個，必須先退役一個（以裁換建）。機制錨點是 `scripts/verify-skills.py` 的 skill 數量檢查。上限原為 14；8.0.0 退役 contract 與 seal 兩個 skill、不以新 skill 補位，上限隨之收到 12。
-
-可證偽的修憲條款（2026-07-19 立，原為 14→15，隨上限一併沿用）：若選用遙測顯示 `/codex-skill-transfer` 連續三個月零使用，就退役它並把上限收回 11。
 
 ## 任務不遷就工具
 

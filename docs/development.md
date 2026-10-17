@@ -12,7 +12,7 @@
 .agents/plugins/marketplace.json # Codex marketplace 目錄（指向 codex/plugins/baransu）
 plugins/baransu/                 # Claude 版（Claude Code 的正本）
   .claude-plugin/plugin.json     # plugin manifest，權威版本號
-  skills/                        # 12 個 skill ＋ _shared/（跨 skill 參考、evals、scripts）
+  skills/                        # 14 個 skill ＋ _shared/（跨 skill 參考、evals、scripts）
   agents/                        # 派遣用 agent：視角 reviewer、verifier、health inspector、evolve
   rules/anti-patterns.md         # 跨 skill 行為護欄
 codex/plugins/baransu/           # Codex 版（手動維護，Codex 的正本）
@@ -52,7 +52,7 @@ make ship-check   # test ＋ parity-check，發佈前跑這個
 
 - `scripts/verify-skills.py` 會讀 README.md 的 `## 核心理念` 段：理念表每一列都要有一個存在於倉內的反引號路徑錨點。改首頁時保留這個標題與表格。
 - 同一支腳本會掃 `plugins/`、CLAUDE.md、README.md 與兩份 manifest（`tests/` 自 8.0.0 起不存在，掃描面仍保留它以防回流），不得出現已退役 skill 的名稱或指令（含 `/contract`、`/seal`、`/book`、`/design` 的 slash 形式、`style-reviewer` 與 sealed 標記字面；`.claude/design/` 目錄名不算）。
-- 技能數上限（12）也由它檢查；CLAUDE.md 的 skill 表沒有另外的 baseline 檔。
+- 它也檢查每個 skill 目錄都有 `SKILL.md`，且和 CLAUDE.md 的 skill 表一一對應；skill 表本身就是清單，沒有另外的 baseline 檔。
 
 ## 版本
 
@@ -81,7 +81,7 @@ make ship-check   # test ＋ parity-check，發佈前跑這個
 
 ## 新增或退役 skill
 
-- 上限 12：要加一個，先退役一個（以裁換建）。見 [理念](philosophy.md#12-個-skill-的上限)。
+- 新增或退役 skill 時，目錄與 CLAUDE.md 的 skill 表要在同一次變更裡一起改。
 - 新 skill 先用 `/baransu:think` 自己吃自己的狗糧。
 - 調整 skill 的 Automation 行時要通過 `verify-skills.py` Gate 10：`loop=drivable`／`assisted` 的 skill 要附 `references/loop-pauses.md`，並在 `_shared/loop-contract.md` §4 有一列正式註冊。
 
