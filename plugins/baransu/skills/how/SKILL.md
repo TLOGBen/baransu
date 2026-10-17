@@ -1,6 +1,6 @@
 ---
 name: how
-description: "Explains how a part of the codebase works, at the level a senior engineer needs to start working in it: runtime flow, key concepts, where things live, gotchas, and which layer owns what. Trigger On '/how', '這怎麼運作', '帶我看這塊', '這屬於哪一層', 'how does X work', 'walk me through'. Not for why it was built this way (/why) or a current failure (/hunt)."
+description: "Explains how a part of the codebase works, at the level a senior engineer needs to start working in it: runtime flow, key concepts, where things live, gotchas, and which layer owns what. Trigger On '/how', '這怎麼運作', '帶我看這塊', '這屬於哪一層', 'how does X work', 'walk me through'. Not for why it was built this way (/why), a current failure (/hunt), a paced lesson (/teach-me), or a picture (/draw)."
 argument-hint: "<subsystem | file | symbol | question>"
 user-invocable: true
 ---

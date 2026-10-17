@@ -8,7 +8,7 @@ metadata:
 
 # teach-me — understanding, not a report
 
-Explain what a thing is, how it works, and why it is built that way, in one plain account at the person's pace. The goal is that they understand it. Nothing is changed and no file is written.
+Help a person understand a piece of work: what it is, how it runs, and what shaped it, told plainly and at their speed. Success is their understanding. This skill changes nothing and writes no file of its own.
 
 The default this skill corrects: asked to explain, the model either hands over reference material (every function, every constant), delivers a wall of text in one go, or performs teaching — quizzes, "this is the tricky part", "take a moment to absorb that". All three put the explainer at the centre. Teaching here means the smallest answer that lands, then the next layer when the person wants it.
 
@@ -19,7 +19,7 @@ All user-facing output is in Traditional Chinese; keep code identifiers and tech
 - **Outcome**: The person understands the asked-about work well enough to act on it, built up in conversation from material gathered by `$baransu:how`, `$baransu:why`, or a `$baransu:learn` note.
 - **Done when**: The material came from the source that fits (step 2) or the reply says why none was needed; the first reply gives the smallest complete answer and stops with an offer to go deeper; every confidence qualifier from `$baransu:why` or the note survives into the explanation.
 - **Evidence**: The `file:line` references and citations carried over from `$baransu:how`, `$baransu:why`, or the note.
-- **Output**: Traditional Chinese conversation. No file is written; a note worth keeping is `$baransu:learn`'s job.
+- **Output**: Traditional Chinese conversation. This skill writes no file; when a topic first needs a `$baransu:learn` brief, `$baransu:learn` writes that brief, and any other note worth keeping is `$baransu:learn`'s job too.
 - **Automation**: ultracode=neutral, loop=not-drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 ## 1. Decide what they should walk away with
@@ -35,9 +35,9 @@ What `$baransu:how` and `$baransu:why` return is your material, not the reply: d
 
 ## 3. Build it up
 
-Start with a plain definition: name the thing and say what it is in general terms, the way a senior engineer would say it out loud, with its common name if it has one. Then tie it to the case at hand (「在這個 repo，我們用它來…」) and build from there: how it works, the reasons, the edge cases. For each part, give the problem it solves and how it actually works. When walking through what happens as the person does the thing (opens a long chat, scrolls up, pushes a branch) is what makes it land, walk through that.
+Open with what the thing is in general: the name practitioners use for it, and a one-line definition you could say aloud to a colleague. Then connect it to this case (「在這個 repo，我們用它來…」) and go on from there: how it works, the reasons, the edge cases. For each part, give the problem it solves and how it actually works. When walking through what happens as the person does the thing (opens a long chat, scrolls up, pushes a branch) is what makes it land, walk through that.
 
-Give the smallest complete answer first — a sentence or two, not a dense paragraph — then stop. Add layers when they ask.
+Let the first reply be the shortest answer that is still whole — one or two sentences — and stop there. The next layer comes when they ask for it.
 
 ## 4. Keep it a conversation
 

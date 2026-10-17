@@ -99,3 +99,5 @@ Claude Code：`/baransu:write`　Codex：`$baransu:write`
 - 把來源消化成筆記 → `/learn`、`/read`
 
 **非互動驅動**　`loop=drivable`。
+
+**來源**　去 AI 腔的部分（Direct language 段的「講機制不講感覺」、writing-principles 的中英共通五條與 en 7–10）改編自 Cursor pstack 的 unslop（MIT），見 `plugins/baransu/skills/write/NOTICE.md`。

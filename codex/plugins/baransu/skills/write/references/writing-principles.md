@@ -358,8 +358,8 @@ Claude defaults to a recognisable vocabulary: delve, crucial, pivotal, intricate
 
 | Before (default) | After (correction) |
 |---|---|
-| This module serves as the backbone of the pipeline. | This module runs every pipeline stage. |
-| The release showcases a vibrant ecosystem of plugins. | The release ships with 40 plugins. |
+| This module serves as the backbone of the pipeline. | This module runs every pipeline stage. (only if the source says so) |
+| The release showcases a vibrant ecosystem of plugins. | The release ships with 40 plugins. (only with the real count; otherwise "The release supports plugins.") |
 | Additionally, it is crucial to delve into the logs. | Read the logs too. |
 
 ---
@@ -384,13 +384,13 @@ Claude defaults to grouping ideas in threes for rhythm: three adjectives, three 
 | Before (default) | After (correction) |
 |---|---|
 | fast, reliable, and scalable | fast and reliable (if scale was never measured, drop it) |
-| It saves time, reduces errors, and empowers teams. | It saves about an hour per release and catches config typos before deploy. |
+| It saves time, reduces errors, and empowers teams. | It saves about an hour per release and catches config typos before deploy. (only with real figures; otherwise name the one benefit the source supports) |
 
 ---
 
 **10. Format tells (en) — Punctuation and casing that mark machine text**
 
-- A colon used as a mid-sentence connector ("If you're coming from cron: instead of schedules, you describe conditions") adds a pause and no meaning. Rewrite the sentence so the point stands on its own; keep colons before a list, an example, or a quotation.
+- A colon used as a mid-sentence connector ("If you're coming from cron: instead of schedules, you describe conditions") adds a pause and no meaning. Rewrite the sentence so the point stands on its own; keep colons before a list, an example, a quotation, or a clause that explains the one before it (the colon en rule 8 allows in place of a dash).
 - Title Case Headings become sentence case.
 - Curly quotes become straight quotes in Markdown, code-adjacent, and technical text.
 - A false range ("from startups to governments", "from design to deployment") where the two ends are not on one scale becomes a plain list of what is covered.

@@ -128,7 +128,7 @@ Claude Code：`/baransu:teach-me`　Codex：`$baransu:teach-me`
 
 **流程**　先從對話判斷你需要帶走哪幾件事；程式交給 `/how` 和 `/why` 去查，repo 外的主題用現有的 `/learn` 筆記，沒有就先跑 `/learn --brief`。先給白話定義，第一次只給最小完整的答案，你想深入再加一層；三個部件以上的流程用逐張累加的圖。
 
-**產出**　對話。不寫檔；要留成筆記用 `/learn`。`/learn` 寫完筆記時也會提示可以用 `/teach-me` 讀懂它。
+**產出**　對話，本身不寫檔。repo 外的主題沒有現成筆記時，會先交給 `/learn --brief` 寫一份 brief（存在 `.claude/learn/briefs/`）；其他要留下的筆記也交給 `/learn`。`/learn` 寫完筆記時也會提示可以用 `/teach-me` 讀懂它。
 
 **不適用**
 - 只是要把上一則訊息講白話 → `/huh`

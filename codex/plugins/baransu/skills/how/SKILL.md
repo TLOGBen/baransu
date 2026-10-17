@@ -1,6 +1,6 @@
 ---
 name: how
-description: "Explains how a part of the codebase works, at the level a senior engineer needs to start working in it: runtime flow, key concepts, where things live, gotchas, and which layer owns what. Trigger On '$baransu:how', '這怎麼運作', '帶我看這塊', '這屬於哪一層', 'how does X work', 'walk me through'. Not for why it was built this way ($baransu:why) or a current failure ($baransu:hunt)."
+description: "Explains how a part of the codebase works, at the level a senior engineer needs to start working in it: runtime flow, key concepts, where things live, gotchas, and which layer owns what. Trigger On '$baransu:how', '這怎麼運作', '帶我看這塊', '這屬於哪一層', 'how does X work', 'walk me through'. Not for why it was built this way ($baransu:why), a current failure ($baransu:hunt), a paced lesson ($baransu:teach-me), or a picture ($baransu:draw)."
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex
