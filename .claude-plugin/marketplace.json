@@ -12,7 +12,7 @@
     {
       "name": "baransu",
       "source": "./plugins/baransu",
-      "description": "バランス — deliberate before executing, verify after. Fourteen governance skills covering the full development lifecycle.",
+      "description": "バランス — deliberate before executing, verify after. Seventeen governance skills covering the full development lifecycle.",
       "category": "governance",
       "tags": [
         "governance",

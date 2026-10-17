@@ -2,7 +2,7 @@
 
 [← 回首頁](../README.md)
 
-baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重的決策不省思考」這套平衡哲學，包成一個 Claude Code plugin（另有手動維護的 Codex 版）。共 14 個 skill，每個都有清楚的觸發界線——什麼能省、什麼一定要做。
+baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重的決策不省思考」這套平衡哲學，包成一個 Claude Code plugin（另有手動維護的 Codex 版）。共 17 個 skill，每個都有清楚的觸發界線——什麼能省、什麼一定要做。
 
 首頁只講概念；這裡放完整參考。
 
@@ -18,7 +18,7 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 
 ## Skill 參考
 
-14 個 skill 分成五個家族。每頁列出每個 skill 的用途、觸發語、參數、產出位置與不適用的情況。
+17 個 skill 分成五個家族。每頁列出每個 skill 的用途、觸發語、參數、產出位置與不適用的情況。
 
 | 家族 | Skill | 一句話 |
 |---|---|---|
@@ -30,6 +30,9 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 | | [`/write`](skills/make.md#write) | 雙語潤稿、生成、校對 |
 | [學習](skills/learn.md) | [`/read`](skills/learn.md#read) | 任何來源轉成 Markdown 讀進對話 |
 | | [`/learn`](skills/learn.md#learn) | 評分篩選來源，整理成學習筆記 |
+| | [`/how`](skills/learn.md#how) | 講清楚一塊程式怎麼運作 |
+| | [`/why`](skills/learn.md#why) | 查出程式為什麼長這樣，每條主張標信心 |
+| | [`/teach-me`](skills/learn.md#teach-me) | 用對話把一塊程式或一份筆記教懂 |
 | [維運](skills/ops.md) | [`/ship`](skills/ops.md#ship) | 歸檔、commit、push、清 worktree |
 | | [`/health`](skills/ops.md#health) | 體檢專案的 agent 配置與 AI 可維護性 |
 | | [`/evolve`](skills/ops.md#evolve) | 用減法棘輪一輪輪磨好一份 SKILL.md |
@@ -44,6 +47,8 @@ repo 根目錄目前沒有授權檔。以下子模組 vendored 自第三方專�
 - `/draw`：`plugins/baransu/skills/draw/NOTICE.md`（diagram、map、手繪動畫等來源與授權清單），各子目錄另附 `LICENSE`。
 - `/ui`：`plugins/baransu/skills/ui/NOTICE.txt`。
 - `/codex-skill-transfer`：SKILL.md frontmatter 標示 `license: Apache-2.0`。
+- `/why`、`/how`、`/teach-me`：改編自 Cursor pstack 的 why、how、teach（MIT，Lauren Tan），各自的 `NOTICE.md` 附出處與授權全文。
+- `/write`：去 AI 腔的部分規則改編自 Cursor pstack 的 unslop（MIT），見 `plugins/baransu/skills/write/NOTICE.md`。
 
 ## 圖片
 

@@ -1,11 +1,76 @@
 ## Contents
 
+- Shared principles — 中英共通
 - zh principles — 中文
 - en principles — English
 
 # Writing Principles — Claude Default Deviations
 
-These principles correct Claude's observed defaults in Chinese and English prose. Each entry names the default pattern to avoid and shows a concrete before/after correction. Apply during composition — not as a post-generation checklist.
+These principles correct Claude's observed defaults in Chinese and English prose. Each entry names the default pattern to avoid and shows a concrete before/after correction. Apply during composition — not as a post-generation checklist. The shared section applies to both languages; read it together with the section for the detected language.
+
+---
+
+## Shared principles — 中英共通
+
+Source: these five, the en entries 7–10 and the metaphor nouns in en entry 1 are adapted from the `unslop` skill in Cursor's pstack plugin (MIT; see `../NOTICE.md`), with zh equivalents added. They are tells that look the same in both languages; the language-specific sections below hold the ones that do not.
+
+---
+
+**S1. 客服腔與諂媚 — Chatbot framing and flattery**
+
+Claude defaults to opening or closing with service phrases and praise that carry no content. Cut them; start with the answer.
+
+| Before (default) | After (correction) |
+|---|---|
+| 好問題！以下是我的整理。 | （刪去，直接給整理）|
+| 希望對你有幫助，有問題隨時告訴我！ | （刪去）|
+| Great question! You're absolutely right that… | (cut; state the point) |
+| I hope this helps! Let me know if… | (cut) |
+
+---
+
+**S2. 模糊出處 — Vague attribution**
+
+Claude defaults to borrowing authority from nobody: 「有專家指出」「研究顯示」「業界普遍認為」, "Experts believe", "Studies show". Name the source. Without one, cut the attribution, and cut the claim too unless the surrounding text supports it. Never invent a source to fill the gap. Boundary with zh rule 9: that rule covers story anchors (「曾經有個人告訴我」); this entry covers claims that lean on an unnamed authority.
+
+| Before (default) | After (correction) |
+|---|---|
+| 研究顯示，遠端工作能提升效率。 | 〈研究名稱、年份〉發現，〈具體數字〉。（使用者給了來源才這樣寫；沒有就刪掉這句）|
+| Industry reports suggest adoption is accelerating. | Name the report, or cut the sentence. |
+
+---
+
+**S3. 避險堆疊 — Hedge stacking**
+
+Claude defaults to stacking qualifiers until the claim disappears. Keep one hedge, placed exactly where the uncertainty is.
+
+| Before (default) | After (correction) |
+|---|---|
+| 這或許在某種程度上可能會影響效能 | 這可能拖慢效能 |
+| it could potentially possibly be argued that it might | it may |
+
+---
+
+**S4. 格式痕跡 — Format tells**
+
+Claude defaults to bolding every term, to list items that open with a bold label restating the line, and to decorative emoji in headings and bullets. Bold only the one thing a skimming reader must not miss; turn label-restating items into plain sentences; drop decorative emoji. A bold lead-in that ends in a period, names the item, and is followed by new detail is fine.
+
+| Before (default) | After (correction) |
+|---|---|
+| **效能：** 效能提升了三成。 | 效能提升了三成。 |
+| ## 🚀 快速開始 | ## 快速開始 |
+| **Performance:** Performance improved by 30%. | Performance improved by 30%. |
+
+---
+
+**S5. 過度壓縮 — Over-compression**
+
+The opposite failure of cutting filler: dropped particles and articles, arrows, verbless fragments, and abbreviations that make the reader decode instead of read. This is the 省詞略字 symptom the long-input rule in SKILL.md guards against. Write whole sentences with their verbs; spell out arrows.
+
+| Before (default) | After (correction) |
+|---|---|
+| 解析失敗 → exit 2，不寫檔 | 解析器遇到錯的日期會以代碼 2 結束，不寫任何檔案。 |
+| Parser rejects bad date → exit 2, no write | The parser rejects a bad date, exits with code 2, and writes nothing. |
 
 ---
 
@@ -213,6 +278,11 @@ Claude defaults to figures of speech worn smooth by overuse in professional writ
 | going forward | from now on / starting next quarter |
 | at the end of the day | ultimately / (cut it entirely) |
 | synergize across teams | teams work together on X |
+| the substrate / bedrock / scaffolding of the system | the base layer; what the other parts call |
+| our north star metric | the metric we decide by |
+| a data flywheel | more users bring more data, and the data improves ranking (say the loop) |
+
+Abstract metaphor nouns (substrate, wedge, vector as "way", locus, nexus, paradigm, modality, flywheel, north star, endgame, bedrock, scaffolding, harness, ratchet) read as technical but usually have a plain word. A term used in its real technical sense stays: "API surface", "primitive type", "test harness".
 
 ---
 
@@ -275,3 +345,57 @@ Claude defaults to sentences of near-uniform length and a short verdict sentence
 | Before (default) | After (correction) |
 |---|---|
 | Every sentence runs 15–20 words; every paragraph ends on a punchy verdict. | One sentence lands in five words. The next unwinds across thirty, carrying the conditions and the cost, before the paragraph ends on an ordinary sentence. |
+
+---
+
+Entries 7–10 below are English AI-voice tells, the en counterpart of zh entries 6–15. Like those, they complement and never relax the SKILL.md floor (en rules 5 / 7 / 8).
+
+---
+
+**7. AI lexicon and fancy "is" — Say it plainly**
+
+Claude defaults to a recognisable vocabulary: delve, crucial, pivotal, intricate, interplay, tapestry, testament, underscore, vibrant, enduring, landscape (abstract), showcase, foster, garner, enhance, additionally. It also dresses up "is" and "has" as "serves as", "stands as", "boasts", "features". Replace each with the plain word, or cut it.
+
+| Before (default) | After (correction) |
+|---|---|
+| This module serves as the backbone of the pipeline. | This module runs every pipeline stage. |
+| The release showcases a vibrant ecosystem of plugins. | The release ships with 40 plugins. |
+| Additionally, it is crucial to delve into the logs. | Read the logs too. |
+
+---
+
+**8. Hollow tails, closers, and signposts — End on the fact**
+
+Claude defaults to three moves that add no information: a participle tail that comments on the sentence ("…, highlighting the team's commitment to quality"), a generic closer ("The future looks bright.", "Exciting times ahead."), and a signpost announcing that the next sentence matters ("Here's the thing:", "The key insight is", "It's worth noting that"). An adverb propping up a weak verb belongs here too: "significantly improves" hides the number. Cut the tail and the closer, state the point without the signpost, and give the number when the text or the user supplies one; otherwise ask for it rather than invent it.
+
+| Before (default) | After (correction) |
+|---|---|
+| We added caching, ensuring a seamless experience. | We added caching. Page loads dropped from 900 ms to 200 ms. |
+| The future looks bright for the project. | (cut; or state the next milestone and its date) |
+| Here's the thing: the cache is the bottleneck. | The cache is the bottleneck. |
+| The change significantly improves throughput. | The change raises throughput from 1,200 to 1,900 requests per second. |
+
+---
+
+**9. Rule of three — Use the natural number**
+
+Claude defaults to grouping ideas in threes for rhythm: three adjectives, three benefits, three bullets. English has no floor rule for this (zh rule 7 is a floor; here it is a principle), but the fix is the same: list as many items as there really are. Two is fine; four is fine.
+
+| Before (default) | After (correction) |
+|---|---|
+| fast, reliable, and scalable | fast and reliable (if scale was never measured, drop it) |
+| It saves time, reduces errors, and empowers teams. | It saves about an hour per release and catches config typos before deploy. |
+
+---
+
+**10. Format tells (en) — Punctuation and casing that mark machine text**
+
+- A colon used as a mid-sentence connector ("If you're coming from cron: instead of schedules, you describe conditions") adds a pause and no meaning. Rewrite the sentence so the point stands on its own; keep colons before a list, an example, or a quotation.
+- Title Case Headings become sentence case.
+- Curly quotes become straight quotes in Markdown, code-adjacent, and technical text.
+- A false range ("from startups to governments", "from design to deployment") where the two ends are not on one scale becomes a plain list of what is covered.
+
+| Before (default) | After (correction) |
+|---|---|
+| ## Getting Started With The CLI | ## Getting started with the CLI |
+| Used by everyone from hobbyists to Fortune 500 companies. | Used by 3 of the 10 largest US banks and about 2,000 individual developers. (only with real figures; otherwise cut) |

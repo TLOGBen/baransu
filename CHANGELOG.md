@@ -5,6 +5,9 @@
 ## [8.3.0] - 2026-10-17
 
 - 新增單句 skill `/huh`（白話重述上一則訊息）與 `/sayagain`（白話重述使用者的目標）；移除「技能數上限」理念，`verify-skills.py` 改為比對技能目錄與 CLAUDE.md skill 表。
+- 新增 `/why`（查出程式為什麼長這樣，每條主張分五級信心、寫明查不到什麼）、`/how`（講清楚一塊程式怎麼運作）、`/teach-me`（用對話把程式或 `/learn` 筆記教懂），改編自 Cursor pstack 的 why、how、teach（MIT，Lauren Tan），各附 `NOTICE.md`。`/why` 的證據改成這台機器實際有的四類並由近到遠查；`/how` 先讀入口再決定要不要分頭追；`/teach-me` 素材可以是程式或 `/learn` 筆記，文風引用 `/write`。
+- `/write` 併入 pstack unslop 的去 AI 腔規則：根部改成「講機制不講感覺、細節只能來自原文或使用者」，writing-principles 新增中英共通五條與 en 7–10，floor 規則不變。
+- `/learn` 寫完 brief 或 digest 時提示可以用 `/teach-me` 讀懂；技能數照實改為 17，Claude／Codex 兩版同步。
 
 ## [8.2.1] - 2026-10-16
 

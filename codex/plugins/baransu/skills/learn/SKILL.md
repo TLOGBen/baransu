@@ -246,6 +246,7 @@ Followed by the five-column Markdown body defined in step c.
 
 Output (繁中):
 「brief 已儲存至 .codex/learn/briefs/{$BRIEF_SLUG}.md」
+「想讓我帶你讀懂這份筆記：$baransu:teach-me .codex/learn/briefs/{$BRIEF_SLUG}.md」
 
 Stage 2 returns here. Do NOT continue to Stage 3, Stage 4, or Stage 5.
 
@@ -428,3 +429,4 @@ Never leave a draft duplicate beside the digest — cleanup is tracked, never ju
 
 Output (繁中):
 「digest 已儲存至 .codex/learn/digests/{$DIGEST_SLUG}.md」
+「想讓我帶你讀懂這份筆記：$baransu:teach-me .codex/learn/digests/{$DIGEST_SLUG}.md」

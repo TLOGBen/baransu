@@ -57,6 +57,20 @@
       "should_trigger": false,
       "expected_skill": "ship",
       "expected_behavior": "Committing/pushing finished text is session wrap-up — /ship."
+    },
+    {
+      "id": 9,
+      "prompt": "en polish this: \"Great question! Our new dashboard serves as a pivotal hub, showcasing a vibrant tapestry of metrics and ensuring a seamless experience. Additionally, experts believe it could potentially transform how teams work. The future looks bright.\"",
+      "should_trigger": true,
+      "expected_skill": "write",
+      "expected_behavior": "Refine mode (en): removes the chatbot opener (Chatbot framing), replaces serves as / pivotal / showcasing / vibrant tapestry / Additionally (AI lexicon), cuts the -ing tail (Hollow tails), names or cuts 'experts believe' (Vague attribution), reduces 'could potentially' to one hedge (Hedge stacking), drops the generic closer; each change tagged in 修正說明; no fabricated metric or source."
+    },
+    {
+      "id": 10,
+      "prompt": "潤稿：「好問題！研究顯示，這個功能或許在某種程度上可能會提升效率。**效能：** 效能提升了。希望對你有幫助！」",
+      "should_trigger": true,
+      "expected_skill": "write",
+      "expected_behavior": "Refine mode (zh): cuts 好問題／希望對你有幫助 (客服腔), flags 研究顯示 without a source (模糊出處) and asks for the real source rather than inventing one, reduces 或許在某種程度上可能 to one hedge (避險堆疊), turns the bold label line into a plain sentence (格式痕跡)."
     }
   ]
 }

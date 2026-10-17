@@ -1,10 +1,10 @@
-# 學習家族：read · learn
+# 學習家族：read · learn · how · why · teach-me
 
 <img src="../images/family-learn.png" width="320" alt="學習家族概念圖">
 
 > 先把原文完整讀進來，再決定要不要消化成自己的筆記。
 
-`/read` 負責讀取與（選用的）保存；`/learn` 負責評分、篩選、整理成學習筆記。
+`/read` 負責讀取與（選用的）保存；`/learn` 負責評分、篩選、整理成學習筆記。`/how` 和 `/why` 把對象換成你 repo 裡的程式：一個講怎麼運作，一個查為什麼長這樣；`/teach-me` 把它們查到的東西，或一份 `/learn` 筆記，用對話教到你懂。
 
 [← 回文件索引](../README.md)
 
@@ -60,3 +60,80 @@ Claude Code：`/baransu:learn`　Codex：`$baransu:learn`
 - 畫成圖、地圖或動畫 → `/draw`
 
 **非互動驅動**　`loop=drivable`。
+
+---
+
+## `/how`
+
+Claude Code：`/baransu:how`　Codex：`$baransu:how`
+
+**用途**　用資深工程師帶人上手的程度，講清楚一塊程式怎麼運作：流程、關鍵概念、檔案位置、陷阱，以及照現有分層某個東西屬於哪一層。
+
+**什麼時候用**
+- 要改一塊陌生的程式之前，想先建立腦中的模型。
+- 觸發語：`/how`、這怎麼運作、帶我看這塊、這屬於哪一層、how does X work、walk me through。
+- 參數：`<子系統 | 檔案 | 符號 | 問題>`
+
+**流程**　先自己讀入口檔；剩下的一次讀得完就直接講，分得出兩塊以上才派 2–4 個唯讀子代理分頭追，再對照程式碼調和。程式碼看不出行為時，可以跑唯讀指令或在 repo 外做拋棄式實驗。
+
+**產出**　對話裡的說明：概觀、關鍵概念、怎麼運作（每步附 `file:line`）、東西放在哪、陷阱、還沒弄清楚。不寫檔。
+
+**不適用**
+- 想知道為什麼這樣寫 → `/why`
+- 現在壞掉了 → `/hunt`
+- 該放哪一層有取捨要決定 → `/think`
+
+**非互動驅動**　`loop=drivable`。
+
+**來源**　改編自 Cursor pstack 的 how（MIT），見 `plugins/baransu/skills/how/NOTICE.md`。
+
+---
+
+## `/why`
+
+Claude Code：`/baransu:why`　Codex：`$baransu:why`
+
+**用途**　查出一段程式、一個寫法或一個設計決定為什麼長這樣，每條主張都附出處並標信心等級，也寫明查不到什麼。
+
+**什麼時候用**
+- 想改一段看不懂用意的程式之前；想知道當初為什麼選這個做法。
+- 觸發語：`/why`、為什麼這樣寫、當初為什麼、這段的由來、design rationale。
+- 參數：`<file:line | 符號 | 決定> [問題]`
+
+**流程**　先建錨點（相關檔案、最後碰過它的 commit、PR、日期、session 連結），再由近到遠查四類證據：repo 紀錄（commit、PR、CHANGELOG、指示檔的歷史）→ agent 決策紀錄（ADR、`CONTEXT.md`、`.claude/` 計畫與 git 歷史裡已移除的計畫、記憶檔、本機 log、對話紀錄）→ 有線索指向時才查的外部文件（Notion、Google Drive、Gmail 等）→ 上游資料（一頁文件或一次重現）。只有查外部文件才派唯讀子代理。
+
+**產出**　對話裡的回答：問題、程式在哪、找到什麼（Direct／Supported）、合理推論、競爭假說、不知道什麼、查了哪些來源、信心總結；問題是改動前的準備時，附「保留／可改／避開／風險」清單給 `/think` 當前提。不寫檔。
+
+**不適用**
+- 現在壞掉、回歸 → `/hunt`
+- 程式怎麼運作 → `/how`
+- 要不要改 → `/think`
+
+**非互動驅動**　`loop=drivable`。
+
+**來源**　改編自 Cursor pstack 的 why（MIT），見 `plugins/baransu/skills/why/NOTICE.md`。
+
+---
+
+## `/teach-me`
+
+Claude Code：`/baransu:teach-me`　Codex：`$baransu:teach-me`
+
+**用途**　把一塊程式、一個改動，或一份 `/learn` 筆記，用對話教到你真的懂。
+
+**什麼時候用**
+- 想真的搞懂一塊東西，而不是拿到一份參考資料。
+- 觸發語：`/teach-me`、教我、讓我真的懂、解釋給我聽、teach me、help me understand。
+- 參數：`<程式 | 改動 | 子系統 | .claude/learn 筆記 | 主題>`
+
+**流程**　先從對話判斷你需要帶走哪幾件事；程式交給 `/how` 和 `/why` 去查，repo 外的主題用現有的 `/learn` 筆記，沒有就先跑 `/learn --brief`。先給白話定義，第一次只給最小完整的答案，你想深入再加一層；三個部件以上的流程用逐張累加的圖。
+
+**產出**　對話。不寫檔；要留成筆記用 `/learn`。`/learn` 寫完筆記時也會提示可以用 `/teach-me` 讀懂它。
+
+**不適用**
+- 只是要把上一則訊息講白話 → `/huh`
+- 要整理成筆記 → `/learn`
+
+**非互動驅動**　`loop=not-drivable`（對話本身就是產品）。
+
+**來源**　改編自 Cursor pstack 的 teach（MIT），改名為 teach-me，見 `plugins/baransu/skills/teach-me/NOTICE.md`。
