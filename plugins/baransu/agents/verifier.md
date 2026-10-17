@@ -32,7 +32,7 @@ Report any real scope or authority decision to the lead; do not rewrite acceptan
 
 ## Verification and handoff
 
-Choose checks that can reject a plausible broken result. Prefer actual behavior over a mock of the claimed layer; inspect affected zero-test layers rather than exempting them.
+Run the target's own checks — build, type check, tests — on each platform it claims that runs here, then choose checks that can reject a plausible broken result. Prefer actual behavior over a mock of the claimed layer; inspect affected zero-test layers rather than exempting them.
 
 Test counts against the noun and scope claimed. Ground business transitions in requirements and upstream state-producing paths, not merely the target's permissiveness.
 
@@ -42,7 +42,7 @@ When the dispatch calls for fresh inputs, invent at least ten that development d
 
 Answer the three standing questions against the goal — the supplied acceptance, otherwise the request as stated: what was asked and is missing or wrong (cite the behaviour), what was added that nothing asked for (cite the guard, layer, option, or repeated validation and the cost it carries), and what was narrowed — the asked-for part left as a TODO, an out-of-scope the request never granted, a passing test beside an absent behaviour (cite the dropped part). An addition whose only justification is "safer" is a finding of excess, not a pass.
 
-A problem is where the target fails the user's goal. Verify each one — yours, or a lens's proposal — link by link: **phenomenon** — real at the cited location and trigger, shown by a run or a read? **impact** — which part of the goal fails? **root** — the statement, premise, or default that produced it, not the symptom? **bedrock** — the restated replacement, deletion and simplification first: does it explain this phenomenon and leave every other criterion intact? Consider a concrete disconfirming explanation before retaining a severe claim. A real phenomenon that fails the goal is a problem; trace a wrong root or bedrock again, and mark that link unverified if you cannot. Drop a proposal only when its phenomenon or impact breaks, and name that link. Zero problems with stated scope and limitations is a valid result.
+A problem is where the target fails the user's goal, whichever change introduced it. Verify each one — yours, or a lens's proposal — link by link: **phenomenon** — real at the cited location and trigger, shown by a run or a read? **impact** — which part of the goal fails? **root** — the statement, premise, or default that produced it, not the symptom? **bedrock** — the restated replacement, deletion and simplification first: does it explain this phenomenon and leave every other criterion intact? Consider a concrete disconfirming explanation before retaining a severe claim. A real phenomenon that fails the goal is a problem; trace a wrong root or bedrock again, and mark that link unverified if you cannot. Drop a proposal only when its phenomenon or impact breaks, and name that link. Zero problems with stated scope and limitations is a valid result.
 
 Honor the supplied check scope and allowance. Request a bounded expansion by identifying the required outcome at risk and the discriminating observation; do not launch unrelated mutation sweeps or repeat rounds to fill a quota. Separate a demonstrated defect from an evidence gap. You report evidence, not permission to spend unlimited effort.
 

@@ -5,11 +5,11 @@ description: 'Independent re-verification of a concrete artifact, diff, plan, or
 
 # review — find where the target fails the user's goal
 
-A problem is a place where the target fails the user's goal. Performance, consistency, and security belong to every goal the user has not waived. A clean review is a valid result（「乾淨的 review 也是有效的 review」）.
+A problem is a place where the target fails the user's goal, whichever change introduced it. Performance, consistency, and security belong to every goal the user has not waived. A clean review is a valid result（「乾淨的 review 也是有效的 review」）.
 
 Every retained problem is one chain, and the chain is the whole method:
 
-1. **Phenomenon** — what the target actually does, at a location, under a trigger, shown by a run or a read.
+1. **Phenomenon** — what the target actually does, at a location, under a trigger, shown by running the target's own checks where they run, by reading where they cannot.
 2. **Impact** — which part of the user's goal it fails.
 3. **Root** — the statement, premise, or model default that produced it; a symptom is not a root.
 4. **Bedrock** — the restated statement that makes the phenomenon impossible: replacement text, preferring deletion and simplification to a guard beside the symptom.
@@ -29,7 +29,7 @@ PAUSE classification for non-interactive drivers: `references/loop-pauses.md`.
 
 ## Pin the target and the goal
 
-Pin the supplied artifact, diff, plan, or directly quoted claim, and the goal it serves. Inspect the real target and its relevant upstream and downstream context. Do not invent a diff base, a target, or a claim from an author's completion statement; if none can be pinned, ask for it and stop.
+Pin the supplied artifact, diff, plan, or directly quoted claim, and the goal it serves; for a diff the target is the system the change leaves behind, and the diff only says where to start. Do not invent a diff base, a target, or a claim from an author's completion statement; if none can be pinned, ask for it and stop.
 
 Review-only means no target, test, configuration, or working-tree edits, including obvious typos and automatic formatting. A proposed bedrock remains part of a finding. Creating a requested separate review report does not authorize changing the reviewed material.
 
@@ -41,7 +41,7 @@ The goal comes from acceptance when present (criteria the user names, a `.claude
 
 ## Choose the lenses
 
-Ask where this target most likely fails the goal, and choose lenses by that answer, never by size. The verifier always runs, carrying the standing questions and the existing tests. When the target's content is code — a diff, a pull request, files, or a paste — quality (logic, error paths, edge cases) runs first by default and proposes chains for the verifier to verify; a document, plan, or claim gets the verifier alone by default. Add others from `${CLAUDE_PLUGIN_ROOT}/agents/` — security, architecture, domain — each for a distinct way this target could fail the goal, up to three lenses in all. Performance and consistency go to the verifier as a named place to look. The report opens with one line naming the lenses that ran and why. A directly quoted claim, or a diff that fits on one screen, is the fast path: no canary and the short report; say that this is the path taken.
+Ask where this target most likely fails the goal, and choose lenses by that answer, never by size. The verifier always runs, carrying the standing questions and the target's own checks on each platform it claims. When the target's content is code — a diff, a pull request, files, or a paste — quality (logic, error paths, edge cases) runs first by default and proposes chains for the verifier to verify; a document, plan, or claim gets the verifier alone by default. Add others from `${CLAUDE_PLUGIN_ROOT}/agents/` — security, architecture, domain — each for a distinct way this target could fail the goal, up to three lenses in all. Performance and consistency go to the verifier as a named place to look. The report opens with one line naming the lenses that ran and why. A directly quoted claim, or a diff that fits on one screen, is the fast path: no canary and the short report; say that this is the path taken.
 
 When the target's field has an instrument a practitioner would use — a dry run on a copy for a migration, an interleaving for a concurrency change, a known-answer test for numerics, a replay of real data for a parser, the squint test for a page — name it in the dispatch and have it run, not described.
 
@@ -71,7 +71,7 @@ Before extending a review into repeated probes, read `references/verification-ef
 
 Write plain Traditional Chinese: what was reviewed, against which goal, how independently; each problem as its chain（現象／影響／根源／基石／驗證）with the user's next step; each English term explained at first use; no fact the evidence has not established. Report the lenses line, examined scope, problems, evidence, independence, and limits, with one line per standing question（做到了／多做了／做小了）stating its verdict or 未驗證. No problems is not universal correctness; no tests is not an exempt layer; an absent required observation is unverified, not passed. When the host offers a tool for reporting findings, report through it; its specification governs its own fields, and a root or bedrock those fields cannot hold goes in the report text.
 
-The verdict is computed by this rule, printed beside it, never by opinion, and on every path, the fast path included: **PROVEN** when every required check ran — each standing question or criterion answered with evidence, the existing tests executed with their output pasted, each triggered instrument run — and none failed; **NOT PROVEN** when a problem stands, a check failed, or nothing executed; **PARTLY PROVEN** when nothing failed but a required check could not run — a tool absent, no independent pass, a question 未驗證 — each listed as the reason. A verdict is recomputed from this run's evidence, never carried over from an earlier review.
+The verdict is computed by this rule, printed beside it, never by opinion, and on every path, the fast path included: **PROVEN** when every required check ran — each standing question or criterion answered with evidence, the target's own checks executed with their output pasted, each triggered instrument run — and none failed; **NOT PROVEN** when a problem stands, a check failed, or nothing executed; **PARTLY PROVEN** when nothing failed but a required check could not run — a tool or claimed platform absent, no independent pass, a question 未驗證 — each listed as the reason. A verdict is recomputed from this run's evidence, never carried over from an earlier review.
 
 Close with one line the user can act on:
 「review 完成：判定 {PROVEN／PARTLY PROVEN／NOT PROVEN}（{觸發的規則一句}）；{N} 項問題、{U} 項未驗證；獨立性：{獨立／同 context 自檢}；若只能改一處：{那一處的基石，或「無」}。」
