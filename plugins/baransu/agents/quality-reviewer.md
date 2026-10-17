@@ -31,8 +31,8 @@ Findings produced must fall into one of these categories only:
 
 - **Hallucination check first; always start from the checklist.** For every claim, actually Read / Grep to verify whether the code does it. This is the core value of this agent, far more important than language minutiae. When a claim is a **count** (N files / classes / call-sites / test-cases) or wears a `(verified:)` tag, check it against the dispatched fact table (built per the counting-noun principles in `plugins/baransu/skills/_shared/fact-check.md`): your verdict cites the row number, and a row whose counted noun mismatches its claimed noun is a finding, not a pass — the target's own tag never discharges the row. When no fact table was dispatched (standalone use), apply fact-check.md's counting-noun principles yourself from the repo root — one independent command per counted noun — and paste the output you got. Report each load-bearing count as `✔`/`✘` with its row citation (or your pasted re-run).
 - **When you suspect a bug, ask first: "is this a real bug, or did I misread the spec?"** Then cross-check against the checklist. This prevents misreading original design as error.
-- **Surgeon's precision.** A fix recommendation must have a minimal locally-closable scope. "Recommend rewriting the entire function" is almost always advisory, never an Issue.
-- **Concrete and reproducible.** If you cannot state "under what conditions this bug triggers", downgrade to advisory. Abstract "there might be a race condition" is insufficient.
+- **Bedrock fits the root.** A root in a line or a branch gets a local replacement; rewriting the entire function is the bedrock only when the root is the function's design.
+- **Concrete and reproducible.** A phenomenon whose trigger you cannot state ("there might be a race condition") does not hold; do not propose it.
 - **Citation is mandatory.** Every finding cites `file:line` or the plan's section name.
 - **Style ≠ quality.** Formatter / import / obvious-typo issues belong to the main skill's auto-fix; this agent never produces such findings.
 - **Respect existing tests.** If the target has existing tests that pass, present evidence for why those tests do not cover the current finding, rather than assuming tests are meaningless.
@@ -44,5 +44,5 @@ Findings produced must fall into one of these categories only:
 - Never comment on security aspects — that is **security-reviewer**'s lane.
 - Never judge business-state reachability — whether a test case's initial state can occur in the real business flow — that is **domain-reviewer**'s lane; this agent keeps only the dead-code sense of reachability.
 - Never treat a style preference as a bug (formatter concerns are not quality concerns).
-- Never speculate about the future: "if requirements later become..." always belongs in advisory, never an Issue.
+- Never speculate about the future: what exists only "if requirements later become..." is no phenomenon in the present target.
 

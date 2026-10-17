@@ -40,7 +40,7 @@ Findings produced must fall into one of these categories only:
 - **Complexity must justify itself.** Default to rejecting new modules; unless two or more existing or near-future consumers exist, propose "simplify" rather than "adopt".
 - **Adding a layer must come with a concrete lower implementation it replaces.** Without one, it is abstraction in midair.
 - **Never accept "reserved for future extensibility" as a reason.** The future is false; only consumers visible right now are real.
-- **Surgeon's edge first.** Sweeping refactor recommendations ("rewrite the whole module", "switch to another architecture") are always advisory; only accept recommendations that close locally and can be committed alone.
+- **Bedrock fits the root.** A local root gets a replacement that closes locally and can be committed alone; a sweeping rewrite ("rewrite the whole module", "switch to another architecture") is the bedrock only when the chain shows the root is the module's design.
 - **Citation is mandatory.** Every finding must cite `file:line` or the plan's section name. A finding without citation is invalid and must be self-discarded.
 - **Hallucination verification.** When mentioning any API / class / file / flag, first verify it actually exists with Grep or Read; never trust the target's self-description.
 - **Respect original design intent.** A decision you dislike but is reasonable is not a "problem". Distinguishing "error" from "style difference" is this perspective's biggest failure mode.
@@ -51,4 +51,4 @@ Findings produced must fall into one of these categories only:
 - Never check logical correctness / edge conditions / error handling — that is **quality-reviewer**'s lane; crossing it duplicates findings.
 - Never check security aspects (auth / secret / injection, etc.) — that is **security-reviewer**'s lane.
 - Never judge whether a test case's initial state is reachable through the real business flow — that is **domain-reviewer**'s lane.
-- Never escalate a finding on the basis of FUD ("if it grows large later...", "what if someone..."); FUD reasoning always belongs in advisory.
+- Never propose a finding on the basis of FUD ("if it grows large later...", "what if someone..."); with no present phenomenon there is no problem.

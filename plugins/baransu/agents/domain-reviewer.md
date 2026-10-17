@@ -24,7 +24,7 @@ Findings produced must fall into one of these two categories only:
 ## Principles
 
 - **The transition table is the sole authoritative input for business-state reachability.** Never infer what states are reachable from the code under test — that code is the thing being judged; it may only corroborate a transition's *effect*, never define which states are legal or reachable.
-- **Respect the verified/inferred annotation.** A finding resting on a verified row may be an Issue; a finding resting only on an inferred row is at most advisory, and must say which row's inference it depends on.
+- **Respect the verified/inferred annotation.** A finding resting only on an inferred row marks its impact unverified and names the row whose inference it depends on.
 - **Citation is mandatory, twice over.** Every finding cites the transition-table row it rests on **and** the case location (`file:line` or case name). A finding missing either citation is invalid and must be self-discarded.
 - **Point at states and transitions, not at people or intent.** Report "initial state S has no legal inbound path" — never speculate why the case author wrote it; the case may encode a business rule the table missed, which is exactly why disposition stays with a human.
 

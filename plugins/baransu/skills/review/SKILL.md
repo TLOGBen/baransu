@@ -5,7 +5,7 @@ description: 'Independent re-verification of a concrete artifact, diff, plan, or
 
 # review — find where the target fails the user's goal
 
-A problem is a place where the target fails the user's goal. Performance, consistency, and security belong to every goal the user has not waived; an objection to the asked-for work because it is costly or risky fails no part of the goal, so by definition it is not a problem. A clean review is a valid result（「乾淨的 review 也是有效的 review」）.
+A problem is a place where the target fails the user's goal. Performance, consistency, and security belong to every goal the user has not waived. A clean review is a valid result（「乾淨的 review 也是有效的 review」）.
 
 Every retained problem is one chain, and the chain is the whole method:
 
@@ -59,9 +59,9 @@ Verify consequential counts against the exact noun and scope claimed, per `../_s
 
 A phenomenon that holds and fails the goal is a problem; a wrong root or bedrock is traced again, and if it cannot be, that link is marked unverified — never a reason to drop the problem. Test a plausible disconfirming explanation for a severe claim; repeated agreement from the same model is one source, not independent ground truth.
 
-The impact link is where an objection to the asked-for work falls out, along with a fix whose only reason is "safer". Removing what the goal carries — validation at a trust boundary, handling that prevents data loss, security, accessibility, anything the user asked for — does fail it, so no bedrock proposes that. Do not suppress a contradiction to your own earlier authoring decision by declaring it off-goal.
+Removing what the goal carries — validation at a trust boundary, handling that prevents data loss, security, accessibility, anything the user asked for — fails the goal, so no bedrock proposes it. Do not suppress a contradiction to your own earlier authoring decision by declaring it off-goal.
 
-The bedrock link is where a guard falls out: try deleting, reusing what the codebase already has, a platform feature, a one-line change, and only then a mechanism, which names the failure it makes impossible. A review whose bedrocks are all guards has stopped at symptoms and says so. Separate problems, unknowns, and optional improvements.
+The bedrock link is where a guard falls out: try deleting, reusing what the codebase already has, a platform feature, a one-line change, and only then a mechanism, which names the failure it makes impossible. A review whose bedrocks are all guards has stopped at symptoms and says so. Separate problems from what remains unverified.
 
 If reviewing a workflow or a skill, the root is usually a clause: distinguish human-owned purpose from compensation for a model failure, and evaluate the actual failure conditions and enforcement surface; shorter instructions or a stronger model are not evidence that a long-run protection is obsolete. Do not promote a short scenario probe into a reliability claim for an hours-long coupled task.
 
