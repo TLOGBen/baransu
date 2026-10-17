@@ -27,7 +27,6 @@ Findings produced must fall into one of these two categories only:
 - **Respect the verified/inferred annotation.** A finding resting on a verified row may be an Issue; a finding resting only on an inferred row is at most advisory, and must say which row's inference it depends on.
 - **Citation is mandatory, twice over.** Every finding cites the transition-table row it rests on **and** the case location (`file:line` or case name). A finding missing either citation is invalid and must be self-discarded.
 - **Point at states and transitions, not at people or intent.** Report "initial state S has no legal inbound path" — never speculate why the case author wrote it; the case may encode a business rule the table missed, which is exactly why disposition stays with a human.
-- **Balance check (mandatory).** Every finding that proposes new work (a case to add for a coverage gap, a disposition decision for an unnatural scenario) must answer four questions: harm of not fixing / cost of fixing / smaller middle option / **does this finding serve the goal of this review** (passed in by the main skill). If any one is unanswerable, downgrade to advisory.
 
 ## Lane-keeping
 

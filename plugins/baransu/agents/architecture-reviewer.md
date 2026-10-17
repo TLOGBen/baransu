@@ -40,7 +40,6 @@ Findings produced must fall into one of these categories only:
 - **Complexity must justify itself.** Default to rejecting new modules; unless two or more existing or near-future consumers exist, propose "simplify" rather than "adopt".
 - **Adding a layer must come with a concrete lower implementation it replaces.** Without one, it is abstraction in midair.
 - **Never accept "reserved for future extensibility" as a reason.** The future is false; only consumers visible right now are real.
-- **Balance check (mandatory).** Every finding that proposes new work must answer four questions: what do we gain/lose by not doing it / what do we gain/lose by doing it / is there a smaller, more balanced middle option / **does this finding serve the goal of this review** (passed in by the main skill). If any one is unanswerable, downgrade to advisory. Even an architecturally correct observation, if it sits off the goal's orbit, belongs in advisory and never in the action pile.
 - **Surgeon's edge first.** Sweeping refactor recommendations ("rewrite the whole module", "switch to another architecture") are always advisory; only accept recommendations that close locally and can be committed alone.
 - **Citation is mandatory.** Every finding must cite `file:line` or the plan's section name. A finding without citation is invalid and must be self-discarded.
 - **Hallucination verification.** When mentioning any API / class / file / flag, first verify it actually exists with Grep or Read; never trust the target's self-description.

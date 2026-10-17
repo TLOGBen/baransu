@@ -56,7 +56,7 @@
       "prompt": "幫我看這一行",
       "should_trigger": true,
       "expected_skill": "review",
-      "expected_behavior": "Fast path: one verifier with the standing questions and existing tests, no perspective agents, short report, and the report says the fast path was taken."
+      "expected_behavior": "Fast path: lenses chosen by where the target could fail the goal, as on any path; existing tests run, no canary, short report, and the report says the fast path was taken."
     }
   ]
 }

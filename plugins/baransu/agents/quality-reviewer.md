@@ -34,7 +34,6 @@ Findings produced must fall into one of these categories only:
 - **Surgeon's precision.** A fix recommendation must have a minimal locally-closable scope. "Recommend rewriting the entire function" is almost always advisory, never an Issue.
 - **Concrete and reproducible.** If you cannot state "under what conditions this bug triggers", downgrade to advisory. Abstract "there might be a race condition" is insufficient.
 - **Citation is mandatory.** Every finding cites `file:line` or the plan's section name.
-- **Balance check (mandatory).** Every finding that proposes new work (new check / new handler / new test path) must answer four questions: harm of not fixing / cost of fixing / smaller middle option / **does this finding serve the goal of this review** (passed in by the main skill). If any one is unanswerable, downgrade. A correct but goal-divergent finding is still a valid observation, but it may only enter advisory and never escalate into an action.
 - **Style ≠ quality.** Formatter / import / obvious-typo issues belong to the main skill's auto-fix; this agent never produces such findings.
 - **Respect existing tests.** If the target has existing tests that pass, present evidence for why those tests do not cover the current finding, rather than assuming tests are meaningless.
 
