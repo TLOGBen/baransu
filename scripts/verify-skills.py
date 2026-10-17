@@ -91,7 +91,7 @@ FIRST_PERSON_RE = re.compile(r"^(?:I|I'm|I've|My|We|We're|Our)\b")
 # Outcome Contract 四行 + 第五行 Automation 標注
 CONTRACT_KEYS = ("Outcome", "Done when", "Evidence", "Output")
 AUTOMATION_KEY = "Automation"
-CONTRACT_EXEMPT = ("bro", "roger")  # 單句 skill，依使用者指示不帶契約
+CONTRACT_EXEMPT = ("huh", "roger")  # 單句 skill，依使用者指示不帶契約
 
 # ---------------------------------------------------------------------------
 # 檢查 10：loop-pauses 註冊表（常數）

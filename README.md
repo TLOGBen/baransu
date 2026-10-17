@@ -66,7 +66,7 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 <p><i>先把原文完整讀進來，再決定要不要消化成自己的筆記。</i></p>
 <b><code>/baransu:read</code></b>：網頁、檔案、搜尋結果轉成 Markdown；加 <code>--save</code> 才存檔<br>
 <b><code>/baransu:learn</code></b>：評分篩選來源，整理成五欄摘要或完整大綱筆記<br>
-<b><code>/baransu:bro</code></b>：把上一則訊息用白話重講一次，不用術語
+<b><code>/baransu:huh</code></b>：把上一則訊息用白話重講一次，不用術語
 </td>
 </tr>
 <tr>

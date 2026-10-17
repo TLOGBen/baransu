@@ -20,7 +20,7 @@ if (!ROOT) throw new Error('args.root required — pass the baransu repo/worktre
 // list the directory, so the caller SHOULD pass args.skills from `ls`; this
 // fallback is kept in sync by hand (the CLAUDE.md Skills table, checked by
 // scripts/verify-skills.py, is the list authority).
-const ALL = ['bro','codex-skill-transfer','draw','evolve','health','hunt','learn','read','review','roger','ship','think','ui','write']
+const ALL = ['codex-skill-transfer','draw','evolve','health','huh','hunt','learn','read','review','roger','ship','think','ui','write']
 const SKILLS = (Array.isArray(A.skills) && A.skills.length) ? A.skills : ALL
 const MARGIN = (typeof A.margin === 'number') ? A.margin : 2.0   // min per-judge structure-point improvement to adopt
 
