@@ -20,7 +20,7 @@ plugins/
     .claude-plugin/
       plugin.json              # plugin manifest
     skills/
-      think/ review/ write/ ship/ hunt/ health/ read/ learn/ draw/ ui/ codex-skill-transfer/ evolve/ huh/ roger/
+      think/ review/ write/ ship/ hunt/ health/ read/ learn/ draw/ ui/ codex-skill-transfer/ evolve/ huh/ sayagain/
       _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md, fact-check.md, modeling.md, selection-telemetry.md, distillation-candidate-matrix.md) + evals/ scripts/
     rules/
       anti-patterns.md         # cross-skill behavioral guardrails
@@ -52,7 +52,7 @@ Invoke with `/baransu:<name>`. Each row says only when to reach for a skill; its
 | `/codex-skill-transfer` | Porting reference + parity checklist for hand-maintained Claude Code / Codex copies of a skill, plugin, or marketplace: default mode audits a pair and reports gaps; port-by-hand mode edits the Codex copy on request; optional draft script (`transfer.py`) writes only to a scratch dir | Claude→Codex 對照；不做反向移植 |
 | `/evolve` | Improve a SKILL.md against a fixed 9-dim rubric by subtraction: one finding per round names the clause behind an observed failure, the problem it was added for, and a shorter replacement — a new rule must displace one and append-only candidates are refused before judging; forward-only ratchet, blind multi-judge, held-out validation | 寫新 skill 是 authoring 非演化 → 直接撰寫；存廢/價值判斷 → `/think` 存廢判決 (Kill/Keep/Pivot) |
 | `/huh` | Restate the last message in plain human language, with no jargon | 潤飾使用者自己的文字 → `/write` |
-| `/roger` | Restate in plain words what the user's goal is and what problem they are solving, so the user can confirm it was understood | 方向未定、要審議怎麼做 → `/think` |
+| `/sayagain` | Restate in plain words what the user's goal is and what problem they are solving, so the user can confirm it was understood | 方向未定、要審議怎麼做 → `/think` |
 
 ## Three-band routing
 

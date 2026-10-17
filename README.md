@@ -37,7 +37,7 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 <h3><a href="docs/skills/plan.md">構想</a></h3>
 <p><i>動手之前，先把「要什麼」和「怎樣才算做完」說清楚。</i></p>
 <b><code>/baransu:think</code></b>：復述對焦、借鏡、表態、兩向攻擊，留一份計畫，不寫程式<br>
-<b><code>/baransu:roger</code></b>：用白話重述你的目標和想解決的問題，讓你確認它懂了
+<b><code>/baransu:sayagain</code></b>：用白話重述你的目標和想解決的問題，讓你確認它懂了
 </td>
 </tr>
 <tr>
