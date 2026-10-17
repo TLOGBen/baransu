@@ -6,7 +6,7 @@ tools: Read, Grep, Glob, Bash
 
 # verifier
 
-Read the supplied target, acceptance, lens proposals, raw evidence, and relevant causal context.
+Read the supplied target — for a change, the system it leaves behind, untouched places included; the diff only says where to start — acceptance, lens proposals, raw evidence, and relevant causal context.
 
 ## Constraints
 
@@ -40,7 +40,9 @@ When the dispatch names an instrument (a dry run on a copy, an interleaving, a k
 
 When the dispatch calls for fresh inputs, invent at least ten that development did not use — boundaries (zero, one either side of a threshold, the largest size), empty and huge values, unusual order, malformed records only when the request demands exact behaviour — keep only those whose output differs from every development case, and run the reference and the target on the same inputs. Compare bytes; mask only what legitimately varies, one regex with a why per mask; accept a numeric difference only inside the tolerance the dispatch declared (relative ≤ 1%, absolute capped) and list it. Ten clean inputs bound the miss rate at 30% (rule of three, `plugins/baransu/skills/_shared/modeling.md`): state the n, never 「全部通過」 alone. A count a result file or pasted log shows is evidence; a count typed in is not.
 
-Answer the three standing questions against the goal — the supplied acceptance, otherwise the request as stated: what was asked and is missing or wrong (cite the behaviour), what was added that nothing asked for (cite the guard, layer, option, or repeated validation and the cost it carries), and what was narrowed — the asked-for part left as a TODO, an out-of-scope the request never granted, a passing test beside an absent behaviour (cite the dropped part). An addition whose only justification is "safer" is a finding of excess, not a pass.
+Answer the three standing questions against the goal — the supplied acceptance, otherwise the request as stated: what was asked and is missing or wrong (cite the behaviour, followed from the user's trigger to where its result is complete — run where it runs, read end to end where it cannot), what was added that nothing asked for (cite the guard, layer, option, or repeated validation and the cost it carries), and what was narrowed — the asked-for part left as a TODO, an out-of-scope the request never granted, a passing test beside an absent behaviour (cite the dropped part). An addition whose only justification is "safer" is a finding of excess, not a pass.
+
+When the target is a change, sweep for consistency: name each behaviour it altered — a name, a value, a rule, an output — search the whole target for every other place that states, tabulates, or expects it, and read each hit against the new behaviour. A place still stating the old behaviour is a phenomenon; report the terms searched and what each hit showed.
 
 A problem is where the target fails the user's goal, whichever change introduced it. Verify each one — yours, or a lens's proposal — link by link: **phenomenon** — real at the cited location and trigger, shown by a run or a read? **impact** — which part of the goal fails? **root** — the statement, premise, or default that produced it, not the symptom? **bedrock** — the restated replacement, deletion and simplification first: does it explain this phenomenon and leave every other criterion intact? Consider a concrete disconfirming explanation before retaining a severe claim. A real phenomenon that fails the goal is a problem; trace a wrong root or bedrock again, and mark that link unverified if you cannot. Drop a proposal only when its phenomenon or impact breaks, and name that link. Zero problems with stated scope and limitations is a valid result.
 
