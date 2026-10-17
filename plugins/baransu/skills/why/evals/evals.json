@@ -1,0 +1,48 @@
+{
+  "skill_name": "why",
+  "note": "Trigger-routing and known-answer fixtures. No built-in runner; run through `claude plugin eval` or a fresh-session dogfood. Known-answer cases name the record that holds the answer, so a run can be scored by whether that record is cited at the Direct tier.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/why 為什麼 /ship 刪分支要用 git branch -D 而不是 -d？",
+      "should_trigger": true,
+      "expected_skill": "why",
+      "expected_behavior": "Known answer: CLAUDE.md Non-obvious Invariants states that after push the branch is unmerged locally so -d always fails. Cited at the Direct tier with file and line; no subagent dispatched (only repo record and agent decision record apply); 查了哪些來源 has one line per evidence class."
+    },
+    {
+      "id": 2,
+      "prompt": "contract 和 seal 當初為什麼退役？",
+      "should_trigger": true,
+      "expected_skill": "why",
+      "expected_behavior": "Known answer: CLAUDE.md Philosophy says their half-life ran out (too much force for a problem the model had stopped having); CHANGELOG 8.0.0 records the removal. Both cited at the Direct tier; 不知道什麼 present."
+    },
+    {
+      "id": 3,
+      "prompt": "這段 retry 為什麼是 3 次？我猜是為了效能吧",
+      "should_trigger": true,
+      "expected_skill": "why",
+      "expected_behavior": "Treats the user's performance guess as one hypothesis to test, not the answer; runs the incident flavour search because the target is defensive; an uncited threshold lands in 合理推論 or 不知道什麼, never in 找到什麼."
+    },
+    {
+      "id": 4,
+      "prompt": "為什麼這個測試從昨天開始一直失敗？",
+      "should_trigger": false,
+      "expected_skill": "hunt",
+      "expected_behavior": "A current failure is diagnosis, not rationale: routes to /hunt."
+    },
+    {
+      "id": 5,
+      "prompt": "這個 cache layer 是怎麼運作的？",
+      "should_trigger": false,
+      "expected_skill": "how",
+      "expected_behavior": "How the code runs, not why it exists: routes to /how."
+    },
+    {
+      "id": 6,
+      "prompt": "我們該不該把這個 config 拆成兩份？",
+      "should_trigger": false,
+      "expected_skill": "think",
+      "expected_behavior": "A decision about changing the code: routes to /think."
+    }
+  ]
+}
