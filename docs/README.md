@@ -2,7 +2,7 @@
 
 [← 回首頁](../README.md)
 
-baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重的決策不省思考」這套平衡哲學，包成一個 Claude Code plugin（另有手動維護的 Codex 版）。共 14 個 skill，每個都有清楚的觸發界線——什麼能省、什麼一定要做。
+baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重的決策不省思考」這套平衡哲學，包成一個 Claude Code plugin（另有手動維護的 Codex 版）。共 15 個 skill，每個都有清楚的觸發界線——什麼能省、什麼一定要做。
 
 首頁只講概念；這裡放完整參考。
 
@@ -18,7 +18,7 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 
 ## Skill 參考
 
-14 個 skill 分成五個家族。每頁列出每個 skill 的用途、觸發語、參數、產出位置與不適用的情況。
+15 個 skill 分成五個家族。每頁列出每個 skill 的用途、觸發語、參數、產出位置與不適用的情況。
 
 | 家族 | Skill | 一句話 |
 |---|---|---|
@@ -43,6 +43,7 @@ repo 根目錄目前沒有授權檔。以下子模組 vendored 自第三方專�
 
 - `/draw`：`plugins/baransu/skills/draw/NOTICE.md`（diagram、map、手繪動畫等來源與授權清單），各子目錄另附 `LICENSE`。
 - `/ui`：`plugins/baransu/skills/ui/NOTICE.txt`。
+- `/domain-modeling`：`plugins/baransu/skills/domain-modeling/NOTICE.txt`（MIT，Matt Pocock），授權全文在同目錄 `LICENSE.txt`。
 - `/codex-skill-transfer`：SKILL.md frontmatter 標示 `license: Apache-2.0`。
 
 ## 圖片

@@ -5,6 +5,7 @@
 ## [8.3.0] - 2026-10-17
 
 - 新增單句 skill `/huh`（白話重述上一則訊息）與 `/sayagain`（白話重述使用者的目標）；移除「技能數上限」理念，`verify-skills.py` 改為比對技能目錄與 CLAUDE.md skill 表。
+- 新增 `/domain-modeling`：把 common plugin 的同名 skill（MIT，Matt Pocock）收進 baransu，負責維護 `CONTEXT.md`／`CONTEXT-MAP.md` 詞彙表與 `docs/adr/` 決策紀錄，能力全數保留，附 `NOTICE.txt`／`LICENSE.txt`；`/think` 的用詞與 ADR 兩句改成指向它（`/think` 只審議、不寫專案檔），Codex 版同步。
 
 ## [8.2.1] - 2026-10-16
 

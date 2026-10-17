@@ -6,7 +6,7 @@
 
 <p align="center"><b>バランス。動手前先想，做完後驗證。</b></p>
 
-<p align="center">14 個 skill · Claude Code 與 Codex · v8.3.0</p>
+<p align="center">15 個 skill · Claude Code 與 Codex · v8.3.0</p>
 
 Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引用。7.3.3 修正圖示路徑，既有安裝需更新 plugin。
 
@@ -37,7 +37,8 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 <h3><a href="docs/skills/plan.md">構想</a></h3>
 <p><i>動手之前，先把「要什麼」和「怎樣才算做完」說清楚。</i></p>
 <b><code>/baransu:think</code></b>：復述對焦、借鏡、表態、兩向攻擊，留一份計畫，不寫程式<br>
-<b><code>/baransu:sayagain</code></b>：用白話重述你的目標和想解決的問題，讓你確認它懂了
+<b><code>/baransu:sayagain</code></b>：用白話重述你的目標和想解決的問題，讓你確認它懂了<br>
+<b><code>/baransu:domain-modeling</code></b>：邊設計邊把專案用詞磨精確、寫進 <code>CONTEXT.md</code>，難回頭的決定記成 ADR
 </td>
 </tr>
 <tr>
