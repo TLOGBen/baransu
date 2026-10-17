@@ -40,7 +40,7 @@ This exception is intentional. The skill's purpose is language-targeted copywrit
 
 ## Direct language and response shape
 
-Use literal wording when it conveys the intended meaning. Do not substitute metaphor, flourish, or mannered phrasing for a direct statement: it adds unintended connotations and distracts from the point. This applies to technical prose as well as ordinary copy. Preserve a figurative phrase only when the user explicitly requests it or it is necessary to the source text's meaning.
+Say what the thing does, not how it feels: name the mechanism, the number, or the instruction (「`.toSQL()` 回傳實際送進資料庫的那串 SQL」, not 「看得懂的 SQL」). Test each sentence twice: can it be restated as a concrete fact, instruction, or number, and would it read unchanged in another project's text? A sentence that fails the first test or passes the second says nothing about this subject; rewrite it or cut it. The concrete detail must come from the source text or the user. When neither has it, never invent one: in Refine, name the missing detail in 修正說明 so the user can re-invoke with it, or cut the sentence; in Generate, write shorter. A fabricated specific is worse than the vague original. Literal wording follows from the same rule: metaphor, flourish, personified code, and mannered phrasing add connotations nobody chose. Keep a figurative phrase only when the user asks for it or the source text's meaning depends on it. This applies to technical prose and ordinary copy, in both languages.
 
 Use lists only when the user asks for them or when the content has enough distinct parts that a list makes it clearer. When the user requests minimal formatting, use plain paragraphs without headings, bullets, lists, or bold emphasis. In conversational, personal, or emotional writing, use plain prose.
 
@@ -82,7 +82,7 @@ When the user is clarifying intent or asking a clarification question rather tha
 #### Anti-AI voice
 
 5. **No binary opposition**: Avoid standalone "It's not X, it's Y" sentence constructions that exist purely as rhetorical contrast. The ban targets the gesture, not the wording: any construction that first plants a misunderstanding the reader never had, then overturns it to inflate the next claim, counts as a hit — "The real question isn't X", "You'd think X, but", "It's less about X than Y", "X matters less than Y" included. State the judgment directly and put the evidence beside it: "She wasn't mourning the past. She was grieving a childhood where stories still had endings."
-6. **Anchor claims**: Replace vague time/place/person references ("a friend once told me", "one afternoon", "in this busy city") with specifics: a name, a date, a location. Vague anchors signal fabricated experience.
+6. **Anchor claims**: Replace vague time/place/person references ("a friend once told me", "one afternoon", "in this busy city") with specifics — a name, a date, a location — taken only from the source text or the user. Vague anchors signal fabricated experience, and an invented specific is worse; without real material, flag the anchor in 修正說明 or cut it.
 7. **No nominalization chains**: Prefer verbs and concrete phrases over noun-phrase stacks. "The exploration of one's identity" → "figuring out who you are". "The cultivation of resilience" → "learning to keep going".
 8. **Em-dash tiering**: the em-dash U+2014 (—) is hard-banned in en output, with no exceptions. The en-dash U+2013 (–) is banned except inside numeric ranges (pages 3–5, 2010–2020). When a dash would join two clauses, use a period, a colon, or a comma, or restructure into two sentences. (The dash characters in this rule are mentions of the banned glyphs, not uses.)
 
@@ -127,7 +127,7 @@ Classify the input as **Refine**, **Generate**, or **Proofread**.
 
 **Refine** when:
 - The input is an existing text body (declarative prose, an email draft, a paragraph, a product description).
-- The input contains an explicit refine keyword (潤色、改寫、修改、revise、edit、improve、polish) **paired with** an attached text body.
+- The input contains an explicit refine keyword (潤色、潤稿、改寫、修改、revise、edit、improve、polish) **paired with** an attached text body.
 
 **Generate** when:
 - The input is a request prompt with no attached text body ("幫我寫一封…", "write a…", "draft a…", "compose a…").
@@ -154,7 +154,7 @@ Report classification to the user in one line before proceeding:
 
 Apply the rule set for the detected language (zh rules or en rules from the embedded sets above).
 
-Also read `references/writing-principles.md` for the detected language and, for each principle listed there, apply it if and only if the input contains at least one matching instance; when a principle matches, it MUST emit a style tag to the 修正說明 (e.g., `動詞直用`、`具象優先`、`Cut filler`、`Short words`) — a principle that matched but produced no tag is a missed application.
+Also read `references/writing-principles.md` — the shared section plus the detected language's section — and, for each principle listed there, apply it if and only if the input contains at least one matching instance; when a principle matches, it MUST emit a style tag to the 修正說明 (e.g., `動詞直用`、`具象優先`、`Cut filler`、`Short words`) — a principle that matched but produced no tag is a missed application. One change carries one tag: when several principles motivate the same edit, use the most specific, and a sentence cut whole carries the tag that cut it.
 
 Additionally, read context cues (salutation style, register of existing vocabulary, audience implied by content) to derive tone, then apply that tone by substituting **register-bearing tokens only** — salutations, closings, and modal/politeness words (e.g. 您好／嗨、敬上／掰、請／麻煩；Dear/Hi, Regards/Cheers, kindly/please). Do NOT alter content nouns or verbs (the words that carry the message's subject matter and actions) for tone reasons — those change only when a mechanical rule dictates it. This bounds tone adjustment to a determinate edit set: the Formal/Conversational Signal→Tone mapping rewrites only the register-bearing slots, never the substance. Derive tone by applying the **same Signal→Tone mapping as Stage 3's Tone-detection table** (no separate criterion): a 正式／商務／business signal → Formal; a 朋友／輕鬆／casual／口語 signal → Conversational; no signal → leave word choice unchanged and apply the mechanical rules only. Tone adjustment is supplementary — it does not override mechanical rule application.
 
@@ -197,8 +197,8 @@ A **valid selection** is one or more listed change-point numbers, or the exact s
 - [規則標記]：[具體改動說明]
 ```
 
-Rule tag examples for zh: `空格規則`、`標點規則`、`數字規則`、`專有名詞`、`語氣調整`、`動詞直用`、`「的」克制`、`具象優先`、`空洞形容詞`、`密度克制`、`禁對仗句`、`感官錨點`、`禁排比`、`禁名詞化`、`敘事錨點`、`假細節`、`破折號軟規則`、`段末總結`、`升華句`、`套話連接`、`節奏指紋`、`連接詞過密`、`同義迴避`、`動作留白`、`抒情包裝`、`黑話禁詞`、`voice 套用`.
-Rule tag examples for en: `Oxford comma`、`Active voice`、`Sentence length`、`Parallel structure`、`Tone`、`No stale metaphors`、`Cut filler`、`Short words`、`One idea`、`No binary opposition`、`Anchor claims`、`No nominalization chains`、`Em-dash`、`Repeat the word`、`Rhythm variance`、`Voice applied`.
+Rule tag examples for zh: `空格規則`、`標點規則`、`數字規則`、`專有名詞`、`語氣調整`、`動詞直用`、`「的」克制`、`具象優先`、`空洞形容詞`、`密度克制`、`禁對仗句`、`感官錨點`、`禁排比`、`禁名詞化`、`敘事錨點`、`假細節`、`破折號軟規則`、`段末總結`、`升華句`、`套話連接`、`節奏指紋`、`連接詞過密`、`同義迴避`、`動作留白`、`抒情包裝`、`黑話禁詞`、`客服腔`、`模糊出處`、`避險堆疊`、`格式痕跡`、`過度壓縮`、`講機制`、`voice 套用`.
+Rule tag examples for en: `Oxford comma`、`Active voice`、`Sentence length`、`Parallel structure`、`Tone`、`No stale metaphors`、`Cut filler`、`Short words`、`One idea`、`No binary opposition`、`Anchor claims`、`No nominalization chains`、`Em-dash`、`Repeat the word`、`Rhythm variance`、`AI lexicon`、`Hollow tails`、`Rule of three`、`Format tells`、`Chatbot framing`、`Vague attribution`、`Hedge stacking`、`Over-compression`、`Say the mechanism`、`Voice applied`.
 
 If no rules were triggered and no tone adjustment is needed, output:
 > 「文字已符合規則，無需修改。」
@@ -207,7 +207,7 @@ If no rules were triggered and no tone adjustment is needed, output:
 
 ## Stage 3 — Execute: Generate path
 
-Before generating, read `references/writing-principles.md` for the detected language. Apply those principles while composing — do not generate first and revise after.
+Before generating, read `references/writing-principles.md` — the shared section plus the detected language's section. Apply those principles while composing — do not generate first and revise after.
 
 **Format detection** from topic keywords in the request:
 
