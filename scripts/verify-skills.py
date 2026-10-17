@@ -177,11 +177,6 @@ RESIDUE_WHITELIST = (
     ("draw 索引引用 vendored 標題 bridge / hop", "draw/references/INDEX.md", re.compile(r"bridge / hop")),
     ("draw 索引引用 vendored 標題 bridge / hop", "draw/references/index.json",
      re.compile(r"bridge / hop|^\s*\"bridge\",$")),
-    (
-        "transfer.py 歷史註解",
-        "codex-skill-transfer/scripts/transfer.py",
-        re.compile(r"CRON\.md"),
-    ),
 )
 
 
@@ -437,7 +432,7 @@ def check_manifest_versions():
             versions["marketplace.json"] = entry.get("version") or doc.get(
                 "metadata", {}
             ).get("version")
-    # 第三發行面：codex 鏡像 manifest（由 transfer.py 重產；缺檔即違規，
+    # 第三發行面：codex 鏡像 manifest（手動維護；缺檔即違規，
     # 因為鏡像是發行物的一部分，不可在 bump 後遺留舊版）
     try:
         codex_doc = json.loads(CODEX_MANIFEST.read_text(encoding="utf-8"))

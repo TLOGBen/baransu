@@ -30,9 +30,20 @@ docs/                            # 本文件
 ## Claude 版與 Codex 版
 
 - 兩邊並列手動維護，各自是自己平台的正本。
-- Claude 版有改動時，**同一次變更**一併同步到 `codex/plugins/baransu/`，以 `/baransu:codex-skill-transfer` 當對照表與檢查清單。
-- `transfer.py` 是選用的草稿工具，只輸出到暫存目錄，不覆蓋 `codex/`。
-- 內容是否正確移植由檢查清單負責；`make parity-check` 只檢查結構：檔案逐一對應、兩份 manifest 版本一致。
+- Claude 版有改動時，**同一次變更**一併同步到 `codex/plugins/baransu/`。平台規則（Codex 讀哪些欄位、工具怎麼對應、agent 怎麼派）不寫在這裡，也不寫進 skill，一律用 `/baransu:codex-skill-transfer` 即時查兩邊的官方文件和 Codex 原始碼；它只留下方法，以及官方沒寫的事實清單（`references/unverified-facts.md`）。
+- 內容是否正確移植由這個 skill 的稽核負責；`make parity-check` 只檢查結構：檔案逐一對應、兩份 manifest 版本一致。
+
+### 本 repo 的鏡像慣例
+
+這些是 baransu 自己的規定，不是平台規則。
+
+- **檔案逐一對應**：`plugins/baransu/skills/**` 和 `codex/plugins/baransu/skills/**` 同路徑一對一。只有 `agents/openai.yaml` 和 `assets/icon-*.png` 可以只存在於 Codex 版。共用檔留在 `skills/_shared/`，不要複製進個別 skill；也不要為了 Codex 把 skill 改成自給自足的結構。
+- **agent**：`plugins/baransu/agents/<name>.md` 對應 `codex/plugins/baransu/.codex-agents/<name>.toml`（`name`、`description`、`developer_instructions`）。Codex plugin 不會自動註冊 agent，所以會派 agent 的 skill，在 Codex 版加一段「Codex Port Adapter - Bundled Agent Resolution」：把 TOML 的路徑交給一般 subagent，並且不帶 parent 的對話紀錄（`fork_turns="none"`；`spawn_agent` 預設會繼承整段對話）。
+- **呼叫語法**：`/baransu:x`，以及指 baransu skill 的 `/x`，改成 `$baransu:x`；references 和 scripts 裡的字串也要改。
+- **skill 自己的工作目錄**：`.claude/<skill>/` 改成 `.codex/<skill>/`。但路徑如果是 skill 處理的**對象**，就照原樣不改，例如 `/health` 要稽核的 `~/.claude/projects/<slug>/memory/`、`.claude/settings.local.json`。`CLAUDE.md` 也一樣：指「agent 讀的指令檔」時改成 `AGENTS.md`，指 Claude Code 的設定檔時不改。
+- **frontmatter**：Codex 只讀 `name`、`description`、`metadata.short-description`。`when_to_use` 要併進 `description`，觸發詞一個都不能少，因為 Codex 只靠 `description` 判斷要不要叫出 skill。`compatibility: Designed for Claude Code; ported to Codex.` 和 `metadata.version: 0.1.0-codex` 是舊慣例，Codex 不會讀，目前有些 skill 有、有些沒有；要保留還是統一拿掉，還沒決定。
+- **防慣性停點**：Claude 版有 AskUserQuestion 輸入停點的 skill，Codex 版要加「Codex Port Adapter - Request User Input Gate」段（寫法照 `think` 的 Codex 版）：有 `request_user_input` 就用，沒有就用文字提問，然後停下來等回答。授權停點一律是硬停。
+- **manifest**：`codex/plugins/baransu/plugin.json` 是 root 形式，介面設定放在 `extensions."com.openai".interface`；`version` 要和 Claude 版一致。
 
 ## 驗證
 

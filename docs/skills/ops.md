@@ -91,25 +91,24 @@ Claude Code：`/baransu:evolve`　Codex：`$baransu:evolve`
 
 Claude Code：`/baransu:codex-skill-transfer`　Codex：`$baransu:codex-skill-transfer`
 
-**用途**　Claude 版與 Codex 版並列手動維護時的移植對照表＋對齊檢查清單；另附選用的草稿腳本。
+**用途**　Claude 版與 Codex 版並列手動維護時，即時查兩邊的官方文件和 Codex 原始碼，用來移植或檢查是否對齊。skill 裡只有方法，以及一份官方沒寫的事實清單；不再附對照表和轉換腳本。
 
 **什麼時候用**
 - 一份 skill、plugin 或 marketplace 同時有 Claude Code 與 OpenAI Codex 兩份手動維護的版本，要檢查是否對齊或要移植。
 - Claude→Codex 欄位對照問題：`disable-model-invocation`、context fork、`ARGUMENTS`、`plugin.json` 等。
 - 觸發語：轉成 codex 版、給 codex 用、port to codex、檢查 codex 版。
 
-**四種模式**
+**三種模式**
 
 | 模式 | 做什麼 |
 |---|---|
-| Checklist（預設） | 唯讀；輸入一對 Claude／Codex 目錄，輸出落差報告 |
-| Port by hand | 依要求手動修改 Codex 版，並與 Claude 版一起升版 |
-| Generate（選用） | `transfer.py` 只寫到暫存目錄，不得覆蓋手動維護的 Codex 版 |
-| Reference question | 回答對照問題 |
+| Audit（預設） | 唯讀；輸入一對 Claude／Codex 目錄，輸出落差報告 |
+| Port | 依要求修改 Codex 版，改完再做一次 Audit |
+| Question | 回答單一對照問題，附來源 |
 
-**檢查清單涵蓋**　skill 欄位（Codex 只讀 `name`／`description`／`metadata.short-description`）、內文路徑變數改相對路徑、`$plugin:skill` 呼叫、工具改寫、額外資料夾（如 `templates/`）一律保留；plugin manifest、bundled agent、hooks；Claude 專用元件（mods、monitors、userConfig 等）；marketplace 讀取順序；版本與快取。對照基準：Claude Code 2.1.293、Codex CLI 0.161.0（2026-10-08）；推論或官方未公布的項目會明確標註。
+**做法**　先列出來源實際有哪些元件，記下 `claude --version` 和 Codex 最新 release tag；每種元件去對應的官方頁查，官方文件沒寫的去讀該 tag 的 Codex 原始碼；照 repo 自己的鏡像慣例（baransu 寫在 [開發指南](../development.md#本-repo-的鏡像慣例)）；只改結構、不改內容，防慣性的停點要搬到 Codex 也停得住的地方。每條規則都附網址或 `path@tag`，查不到就標待查，不憑記憶補。
 
-**產出**　繁中對照報告（一致／需修正／刻意省略／降級風險／待查），以及（依模式）手動修改後的 Codex 版或暫存目錄中的草稿。
+**產出**　繁中對照報告（一致／需修正／刻意省略／降級風險／待查），以及依要求修改後的 Codex 版。
 
 **不適用**
 - 反向移植（Codex→Claude）

@@ -2,14 +2,13 @@
 # -*- coding: utf-8 -*-
 """verify-codex-parity.py — 手動維護的 Codex 版與 Claude 版逐檔配對檢查。
 
-Codex 版（codex/plugins/baransu/）改為手動維護後，不再以 transfer.py 重產比對；
-本腳本只檢查「結構上沒有漏同步」：
+Codex 版（codex/plugins/baransu/）是手動維護的；本腳本只檢查「結構上沒有漏同步」：
 
   1. plugins/baransu/skills/** 每個檔案在 codex/plugins/baransu/skills/** 有同路徑對應，
      反之亦然；CODEX_ONLY 樣式（skill 內的 agents/openai.yaml 與 assets/icon-*.png）允許只存在於 Codex 版。
   2. Claude 版 plugin.json 與 Codex 版 plugin.json 的 version 相同。
 
-內容是否正確移植不在本腳本範圍——那是 /codex-skill-transfer 檢查清單的工作。
+內容是否正確移植不在本腳本範圍——那是 /codex-skill-transfer 稽核的工作（慣例見 docs/development.md）。
 
 用法：
   python3 scripts/verify-codex-parity.py                       # repo 預設路徑

@@ -1,0 +1,14 @@
+# Facts no official source states
+
+Everything else this skill relies on is looked up live (SKILL.md Step 2). These entries are the exceptions: derived from the Codex source or from testing, or not documented at all. Each carries its label, the date it was last checked, where it came from, and how to re-verify it. Re-verify before relying on one; when the source now states the fact, delete the entry.
+
+1. Codex runs no `$ARGUMENTS`, positional-argument, or bang-injection preprocessing on skill text; write "the value the user gave" / "run these commands and read their output first" instead — *(inferred)* — 2026-10-08 — neither the skill parser nor the catalog prompt substitutes anything — grep `codex-rs/skills/src/` at the current tag for argument substitution.
+2. Codex substitutes no variables in skill text; relative paths resolve from the `SKILL.md` directory, and a command that needs an absolute path should first resolve where `SKILL.md` lives — *(inferred)* — 2026-10-08 — same source and check as 1.
+3. A Claude mod's `hooks/hooks.json` (`{"modules": [...]}`) copied into a Codex plugin is picked up by Codex's hook discovery and fails to load as lifecycle hooks — *(inferred breakage)* — 2026-10-17 — `codex-rs/hooks/src/engine/discovery.rs` reads plugin `hooks/hooks.json`; the exact warning is untested — re-read discovery.rs. Keep mods out of the Codex catalog.
+4. With no Codex catalog, Codex falls back to `.claude-plugin/marketplace.json` and loads Claude-shaped plugins, mods included — *(inferred consequence)* of the lookup order in `codex-rs/core-plugins/src/marketplace.rs` — 2026-10-08 — re-read that lookup list.
+5. Skill folders beyond `scripts/`, `references/`, `assets/` are kept and work — *(inferred: no documented rejection)* — 2026-10-08 — re-check build-skills.md and the skill loader.
+6. Codex has no fetch tool; fetch URLs with a shell command — *(inferred: none documented)* — 2026-10-08 — re-check the tools listed in `https://learn.chatgpt.com/docs/llms.txt`.
+7. The installed plugin cache path (`~/.codex/plugins/cache/<marketplace>/<plugin>/<version>/`) changes with every version, so a user-config `config_file` pointing into the cache breaks on upgrade — *(inferred)* — 2026-10-08 — check the cache tree after an upgrade.
+8. Whether a `+build` semver suffix is a valid cache path segment — *(unpublished)* — avoid it, or install once and check.
+9. Whether Codex recopies a plugin whose version is unchanged but whose content changed — *(unpublished)* — always bump the version.
+10. Whether a Codex subagent spawned without parent history (`fork_turns="none"`, or `fork_context=false` on the older tool) is truly isolated from the parent's memory — **unverified**; no probe has been run — run the same review task with and without it and compare what the subagent knows.

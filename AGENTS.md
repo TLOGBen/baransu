@@ -6,7 +6,7 @@
 
 ## Notes for non-Claude agents
 
-- The Codex copy of the skills lives under `codex/plugins/baransu/skills/` and is maintained by hand alongside the Claude side: mirror every Claude-side change into it in the same change, using `/baransu:codex-skill-transfer` as the porting reference and checklist. Its `scripts/transfer.py` is an optional drafting helper — run it only into a scratch directory, never over `codex/`.
+- The Codex copy of the skills lives under `codex/plugins/baransu/skills/` and is maintained by hand alongside the Claude side: mirror every Claude-side change into it in the same change, following the repo's mirror conventions in `docs/development.md` and using `$baransu:codex-skill-transfer` to look platform rules up in both vendors' current docs and the Codex source.
 - Skill bodies are English; all user-facing output is 繁體中文. Do not change this convention.
 - Plugin manifests: `.claude-plugin/marketplace.json` (repo root, catalog) and `plugins/baransu/.claude-plugin/plugin.json` (manifest, authoritative version). Never merge them.
 

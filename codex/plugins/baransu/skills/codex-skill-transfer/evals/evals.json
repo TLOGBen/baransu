@@ -1,27 +1,27 @@
 {
   "skill_name": "codex-skill-transfer",
-  "note": "Data-only trigger-routing fixtures (plugin-wide-6 / batch C4). There is no built-in eval runner; these cases are the fresh-session A/B baseline corpus recorded BEFORE the C1 description POV batch. Post-run user-verification artifact, not a merge gate.",
+  "note": "Data-only trigger-routing fixtures (plugin-wide-6 / batch C4). There is no built-in eval runner; these cases are the fresh-session A/B baseline corpus recorded BEFORE the C1 description POV batch. Post-run user-verification artifact, not a merge gate. Expected behaviours rewritten for 0.20.0 (live sources instead of a mapping snapshot).",
   "evals": [
     {
       "id": 1,
       "prompt": "把 /think 轉成 codex 版",
       "should_trigger": true,
       "expected_skill": "codex-skill-transfer",
-      "expected_behavior": "Port-by-hand mode for a single skill: walks the Step 3.1 skill checklist (frontmatter Codex reads, relative paths, $plugin:skill invocation, tool rewrites, extra folders kept) and writes or updates the Codex copy by hand; the script is not the default path."
+      "expected_behavior": "Port mode for a single skill: lists the component kinds present, looks each up in the current official docs (and the Codex source at the release tag where the docs are silent), follows the repo's mirror conventions, changes only structure while keeping every trigger phrase and the alignment tooth, then audits the result and runs the parity script."
     },
     {
       "id": 2,
       "prompt": "Port this plugin to codex so my teammate can use it",
       "should_trigger": true,
       "expected_skill": "codex-skill-transfer",
-      "expected_behavior": "Plugin shape: walks checklist sections 3.1-3.3 and 3.5 — manifest format choice, bundled-agent option A/B/C (Codex plugins do not register agents), hooks reduced to the 12 Codex events, Claude-only components (mods, monitors, userConfig, dependencies, LSP) removed and recorded, both versions bumped."
+      "expected_behavior": "Plugin shape: records the Claude Code and Codex versions, looks up manifest, bundled agents, hooks, and Claude-only components at their current sources, records author-owned choices under 待查 instead of picking, names every omitted component, and cites a URL or path@tag for each rule."
     },
     {
       "id": 3,
       "prompt": "porting 到 Codex 時 disable-model-invocation 要怎麼對應？",
       "should_trigger": true,
       "expected_skill": "codex-skill-transfer",
-      "expected_behavior": "Field-mapping question (disable-model-invocation / context fork / ARGUMENTS / plugin.json) is in scope."
+      "expected_behavior": "Question mode: answers this one mapping from the current Codex docs or source, citing it, rather than from memory."
     },
     {
       "id": 4,
@@ -49,7 +49,7 @@
       "prompt": "幫我檢查 codex/plugins 底下的 Codex 版跟 Claude 版有沒有對齊",
       "should_trigger": true,
       "expected_skill": "codex-skill-transfer",
-      "expected_behavior": "Checklist mode (default, read-only): compares the hand-maintained pair and returns the 繁中 parity report with per-item status and Next-port follow-ups; edits nothing."
+      "expected_behavior": "Audit mode (default, read-only): compares the hand-maintained pair against the platforms' current sources and the repo's mirror conventions, returns the 繁中 parity report with a source for every rule and Next-port follow-ups; edits nothing."
     }
   ]
 }

@@ -9,7 +9,7 @@ test:
 # Codex parity gate. The Codex copy under codex/plugins/baransu/ is maintained
 # by hand (see AGENTS.md); this checks that every skill file has a counterpart
 # on the other side (Codex-only agents/openai.yaml allowed) and that the two
-# manifest versions match. It never runs transfer.py. Deliberately NOT part of
+# manifest versions match. It checks structure only. Deliberately NOT part of
 # `make test` — mid-development edits may lag on one side. There is no CI and
 # no cron in this repo: `make ship-check` below is the one entrypoint that runs it.
 parity-check:

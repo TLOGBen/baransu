@@ -2,6 +2,20 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.4.0] - 2026-10-17
+
+### Changed（`/codex-skill-transfer` 0.20.0：從快照對照表改成即時查官方來源）
+- **對照表和轉換腳本退役**：四份對照表（`skill-mapping.md`、`plugin-mapping.md`、`agent-mapping.md`、`marketplace-mapping.md`）是 2026-10-08 那天兩邊規則的快照（Claude Code 2.1.293／Codex 0.161.0）；九天後本機已是 Claude Code 2.1.302、Codex 最新 release 0.163.0。另外刪掉 `CODEX_PORT_PLAN.md`、`scripts/transfer.py`、`assets/` 的兩個 template；「保留牙齒、不降級成提示」這條原則濃縮進 SKILL.md。整個 skill 從 219,832 字元縮到 16,372 字元（約 7.4%），Codex 版同步。
+- **SKILL.md 只留方法**：列出來源實際有的元件 → 記下兩邊版本 → 每種元件去對應的官方頁查，文件沒寫的去讀該 release tag 的 Codex 原始碼（附網址對照表）→ 照 repo 自己的鏡像慣例 → 只改結構、保留每個觸發詞與防慣性停點 → 報告的每條規則都附網址或 `path@tag`。模式從四種改成三種：Audit（預設、唯讀）、Port、Question；Generate 模式隨 `transfer.py` 拿掉。
+- **新增 `references/unverified-facts.md`**：只收官方文件和原始碼都沒寫明、靠推論或實測得到的 10 條事實，每條附日期、出處和重新驗證的方法。`loop-pauses.md` 移除 Generate 模式的兩列，新增「官方頁或原始碼抓不到 → 標待查、不憑記憶補」。evals 第 1、2、3、7 題的預期行為改成方法層的描述。
+- **依據**：用 `health`（含 3 個 inspector）和 common-dev-plugin 的 `common-mod` 做三組對照。只說「轉成 Codex 版」的那組，盲評判了 3 項平台事實錯誤：description 的 20 個觸發詞只留 3 個；派 inspector 時沒指定 `fork_turns="none"`，而 Codex 原始碼寫明預設會繼承整段 parent 對話。照新方法的那組 0 項。所以保留精簡的 skill，不整個退役。
+
+### Added
+- `docs/development.md` 新增「本 repo 的鏡像慣例」：檔案逐一對應、共用檔留在 `skills/_shared/`、agent 對應 `.codex-agents/*.toml`、`$baransu:` 前綴、`.codex/` 工作目錄（但 skill 處理的對象路徑不改）、frontmatter 觸發詞不能少、Request User Input Gate、manifest 版本一致。原本這些只存在於轉換腳本和對照表裡。
+
+### Changed（連動）
+- `CLAUDE.md` skill 表、`AGENTS.md`、`docs/skills/ops.md`、`Makefile` 與兩支驗證腳本的註解，拿掉 `transfer.py` 與「對照表／檢查清單」的說法；`scripts/verify-skills.py` 刪掉只為 `transfer.py` 存在的殘留白名單條目。
+
 ## [8.3.0] - 2026-10-17
 
 - 新增單句 skill `/huh`（白話重述上一則訊息）與 `/sayagain`（白話重述使用者的目標）；移除「技能數上限」理念，`verify-skills.py` 改為比對技能目錄與 CLAUDE.md skill 表。
