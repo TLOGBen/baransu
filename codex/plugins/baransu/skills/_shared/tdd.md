@@ -26,10 +26,13 @@ Each principle gives the original key point first, then the baransu context mapp
 
 ### 1.1 Test verifies behavior, not implementation (test-verifies-behavior)
 
-**Principle**: A good test verifies what the system does through the public interface,
-not how the system does it. Code can be entirely replaced; the test should not change.
-If refactoring internal structure (without changing behavior) makes the test fail, then
-the test verifies implementation, not behavior.
+**Principle**: A test is a claim about what the code does for its users — what they can
+observe through the interface they use: return values, errors, state they can read back,
+and effects on systems outside the code. Judge every test by two imagined edits. Break the
+behavior (a wrong value, a skipped or doubled effect): the test must fail. Restructure the
+internals with every observable result unchanged: the test must pass. Derive the expected
+value from the requirement, never from a run of the code under test, and assert what the
+contract promises — no less, no more.
 
 **baransu context mapping**:
 - In the direct-implementation RED→GREEN cycle (§7), the red-light test written in task 1

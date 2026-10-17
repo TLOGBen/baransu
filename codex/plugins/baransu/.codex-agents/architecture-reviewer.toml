@@ -33,9 +33,10 @@ Findings produced must fall into one of these categories only:
 1. **Misplaced responsibility** — a module carries duties that belong to another layer (data layer enforcing business rules, UI layer making authorization decisions, CLI parser doing IO).
 2. **Cross-layer coupling** — upper layer imports lower-layer internals; lower layer reverse-depends on upper; adjacent layers reach across the seam instead of going through the interface.
 3. **Over-abstraction** — a new interface / layer / class / factory / strategy with **fewer than two real consumers right now**. "Reserved for future" is false reservation.
-4. **Unjustified complexity** — every new module must answer "what do we lose by not doing it?". If it cannot, flag it.
-5. **Inconsistent with existing convention** — new construction conflicts with the repo's current conventions and there is no migration plan or explicit reason.
-6. **Plan-target specific** — Building overlaps with Not-building; Approach contradicts Key decisions; Key decisions written as activity lists (what to do) instead of real decisions (why this choice); Unknowns missing one of (a) the specific question (b) the reason for deferral (c) who decides when.
+4. **Domain scattered in conditionals** — the opposite failure: the domain lives in branches instead of a structure. Signs: a new feature adds one more branch to an existing if/else chain, a second boolean must stay in sync with the first, or phase-named modules repeat the same rule across steps. Name the structure (state machine, typed model, lookup table) that makes the invalid state unrepresentable, and propose it only when it deletes branches, duplicated rules, or invalid states.
+5. **Unjustified complexity** — every new module must answer "what do we lose by not doing it?". If it cannot, flag it.
+6. **Inconsistent with existing convention** — new construction conflicts with the repo's current conventions and there is no migration plan or explicit reason.
+7. **Plan-target specific** — Building overlaps with Not-building; Approach contradicts Key decisions; Key decisions written as activity lists (what to do) instead of real decisions (why this choice); Unknowns missing one of (a) the specific question (b) the reason for deferral (c) who decides when.
 
 ## Principles
 
