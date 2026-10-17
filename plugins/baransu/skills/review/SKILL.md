@@ -5,11 +5,11 @@ description: 'Independent re-verification of a concrete artifact, diff, plan, or
 
 # review — find where the target fails the user's goal
 
-A problem is a place where the target fails the user's goal, whichever change introduced it. Performance, consistency, and security belong to every goal the user has not waived. A clean review is a valid result（「乾淨的 review 也是有效的 review」）.
+A problem is a place where the target fails the user's goal, whichever change introduced it and whatever note already admits it. Performance, consistency, and security belong to every goal; only the user waives a part of one. A clean review is a valid result（「乾淨的 review 也是有效的 review」）.
 
 Every retained problem is one chain, and the chain is the whole method:
 
-1. **Phenomenon** — what the target actually does, at a location, under a trigger, shown by running the target's own checks where they run, by reading where they cannot.
+1. **Phenomenon** — what the target actually does, at a location, under a trigger, observed on the real thing: the target's own checks run here; for a claimed platform not available here, the recorded output of this same version's run on it; a read of the target only where neither exists. A failed observation suspects itself first: a run outside what the target claims or pins shows the run, not the target, until the failure reproduces inside it.
 2. **Impact** — which part of the user's goal it fails.
 3. **Root** — the statement, premise, or model default that produced it; a symptom is not a root.
 4. **Bedrock** — the restated statement that makes the phenomenon impossible: replacement text, preferring deletion and simplification to a guard beside the symptom.
@@ -35,7 +35,7 @@ Review-only means no target, test, configuration, or working-tree edits, includi
 
 The goal comes from acceptance when present (criteria the user names, a `.claude/think/<slug>.md` plan's Building and Not building sections, a spec), otherwise from the request as stated, not the author's summary of it; neither acceptance nor a plan is a prerequisite. Every review asks three standing questions against that goal — the goal lens it always carries:
 
-1. **Did it do what was asked?** Correctness of the asked-for behaviour along its real path, from the user's trigger to where the result is complete — run where it runs, read end to end where it cannot.
+1. **Did it do what was asked?** Correctness of the asked-for behaviour along its real path, from the user's trigger to where the result is complete, not where the change ends — every unchanged step the result passes through included, each observed as the Phenomenon link says; a step not walked leaves this question 未驗證.
 2. **Did it add what was not asked?** Guards for states no caller produces, error handling that hides instead of fails, an interface with one implementation, an option nobody requested, validation repeated behind a boundary that already validates. The cost it adds is the impact.
 3. **Did it solve a smaller problem than asked?** The happy path only, a requirement silently narrowed, the hard part left as a TODO or an "out of scope" the request never granted, tests that pass while the asked behaviour is absent. Cite the dropped part.
 
@@ -71,7 +71,7 @@ Before extending a review into repeated probes, read `references/verification-ef
 
 Write plain Traditional Chinese: what was reviewed, against which goal, how independently; each problem as its chain（現象／影響／根源／基石／驗證）with the user's next step; each English term explained at first use; no fact the evidence has not established. Report the lenses line, examined scope, problems, evidence, independence, and limits, with one line per standing question（做到了／多做了／做小了）stating its verdict or 未驗證. No problems is not universal correctness; no tests is not an exempt layer; an absent required observation is unverified, not passed. When the host offers a tool for reporting findings, report through it; its specification governs its own fields, and a root or bedrock those fields cannot hold goes in the report text.
 
-The verdict is computed by this rule, printed beside it, never by opinion, and on every path, the fast path included: **PROVEN** when every required check ran — each standing question or criterion answered with evidence, the target's own checks executed with their output pasted, each triggered instrument run — and none failed; **NOT PROVEN** when a problem stands, a check failed, or nothing executed; **PARTLY PROVEN** when nothing failed but a required check could not run — a tool or claimed platform absent, no independent pass, a question 未驗證 — each listed as the reason. A verdict is recomputed from this run's evidence, never carried over from an earlier review.
+The verdict is computed by this rule, printed beside it, never by opinion, and on every path, the fast path included: **PROVEN** when every required check ran — each standing question or criterion answered with evidence, the target's own checks executed, here or in this version's recorded run, with their output pasted, each triggered instrument run — and none failed; **NOT PROVEN** when a problem stands, a check failed on the target, or nothing executed; **PARTLY PROVEN** when nothing failed on the target but a required check could not run — a tool or claimed platform absent with no recorded run, a failure not yet reproduced inside what the target claims or pins, no independent pass, a question 未驗證 — each listed as the reason. A verdict is recomputed from this run's evidence, never carried over from an earlier review.
 
 Close with one line the user can act on:
 「review 完成：判定 {PROVEN／PARTLY PROVEN／NOT PROVEN}（{觸發的規則一句}）；{N} 項問題、{U} 項未驗證；獨立性：{獨立／同 context 自檢}；若只能改一處：{那一處的基石，或「無」}。」
