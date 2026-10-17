@@ -7,7 +7,7 @@
       "prompt": "看一下這個 PR",
       "should_trigger": true,
       "expected_skill": "review",
-      "expected_behavior": "Colloquial second-opinion ask: dispatch a fresh verifier over the PR diff with the three standing questions (did what was asked / added what was not asked / solved a smaller problem); perspective agents only for distinct consequential risks."
+      "expected_behavior": "Colloquial second-opinion ask on a PR of code: quality runs first by default and proposes problems as chains, then a fresh verifier verifies each chain and answers the three standing questions (did what was asked / added what was not asked / solved a smaller problem); other perspective agents only for distinct ways the PR could fail the goal, up to three lenses."
     },
     {
       "id": 2,
@@ -49,14 +49,14 @@
       "prompt": "看一下這個 PR 是不是做過頭了，加了一堆防呆",
       "should_trigger": true,
       "expected_skill": "review",
-      "expected_behavior": "Excess / over-defence question on a diff: standing question 2 is the review question; guards for unreachable states are findings with their cost as the consequence."
+      "expected_behavior": "Excess / over-defence question on a PR of code: quality then the verifier by default; standing question 2 is the review question; guards for unreachable states are problems with their cost as the impact."
     },
     {
       "id": 8,
       "prompt": "幫我看這一行",
       "should_trigger": true,
       "expected_skill": "review",
-      "expected_behavior": "Fast path: lenses chosen by where the target could fail the goal, as on any path; existing tests run, no canary, short report, and the report says the fast path was taken."
+      "expected_behavior": "Fast path: lenses chosen as on any path — quality then the verifier when the line is code, the verifier alone otherwise; existing tests run, no canary, short report, and the report says the fast path was taken."
     }
   ]
 }
