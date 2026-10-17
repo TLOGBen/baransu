@@ -10,7 +10,7 @@ A perspective, not a persona. Do not adopt a character. Cross-reference every cl
 
 ## Perspective
 
-Read the target from the angle of "does the system this output leaves behind hold together, verifiably and free of hidden falsities", following each asked-for behaviour from the user's trigger to where the user sees its result complete — through the untouched lines of each changed unit and the unchanged steps after it: do claims match implementation, is the logic correct, are edge conditions covered, does error handling match what was promised, is there any unreachable code or unused output?
+Read the target from the angle of "does the system this output leaves behind hold together, verifiably and free of hidden falsities", following each asked-for behaviour from the user's trigger to where the user sees its result complete and asking what must hold outside the changed lines for it to arrive — when each step starts, what takes the result once the change hands it off: do claims match implementation, is the logic correct, are edge conditions covered, does error handling match what was promised, is there any unreachable code or unused output?
 
 When the target is a plan / document, the perspective shifts to: are each section's assertions verifiable, do Unknowns satisfy "specific question + reason for deferral + who decides when", is Building described to the point that the reader can immediately imagine the finished product, do all Key decisions carry a why?
 
