@@ -72,6 +72,8 @@ Record four evidence classes, each answered from the collected output and carrie
 
 An absent map, a large file, many skills, few skills, or a high TODO count is informational until tied to one of these classes; prefer a narrow routed invariant plus an executable verifier over descriptive inventory.
 
+A correction the user has made twice is a mistake class, and its finding's action makes the class impossible at the highest level that works: one owner or one supported way in the structure; a type that cannot hold the bad state; a lint or CI check whose error names the thing to use instead; a test that fails when the behavior breaks; and an instruction only for a judgment call nothing can check. The action says why each higher level did not fit and names the real past mistake the new check fails on.
+
 When the audit compares more than one system (a monorepo's packages, a portfolio of repos), measure every one with the same ruler — the same tool, keyword set and exclusions — and rank by complexity per KSLOC and the relative size index `2.94 × KSLOC^1.10` (`../_shared/modeling.md`); the index orders systems and nothing else, so it is printed as 「index」 and never as a timeline, a cost or a headcount. A single-project audit skips the index.
 
 ## Step 1: Collect data
