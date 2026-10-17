@@ -7,7 +7,7 @@
       "prompt": "收工",
       "should_trigger": true,
       "expected_skill": "ship",
-      "expected_behavior": "Session wrap-up: archive .claude/ working dirs locally under a gitignored archive root, commit non-archive changes, push."
+      "expected_behavior": "Session wrap-up: archive .claude/ working dirs into the main working tree's local-only archive root, commit non-archive changes under the repo's own identity and message style, push."
     },
     {
       "id": 2,
@@ -21,7 +21,14 @@
       "prompt": "/ship main",
       "should_trigger": true,
       "expected_skill": "ship",
-      "expected_behavior": "Wrap up and land the work on the target branch main, then tear down the worktree once safely on origin."
+      "expected_behavior": "Wrap up, push the current branch, merge it into main, then tear down the worktree once the branch is safely on origin."
+    },
+    {
+      "id": 7,
+      "prompt": "/ship uat main",
+      "should_trigger": true,
+      "expected_skill": "ship",
+      "expected_behavior": "Push the current branch, then merge it one-way into uat and into main separately (never main into uat or either back into the branch), resolving mechanical conflicts in each merge and stopping only on contradicting intent."
     },
     {
       "id": 4,

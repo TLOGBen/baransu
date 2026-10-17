@@ -17,17 +17,17 @@ Claude Code：`/baransu:ship`　Codex：`$baransu:ship`
 **什麼時候用**
 - 一輪工作結束要收工。
 - 觸發語：`/ship`、收工、上傳收尾、結束這輪。
-- 參數：`[BRANCH]`——給了目標分支，就把目前分支合進去再 push 目標分支。
+- 參數：`[目標分支…]`——可以一次給多個（例如 `/ship uat main`）。目前分支照樣 push，再依序從它單向併入每個目標並 push；不會把目標併回目前分支，目標之間也不互併。
 
 **步驟**
 1. 偵測：沒有 git 的專案在搬任何檔案之前就直接失敗（否則歸檔的檔案沒有 commit 可錨定）。
-2. 歸檔：`.claude/` 下的 baransu 工作目錄（`read`／`learn`／`draw`／`design` 的成品除外），搬到 gitignored、只留本機的 `.claude/archived/`；只有名稱衝突時才加時間戳。
+2. 歸檔：`.claude/` 下的 baransu 工作目錄（`read`／`learn`／`draw`／`design` 的成品除外），搬到主工作樹的 `.claude/archived/`（在 worktree 裡跑也一樣，拆 worktree 時不會被一起刪掉）；這個目錄透過 repo 共用的 `.git/info/exclude` 忽略，只留本機。只有名稱衝突時才加時間戳。
 3. commit 前先在本機整合上游。
-4. commit。
-5. push 目前分支，或合併到目標分支後 push 目標分支。
+4. commit：身分依這個 repo 最近的 commit 作者和遠端的主機、擁有者判斷，跟 git config 不一致時以判斷結果為準、判斷不出來就停下來問；訊息沿用 repo 過去的格式和語言，不加 `Co-Authored-By`。
+5. push 目前分支；有目標分支時，逐一併入並 push。合併有衝突就在那次合併裡自己解（兩邊都要的都留、算得出來的值重算），通過跟步驟 3 同一套檢查才 commit；只有兩邊意圖互相矛盾時才停下來，說明哪個檔、哪一段、兩邊各想做什麼。一律 merge，不 rebase。
 6. 在 worktree 中執行且工作已確認在 origin 上：移除 worktree，並以 `git branch -D` 刪掉分支（push 後本機分支視為未合併，`-d` 一定失敗）。
 
-**產出**　`.claude/archived/` 下的本機歸檔、有非歸檔變更時的一筆 commit、繁中收工報告（歸檔數、commit 訊息或「跳過」、上游整合結果、push 目標、worktree 清理狀態）。
+**產出**　主工作樹 `.claude/archived/` 下的本機歸檔、有非歸檔變更時的一筆 commit、繁中收工報告（歸檔數、commit 身分、commit 訊息或「跳過」、上游整合結果、push 目標與每個目標的併入結果、worktree 清理狀態）。
 
 **不適用**　寫文案 → `/write`；審查產出 → `/review`。`/ship` 只做收尾。
 

@@ -2,6 +2,21 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.5.0] - 2026-10-17
+
+### Changed（`/ship`：單向合併、自己解衝突、commit 跟著 repo）
+- **一次指定多個目標，單向合併**：`/ship uat main` 這類寫法會先 push 目前分支，再依序從它併入每個目標並各自 push；目標不會併回目前分支，目標之間也不互併，一律 merge、不 rebase，已回報的 commit hash 不變（新增 INV-11）。有目標時也照樣 push 目前分支：每個目標都是從它獨立併入、可能隔好幾天，分支必須在 origin 上留著，拆 worktree 的安全檢查因此一律以 `origin/{分支}` 為準。併入前先把本地目標 fast-forward 到 origin，結束時把主 checkout 放回原本的分支。Step 1 逐一檢查 HEAD 是否已在每個目標裡，已 push、但還沒進某個目標的分支照樣往下走。
+- **合併衝突自己解**：Step 2b 原本「機械性衝突直接解、需要判斷就停」那句，改成三種情況——兩邊都要的內容兩邊都留、算得出來的值依合併後的結果重算、意圖互相矛盾才停下來並說明哪個檔、哪一段、兩邊各想做什麼。目標合併有衝突時不再 `merge --abort` 丟回給使用者，而是在那次合併裡照同一套規則解，通過 Step 2b item 5 的檢查才 commit；意圖矛盾時才中止那次合併，回報哪些目標已落地、哪些還沒跑。
+- **commit 身分跟著 repo**：commit 前先看這個 repo 最近 commit 的作者和遠端的主機、擁有者；跟 git config 不一致時用 `-c user.name/-c user.email` 帶上判斷結果（不改 config），判斷不出來就停下來問。起因是這台電腦的 global config 切換過，私人 repo 用了公司帳號、公司 repo 用了私人帳號兩種方向都發生過。commit message 改成沿用 repo 過去的格式和語言，預設不加 `Co-Authored-By`。INV-8 改寫成涵蓋身分、格式與語言。
+- **封存區不再跟著 worktree 消失**：實測確認封存放在 worktree 自己的 `.claude/archived/` 時，`git worktree remove` 會正常結束並把被 ignore 的封存一起刪掉。封存根目錄改成主工作樹的 `.claude/archived/`，忽略規則從 `.gitignore` 改放 repo 共用的 `.git/info/exclude`：不用 commit，主工作樹切到哪個分支都有效，也不會讓主 checkout 因為封存而變成「有未提交變更」。INV-9 改寫。
+- `loop-pauses.md`：衝突那列改成「意圖矛盾」（Step 2b 與目標合併共用），新增「commit 身分判斷不出來」一列；push 那列涵蓋目標分支的 push。evals 新增 `/ship uat main`。
+
+### Fixed
+- Codex 版 `/ship` Step 1 偵測用的是 `.claude/`，跟它實際歸檔的 `.codex/` 對不上，改成 `.codex/`。
+
+### Changed（連動）
+- `CLAUDE.md` skill 表、`docs/skills/ops.md` 的 `/ship` 說明照新行為改寫。
+
 ## [8.4.0] - 2026-10-17
 
 ### Changed（`/codex-skill-transfer` 0.20.0：從快照對照表改成即時查官方來源）
