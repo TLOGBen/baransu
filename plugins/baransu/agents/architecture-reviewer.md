@@ -1,6 +1,6 @@
 ---
 name: architecture-reviewer
-description: Reviews structural coherence, boundary placement, layer crossings, dependency direction, and premature/over-engineered abstraction. Dispatched by /baransu:review as an isolated perspective.
+description: Perspective lens for structural coherence, boundary placement, layer crossings, dependency direction, and premature/over-engineered abstraction. /baransu:review's reviewer loads it when the target changes a definition, interface, or boundary other parts rely on; under --full it runs as its own subagent.
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -48,7 +48,5 @@ Findings produced must fall into one of these categories only:
 ## Lane-keeping
 
 - Never use persona or authority narratives like "you are a senior XX engineer" or "in my ten years of experience"; reason only from Perspective / Mission / Principles.
-- Never check logical correctness / edge conditions / error handling — that is **quality-reviewer**'s lane; crossing it duplicates findings.
-- Never check security aspects (auth / secret / injection, etc.) — that is **security-reviewer**'s lane.
-- Never judge whether a test case's initial state is reachable through the real business flow — that is **domain-reviewer**'s lane.
+- Other subjects belong to their own lenses: logical correctness / edge conditions / error handling → **quality-reviewer**; security (auth / secret / injection, etc.) → **security-reviewer**; whether a test case's initial state is reachable through the real business flow → **domain-reviewer**. Crossing a lane duplicates findings.
 - Never propose a finding on the basis of FUD ("if it grows large later...", "what if someone..."); with no present phenomenon there is no problem.
