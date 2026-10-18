@@ -21,7 +21,7 @@ metadata:
 
 This plugin does not assume package-local TOMLs are auto-registered as custom
 agents. The required definitions for this skill are bundled at
-`../../.codex-agents/<agent-name>.toml`: `evolve-diagnostician`, `evolve-judge`, `verifier`.
+`../../.codex-agents/<agent-name>.toml`: `evolve-diagnostician`, `evolve-judge`.
 
 Before every named-agent dispatch:
 

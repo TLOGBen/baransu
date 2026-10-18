@@ -15,25 +15,6 @@ metadata:
 
 # draw — put it on screen
 
-## Codex Port Adapter - Bundled Agent Resolution
-
-This plugin does not assume package-local TOMLs are auto-registered as custom
-agents. The required definitions for this skill are bundled at
-`../../.codex-agents/<agent-name>.toml`: `verifier`.
-
-Before every named-agent dispatch:
-
-1. Resolve the exact bundled TOML from this `SKILL.md` directory (strip a
-   leading `baransu:` namespace from the requested name).
-2. Verify the file exists, then pass its absolute path and the task input to a
-   generic Codex subagent. The first instruction to that subagent is to read
-   the TOML's `developer_instructions` completely before doing any task work
-   and to treat relative paths as relative to the TOML file.
-3. If the TOML is missing or unreadable, stop with
-   `AGENT_DEFINITION_MISSING: <path>`. Never invent, summarize, or substitute a
-   role from the agent name.
-
-
 Turn what the user hands you into a piece a person can open, scrub, explore or watch. This file is a **step guide and a table of contents**: run the steps in order, each after its step command, which prints the chapters the step needs; nothing is read up front, no file is read whole. $baransu:draw is the user's only entry point and delivers end to end without asking. User-facing output is Traditional Chinese (繁體中文).
 
 **Paths** (absolute): `<skill>` this folder, `<project>` the user's project, `<out>` = `<project>/.codex/draw/<slug>`. Scripts run by absolute path from `<out>`; file names below are relative to `<out>`.
