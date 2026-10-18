@@ -1,4 +1,4 @@
-# 學習家族：read · learn · how · why · teach-me
+# 學習家族：read · learn · how · why · teach-me · show-me
 
 <img src="../images/family-learn.png" width="320" alt="學習家族概念圖">
 
@@ -137,3 +137,26 @@ Claude Code：`/baransu:teach-me`　Codex：`$baransu:teach-me`
 **非互動驅動**　`loop=not-drivable`（對話本身就是產品）。
 
 **來源**　改編自 Cursor pstack 的 teach（MIT），改名為 teach-me，見 `plugins/baransu/skills/teach-me/NOTICE.md`。
+
+## `/show-me`
+
+Claude Code：`/baransu:show-me`　Codex：`$baransu:show-me`
+
+**用途**　用最小的一張圖，把當下卡住的那個點畫出來：pseudocode、呼叫樹、元件樹、檔案樹、diff、Mermaid 圖，或一個聚焦的 HTML 頁面。
+
+**什麼時候用**
+- 大致懂了，只想一眼看清某個流程、結構或差異。
+- 只能手動叫用（Claude Code）：`/show-me`、`/baransu:show-me`；模型不會自己觸發。Codex 版沒有這個限制。
+
+**流程**　挑能講清楚重點的最小畫面，配一兩句說明；回覆裡有 Mermaid 時，同時寫成 `.claude/show-me/` 底下的 HTML 並用瀏覽器打開（終端機畫不出 Mermaid）；太密的概念直接做一個 HTML 頁面。畫完就停，不接著做原本的工作。
+
+**產出**　回覆本身；需要時 `.claude/show-me/*.html`。
+
+**不適用**
+- 要從頭教到懂 → `/teach-me`
+- 要一張完整的獨立圖、架構圖或影片 → `/draw`
+- 只是要把上一則講白話 → `/huh`
+
+**非互動驅動**　`loop=not-drivable`。
+
+**來源**　改編自 HumanLayer skills 的 show-me（MIT），見 `plugins/baransu/skills/show-me/NOTICE.md`。

@@ -29,7 +29,7 @@ Codex 版放在 `codex/` 子樹，與 Claude 版並列手動維護。Codex 以 `
 
 ## 安裝後會生效的東西
 
-- **19 個 skill**：見 [文件索引](README.md#skill-參考)。
+- **20 個 skill**：見 [文件索引](README.md#skill-參考)。
 - **bundled agents**：review 的 reviewer 與 verifier、health inspector、evolve 的 diagnostician 與 judge，由對應 skill 派遣，不需要手動呼叫。
 - 沒有 hook：8.0.0 起 plugin 不再附任何 lifecycle hook。
 
