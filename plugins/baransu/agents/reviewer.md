@@ -12,7 +12,7 @@ All user-facing text is in Traditional Chinese.
 
 ## What you are handed
 
-The goal, the change map (each fact the change alters, beside what the goal requires), the walk (each place as a location and the question it must answer — what it states, or what it needs), the scope, and the principles directory. The walk was built from command output; nobody has read the places for you. You were not given the author's defense or desired verdict; do not look for it.
+The pinned target, the goal, the scope, the principles directory, and either the change map and the walk (under `--full`) or the review skill's step 2 (by default). In the default pass, build them yourself first, from command output alone: the change map (each fact the change alters, beside what the goal requires) and the walk (each place as a location and the question it must answer — what it states, or what it needs). Either way, nobody has read the places for you. You were not given the author's defense or desired verdict; do not look for it.
 
 ## How to work
 

@@ -1,7 +1,7 @@
 ---
 name: review
-description: 'Independent review of a concrete artifact, diff, plan, or directly quoted claim against the user''s goal, by reading only: a problem is a place that no longer holds with the change — it says the opposite, omits what it owes, or does not get what it needs — shown as two citations and traced phenomenon → impact → root → restated bedrock → verification; one fresh reviewer walks the places with the principles they trigger, one fresh verifier checks every citation; never edits or runs the target; verdict by a printed rule (PROVEN / PARTLY PROVEN / NOT PROVEN); a clean review is a valid result. Trigger On 「看一下」「看看」「幫我看」「check 一下」「review 一下」「是不是做過頭了」, or casual "take a look at X". Not for auditing the user''s own project agent-config (route to /health) or diagnosing a reported error (/hunt). 繁體中文輸出。'
-argument-hint: "<diff | PR | file | plan | quoted claim> [--quick | --full] [--model <m>] [--effort <e>]"
+description: 'Independent review of a concrete artifact, diff, plan, or directly quoted claim against the user''s goal, by reading only: a problem is a place that no longer holds with the change — it says the opposite, omits what it owes, or does not get what it needs — shown as two citations and traced phenomenon → impact → root → restated bedrock → verification; one fresh agent walks the places with the principles they trigger, and --full adds a second that checks every citation; never edits or runs the target; verdict by a printed rule (PROVEN / PARTLY PROVEN / NOT PROVEN); a clean review is a valid result. Trigger On 「看一下」「看看」「幫我看」「check 一下」「review 一下」「是不是做過頭了」, or casual "take a look at X". Not for auditing the user''s own project agent-config (route to /health) or diagnosing a reported error (/hunt). 繁體中文輸出。'
+argument-hint: "<diff | PR | file | plan | quoted claim> [--full] [--model <m>] [--effort <e>]"
 ---
 
 # review — find the places that no longer hold
@@ -21,8 +21,8 @@ All user-facing output is in Traditional Chinese.
 ## Outcome Contract
 
 - **Outcome**: One review of the pinned target against the user's goal, reporting each place that no longer holds as two citations with its chain, every walked place with its verdict, independence, and limits.
-- **Done when**: Target, goal, and scope are pinned; the change map and the walk exist; the reviewer has returned a verdict for every place on the walk, with the principles it loaded; the verifier has checked every citation (or `--quick` disclosed the same-context pass); each retained problem carries both citations and its chain; each standing question is answered or marked 未驗證; the verdict is computed by its printed rule; zero problems with stated scope is a complete result.
-- **Evidence**: The two citations of every retained problem as the verifier read them, the records the review relied on, the walk, and the independence statement.
+- **Done when**: Target, goal, and scope are pinned; the change map and the walk exist; the reviewer has returned a verdict for every place on the walk, with the principles it loaded; under `--full`, the verifier has checked every citation; each retained problem carries both citations and its chain; each standing question is answered or marked 未驗證; the verdict is computed by its printed rule; zero problems with stated scope is a complete result.
+- **Evidence**: The two citations of every retained problem (as the verifier read them, under `--full`), the records the review relied on, the walk, and the independence statement.
 - **Output**: A Traditional Chinese review report in the conversation; `.claude/review/<slug>.md` when persistence is useful or requested (`/ship` archives that directory).
 - **Automation**: ultracode=neutral, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
@@ -40,7 +40,7 @@ Review-only: no edits to the target, its tests, configuration, or working tree, 
 
 ## 2. Map the change, then lay out the walk
 
-This step is done once, by the session running the review, from command output alone — `git diff --stat`, `git log`, `git blame`, `grep -n`, the CI's run listing — without opening the places it finds. Each place is read once, by whoever judges it.
+This step is done once, before any place is judged — by the reviewer itself in the default pass, by the session running the review under `--full` — from command output alone — `git diff --stat`, `git log`, `git blame`, `grep -n`, the CI's run listing — without opening the places it finds. Each place is read once, by whoever judges it.
 
 **The change map.** Go through the change from its first edit to its last and list each fact it alters: a name, a value, a rule, a signature, an output, a behaviour, a promise in prose. Beside it, list what the goal requires. Every edit serves a goal item or serves none; every goal item has its edit or lacks it.
 
@@ -56,19 +56,18 @@ Hand the walk over as locations and questions, not as quotes to compare: a short
 
 `--model` and `--effort` set the model and reasoning effort of every agent the review dispatches; without them each agent inherits the session's. A value the host does not support is reported, never silently replaced.
 
-- **Default**: one fresh reviewer, then one fresh verifier.
-- **`--quick`**, or the user asks for a quick look（「快速」「看一眼」「簡單看一下」）: the session walks the places itself, opening each once, with no agents, and discloses that the result is a same-context pass, not an independent one.
-- **`--full`**: the same two stages with the lifecycle followed to its end.
+- **Default**: one fresh reviewer does the whole review — maps the change, lays out the walk, walks it, and reports — in its own context, so the session stays clean and the pass is independent of the author. No second reader checks its citations; the report says so.
+- **`--full`**, or the user asks for a full or thorough review（「完整審」「仔細審」）: the session maps the change and lays out the walk, a fresh reviewer walks it, a fresh verifier checks every citation, and each fact is followed to the end of its lifecycle.
 
 If a fresh agent is unavailable, or the current session authored the target, disclose it: a same-context pass can find problems but cannot earn an independent verdict.
 
 ## 4. Stage one — the reviewer
 
-Dispatch `${CLAUDE_PLUGIN_ROOT}/agents/reviewer.md` with the goal, the change map, the walk, the scope, and the path `${CLAUDE_PLUGIN_ROOT}/skills/review/references/principles/`. The author's defense or desired verdict is not evidence and is not handed over.
+Dispatch `${CLAUDE_PLUGIN_ROOT}/agents/reviewer.md` with the pinned target, the goal, the scope, and the path `${CLAUDE_PLUGIN_ROOT}/skills/review/references/principles/`; in the default pass it also takes step 2 of this skill and builds the change map and the walk itself, and under `--full` it takes the session's change map and walk instead. The author's defense or desired verdict is not evidence and is not handed over.
 
 The reviewer reads `principles/index.md` and loads each principle whose trigger a place meets, then walks every place: it reads the behaviour there, answers the place's question, and gives the place a verdict — holds, with what it read, or fails, as a finding with two citations and its chain. Every place on the walk gets a verdict; a place is never skipped because it looked fine in a quote. It also returns each principle it loaded and the place that needed it, each question only a run could settle, and the places it added.
 
-## 5. Stage two — the verifier
+## 5. Stage two — the verifier (`--full`)
 
 Dispatch a fresh `${CLAUDE_PLUGIN_ROOT}/agents/verifier.md` with the reviewer's findings, never with its reasoning beyond them. A "holds" verdict carries what the reviewer read and goes to the report as it is; the verifier does not reread it. For each finding it opens both citations, confirms each says what the finding quotes, re-derives any derived need from the consumer's code, confirms both concern the same fact in the same scope, version, and environment, and confirms the place fails in the way the finding names. A finding whose citations fail is dropped with the failed check named; nothing else drops a finding.
 
@@ -80,7 +79,7 @@ Every retained problem is one chain:
 2. **Impact** — the place that no longer holds: its citation or derived need, which of the three ways it fails, and which part of the goal fails with it.
 3. **Root** — why it could be written: a copy no source keeps in step, a contract owned elsewhere, an environment the author's run never covered, a consumer the change never read, two definitions in one place, a principle the design skipped. A symptom is not a root.
 4. **Bedrock** — the restated statement that makes it impossible, preferring deletion and simplification to a guard beside the symptom, with the level the fix belongs at: one owner by architecture, then a type, then a check whose error names the fix, then a test, and documentation last, only for a judgment call. Name why a higher level does not work.
-5. **Verification** — the verifier's check of both citations.
+5. **Verification** — under `--full`, the verifier's check of both citations; in the default pass, the reviewer's own reading of both, marked as not checked by a second reader.
 
 Where no place states what should hold and the code alone cannot show what a consumer needs, a principle's article is the second citation, reported as 「沒有地方寫明，但違反原則 X 第 n 條」 with the risk it carries; where no principle covers it either, it is a question for the user, not a problem.
 
