@@ -2,6 +2,15 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.10.0] - 2026-10-18
+
+### Added（`/prove-it`：你說的不算，證明它）
+- **新 skill `/prove-it`**：照使用者的方式把 app 實際跑起來，證明宣稱是事實——說有問題的地方真的有問題（`/review` 的發現、bug 回報），說完成的地方真的完成（修好了、做好了、測試過了）。每項判證實／推翻／無法到達，留下這一版的執行紀錄（`.claude/prove-it/records/`），`/review` 拿它當作者紀錄來讀。
+- 專案沒有執行食譜時先建一份（啟動、健康檢查、操作、證據、清理，加功能地圖），先實跑一次才採用；`--maintain` 定期保養，分清「地圖過時／食譜到不了／app 壞了」，只修前兩種。
+- 證據標準：走使用者的路（測試專用入口、內部 setter、越過正式邊界的 mock、沒確認跳過什麼的 dry-run 都不算）；記下動作、結果狀態與副作用，存下的東西要從第二個畫面讀回；時序類宣稱要在真的 app 上把壞的順序做出來；不准為了通過而放寬；只關自己啟動的東西，證據不刪；對外有副作用的步驟先問。
+- 改寫自 pstack `create-verification-skill`、`maintain-verification-skill`（cursor/plugins，MIT，Copyright (c) 2026 Lauren Tan），附在 `references/recipe.md`、`references/maintain.md`；功能地圖範例另寫。
+- skill 數 18 → 19；CLAUDE.md、AGENTS.md、docs、README、Codex 版同步。**未考試**，先在實際工作中試用。
+
 ## [8.9.0] - 2026-10-18
 
 ### Changed（`/review`：決定看哪裡的原則提早載入；`/evolve`：考卷本身也要保持可信）

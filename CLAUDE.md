@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-`baransu` is a Claude Code plugin distributing eighteen governance skills. Theme: バランス — deliberate before executing, verify after.
+`baransu` is a Claude Code plugin distributing nineteen governance skills. Theme: バランス — deliberate before executing, verify after.
 
 ## Philosophy — バランス (Balance)
 
@@ -20,7 +20,7 @@ plugins/
     .claude-plugin/
       plugin.json              # plugin manifest
     skills/
-      think/ review/ write/ ship/ hunt/ health/ read/ learn/ draw/ ui/ codex-skill-transfer/ evolve/ huh/ sayagain/ domain-modeling/ why/ how/ teach-me/
+      think/ review/ write/ ship/ hunt/ health/ read/ learn/ draw/ ui/ codex-skill-transfer/ evolve/ huh/ sayagain/ domain-modeling/ why/ how/ teach-me/ prove-it/
       _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md, fact-check.md, modeling.md, selection-telemetry.md, distillation-candidate-matrix.md) + evals/ scripts/
     rules/
       anti-patterns.md         # cross-skill behavioral guardrails
@@ -40,6 +40,7 @@ Invoke with `/baransu:<name>`. Each row says only when to reach for a skill; its
 |-------|---------------|------------------|
 | `/think` | Deliberate before building: align on a restatement, borrow the discipline that already solved this shape of problem (writing the model per `_shared/modeling.md` when a quantity is at stake), take a stance, verify premises, attack for breakage and for size, present, and leave a five-section plan under `.claude/think/` — never code, never a handoff; a settled decision can be brought for testing (拷問我) | 報錯/debugging → `/hunt`；已定案的中型工作 → 直接實作（`_shared/tdd.md` 紅綠）再 `/review`；單檔小修 → `_shared/tdd.md` §7 |
 | `/review` | Independent review of any model output — code, plan, claim — by reading only: a fresh reviewer maps what the change altered and walks every place that states or relies on it; each place holds (with a positive, quoted proof), fails (a departure from a principle, headed with impact, severity 0–5 and confidence, with two citations and its chain), or is uncertain; ends with 不確定 and 排除 lists; `--full` adds a verifier; closes with a verdict computed by a printed rule (NOT PROVEN only for a severity ≥3 problem or a recorded failure) and 「若只能改一處」; a clean review is a valid result | 審「使用者專案」的 agent 配置與 AI 可維護性 → `/health`；找根因 → `/hunt` |
+| `/prove-it` | Proves claims by running the real app the way its user does — that a reported problem really fails, and that work said to be done really works — and leaves a record of this version that `/review` reads; builds the project's run recipe (launch, doctor, drive, evidence, cleanup, feature map) on first use, `--maintain` keeps it honest | 只讀不跑的審查 → `/review`；找根因 → `/hunt` |
 | `/write` | Bilingual copywriting: `zh`/`en` prefix; Refine (existing text), Generate (new), or Proofread (findings table → `錯字修改.html`) | 寫完要 commit/push 的收尾 → `/ship` |
 | `/ship` | Session cleanup: archive `.claude/` working dirs into the main working tree, commit under the repo's own identity and style, push, merge one-way into each named target, optional worktree removal | 只收尾；不寫作、不審查 |
 | `/hunt` | Bug diagnosis: symptom → root cause via observability-first investigation | 「值不值得修」是價值判斷 → `/think` 存廢判決 (Kill/Keep/Pivot) |

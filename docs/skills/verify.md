@@ -1,4 +1,4 @@
-# 驗證家族：review · hunt
+# 驗證家族：review · hunt · prove-it
 
 <img src="../images/family-verify.png" width="320" alt="驗證家族概念圖">
 
@@ -63,3 +63,24 @@ Claude Code：`/baransu:hunt`　Codex：`$baransu:hunt`
 - 「值不值得修」的價值判斷 → `/think` 存廢判決（Kill / Keep / Pivot）
 
 **非互動驅動**　`loop=assisted`。
+
+## `/prove-it`
+
+Claude Code：`/baransu:prove-it`　Codex：`$baransu:prove-it`
+
+**用途**　你說的不算，證明它。照使用者的方式把 app 實際跑起來，證明「說有問題的地方真的有問題」（例如 `/review` 的發現、bug 回報），也證明「說完成的地方真的完成」（修好了、做好了、測試過了）。留下這一版的執行紀錄，`/review` 會拿它當證據。
+
+**什麼時候用**
+- 觸發語：證明它、跑跑看、實際跑一次、真的修好了嗎、prove it works。
+- `/review` 列出問題，想確認是真的；或宣稱完成，想親眼看到它能動。
+
+**運作方式**　把每個宣稱寫成一句跑得出結果的話（問題：觸發條件與錯的結果；完成：動作與對的結果；時序：寫明時間點）→ 釘住版本（commit、工作目錄有沒有改動）→ 用專案的執行食譜（`.claude/prove-it/recipe.md`；沒有就先從 repo 建一份：啟動、健康檢查、操作、證據、清理，加功能地圖，並先實跑一次）→ 健康檢查後逐項照使用者的路徑操作，記下動作、結果狀態與副作用；時序類的宣稱會故意把壞的順序做出來 → 每項判「證實／推翻／無法到達」→ 只關自己啟動的東西，證據保留。對外有副作用的步驟（送訊息、部署、付款、寫共用資料）先問。
+
+**產出**
+- 繁中報告，結尾一行「{P} 項證實、{D} 項推翻、{U} 項無法到達」。
+- 紀錄：`.claude/prove-it/records/<short-sha>-<slug>.md` 與證據檔。
+- 食譜與功能地圖：`.claude/prove-it/recipe.md`、`.claude/prove-it/features/`；`--maintain` 定期保養。
+
+**不適用**　只讀不跑的審查 → `/review`；找根因 → `/hunt`；寫或修測試 → 照 `_shared/tdd.md` 實作。
+
+**來源**　改寫自 pstack 的 `create-verification-skill` 與 `maintain-verification-skill`（cursor/plugins，MIT）。
