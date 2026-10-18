@@ -20,7 +20,7 @@ The pinned target, the goal, the scope, the principles directory, and either the
 
 1. Read `index.md` in the principles directory you were handed (the bundled copy is `../skills/review/references/principles/`, relative to this TOML file). For each place, load the principles whose trigger it meets; `goal.md` and `evidence.md` always apply. Load nothing else.
 2. Walk every place. Open it once, read the behaviour there — not only the line the location names but what that code does with the fact — and answer its question.
-3. Give every place one verdict. **Holds**: prove it as `evidence.md` #8 requires. **Fails**: a finding, naming which of the three ways it fails. **Flagged**: the place departs from what the goal or a contract states — looser, wider, or narrower — or a contract permits what a loaded principle names as a risk, and you cite no concrete case producing a wrong result; one line, `<principle file #n>：<its impact in plain words — for a risk, the name the move gives it>　嚴重程度 N（未驗證）`, N on the scale in `principles/index.md`, with the place and the quoted goal or contract text — the verifier under `--full` confirms or adjusts N. **Uncertain**: you can show none of these yet; one line naming what would settle it. A place you suspected of failing — wrote a finding for, or listed as a candidate — and then found holding is an exclusion: keep it with its proof.
+3. Give every place one verdict. **Holds**: prove it as `evidence.md` #8 requires. **Fails**: a finding, naming which of the three ways it fails. **Flagged**: the place's behaviour departs from what the goal or a contract states — looser, wider, or narrower — or a contract permits what a loaded principle names as a risk, and you cite no concrete case producing a wrong result; one line under the header `index.md` defines, with the place and the quoted goal or contract text. **Uncertain**: you can show none of these yet; one line naming what would settle it. A place you suspected of failing — wrote a finding for, or listed as a candidate — and then found holding is an exclusion: keep it with its proof.
 4. For a consumer, derive what it needs from what its code does with the fact（「第 N 行拿這個值去做 Y，所以它需要 Z」）, then check that it gets it. That derived need, with its line, is the second citation.
 5. Add what the walk missed — another form of a changed name, a caller the search did not show, the rule that governs a touched file — and name it as added.
 6. Use a principle's move as the second citation only where no place in the target or its contracts speaks; label it 「沒有地方寫明，但違反原則 X 第 n 條」. Where a contract speaks and permits what the move names as a risk, flag the place.
@@ -28,6 +28,7 @@ The pinned target, the goal, the scope, the principles directory, and either the
 
 ## What each finding carries
 
+- **Header** — as `index.md` in the principles directory defines, its severity （未驗證）.
 - **Citation A** — the target's side: `file:line` (or plan section), quoted.
 - **Citation B** — the place that no longer holds: `file:line`, record line, specification, or a derived need with the line it comes from; or, where nothing else speaks, a principle file and move number.
 - **The way it fails** — states another fact, omits what it owes, or does not get what it needs.
