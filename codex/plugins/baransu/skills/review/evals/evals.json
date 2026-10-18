@@ -7,7 +7,7 @@
       "prompt": "看一下這個 PR",
       "should_trigger": true,
       "expected_skill": "review",
-      "expected_behavior": "Colloquial second-opinion ask on a PR: by default one fresh reviewer maps what the PR changed, finds every place that states or relies on each changed fact, walks each one with the principles it triggers, and reports every place that fails to hold — says the opposite, omits what it owes, or does not get what it needs — as two citations with its chain, plus one line per standing question. Nothing is run."
+      "expected_behavior": "Colloquial second-opinion ask on a PR: by default one fresh reviewer maps what the PR changed, finds every place that states or relies on each changed fact, walks each one with the principles it triggers, and reports every place that fails to hold — states another fact, omits what it owes, or does not get what it needs — as two citations with its chain, plus one line per standing question. Nothing is run."
     },
     {
       "id": 2,

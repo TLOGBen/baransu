@@ -1,6 +1,6 @@
 # Single source
 
-Every fact has one owner, and every other statement of it holds with that owner: none says the opposite, and every place whose job is to state it states the new fact, not the old one and not nothing.
+Every fact has one owner, and every other statement of it holds with that owner: every place that states it states the new one, and every place whose job is to state it states it.
 
 **Why:** A change that looks right from the file it touched must be right for the whole repo. The next contributor sees only the files it opened and copies the nearest example, so the places the change did not open are where it goes wrong.
 
