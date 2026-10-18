@@ -17,7 +17,7 @@ All user-facing output is in Traditional Chinese; keep commands, paths, identifi
 - **Outcome**: Each claim in scope ends as proved, disproved, or unreachable on this version, shown by driving the real app along its user's path, with evidence that survives cleanup.
 - **Done when**: Every claim is written as one sentence a run can settle; the recipe's doctor passed before the first drive; every claim has a verdict and its evidence; nothing was weakened to reach a verdict; everything the run started is torn down and the evidence is still at its named location.
 - **Evidence**: The record — commit and working-tree state, platform, every command run, and per claim the action driven, the resulting state, and the side effects captured.
-- **Output**: Traditional Chinese report in the conversation; the record at `.claude/prove-it/records/<short-sha>-<slug>.md` with its evidence beside it; the run recipe at `.claude/prove-it/recipe.md` and its feature map under `.claude/prove-it/features/`.
+- **Output**: Traditional Chinese report in the conversation; the record at `.claude/prove-it/records/<short-sha>-<slug>.md` with its evidence beside it (`/ship` archives `records/` out of Git; the recipe and feature map stay); the run recipe at `.claude/prove-it/recipe.md` and its feature map under `.claude/prove-it/features/`.
 - **Automation**: ultracode=neutral, loop=not-drivable（a run starts processes and may reach outside this machine; it waits for a person at every authorization point）
 
 ## 1. Turn each claim into one sentence a run can settle

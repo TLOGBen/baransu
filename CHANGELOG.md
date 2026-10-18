@@ -2,6 +2,11 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.10.2] - 2026-10-18
+
+### Changed
+- `/ship` 歸檔白名單加上 `prove-it/records`：`/prove-it` 每次執行的紀錄與證據收尾時移到不進 Git 的 `.claude/archived/`；食譜（`prove-it/recipe.md`）與功能地圖（`prove-it/features/`）是要長期保養的產物，留在原地。`/prove-it` 的 Output 註明這件事。
+
 ## [8.10.1] - 2026-10-18
 
 ### Changed

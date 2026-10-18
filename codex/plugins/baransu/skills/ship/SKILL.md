@@ -53,7 +53,7 @@ Git probe first — run `git rev-parse --git-dir 2>/dev/null`. If it fails (the 
 Check three inputs: whether the workspace dirs hold archivable items, whether the git working tree has pending changes, AND whether HEAD carries commits that have not landed on origin yet. Stop only when **all three** are empty — otherwise there is still work to ship even when the other sides are empty. A clean tree does not mean the work is out: commits made earlier in the session (or in an earlier session) still need Step 4.
 
 ```bash
-ARCHIVE_DIRS="tmp think hunt-report evolve review write"
+ARCHIVE_DIRS="tmp think hunt-report evolve review write prove-it/records"
 ARCHIVE_ITEMS=$(python3 -c "import sys, pathlib; print(next((str(p) for d in sys.argv[1].split() if pathlib.Path('.codex', d).is_dir() for p in pathlib.Path('.codex', d).iterdir()), ''))" "$ARCHIVE_DIRS")
 GIT_DIRTY=$(git status --porcelain 2>/dev/null | head -1)
 UNLANDED=$(git rev-list HEAD --not --remotes 2>/dev/null | head -1)
@@ -103,9 +103,9 @@ Before moving any item, enforce the local-only boundary:
    If either command fails, output 「archive ignore 驗證失敗：已停止歸檔，未移動
    任何工作檔案。」 and stop.
 
-**Archive allowlist** — exactly the Step 1 `ARCHIVE_DIRS` value, in the same order: `tmp`, `think`, `hunt-report`, `evolve`, `review`, `write`. The two lists MUST stay identical; a dir detected in Step 1 but absent here would leave Step 1's detect output unconsumed.
+**Archive allowlist** — exactly the Step 1 `ARCHIVE_DIRS` value, in the same order: `tmp`, `think`, `hunt-report`, `evolve`, `review`, `write`, `prove-it/records`. The two lists MUST stay identical; a dir detected in Step 1 but absent here would leave Step 1's detect output unconsumed.
 
-**Never archived**: the `read`, `learn`, `draw`, and `design` dirs are kept products and stay in place. Claude Code infrastructure (`worktrees/`, `projects/`, `jobs/`, `plugins/`, `settings*.json`, …) is never touched — the allowlist is explicit precisely so infra is never swept up.
+**Never archived**: the `read`, `learn`, `draw`, and `design` dirs, and the prove-it recipe and feature map (`prove-it/recipe.md`, `prove-it/features/`), are kept products and stay in place. Claude Code infrastructure (`worktrees/`, `projects/`, `jobs/`, `plugins/`, `settings*.json`, …) is never touched — the allowlist is explicit precisely so infra is never swept up.
 
 For each dir in the allowlist, for each item directly inside the source directory `.codex/{dir}` of the tree $baransu:ship runs in:
 - Destination: `$ARCHIVE_ROOT/{item_name}`
@@ -114,7 +114,7 @@ For each dir in the allowlist, for each item directly inside the source director
 
 Source directories are left empty (not deleted). Archiving is collision-only timestamping — the plain `{item_name}` destination is used when it is free, so archive names stay readable.
 
-Output: 「已歸檔：{N} 個項目 → {ARCHIVE_ROOT}（read/learn/draw/design 產物保留）」
+Output: 「已歸檔：{N} 個項目 → {ARCHIVE_ROOT}（read/learn/draw/design 與 prove-it 食譜保留）」
 
 `{N}` is the total number of allowlist items moved.
 
@@ -302,7 +302,7 @@ If not in a worktree → skip silently.
 ```
 $baransu:ship 完成。
 
-歸檔：{N} 個項目 → {ARCHIVE_ROOT}（或「無可歸檔檔案」；read/learn/draw/design 產物保留）
+歸檔：{N} 個項目 → {ARCHIVE_ROOT}（或「無可歸檔檔案」；read/learn/draw/design 與 prove-it 食譜保留）
 整合：{「拉入 N 個 commit」、「無需整合」或「新分支，略過」}
 身分：{NAME <EMAIL>}（{「與 git config 相同」或「依 repo 判斷，未採用 git config 的 X」}）
 Commit：{commit message 或「跳過」}
