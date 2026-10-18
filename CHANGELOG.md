@@ -12,6 +12,7 @@
 - **原則庫**（新增 `references/principles/`）：目錄加 12 個原則——需求、單一來源、影響範圍、風險、證據、測試、信任邊界（以內建 `/security-review` 的排除清單與判例為準）、業務領域（含 DDD 與 BDD 的 Given／When／Then）、結構、品味、可讀性、效能。每個原則是一句原則、Why、最多 10 條做法、The test、跳過的徵兆（pstack 的寫法），碰到才載入。看似衝突的原則以一條能同時解釋兩邊的基石統一：結構＝「邊界放在改變理由不同的地方，其他地方不放」；重構＝「大膽刪複雜度，絕不大膽加」。
 - **agents**：新增 `reviewer.md`（補上 reviewer 沒有定義檔、每次由主流程臨時寫提示詞的缺口）；`verifier.md` 改為只核對引文；**移除** `quality-reviewer`、`architecture-reviewer`、`security-reviewer`、`domain-reviewer` 四個鏡頭 agent，內容併入原則庫（含 8.6.0 期間 architecture-reviewer 新增的「業務邏輯散在條件判斷」，見 `principles/domain.md` #5）。外部若直接派這四個 agent 類型會失效。
 - **description** 從 755 字縮到約 300 字，機制細節留在正文。
+- **其他 12 個 skill 的 description 一併縮短**（ui、think、health、evolve、domain-modeling、draw、codex-skill-transfer、hunt、ship、write、read、learn）：只留「做什麼、什麼時候用、代表性觸發詞、真的容易混淆的鄰居」，health、hunt 的 when_to_use 併入 description；全部 skill 的 listing 從 9527 字降到約 5100 字，回到 7000 字門檻以下。Codex 版同步。
 
 ### 依據（盲測，每題跑兩次；答案卷不進 repo）
 - 三道練習題（文件對不上 7、Windows 測試 2、按鈕功能 3）：新預設 1／2、2／2、0／0，reviewer 每組約 11 分、24 萬 token；8.2.1 為 3、0、0，12～18 分、30～46 萬；內建 `/code-review` 1／1、0／0、0／0，約 5.5 分、10 萬；第 6 版最高 4／5、2／2、0／0，但約 69 萬。
