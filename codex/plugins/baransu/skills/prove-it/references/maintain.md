@@ -2,8 +2,6 @@
 
 A feature map rots the moment the app changes. This pass keeps `.codex/prove-it/` true to the app. The unit of rigor is the feature: every feature file is covered from source and every feature is driven live once, without proving every sentence.
 
-Adapted from pstack's `maintain-verification-skill`; see the skill's `NOTICE.md`.
-
 ## Outcome
 
 Say which one, with the coverage reached:

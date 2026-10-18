@@ -2,8 +2,6 @@
 
 A recipe is written for the next run, not for a human: it is read cold, mid-task, by an agent that has never seen the app. It lives at `.claude/prove-it/recipe.md`, with the feature map beside it under `.claude/prove-it/features/`.
 
-Adapted from pstack's `create-verification-skill`; see the skill's `NOTICE.md`.
-
 ## Learn it from the repo
 
 Answer from the codebase; ask the user only what you cannot observe.

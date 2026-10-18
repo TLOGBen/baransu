@@ -68,5 +68,3 @@ The recipe and feature map rot as the app changes. Under `--maintain`, follow `r
 - Reading a change against what was asked, without running it → `/review`; it reads this skill's record as evidence.
 - A failure whose cause is unknown → `/hunt`.
 - Writing or fixing tests → implement under `../_shared/tdd.md`; this skill drives the app, it does not author the suite.
-
-Adapted from pstack's `create-verification-skill` and `maintain-verification-skill`; see `NOTICE.md`.
