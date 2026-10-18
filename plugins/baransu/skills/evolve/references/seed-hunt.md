@@ -14,9 +14,10 @@ The diagnostician writes it (Stage 1); it is the seeds' whole view of the round:
 - **impact** — the outcome the target's user asked for that this fails;
 - **root** — the implicated clause verbatim (or `none` after a whole-skill read), its flaw, and the problem the clause was added to solve;
 - **verification** — what would show a fix worked, stated as a behaviour, not as an exam item;
+- **checkpoint** — when the flaw is a falsified direction: the clause as it read in the latest snapshot before that direction began, and any reference baseline the user named (a simpler skill or tool that does the same job); the seeds study how it did the job and set out from there in a different direction;
 - optionally, a method the user named as a reference for this kind of problem; the seeds decide whether and how to use it.
 
-No answer, no proposed wording, no direction. The brief passes the case-term grep before any seed sees it.
+No answer, no proposed wording, no preferred solution. The brief takes the case-term grep before any seed sees it (SKILL.md Stage 3).
 
 ## Operations
 
@@ -26,6 +27,8 @@ Each seed chooses one operation and states in `why_kind` why it beats the other 
 - **delete** / **merge** — the skill performs better, or no worse, without the clause or with the two clauses as one. That is proven by the exam (an ablation) or readable from the text alone (a dangling reference, a contradiction, an exact restatement); "reads simpler" is not a reason by itself. A merge names the clause it absorbs, `merge (absorbs: "<clause>")`, and the merged sentence must cover every phenomenon each original explained, none lost, and read more clearly. Several bedrocks may coexist: when no single sentence explains all their phenomena, keep them apart — a forced merge that blurs meaning is a regression.
 - **replace** — restating the clause beats adding, deleting and merging for this phenomenon.
 - **keep** — none of the above can be shown better; the seed returns `keep` and the reason.
+
+A clause falsified by the evidence — its prescribed work shows in the cost and never in the results, or it was strengthened round after round while its phenomenon never moved — is deleted or restated from its checkpoint in a different direction. A seed that strengthens it once more is not a candidate: adding force to a view that bought nothing only buys more of nothing.
 
 A frequent root is a clause whose subject or object is unstated: the model fills the gap with the cheapest reading — a passive "X is verified" with no verifier, a "cost" with no bearer. The bedrock names who does what to what.
 

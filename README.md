@@ -80,7 +80,7 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 <p><i>收好每一輪、照顧工具本身。</i></p>
 <b><code>/baransu:ship</code></b>：歸檔工作檔、commit、push、清理 worktree<br>
 <b><code>/baransu:health</code></b>：體檢專案的 agent 配置與 AI 可維護性，依證據與風險、不依 repo 大小<br>
-<b><code>/baransu:evolve</code></b>：對固定標準以減法一輪輪磨 SKILL.md，換掉肇事條文而非加規則<br>
+<b><code>/baransu:evolve</code></b>：對固定標準一輪輪磨 SKILL.md，把肇事條文重寫成正面定義而非加規則，找回不輸、花費不增才保留<br>
 <b><code>/baransu:codex-skill-transfer</code></b>：Claude／Codex 雙版本的移植對照與對齊檢查
 </td>
 </tr>

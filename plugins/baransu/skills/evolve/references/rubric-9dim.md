@@ -23,7 +23,7 @@ The structure axis scores **decisions a reader gets right**, never the number of
 
 | # | Dimension | Weight | Scores high when… |
 |---|-----------|--------|-------------------|
-| 7 | **Goal Attainment** | 20 | following the skill on benchmark prompts actually produces the stated outcome; with answer keys, read from the exam sheet's recall over both runs (`exam.md`), where an item found in only one run counts half |
+| 7 | **Goal Attainment** | 20 | following the skill on benchmark prompts actually produces the stated outcome; with answer keys, read from the exam sheet's recall (`exam.md`) |
 | 8 | **Output Fidelity** | 18 | produced output matches the declared contract — format, language, required sections, structure |
 | 9 | **Robustness** | 14 | off-road / edge / adversarial benchmark prompts are handled gracefully, not silently mishandled |
 

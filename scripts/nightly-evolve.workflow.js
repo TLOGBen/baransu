@@ -59,11 +59,12 @@ const results = await pipeline(
   (diag,skill,i)=>{ if(!diag) return null; if(!diag.has_finding) return {skill,held:'no-finding'}
     const real=`${ROOT}/plugins/baransu/skills/${skill}/SKILL.md`; const dir=`${ROOT}/.claude/evolve/${skill}`
     // Seeds see the brief, the target and the rubric only — never another seed.
-    return parallel(SEEDS.map(x=>()=>agent(`Seed mode. Target SKILL.md: ${real}\nProvenance: ${ROOT}/plugins/baransu/skills/evolve/references/provenance.md\n\nBrief:\n${diag.brief}\n\nimplicated: ${diag.implicated}\n\n${RUBRIC}\n\n${OPERATIONS}\n\nRead the target in full. Return ONE bedrock: change_kind, absorbs (merge only, the verbatim clause absorbed; else ""), bedrock (the exact new text; "" for delete or keep), why_kind. Do not open any other file under ${dir}. Never edit.`,{agentType:'baransu:evolve-diagnostician',phase:'Seed',label:`seed-${x}:${skill}`,schema:SEED_SCHEMA}).then(s=>{
+    return parallel(SEEDS.map((x,k)=>()=>agent(`Seed mode. Target SKILL.md: ${real}\nProvenance: ${ROOT}/plugins/baransu/skills/evolve/references/provenance.md\n\nBrief:\n${diag.brief}\n\nimplicated: ${diag.implicated}\n\n${RUBRIC}\n\n${OPERATIONS}\n\nRead the target in full. Return ONE bedrock: change_kind, absorbs (merge only, the verbatim clause absorbed; else ""), bedrock (the exact new text; "" for delete or keep), why_kind. Do not open any other file under ${dir}. Never edit.`,{agentType:'baransu:evolve-diagnostician',phase:'Seed',label:`seed-${x}:${skill}`,schema:SEED_SCHEMA}).then(s=>{
         if(!s||s.change_kind==='keep') return null
-        if(s.change_kind==='add'&&diag.implicated.trim().toLowerCase()!=='none') return {x,seed:s,refused:'add-with-implicated-clause'}
-        const scratch=`${dir}/scratch/seed-${x}.md`
-        return agent(`Read ${real}. Apply EXACTLY this one bedrock and nothing else.\nchange_kind: ${s.change_kind}\nimplicated clause: ${diag.implicated}\n${s.change_kind==='merge'?`absorbs: ${s.absorbs}\n`:''}bedrock: ${s.bedrock}\n\nHARD RULES:\n- replace: the implicated clause out, the bedrock in. delete: the clause out, nothing in. merge: the implicated clause and the absorbed clause out, the bedrock in. add: the bedrock in.\n- Do NOT edit ${real}. Write the FULL revised file to ${scratch} via the Write tool (creates parent dirs).\n- Touch nothing but those clauses; preserve frontmatter + English-body convention + every required section.\n- Then run a real line diff between ${real} and ${scratch} and report lines_removed (existing non-blank lines removed or rewritten) and lines_added.\nReturn scratch_path=${scratch}, mutation_summary, wrote_scratch_only=true, lines_removed, lines_added.`,{agentType:'general-purpose',phase:'Seed',label:`apply-${x}:${skill}`,schema:MUT_SCHEMA}).then(m=>m?{x,seed:s,mut:m}:null) })))
+        if(s.change_kind==='add'&&!/^\W*none\b/i.test(diag.implicated)) return {x,seed:s,refused:'add-with-implicated-clause'}
+        // Blind-pick letter fixed per seed position, rotated with the skill index so seed a is not always P.
+        const scratch=`${dir}/scratch/seed-${x}.md`; const letter=LETTERS[(k+i)%LETTERS.length]; const lettered=`${dir}/panel/round-1/seeds/${letter}.md`
+        return agent(`Read ${real}. Apply EXACTLY this one bedrock and nothing else.\nchange_kind: ${s.change_kind}\nimplicated clause: ${diag.implicated}\n${s.change_kind==='merge'?`absorbs: ${s.absorbs}\n`:''}bedrock: ${s.bedrock}\n\nHARD RULES:\n- replace: the implicated clause out, the bedrock in. delete: the clause out, nothing in. merge: the implicated clause and the absorbed clause out, the bedrock in. add: the bedrock in.\n- Do NOT edit ${real}. Write the FULL revised file to ${scratch} via the Write tool (creates parent dirs).\n- Touch nothing but those clauses; preserve frontmatter + English-body convention + every required section.\n- Then run a real line diff between ${real} and ${scratch} and report lines_removed (existing non-blank lines removed or rewritten) and lines_added.\n- Then copy ${scratch} byte-identically (no headers, no annotations, exact bytes) to ${lettered}.\nReturn scratch_path=${scratch}, mutation_summary, wrote_scratch_only=true, lines_removed, lines_added.`,{agentType:'general-purpose',phase:'Seed',label:`apply-${x}:${skill}`,schema:MUT_SCHEMA}).then(m=>m?{x,letter,lettered,seed:s,mut:m}:null) })))
       .then(seeds=>{
         // SUBTRACTION GATE (evolve SKILL.md Stage 3 / safety-gates Gate 4), per seed:
         // an append-only diff passes only as an add for a phenomenon no clause explains.
@@ -73,16 +74,12 @@ const results = await pipeline(
   (prev,skill,i)=>{ if(!prev) return null; if(prev.held) return prev
     const {diag,live,refused}=prev
     if(!live.length) return {skill,held:'no-surviving-seed',refused}
-    const dir=`${ROOT}/.claude/evolve/${skill}`; const pick=`${dir}/panel/round-1/seeds`
-    // Blind pick: letters rotate with the skill index so seed a is not always P.
-    const lettered=live.map((s,k)=>({...s,letter:LETTERS[(k+i)%LETTERS.length]}))
     const promote=(w,ranks)=>({diag,winner:w,refused,ranks})
-    if(lettered.length===1) return promote(lettered[0],null)
-    return agent(`Copy these files byte-identically (no headers, no annotations, exact bytes), creating parent dirs:\n${lettered.map(s=>`${s.mut.scratch_path} -> ${pick}/${s.letter}.md`).join('\n')}\nReturn copied=true when every copy is written.`,{agentType:'general-purpose',phase:'Pick',label:`letter:${skill}`,schema:COPY_SCHEMA}).then(c=>{
-      if(!c||!c.copied) return {skill,held:'pick-copy-failed',refused}
-      return agent(`Rank mode. Brief:\n${diag.brief}\n\nSeed versions of one SKILL.md, under shuffled letters:\n${lettered.map(s=>`${s.letter} = ${pick}/${s.letter}.md`).join('\n')}\n\n${RUBRIC}\n\nScore each seed on dims 1-6 and on how fully it explains the brief's phenomenon; give each an overall 1-10 and one line why; rank them (tie → the seed whose lowest dimension is higher). You decide nothing about keeping.`,{agentType:'baransu:evolve-judge',phase:'Pick',label:`pick:${skill}`,schema:RANK_SCHEMA}).then(r=>{
-        const top=r&&r.ranking&&lettered.find(s=>s.letter===r.ranking[0])
-        return top?promote(top,r.scores):{skill,held:'pick-failed',refused} }) }) },
+    if(live.length===1) return promote(live[0],null)
+    // Blind pick over the lettered copies the apply step wrote; the picker decides nothing about keeping.
+    return agent(`Rank mode. Brief:\n${diag.brief}\n\nSeed versions of one SKILL.md, under shuffled letters:\n${live.map(s=>`${s.letter} = ${s.lettered}`).join('\n')}\n\n${RUBRIC}\n\nScore each seed on dims 1-6 and on how fully it explains the brief's phenomenon; give each an overall 1-10 and one line why; rank them (tie → the seed whose lowest dimension is higher). You decide nothing about keeping.`,{agentType:'baransu:evolve-judge',phase:'Pick',label:`pick:${skill}`,schema:RANK_SCHEMA}).then(r=>{
+      const top=r&&r.ranking&&live.find(s=>s.letter===r.ranking[0])
+      return top?promote(top,r.scores):{skill,held:'pick-failed',refused} }) },
   (prev,skill,i)=>{ if(!prev) return null; if(prev.held) return prev
     const {diag,winner,refused,ranks}=prev
     const real=`${ROOT}/plugins/baransu/skills/${skill}/SKILL.md`; const panel=`${ROOT}/.claude/evolve/${skill}/panel/round-1`; const even=(i%2)===0
@@ -101,8 +98,10 @@ const results = await pipeline(
         const meaningful=minMargin>=MARGIN
         const keep=unanimous && meaningful
         const reason = !unanimous ? 'not-unanimous' : (!meaningful ? `margin-converged(min ${minMargin} < ${MARGIN})` : 'propose')
-        // A static delete/merge is ablated only by the exam, which nightly never runs.
-        const ablation=(winner.seed.change_kind==='delete'||winner.seed.change_kind==='merge')?'未經消融':''
+        // nightly runs no exam: a delete/merge counts as ablated only when its flaw is readable from the
+        // text alone (a contradiction, a dangling reference, an exact restatement — evolve SKILL.md Stage 5).
+        const readable=/contradiction|dangling|restate/i.test(diag.flaw)
+        const ablation=((winner.seed.change_kind==='delete'||winner.seed.change_kind==='merge')&&!readable)?'未經消融':''
         return {skill,dimension:diag.dimension,dimension_name:diag.dimension_name,phenomenon:diag.phenomenon,impact:diag.impact,implicated:diag.implicated,flaw:diag.flaw,origin:diag.origin,brief:diag.brief,seed:winner.x,letter:winner.letter,change_kind:winner.seed.change_kind,why_kind:winner.seed.why_kind,ranks,refused,ablation,mutation_summary:winner.mut.mutation_summary,lines_removed:winner.mut.lines_removed,lines_added:winner.mut.lines_added,scratch_path:winner.mut.scratch_path,votes,keepCount,minMargin,keep,reason} }) }) }
 )
 const clean=results.filter(Boolean)

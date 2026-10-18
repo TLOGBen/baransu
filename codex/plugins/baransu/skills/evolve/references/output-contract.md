@@ -51,6 +51,7 @@ Never label a same-ruler held-out result as 硬證據.
 - effectiveness_mode (`real-exec` / `offline-同源` / `no-benchmark`) + the Gate 3 reason + per-axis evidence source
 - when the exam ran: start/end recall, items found in only one run, penalties, mean tokens and wall time, and the noise band; any contaminated rerun
 - seeds: per round, the winner's margin over the runner-up; every kept `delete`/`merge` still labelled `未經消融`
+- each falsified direction: the clause, the rounds or runs it was tried in, the cost it added, the result it bought, and the checkpoint the run returned to
 - the `decisions.tsv` reconciliation result, with each mismatch
 - `results.tsv` score source label (`source: diagnostician (non-blind)`)
 - held-out evidence-strength (硬證據 / 題目泛化證據), and 未通過 held-out prominently when the converged version regressed on the held-out set (SKILL.md Stage 7 regression branch)
