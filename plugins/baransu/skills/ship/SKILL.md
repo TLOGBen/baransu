@@ -1,6 +1,6 @@
 ---
 name: ship
-description: "Wraps up a session: archives baransu working dirs under .claude/ (except read/learn/draw/design products) into the main working tree's ignored, local-only .claude/archived/, commits under the repo's own identity and message style, pushes, optionally merges the branch one-way into each named target (`/ship uat main`), and tears down the worktree once work is on origin. Trigger On '/ship', '收工', '上傳收尾', '結束這輪'. Not For writing copy (/write) or reviewing output (/review) — /ship only wraps up a session."
+description: "Wraps up a session: archives baransu working directories, commits under the repo's own identity and message style, pushes, merges one-way into named targets (`/ship uat main`), and removes the worktree. Trigger On '/ship', '收工', '上傳收尾', '結束這輪'."
 ---
 
 # /baransu:ship — session cleanup

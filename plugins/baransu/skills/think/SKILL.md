@@ -1,6 +1,6 @@
 ---
 name: think
-description: 'Deliberates before building when the user has an undecided idea, feature, refactor, or direction and asks how to design it, which way to go, whether it is worth doing, or whether there is a better or more elegant way (想一下, 幫我想, 怎麼設計, 值不值得, 該不該做, 有沒有更好的做法, 「我想做 X 但還不確定」). Also takes a decision already made when the user wants it tested (拷問我, grill me). Aligns on a restatement of what they actually want, borrows the discipline that already solved that shape of problem (naming the problem class and writing the model when a quantity is at stake, presented in plain language), then leaves a stance with its bets named and a plan file under .claude/think/ for review; never code, never a handoff to implementation. Not for debugging an existing error (/hunt) or implementing settled work (red/green in _shared/tdd.md, then /review). 繁體中文輸出。'
+description: "Deliberates before building: aligns on what the user actually wants, takes a stance with its bets named, and leaves a plan under .claude/think/ — never code. Use when an idea, feature, refactor or direction is undecided, or a decision needs testing. Trigger On '/think', '想一下', '怎麼設計', '值不值得', '有沒有更好的做法', 'grill me'. Not for debugging an error (/hunt)."
 ---
 
 # think — deliberate before you build

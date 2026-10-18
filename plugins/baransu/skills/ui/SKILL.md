@@ -1,6 +1,6 @@
 ---
 name: ui
-description: "UI/UX design lead for the code in your repo. Use whenever the user wants a page or component to look better, less generic, more designed, or styled after something — 美化、調 UI、加樣式、看起來太 AI／太模板／太陽春、make it look designed, add some styling — it builds or reshapes the web UI with deliberate palette / type / layout / motion choices and writes or edits the UI files directly; learns a design language from a reference (a website, a screenshot, an art style) and refines an existing UI against it; designs explanatory pages — 說明頁、教學頁、含圖解的頁面、多張圖一起看 — embedding the components /draw produces (/draw hands these over automatically in the same turn). Trigger On '/ui', '設計 UI', '美化', '調 UI', '介面設計', '照這個網站的風格', 'styling', 'beautifying any web UI', 'frontend design'. Not For: Claude Design 畫布 mockup（內建 design skill）; 單件圖、影片、機構、互動元件（/draw）; 小寫 design.md 技術架構文件."
+description: "Designs or restyles the web UI in the user's repo with deliberate palette, type, layout and motion, writing the UI files directly; can learn a style from a reference site or image, and builds explanatory pages that embed /draw figures. Trigger On '/ui', '美化', '調 UI', '看起來太 AI', '照這個網站的風格', 'make it look designed'. Not For: a single diagram, video or interactive figure (/draw)."
 argument-hint: "<brief | path to existing UI | URL or image to learn from>"
 user-invocable: true
 ---

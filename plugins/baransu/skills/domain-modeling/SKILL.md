@@ -1,6 +1,6 @@
 ---
 name: domain-modeling
-description: "Builds and sharpens a project's domain model as the user designs: challenges terms against the glossary, sharpens fuzzy words, stress-tests boundaries with concrete scenarios, checks claims against the code, writes each resolved term into CONTEXT.md as it settles, and records an ADR under docs/adr/ when a decision qualifies. Use when discussing codebase terminology, writing or editing CONTEXT.md or CONTEXT-MAP.md, or recording or editing an ADR. Trigger On '/domain-modeling', '詞彙表', '名詞定義', '統一用詞', '寫 CONTEXT.md', '記一筆 ADR', 'glossary'. Not For: deciding which way to build (/think, which writes no project file)."
+description: "Builds and sharpens a project's domain model while the user designs: challenges and settles terms in CONTEXT.md and records decisions as ADRs under docs/adr/. Trigger On '/domain-modeling', '詞彙表', '名詞定義', '統一用詞', '記一筆 ADR', 'glossary'. Not for choosing which way to build (/think)."
 ---
 
 # domain-modeling — keep the project's words and decisions on disk

@@ -1,15 +1,6 @@
 ---
 name: evolve
-description: Improves, scores, or evolves a SKILL.md via a forward-only ratchet — each round traces
-  one observed phenomenon to its root clause and restates it as bedrock; three blind
-  seeds, one picked blind, face three fresh blind judges on a fixed 9-dimension rubric
-  and, when the skill can run, a known-answer exam taken twice; kept only on strict
-  improvement with no lost recall and no added cost, else restored. Held-out validation,
-  Kami result card; adoption is an Authorization PAUSE. Not for authoring a brand-new
-  SKILL.md, or deciding whether a skill should exist ($baransu:think 存廢判決
-  Kill/Keep/Pivot). Trigger on '$baransu:evolve', '優化 skill', 'skill 評分', '演化 skill',
-  '精簡 skill', 'optimize skill', 'improve skill quality', 'evolve a skill', '幫我改 skill'.
-  繁體中文輸出。
+description: "Improves a SKILL.md round by round, keeping a change only when blind judges and a known-answer exam show it is strictly better at no added cost. Trigger On '$baransu:evolve', '優化 skill', '精簡 skill', 'skill 評分', 'improve skill quality'. Not for writing a new skill, or deciding whether one should exist ($baransu:think)."
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex

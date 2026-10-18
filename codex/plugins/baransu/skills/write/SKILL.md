@@ -1,11 +1,6 @@
 ---
 name: write
-description: Refines existing text, generates a piece from a prompt, or proofreads
-  a document into an error-report HTML (self-styled 錯字修改.html findings table). Auto-classifies
-  input as Refine / Generate / Proofread; follows language prefix or auto-detects.
-  Use for bilingual zh/en writing help. Trigger On '$baransu:write', '潤稿', '寫一篇',
-  '改寫這段', '校對', '找錯字', '抓錯字', 'proofread'. Not for committing finished text ($baransu:ship)
-  or digesting sources into notes ($baransu:learn, $baransu:read).
+description: "Refines text, writes a piece from a prompt, or proofreads a document into an error-report page, in Chinese or English. Trigger On '$baransu:write', '潤稿', '寫一篇', '改寫這段', '校對', 'proofread'. Not for digesting sources into notes ($baransu:learn)."
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex

@@ -1,12 +1,6 @@
 ---
 name: ship
-description: 'Wraps up a session: archives baransu working dirs under .codex/ (except
-  read/learn/draw/design products) into the main working tree''s ignored, local-only
-  .codex/archived/, commits under the repo''s own identity and message style, pushes,
-  optionally merges the branch one-way into each named target (`$baransu:ship uat main`),
-  and tears down the worktree once work is on origin. Trigger On ''$baransu:ship'',
-  ''收工'', ''上傳收尾'', ''結束這輪''. Not For writing copy ($baransu:write) or reviewing
-  output ($baransu:review) — $baransu:ship only wraps up a session.'
+description: "Wraps up a session: archives baransu working directories, commits under the repo's own identity and message style, pushes, merges one-way into named targets (`$baransu:ship uat main`), and removes the worktree. Trigger On '$baransu:ship', '收工', '上傳收尾', '結束這輪'."
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex
