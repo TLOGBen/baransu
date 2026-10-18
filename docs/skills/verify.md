@@ -24,7 +24,7 @@ Claude Code：`/baransu:review`　Codex：`$baransu:review`
 **運作方式**　先釘住目標、需求與範圍 → 預設派一個全新 reviewer：它用指令輸出（git log、blame、grep、CI 紀錄）列出改動改了哪些事實、每個事實還出現在哪裡，再逐處打開讀一次、每一處都給判定 → 碰到什麼才載入對應的原則（`references/principles/` 共 12 個：需求、單一來源、影響範圍、風險、證據、測試、信任邊界、業務領域、結構、品味、可讀性、效能）→ 報告。加 `--full`（或說「完整審」）時，改由主 session 列位置、reviewer 逐處讀，再派一個 verifier 核對每個問題的兩段引文。全程不修改、不執行目標；要跑才能確認的地方寫成「coverage lost: needs X」交給作者。
 
 **產出**
-- 繁中 review 報告：檢查範圍、每個 finding 的位置／觸發條件／後果／證據、三題各一行（做到了／多做了／做小了）、獨立性聲明、剩餘限制；結尾判定由印在報告裡的規則算出——PROVEN／PARTLY PROVEN／NOT PROVEN——再加「若只能改一處」。
+- 繁中 review 報告：載入了哪些原則、每個位置的判定、每個問題的兩段引文與五段鏈（現象／影響／根源／基石／驗證）、coverage lost、三題各一行（做到了／多做了／做小了）、獨立性聲明、剩餘限制；結尾判定由印在報告裡的規則算出——PROVEN／PARTLY PROVEN／NOT PROVEN——再加「若只能改一處」。
 - 零 finding 加上明確範圍，就是完整結果。
 - 需要保存時寫到 `.claude/review/<slug>.md`（`/ship` 會歸檔）。
 

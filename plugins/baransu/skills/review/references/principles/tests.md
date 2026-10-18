@@ -12,7 +12,7 @@ A test is a claim about what the code does for its users, made at the interface 
 5. **Mock only at system boundaries** — external services, time, randomness, sometimes the database or file system. A mock of the claimed layer does not cover it; a layer with no tests is read, not exempted.
 6. **Prove the path, not only the unit.** A behaviour that crosses several units needs evidence across them; an integration boundary needs its full path covered.
 7. **Ask risky logic for one test that fails when it breaks.** A branch, a parser, money, security, a data write, a bug fix — one good test, not coverage.
-8. **Ask "unchanged behaviour" for a recorded comparison** on inputs development did not use, stating the n it rests on; it holds on identical bytes or inside a declared tolerance, each mask listed with its why.
+8. **Ask "unchanged behaviour" for a recorded comparison** on inputs development did not use, stating the n it rests on (rule of three, `../../../_shared/modeling.md`); it holds on identical bytes or inside a declared tolerance, each mask listed with its why.
 
 **The test:** For each test a claim rests on, read its assertion against the requirement: would it go red if the behaviour broke, and stay green if only the internals moved?
 

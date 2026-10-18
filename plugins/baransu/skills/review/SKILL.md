@@ -57,7 +57,7 @@ Hand the walk over as locations and questions, not as quotes to compare: a short
 `--model` and `--effort` set the model and reasoning effort of every agent the review dispatches; without them each agent inherits the session's. A value the host does not support is reported, never silently replaced.
 
 - **Default**: one fresh reviewer does the whole review — maps the change, lays out the walk, walks it, and reports — in its own context, so the session stays clean and the pass is independent of the author. No second reader checks its citations; the report says so.
-- **`--full`**, or the user asks for a full or thorough review（「完整審」「仔細審」）: the session maps the change and lays out the walk, a fresh reviewer walks it, a fresh verifier checks every citation, and each fact is followed to the end of its lifecycle.
+- **`--full`**, or the user asks for a full or thorough review（「完整審」「仔細審」）: the session maps the change and lays out the walk — unless it authored the target, in which case the reviewer builds them as in the default — a fresh reviewer walks it, a fresh verifier checks every citation, and each fact is followed to the end of its lifecycle.
 
 If a fresh agent is unavailable, or the current session authored the target, disclose it: a same-context pass can find problems but cannot earn an independent verdict.
 

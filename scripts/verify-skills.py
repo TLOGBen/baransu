@@ -143,7 +143,7 @@ REF_DEPRECATION_LINE_RE = re.compile(r"已廢除|已移除|deprecated|removed")
 #   (c) 被裁 sealed 標記字面 `STATUS: sealed`（/contract 的封緘標記語法，
 #       /seal 蓋印、/ship 偵測——三者皆退役，字面不得再出現）。
 REMOVED_NAMES_RE = re.compile(
-    r"\b(?:grade|triage|bridge|dev|full_review|seal-agent|seal-guard|style-reviewer)\b"
+    r"\b(?:grade|triage|bridge|dev|full_review|seal-agent|seal-guard|style-reviewer|quality-reviewer|architecture-reviewer|security-reviewer|domain-reviewer)\b"
     r"|\B/(?:execute|contract|seal|book|design)\b(?!/)"
     r"|\bbaransu:(?:contract|seal|book|design)\b"
     r"|STATUS: sealed"
