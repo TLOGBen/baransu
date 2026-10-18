@@ -78,13 +78,13 @@ Review-only: no edits to the target, its tests, configuration, or working tree, 
 
 ## 2. Map the change, then lay out the walk
 
-This step is done once, before any place is judged — by the reviewer itself in the default pass, by the session running the review under `--full` — from command output alone — `git diff --stat`, `git log`, `git blame`, `grep -n`, the CI's run listing — without opening the places it finds. Each place is read once, by whoever judges it.
+This step is done once, before any place is judged — by the reviewer itself in the default pass, by the session running the review under `--full` — from command output alone — `git diff --stat`, `git log`, `git blame`, `grep -n`, the CI's run listing — without opening the places it finds. Before laying out the walk, load the principles `references/principles/index.md` sets for the walk stage, and lay out the walk with them. Each place is read once, by whoever judges it.
 
-**The change map.** Go through the change from its first edit to its last and list each fact it alters: a name, a value, a rule, a signature, an output, a behaviour, a promise in prose. Beside it, list what the goal requires. Every edit serves a goal item or serves none; every goal item has its edit or lacks it.
+**The change map.** Read the change as `git diff -W` prints it — each touched function whole, since its unchanged lines now run with the change — and go through it from its first edit to its last and list each fact it alters: a name, a value, a rule, a signature, an output, a behaviour, a promise in prose. A changed line that only reads a state — a condition, a guard, a branch — changes when that state matters: list the state as a fact. Beside it, list what the goal requires. Every edit serves a goal item or serves none; every goal item has its edit or lacks it.
 
 **The walk.** For each fact, list where else it lives, and for each place the question it must answer — what it states, or what it needs. Use the method of `$baransu:why` and `$baransu:how` on this change rather than running those skills:
 - **History** (the `$baransu:why` anchor): `git log` and `git blame` of the changed lines' previous versions, the commit and PR messages, plans and decisions they cite, earlier fixes or reverts in the same area. A decision already made is a place the change must hold with; a mistake this repo has made twice is where to look first.
-- **Lifecycle** (the `$baransu:how` flow): where the fact is born, what reads it, when each step runs, what takes the result once the change hands it off — through timing, teardown, indirect dispatch, serialized formats, and other readers of the same data, not only the calls a search finds.
+- **Lifecycle** (the `$baransu:how` flow): each fact from where it is born to where its result is finally taken, as `blast-radius.md` lays out.
 - **Copies and contracts**: every other statement of the fact under each form it takes — its name, its old value, the words a description would use — in code, prose, tables, examples, expected results, and mirrors; and for each file the change touches, the rules that govern that file — the schema, loader, adapter, or tool that reads it.
 - **Records and environments**: the author's run records of this version (CI, attached output) and the environments they ran in.
 

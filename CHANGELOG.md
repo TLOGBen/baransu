@@ -2,6 +2,22 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.9.0] - 2026-10-18
+
+### Changed（`/review`：決定看哪裡的原則提早載入；`/evolve`：考卷本身也要保持可信）
+- **原則分兩階段載入**：`principles/index.md` 加一欄「階段」。決定要看哪裡的四個原則（`goal`、`evidence`、`blast-radius`、`single-source`）在列清單前載入，其餘走到每一處才載入。原因：盲考裡三次漏掉（沒讀 CI、沒追 hook、沒追共用狀態）都是「該看哪裡」的規則在清單定案後才被讀到。SKILL 第 2 步的 Lifecycle 原本是 `blast-radius.md` 的重述，改成指回它。
+- **change map 從 `git diff -W` 列**：被碰到的函式整段一起看，沒改的行也跟著改動一起跑；只讀某個狀態的改動行（條件、守衛、分支）也把那個狀態列成事實。
+- **`blast-radius.md` #9**：列出改動寫入或讀取的每個狀態的所有讀者與寫者（用搜尋，不靠呼叫鏈）；帶有時間承諾的狀態（pending、鎖、重試、逾時）把這些地方按執行時間排成一條線，檢查每一步、每一種順序之後承諾是否成立。時序這一半參考 pstack `create-formal-verification-skill`。
+- **`evidence.md` #9**：一份紀錄只證明它實際走過的路徑；測試專用入口、內部 setter、越過正式邊界的 mock、沒人確認過跳過什麼的 dry-run，都不能證明使用者那條路。參考 pstack `create-verification-skill`。
+- **`goal.md` #9**：偏離若讓使用者依賴的行為壞掉，怎麼改合約都不算解決；只有優化才讓合約跟上程式。參考 pstack `maintain-verification-skill` 的 doc drift／regression 之分。
+- **`/evolve` 的 `references/exam.md` 新增「Keeping the exam honest」**：每個答案項目先證明在題目範圍內找得到（範圍外的舊問題不算漏）；考卷只寫公平性規定，不准有一句擋住正確審查會讀的來源；考生走使用者的路；評分記錄每個答案位置有沒有被走到；漏掉先分類（skill／答案卷／考卷／只能跑才知道），只有 skill 的算分。
+- Codex 版、`docs/skills/verify.md` 同步。
+
+### 依據與限制
+- 兩階段載入、`git diff -W`、共用狀態讀者：按鈕功能題探路 9 場（Opus low 6、high 1、medium 2）找回不變（都是 0）、無誤報、花費不增，照「沒退化就收」放入；**沒有證明有效**。探路顯示該題兩個答案是 diff 之前就存在的舊問題，從「這次改動」出發的審查很可能本來就看不到。
+- 時序視角、`evidence.md` #9、`goal.md` #9、`/evolve` 的考卷維護：**未考試**。
+- 模型比較（同日）：Haiku max 4.5、Opus medium 3.5、Fable low 3.5、Sonnet medium 2.5；GPT 側在 Windows 測試題沒讀 CI 是考卷措辭所致，拿掉限制後 Sol 一場讀了 CI 就兩項全中、另一場沒讀。
+
 ## [8.8.0] - 2026-10-18
 
 ### Changed（`/review`：每個問題標影響、嚴重程度、信心；「成立」也要舉證）
