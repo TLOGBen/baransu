@@ -2,7 +2,7 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
-## [9.0.0] - 2026-10-18
+## [8.7.0] - 2026-10-18
 
 ### Changed（`/review`：重做——問題就是「有一個地方跟改動對不上」）
 - **定義**：一個改動是對的，當且僅當每個擁有、重述或依賴它所改內容的地方都還對得上；使用者的需求是第一個地方。「對得上」分三種：說法一致（沒有地方講相反的話）、該寫的有寫（負責講這件事的表格、清單、說明、規格、範例要寫到新事實）、該給的有給（呼叫端、下一步、平台、使用者拿得到它依賴的值、狀態、時間點、環境）。每個問題附兩段引文；第二段可以是從使用端程式推出來的需求，原則條文只在沒有任何地方說話時才當第二段。
@@ -10,7 +10,7 @@
 - **流程**：列出改動改了哪些事實 → 只用指令輸出（git log／blame／grep、CI 列表）找出每個事實還出現在哪裡，每處配一個要回答的問題（歷史用 `/why` 的錨點、生命週期用 `/how` 的流程，不整個跑那兩個 skill）→ 每一處打開讀一次、每一處都給判定 → 五段鏈（現象／影響／根源／基石／驗證）與照規則算出的判定；基石附「該在哪一層修」（架構 → 型別 → 檢查 → 測試 → 文件）。
 - **預設單一 reviewer、`--full` 才兩階段**：預設派一個全新 reviewer 從頭做到尾，主 session 的 context 保持乾淨；`--full`（或「完整審」）由主 session 列位置、reviewer 逐處讀，再派 verifier 只核對每個問題的兩段引文。`--model`／`--effort` 對兩種模式都有效。
 - **原則庫**（新增 `references/principles/`）：目錄加 12 個原則——需求、單一來源、影響範圍、風險、證據、測試、信任邊界（以內建 `/security-review` 的排除清單與判例為準）、業務領域（含 DDD 與 BDD 的 Given／When／Then）、結構、品味、可讀性、效能。每個原則是一句原則、Why、最多 10 條做法、The test、跳過的徵兆（pstack 的寫法），碰到才載入。看似衝突的原則以一條能同時解釋兩邊的基石統一：結構＝「邊界放在改變理由不同的地方，其他地方不放」；重構＝「大膽刪複雜度，絕不大膽加」。
-- **agents**：新增 `reviewer.md`（補上 reviewer 沒有定義檔、每次由主流程臨時寫提示詞的缺口）；`verifier.md` 改為只核對引文；**移除** `quality-reviewer`、`architecture-reviewer`、`security-reviewer`、`domain-reviewer` 四個鏡頭 agent，內容併入原則庫（含 8.6.0 期間 architecture-reviewer 新增的「業務邏輯散在條件判斷」，見 `principles/domain.md` #5）。外部若直接派這四個 agent 類型會失效，故升主版號。
+- **agents**：新增 `reviewer.md`（補上 reviewer 沒有定義檔、每次由主流程臨時寫提示詞的缺口）；`verifier.md` 改為只核對引文；**移除** `quality-reviewer`、`architecture-reviewer`、`security-reviewer`、`domain-reviewer` 四個鏡頭 agent，內容併入原則庫（含 8.6.0 期間 architecture-reviewer 新增的「業務邏輯散在條件判斷」，見 `principles/domain.md` #5）。外部若直接派這四個 agent 類型會失效。
 - **description** 從 755 字縮到約 300 字，機制細節留在正文。
 
 ### 依據（盲測，每題跑兩次；答案卷不進 repo）
