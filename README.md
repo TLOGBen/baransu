@@ -24,6 +24,7 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 | 結構是地板 | 確定性檢查全走腳本閘門，不靠模型自律 | `scripts/verify-skills.py` |
 | 人在授權點 | Input PAUSE 可走預設；Authorization PAUSE 不可覆寫 | `plugins/baransu/skills/_shared/loop-contract.md` |
 | 證據優先 | 非顯然主張依賴前先引查證來源；乾淨的 review 也是有效的 review | `plugins/baransu/skills/review/SKILL.md` |
+| 你說的不算，證明它 | 說有問題的要跑出那個錯，說完成的要照使用者的方式跑給你看 | `plugins/baransu/skills/prove-it/SKILL.md` |
 | 狀態落盤 | 長流程的結論落檔交付、不賭終端顯示 | `plugins/baransu/skills/_shared/output-journal.md` |
 
 由來與完整說明：[理念全文](docs/philosophy.md)。
@@ -46,7 +47,8 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 <td>
 <h3><a href="docs/skills/verify.md">驗證</a></h3>
 <p><i>換一雙乾淨的眼睛看，拿證據說話；乾淨的結果也是有效的結果。</i></p>
-<b><code>/baransu:review</code></b>：乾淨 context 的 reviewer 只讀不跑，找出每一個跟改動對不上的地方，判定照規則算，不改目標<br>
+<b><code>/baransu:review</code></b>：乾淨 context 的 reviewer 只讀不跑，找出每一個跟改動對不上的地方；判「成立」也要附原文，拿不準的列「不確定」，判定照規則算，不改目標<br>
+<b><code>/baransu:prove-it</code></b>：照使用者的方式實際跑一次，證明說有問題的真的有問題、說完成的真的完成，留下 review 讀得到的執行紀錄<br>
 <b><code>/baransu:hunt</code></b>：從症狀追到根因，指到 file:line 才動手修
 </td>
 </tr>
@@ -70,6 +72,7 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 <b><code>/baransu:how</code></b>：講清楚一塊程式怎麼運作：流程、關鍵概念、檔案位置、陷阱<br>
 <b><code>/baransu:why</code></b>：從 git 紀錄、計畫與對話查出程式為什麼長這樣，每條主張標信心、寫明查不到什麼<br>
 <b><code>/baransu:teach-me</code></b>：用對話把一塊程式或一份筆記教到你真的懂，一次一層<br>
+<b><code>/baransu:show-me</code></b>：用最小的一張圖把當下的重點畫出來（流程、結構、差異），只能手動叫用<br>
 <b><code>/baransu:huh</code></b>：把上一則訊息用白話重講一次，不用術語
 </td>
 </tr>
@@ -90,11 +93,11 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 
 ```
 小　單檔、範圍清楚     →  直接實作（紅綠紀律）
-中　一個功能、幾個檔案 →  直接實作（紅綠紀律）  →  /review 獨立重驗
+中　一個功能、幾個檔案 →  直接實作（紅綠紀律）  →  /review 獨立重驗（要跑才知道的 → /prove-it）
 大　多個互相依賴的模組 →  畫成決策圖、切片  →  每片走「中」
 ```
 
-方向未定先 `/think`，出錯了 `/hunt`，想要第二雙眼睛 `/review`，收工 `/ship`。小任務不硬上全套，大任務不偷走輕量路。完整說明：[三頻段路由](docs/routing.md)。
+方向未定先 `/think`，出錯了 `/hunt`，想要第二雙眼睛 `/review`，要實際跑一次證明 `/prove-it`，收工 `/ship`。小任務不硬上全套，大任務不偷走輕量路。完整說明：[三頻段路由](docs/routing.md)。
 
 ## 快速開始
 
@@ -119,6 +122,8 @@ codex plugin add baransu@baransu
 > 做完「匯出 CSV 時支援自訂欄位順序」之後：`/baransu:review 看一下這個 diff`
 >
 > 登入後偶爾白畫面，幫我排查　→ `/hunt`
+>
+> review 說匯出會漏最後一列，跑跑看是不是真的　→ `/prove-it`
 
 ## 更多
 
