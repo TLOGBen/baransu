@@ -46,7 +46,7 @@ Do not simulate independent review by asking the same conversation context sever
 
 A change is right when every place that owns, restates, or relies on what it changed still holds with it. The first of those places is the user's goal. A place holds in three ways, and a problem is a place that fails one:
 
-- **It says the same.** No place states the opposite of the new fact.
+- **It says the same.** Where a place states the fact, it states the new one.
 - **It says it where it is owed.** A place whose job is to state the fact — a table, a list, a description, a spec, an example, an expected result — states the new fact, not the old one and not nothing.
 - **It gets what it needs.** Each consumer — a caller, a later step, a listener, a platform, the user — receives what it relies on: a value, a state, a moment, an environment.
 
@@ -58,8 +58,8 @@ All user-facing output is in Traditional Chinese.
 
 ## Outcome Contract
 
-- **Outcome**: One review of the pinned target against the user's goal, reporting each place that no longer holds as two citations with its chain, every walked place with its verdict, independence, and limits.
-- **Done when**: Target, goal, and scope are pinned; the change map and the walk exist; the reviewer has returned a verdict for every place on the walk, with the principles it loaded; under `--full`, the verifier has checked every citation; each retained problem carries both citations and its chain; each standing question is answered or marked 未驗證; the verdict is computed by its printed rule; zero problems with stated scope is a complete result.
+- **Outcome**: One review of the pinned target against the user's goal, reporting each place that no longer holds as two citations with its chain, every walked place with its verdict, the uncertain places with what would settle each and the exclusions with their proofs, independence, and limits.
+- **Done when**: Target, goal, and scope are pinned; the change map and the walk exist; the reviewer has returned a verdict for every place on the walk, with the principles it loaded; under `--full`, the verifier has checked every citation; each retained problem carries both citations and its chain, each exclusion its proof, each uncertain place what would settle it; each standing question is answered or marked 未驗證; the verdict is computed by its printed rule; zero problems with stated scope is a complete result.
 - **Evidence**: The two citations of every retained problem (as the verifier read them, under `--full`), the records the review relied on, the walk, and the independence statement.
 - **Output**: A Traditional Chinese review report in the conversation; `.codex/review/<slug>.md` when persistence is useful or requested (`$baransu:ship` archives that directory).
 - **Automation**: ultracode=neutral, loop=drivable（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
@@ -103,11 +103,11 @@ If a fresh agent is unavailable, or the current session authored the target, dis
 
 Dispatch the bundled `reviewer` agent (`../../.codex-agents/reviewer.toml`, per the adapter above) with the pinned target, the goal, the scope, and the absolute path of this skill's `references/principles/`; in the default pass it also takes step 2 of this skill and builds the change map and the walk itself, and under `--full` it takes the session's change map and walk instead. The author's defense or desired verdict is not evidence and is not handed over.
 
-The reviewer reads `principles/index.md` and loads each principle whose trigger a place meets, then walks every place: it reads the behaviour there, answers the place's question, and gives the place one verdict. **Holds**: proved as `evidence.md` #8 requires. **Fails**: a finding with two citations and its chain. **Uncertain**: neither can be shown yet; one line naming what would settle it. Every place on the walk, and every candidate the reviewer raises, ends in one of the three; a candidate that ends holding is an exclusion. It also returns each principle it loaded and the place that needed it, and the places it added.
+The reviewer reads `principles/index.md` and loads each principle whose trigger a place meets, then walks every place: it reads the behaviour there, answers the place's question, and gives the place one verdict. **Holds**: proved as `evidence.md` #8 requires. **Fails**: a finding with two citations and its chain. **Uncertain**: neither can be shown yet; one line naming what would settle it. Every place on the walk ends in one of the three. A place the reviewer suspected of failing — wrote a finding for, or listed as a candidate — and then found holding is an exclusion, kept with its proof. It also returns each principle it loaded and the place that needed it, and the places it added.
 
 ## 5. Stage two — the verifier (`--full`)
 
-Dispatch a fresh bundled `verifier` agent (`../../.codex-agents/verifier.toml`, per the adapter above) with the reviewer's findings and exclusions, never with its reasoning beyond them. Other holds and uncertain verdicts go to the report as they are. For each finding it opens both citations, confirms each says what the finding quotes, re-derives any derived need from the consumer's code, confirms both concern the same fact in the same scope, version, and environment, and confirms the place fails in the way the finding names. A finding whose citations fail is dropped with the failed check named, and an exclusion stands only on its citation; what the verifier cannot settle either way becomes uncertain.
+Dispatch a fresh bundled `verifier` agent (`../../.codex-agents/verifier.toml`, per the adapter above) with the change map, the reviewer's findings, and its exclusions with their proofs, never with its reasoning beyond them. Other holds and uncertain verdicts go to the report as they are. For each finding it opens both citations, confirms each says what the finding quotes, re-derives any derived need from the consumer's code, confirms both concern the same fact in the same scope, version, and environment, and confirms the place fails in the way the finding names. A finding is dropped only with the line showing the place holding, and an exclusion stands only on its proof; what the verifier cannot settle either way becomes uncertain, with the failed check named.
 
 ## 6. Judge the chain
 
