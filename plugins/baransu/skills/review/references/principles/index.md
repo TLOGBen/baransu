@@ -8,7 +8,7 @@ Each principle is one statement, why it holds, a numbered pattern of at most ten
 | `single-source.md` | The change alters a name, value, rule, or promise that is stated, listed, or mirrored anywhere else. | One fact, one owner; every statement of it holds. |
 | `blast-radius.md` | The change alters behaviour that other code, data, timing, a platform, or a later step relies on. | Each consumer still gets what it needs. |
 | `risk.md` | The change writes, deletes, migrates, retries, runs concurrently, or does anything hard to undo. | What a failure costs, and whether it recovers. |
-| `evidence.md` | The target claims it ran, passed, measured, or counted something, or a run record exists. | Read the author's record; never produce one. |
+| `evidence.md` | Always: every verdict the review gives is a claim; and whenever the target claims it ran, passed, measured, or counted something, or a run record exists. | Read the author's record; never produce one; prove each claim, the review's own included. |
 | `tests.md` | The change adds, changes, keeps, or relies on a test. | A test proves only what breaking would turn red. |
 | `trust-boundary.md` | Data, a credential, or a command crosses into the system from outside it, or leaves it. | Concrete exploitable paths, checked at the boundary. |
 | `domain.md` | The target encodes business states, rules, transitions, terms, scenarios, or a model of the domain. | Domain language, invariants, and Given/When/Then behaviour. |
