@@ -25,8 +25,7 @@ plugins/
     rules/
       anti-patterns.md         # cross-skill behavioral guardrails
     agents/
-      # Perspective: architecture-reviewer.md  quality-reviewer.md  security-reviewer.md  domain-reviewer.md
-      # Verify:      verifier.md  (dispatched by review)
+      # Review:      reviewer.md  verifier.md  (dispatched by review; principles in skills/review/references/principles/)
       # Health:      health-inspector-context.md  health-inspector-control.md  health-inspector-maintainability.md
       # Evolve:      evolve-diagnostician.md  evolve-judge.md
 ```
