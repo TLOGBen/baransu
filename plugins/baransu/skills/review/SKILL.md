@@ -1,6 +1,6 @@
 ---
 name: review
-description: 'Independent review of a concrete artifact, diff, plan, or directly quoted claim against the user''s goal, by reading only: a problem is a place that no longer holds with the change — it says the opposite, omits what it owes, or does not get what it needs — shown as two citations and traced phenomenon → impact → root → restated bedrock → verification; one fresh agent walks the places with the principles they trigger, and --full adds a second that checks every citation; never edits or runs the target; verdict by a printed rule (PROVEN / PARTLY PROVEN / NOT PROVEN); a clean review is a valid result. Trigger On 「看一下」「看看」「幫我看」「check 一下」「review 一下」「是不是做過頭了」, or casual "take a look at X". Not for auditing the user''s own project agent-config (route to /health) or diagnosing a reported error (/hunt). 繁體中文輸出。'
+description: 'Reviews a diff, PR, plan, artifact, or quoted claim against what the user asked for, by reading only: finds every place that no longer holds with the change and reports each with two citations and a verdict. Trigger On 「看一下」「幫我看」「check 一下」「review 一下」「是不是做過頭了」, "take a look at X". Not for a reported error (/hunt) or the project''s agent config (/health).'
 argument-hint: "<diff | PR | file | plan | quoted claim> [--full] [--model <m>] [--effort <e>]"
 ---
 

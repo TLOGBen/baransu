@@ -14,14 +14,14 @@
 
 Claude Code：`/baransu:review`　Codex：`$baransu:review`
 
-**用途**　派一個乾淨 context 的 verifier 獨立重驗任何產出，視角只為不同的實質風險才加；沒有驗收條文時問三題——做到了沒、多做了什麼、做小了沒；不改目標；乾淨的 review 也是有效的 review。
+**用途**　派一個乾淨 context 的 reviewer 獨立審查任何產出，只讀不跑。問題的定義是「有一個地方跟改動對不上」，分三種：說了相反的話、該寫的沒寫、該給的沒給。每個問題附兩段引文。三題（做到了沒、多做了什麼、做小了沒）一定會回答；不改目標；乾淨的 review 也是有效的 review。
 
 **什麼時候用**
 - 任何模型產出之後——程式、計畫、主張——想要獨立重驗。
 - 目標必須具體：一個產物、一段 diff，或直接引用的一句主張。
 - 觸發語：看一下、看看、幫我看、check 一下、review 一下、take a look at X。
 
-**運作方式**　先釘住目標與要回答的問題 → 一屏以內的 diff 或一句主張走快速路徑（一個 verifier、既有測試、不派視角）→ 派一個窄 context 的 verifier → 只有遇到不同的、會造成後果的風險時才加派視角 agent（architecture／quality／security／style／domain reviewer）→ canary 與 fresh inputs 兩個儀器依固定觸發實跑 → 判讀證據（只有真的跑過的才算發現）→ 報告。從頭到尾不修改目標。
+**運作方式**　先釘住目標、需求與範圍 → 預設派一個全新 reviewer：它用指令輸出（git log、blame、grep、CI 紀錄）列出改動改了哪些事實、每個事實還出現在哪裡，再逐處打開讀一次、每一處都給判定 → 碰到什麼才載入對應的原則（`references/principles/` 共 12 個：需求、單一來源、影響範圍、風險、證據、測試、信任邊界、業務領域、結構、品味、可讀性、效能）→ 報告。加 `--full`（或說「完整審」）時，改由主 session 列位置、reviewer 逐處讀，再派一個 verifier 核對每個問題的兩段引文。全程不修改、不執行目標；要跑才能確認的地方寫成「coverage lost: needs X」交給作者。
 
 **產出**
 - 繁中 review 報告：檢查範圍、每個 finding 的位置／觸發條件／後果／證據、三題各一行（做到了／多做了／做小了）、獨立性聲明、剩餘限制；結尾判定由印在報告裡的規則算出——PROVEN／PARTLY PROVEN／NOT PROVEN——再加「若只能改一處」。
