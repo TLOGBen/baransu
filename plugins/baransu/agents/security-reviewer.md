@@ -1,6 +1,6 @@
 ---
 name: security-reviewer
-description: Perspective lens for attack surface, input validation, authentication/authorization placement, secret handling, injection vectors, trust boundaries, and cryptographic usage. /baransu:review's reviewer loads it when input, credentials, or commands cross a trust boundary in the target; under --full it runs as its own subagent.
+description: Perspective lens for attack surface, input validation, authentication/authorization placement, secret handling, injection vectors, trust boundaries, and cryptographic usage. /baransu:review's reviewer loads it for a claim that turns on whether input, a credential, or a command is checked where it crosses a trust boundary; under --full it runs as its own subagent.
 tools: Read, Grep, Glob, Bash
 ---
 

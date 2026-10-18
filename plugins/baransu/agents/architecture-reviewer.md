@@ -1,6 +1,6 @@
 ---
 name: architecture-reviewer
-description: Perspective lens for structural coherence, boundary placement, layer crossings, dependency direction, and premature/over-engineered abstraction. /baransu:review's reviewer loads it when the target changes a definition, interface, or boundary other parts rely on; under --full it runs as its own subagent.
+description: Perspective lens for structural coherence, boundary placement, layer crossings, dependency direction, and premature/over-engineered abstraction. /baransu:review's reviewer loads it for a claim that turns on whether a definition, interface, or boundary other parts rely on still holds for them; under --full it runs as its own subagent.
 tools: Read, Grep, Glob, Bash
 ---
 

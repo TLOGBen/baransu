@@ -1,6 +1,6 @@
 ---
 name: domain-reviewer
-description: Perspective lens for business-state reachability and transition legality of targets that claim business behavior (test suites, spec-like artifacts), judged against a domain transition table — distinct from quality-reviewer's dead-code sense of reachability. /baransu:review's reviewer loads it when the target touches business states, transitions, or rules; under --full it runs as its own subagent.
+description: Perspective lens for business-state reachability and transition legality of targets that claim business behavior (test suites, spec-like artifacts), judged against a domain transition table — distinct from quality-reviewer's dead-code sense of reachability. /baransu:review's reviewer loads it for a claim that turns on whether business states, transitions, or rules are legal; under --full it runs as its own subagent.
 tools: Read, Grep, Glob, Bash
 ---
 
