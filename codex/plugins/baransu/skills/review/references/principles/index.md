@@ -1,22 +1,22 @@
 # Principles — index
 
-Each principle is one statement, why it holds, a numbered pattern of at most ten moves, the test that checks it, and the sign it was skipped. Load a principle when a place in the review meets its trigger. A finding that rests on a principle cites it as `<file> #<n>`, and that move is the second citation where no place in the target or its contracts speaks, or stands beside the contract that permits the risk it names. Two principles never conflict: when they seem to, the statement that explains both has not been found yet, and that is a finding about the principles, not a choice between them.
+Each principle is one statement, why it holds, a numbered pattern of at most ten moves, the test that checks it, and the sign it was skipped. Principles load in two stages. **Before the walk**, while the change map and the walk are laid out, load each principle whose stage is `walk` and whose trigger the change meets — read from `git diff --stat` and the goal, without opening the changed places; they decide which places go on the walk. **At each place**, load each `place` principle whose trigger that place meets. A finding that rests on a principle cites it as `<file> #<n>`, and that move is the second citation where no place in the target or its contracts speaks, or stands beside the contract that permits the risk it names. Two principles never conflict: when they seem to, the statement that explains both has not been found yet, and that is a finding about the principles, not a choice between them.
 
 Every principle states how things should be. **A problem is a departure from a principle**, and its severity is how far it departs — measured on the scale below, whether the departure makes things better or worse. **Every problem is headed** `<principle file #n>：<its impact in plain words — for a risk, the name the move gives it>　嚴重程度 N　信心 高|中|低`. **Confidence** is the level the evidence reached: 高 — two quoted citations show the mismatch directly, or the author's record of this version shows the failure; 中 — every branch was walked and the bad case derived, with no record that shows it; 低 — the place and the risk are pointed at but the path is not walked through, or a contract permits it and whether it harms rests on judgment. **Severity** N is on this scale: 0 風格; 1 不一致或簡單的 wording; 2 輕微 bug，不屬於正常使用、不影響正常使用; 3 中等 bug，功能錯誤異常，但使用者或操作者可用 workaround 解決; 4 高級 bug，功能錯誤且無法繼續使用; 5 嚴重 bug，整體完全無法運行、部署或啟動. UI／UX 不直觀或版面錯位，只要不影響使用，是 2；影響使用的照 3～5. A risk not yet realised — data loss, exposure, a race — takes the level it would reach if it happened, minus 0.5. A move that guards against a concrete consequence names it as `Risk:`.
 
-| File | Load when | Purpose |
-|---|---|---|
-| `goal.md` | Always: every review checks the target against what the user asked for. | Did what was asked, nothing added, nothing narrowed. |
-| `single-source.md` | The change alters a name, value, rule, or promise that is stated, listed, or mirrored anywhere else. | One fact, one owner; every statement of it holds. |
-| `blast-radius.md` | The change alters behaviour that other code, data, timing, a platform, or a later step relies on. | Each consumer still gets what it needs. |
-| `risk.md` | The change writes, deletes, migrates, retries, runs concurrently, or does anything hard to undo. | What a failure costs, and whether it recovers. |
-| `evidence.md` | Always: every claim needs its evidence, the review's own verdicts included. | Read the author's record; never produce one. |
-| `tests.md` | The change adds, changes, keeps, or relies on a test. | A test proves only what breaking would turn red. |
-| `trust-boundary.md` | Data, a credential, or a command crosses into the system from outside it, or leaves it. | Concrete exploitable paths, checked at the boundary. |
-| `domain.md` | The target encodes business states, rules, transitions, terms, scenarios, or a model of the domain. | Domain language, invariants, and Given/When/Then behaviour. |
-| `structure.md` | The change adds or moves a module, layer, interface, state owner, or dependency. | Boundaries where reasons to change differ, nowhere else. |
-| `taste.md` | The change adds or rewrites code, or the repo documents how its code should be written. | The smallest complete change, in the repo's own way. |
-| `readability.md` | The change adds indirection, state, names, or comments a reader must hold to follow it. | What a reader must trace and hold to understand it. |
-| `performance.md` | The change touches a loop over data, I/O, a query, startup, a hot path, or claims a speed. | Work the change makes the system repeat or wait for. |
+| File | Stage | Load when | Purpose |
+|---|---|---|---|
+| `goal.md` | walk | Always: every review checks the target against what the user asked for. | Did what was asked, nothing added, nothing narrowed. |
+| `single-source.md` | walk | The change alters a name, value, rule, or promise that is stated, listed, or mirrored anywhere else. | One fact, one owner; every statement of it holds. |
+| `blast-radius.md` | walk | The change alters behaviour that other code, data, timing, a platform, or a later step relies on. | Each consumer still gets what it needs. |
+| `risk.md` | place | The change writes, deletes, migrates, retries, runs concurrently, or does anything hard to undo. | What a failure costs, and whether it recovers. |
+| `evidence.md` | walk | Always: every claim needs its evidence, the review's own verdicts included. | Read the author's record; never produce one. |
+| `tests.md` | place | The change adds, changes, keeps, or relies on a test. | A test proves only what breaking would turn red. |
+| `trust-boundary.md` | place | Data, a credential, or a command crosses into the system from outside it, or leaves it. | Concrete exploitable paths, checked at the boundary. |
+| `domain.md` | place | The target encodes business states, rules, transitions, terms, scenarios, or a model of the domain. | Domain language, invariants, and Given/When/Then behaviour. |
+| `structure.md` | place | The change adds or moves a module, layer, interface, state owner, or dependency. | Boundaries where reasons to change differ, nowhere else. |
+| `taste.md` | place | The change adds or rewrites code, or the repo documents how its code should be written. | The smallest complete change, in the repo's own way. |
+| `readability.md` | place | The change adds indirection, state, names, or comments a reader must hold to follow it. | What a reader must trace and hold to understand it. |
+| `performance.md` | place | The change touches a loop over data, I/O, a query, startup, a hot path, or claims a speed. | Work the change makes the system repeat or wait for. |
 
 Sources, adapted and restated in this repo's terms: pstack principles, `correct`, `blast-radius`, `architect` design red flags, and `interrogate` rubric (cursor/plugins, MIT); `codebase-design`, `code-review`, `domain-modeling`, and `tdd` (mattpocock/skills); `ponytail` and `ponytail-review` (DietrichGebert/ponytail, MIT); Fowler, *Refactoring*, ch. 3; Claude Code's built-in `/security-review`.

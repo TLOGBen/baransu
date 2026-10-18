@@ -13,7 +13,7 @@ The user's goal is the first place every change must hold with: each thing it as
 6. **State impact from the consumer's side.** The user is whoever consumes the result: an end user for a product, the caller for a library, the next engineer for code.
 7. **Treat a plan as a target.** Its sections are places: Building against Not building, Approach against Key decisions, each Unknown with its question, why deferring is safe, and who decides when.
 8. **Do not let a note close a gap.** A gap the author listed, an earlier version that shared it, or a sibling that fails the same way makes it known, not designed.
-9. **Leave waivers to the user.** A goal item the reviewer thinks is wrong is raised as a question, and the target is still checked against the item as written: a departure from the request or a written contract is a problem as `index.md` defines, that text its second citation; where the departure improves on the contract, its bedrock brings the contract in line with the code.
+9. **Leave waivers to the user.** A goal item the reviewer thinks is wrong is raised as a question, and the target is still checked against the item as written: a departure from the request or a written contract is a problem as `index.md` defines, that text its second citation; where the departure improves on the contract, its bedrock brings the contract in line with the code. A departure that breaks what a user relies on stays a problem however the contract is rewritten; changing the text never closes it.
 
 **The test:** Put the goal's words in one column and the edits in another. Does every goal item have its edit, every edit its goal item, and does each pair describe the same behaviour?
 

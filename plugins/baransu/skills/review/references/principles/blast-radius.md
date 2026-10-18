@@ -13,7 +13,8 @@ A change reaches as far as the facts it alters travel. Follow each one from wher
 6. **Check the pattern, not the instance.** Where the change fixes or introduces a fault, find every other place with the same shape.
 7. **State the level each fact reached.** Said so; pointed at the line; walked every branch and shown the bad case cannot be reached; shown by the author's record of this version. A fact below the level its risk needs is uncertain, naming what would settle it — 「coverage lost: needs X」 when only a run could.
 8. **Stop where the next look cannot move the verdict.** Depth follows consequence; `--full` follows each fact to the end of its lifecycle across the whole system.
-9. **List what was walked and held.** Each place read and found to hold is reported with what was read, so the reader sees how far the review reached.
+9. **List every reader and writer of the state it changes, on one timeline.** For each variable, field, file, setting, or cache the change writes or reads — including one a changed condition or guard only reads — search for every place that reads or writes it, not only the calls that reach it; each is a place on the walk. Where the state carries a promise over time — a pending mark, a lock, a retry, a timeout — order those places by when each runs, and check the promise after every step and in every order they can run.
+10. **List what was walked and held.** Each place read and found to hold is reported with what was read, so the reader sees how far the review reached.
 
 **The test:** For each consumer of a changed fact, can you say in one sentence what it needs and point at the line where it gets it?
 

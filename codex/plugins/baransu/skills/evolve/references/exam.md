@@ -26,6 +26,16 @@ When Gate 3 allows real-exec, the effectiveness axis is an exam: the skill under
 - **Cost** = mean tokens and wall time over the two runs.
 - Write the sheet to `exam/round-<N>.md`. Stage 5 relabels it alpha/beta for the panel and applies the keep bar: recall no lower and cost no higher than the current version's beyond the noise band.
 
+## Keeping the exam honest
+
+An exam is a verification of the skill, and it drifts like any other: keys go stale, a prompt's wording can decide a score, a key item can sit outside what the prompt asks for. Check these before a round's misses are read as the skill's failure.
+
+- **Each key item is able to be found.** Before the first round, show each item is reachable from the prompt as written: its location at the pinned version, the change that introduced it, and whether the prompt's scope covers it — an item that predates the change under review, or that only a run would show, is recorded as out of scope for that prompt, not as a miss.
+- **The template restates only the fairness rules.** A sentence that forbids a source a correct run would read (a record, a log, an earlier commit) decides the score instead of the skill; examinees of different models read such a sentence differently. Forbid only what would leak the answer, such as anything after the pinned version.
+- **Examinees take the user's path.** Each examinee uses the skill the way its user would, from a fresh session with the skill's own instructions, never through a shortcut a user would not have.
+- **Record whether each item's place was reached.** The scorer notes, per key item and output, whether the place was listed, read, and how it was judged; "never reached" and "reached and judged fine" lead the next diagnosis to different clauses.
+- **Classify every miss before scoring it.** A miss is the skill's, the key's (the item or its location is wrong), the exam's (wording or scope kept the examinee away), or a limit (only a run settles it). Only the first counts against the version; the other three are fixed in the key or template, with a `decisions.tsv` line, and that change is itself a reason to re-examine the current version.
+
 ## Held-out (Stage 7)
 
 The held-out prompts sit the same exam — same template, two runs each, the same scorer protocol — for the pre-evolution and converged versions.
