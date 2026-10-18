@@ -1,13 +1,6 @@
 ---
 name: read
-description: 'Reads any web page, file, or search result into the conversation as
-  clean Markdown; keeps an offline copy under .codex/read/ only with --save or an
-  explicit save request. Use when the user wants a page, PDF, or doc fetched, read,
-  or converted. Trigger On ''$baransu:read'', ''抓網頁'', ''看一下這篇'', ''轉成 markdown'',
-  ''存下來'', ''存檔''. Not For digesting into notes ($baransu:learn) or drawing it as
-  a diagram, map, or animation ($baransu:draw).
-
-  '
+description: "Reads a web page, file, or search result into the conversation as clean Markdown; keeps an offline copy under .claude/read/ only when asked to save. Trigger On '$baransu:read', '抓網頁', '看一下這篇', '轉成 markdown', '存下來'. Not for digesting into notes ($baransu:learn)."
 compatibility: Designed for Claude Code; ported to Codex.
 metadata:
   version: 0.1.0-codex

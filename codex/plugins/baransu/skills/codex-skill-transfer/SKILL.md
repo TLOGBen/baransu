@@ -1,6 +1,6 @@
 ---
 name: codex-skill-transfer
-description: "Ports or audits the Codex copy of a Claude Code skill, plugin, or marketplace by reading both platforms' current official docs and the Codex source at the current release tag — never from a remembered mapping — then reports every gap with its source. By default audits a Claude/Codex pair read-only; edits the Codex copy only when asked. Trigger on 「轉成 codex 版」「給 codex 用」「port to codex」「檢查 codex 版」, or Claude→Codex mapping questions (disable-model-invocation, context fork, ARGUMENTS, plugin.json). Not for reverse porting (Codex→Claude) or a brand-new Codex skill with no Claude counterpart."
+description: "Ports or audits the Codex copy of a Claude Code skill, plugin or marketplace against both platforms' current official docs and the Codex source, reporting every gap with its source; edits only when asked. Trigger On '轉成 codex 版', '給 codex 用', '檢查 codex 版', 'port to codex'. Not for porting Codex to Claude."
 license: Apache-2.0
 compatibility: Needs network access to the official Claude Code and OpenAI docs and to raw.githubusercontent.com for the Codex source.
 metadata:

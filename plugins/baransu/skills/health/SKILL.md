@@ -1,8 +1,6 @@
 ---
 name: health
-description: >
-  Audits a project's agent configuration and AI-coding maintainability — instruction drift, hooks/MCP, verifier surfaces, code-rot signals — via a budget-aware five-layer audit; escalates to inspector subagents only for deep audits. Also the DEFAULT DISPATCH for environment problems — a skill's CLI/SDK missing, command not found（環境急診：預設修法＝官方一步全域安裝）. Trigger On '/health', '健康檢查', '配置體檢', '檢查配置', 'AI 可維護性', 'agents ignoring instructions'. Not for verifying baransu's own skill structure (scripts/verify-skills.py), reviewing a single model output (/review), or substituting for lint/typecheck. 繁體中文輸出。
-when_to_use: "檢查 claude, 檢查 codex, 配置對不對, 健康度, AI coding 腐化, 程式碼變爛, 上下文混亂, 驗證缺失, hooks 沒生效, MCP 壞了, AGENTS.md, agent instructions, check config, audit config, health check, config drift, command not found, 環境問題, 依賴缺失, SDK 沒裝"
+description: "Audits a project's agent configuration and AI-coding maintainability — instruction drift, hooks, MCP, code-rot signals — and is the default for environment problems such as a missing CLI or 'command not found'. Trigger On '/health', '健康檢查', '檢查配置', 'hooks 沒生效', 'MCP 壞了', 'command not found'. Not for reviewing one piece of work (/review)."
 metadata:
   version: "1.2.0"
   scope: user-project-agent-config-and-maintainability

@@ -1,6 +1,6 @@
 ---
 name: write
-description: Refines existing text, generates a piece from a prompt, or proofreads a document into an error-report HTML (self-styled 錯字修改.html findings table). Auto-classifies input as Refine / Generate / Proofread; follows language prefix or auto-detects. Use for bilingual zh/en writing help. Trigger On '/write', '潤稿', '寫一篇', '改寫這段', '校對', '找錯字', '抓錯字', 'proofread'. Not for committing finished text (/ship) or digesting sources into notes (/learn, /read).
+description: "Refines text, writes a piece from a prompt, or proofreads a document into an error-report page, in Chinese or English. Trigger On '/write', '潤稿', '寫一篇', '改寫這段', '校對', 'proofread'. Not for digesting sources into notes (/learn)."
 argument-hint: "[zh|en] [voice=\"…\"] <text=潤稿 | prompt=生成 | file/path=校對>"
 user-invocable: true
 ---
