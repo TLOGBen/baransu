@@ -2,6 +2,14 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.11.0] - 2026-10-18
+
+### Added（`/show-me`：從 common 搬進 baransu）
+- **新 skill `/show-me`**：用最小的一張圖把當下的重點畫出來（pseudocode、呼叫樹、元件樹、檔案樹、diff、Mermaid、聚焦的 HTML 頁面）；Mermaid 會另存成 HTML 開啟。內容沿用 common 那份，補上 baransu 的繁中輸出、Outcome Contract 與不適用邊界（`/teach-me`、`/draw`、`/huh`）。
+- **跟上游一致，只能手動叫用**：HumanLayer 上游 2026-09-12 起加了 `disable-model-invocation: true`，Claude Code 版照做（不進模型的技能清單、不佔 token，也不會跟 common 的 `show-me` 互搶）；Codex 版不支援這個設定，維持可自動觸發。
+- 改編自 HumanLayer skills 的 show-me（MIT），附 `NOTICE.md`。common 的 `show-me` 不動。
+- skill 數 19 → 20；CLAUDE.md、AGENTS.md、docs、README、Codex 版同步。
+
 ## [8.10.2] - 2026-10-18
 
 ### Changed

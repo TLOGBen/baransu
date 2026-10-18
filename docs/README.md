@@ -18,7 +18,7 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 
 ## Skill 參考
 
-19 個 skill 分成五個家族。每頁列出每個 skill 的用途、觸發語、參數、產出位置與不適用的情況。
+20 個 skill 分成五個家族。每頁列出每個 skill 的用途、觸發語、參數、產出位置與不適用的情況。
 
 | 家族 | Skill | 一句話 |
 |---|---|---|
@@ -34,6 +34,7 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 | | [`/how`](skills/learn.md#how) | 講清楚一塊程式怎麼運作 |
 | | [`/why`](skills/learn.md#why) | 查出程式為什麼長這樣，每條主張標信心 |
 | | [`/teach-me`](skills/learn.md#teach-me) | 用對話把一塊程式或一份筆記教懂 |
+| | [`/show-me`](skills/learn.md#show-me) | 用最小的一張圖把當下的重點畫出來 |
 | [維運](skills/ops.md) | [`/ship`](skills/ops.md#ship) | 歸檔、commit、push、清 worktree |
 | | [`/health`](skills/ops.md#health) | 體檢專案的 agent 配置與 AI 可維護性 |
 | | [`/evolve`](skills/ops.md#evolve) | 用減法棘輪一輪輪磨好一份 SKILL.md |
@@ -50,6 +51,7 @@ repo 根目錄目前沒有授權檔。以下子模組 vendored 自第三方專�
 - `/domain-modeling`：`plugins/baransu/skills/domain-modeling/NOTICE.txt`（MIT，Matt Pocock），授權全文在同目錄 `LICENSE.txt`。
 - `/codex-skill-transfer`：SKILL.md frontmatter 標示 `license: Apache-2.0`。
 - `/why`、`/how`、`/teach-me`：改編自 Cursor pstack 的 why、how、teach（MIT，Lauren Tan），各自的 `NOTICE.md` 附出處與授權全文。
+- `/show-me`：改編自 HumanLayer skills 的 show-me（MIT，HumanLayer），`plugins/baransu/skills/show-me/NOTICE.md` 附出處與授權全文。
 - `/prove-it`：改編自 Cursor pstack 的 create-verification-skill、maintain-verification-skill（MIT，Lauren Tan），`plugins/baransu/skills/prove-it/NOTICE.md` 附出處與授權全文。
 - `/write`：去 AI 腔的部分規則改編自 Cursor pstack 的 unslop（MIT），見 `plugins/baransu/skills/write/NOTICE.md`。
 
