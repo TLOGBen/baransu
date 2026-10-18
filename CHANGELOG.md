@@ -2,6 +2,11 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.10.1] - 2026-10-18
+
+### Changed
+- `/prove-it`：來源與授權只寫在 `NOTICE.md`，SKILL.md 與 `references/` 本文不再提來源（與 `/how`、`/why`、`/teach-me` 一致）。
+
 ## [8.10.0] - 2026-10-18
 
 ### Added（`/prove-it`：你說的不算，證明它）
