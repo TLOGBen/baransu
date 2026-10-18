@@ -27,6 +27,8 @@ For each artifact evolve ships, record one of `獨立得出` (independently deri
 | result-card fields/layout | 獨立得出（via /draw page lane） |
 | ratchet / snapshot / keep-restore mechanism | 概念對齊（autoresearch/darwin ratchet）但措辭自寫 |
 | blind-judge / diagnostician prompts | 獨立得出 |
+| seed hunt (three seeds from one brief, blind pick, refine the winner only) | 獨立得出（baransu `/draw` 7.6.0 seed-hunt 的做法，措辭自寫） |
+| phenomenon → impact → root → bedrock → verification chain; four operations with evidence; blind known-answer exam taken twice, noise band, cost in the keep bar, case-term gate, decision ledger | 獨立得出（baransu review 基石迭代，2026-10-17～18） |
 | stage structure of SKILL.md | 獨立得出（baransu skill house style） |
 
 No line of darwin-skill or pstack prose is reproduced verbatim. If a future review finds substantial textual similarity in any row, rewrite that row's artifact before keeping it.

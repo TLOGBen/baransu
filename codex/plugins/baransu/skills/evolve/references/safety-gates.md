@@ -38,12 +38,13 @@ Destructive-pattern denylist (any hit → forced offline, reason disclosed in th
 
 When real-exec does run, mark that run **untrusted** in the report and advise post-run memory rotation, per `skills/health/SKILL.md` §third-party/subagent supply-chain stance. The capability gate asks "can it run?"; the trust gate asks "should it?" — never collapse the two.
 
-## Gate 4 — Subtraction gate, then structure gate, before keep
+## Gate 4 — Subtraction and case-term gates, then structure gate, before keep
 
-No mutation reaches the judge panel, let alone adoption, unless it passes both mechanical gates in Stage 3, regardless of score:
+No mutation reaches the seed pick, the exam or the judge panel, let alone adoption, unless it passes the mechanical gates in Stage 3, regardless of score:
 
-- **Subtraction gate** (first, touches nothing): `diff snapshot/<round>.md <scratch>`. A diff that removes or rewrites no existing non-blank line is an append-only candidate — the accretion reflex the skill exists to refuse — and is rejected before any judge is dispatched (`log.md`: `decision: append-only-refused`). A sanctioned `change_kind: add` passes only because its displaced clause is a removed line.
-- **Structure gate**:
+- **Subtraction gate** (each seed, first, touches nothing): `diff snapshot/<round>.md <scratch>`. A diff that removes or rewrites no existing non-blank line is an append-only candidate. It passes only as `change_kind: add` for a finding whose `implicated` is `none` — a phenomenon no clause explains; any other append-only candidate is a patch against a failure an existing clause causes, and is rejected before the pick (`log.md`: `decision: append-only-refused`).
+- **Case-term gate** (each seed, touches nothing): grep the diff's added lines for every term in the run's `case-terms.txt` (`exam.md` §Setup), whole word, case-insensitive. Any hit rejects the seed (`decision: case-term-refused`): a bedrock that names the exam fits the exam, not the skill. The brief passes the same grep before any seed sees it.
+- **Structure gate** (the picked winner only):
   - Run `python3 scripts/verify-skills.py` with no argument (repo mode), exactly as SKILL.md Stage 3 specifies — never pass the skill dir as an argument (Stage 3 explains why that form false-fails every skill with `references/`). The gate runs inside Stage 3's bounded write-verify-restore window (scratch bytes written to the target so the repo-mode scan can see the mutation, snapshot restored immediately after, pass or fail) — the window never survives past the gate and never constitutes adoption.
   - **Pass** = exit code 0 **AND** stdout contains no `⚠️ ADVISORY` line. Body-line advisory over-limit returns exit 0 but emits `⚠️ ADVISORY`; evolve MUST read stdout for that line and treat it as a structure-gate failure (a score gain that bloats the body past advisory is not kept).
   - A structure-gate failure forces restore (Gate 2), no matter how high the rubric score rose. Score never overrides structure — the gate is a sequential precondition to keep, not a parallel vote.

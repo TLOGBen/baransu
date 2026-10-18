@@ -69,15 +69,16 @@ Claude Code：`/baransu:evolve`　Codex：`$baransu:evolve`
 - 想改善、評分或演化一份既有的 SKILL.md。
 - 觸發語：`/evolve`、優化 skill、skill 評分、演化 skill、幫我改 skill、optimize skill、improve skill quality、evolve a skill。
 
-**運作方式**　只能向前轉的棘輪，減法先於加法：
-- 固定 9 維評分標準（第 5 維 Economy：每條都要改變一個決定）；每輪只交一筆 finding——肇事條文、它當初要解的問題、更少字的替換文；找不到肇事條文時 `finding: none` 是合法結果。
-- 新規則必須取代舊的一條；diff 只加不刪的候選在盲評前就被拒。
-- 先過結構閘，再看效果軸（real-exec 或 offline）。
-- 三位全新的盲評 judge，嚴格進步才保留，否則還原快照。
-- 雙軸評估（結構＋效果）與 held-out 驗證。
-- 採納與否是 Authorization PAUSE，由使用者決定。
+**運作方式**　只能向前轉的棘輪，每一處改動都沿「現象 → 影響 → 根源 → 基石 → 驗證」追到底：
+- 固定 9 維評分標準（第 3 維：正面定義勝過補上的禁止句；第 4 維：每條都講清楚誰對什麼做事；第 5 維 Economy：同樣的決定，短的贏）。
+- 每輪 diagnostician 交一筆 finding——觀察到的現象、它害到使用者的哪個結果、肇事條文與它當初要解的問題，再寫一份不含答案、不含案例字眼的 brief；找不到時 `finding: none` 是合法結果。
+- 三位互相看不到的種子作者照同一份 brief 各寫一版基石（新增、刪除、合併、修改或保持，並寫一行為什麼選這種），洗牌後由一位全新的評審盲選，只有勝者往下走。
+- 機械閘：只加不刪的候選，只有在沒有任何條文解釋得了這個現象時才放行；新增的字含考題的禁用字就退回；勝者再過結構閘。
+- 能實跑的 skill 用固定的考試範本、已知答案的考題各考兩次：答案只給評分的人，考生和種子作者都看不到；兩次的一致性、雜訊範圍、時間和 token 都記下來。
+- 三位全新的盲評 judge 判定為嚴格進步，而且找回不輸、花費不增（超出雜訊才算數），才保留，否則還原快照；沒經過考試的刪除與合併標「未經消融」。
+- 每個決定在 `decisions.tsv` 記一行並附證據，收尾時對帳；held-out 驗證；採納與否是 Authorization PAUSE，由使用者決定。
 
-**產出**　`.claude/evolve/<slug>/` 演化包：`report.md`、`results.tsv`、`log.md`、`held-out.md`、收斂曲線與成果卡 `card.html`（零採納時可省略成果卡並在 `report.md` 註記）。
+**產出**　`.claude/evolve/<slug>/` 演化包：`report.md`、`results.tsv`、`log.md`、`decisions.tsv`、`held-out.md`、有考試時的 `exam/`、收斂曲線與成果卡 `card.html`（零採納時可省略成果卡並在 `report.md` 註記）。
 
 **不適用**
 - 從零撰寫新的 SKILL.md → 直接撰寫，那是 authoring 不是演化

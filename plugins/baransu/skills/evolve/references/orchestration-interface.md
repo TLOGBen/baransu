@@ -38,7 +38,7 @@ When the read does happen, before Stage 1 begins:
 
 ## 3. Current adapter — parallel Tasks
 
-**Three fresh evolve-judge Tasks in parallel** per round, each in a clean context, exactly as SKILL.md Stage 5 specifies. Judges are single-use — never reuse a judge across rounds — and blind to which label is the mutation. The Stage 1 evolve-diagnostician is a separate single dispatch (no fan-out) and is not part of this panel interface.
+**Three fresh evolve-judge Tasks in parallel** per round, each in a clean context, exactly as SKILL.md Stage 5 specifies. Judges are single-use — never reuse a judge across rounds — and blind to which label is the mutation. The Stage 1 evolve-diagnostician is a separate single dispatch and is not part of this panel interface; the Stage 2 seeds and the Stage 4 examinees fan out in the same adapter the run pinned, with their shapes fixed in `seed-hunt.md` and `exam.md`, not here.
 
 Depth invariant (restated for this adapter): dispatched judge and diagnostician agents must not invoke skills or dispatch further subagents — they are stateless leaf nodes (depth = 1) that never call any `/baransu:*` skill and never spawn a sub-panel. This constrains only the leaf agents, not evolve's own fan-out when evolve is itself hosted as a subagent — see the fan-out release in SKILL.md Constraints and loop-contract's detection-primitive paragraph.
 
