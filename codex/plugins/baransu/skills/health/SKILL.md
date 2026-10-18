@@ -13,7 +13,7 @@ compatibility: Designed for Claude Code; ported to Codex.
 
 This plugin does not assume package-local TOMLs are auto-registered as custom
 agents. The required definitions for this skill are bundled at
-`../../.codex-agents/<agent-name>.toml`: `health-inspector-context`, `health-inspector-control`, `health-inspector-maintainability`, `verifier`.
+`../../.codex-agents/<agent-name>.toml`: `health-inspector-context`, `health-inspector-control`, `health-inspector-maintainability`.
 
 Before every named-agent dispatch:
 

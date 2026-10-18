@@ -13,7 +13,7 @@
 plugins/baransu/                 # Claude 版（Claude Code 的正本）
   .claude-plugin/plugin.json     # plugin manifest，權威版本號
   skills/                        # 18 個 skill ＋ _shared/（跨 skill 參考、evals、scripts）
-  agents/                        # 派遣用 agent：視角 reviewer、verifier、health inspector、evolve
+  agents/                        # 派遣用 agent：review 的 reviewer 與 verifier、health inspector、evolve
   rules/anti-patterns.md         # 跨 skill 行為護欄
 codex/plugins/baransu/           # Codex 版（手動維護，Codex 的正本）
   plugin.json

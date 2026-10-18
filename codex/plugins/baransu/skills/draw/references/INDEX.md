@@ -11,7 +11,6 @@ Every run: the step guide (SKILL.md), the critique loop and scorecards, the paus
 ### `SKILL.md`
 
 - `skill` — draw — put it on screen — § draw — put it on screen
-- `codex-port-adapter` — Codex port adapter: bundled agent resolution — § Codex Port Adapter - Bundled Agent Resolution
 - `skill-outcome-contract` — Outcome Contract — § Outcome Contract
 - `skill-self-contained-design` — Self-contained by design — § Self-contained by design
 - `skill-the-flow` — The flow (every request) — § The flow (every request)

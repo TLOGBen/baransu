@@ -46,7 +46,7 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 <td>
 <h3><a href="docs/skills/verify.md">驗證</a></h3>
 <p><i>換一雙乾淨的眼睛看，拿證據說話；乾淨的結果也是有效的結果。</i></p>
-<b><code>/baransu:review</code></b>：乾淨 context 的 verifier 獨立重驗任何產出，判定照規則算，不改目標<br>
+<b><code>/baransu:review</code></b>：乾淨 context 的 reviewer 只讀不跑，找出每一個跟改動對不上的地方，判定照規則算，不改目標<br>
 <b><code>/baransu:hunt</code></b>：從症狀追到根因，指到 file:line 才動手修
 </td>
 </tr>

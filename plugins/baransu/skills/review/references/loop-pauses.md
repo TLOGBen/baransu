@@ -4,7 +4,7 @@ PAUSE classification for non-interactive drivers; semantics in `../../_shared/lo
 
 | Interaction point | Class | Non-interactive default |
 |---|---|---|
-| Target or question cannot be pinned | Input | Report `no progress: no target or question to review` and end the run |
+| Target, goal, or scope cannot be pinned | Input | Report `no progress: no target, goal, or scope to review` and end the run |
 | Independent execution unavailable or the session authored the target | Input | Proceed as a same-context self-check and state in the report that no independent pass was earned |
-| Extending the review into repeated probes beyond the allowance | Authorization | Do not extend; report the finding as unverified with the observation that would decide it |
+| Widening the target or scope beyond what was pinned | Authorization | Do not widen; report the claim as unverified with the outcome at risk and the record that would decide it |
 | Persisting the report to `.claude/review/<slug>.md` | Input | Persist when the driver named a slug or asked for a file; otherwise keep the conversation report only |

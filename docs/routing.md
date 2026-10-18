@@ -11,7 +11,7 @@
 | **大** | ≥ 2 個互相依賴的模組，context rot 是真的 | 先把整件事畫成決策圖、切成片，每片各自走中頻段（實作 → `/review`） | 每一片的紅 → 綠執行＋review 判定 |
 
 - **小頻段的紅綠紀律**：行為測試要斷言具名的值，不寫「有回應」「全綠」這類套套邏輯；功能壞掉時一定要有測試轉紅。
-- **中頻段**：`/review` 派一個乾淨 context 的 verifier 做獨立重驗，只為不同的實質風險才加視角；findings 回主 session 修。沒有開工合約、沒有封緘標記——8.0.0 起 contract 與 seal 兩個 skill 退役。
+- **中頻段**：`/review` 派一個乾淨 context 的 reviewer 做獨立審查，只讀不跑，依碰到的地方載入需要的原則；要第二個人核對引文時加 `--full`。findings 回主 session 修。沒有開工合約、沒有封緘標記——8.0.0 起 contract 與 seal 兩個 skill 退役。
 - **大頻段**：裝了 common 套件（wayfinder／delegate／strategic-advance）時，畫圖與執行可以走那條路——先偵測，不要假設有裝。
 
 任務不遷就工具：小任務不硬上全套，大任務不偷走輕量路。

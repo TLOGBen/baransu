@@ -28,20 +28,6 @@
    "overview": true
   },
   {
-   "id": "codex-port-adapter",
-   "title": "Codex port adapter: bundled agent resolution",
-   "area": "shared",
-   "keywords": [
-    "codex",
-    "adapter",
-    "agent",
-    "toml",
-    "verifier"
-   ],
-   "file": "SKILL.md",
-   "heading": "Codex Port Adapter - Bundled Agent Resolution"
-  },
-  {
    "id": "skill-outcome-contract",
    "title": "Outcome Contract",
    "area": "shared",

@@ -7,7 +7,7 @@
       "prompt": "看一下這個 PR",
       "should_trigger": true,
       "expected_skill": "review",
-      "expected_behavior": "Colloquial second-opinion ask: dispatch a fresh verifier over the PR diff with the three standing questions (did what was asked / added what was not asked / solved a smaller problem); perspective agents only for distinct consequential risks."
+      "expected_behavior": "Colloquial second-opinion ask on a PR: by default one fresh reviewer maps what the PR changed, finds every place that states or relies on each changed fact, walks each one with the principles it triggers, and reports every place that fails to hold — says the opposite, omits what it owes, or does not get what it needs — as two citations with its chain, plus one line per standing question. Nothing is run."
     },
     {
       "id": 2,
@@ -49,14 +49,14 @@
       "prompt": "看一下這個 PR 是不是做過頭了，加了一堆防呆",
       "should_trigger": true,
       "expected_skill": "review",
-      "expected_behavior": "Excess / over-defence question on a diff: standing question 2 is the review question; guards for unreachable states are findings with their cost as the consequence."
+      "expected_behavior": "Excess / over-defence question on a PR: standing question 2 (added what was not asked) leads; the reviewer loads goal and taste principles, and a guard for a state no caller produces is a problem with its cost as the impact."
     },
     {
       "id": 8,
       "prompt": "幫我看這一行",
       "should_trigger": true,
       "expected_skill": "review",
-      "expected_behavior": "Fast path: one verifier with the standing questions and existing tests, no perspective agents, short report, and the report says the fast path was taken."
+      "expected_behavior": "A single line is still a change with facts and places: the default single reviewer walks the places that line's facts reach, runs nothing, and keeps the report short."
     }
   ]
 }
