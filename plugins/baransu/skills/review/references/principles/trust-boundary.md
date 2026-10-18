@@ -1,0 +1,13 @@
+# Trust boundary — concrete exploitable paths, checked where data crosses
+
+**Bedrock.** Data from outside the system is untrusted until it is parsed and checked at the boundary where it enters; inside, typed data is trusted. A security problem is a concrete path by which untrusted input, a stolen credential, or a crafted command reaches something it should not — shown from source to sink, newly opened or newly relied on by this change.
+
+1. **Read the project's own security model first.** Its frameworks, sanitizers, auth middleware, and established secure patterns; a change that deviates from them, or adds a new attack surface beside them, is where to look. A layer that does not re-validate what an upstream boundary already checked is not a finding.
+2. **Trace source to sink.** Show the input path through the code: where untrusted data enters (a request, a file of unknown origin, an external API, a message) and the dangerous operation it reaches.
+3. **What to look for.** Injection into SQL, NoSQL, shell, templates, XML entities, `eval`, or deserialization (pickle, YAML); path traversal; authentication or authorization bypass, privilege escalation, session or token flaws; hardcoded secrets, weak cryptography or randomness, skipped certificate checks; secrets or personal data in logs, errors, or responses; XSS outside a framework's escaping.
+4. **Only a concrete, exploitable path is a finding.** "An attacker might..." without an exposed surface in the present code is not. Only report what you would raise with confidence in a PR review; local-network-only exposure can still be severe.
+5. **Not findings on their own.** Denial of service and resource exhaustion, rate limits, secrets on disk that are otherwise secured, missing hardening without a concrete path, theoretical races or timing attacks, outdated dependencies, memory safety in memory-safe languages, test-only files, log spoofing, SSRF that controls only the path, user content in AI prompts, regex injection or regex DoS, documentation files, missing audit logs.
+6. **Trusted by precedent.** Environment variables and CLI flags; UUIDs as unguessable; React and Angular output unless an unsafe escape hatch is used; client-side code, whose checks the server owns; logging URLs or non-sensitive data.
+7. **Verify a suspected secret** before flagging it: an example file, a marked test credential, a key meant to be public, or a checksum hash is not a leak.
+8. **Fit the threat model.** A purely local tool has no network threat model; match the fix's strength to the threat's severity, and never push a heavy countermeasure down a low-risk path.
+9. **Ground the weakness.** Name the CWE, OWASP entry, or concrete exploit; a "best practice" with none behind it is not a problem.
