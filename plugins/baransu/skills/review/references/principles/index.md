@@ -2,6 +2,8 @@
 
 Each principle is one statement, why it holds, a numbered pattern of at most ten moves, the test that checks it, and the sign it was skipped. Load a principle when a place in the review meets its trigger. A finding that rests on a principle cites it as `<file> #<n>`, and that move is the second citation only where no place in the target or its contracts speaks. Two principles never conflict: when they seem to, the statement that explains both has not been found yet, and that is a finding about the principles, not a choice between them.
 
+**Severity**, for every flag: 0 風格; 1 不一致或簡單的 wording; 2 輕微 bug，不屬於正常使用、不影響正常使用; 3 中等 bug，功能錯誤異常，但使用者或操作者可用 workaround 解決; 4 高級 bug，功能錯誤且無法繼續使用; 5 嚴重 bug，整體完全無法運行、部署或啟動. A risk not yet realised — data loss, exposure, a race — takes the level it would reach if it happened, minus 0.5. A move that guards against a concrete consequence names it as `Risk:`, and a flag quotes that name.
+
 | File | Load when | Purpose |
 |---|---|---|
 | `goal.md` | Always: every review checks the target against what the user asked for. | Did what was asked, nothing added, nothing narrowed. |

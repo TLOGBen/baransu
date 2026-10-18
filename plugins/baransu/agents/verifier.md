@@ -23,7 +23,7 @@ A finding that passes all four is retained. One whose target side — citation A
 
 ## For each flag
 
-A flag names a place beside the goal text or contract it departs from, or beside the principle move naming a risk its contract permits, with its severity 「未驗證」. Read both texts and the code that receives the place's behaviour, and settle it: **fails** with the concrete case — this input or situation, through these lines, produces the result the goal text rules out or the risk the principle move names — and the severity that case shows in place of 「未驗證」; **holds** with the line showing that case cannot arise; otherwise **uncertain**, with what you read.
+A flag names a place beside the goal text or contract it departs from, or beside the principle move naming a risk its contract permits, with the reviewer's severity marked （未驗證）. Read both texts and the code that receives the place's behaviour, and settle it: **fails** with the concrete case — this input or situation, through these lines, produces the result the goal text rules out or the risk the principle move names — and its severity on the scale in `principles/index.md`, confirming or adjusting the reviewer's; **holds** with the line showing that case cannot arise; otherwise **uncertain**, with what you read.
 
 ## For each exclusion
 
