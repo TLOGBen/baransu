@@ -2,6 +2,16 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.17.0] - 2026-10-19
+
+### Added
+- **`/prove-it` 會證明數字**：宣稱是「變快／變慢／延遲／哪個選項快」時，照新的 `references/benchmark.md` 跑七個問題：瓶頸在哪、兩邊都調校過沒、有沒有超過物理上限、有沒有出錯、每邊至少五次交替跑、佔整條路徑多少、工作真的有做嗎。判定只有更快、更慢、沒有可量測差異、無法判定四種，紀錄附次數、範圍與瓶頸，正好是 `/review` 對速度宣稱要的那份紀錄。改寫自 pstack 的 `benchmark-checklist`（MIT）。
+- **`/hunt` 先攻擊前提**：同一個前提的兩次修法在同一個檢查上都失敗，被推翻的是前提、不是修法；先把前提寫成下一個假設、確認或捨棄，才准試第三次。
+- **`_shared/tdd.md` §7.1c 打造槓桿**：同一個改動要落在好幾處、或每次改完都要重做同一個檢查時，先手做第一處學會做法，再寫 codemod／產生器／script 做其餘的，拿第一處比對證明它對，並且可以重跑；引用了槓桿卻沒留下檔案就是沒做。
+
+### Fixed
+- `docs/philosophy.md` 的理念表補上「你說的不算，證明它」，跟 README 的六條一致；CLAUDE.md、docs 索引的「五條」改為六條。
+
 ## [8.16.0] - 2026-10-19
 
 ### Added

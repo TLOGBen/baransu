@@ -47,6 +47,7 @@ All user-facing output is in **Traditional Chinese (繁體中文)**.
 - Confirm or Discard: one active yes/no probe at a time; contradicted hypotheses are discarded completely, not patched.
 - A root cause cannot become `confirmed`, 「已解決」, or 「已解決（附帶條件說明）」 until every observed symptom maps to its causal chain, or an independent evidence citation proves the symptom does not share that chain and the case file records a separate incident id plus next action. A label alone is not separation evidence; otherwise the symptom stays `pending`.
 - Before every probe, declare the exact minimal allowed field names for that hypothesis. Runtime observations, reporter results, verbatim RED evidence, and the case file may retain only those fields after redaction; never retain a complete object, payload, credential, token, cookie, PII, or private path. The tested systemd reporter example below uses `timestamp`, `target`, `probe`, `event`, and `result`; other probe types choose their own minimal allowlist.
+- Two fixes that rest on one premise and fail the same check refute the premise, not the fixes: write the premise down as the next hypothesis and confirm or discard it before a third fix.
 - Three failed hypotheses triggers Handoff format, not another guess.
 - DB-connected investigation tests must use transactions that always rollback.
 - File writes and external API calls in investigation tests must use mocks.
