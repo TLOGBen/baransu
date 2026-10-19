@@ -1,6 +1,6 @@
 ---
 name: health
-description: "Audits a project's agent configuration and AI-coding maintainability — instruction drift, hooks, MCP, code-rot signals — and is the default for environment problems such as a missing CLI or 'command not found'. Trigger On '/health', '健康檢查', '檢查配置', 'hooks 沒生效', 'MCP 壞了', 'command not found'. Not for reviewing one piece of work (/review)."
+description: "Audits a project's agent configuration and AI-coding maintainability — instruction drift, hooks, MCP, code-rot signals — and is the default for environment problems such as a missing CLI or 'command not found', and for a mistake the user keeps correcting. Trigger On '/health', '健康檢查', '檢查配置', 'hooks 沒生效', 'MCP 壞了', 'command not found', '又犯同樣的錯', '一直糾正', '讓它別再犯'. Not for reviewing one piece of work (/review)."
 metadata:
   version: "1.2.0"
   scope: user-project-agent-config-and-maintainability
@@ -53,6 +53,8 @@ Start with the summary audit. Escalate to a deep audit only when:
 - tracked project instructions or a remembered user preference say to run deep audits by default, or
 - the summary output cannot resolve what Step 0 recorded: a failure-evidence entry still unexplained, or a security/control issue it cannot classify.
 
+**Mistake-class pass.** When the user brings a mistake they keep correcting（「又犯同樣的錯」「一直糾正」「讓它別再犯」）, run only Step 0's failure-evidence class instead of the five-layer audit: `BARANSU_SIGNAL_FILES=20 bash "$HEALTH_SCRIPTS_DIR/collect-data.sh" auto signals` for the corrections in the last twenty conversations, `git log` for reverts and for fixes that rewrite the same lines within a week, `.claude/review/` and `.claude/hunt-report/` for recorded findings, and the instruction files' rules checked against those occurrences. Report at most the three most frequent classes, each with its quoted evidence, and let the user reject a class before any action is offered.
+
 Otherwise do not read full conversation extracts or launch inspector subagents. **Tell the user before escalating**, because deep audits can consume significant token quota:
 
 > 「即將升級為 deep 審計（會讀取對話樣本並派遣 inspector 子代理人，token 消耗顯著）。」
@@ -70,7 +72,9 @@ Record four evidence classes, each answered from the collected output and carrie
 
 An absent map, a large file, many skills, few skills, or a high TODO count is informational until tied to one of these classes; prefer a narrow routed invariant plus an executable verifier over descriptive inventory.
 
-A correction the user has made twice is a mistake class, and its finding's action makes the class impossible at the highest level that works: one owner or one supported way in the structure; a type that cannot hold the bad state; a lint or CI check whose error names the thing to use instead; a test that fails when the behavior breaks; and an instruction only for a judgment call nothing can check. The action says why each higher level did not fit and names the real past mistake the new check fails on.
+A correction the user has made twice is a mistake class: two independent occurrences — different sessions or commits; the same wording repeated inside one conversation counts once. A rule already written in `CLAUDE.md` / `AGENTS.md` that is still being violated is a repeat on its own, and its class is fixed first, because the written rule has already been tried and failed. The finding's action makes the class impossible at the highest level that works: one owner or one supported way in the structure; a type that cannot hold the bad state; a lint or CI check whose error names the thing to use instead; a test that fails when the behavior breaks; and an instruction only for a judgment call nothing can check. The action says why each higher level did not fit and names the past mistake's state — the commit that carried it, or the transcript diff a fixture can be rebuilt from — and the exact command the new check runs. A class whose past state cannot be named is listed as 延後（無法重現）, never offered as an action.
+
+Applying an action is ordinary implementation under `../_shared/tdd.md`, one class per change, closed by `/review` and committed through `/ship`; this skill itself never edits product code. The class closes only on its proof: the new check, run against the past state checked out in a temporary `git worktree`, fails red with an error that names the fix, and the same command at HEAD passes green — both outputs quoted. Where the pattern is already common in the code, the check is a ratchet over a recorded baseline count and fails only when a change adds more. The same change updates the instruction file's rule table — rule → enforcer → proving commit, created on first use — and drops a rule whose mistake can no longer happen.
 
 When the audit compares more than one system (a monorepo's packages, a portfolio of repos), measure every one with the same ruler — the same tool, keyword set and exclusions — and rank by complexity per KSLOC and the relative size index `2.94 × KSLOC^1.10` (`../_shared/modeling.md`); the index orders systems and nothing else, so it is printed as 「index」 and never as a timeline, a cost or a headcount. A single-project audit skips the index.
 

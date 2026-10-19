@@ -18,7 +18,7 @@ P=$(pwd)
 SETTINGS="$P/.claude/settings.local.json"
 # $1 is accepted and ignored so the documented "collect-data.sh auto deep" invocation keeps working; only $2 (mode) is read.
 # Modes: summary | deep | signals (prints only the conversation signals of the newest
-# BARANSU_SIGNAL_FILES previous conversations, default 2, then exits; /correct reads it).
+# BARANSU_SIGNAL_FILES previous conversations, default 2, then exits; the mistake-class pass in SKILL.md reads it).
 MODE="${2:-${BARANSU_HEALTH_MODE:-summary}}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ "${BARANSU_HEALTH_DEEP:-0}" = "1" ]; then
