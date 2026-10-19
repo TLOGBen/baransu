@@ -17,13 +17,15 @@ set -euo pipefail
 P=$(pwd)
 SETTINGS="$P/.claude/settings.local.json"
 # $1 is accepted and ignored so the documented "collect-data.sh auto deep" invocation keeps working; only $2 (mode) is read.
+# Modes: summary | deep | signals (prints only the conversation signals of the newest
+# BARANSU_SIGNAL_FILES previous conversations, default 2, then exits; the mistake-class pass in SKILL.md reads it).
 MODE="${2:-${BARANSU_HEALTH_MODE:-summary}}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ "${BARANSU_HEALTH_DEEP:-0}" = "1" ]; then
   MODE="deep"
 fi
 case "$MODE" in
-  summary|deep) ;;
+  summary|deep|signals) ;;
   *) MODE="summary" ;;
 esac
 PROJECT_KEY=$(printf '%s' "$P" | sed 's|[/_]|-|g; s|^-||')
@@ -271,7 +273,7 @@ print_conversation_file_listing() {
 }
 
 previous_conversation_files() {
-  list_conversation_files | tail -n +2 | head -2
+  list_conversation_files | tail -n +2 | head -"${BARANSU_SIGNAL_FILES:-2}"
 }
 
 sample_jsonl_prefix() {
@@ -335,7 +337,7 @@ extract_signals_from_file() {
   sample_jsonl_prefix "$file" | jq -r "$JQ_FLATTEN"'
     def is_correction:
       test("(?i)(\\bdon'\''t\\b|\\bdo not\\b|\\bplease don'\''t\\b|\\binstead\\b|\\bnext time\\b|\\bremember\\b|\\buse\\b.*\\binstead\\b|\\bnot\\b.*\\bbut\\b)")
-      or test("(不要再|请不要|不要|别再|下次|记得|改成|改为|而不是|别用|去掉|统一成)");
+      or test("(不要再|请不要|請不要|不要|别再|別再|下次|记得|記得|改成|改为|改為|而不是|别用|別用|去掉|统一成|統一成)");
     (.type // .role // "") as $kind
     | (flatten) as $text
     | if ($text | length) == 0 then
@@ -434,6 +436,12 @@ EOF
 PROJECT_FILES=$(count_project_files)
 CONTRIBUTORS=$(count_contributors)
 CI_WORKFLOWS=$(count_ci_workflows)
+
+if [ "$MODE" = "signals" ]; then
+  echo "=== conversation signals ==="
+  print_conversation_signals
+  exit 0
+fi
 
 echo "[1/12] Project metrics..."
 echo "=== PROJECT METRICS ==="
