@@ -1,4 +1,4 @@
-# 構想家族：think
+# 構想家族：think · draft
 
 <img src="../images/family-plan.png" width="320" alt="構想家族概念圖">
 
@@ -32,7 +32,34 @@ Claude Code：`/baransu:think`　Codex：`$baransu:think`
 
 **不適用**
 - 排查既有錯誤 → `/hunt`
-- 已定案的中型工作 → 直接實作（`_shared/tdd.md` 紅綠紀律），再 `/review`
+- 已定案的中型工作 → 直接實作（形狀不明顯先 `/draft`；`_shared/tdd.md` 紅綠紀律），再 `/review`
 - 單檔小修 → 直接實作，照 `_shared/tdd.md` §7 的紅綠紀律
 
 **非互動驅動**　`loop=not-drivable`（需要使用者確認復述，不適合 /loop、cron、Workflow 無人驅動）。
+
+---
+
+## `/draft`
+
+Claude Code：`/baransu:draft`　Codex：`$baransu:draft`
+
+**用途**　把形狀拿回來。方向已經定了（你說的，或 `/think` 的計畫），但這次改動該長什麼樣子還不明顯時，先畫骨架再寫程式：先寫呼叫端怎麼用，再推出型別與函式簽名，本體留著不實作。至少兩個互相看不到的設計者各畫一版（主機能跑別的模型家族就用別家），用 `/review` 的 structure、taste、readability 三份原則篩，選一版當基礎、從別版移植一兩樣，把骨架寫進 repo 讓編譯器檢查，停下來等你點頭。之後的實作照 `_shared/tdd.md` 紅綠紀律填本體，骨架就是合約。
+
+**什麼時候用**
+- 新模組、跨邊界的改動、共用引擎、多個寫入者共用的狀態。
+- 觸發語：畫骨架、先打骨架、先設計介面、形狀怎麼切、改善架構、architect this。
+- 想從現有程式找值得重畫的地方：`/draft --deepen [範圍]`，從最常改的地方找摩擦，列出候選讓你挑。
+
+**流程**　讀懂碰到的系統（必要時用 `/how`、`/why` 的方法）→ 寫一份 brief，派至少兩個獨立設計者，各給不同的方向（介面最小／最常見的呼叫端最簡單／真的會變的依賴用 ports and adapters）→ 逐版用三份原則篩，比深度、局部性、邊界位置 → 選基礎、手動移植；落選版找到、基礎版也會踩的坑寫成後置條件 → 骨架寫進 repo 並編譯或型別檢查 → 停下來等你點頭。實作時骨架要的東西沒料到就提出來；同一種彆扭反覆出現就整份重畫，而且新骨架要比舊的小。
+
+**產出**
+- repo 裡未 commit 的骨架改動（型別、簽名、模組圖、未實作的本體）。
+- 說明頁：`.claude/draft/<slug>.md`（問題、用法、形狀、選擇、後置條件、接受的取捨、待決問題、第一步）；各候選版在 `.claude/draft/<slug>/`。`/ship` 收工時會歸檔 `.claude/draft/`。
+
+**不適用**
+- 方向未定、值不值得做 → `/think`
+- 形狀已經被現有程式決定的改動 → 直接實作（`_shared/tdd.md`）
+- 審完成的改動 → `/review`
+- 用詞 → `/domain-modeling`；畫出現有結構 → `/show-me` 或 `/draw`
+
+**非互動驅動**　`loop=not-drivable`（要等你對形狀點頭，`--deepen` 還要等你挑候選）。

@@ -18,14 +18,15 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 
 ## Skill 參考
 
-20 個 skill 分成五個家族。每頁列出每個 skill 的用途、觸發語、參數、產出位置與不適用的情況。
+21 個 skill 分成五個家族。每頁列出每個 skill 的用途、觸發語、參數、產出位置與不適用的情況。
 
 | 家族 | Skill | 一句話 |
 |---|---|---|
 | [構想](skills/plan.md) | [`/think`](skills/plan.md#think) | 動手前審議，留下一份計畫，不寫程式 |
+| | [`/draft`](skills/plan.md#draft) | 動手前先畫骨架：兩版獨立設計，選定後寫成實作的合約 |
 | [驗證](skills/verify.md) | [`/review`](skills/verify.md#review) | 乾淨 context 獨立重驗任何產出 |
 | | [`/hunt`](skills/verify.md#hunt) | 從症狀追到根因，確認後才修 |
-| | [`/prove-it`](skills/verify.md#prove-it) | 實際跑一次，證明說有問題的真的有問題、說完成的真的完成 |
+| | [`/prove-it`](skills/verify.md#prove-it) | 實際跑一次，證明說有問題的真的有問題、說完成的真的完成；「所有情況」的宣稱用形式化驗證 |
 | [創作](skills/make.md) | [`/draw`](skills/make.md#draw) | 靜態圖、互動圖、影片、互動元件 |
 | | [`/ui`](skills/make.md#ui) | 為你 repo 裡的介面定調並直接改檔 |
 | | [`/write`](skills/make.md#write) | 雙語潤稿、生成、校對 |
@@ -52,7 +53,8 @@ repo 根目錄目前沒有授權檔。以下子模組 vendored 自第三方專�
 - `/codex-skill-transfer`：SKILL.md frontmatter 標示 `license: Apache-2.0`。
 - `/why`、`/how`、`/teach-me`：改編自 Cursor pstack 的 why、how、teach（MIT，Lauren Tan），各自的 `NOTICE.md` 附出處與授權全文。
 - `/show-me`：改編自 HumanLayer skills 的 show-me（MIT，HumanLayer），`plugins/baransu/skills/show-me/NOTICE.md` 附出處與授權全文。
-- `/prove-it`：改編自 Cursor pstack 的 create-verification-skill、maintain-verification-skill（MIT，Lauren Tan），`plugins/baransu/skills/prove-it/NOTICE.md` 附出處與授權全文。
+- `/prove-it`：改編自 Cursor pstack 的 create-verification-skill、maintain-verification-skill、create-formal-verification-skill、maintain-formal-verification-skill（MIT，Lauren Tan），`plugins/baransu/skills/prove-it/NOTICE.md` 附出處與授權全文。
+- `/draft`：改編自 Cursor pstack 的 architect、arena（MIT，Lauren Tan），mattpocock/skills 的 codebase-design、improve-codebase-architecture（MIT，Matt Pocock），以及 ponytail（MIT，DietrichGebert），`plugins/baransu/skills/draft/NOTICE.md` 附出處與授權全文。
 - `/write`：去 AI 腔的部分規則改編自 Cursor pstack 的 unslop（MIT），見 `plugins/baransu/skills/write/NOTICE.md`。
 
 ## 圖片

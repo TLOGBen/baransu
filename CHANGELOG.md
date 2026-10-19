@@ -2,6 +2,26 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.12.0] - 2026-10-19
+
+### Added（`/draft`：把形狀拿回來）
+- **新 skill `/draft`**：方向定了、形狀還不明顯時，先畫骨架再寫程式——讀懂碰到的系統，先寫呼叫端用法再推出型別與簽名（本體留著不實作），派至少兩個互相看不到的設計者各畫一版、各給不同方向（主機能跑別的模型家族就用別家，Codex 版不帶對話紀錄），用 `/review` 的 structure、taste、readability 三份原則篩、比深度／局部性／邊界位置，選基礎並手動移植，落選版找到的坑寫成後置條件；骨架寫進 repo 並編譯或型別檢查，停下來等使用者點頭。實作照 `_shared/tdd.md` 填本體，骨架是合約：沒料到的需求要提出來，同一種彆扭反覆出現就整份重畫、新骨架要更小。`--deepen` 從最常改的地方找值得重畫的形狀，列候選讓使用者挑。說明頁在 `.claude/draft/<slug>.md`，`/ship` 會歸檔 `draft/`。
+- 改編自 Cursor pstack 的 architect、arena（MIT，Lauren Tan），mattpocock/skills 的 codebase-design、improve-codebase-architecture（MIT，Matt Pocock），ponytail（MIT，DietrichGebert），附 `NOTICE.md`；紅旗清單、深模組詞彙與最小改動階梯本來就在 review 原則裡，`/draft` 直接引用，不另寫一份。
+- 三頻段路由的中頻段：形狀不明顯時先 `/draft`。skill 數 20 → 21；CLAUDE.md、AGENTS.md、docs、README、Codex 版同步。
+
+### Added（`/prove-it`：形式化驗證）
+- 宣稱是「所有順序、所有輸入都成立」時（狀態機、重試、取消、並行寫入、parser、溢位），跑一次只能抽樣，另建形式化檢查，放在 `.claude/prove-it/formal/<area>/`，列進食譜。新檔 `references/formal.md`：依問題選工具（順序用 model checker，預設 TLA+；程式對所有輸入用程式層驗證器，沒有就對真的程式產生大量輸入，不手寫模型；所有大小都要成立才用證明）；可信的條件——忠於程式（每一步對得上 `file:line`）、先在拋棄式副本上故意弄壞看它失敗過、反例逐步回放到真的程式（走不通是模型錯，走得通才是 bug）、寫明邊界與假設、一行指令就能重跑、記下覆蓋範圍與同步 commit。`--maintain` 讀同步之後的每個改動，分成沒影響／模型過時／承諾刻意改了（要引證據）／承諾可能壞了，結果是同步／已更新／是 bug／卡住。`/ship` 不歸檔 `prove-it/formal/`。
+- 改編自 Cursor pstack 的 create-formal-verification-skill、maintain-formal-verification-skill（MIT，Lauren Tan），NOTICE.md 補上。
+
+### Changed（來自 GA 專案 review＋prove-it 第一次實測的回饋）
+- **紀錄新鮮度**：`/review` evidence #2——紀錄要在它跑過的程式最後一次修改之後才寫完，才算這個版本的證據；比最後一次改碼早、或 review 開始時還在寫的，都不算。`/review` §1 釘範圍時一併釘住所依賴的執行紀錄，還在寫的先等它寫完才派 reviewer；`/prove-it` 先用暫名寫在 `records/` 外，寫完才搬進 `records/`，讀的人碰不到半成品。實測時 verifier 自己拿紀錄檔時間比改碼時間，reviewer 則讀到寫到一半的檔案。
+- **指標分數也是計數**：`_shared/fact-check.md` 加第 5 種計數名詞「指標分數」——複雜度、覆蓋率、專案定的大小上限，要有計算它的工具在這個版本的輸出；`/review` evidence #5 讀程式估出來的分數列不確定（「coverage lost」寫明要哪個工具量）。實測時後端 C# 的認知複雜度只能靠 reviewer 目測。
+- **`/review` 嚴重程度的小數**：嚴重程度是整數級；只有「尚未發生的風險」是發生時的級數減 0.5，標頭要寫明，例如「嚴重程度 3.5（未發生；發生時 4）」。判定規則的 PARTLY PROVEN 區間從「0～2」改成「低於 3」，2.5 不再落在兩個區間中間。實測報告出現 3.5，讀的人不知道從哪來。
+- **`/review` 審計畫的 change map**：計畫沒有 diff，就照段落或步驟順序列出每一處說要改的事實（段落名稱見 goal.md #7）；計畫引用的每個位置都排進 walk，問題是計畫對那裡「現在的程式在做什麼」的說法。
+- **`/think` 由沒看過推薦方案的人寫對手方案**：借鏡步驟必做、而且會寫計畫的題目，選定前派一個全新的 agent——主機能跑別的模型家族就用別家，不能就用同一個模型——只給確認過的需求重述和 repo、不給推薦方案，讓它寫出最強的設計，推演到同樣深（從哪進入、改什麼、怎麼壞）；兩版互相比，對手方案找到、推薦方案也會遇到的陷阱，寫成計畫 Building 的成功條件。Codex 版用 `spawn_agent` 時不帶對話紀錄。來源是 pstack architect「強制畫兩版」（靠 arena 派不同模型的獨立 runner）的實測：落選的 B 版推演出的三個陷阱，變成 A 版的後置條件。
+- README 版本號跟上。
+- 本版全部（含上面兩個 Added）**未考試**、也還沒在真實題目上試跑；Codex 版同步。兩輪 `/review` 預設審查都判 PARTLY PROVEN，發現已修正：manifest 介紹拿掉 skill 數（數量只留 CLAUDE.md 的 skill 表一個出處）、`/think` 的下一步與不適用改提 `/draft`、`/draft` 的後置條件併進第一批紅燈測試、候選版 worktree 選完就清、`/prove-it` 合約三行納入形式化檢查、宣稱的檔案落在某個形式化檢查的涵蓋範圍內就重跑它。
+
 ## [8.11.0] - 2026-10-18
 
 ### Added（`/show-me`：從 common 搬進 baransu）

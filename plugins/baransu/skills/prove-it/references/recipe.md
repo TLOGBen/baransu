@@ -30,6 +30,10 @@ Any helper script the recipe ships is executable, and its invocation is written 
 
 `.claude/prove-it/features/README.md` holds the baseline preconditions, the driving conventions, the proof rules, and an index; one file per user-facing feature follows, starting with the three to five the repo shows most plainly (routes, commands, menus, docs). Each feature file, from the user's side, has four sections — `Sub-features`, `How to get to it (user POV)`, `Driving it with <harness>`, `Gotchas` — as `feature-map-example.md` shows. When the seed data lacks a precondition a journey needs, the journey reports a failure and the reason goes in `Gotchas`; the journey is never weakened to pass. A proof that drives one convenient entry point is incomplete when the map lists others.
 
+## Formal checks
+
+A claim about every case gets a formal check under `formal/<area>/`, built and kept as `formal.md` describes; the recipe lists each one with its command and the area it covers.
+
 ## Prove the recipe before relying on it
 
 Run it once end to end: launch, doctor, drive one mapped feature, capture evidence, clean up, then confirm the evidence is still at its named location. Fix what fails, and run cleanup after every failed attempt too. If you proved it in a stand-in for the real target (a container for a fresh machine, a local stack for a remote one), list each setup step the stand-in did that the target will not; those stay unproved until a run on the target covers them.

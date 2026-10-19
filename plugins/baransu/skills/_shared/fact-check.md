@@ -57,6 +57,13 @@ for the stack under check.
    attributes in .NET, `def test_` / `@pytest.mark` in Python, `it(` / `test(` in JS,
    `func TestXxx` in Go, `#[test]` in Rust.)
 
+5. **指標分數 metric scores** — the output of the tool that computes the metric, never a reading.
+   A complexity, a coverage percentage, or a size limit the repo sets is a count with its
+   own noun: it is evidenced by that tool's output on this version, scoped as the claim is
+   (method, file, project). A score estimated by reading the code backs nothing; the claim
+   stays open, naming the tool that would measure it. (e.g. a Sonar-family analyzer's
+   cognitive-complexity rule, `eslint` complexity rules, `radon` in Python.)
+
 ## Framework-identity claims
 
 A claim that "this project uses framework X" must be backed by the actual in-repo

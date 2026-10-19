@@ -54,7 +54,7 @@ Trigger boundary, written so it can be checked: the step is **mandatory** when t
 
 ## Take a stance
 
-State the recommendation in one sentence with its decisive reason. It answers the restatement and nothing beyond it. Lay out the credible alternatives, always including the minimal one (do nothing, reuse existing Z) and the framework-native or official solution when it genuinely fits — as a real candidate, not an automatic winner. Then say what the recommendation is betting on, in one to three conditions, each as a sentence a person can act on: what it assumes, what happens if that assumption is wrong, and which alternative it switches to. Never write a bare "this would be overturned by Z".
+State the recommendation in one sentence with its decisive reason. It answers the restatement and nothing beyond it. Lay out the credible alternatives, always including the minimal one (do nothing, reuse existing Z) and the framework-native or official solution when it genuinely fits — as a real candidate, not an automatic winner. When the borrow step was mandatory and the work will get a plan, have the strongest rival worked out by someone who has not seen the recommendation: before choosing, dispatch one fresh agent — on another model family when the host can run one, otherwise on the same model — with the confirmed restatement and the repo only, never this stance, to work out the strongest design it can as far as the recommendation goes: where it enters, what it changes, how it fails. Weigh the two against each other; each trap the rival's working-out finds that the recommendation also faces becomes a success criterion in the plan's Building section. Then say what the recommendation is betting on, in one to three conditions, each as a sentence a person can act on: what it assumes, what happens if that assumption is wrong, and which alternative it switches to. Never write a bare "this would be overturned by Z".
 
 The stance answers three named questions, each in a line or two:
 
@@ -107,12 +107,12 @@ No TBD or TODO, no "standard approach", no unnamed library or unnamed flow; ever
 
 Tell the user the path and the single most consequential open decision, if any:
 「計畫已落檔：.claude/think/{slug}.md。最關鍵的未決點：{一句話，或「無」}。」
-Then end the turn. This skill does not implement, does not choose a downstream skill, does not ask permission to proceed, and does not open another approval gate. The user decides what happens next — implement under the red/green discipline in `../_shared/tdd.md`, bring the plan to `/review` for a second opinion, or nothing — and the file is written so a person or a reviewer can judge it without the conversation.
+Then end the turn. This skill does not implement, does not choose a downstream skill, does not ask permission to proceed, and does not open another approval gate. The user decides what happens next — implement under the red/green discipline in `../_shared/tdd.md` (drawing the shape with `/draft` first when it is not obvious), bring the plan to `/review` for a second opinion, or nothing — and the file is written so a person or a reviewer can judge it without the conversation.
 
 If the user pushes back on the plan, ask which section is wrong, revise with the changed assumption named up front, and rewrite the file. If the pushback is about what they wanted rather than how to build it, the restatement was wrong: go back to it, not to the plan. If the objections spread across sections instead of narrowing, ask for an anti-example — a version they would never accept — before revising again.
 
 ## Not-for boundaries
 
 - An existing error or failing behavior → `/hunt`; 「判斷一下這個報錯」 is debugging, not a value judgment.
-- Work already decided and ready to build → implement under `../_shared/tdd.md` §7, then `/review` for an independent re-verification; this skill writes no acceptance record.
+- Work already decided and ready to build → implement under `../_shared/tdd.md` §7 (with `/draft` first when its shape is not obvious), then `/review` for an independent re-verification; this skill writes no acceptance record.
 - A single-file fix with a clear scope → `../_shared/tdd.md` §7 directly; a plan would be ceremony.

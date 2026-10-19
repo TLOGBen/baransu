@@ -80,6 +80,7 @@ Claude Code：`/baransu:prove-it`　Codex：`$baransu:prove-it`
 - 繁中報告，結尾一行「{P} 項證實、{D} 項推翻、{U} 項無法到達」。
 - 紀錄：`.claude/prove-it/records/<short-sha>-<slug>.md` 與證據檔。
 - 食譜與功能地圖：`.claude/prove-it/recipe.md`、`.claude/prove-it/features/`；`--maintain` 定期保養。
+- 形式化檢查：宣稱是「所有順序、所有輸入都成立」（狀態機、重試、取消、並行、parser、溢位）時，跑一次只能抽樣，另建形式化檢查放在 `.claude/prove-it/formal/<area>/`。依問題選工具：順序問題用 model checker（預設 TLA+），程式對所有輸入用程式層驗證器，該語言沒有驗證器就對真的程式產生大量輸入，所有大小都要成立才用證明。每條性質要先在故意弄壞的版本上失敗過，模型每一步都對得上一行程式，寫明邊界與假設，記下同步的 commit；`--maintain` 讀過同步之後的改動，判斷是模型過時還是程式真的壞了。
 
 **不適用**　只讀不跑的審查 → `/review`；找根因 → `/hunt`；寫或修測試 → 照 `_shared/tdd.md` 實作。
 
