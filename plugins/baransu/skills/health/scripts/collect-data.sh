@@ -337,7 +337,7 @@ extract_signals_from_file() {
   sample_jsonl_prefix "$file" | jq -r "$JQ_FLATTEN"'
     def is_correction:
       test("(?i)(\\bdon'\''t\\b|\\bdo not\\b|\\bplease don'\''t\\b|\\binstead\\b|\\bnext time\\b|\\bremember\\b|\\buse\\b.*\\binstead\\b|\\bnot\\b.*\\bbut\\b)")
-      or test("(不要再|请不要|不要|别再|下次|记得|改成|改为|而不是|别用|去掉|统一成)");
+      or test("(不要再|请不要|請不要|不要|别再|別再|下次|记得|記得|改成|改为|改為|而不是|别用|別用|去掉|统一成|統一成)");
     (.type // .role // "") as $kind
     | (flatten) as $text
     | if ($text | length) == 0 then
