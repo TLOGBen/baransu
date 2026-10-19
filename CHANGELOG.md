@@ -2,6 +2,12 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.14.1] - 2026-10-19
+
+### Changed
+- `/baransu-way` 路線表新增「改 skill 或 prompt」：先 `/how` 看懂這個 skill 和讀它、轉述它的檔案，用 `/why` 查要改的條文，方向未定或要新增、退役 skill 時走 `/think`；改文字時連同所有鏡像一起改，目標是照評分標準改善時改用 `/evolve`；有 eval 或結構檢查就跑；最後 `/review`，授權了才 `/ship`。
+- 「先分類分岔再問」補上試做：要看長什麼樣、用起來感覺如何的分岔，直接用 `/ui` 做一個丟棄式畫面給你看，不另外接其他套件的 prototype。Codex 版同步。
+
 ## [8.14.0] - 2026-10-19
 
 ### Added（`/baransu-way`：平衡之道）

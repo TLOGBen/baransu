@@ -72,6 +72,16 @@ This is the full chain: think → review → draft → review → build → prov
 3. Run the pilot through Feature; re-read the remaining slices after it.
 4. Each remaining slice through Feature.
 
+### Skill or prompt change — a SKILL.md, an agent prompt, an instruction or rules file
+
+1. `$baransu:how` over the skill and every file that reads it or restates it.
+2. `$baransu:why` for each clause the change rewrites or removes.
+3. [the change is undecided, or a skill is to be added or retired] `$baransu:think`.
+4. Edit the text, and every copy that mirrors it in the same change; or `$baransu:evolve` instead, when the goal is a scored improvement against a rubric.
+5. [the repo keeps an eval set or a structural check for it] run it.
+6. `$baransu:review` of the change.
+7. [authorized] `$baransu:ship`.
+
 ### Making, writing, learning — one leg
 
 Visual piece `$baransu:draw` (a whole page goes on to `$baransu:ui` in the same turn); UI `$baransu:ui`; prose `$baransu:write`; a source into the conversation `$baransu:read`; a study note `$baransu:learn`. Each is one leg: name it and run it.
