@@ -29,7 +29,12 @@ case "$MODE" in
   *) MODE="summary" ;;
 esac
 PROJECT_KEY=$(printf '%s' "$P" | sed 's|[/_]|-|g; s|^-||')
-CONVO_DIR="$HOME/.claude/projects/-${PROJECT_KEY}"
+# Codex keeps conversations as rollouts under $CODEX_HOME/sessions/YYYY/MM/DD/ and
+# $CODEX_HOME/archived_sessions/, one rollout-*.jsonl (or .jsonl.zst) per thread; the
+# first line's session_meta payload carries the thread's cwd (codex-rs rollout/recorder.rs,
+# protocol SessionMetaLine). CONVO_DIR stays the conversations root for listings.
+CODEX_HOME_DIR="${CODEX_HOME:-$HOME/.codex}"
+CONVO_DIR="$CODEX_HOME_DIR/sessions"
 
 resolve_health_helper() {
   local name="$1"
@@ -257,14 +262,37 @@ is_health_skill() {
   grep -q '^name: health$' "$1" 2>/dev/null
 }
 
+# Print a rollout's raw lines: plain .jsonl as is, .jsonl.zst through zstd when installed.
+codex_rollout_cat() {
+  case "$1" in
+    *.zst) command -v zstd >/dev/null 2>&1 && zstd -dcq "$1" 2>/dev/null || true ;;
+    *) cat "$1" 2>/dev/null || true ;;
+  esac
+}
+
+# Newest first: this project's rollouts (session_meta cwd == project root), from the
+# newest 300 rollout files across live and archived sessions.
 list_conversation_files() {
-  [ -d "$CONVO_DIR" ] || return 0
-  ls -1t "$CONVO_DIR"/*.jsonl 2>/dev/null || true
+  local f cwd
+  command -v jq >/dev/null 2>&1 || return 0
+  [ -d "$CONVO_DIR" ] || [ -d "$CODEX_HOME_DIR/archived_sessions" ] || return 0
+  find "$CONVO_DIR" "$CODEX_HOME_DIR/archived_sessions" -type f \( -name 'rollout-*.jsonl' -o -name 'rollout-*.jsonl.zst' \) -printf '%T@ %p\n' 2>/dev/null \
+    | sort -rn | head -300 | cut -d' ' -f2- \
+    | while IFS= read -r f; do
+        cwd=$(codex_rollout_cat "$f" | head -1 | jq -r 'select(.type == "session_meta") | .payload.cwd // empty' 2>/dev/null || true)
+        [ "$cwd" = "$P" ] && printf '%s\n' "$f"
+      done
+}
+
+# Rollouts skipped because they are compressed and zstd is not installed.
+count_unreadable_rollouts() {
+  command -v zstd >/dev/null 2>&1 && { echo 0; return; }
+  find "$CONVO_DIR" "$CODEX_HOME_DIR/archived_sessions" -type f -name 'rollout-*.jsonl.zst' 2>/dev/null | wc -l | tr -d ' '
 }
 
 print_conversation_file_listing() {
   local out
-  out=$(ls -lhS "$CONVO_DIR"/*.jsonl 2>/dev/null || true)
+  out=$(list_conversation_files | head -10 | while IFS= read -r f; do ls -lh "$f"; done)
   if [ -n "$out" ]; then
     printf '%s\n' "$out" | head -10
   else
@@ -276,10 +304,23 @@ previous_conversation_files() {
   list_conversation_files | tail -n +2 | head -"${BARANSU_SIGNAL_FILES:-2}"
 }
 
+# Codex rollout lines normalised into the {type, message.content} records the shared
+# filters below read: legacy threads persist event_msg user_message / agent_message;
+# paginated threads persist event_msg item_completed with a UserMessage / AgentMessage
+# turn item (codex-rs rollout/policy.rs, protocol items.rs).
+JQ_CODEX_NORMALISE='
+  if .type != "event_msg" then empty
+  elif .payload.type == "user_message" then {type: "user", message: {content: (.payload.message // "")}}
+  elif .payload.type == "agent_message" then {type: "assistant", message: {content: (.payload.message // "")}}
+  elif .payload.type == "item_completed" and (.payload.item.type == "UserMessage" or .payload.item.type == "AgentMessage") then
+    {type: (if .payload.item.type == "UserMessage" then "user" else "assistant" end),
+     message: {content: ([.payload.item.content[]? | select(.type == "text" or .type == "Text") | .text] | join(" "))}}
+  else empty end'
+
 sample_jsonl_prefix() {
   local file="$1"
   local limit="${2:-512000}"
-  LC_ALL=C awk -v limit="$limit" '
+  codex_rollout_cat "$file" | LC_ALL=C awk -v limit="$limit" '
     {
       line = $0 ORS
       next_bytes = bytes + length(line)
@@ -289,7 +330,7 @@ sample_jsonl_prefix() {
       printf "%s", line
       bytes = next_bytes
     }
-  ' "$file"
+  ' | jq -c "$JQ_CODEX_NORMALISE" 2>/dev/null || true
 }
 
 # Shared jq filter: collapse one transcript record to a single trimmed text
@@ -439,6 +480,7 @@ CI_WORKFLOWS=$(count_ci_workflows)
 
 if [ "$MODE" = "signals" ]; then
   echo "=== conversation signals ==="
+  echo "codex_rollouts_skipped_compressed: $(count_unreadable_rollouts)"
   print_conversation_signals
   exit 0
 fi

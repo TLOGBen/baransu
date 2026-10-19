@@ -2,6 +2,14 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.19.0] - 2026-10-19
+
+### Changed（`/health` 錯誤類別模式照 `correct` 原本的流程走）
+- **流程改成 correct 的四步**：找出錯誤類別 → 每一類落在擋得住它的最高一層 → 修並證明 → 維護規則對照表。前提照 correct 原文：每個貢獻者都是只看得到自己打開的檔案、會照抄最近例子、走最短能編譯路徑的 agent，目標是「從一個檔案看起來對的改動，對整個 repo 也對」。
+- **證據來源照 correct**：最近的 commit 與 revert、review 意見（含 hunt 紀錄、`/ship` 歸檔的紀錄、PR 的 review 討論）、agent 指令檔、程式裡解釋繞路做法的註解；你在對話裡的糾正保留為額外來源。
+- **補上 correct 有、原本缺的**：最高層「結構」寫明四種做法（每份狀態一個擁有者與每件事一種做法、藏起內部讓錯的 import 失敗、手動同步的清單改成單一來源、刪掉 agent 會照抄的舊寫法與死碼）；檢查在本機與 CI 跑同一個指令；例外寫在出問題的那一行，附理由、到期日與核准人；規則已在表上卻沒有東西強制、又被糾正，就算重複，同一個改動在最高層修掉。
+- **Codex 版讀得到 Codex 自己的對話了**：收集腳本的 Codex 版改讀 `$CODEX_HOME/sessions` 與 `archived_sessions` 底下屬於這個專案的對話（看第一行 `session_meta` 的 `cwd`），新舊兩種紀錄格式的使用者發言都抓；壓縮過的 `.jsonl.zst` 有裝 `zstd` 才讀，沒裝就印出跳過幾段。格式依據 openai/codex 原始碼（rollout recorder、policy、protocol items）。Claude 版不受影響。
+
 ## [8.18.0] - 2026-10-19
 
 ### Added（`/health` 接手「讓同一個錯不再發生」）
