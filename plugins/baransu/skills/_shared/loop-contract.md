@@ -19,10 +19,7 @@ Applies whenever a baransu skill is driven by a non-interactive context:
 `/loop`, `/goal`-style external verifiers, cron, Workflow orchestration,
 being **hosted as a subagent** (the `AskUserQuestion` tool is simply absent
 from the runtime tool list, so there is no way to ask a human anything), or
-any automation harness, or a driver skill (`/baransu-way`) carrying a chain
-under a standing authorization the user gave in its session — there the
-recorded authorization sentence is the declaration, and it covers the legs
-inside its endpoint. Other human-present sessions follow platform defaults —
+any automation harness. Human-present sessions follow platform defaults —
 including a nested session where the `AskUserQuestion` tool *is* present in
 the tool list; presence of that tool, not nesting depth, is what marks a run
 as interactive.
@@ -123,8 +120,8 @@ the rules above.
 The tool-list check covers the hosted-as-subagent case (tool hard-absent).
 It does not — and cannot — detect `/loop`, cron, or Workflow driving, where
 the tool is present: those are **declared by the driving context itself** (the
-loop/cron prompt, Workflow script, a driver skill's recorded authorization, or
-a system reminder stating non-interactive drive), not detected. The two signals are independent, and either one alone
+loop/cron prompt, Workflow script, or a system reminder stating non-interactive
+drive), not detected. The two signals are independent, and either one alone
 marks the run non-interactive.
 
 This detection MUST be a direct tool-list check, **not** an attempt-and-catch.

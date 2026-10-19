@@ -2,6 +2,15 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.15.0] - 2026-10-19
+
+### Removed
+- **`/baransu-way` 退役**：全自動模式還要再想，先整個拿掉。Claude 版與 Codex 版的 skill 目錄、路線表、帳本格式、NOTICE 一併刪除；`/ship` 歸檔清單移除 `baransu-way`（Step 1、Step 2 兩處一致）；loop-contract 適用範圍裡的 driver skill 段落、CLAUDE.md、AGENTS.md、README、docs 的說明與 skill 數（回到 21）、`.gitignore` 的工作目錄都還原。沒有人裝過這個 skill，所以不算破壞既有用法，升 minor。
+
+### Kept
+- `/draft`、`/prove-it` 維持 8.14.0 起的 `loop=assisted` 與各自的 `references/loop-pauses.md`，`/loop`、cron、Workflow 這類 driver 仍可自動跑；docs 的說明改成不提 `/baransu-way`。
+- `.gitignore` 的 `.codex/show-me/` 保留。
+
 ## [8.14.1] - 2026-10-19
 
 ### Changed

@@ -84,6 +84,6 @@ Claude Code：`/baransu:prove-it`　Codex：`$baransu:prove-it`
 
 **不適用**　只讀不跑的審查 → `/review`；找根因 → `/hunt`；寫或修測試 → 照 `_shared/tdd.md` 實作。
 
-**非互動驅動**　`loop=assisted`。由 `/baransu-way`、`/loop` 這類 driver 驅動時，在本機啟動、建食譜、操作都不停；碰到本機以外的副作用，只有授權句點名了那個動作與對象才做，否則該項記為「無法到達」並回報需要你。
+**非互動驅動**　`loop=assisted`。由 `/loop`、cron、Workflow 這類 driver 驅動時，在本機啟動、建食譜、操作都不停；碰到本機以外的副作用，只有驅動指令事先授權、並點名那個動作與對象才做，否則該項記為「無法到達」並回報需要你。
 
 **來源**　改寫自 pstack 的 `create-verification-skill` 與 `maintain-verification-skill`（cursor/plugins，MIT）。

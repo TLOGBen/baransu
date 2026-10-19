@@ -45,8 +45,6 @@
 .codex/draw/
 .claude/show-me/
 .codex/show-me/
-.claude/baransu-way/
-.codex/baransu-way/
 .claude/research/
 .claude/loop-state.json
 .claude/loop-final-report.md

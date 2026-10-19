@@ -1,4 +1,4 @@
-# 構想家族：think · draft · baransu-way
+# 構想家族：think · draft
 
 <img src="../images/family-plan.png" width="320" alt="構想家族概念圖">
 
@@ -62,35 +62,4 @@ Claude Code：`/baransu:draft`　Codex：`$baransu:draft`
 - 審完成的改動 → `/review`
 - 用詞 → `/domain-modeling`；畫出現有結構 → `/show-me` 或 `/draw`
 
-**非互動驅動**　`loop=assisted`。有人在時照常停下等你點頭；由 `/baransu-way`、`/loop` 這類 driver 驅動時，照 `references/loop-pauses.md` 採用選定的形狀並記成「此處採預設」，`--deepen` 只自動挑標為「強烈建議」的候選。會推翻既有決策紀錄的候選一律停下等你。
-
----
-
-## `/baransu-way`
-
-Claude Code：`/baransu:baransu-way`　Codex：`$baransu:baransu-way`
-
-**用途**　平衡之道。只講目標，它判斷這次需要多少流程、該用哪幾個 skill、照什麼順序，必要時在你一句授權下一路跑完。它是 `_shared/loop-contract.md` 預留的 driver：只管路線、帳本與授權，各段都是真正的 skill 照自己的規則做事；它不寫規格、不加關卡，也不代替任何一段做事。
-
-**什麼時候用**
-- 記不住這件事該叫哪個 skill。
-- 想把整條行程串起來，例如 think → review → draft → review → 實作 → prove-it + review → ship。
-- 觸發語：平衡之道、全自動、一路跑完、幫我串起來、該用哪個 skill、從頭做到完。
-
-**流程**　先用 `/how` 看懂要動的地方（回頭改舊決定或出現回歸時加 `/why`），結果交給下一段當基礎、不重讀 → 依頻段與形狀從 `references/routes.md` 挑路線，步驟抄進待辦清單，不跑的步驟寫明理由 → 只有一段就說一句「這是 X，因為……」直接交棒；兩段以上列路線卡、等你一句授權 → 一段接一段跑，每段讀完產出才開始下一段 → 只在五種情況停（只有你能決定的事、review 修兩輪沒過、結果推翻計畫或路線、授權句沒點到的授權動作、某段無法推進）。
-
-**原則**　直接用 `/review` 判斷時用的那 12 份原則（`review/references/principles/`）當基石：做的時候瞄準的，就是收尾時被檢查的。回覆裡會點名哪一條原則改變了哪個決定。
-
-**提醒**　流程不等於進度；自己審自己不算 review；採用的預設值當下就記；續跑前比對工作樹；review 來回兩輪就停；「全自動」三個字不包含 push、碰本機以外的東西或你的選擇；長對話靠帳本，不靠記憶。
-
-**產出**
-- 一段：直接是那個 skill 的產出，不寫帳本。
-- 串連：帳本 `.claude/baransu-way/<slug>.md`，記路線、授權原文、每段的狀態、產出路徑、HEAD 與工作樹 hash、每個「此處採預設」與停點。`/ship` 收工時會歸檔。
-
-**不適用**
-- 已經知道要叫哪個 skill → 直接叫
-- 跨多個 session、很多分支或 PR 的長期推進 → common 套件的 strategic-advance 或 wayfinder（先偵測有沒有裝）
-
-**非互動驅動**　`loop=not-drivable`：它自己就是 driver，手上握著授權與停點；外面再包一層 `/loop` 或 cron，就會有兩個地方同時管授權與停點。
-
-**串連中各段的收尾**　think 的「結束這一輪」、draft 的「等你點頭」在串連裡只代表那一段結束；會讓整條停下的，只有該段停點表裡不能用預設的點，和上面的五種停點。ship 會在 push 前把帳本歸檔，所以進入 ship 前帳本狀態寫成「交給 ship」；ship 中途停下時，「繼續」會從歸檔目錄找回這份帳本，只重跑 ship。
+**非互動驅動**　`loop=assisted`。有人在時照常停下等你點頭；由 `/loop`、cron、Workflow 這類 driver 驅動時，照 `references/loop-pauses.md` 採用選定的形狀並記成「此處採預設」，`--deepen` 只自動挑標為「強烈建議」的候選。會推翻既有決策紀錄的候選一律停下等你。

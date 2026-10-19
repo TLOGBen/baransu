@@ -18,7 +18,7 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 
 ## Skill 參考
 
-22 個 skill 分成五個家族。每頁列出每個 skill 的用途、觸發語、參數、產出位置與不適用的情況。
+21 個 skill 分成五個家族。每頁列出每個 skill 的用途、觸發語、參數、產出位置與不適用的情況。
 
 參數（flag）是捷徑，不是唯一的入口：每個 flag 旁邊都寫了「什麼情況會自動開」，沒打 flag 時 skill 會自己判斷，開的那一刻說一次「自動開啟 --x：理由」。你打了就一定開，你說不要就一定不開。會把資料送出這台機器的 flag（`/read` 的 `--use-proxy`）只在它的安全條件內自動開，而且送出前先說：只限這次自己從公開搜尋找到的網址，你貼的網址不會自動送。規則寫在 `plugins/baransu/skills/_shared/auto-flags.md`。
 
@@ -26,7 +26,6 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 |---|---|---|
 | [構想](skills/plan.md) | [`/think`](skills/plan.md#think) | 動手前審議，留下一份計畫，不寫程式 |
 | | [`/draft`](skills/plan.md#draft) | 動手前先畫骨架：兩版獨立設計，選定後寫成實作的合約 |
-| | [`/baransu-way`](skills/plan.md#baransu-way) | 只講目標，它挑路線；一句授權下串連各段一路跑完 |
 | [驗證](skills/verify.md) | [`/review`](skills/verify.md#review) | 乾淨 context 獨立重驗任何產出 |
 | | [`/hunt`](skills/verify.md#hunt) | 從症狀追到根因，確認後才修 |
 | | [`/prove-it`](skills/verify.md#prove-it) | 實際跑一次，證明說有問題的真的有問題、說完成的真的完成；「所有情況」的宣稱用形式化驗證 |
@@ -58,7 +57,6 @@ repo 根目錄目前沒有授權檔。以下子模組 vendored 自第三方專�
 - `/show-me`：改編自 HumanLayer skills 的 show-me（MIT，HumanLayer），`plugins/baransu/skills/show-me/NOTICE.md` 附出處與授權全文。
 - `/prove-it`：改編自 Cursor pstack 的 create-verification-skill、maintain-verification-skill、create-formal-verification-skill、maintain-formal-verification-skill（MIT，Lauren Tan），`plugins/baransu/skills/prove-it/NOTICE.md` 附出處與授權全文。
 - `/draft`：改編自 Cursor pstack 的 architect、arena（MIT，Lauren Tan），mattpocock/skills 的 codebase-design、improve-codebase-architecture（MIT，Matt Pocock），以及 ponytail（MIT，DietrichGebert），`plugins/baransu/skills/draft/NOTICE.md` 附出處與授權全文。
-- `/baransu-way`：外框改編自 Cursor pstack 的 poteto-mode（MIT，Lauren Tan），`plugins/baransu/skills/baransu-way/NOTICE.md` 附出處與授權全文。
 - `/write`：去 AI 腔的部分規則改編自 Cursor pstack 的 unslop（MIT），見 `plugins/baransu/skills/write/NOTICE.md`。
 
 ## 圖片

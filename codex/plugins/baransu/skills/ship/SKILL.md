@@ -53,7 +53,7 @@ Git probe first — run `git rev-parse --git-dir 2>/dev/null`. If it fails (the 
 Check three inputs: whether the workspace dirs hold archivable items, whether the git working tree has pending changes, AND whether HEAD carries commits that have not landed on origin yet. Stop only when **all three** are empty — otherwise there is still work to ship even when the other sides are empty. A clean tree does not mean the work is out: commits made earlier in the session (or in an earlier session) still need Step 4.
 
 ```bash
-ARCHIVE_DIRS="tmp think draft hunt-report evolve review write prove-it/records baransu-way"
+ARCHIVE_DIRS="tmp think draft hunt-report evolve review write prove-it/records"
 ARCHIVE_ITEMS=$(python3 -c "import sys, pathlib; print(next((str(p) for d in sys.argv[1].split() if pathlib.Path('.codex', d).is_dir() for p in pathlib.Path('.codex', d).iterdir()), ''))" "$ARCHIVE_DIRS")
 GIT_DIRTY=$(git status --porcelain 2>/dev/null | head -1)
 UNLANDED=$(git rev-list HEAD --not --remotes 2>/dev/null | head -1)
@@ -103,7 +103,7 @@ Before moving any item, enforce the local-only boundary:
    If either command fails, output 「archive ignore 驗證失敗：已停止歸檔，未移動
    任何工作檔案。」 and stop.
 
-**Archive allowlist** — exactly the Step 1 `ARCHIVE_DIRS` value, in the same order: `tmp`, `think`, `draft`, `hunt-report`, `evolve`, `review`, `write`, `prove-it/records`, `baransu-way`. The two lists MUST stay identical; a dir detected in Step 1 but absent here would leave Step 1's detect output unconsumed.
+**Archive allowlist** — exactly the Step 1 `ARCHIVE_DIRS` value, in the same order: `tmp`, `think`, `draft`, `hunt-report`, `evolve`, `review`, `write`, `prove-it/records`. The two lists MUST stay identical; a dir detected in Step 1 but absent here would leave Step 1's detect output unconsumed.
 
 **Never archived**: the `read`, `learn`, `draw`, and `design` dirs, and the prove-it recipe, feature map and formal checks (`prove-it/recipe.md`, `prove-it/features/`, `prove-it/formal/`), are kept products and stay in place. Claude Code infrastructure (`worktrees/`, `projects/`, `jobs/`, `plugins/`, `settings*.json`, …) is never touched — the allowlist is explicit precisely so infra is never swept up.
 

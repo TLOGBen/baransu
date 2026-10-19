@@ -6,7 +6,7 @@
 
 <p align="center"><b>バランス。動手前先想，做完後驗證。</b></p>
 
-<p align="center">22 個 skill · Claude Code 與 Codex · v8.14.1</p>
+<p align="center">21 個 skill · Claude Code 與 Codex · v8.15.0</p>
 
 Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引用。7.3.3 修正圖示路徑，既有安裝需更新 plugin。
 
@@ -39,7 +39,6 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 <p><i>動手之前，先把「要什麼」和「怎樣才算做完」說清楚。</i></p>
 <b><code>/baransu:think</code></b>：復述對焦、借鏡、表態、兩向攻擊，留一份計畫，不寫程式<br>
 <b><code>/baransu:draft</code></b>：方向定了、形狀還不明顯時，先寫呼叫端用法，兩個互相看不到的設計者各畫一版，選定後把骨架（型別、簽名、未實作的本體）寫進 repo，當作實作的合約<br>
-<b><code>/baransu:baransu-way</code></b>：平衡之道。只講目標，它先用 how／why 看懂，挑最輕的路線；一句授權下把 think → review → draft → review → 實作 → prove-it + review → ship 串起來跑完<br>
 <b><code>/baransu:sayagain</code></b>：用白話重述你的目標和想解決的問題，讓你確認它懂了<br>
 <b><code>/baransu:domain-modeling</code></b>：邊設計邊把專案用詞磨精確、寫進 <code>CONTEXT.md</code>，難回頭的決定記成 ADR
 </td>
@@ -99,7 +98,7 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 大　多個互相依賴的模組 →  畫成決策圖、切片  →  每片走「中」
 ```
 
-不想自己選，把目標交給 `/baransu-way`，它挑路線、在你一句授權下一路跑完。方向未定先 `/think`，形狀不明顯先 `/draft`，出錯了 `/hunt`，想要第二雙眼睛 `/review`，要實際跑一次證明 `/prove-it`，收工 `/ship`。小任務不硬上全套，大任務不偷走輕量路。完整說明：[三頻段路由](docs/routing.md)。
+方向未定先 `/think`，形狀不明顯先 `/draft`，出錯了 `/hunt`，想要第二雙眼睛 `/review`，要實際跑一次證明 `/prove-it`，收工 `/ship`。小任務不硬上全套，大任務不偷走輕量路。完整說明：[三頻段路由](docs/routing.md)。
 
 ## 快速開始
 
