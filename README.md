@@ -6,7 +6,7 @@
 
 <p align="center"><b>バランス。動手前先想，做完後驗證。</b></p>
 
-<p align="center">21 個 skill · Claude Code 與 Codex · v8.15.0</p>
+<p align="center">22 個 skill · Claude Code 與 Codex · v8.16.0</p>
 
 Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引用。7.3.3 修正圖示路徑，既有安裝需更新 plugin。
 
@@ -74,7 +74,8 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 <b><code>/baransu:why</code></b>：從 git 紀錄、計畫與對話查出程式為什麼長這樣，每條主張標信心、寫明查不到什麼<br>
 <b><code>/baransu:teach-me</code></b>：用對話把一塊程式或一份筆記教到你真的懂，一次一層<br>
 <b><code>/baransu:show-me</code></b>：用最小的一張圖把當下的重點畫出來（流程、結構、差異），只能手動叫用<br>
-<b><code>/baransu:huh</code></b>：把上一則訊息用白話重講一次，不用術語
+<b><code>/baransu:huh</code></b>：把上一則訊息用白話重講一次，不用術語<br>
+<b><code>/baransu:what-now</code></b>：你離開一陣子回來時，白話講清楚這段期間變了什麼，再把等你決定的事逐項列好（附建議、根據與風險），只能手動叫用
 </td>
 </tr>
 <tr>

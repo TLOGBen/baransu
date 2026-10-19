@@ -1,4 +1,4 @@
-# 學習家族：read · learn · how · why · teach-me · show-me
+# 學習家族：read · learn · how · why · teach-me · show-me · what-now
 
 <img src="../images/family-learn.png" width="320" alt="學習家族概念圖">
 
@@ -160,3 +160,26 @@ Claude Code：`/baransu:show-me`　Codex：`$baransu:show-me`
 **非互動驅動**　`loop=not-drivable`。
 
 **來源**　改編自 HumanLayer skills 的 show-me（MIT），見 `plugins/baransu/skills/show-me/NOTICE.md`。
+
+## `/what-now`
+
+Claude Code：`/baransu:what-now`　Codex：`$baransu:what-now`
+
+**用途**　你離開一陣子回來，用白話告訴你從你上一則訊息到現在變了什麼，再把只有你能決定的事一項一項列好：每項附 Claude 的建議、根據和風險，讀完回覆就能決定。
+
+**什麼時候用**
+- 交代完事情去忙別的，回來想知道進度、有沒有東西在等你。
+- 只能手動叫用（Claude Code）：`/what-now`、`/baransu:what-now`；模型不會自己觸發。Codex 版沒有這個限制。
+
+**流程**　只讀不改：整理這段期間自己和 subagent 做了什麼、別人說了什麼，重新查一次 PR、CI、agent 的現況，數字逐一對過來源。回覆先用一句話說有沒有事在等你，接著是截圖或一張小圖，再一行一件講你交代的每件事做到哪，最後列待決事項。
+
+**產出**　回覆本身，不寫檔。
+
+**不適用**
+- 只是要把上一則講白話 → `/huh`
+- 想確認 Claude 懂不懂你的目標 → `/sayagain`
+- 只想把某個點畫成圖 → `/show-me`
+
+**非互動驅動**　`loop=not-drivable`。
+
+**來源**　改編自 Cursor pstack 的 ketchup（MIT），見 `plugins/baransu/skills/what-now/NOTICE.md`。

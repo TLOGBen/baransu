@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-`baransu` is a Claude Code plugin distributing twenty-one governance skills. Theme: バランス — deliberate before executing, verify after.
+`baransu` is a Claude Code plugin distributing twenty-two governance skills. Theme: バランス — deliberate before executing, verify after.
 
 ## Philosophy — バランス (Balance)
 
@@ -20,7 +20,7 @@ plugins/
     .claude-plugin/
       plugin.json              # plugin manifest
     skills/
-      think/ review/ write/ ship/ hunt/ health/ read/ learn/ draw/ ui/ codex-skill-transfer/ evolve/ huh/ sayagain/ domain-modeling/ why/ how/ teach-me/ show-me/ prove-it/ draft/
+      think/ review/ write/ ship/ hunt/ health/ read/ learn/ draw/ ui/ codex-skill-transfer/ evolve/ huh/ sayagain/ what-now/ domain-modeling/ why/ how/ teach-me/ show-me/ prove-it/ draft/
       _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md, fact-check.md, modeling.md, selection-telemetry.md, distillation-candidate-matrix.md, auto-flags.md) + evals/ scripts/
     rules/
       anti-patterns.md         # cross-skill behavioral guardrails
@@ -59,6 +59,7 @@ Invoke with `/baransu:<name>`. Each row says only when to reach for a skill; its
 | `/show-me` | Show the current point as the smallest visual that makes it clear — pseudocode, a call tree, a file tree, a diff, a Mermaid diagram, or one focused HTML page; user-invoked only | 要整個教懂 → `/teach-me`；完整的獨立圖或影片 → `/draw` |
 | `/huh` | Restate the last message in plain human language, with no jargon | 潤飾使用者自己的文字 → `/write` |
 | `/sayagain` | Restate in plain words what the user's goal is and what problem they are solving, so the user can confirm it was understood | 方向未定、要審議怎麼做 → `/think` |
+| `/what-now` | Catch the user up on what changed since their last message, in plain words and small visuals, and lay out every call waiting on them with a pick, its evidence and its risk; read-only, writes no file; user-invoked only | 只重講上一則 → `/huh`；重述使用者目標 → `/sayagain`；單點畫圖 → `/show-me` |
 
 ## Three-band routing
 
@@ -86,7 +87,7 @@ These have each caused regressions — do not "optimize" them away:
 - **read `raw/` is immutable by construction**: recaptures version to `raw/{slug}_vN`, cascade fetches go through `/tmp` then move — never write `raw/` twice.
 - **verify-skills.py Gate 10 is the contract** for loop-pauses registry completeness: adding or revising a skill's Automation line must clear it (a `loop=drivable`/`assisted` skill ships `references/loop-pauses.md` and owns a canonical row in `_shared/loop-contract.md` §4 — no orphan files, no dead rows; retiring a skill removes its row in the same change). Gate 11 (`green_proof` field-name consistency) was retired in v4.0.0: all four of its surfaces went with the large-band pipeline, so the gate had nothing left to check. Its number is not reused — the gate list stops at 10.
 - **`/ship` archives `prove-it/records` but never the prove-it recipe**: run records and evidence are session output and leave Git; `prove-it/recipe.md`, `prove-it/features/` and `prove-it/formal/` are maintained products and stay. The allowlist in ship Step 1 and Step 2 must list `prove-it/records` identically.
-- **`/show-me` is user-invocable only on Claude Code**: its frontmatter carries `disable-model-invocation: true`, as upstream does; the Codex copy omits that Claude-only key (codex-skill-transfer flags it as residue), so the Codex skill stays implicitly invocable.
+- **`/show-me` and `/what-now` are user-invocable only on Claude Code**: their frontmatter carries `disable-model-invocation: true`, as upstream does; the Codex copies omit that Claude-only key (codex-skill-transfer flags it as residue), so the Codex skills stay implicitly invocable.
 - **Third-party sources live in each skill's `NOTICE.md`, never in the body**: a SKILL.md or its references do not name or license their upstream — the notice is not loaded and costs no tokens.
 - **No-git projects: ship fast-fails BEFORE any archive move** — archiving without git would strand the moved files with no commit to anchor them.
 - **Cross-skill guardrails**: behavioral anti-patterns that apply across skills live in `plugins/baransu/rules/anti-patterns.md`; the skill-specific invariants above stay here.

@@ -2,6 +2,15 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.16.0] - 2026-10-19
+
+### Added
+- **新 skill `/what-now`**：你離開一陣子回來時打 `/what-now`，它用白話講清楚從你上一則訊息到現在變了什麼，再把只有你能決定的事逐項列好，每項附建議、根據與風險，讀完回覆就能決定。只讀不改、不寫檔；先重新查一次 PR、CI、agent 的現況，數字逐一對過來源才寫。Claude Code 上只能手動叫用，Codex 版沒有這個限制。
+- 改編自 Cursor pstack 的 `ketchup`（cursor/plugins，MIT），出處在 `NOTICE.md`；口吻改用 `/huh`，圖改用 `/show-me` 的畫法，字數預算改成中文字數。
+
+### Changed
+- CLAUDE.md、AGENTS.md、README、docs 的 skill 數改為 22；CLAUDE.md 的「只能手動叫用」不變式涵蓋 `/show-me` 與 `/what-now`。
+
 ## [8.15.0] - 2026-10-19
 
 ### Removed
