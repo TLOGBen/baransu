@@ -1,7 +1,7 @@
 ## Contents
 
 - Local-First Fetch (default)
-- Proxy Cascade (`--use-proxy` opt-in only)
+- Proxy Cascade (`--use-proxy`, or automatic for search-found URLs)
 - GitHub URL Routing
 - PDF URL Routing
 
@@ -11,7 +11,7 @@ Path convention: `$READ_ROOT` is the root SKILL.md's Mode section set — `.clau
 
 ## Local-First Fetch (default)
 
-This is the default path. The URL is fetched directly from this machine and extraction happens locally (markitdown in Stage 2) — the URL is never sent to any third-party proxy unless the user explicitly passed `--use-proxy`.
+This is the default path. The URL is fetched directly from this machine and extraction happens locally (markitdown in Stage 2) — the URL is sent to a third-party proxy only when the user passed `--use-proxy`, or when the direct fetch failed its quality checks on a URL this run found itself in a public search (a `--web` or `--topic` candidate, a `doi.org` link) and the URL passes the Hard Rule below; a URL the user supplied is never proxied without `--use-proxy`, and the user refusing the proxy keeps it off.
 
 ```bash
 curl -sL "{url}" \
@@ -36,12 +36,12 @@ Routing after the checks:
   mv "/tmp/{slug}-fetch.html" "$READ_ROOT/raw/{slug}/index.html"
   ```
 
-- **Checks fail, `--use-proxy` NOT passed** → do NOT silently fall back to a proxy. Nothing was written to `raw/` (the fetch stayed in `/tmp`); record the failure, and report to the user: 「本地抓取品質不足：{url}。可改用 --use-proxy（內容會經第三方代理）或 --chrome（瀏覽器抓取）。」
+- **Checks fail, `--use-proxy` NOT passed** → a URL this run found itself in a public search (a `--web` or `--topic` candidate, a `doi.org` link) that passes the Hard Rule check below goes to the Proxy Cascade by itself, announced before it is sent as 「自動開啟 --use-proxy：本地抓取品質不足，網址來自公開搜尋」 — never silently. A URL the user supplied (a shared link can carry its key in the path), a URL the Hard Rule blocks, or a proxy the user refused is not proxied: nothing was written to `raw/` (the fetch stayed in `/tmp`); record the failure, and report to the user: 「本地抓取品質不足：{url}。可改用 --use-proxy（內容會經第三方代理）或 --chrome（瀏覽器抓取）。」
 - **Checks fail, `--use-proxy` passed** → run the Hard Rule check below, then proceed to the Proxy Cascade.
 
-## Proxy Cascade (`--use-proxy` opt-in only)
+## Proxy Cascade (`--use-proxy`, or automatic for search-found URLs)
 
-The cascade sends the URL to third-party services (defuddle.md, r.jina.ai). It runs only when the user explicitly passed `--use-proxy` and the direct fetch above failed quality checks.
+The cascade sends the URL to third-party services (defuddle.md, r.jina.ai). It runs only when the direct fetch above failed quality checks, and either the user passed `--use-proxy`, or this run found the URL itself in a public search, it passes the Hard Rule below, and the user has not refused the proxy.
 
 ### Hard rule — never proxy authenticated or internal URLs
 

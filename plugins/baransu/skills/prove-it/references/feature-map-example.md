@@ -33,3 +33,5 @@ Preconditions: `jot doctor` reports the disposable data directory `JOT_HOME=/tmp
 
 - `saved 1` alone is not proof the note was stored; read it back with `jot list`.
 - The prompt entry needs a real terminal session; piping text into `jot` takes a different path and does not prove the prompt.
+
+Covers: `src/cli/add.rs`, `src/store/notes.rs` — last driven live at `a1b2c3d`.

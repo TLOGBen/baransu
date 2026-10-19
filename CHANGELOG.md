@@ -2,6 +2,19 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.13.0] - 2026-10-19
+
+### Changed（每個 flag 都會自己判斷要不要開）
+- **共用規則 `_shared/auto-flags.md`**：flag 是捷徑，不是唯一入口。使用者打了就開、說不要就不開；沒提時照該 skill 寫在 flag 旁的觸發條件自己判斷，開的那一刻說一次「自動開啟 --x：理由」；會把資料送出本機的 flag 只在它的安全條件內自動開。
+- **`/review --full`**：改動會寫入、刪除、搬移資料、重試、並行、跨信任邊界、橫跨兩個以上模組，或之前的 review 找到嚴重程度 3 以上的問題時自動開。`--model`：`--full` 下主機跑得了別家模型時，verifier 用跟 reviewer 不同家的模型。
+- **`/prove-it --maintain`**：開跑前，宣稱碰到的功能或形式化檢查，若涵蓋的檔案在它記錄的 commit 之後改過，先保養那一部分；健康檢查因食譜本身失敗時整份保養。功能檔現在記下最後一次實跑的 commit。
+- **`/draft --deepen`**：沒指定改動、而且問的是結構哪裡該改善，或讀懂現況後發現不先加深那一塊就畫不好形狀時自動開。
+- **`/learn --brief`**：其他 skill 叫 `/learn` 拿材料，或只想快速看懂、不需要留筆記時自動開；`--topic`：明說要論文時自動走。
+- **`/read`**：只給關鍵字時自己選來源（論文 `--topic`、工具或 repo `--gh`、大家怎麼說 `--x`、其他 `--web`）；指剪貼簿時開 `--clipboard`；其他 skill 之後要用時自動 `--save`。`--use-proxy`：本地抓取品質不足時，只有這次自己從公開搜尋找到的網址（`--web`、`--topic` 候選、doi.org）會自動開，送出前先告知；使用者貼的網址仍要手動 `--use-proxy`（分享連結的鑰匙常在網址路徑裡，hard rule 擋不到）；hard rule 擋下或使用者拒絕一律不送。academic-search、web-search 不再各寫一份代理規則，改指向 web-static.md。自動選 `--x` 而 Chrome 沒連線時改走 `--web`；`--chrome` 只在使用者指著瀏覽器裡開著的頁面時自動開（它讀的是作用中的分頁）。
+- **`/draw`**：`--lane` 就是第 1 步選的形式；`--format` 依影片在哪裡看（寬螢幕如投影片、網站主視覺、演講 16:9，方形動態 1:1，其他照 pipeline 原本的預設 9:16）；`--dark` 在作品要放在深色底上時開。
+- **規則本身**：宣告改成「開的那一刻說一次」，併進 skill 既有的狀態行；會送出資料的 flag 要在送出前說。帶值的 flag（model、effort）沒寫觸發條件時沿用 session 的值，`/review --effort` 明寫沿用。`/review` 的「兩個以上模組」不把鏡像副本算進去。`/prove-it` 功能檔改記進入點所在的原始檔與最後實跑 commit，範例補上。
+- 未考試；Codex 版同步；`/review` 預設審查判 NOT PROVEN（自動代理會外洩私人分享連結、自動 `--chrome` 讀到錯的分頁等九項），已全部修正；複審判 PARTLY PROVEN，再修七處：搜到的 SPA 頁面在 Chrome 沒連線時也走同一條自動代理規則、自動選 `--x` 前先探測 Chrome、代理宣告字串只留 web-static.md 一份、舊功能檔保養時補上涵蓋檔案與 commit 那一行、read 的說明與 docs 跟上。
+
 ## [8.12.0] - 2026-10-19
 
 ### Added（`/draft`：把形狀拿回來）

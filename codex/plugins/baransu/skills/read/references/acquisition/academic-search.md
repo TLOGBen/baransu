@@ -104,8 +104,7 @@ When `pdf_url` is non-null:
 
 When `pdf_url` is null but `doi` is non-null:
 - Construct the URL: `https://doi.org/{doi}`
-- Route to the web-static.md **Local-First Fetch** flow (general HTML). The Proxy Cascade may be entered ONLY when the user explicitly passed `--use-proxy` AND the direct fetch failed quality checks (hard opt-in rule).
-- If the direct fetch fails quality checks and `--use-proxy` was NOT passed: record the failure and report 「本地抓取品質不足：{url}。可改用 --use-proxy（內容會經第三方代理）或 --chrome（瀏覽器抓取）。」 — do not silently proxy; no `material/` entry is created for this paper.
+- Route to the web-static.md **Local-First Fetch** flow (general HTML); whether the Proxy Cascade runs, and what is reported when it does not, follows that file's rule (this `doi.org` link was found by this run's own search). When no proxy runs and the fetch failed, no `material/` entry is created for this paper.
 - On success, note in the `material/{slug}/index.md` frontmatter and in the user-facing report: "已抓取摘要頁面而非全文 PDF"
 
 ---

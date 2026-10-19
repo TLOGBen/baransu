@@ -67,7 +67,7 @@ Close with one line:
 
 ## 5. Keep the recipe honest (`--maintain`)
 
-The recipe and feature map rot as the app changes. Under `--maintain`, follow `references/maintain.md`, and for each formal check the drift pass in `references/formal.md`: cover every feature from source and drive every feature live once, then sort each gap as the map being out of date, the recipe unable to reach working behaviour, or the app being broken — only the first two are fixed here; the third is reported.
+The recipe and feature map rot as the app changes. Unnamed, `--maintain` turns on per `../_shared/auto-flags.md` for what the run is about to rely on: before the first drive, each feature file and formal check the claims reach whose recorded commit predates a change to the files it covers gets its part of this pass first, and the whole pass runs when the doctor fails because of the recipe itself. Under `--maintain`, follow `references/maintain.md`, and for each formal check the drift pass in `references/formal.md`: cover every feature from source and drive every feature live once, then sort each gap as the map being out of date, the recipe unable to reach working behaviour, or the app being broken — only the first two are fixed here; the third is reported.
 
 ## Not-for boundaries
 

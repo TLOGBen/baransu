@@ -14,7 +14,7 @@
 
 Claude Code：`/baransu:read`　Codex：`$baransu:read`
 
-**用途**　萬用讀取：URL／路徑／glob／Chrome／剪貼簿轉成 Markdown 給 Claude 讀；加 `--save` 才存成離線檔。
+**用途**　萬用讀取：URL／路徑／glob／Chrome／剪貼簿轉成 Markdown 給 Claude 讀；加 `--save`、說要存，或其他 skill（例如 `/learn`）之後要用時，才存成離線檔。只給關鍵字時會自己選來源：要論文走 `--topic`、找工具或 repo 走 `--gh`、想看大家怎麼說走 `--x`，其他走 `--web`。本地抓取失敗時，只有這次自己從公開搜尋找到的網址（`--web`、`--topic` 的候選、doi.org 連結）會自動改走 `--use-proxy`，送出前先告訴你；你自己貼的網址一定要你打 `--use-proxy` 才送，因為分享連結的鑰匙常藏在網址裡；帶登入資訊或內網的網址永遠不送代理。只有你指著瀏覽器裡開著的那頁時，才自動用 `--chrome`。
 
 **什麼時候用**
 - 想抓網頁、PDF、文件來讀或轉檔。

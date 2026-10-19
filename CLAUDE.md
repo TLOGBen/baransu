@@ -21,7 +21,7 @@ plugins/
       plugin.json              # plugin manifest
     skills/
       think/ review/ write/ ship/ hunt/ health/ read/ learn/ draw/ ui/ codex-skill-transfer/ evolve/ huh/ sayagain/ domain-modeling/ why/ how/ teach-me/ show-me/ prove-it/ draft/
-      _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md, fact-check.md, modeling.md, selection-telemetry.md, distillation-candidate-matrix.md) + evals/ scripts/
+      _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md, fact-check.md, modeling.md, selection-telemetry.md, distillation-candidate-matrix.md, auto-flags.md) + evals/ scripts/
     rules/
       anti-patterns.md         # cross-skill behavioral guardrails
     agents/
@@ -46,7 +46,7 @@ Invoke with `/baransu:<name>`. Each row says only when to reach for a skill; its
 | `/ship` | Session cleanup: archive `.claude/` working dirs into the main working tree, commit under the repo's own identity and style, push, merge one-way into each named target, optional worktree removal | 只收尾；不寫作、不審查 |
 | `/hunt` | Bug diagnosis: symptom → root cause via observability-first investigation | 「值不值得修」是價值判斷 → `/think` 存廢判決 (Kill/Keep/Pivot) |
 | `/health` | Audit the user project's agent configuration and AI-maintainability: budget-aware five-layer audit (config → instructions → tools → verifiers → maintainability), calibrated to evidence and risk rather than repository size | baransu 自身結構驗證 → `scripts/verify-skills.py`；審單次模型輸出 → `/review` |
-| `/read` | Read any content into the conversation as Markdown — URL, path, glob, Chrome, `--topic`, `--web`, `--gh`, `--x`; keeps an offline copy under `.claude/read/` only with `--save` | 要消化成筆記 → `/learn`；要畫成圖或動畫 → `/draw` |
+| `/read` | Read any content into the conversation as Markdown — URL, path, glob, Chrome, `--topic`, `--web`, `--gh`, `--x`; keeps an offline copy under `.claude/read/` only when saving is asked for or another skill will read it | 要消化成筆記 → `/learn`；要畫成圖或動畫 → `/draw` |
 | `/ui` | The design lead for the UI in your repo: builds or reshapes web UI with deliberate palette / type / layout / motion choices and writes the files directly; learns a design language from a reference into `.claude/design/reference-<slug>.md`; designs the explanatory pages that embed the components `/draw` produces (handed over automatically in the same turn, or called directly to adjust) | Claude Design 畫布 mockup → 內建 `design` skill；單件圖、影片、機構、互動元件 → `/draw`；小寫 `design.md` 技術架構文件不歸這裡管 |
 | `/learn` | Research pipeline: Collect→Digest→Outline→Fill In→Refine; `--brief` stops at Digest | 只要離線原文不要筆記 → `/read --save` |
 | `/draw` | Draw one piece as a self-contained visual under `.claude/draw/`: an editorial static diagram (45 types), an explorable interactive map (ten types, validated by `archify finalize`), a code-rendered film, or an interactive component; the only entry point for "draw X" — a request that needs a whole page builds the components and hands them to `/ui` in the same turn without asking | 版面、內文與多圖頁面 → `/ui`（draw 自動交棒；想單獨調整時直接叫 `/ui`）；抓網頁成 Markdown → `/read`；整理成筆記 → `/learn` |

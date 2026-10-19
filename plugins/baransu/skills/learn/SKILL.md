@@ -47,6 +47,8 @@ Process multiple URLs one at a time, not in parallel.
 
 ### 2. `--topic "keyword"`
 
+A bare topic that asks for papers specifically（「找論文」「paper」「學術上怎麼說」）takes this route as if `--topic` were given, per `../_shared/auto-flags.md`.
+
 Call `/read --save --topic "keyword"`. The paper-list display and user-selection prompt from `/read` **must surface to the user as-is** — do not hide, automate, or skip the selection step. After the user selects a paper and `/read` completes acquisition, append the resulting `.claude/read/material/{slug}/index.md` path to `$SOURCES`.
 
 Note: the paper selection UI is shown to the user, not performed silently inside /learn.
@@ -184,7 +186,7 @@ Output 「所有來源評分過低，建議補充高品質來源」 and stop.
 
 ### 4. `--brief` path (stop path)
 
-If the original invocation included the `--brief` flag:
+If the original invocation included the `--brief` flag, or it turned on per `../_shared/auto-flags.md` — another skill called `/learn` for material, or the request asks for a quick read rather than a note to keep（「先大概看一下」「簡單整理就好」）:
 
 **a. Format authority.**
 

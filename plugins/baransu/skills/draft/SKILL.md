@@ -50,6 +50,8 @@ Scrap the sketch when friction is a pattern, not an instance: the same workaroun
 
 ## `--deepen [area]` — shapes worth redrawing in existing code
 
+Unnamed, it turns on per `../_shared/auto-flags.md` when no change is named and the request asks where the structure should improve（「改善架構」「哪裡該重構」「這塊太亂」）, or when grounding shows the change cannot be shaped well until the area it lands in is deepened — then the candidates come first.
+
 Scope first: the area the user names, otherwise where the code changes most (`git log` hot spots), since a deeper module pays back in future changes. Read the glossary and the recorded decisions there. Walk it for friction: one concept that needs bouncing between many small modules; interfaces nearly as large as their implementation; logic extracted for testability while the bugs hide in how it is called; coupling that leaks across a seam; code hard to test through its interface. Apply the deletion test to each suspect — complexity that would concentrate is the signal.
 
 Present each candidate with its files, the problem, the change in plain words, what it buys in locality, leverage, and tests, and its strength（強烈建議／值得探索／推測）; draw a before and after when the structure is graph-shaped. A candidate that contradicts a recorded decision is shown only when the friction is worth reopening it, and says so. Stop for the user's pick; the picked candidate goes through steps 2 to 5.

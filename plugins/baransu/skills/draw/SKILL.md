@@ -61,7 +61,7 @@ Steps 0–2 and 4 run for every request; step 3 runs the form's lane and the app
 | watch it: a reel, demo, logo sting, kinetic type, explainer film, hand-drawn short, loop | **film** — `out/<slug>.mp4` and sibling formats |
 | play with it: scrub, drag, press, see how it works | **component** — one interactive figure per file, no page frame |
 
-Pick by the verb, the one the user will *use*. Delivery: **one piece**, **several pieces**, or **a page** when the request needs reading too (explain X, 說明頁, 教學): form component, `needs-page` on `When:`, the checked components handed to /ui in the same turn.
+The flags map onto these choices and follow `../_shared/auto-flags.md`: `--lane` is the form chosen here; unnamed, `--format` follows where a film will be watched — 16:9 on a wide screen (a slide, a site hero, a talk), 1:1 in a square feed, otherwise the pipeline's default 9:16 — and `--dark` turns on when the piece will sit on a dark surface (a dark deck, a dark site, a dark reference). Pick by the verb, the one the user will *use*. Delivery: **one piece**, **several pieces**, or **a page** when the request needs reading too (explain X, 說明頁, 教學): form component, `needs-page` on `When:`, the checked components handed to /ui in the same turn.
 
 | Before | Do → Done |
 |---|---|

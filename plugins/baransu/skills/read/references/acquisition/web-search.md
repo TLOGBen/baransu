@@ -60,7 +60,7 @@ When the user selects one URL, hand it back to `/read`'s existing URL routing in
 - `github.com` / `raw.githubusercontent.com` host → web-static.md GitHub section
 - `.pdf` URL, or the local-first GET's Content-Type reports `application/pdf` → web-static.md PDF URL section
 - Quality checks fail AND SPA signals match (response < 500 bytes or feature strings) → web-dynamic.md
-- Otherwise → web-static.md Local-First Fetch flow（代理需 --use-proxy 顯式開啟）
+- Otherwise → web-static.md Local-First Fetch flow（何時走代理照 web-static.md 的規則）
 
 The existing `raw/{slug}/index.{ext}` → markitdown → `material/{slug}/index.md` chain is unchanged.
 
