@@ -2,6 +2,11 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.13.2] - 2026-10-19
+
+### Fixed
+- `/think` 呈現那一步原本寫「common 套件的 show-me 有裝時交給它」，但 show-me 已經搬進 baransu，而且只能由使用者手動叫用，這條路走不通。改成讀 `../show-me/SKILL.md`、照它列的形式直接在回覆裡畫。Codex 版同步。
+
 ## [8.13.1] - 2026-10-19
 
 ### Changed
