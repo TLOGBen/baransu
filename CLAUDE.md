@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-`baransu` is a Claude Code plugin distributing twenty-one governance skills. Theme: バランス — deliberate before executing, verify after.
+`baransu` is a Claude Code plugin distributing twenty-two governance skills. Theme: バランス — deliberate before executing, verify after.
 
 ## Philosophy — バランス (Balance)
 
@@ -20,7 +20,7 @@ plugins/
     .claude-plugin/
       plugin.json              # plugin manifest
     skills/
-      think/ review/ write/ ship/ hunt/ health/ read/ learn/ draw/ ui/ codex-skill-transfer/ evolve/ huh/ sayagain/ domain-modeling/ why/ how/ teach-me/ show-me/ prove-it/ draft/
+      think/ review/ write/ ship/ hunt/ health/ read/ learn/ draw/ ui/ codex-skill-transfer/ evolve/ huh/ sayagain/ domain-modeling/ why/ how/ teach-me/ show-me/ prove-it/ draft/ baransu-way/
       _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md, fact-check.md, modeling.md, selection-telemetry.md, distillation-candidate-matrix.md, auto-flags.md) + evals/ scripts/
     rules/
       anti-patterns.md         # cross-skill behavioral guardrails
@@ -59,6 +59,7 @@ Invoke with `/baransu:<name>`. Each row says only when to reach for a skill; its
 | `/show-me` | Show the current point as the smallest visual that makes it clear — pseudocode, a call tree, a file tree, a diff, a Mermaid diagram, or one focused HTML page; user-invoked only | 要整個教懂 → `/teach-me`；完整的獨立圖或影片 → `/draw` |
 | `/huh` | Restate the last message in plain human language, with no jargon | 潤飾使用者自己的文字 → `/write` |
 | `/sayagain` | Restate in plain words what the user's goal is and what problem they are solving, so the user can confirm it was understood | 方向未定、要審議怎麼做 → `/think` |
+| `/baransu-way` | Hand over a goal and let the route be chosen: grounds it with `/how` and `/why`, picks the lightest route from `references/routes.md` (one leg, or a chain such as think → review → draft → review → build → prove-it + review → ship), names the review principles that shaped each decision, and under one sentence of authorization drives the chain leg by leg as loop-contract's driver — each leg under its own `loop-pauses.md`, a ledger under `.claude/baransu-way/` for resume, stopping only for the five named stops | 已知要叫哪個 skill → 直接叫；跨多個 session 的長期推進 → common strategic-advance |
 
 ## Three-band routing
 

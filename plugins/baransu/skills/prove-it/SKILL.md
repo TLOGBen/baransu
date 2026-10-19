@@ -18,7 +18,9 @@ All user-facing output is in Traditional Chinese; keep commands, paths, identifi
 - **Done when**: Every claim is written as one sentence a run or a formal check can settle; the recipe's doctor passed before the first drive; every claim has a verdict and its evidence; nothing was weakened to reach a verdict; everything the run started is torn down and the evidence is still at its named location.
 - **Evidence**: The record — commit and working-tree state, platform, every command run, and per claim the action driven, the resulting state, and the side effects captured; for a formal check, the fields `references/formal.md` names under Verdict and record.
 - **Output**: Traditional Chinese report in the conversation; the record at `.claude/prove-it/records/<short-sha>-<slug>.md` with its evidence beside it (`/ship` archives `records/` out of Git; the recipe, feature map and formal checks stay); the run recipe at `.claude/prove-it/recipe.md`, its feature map under `.claude/prove-it/features/`, and its formal checks under `.claude/prove-it/formal/`.
-- **Automation**: ultracode=neutral, loop=not-drivable（a run starts processes and may reach outside this machine; it waits for a person at every authorization point）
+- **Automation**: ultracode=neutral, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics; anything reaching outside this machine still needs the person or a standing authorization that names it）
+
+PAUSE classification for non-interactive drivers: `references/loop-pauses.md`.
 
 ## 1. Turn each claim into one sentence a run can settle
 
@@ -46,7 +48,7 @@ Run the doctor before the first drive and again after anything surprising. A cla
 - **An every-case claim**: run its formal check as `references/formal.md` describes — true to the code, seen failing on a broken variant, its scope stated — and drive the user's path too where one exists; the check proves the model within its bounds, the drive proves the path it took.
 - **Unreachable**: when the seed data or the environment cannot reach the claim, record the prerequisite (auth, platform, external state) and the route tried. Never weaken a drive until it passes, and never report one entry point as proved through another.
 
-Any step with an effect outside this machine — sending a message, deploying, charging, publishing, writing shared data — needs the user's yes first, or a test mode whose skipping you saw.
+Any step with an effect outside this machine — sending a message, deploying, charging, publishing, writing shared data — needs the user's yes first, a standing authorization that names it (`references/loop-pauses.md`), or a test mode whose skipping you saw.
 
 ## 4. Record and report
 

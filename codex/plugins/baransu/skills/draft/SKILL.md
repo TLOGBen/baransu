@@ -23,10 +23,12 @@ All user-facing output is in Traditional Chinese; code, identifiers, and paths s
 ## Outcome Contract
 
 - **Outcome**: One chosen shape for the change, written into the repo as a sketch the build accepts — types, signatures, module map, unimplemented bodies — with its rationale, seen by the user before any body is filled.
-- **Done when**: The touched systems were grounded or the skip was stated; usage was written before types; at least two structurally distinct candidates came from designers who could not see each other; each was screened with the moves it breaks named; one was chosen with its grafts and rejections recorded; the sketch builds or type-checks where the language allows; the rationale file exists; the user was shown the shape and the turn stopped for their go.
+- **Done when**: The touched systems were grounded or the skip was stated; usage was written before types; at least two structurally distinct candidates came from designers who could not see each other; each was screened with the moves it breaks named; one was chosen with its grafts and rejections recorded; the sketch builds or type-checks where the language allows; the rationale file exists; the user was shown the shape and the turn stopped for their go, or under a driver the go took its default per `references/loop-pauses.md`.
 - **Evidence**: The candidates' locations, the screen per candidate, and the build or type-check output of the sketch.
 - **Output**: The sketch as an uncommitted change in the repo's own files; the rationale at `.codex/draft/<slug>.md`; the candidates under `.codex/draft/<slug>/`.
-- **Automation**: ultracode=neutral, loop=not-drivable（it stops for the user's go on the shape, and under `--deepen` for the user's pick）
+- **Automation**: ultracode=neutral, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
+
+PAUSE classification for non-interactive drivers: `references/loop-pauses.md`.
 
 ## 1. Ground
 

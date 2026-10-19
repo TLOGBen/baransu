@@ -2,6 +2,22 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.14.0] - 2026-10-19
+
+### Added（`/baransu-way`：平衡之道）
+- **新 skill `/baransu-way`**：只講目標，它先用 `/how`（必要時 `/why`）看懂要動的地方，再照頻段與形狀從 `references/routes.md` 挑最輕的路線。只有一段就說一句「這是 X，因為……」直接交棒；兩段以上列路線卡，你回一句授權（例如「全自動跑到 ship main」），它就一段接一段跑完：think → review → draft → review → 實作 → prove-it + review → ship。它是 `_shared/loop-contract.md` 預留的 driver，只管路線、帳本與授權，不寫規格、不加關卡、不代替任何一段做事。
+- **原則以 review 的 12 份原則為基石**：做的時候瞄準的，就是收尾 `/review` 檢查的；回覆點名哪條原則改變了哪個決定。另列「提醒」：流程不等於進度、自己審自己不算 review、預設值當下就記、續跑前比對工作樹、review 來回兩輪就停、「全自動」不包含 push 與本機以外的副作用、長對話靠帳本。
+- **只在五種情況停**：只有你能決定的事、review 修兩輪沒過、結果推翻計畫或路線、授權句沒點到的授權動作、某段回報無法推進。think 的需求對齊仍要你在場，全自動從確認重述之後開始。
+- **帳本** `.claude/baransu-way/<slug>.md`：路線、授權原文、每段的狀態、產出、HEAD 與工作樹 hash、每個「此處採預設」與停點；`/clear` 後打 `/baransu-way` 或「繼續」接著跑，工作樹中途被改過會先重跑最近一次驗證。`/ship` 的歸檔清單加入 `baransu-way`（Step 1、Step 2 兩處一致）。
+- 外框改寫自 pstack 的 `poteto-mode`（cursor/plugins，MIT），出處在 `NOTICE.md`。
+
+### Changed
+- **`/draft`、`/prove-it` 可以由 driver 自動跑**：兩者改成 `loop=assisted`，各補一份 `references/loop-pauses.md` 並登記到 loop-contract §4。draft 的「等你點頭」由 driver 驅動時採用選定的形狀並記成「此處採預設」，`--deepen` 只自動挑「強烈建議」的候選，會推翻既有決策紀錄的候選仍要你決定。prove-it 在本機啟動、操作不停，碰到本機以外的副作用只有授權點名了才做，否則記為「無法到達」。
+- CLAUDE.md、AGENTS.md、README、docs 的 skill 數改為 22，路由說明加入 `/baransu-way`；Codex 版同步（多一段「Running a Leg」：Codex 讀 `../<skill>/SKILL.md` 接力，沿用該 skill 自己的 adapter）。
+- **loop-contract 適用範圍**加入 driver skill：`/baransu-way` 帳本裡記下的授權句就是「非互動驅動」的宣告，涵蓋終點以內的各段。串連中，各段自己的「結束這一輪」「等你點頭」只代表那一段結束；ship 會在 push 前把帳本歸檔，所以進 ship 前帳本寫成「交給 ship」，ship 中途停下時「繼續」從歸檔目錄找回帳本、只重跑 ship。
+- `.gitignore` 補上 `.codex/show-me/` 與兩邊的 `baransu-way/` 工作目錄。
+- 未實跑；`/review --full` 判 PARTLY PROVEN（八項 1～2 級：think 收尾與串連的優先順序、帳本在 ship 前被歸檔、loop-contract 沒寫到 driver skill、draft／prove-it 本文點名 baransu-way、draft 停點表多列了 SKILL.md 沒有的互動點、docs 清單漏列、loop 等級理由措辭、帳本建立時機），已全部修正。
+
 ## [8.13.2] - 2026-10-19
 
 ### Fixed
