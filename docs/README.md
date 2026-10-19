@@ -18,7 +18,7 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 
 ## Skill 參考
 
-21 個 skill 分成五個家族。每頁列出每個 skill 的用途、觸發語、參數、產出位置與不適用的情況。
+22 個 skill 分成五個家族。每頁列出每個 skill 的用途、觸發語、參數、產出位置與不適用的情況。
 
 參數（flag）是捷徑，不是唯一的入口：每個 flag 旁邊都寫了「什麼情況會自動開」，沒打 flag 時 skill 會自己判斷，開的那一刻說一次「自動開啟 --x：理由」。你打了就一定開，你說不要就一定不開。會把資料送出這台機器的 flag（`/read` 的 `--use-proxy`）只在它的安全條件內自動開，而且送出前先說：只限這次自己從公開搜尋找到的網址，你貼的網址不會自動送。規則寫在 `plugins/baransu/skills/_shared/auto-flags.md`。
 
@@ -38,6 +38,7 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 | | [`/why`](skills/learn.md#why) | 查出程式為什麼長這樣，每條主張標信心 |
 | | [`/teach-me`](skills/learn.md#teach-me) | 用對話把一塊程式或一份筆記教懂 |
 | | [`/show-me`](skills/learn.md#show-me) | 用最小的一張圖把當下的重點畫出來 |
+| | [`/what-now`](skills/learn.md#what-now) | 回來時講清楚變了什麼，列出等你決定的事 |
 | [維運](skills/ops.md) | [`/ship`](skills/ops.md#ship) | 歸檔、commit、push、清 worktree |
 | | [`/health`](skills/ops.md#health) | 體檢專案的 agent 配置與 AI 可維護性 |
 | | [`/evolve`](skills/ops.md#evolve) | 用減法棘輪一輪輪磨好一份 SKILL.md |
@@ -55,6 +56,7 @@ repo 根目錄目前沒有授權檔。以下子模組 vendored 自第三方專�
 - `/codex-skill-transfer`：SKILL.md frontmatter 標示 `license: Apache-2.0`。
 - `/why`、`/how`、`/teach-me`：改編自 Cursor pstack 的 why、how、teach（MIT，Lauren Tan），各自的 `NOTICE.md` 附出處與授權全文。
 - `/show-me`：改編自 HumanLayer skills 的 show-me（MIT，HumanLayer），`plugins/baransu/skills/show-me/NOTICE.md` 附出處與授權全文。
+- `/what-now`：改編自 Cursor pstack 的 ketchup（MIT，Lauren Tan），`plugins/baransu/skills/what-now/NOTICE.md` 附出處與授權全文。
 - `/prove-it`：改編自 Cursor pstack 的 create-verification-skill、maintain-verification-skill、create-formal-verification-skill、maintain-formal-verification-skill（MIT，Lauren Tan），`plugins/baransu/skills/prove-it/NOTICE.md` 附出處與授權全文。
 - `/draft`：改編自 Cursor pstack 的 architect、arena（MIT，Lauren Tan），mattpocock/skills 的 codebase-design、improve-codebase-architecture（MIT，Matt Pocock），以及 ponytail（MIT，DietrichGebert），`plugins/baransu/skills/draft/NOTICE.md` 附出處與授權全文。
 - `/write`：去 AI 腔的部分規則改編自 Cursor pstack 的 unslop（MIT），見 `plugins/baransu/skills/write/NOTICE.md`。
