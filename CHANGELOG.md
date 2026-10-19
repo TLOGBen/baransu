@@ -2,6 +2,11 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.13.1] - 2026-10-19
+
+### Changed
+- `/show-me`：Mermaid 改回上游原版的做法，只放在回覆裡，不再每次另存成 `.claude/show-me/` 的 HTML 並打開。HTML 頁面維持原版用途（UI、版面、狀態比較、Mermaid 畫不清楚的概念），仍放在 `.claude/show-me/`、用環境現有的瀏覽器工具打開。NOTICE、CLAUDE.md、docs 與 Codex 版同步。
+
 ## [8.13.0] - 2026-10-19
 
 ### Changed（每個 flag 都會自己判斷要不要開）

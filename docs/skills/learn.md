@@ -148,7 +148,7 @@ Claude Code：`/baransu:show-me`　Codex：`$baransu:show-me`
 - 大致懂了，只想一眼看清某個流程、結構或差異。
 - 只能手動叫用（Claude Code）：`/show-me`、`/baransu:show-me`；模型不會自己觸發。Codex 版沒有這個限制。
 
-**流程**　挑能講清楚重點的最小畫面，配一兩句說明；回覆裡有 Mermaid 時，同時寫成 `.claude/show-me/` 底下的 HTML 並用瀏覽器打開（終端機畫不出 Mermaid）；太密的概念直接做一個 HTML 頁面。畫完就停，不接著做原本的工作。
+**流程**　挑能講清楚重點的最小畫面，配一兩句說明；Mermaid 圖直接放在回覆裡；Mermaid 畫不清楚的 UI、版面、狀態比較或太密的概念，才做一個 HTML 頁面（`.claude/show-me/` 底下）並用瀏覽器打開。畫完就停，不接著做原本的工作。
 
 **產出**　回覆本身；需要時 `.claude/show-me/*.html`。
 

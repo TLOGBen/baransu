@@ -2,7 +2,7 @@
 
 `$baransu:show-me` is adapted from the `show-me` skill in HumanLayer's skills repository ([humanlayer/skills](https://github.com/humanlayer/skills), `plugins/show-me/skills/show-me/SKILL.md`, as of commit `bba9d13`, 2026-09-12), by HumanLayer, under the MIT License reproduced below. It reached baransu through the common plugin's copy.
 
-What was kept: the upstream text — the smallest view that makes the point, the pseudocode, call-tree, component-tree, file-tree, Mermaid, and diff forms with their examples, the whole-block rule, the focused HTML page, and the guidance on placing each visual — and, from the upstream frontmatter, invocation by the user only. What changed: every Mermaid diagram is also written to an HTML file and opened, since a terminal cannot render Mermaid; HTML files go under the skill's working directory and open with whatever browser opener the environment provides; a section on direct statement and light hand-back was added; a Traditional Chinese output line, an Outcome Contract, and Not-for boundaries were added in this repo's format.
+What was kept: the upstream text — the smallest view that makes the point, the pseudocode, call-tree, component-tree, file-tree, Mermaid, and diff forms with their examples, the whole-block rule, the focused HTML page, and the guidance on placing each visual — and, from the upstream frontmatter, invocation by the user only. What changed: HTML files go under the skill's working directory and open with whatever browser opener the environment provides; a section on direct statement and light hand-back was added; a Traditional Chinese output line, an Outcome Contract, and Not-for boundaries were added in this repo's format.
 
 ```
 MIT License

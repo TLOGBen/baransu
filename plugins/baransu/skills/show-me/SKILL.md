@@ -11,9 +11,9 @@ All user-facing prose is in Traditional Chinese; labels in a figure follow the c
 ## Outcome Contract
 
 - **Outcome**: The user sees the current point in the smallest view that makes it clear, next to one or two lines of text.
-- **Done when**: Each visual answers the question at hand with only the calls, files, props, states, and boundaries it needs; every Mermaid diagram in the reply is also written to an HTML file under `.claude/show-me/` and opened in the browser.
+- **Done when**: Each visual answers the question at hand with only the calls, files, props, states, and boundaries it needs.
 - **Evidence**: The visual in the reply, and the path of any HTML file opened.
-- **Output**: The reply; `.claude/show-me/*.html` when the reply holds Mermaid or the point needs a page.
+- **Output**: The reply; `.claude/show-me/*.html` when the point needs a page.
 - **Automation**: ultracode=neutral, loop=not-drivable（the view answers the person's current question）
 
 - Show logic or an algorithm as pseudocode:
@@ -54,7 +54,7 @@ src/
 └── transport/      # sends API requests
 ```
 
-- Show component interaction, control flow, or data flow with Mermaid. A terminal cannot render Mermaid, so a Mermaid block alone is not enough: whenever the reply contains Mermaid, also write every Mermaid diagram of the reply into one HTML file under `.claude/show-me/` (load Mermaid from a CDN, one `<pre class="mermaid">` per diagram with a one-line caption) and open it in the browser the same way as the HTML rule below. Keep the Mermaid source in the reply so it survives in the transcript:
+- Show component interaction, control flow, or data flow with Mermaid:
 
 ```mermaid
 sequenceDiagram
