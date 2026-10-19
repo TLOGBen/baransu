@@ -270,29 +270,46 @@ codex_rollout_cat() {
   esac
 }
 
-# Newest first: this project's rollouts (session_meta cwd == project root), from the
-# newest 300 rollout files across live and archived sessions.
+# Newest first: this project's rollouts (session_meta cwd == project root, sub-agent
+# threads excluded), from the newest 300 rollout files across live and archived sessions.
+# Always returns 0: callers run under `set -e`.
+codex_rollout_dirs() {
+  local d
+  for d in "$CONVO_DIR" "$CODEX_HOME_DIR/archived_sessions"; do
+    [ -d "$d" ] && printf '%s\n' "$d"
+  done
+  return 0
+}
+
 list_conversation_files() {
-  local f cwd
+  local f meta dirs
   command -v jq >/dev/null 2>&1 || return 0
-  [ -d "$CONVO_DIR" ] || [ -d "$CODEX_HOME_DIR/archived_sessions" ] || return 0
-  find "$CONVO_DIR" "$CODEX_HOME_DIR/archived_sessions" -type f \( -name 'rollout-*.jsonl' -o -name 'rollout-*.jsonl.zst' \) -printf '%T@ %p\n' 2>/dev/null \
-    | sort -rn | head -300 | cut -d' ' -f2- \
-    | while IFS= read -r f; do
-        cwd=$(codex_rollout_cat "$f" | head -1 | jq -r 'select(.type == "session_meta") | .payload.cwd // empty' 2>/dev/null || true)
-        [ "$cwd" = "$P" ] && printf '%s\n' "$f"
-      done
+  dirs=$(codex_rollout_dirs)
+  [ -n "$dirs" ] || return 0
+  {
+    printf '%s\n' "$dirs" | while IFS= read -r d; do
+      find "$d" -type f \( -name 'rollout-*.jsonl' -o -name 'rollout-*.jsonl.zst' \) -printf '%T@ %p\n' 2>/dev/null || true
+    done | sort -rn | head -300 | cut -d' ' -f2- \
+      | while IFS= read -r f; do
+          meta=$(codex_rollout_cat "$f" | head -1 | jq -r 'select(.type == "session_meta") | select((.payload.source | type) != "object" or ((.payload.source | has("subagent")) | not)) | .payload.cwd // empty' 2>/dev/null || true)
+          if [ "$meta" = "$P" ]; then printf '%s\n' "$f"; fi
+        done
+  } || true
+  return 0
 }
 
 # Rollouts skipped because they are compressed and zstd is not installed.
 count_unreadable_rollouts() {
-  command -v zstd >/dev/null 2>&1 && { echo 0; return; }
-  find "$CONVO_DIR" "$CODEX_HOME_DIR/archived_sessions" -type f -name 'rollout-*.jsonl.zst' 2>/dev/null | wc -l | tr -d ' '
+  local dirs
+  command -v zstd >/dev/null 2>&1 && { echo 0; return 0; }
+  dirs=$(codex_rollout_dirs)
+  [ -n "$dirs" ] || { echo 0; return 0; }
+  printf '%s\n' "$dirs" | while IFS= read -r d; do find "$d" -type f -name 'rollout-*.jsonl.zst' 2>/dev/null || true; done | wc -l | tr -d ' '
 }
 
 print_conversation_file_listing() {
   local out
-  out=$(list_conversation_files | head -10 | while IFS= read -r f; do ls -lh "$f"; done)
+  out=$(list_conversation_files | head -10 | while IFS= read -r f; do ls -lh "$f" 2>/dev/null || true; done)
   if [ -n "$out" ]; then
     printf '%s\n' "$out" | head -10
   else
@@ -396,13 +413,14 @@ extract_signals_from_file() {
 
 print_conversation_signals() {
   local files file chunk found=0
+  # Codex rollouts can only be matched to this project through jq, so check it first.
+  if ! command -v jq >/dev/null 2>&1; then
+    echo "(unavailable: jq not installed or parse error)"
+    return
+  fi
   files=$(previous_conversation_files)
   if [ -z "$files" ]; then
     echo "(no conversation files)"
-    return
-  fi
-  if ! command -v jq >/dev/null 2>&1; then
-    echo "(unavailable: jq not installed or parse error)"
     return
   fi
   while IFS= read -r file; do
@@ -425,13 +443,14 @@ EOF
 
 print_conversation_extract() {
   local files file chunk found=0
+  # Codex rollouts can only be matched to this project through jq, so check it first.
+  if ! command -v jq >/dev/null 2>&1; then
+    echo "(unavailable: jq not installed or parse error)"
+    return
+  fi
   files=$(previous_conversation_files)
   if [ -z "$files" ]; then
     echo "(no conversation files)"
-    return
-  fi
-  if ! command -v jq >/dev/null 2>&1; then
-    echo "(unavailable: jq not installed or parse error)"
     return
   fi
   while IFS= read -r file; do
