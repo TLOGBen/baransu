@@ -238,6 +238,16 @@ experiment evidence: the arm that refused the repair shipped an unfilterable
 query it could never observe; the arm that repaired-and-ran caught its own
 premise error against real data.)
 
+### 7.1c Repeated edits: build the lever
+
+When the same edit lands in more than a few places, or a check must be redone after every
+change, do the first unit by hand to learn the recipe, then write the codemod, generator,
+or script that does the rest, prove it by rerunning it on that first unit and diffing
+against the hand-done version, and make it safe to rerun. The script is what a reviewer
+reruns instead of trusting the diff; a lever that was cited but left no file in the change
+was not built. A couple of edits visible at a glance need no lever. Build the smallest
+script that does the job, never a framework.
+
 ### 7.2 Build your own red/green task list (four tasks)
 
 Build the complete task list before executing, so the completion criteria are visible from

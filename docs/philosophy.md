@@ -12,9 +12,9 @@
 
 平衡不是妥協，重點是知道**什麼時候**可以輕、什麼時候不准輕。小任務不需要三輪對焦；重要的決策不能省略思考。工具配合任務的形狀：小任務走輕量路徑，大任務走完整規格——不反過來逼任務遷就工具的流程。每個 skill 都有清楚的觸發界線：什麼可以省、什麼一定要做。
 
-自 v2.1.0 起，這條線寫成五條可驗收的理念。每條都綁一個倉內機制錨點——無錨點的條款不入冊，錨點存在性由結構驗證器（`scripts/verify-skills.py`）把關。
+自 v2.1.0 起，這條線寫成可驗收的理念（現為六條）。每條都綁一個倉內機制錨點——無錨點的條款不入冊，錨點存在性由結構驗證器（`scripts/verify-skills.py`）把關。
 
-## 五條理念（完整版）
+## 六條理念（完整版）
 
 | 理念 | 一句話 | 機制錨點 |
 |---|---|---|
@@ -22,6 +22,7 @@
 | 結構是地板 | 確定性檢查全走腳本閘門，不靠模型自律 | `scripts/verify-skills.py` |
 | 人在授權點 | Input PAUSE 可走預設；Authorization PAUSE 不可覆寫 | `plugins/baransu/skills/_shared/loop-contract.md` |
 | 證據優先 | 非顯然主張依賴前先引查證來源；乾淨的 review 也是有效的 review | `plugins/baransu/skills/review/SKILL.md` |
+| 你說的不算，證明它 | 說有問題的要跑出那個錯，說完成的要照使用者的方式跑給你看 | `plugins/baransu/skills/prove-it/SKILL.md` |
 | 狀態落盤 | 長流程的結論落檔交付、不賭終端顯示 | `plugins/baransu/skills/_shared/output-journal.md` |
 
 首頁 [README](../README.md) 的「核心理念」表是這張表的精簡版，同樣由 `scripts/verify-skills.py` 逐列檢查錨點存在。

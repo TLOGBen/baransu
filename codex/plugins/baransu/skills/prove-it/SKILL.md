@@ -34,6 +34,7 @@ Collect the claims in scope and write each as what a user would see:
 - **A done claim** — a request, a commit message, a changelog line, a plan's Building section, "tests pass": the action and the right result（「按下專案按鈕會在輸入框放入 `/cmd `，不送出」）.
 - **A claim about timing or order** — a pending mark that must clear, a lock, a retry, a timeout — keeps its moments（「從送出起最多 30 秒」）, because the run has to make those moments happen.
 - **A claim about every case** — every order of steps, every input up to a size（「取消與重跑不論怎麼交錯，會簽清單都不會跟旗標不一致」）— is written with its scope; a run can only sample it, so it also gets a formal check as `references/formal.md` describes.
+- **A claim about a number** — a speedup, a regression, a latency, which option is faster（「匯出在 6 萬列資料集上 p50 快 30%」）— keeps its unit, its data, and its load, and is driven as `references/benchmark.md` describes.
 
 Pin the version before anything runs: the commit, and whether the working tree differs from it. A record that cannot name its version proves nothing about any version.
 
@@ -50,6 +51,7 @@ Run the doctor before the first drive and again after anything surprising. A cla
 - **A problem claim** is proved when the run reproduces the wrong result from the stated trigger, and disproved when the trigger, driven as stated, gives the right result. Record which; a finding the run disproves goes back to its author with the run, not silently dropped.
 - **A timing or order claim**: make the bad order happen in the real app — slow a step, stop it midway, run two at once, wait out the limit — and check the promise after each step.
 - **An every-case claim**: run its formal check as `references/formal.md` describes — true to the code, seen failing on a broken variant, its scope stated — and drive the user's path too where one exists; the check proves the model within its bounds, the drive proves the path it took.
+- **A number claim**: answer every question in `references/benchmark.md` with evidence from runs, and record the verdict, run count, range, and limiter it names.
 - **Unreachable**: when the seed data or the environment cannot reach the claim, record the prerequisite (auth, platform, external state) and the route tried. Never weaken a drive until it passes, and never report one entry point as proved through another.
 
 Any step with an effect outside this machine — sending a message, deploying, charging, publishing, writing shared data — needs the user's yes first, a standing authorization that names it (`references/loop-pauses.md`), or a test mode whose skipping you saw.
