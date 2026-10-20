@@ -1661,11 +1661,14 @@ Component form: one interactive figure in its own file — mechanics, component 
 - `lane-component` — Component lane — an interactive figure on its own — § Component lane — an interactive figure on its own
 - `lane-component-which-kind-figure` — Which kind of figure — § Which kind of figure
 - `lane-component-one-several-or-page` — One piece, several pieces, or a page — § One piece, several pieces, or a page
-- `component-ui-handoff` — Handing a page to /ui — § Handing a page to /ui
 - `lane-component-build-order` — Build order: caption, rest frame, then motion — § Build order: caption, rest frame, then motion
 - `lane-component-mechanics-example-look` — The mechanics example and the component's look — § The mechanics example and the component's look
 - `lane-component-performance-part-done` — Performance is part of done — § Performance is part of done
 - `lane-component-the-lane-check` — The lane check — § The lane check
+
+### `references/page-handoff.md`
+
+- `component-ui-handoff` — Handing a page to /ui — § Handing a page to /ui
 
 ### `references/motion/component.md`
 

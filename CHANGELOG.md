@@ -2,6 +2,14 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.21.0] - 2026-10-20
+
+### Fixed（draw 的 map＋說明頁交接）
+- 組頁需求不再把 diagram／map／film 強制改成 component；`needs-page` 只決定交接，圖件保留自己的驗證。
+- map 通過 finalize 後由 ui 以原檔 iframe 嵌入，交接前後比對雜湊，依頁面所需的桌面／手機尺寸實際操作縮放、平移與節點資訊並檢查溢位；本次先導固定驗證 1440px／390px。
+- 共用交接說明與 Claude／Codex 逐項同步；非互動模式仍只交付圖件與 brief，不自行呼叫 ui。未更新上游工具。
+- 非互動模式明確分開 lookup ledger 與頁面完成狀態：讀過交接規則可使 lookup 檢查通過，但頁面仍列待完成。新增交接檢查與路由 eval，依版本規則採 minor。
+
 ## [8.20.0] - 2026-10-20
 
 ### Changed（`/review` 的資安原則照「違反了哪一種安全性質」分成五份）

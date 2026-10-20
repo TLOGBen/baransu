@@ -16962,7 +16962,7 @@
     "assemble",
     "embed"
    ],
-   "file": "references/lanes/component.md",
+   "file": "references/page-handoff.md",
    "heading": "Handing a page to $baransu:ui"
   },
   {

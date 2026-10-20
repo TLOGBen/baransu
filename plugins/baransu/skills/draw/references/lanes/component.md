@@ -14,18 +14,11 @@ Decide from the content, never by asking:
 
 - **One piece** — the request names one thing to see or play with ("draw how a token bucket works", "an animated sorting widget"): one component, delivered as `<name>.html`, named for the figure.
 - **Several pieces** — the request names several figures but no reading around them ("three figures for these three ideas"): one component file per figure, each named for what it shows, each checked on its own.
-- **A whole page** — the request needs reading as well as figures: explain X, a tutorial, a walkthrough, several figures meant to be read together (說明頁, 教學, 圖解一整篇). The form is component and the brief's `When:` line carries `needs-page`; build every component first, then hand the page to /ui (below, step `assemble-page`).
+- **A whole page** — the request needs reading as well as figures: explain X, a tutorial, a walkthrough, several figures meant to be read together (說明頁, 教學, 圖解一整篇). For a component request the form stays component and the brief's `When:` line carries `needs-page`; page delivery never changes another form into component. Build every piece in its own lane first, then hand the page to /ui (below, step `assemble-page`).
 
 When in doubt between several pieces and a page, choose the page if a reader would need sentences between the figures to follow them.
 
-## Handing a page to /ui
-
-/draw stays the only entry point and delivers the finished page; /ui designs it. After every component passes its lane check and its critique rows:
-
-1. Write `docs/ui_brief.md`: who reads the page and what they must understand, the order of the ideas, each component's path, its one-line point and its caption, the facts the page text may use (from `docs/brief.md`), the page file name `<page-name>.html` in the output folder (distinct from every component's `<name>.html`), and the browser rule, the same as /ui's § Browser checks: any screenshot or check of the page runs either in the user's real Chrome through Claude in Chrome (the user's own profile, when that tool is connected) or through a Chromium started by `<skill>/scripts/motion/browser.mjs` `launchChromium()` — in practice `verify-page.mjs`, `perf-check.mjs` and `grab.mjs` — never a Playwright MCP, agent-browser or a bare `chromium.launch()`. The `verify-page.mjs` and `perf-check.mjs` runs in step 4 below are still required: they are the page's recorded evidence.
-2. In the same turn, invoke /ui through the Skill tool (`baransu:ui`) with that brief: the component paths and a short summary of the request. Do not stop, do not ask the user, and do not start a subagent by default — /ui ships in the same plugin and the main session holds the request's context. Only when the build has already filled the context (for example after a long film) may the hand-off go to a subagent, and then it gets the whole of `docs/ui_brief.md`.
-3. /ui designs the page's look, layout and text and embeds the components (an iframe per component, or their markup and script lifted in); each component keeps its own look. /draw does not restyle the page.
-4. Run `verify-page.mjs` and `perf-check.mjs` on the assembled page as well (several heavy components on one page must respect § One heavy figure at a time), and record the result in the completion report, which says that the page path ran (components + /ui).
+Follow `references/page-handoff.md`, the shared hand-off for all four forms.
 
 ## Build order: caption, rest frame, then motion
 

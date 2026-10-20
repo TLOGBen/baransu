@@ -4,7 +4,7 @@
     {
       "id": 1,
       "prompt": "/draw 幫我把這個畫成架構圖：瀏覽器打 API，API 先查 Redis，miss 的話查 PostgreSQL 再回填快取。給技術同事看的，要能點。",
-      "expected_output": "Map lane: an archify architecture candidate (browser → API → Redis → PostgreSQL with the cache-fill return edge), `finalize` receipt passing, output at .claude/draw/<slug>/<slug>.html, report in Traditional Chinese with the validation summary and browser-evidence status.",
+      "expected_output": "Map lane: an archify architecture candidate (browser → API → Redis → PostgreSQL with the cache-fill return edge), `finalize` receipt passing, output at .claude/draw/<slug>/<slug>.map.html, report in Traditional Chinese with the validation summary and browser-evidence status.",
       "files": []
     },
     {
@@ -22,7 +22,7 @@
     {
       "id": 4,
       "prompt": "/draw 用一頁 HTML 跟我解釋 TCP 三次握手和四次揮手，要有會動的圖，我會在手機上看。",
-      "expected_output": "Component lane, needs-page: 2–3 scrubbable canvas components (sequence over time), each its own meaningfully named <name>.html built from the mechanics of assets/motion/component-example.html — light/dark tokens, phone width without horizontal scroll, a caption or readout that adds a dimension, verify-page.mjs and perf-check.mjs clean on every file; then docs/ui_brief.md and /ui invoked in the same turn without asking, which assembles <slug>.html embedding every component; the completion report names the route (元件＋/ui 組頁).",
+      "expected_output": "Component lane, needs-page: 2–3 scrubbable canvas components (sequence over time), each its own meaningfully named <name>.html built from the mechanics of assets/motion/component-example.html — light/dark tokens, phone width without horizontal scroll, a caption or readout that adds a dimension, verify-page.mjs and perf-check.mjs clean on every file; then docs/ui_brief.md and /ui invoked in the same turn without asking, which assembles <slug>.html embedding every component; the completion report names the route (圖件＋/ui 組頁).",
       "files": []
     },
     {
@@ -53,6 +53,18 @@
       "id": 9,
       "prompt": "/draw 畫一支 20 秒手繪風的小短片：一隻紙飛機從桌上起飛，繞過一杯咖啡，飛出窗外。要有紙的質感。",
       "expected_output": "Motion lane, hand-drawn sub-lane: scripts/hand-drawn/ film-template.mjs as the start, references/motion/hand-drawn/workflow.md + motion.md + traps.md read; beat sheet with exposure (ones/twos/holds) and a sound cue per beat; paper texture and boil from styles.md; original props only; contact sheet and strips reviewed ≥ 3 rounds; 24 fps node-canvas render path stated in the report.",
+      "files": []
+    },
+    {
+      "id": 10,
+      "prompt": "$baransu:draw 請把瀏覽器 → API → Redis（miss 後查 PostgreSQL，再回填 Redis）畫成可點選探索的架構 map，並做成給新同事閱讀的說明頁；本次先導須在桌面 1440px 與手機 390px 驗證嵌入操作。",
+      "expected_output": "Form map with needs-page, never component because a page is requested. Run map finalize including browser checks before ui. Hand off exact map path, receipt, SHA-256, controls and facts in ui_brief.md. Embed finalized map unchanged in an iframe. At 1440 and 390 px actually drive zoom, pan and node information; record state changes and no page/frame overflow. Compare before/after piece hashes. Run page verification and performance checks.",
+      "files": []
+    },
+    {
+      "id": 11,
+      "prompt": "Non-interactive driver: draw the same browser/API/Redis/PostgreSQL explorable architecture with an explanatory page.",
+      "expected_output": "Form map and needs-page; finalize the map, write ui_brief.md, deliver the checked map and brief only. Do not invoke ui. Read the hand-off rules before writing the brief. Name page assembly deferred and quote the actual ledger output: missing lookup records fail, but a complete lookup ledger may pass without a page. Never claim page completion from that PASS.",
       "files": []
     }
   ]

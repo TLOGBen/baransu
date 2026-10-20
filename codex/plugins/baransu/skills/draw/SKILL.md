@@ -27,7 +27,7 @@ It prints every chapter the step names (`{…}` topics filled from `--value`, al
 - **Time-aware, never rushed.** Within the first hour, send the user a first version that opens in a browser (no waiting for a reply), then keep deepening it. A step running past twice what you expected gets one progress line — where it stands, what remains — and the build goes on: no wait, no question. A critique row with no gain over two consecutive rounds goes under 未做到的 with its last score and reason; move on.
 - **Examples are mechanics, not looks.** Templates and examples supply contracts (`seek(t)`, the scrubber, render hooks, `L`, the kit); look and interaction come from the references and the brief. Read an example's source for the API you need; anything built from one goes only into `<out>/scratch/`.
 - **Chromium only through `launchChromium()`** (`scripts/motion/browser.mjs`) or a vendored seeded launcher; never an unseeded `chromium.launch()` or another browser tool: on Windows ten fresh profiles lock the user's account. The user's own Chrome through Claude in Chrome is fine.
-- **Meaningful names.** `<slug>` is an ASCII slug of the title (an existing folder gets `-2`). Diagram `<slug>.html`; map `<slug>.map.html`; film `<slug>.film.html` → `out/<slug>.mp4` in the primary format the page declares (`--all` adds suffixed siblings `out/<slug>-1x1.mp4`, …), `out/<slug>.animatic.mp4`, `out/<slug>.contact.png`, `out/<slug>.poster.png`; component `<name>.html` named for its figure (the slug names the folder); a page from $baransu:ui `<page-name>.html`, distinct from component names. Never `index` or `final`.
+- **Meaningful names.** `<slug>` is an ASCII slug of the title (an existing folder gets `-2`). Diagram `<slug>.html`; map `<slug>.map.html`; film `<slug>.film.html` → `out/<slug>.mp4` in the primary format the page declares (`--all` adds suffixed siblings `out/<slug>-1x1.mp4`, …), `out/<slug>.animatic.mp4`, `out/<slug>.contact.png`, `out/<slug>.poster.png`; component `<name>.html` named for its figure (the slug names the folder); a page from $baransu:ui `<page-name>.html`, distinct from piece names. Never `index` or `final`.
 
 ## Outcome Contract
 
@@ -62,7 +62,7 @@ Steps 0–2 and 4 run for every request; step 3 runs the form's lane and the app
 | watch it: a reel, demo, logo sting, kinetic type, explainer film, hand-drawn short, loop | **film** — `out/<slug>.mp4` and sibling formats |
 | play with it: scrub, drag, press, see how it works | **component** — one interactive figure per file, no page frame |
 
-The flags map onto these choices and follow `../_shared/auto-flags.md`: `--lane` is the form chosen here; unnamed, `--format` follows where a film will be watched — 16:9 on a wide screen (a slide, a site hero, a talk), 1:1 in a square feed, otherwise the pipeline's default 9:16 — and `--dark` turns on when the piece will sit on a dark surface (a dark deck, a dark site, a dark reference). Pick by the verb, the one the user will *use*. Delivery: **one piece**, **several pieces**, or **a page** when the request needs reading too (explain X, 說明頁, 教學): form component, `needs-page` on `When:`, the checked components handed to $baransu:ui in the same turn.
+The flags map onto these choices and follow `../_shared/auto-flags.md`: `--lane` is the form chosen here; unnamed, `--format` follows where a film will be watched — 16:9 on a wide screen (a slide, a site hero, a talk), 1:1 in a square feed, otherwise the pipeline's default 9:16 — and `--dark` turns on when the piece will sit on a dark surface (a dark deck, a dark site, a dark reference). Pick by the verb, the one the user will *use*. Delivery: **one piece**, **several pieces**, or **a page** when the request needs reading too (explain X, 說明頁, 教學): keep the chosen form (diagram, map, film or component), add `needs-page` on `When:`, and hand the checked pieces to $baransu:ui in the same turn. Form chooses the lane and its checks; delivery chooses whether to assemble a page. A map still runs `finalize` before hand-off. Non-interactive runs deliver the pieces and brief only (`references/loop-pauses.md`).
 
 | Before | Do → Done |
 |---|---|
@@ -89,7 +89,7 @@ A map always uses the diagram system; structure plus one hard-to-see behaviour i
 - **開工狀態行.** One line once form, approach and delivery are set, then build in the same turn without waiting; a 型別或結構 or 尺寸 a later step decides reads `待定` until a progress line fills it:
 
 ```
-開工：形式 {diagram | map | film | component}／畫法 {diagram system | mechanism | free creative}／型別或結構 {visual type or film structure}／尺寸 {size preset, format, or Figure|Hero|Epic}／交付 {單件 | 多件 | 元件＋$baransu:ui 組頁}／理由 {one sentence}
+開工：形式 {diagram | map | film | component}／畫法 {diagram system | mechanism | free creative}／型別或結構 {visual type or film structure}／尺寸 {size preset, format, or Figure|Hero|Epic}／交付 {單件 | 多件 | 圖件＋$baransu:ui 組頁}／理由 {one sentence}
 ```
 
 ### 3. Production — the lane's steps
@@ -107,7 +107,7 @@ Run § Lane for the form; add § Mechanism figures for a mechanism and § Lane: 
 | Before | Do → Done |
 |---|---|
 | `lookup.py --step critique-loop --value form=<form> --value approach=<approach>` | rounds: machine checks, captures, shared + form + approach rows, the three worst fixed → `docs/scorecard.md`, `docs/review_log.md` |
-| `lookup.py --step assemble-page` *(needs-page)* | `docs/ui_brief.md`; $baransu:ui (`baransu:ui`) via the Skill tool in the same turn; `verify-page.mjs`, `perf-check.mjs` on its page → `<page-name>.html` |
+| `lookup.py --step assemble-page` *(needs-page)* | `docs/ui_brief.md`; read `../ui/SKILL.md` and follow $baransu:ui in the current session (interactive runs only; otherwise `references/loop-pauses.md`); `verify-page.mjs`, `perf-check.mjs` on its page → `<page-name>.html` |
 | `lookup.py --step ledger-check` | `python3 "<skill>/scripts/ledger-check.py" "<out>"` → exit 0 |
 | `lookup.py --step deliver-report` | the completion report from the evidence |
 
@@ -237,7 +237,7 @@ Rules: `references/lanes/map.md`.
 |---|---|
 | 🛑 Inventing data, names, UI or assets | the user's input; stop on a missing real asset |
 | 🛑 Asking to choose form, approach, size or a page; waiting after a status or progress line | decide, say it, build |
-| 🛑 A page frame or paragraphs built by $baransu:draw | components, then $baransu:ui |
+| 🛑 A page frame or paragraphs built by $baransu:draw | checked pieces, then $baransu:ui |
 | 🛑 A step before its step command; a check or round cut to save time | `lookup.py --step`, then do |
 | 🛑 Chromium started any way but a seeded launcher | `launchChromium()` |
 | 🛑 A film with `Math.random`, timers or CSS transitions | seeded noise, springs, `hash` |
@@ -247,7 +247,7 @@ Rules: `references/lanes/map.md`.
 
 ```
 ✅ 已完成：.codex/draw/{slug}/{file}（多件時逐一列出；組頁時先列頁面）
-交付：{單件 | 多件 | 元件＋$baransu:ui 組頁}　形式：{…}　畫法：{…}　型別／結構：{…}　尺寸：{…}
+交付：{單件 | 多件 | 圖件＋$baransu:ui 組頁}　形式：{…}　畫法：{…}　型別／結構：{…}　尺寸：{…}
 用時：{total}；第一版於 {elapsed} 送出
 檢查：{command} → {result}（{captures or receipt path}）
 查詢紀錄：docs/lookups.log（{N} 個步驟）；ledger-check.py → {result}

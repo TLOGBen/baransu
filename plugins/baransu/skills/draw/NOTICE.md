@@ -43,3 +43,7 @@ The motion references carry no source lines of their own; their provenance is re
 Everything under `scripts/motion/`, `assets/motion/`, `references/motion/*.md` (other than `hand-drawn/` and the attributed paraphrases above), `references/critique-loop.md`, `references/loop-pauses.md` and `SKILL.md` is original to this plugin and carries its license.
 
 Not bundled on purpose: Remotion and HyperFrames agent skills (their workflows fetch updates over the network and one has no license file), the ClaudeAnimationBase character kit (p5.brush + puppeteer runtime), and the song, lyrics and media assets of any production above.
+
+## Local map/page hand-off correction (2026-10-20)
+
+Original local integration: page delivery preserves each draw form and its lane checks; finalized maps embed unchanged with hash and interaction evidence. No upstream runtime or dependency was upgraded.

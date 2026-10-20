@@ -14,7 +14,7 @@
 
 Claude Code：`/baransu:draw`　Codex：`$baransu:draw`
 
-**用途**　把一件東西畫成自包含的視覺：編輯級靜態圖（45 型）、可點可探索的互動圖、程式渲染的影片、或互動元件（機構圖、可拖或會動的圖）；要整頁說明時，元件做好同一輪交給 `/ui` 組頁。先出計畫、再做、再自己看圖打分修到 8 分。
+**用途**　把一件東西畫成自包含的視覺：編輯級靜態圖（45 型）、可點可探索的互動圖、程式渲染的影片、或互動元件（機構圖、可拖或會動的圖）；要整頁說明時，保留所選形式，圖件通過各自檢查後同一輪交給 `/ui` 組頁；map 先 finalize，再原檔嵌入。先出計畫、再做、再自己看圖打分修到 8 分。
 
 **什麼時候用**
 - 想把點子、系統、流程、資料或故事視覺化、畫成圖、做成動畫、分鏡、reel、發表影片、架構圖、流程圖、時序圖、時間軸、圖表或說明頁。
@@ -28,7 +28,9 @@ Claude Code：`/baransu:draw`　Codex：`$baransu:draw`
 | diagram | 編輯級靜態圖，45 型，HTML ＋ inline SVG；可加 seek overlay 讓圖隨時間動 | `self_check.py` |
 | map | 可探索互動圖：architecture／workflow／sequence／data flow／lifecycle／erd／class／tree／timeline／waterfall 十型 | `archify finalize` 收據 |
 | film | 程式渲染影片：`seek(t)` → MP4，運鏡、彈簧、節拍網格、合成音效；一條 timeline 可輸出 9:16／1:1／16:9 | `render.mjs` 渲染 ＋ 每個格式的 contact sheet |
-| component | 互動元件：機構圖、可拖或會動的圖，一件一個 `<name>.html`；要組頁時交 `/ui` | `verify-page.mjs`、`perf-check.mjs` |
+| component | 互動元件：機構圖、可拖或會動的圖，一件一個 `<name>.html` | `verify-page.mjs`、`perf-check.mjs` |
+
+**組頁交接**　四種形式都能交給 `/ui`：圖件先通過自己的檢查，再交接原檔、雜湊與所需控制；map 仍須先 finalize。非互動模式只交付圖件與 brief，頁面另列待完成。
 
 **共同骨幹**　一行開工狀態行講清計畫（形式、畫法、型別、尺寸、交付）→ 建（一小時內先給一版能在瀏覽器打開的）→ 自己看（contact sheet／截圖／收據）→ 計分卡每列 ≥ 8，停滯的列記入「未做到的」（影片與元件至少三輪）→ 交付。
 
@@ -53,7 +55,7 @@ Claude Code：`/baransu:draw`　Codex：`$baransu:draw`
 
 Claude Code：`/baransu:ui`　Codex：`$baransu:ui`
 
-**用途**　你 repo 裡的 UI 設計主導：定調色／字／版／動效後直接寫改 UI 檔；能從參考網站、截圖、藝術流派抽出設計語言，也能拿既有 UI 對照參考修整；說明頁（講解 X、教學、多圖合讀）也歸這裡——把 `/draw` 做好的元件組成一頁。
+**用途**　你 repo 裡的 UI 設計主導：定調色／字／版／動效後直接寫改 UI 檔；能從參考網站、截圖、藝術流派抽出設計語言，也能拿既有 UI 對照參考修整；說明頁（講解 X、教學、多圖合讀）也歸這裡——把 `/draw` 做好並通過各自檢查的圖件組成一頁。
 
 **什麼時候用**
 - 想讓頁面或元件更好看、不那麼制式、更有設計感，或照某個東西的風格做。

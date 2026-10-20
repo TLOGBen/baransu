@@ -91,14 +91,14 @@ Write the directed prompt (`prompts.md` § The directed prompt) or its equivalen
 Every $baransu:draw build, in every form, sends this one line and then builds in the same turn without waiting (`SKILL.md` § The flow, step `brief-and-status-line`). It goes out at step `brief-and-status-line`, as soon as form, approach and delivery are decided — before the steps that settle the type and the size:
 
 ```
-開工：形式 {diagram | map | film | component}／畫法 {diagram system | mechanism | free creative}／型別或結構 {visual type or film structure}／尺寸 {size preset, format, or Figure|Hero|Epic}／交付 {單件 | 多件 | 元件＋$baransu:ui 組頁}／理由 {one sentence}
+開工：形式 {diagram | map | film | component}／畫法 {diagram system | mechanism | free creative}／型別或結構 {visual type or film structure}／尺寸 {size preset, format, or Figure|Hero|Epic}／交付 {單件 | 多件 | 圖件＋$baransu:ui 組頁}／理由 {one sentence}
 ```
 
 - **形式** is the form chosen in step `choose-form`; a film is `film`.
 - **畫法** is the approach from `choose-approach`.
 - **型別或結構** is the diagram type, the map type, the film structure, or the figure's object (a mechanism: the machine invented for it).
 - **尺寸** is the diagram size preset, the film's primary format, or a mechanism's size class `Figure`, `Hero` or `Epic` (set by the part count and the number of moving systems, not by how many mechanisms the idea has). A size class is a name only: no time estimate, never a smaller tier.
-- **交付** is `單件` (one piece), `多件` (one file per piece) or `元件＋$baransu:ui 組頁` (components, then $baransu:ui assembles the page in the same turn).
+- **交付** is `單件` (one piece), `多件` (one file per piece) or `圖件＋$baransu:ui 組頁` (checked pieces in their chosen forms, then $baransu:ui assembles the page in the same turn).
 - **理由** is one sentence on why this form and approach carry the idea.
 - **待定.** A 型別或結構 or 尺寸 not yet decided when the line goes out reads `待定` — the diagram type (step `diagram-plan`), the map type (`map-author`), the invented object (`mech-invent-object`), the film structure and primary format (`design-film-folder`). When the step that decides it is done, one progress line states the value (`型別或結構：…／尺寸：…`) and `docs/progress.md` records it (step `progress-notes`); the build never waits for it. A field already decided (a mechanism's size class from `mech-size`) is written in the line itself.
 
