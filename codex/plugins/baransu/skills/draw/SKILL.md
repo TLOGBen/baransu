@@ -22,7 +22,7 @@ It prints every chapter the step names (`{…}` topics filled from `--value`, al
 
 **Principles.**
 
-- **Full quality.** Every applicable step and check runs to its done-when; time and cost never lower quality unless the user asked for something quick. A quick request with no polish — `--quick`, or 「一個 seed 直出」「不用細修」, which `/hypothesis` sends for its diagram series — runs one seed, promotes it without a judge, skips the critique loop, checks the ledger with `ledger-check.py "<out>" --upto critique-loop`, and says 「快速直出，未細修」 in the report.
+- **Quick by default.** A piece is built once, directly in `<out>/`: no seeds, no blind judge, no critique loop. Every other applicable step and lane check still runs to its done-when, and the report says 「快速直出，未細修」. `--full`, or 「完整」「精修」「細修」「挑最好的」, declares `full` on the brief's `When:` line: three seeds, a blind judge, and the scored critique loop (`references/seed-hunt.md`). Time and cost never lower quality inside the mode that runs; `--quick` is still accepted and changes nothing.
 - **No mid-run questions.** Form, approach, size, direction and whether a page is needed come from the content; an explicit user choice wins. The one stop: a real asset or fact the brief names that the user did not supply.
 - **Time-aware, never rushed.** Within the first hour, send the user a first version that opens in a browser (no waiting for a reply), then keep deepening it. A step running past twice what you expected gets one progress line — where it stands, what remains — and the build goes on: no wait, no question. A critique row with no gain over two consecutive rounds goes under 未做到的 with its last score and reason; move on.
 - **Examples are mechanics, not looks.** Templates and examples supply contracts (`seek(t)`, the scrubber, render hooks, `L`, the kit); look and interaction come from the references and the brief. Read an example's source for the API you need; anything built from one goes only into `<out>/scratch/`.
@@ -31,8 +31,8 @@ It prints every chapter the step names (`{…}` topics filled from `--value`, al
 
 ## Outcome Contract
 
-- **Outcome**: the requested pieces in `<out>/`, each through every applicable step, its lane check and a scored critique loop; a page, when needed, made by $baransu:ui around them in the same turn.
-- **Done when**: the 開工狀態行 was sent and the build started in the same turn; a first version reached the user within the first hour; every applicable done-when holds; `ledger-check.py` exits 0; lane checks pass; `docs/scorecard.md` rows ≥ 8 or stalled and named under 未做到的 (≥ 3 rounds for film and component, no round cap); the completion report is written from the evidence.
+- **Outcome**: the requested pieces in `<out>/`, each through every applicable step and its lane check — under `--full` also three seeds, a blind pick and a scored critique loop; a page, when needed, made by $baransu:ui around them in the same turn.
+- **Done when**: the 開工狀態行 was sent and the build started in the same turn; a first version reached the user within the first hour; every applicable done-when holds; `ledger-check.py` exits 0; lane checks pass; under `--full`, `docs/scorecard.md` rows ≥ 8 or stalled and named under 未做到的 (≥ 3 rounds for film and component, no round cap); the completion report is written from the evidence.
 - **Evidence**: `docs/lookups.log`, `ledger-check.py` output, lane-check output, `docs/review_log.md`, `docs/scorecard.md`, captures.
 - **Output**: `<out>/` with pieces, sources, `docs/`, captures; Traditional Chinese messages.
 - **Automation**: ultracode=neutral, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
@@ -94,19 +94,19 @@ A map always uses the diagram system; structure plus one hard-to-see behaviour i
 
 ### 3. Production — the lane's steps
 
-Run § Lane for the form; add § Mechanism figures for a mechanism and § Lane: diagram for anything drawn with the diagram system (a component included). Free-creative steps sit in the film lane. A diagram, a component or a film starts as three seeds — independent first versions built in parallel by Codex subagents (`spawn_agent`, clean context) up to the pick step — and only the blind judge's winner is refined (`references/seed-hunt.md`); a map runs none. One step is a milestone in time, not a place in the list:
+Run § Lane for the form; add § Mechanism figures for a mechanism and § Lane: diagram for anything drawn with the diagram system (a component included). Free-creative steps sit in the film lane. By default the piece is built once in `<out>/` and the seed rows below do not apply. Under `--full`, a diagram, a component or a film starts as three seeds — independent first versions built in parallel by subagents up to the pick step — and only the blind judge's winner is refined (`references/seed-hunt.md`); a map runs none. One step is a milestone in time, not a place in the list:
 
 | Before | Do → Done |
 |---|---|
-| `lookup.py --step seed-hunt` *(diagram, component, film)* | three seeds under `scratch/seed-{a,b,c}`, each from the brief alone, up to the pick step → `docs/seed_hunt.md` |
-| `lookup.py --step seed-pick` *(diagram, component)* / `seed-pick-film` *(film)* | shuffled captures, a judge in a fresh context, the winner promoted and its log appended → `docs/seed_hunt.md`, `shots/seeds/` |
+| `lookup.py --step seed-hunt` *(`--full`: diagram, component, film)* | three seeds under `scratch/seed-{a,b,c}`, each from the brief alone, up to the pick step → `docs/seed_hunt.md` |
+| `lookup.py --step seed-pick` *(`--full`: diagram, component)* / `seed-pick-film` *(`--full`: film)* | shuffled captures, a judge in a fresh context, the winner promoted and its log appended → `docs/seed_hunt.md`, `shots/seeds/` |
 | `lookup.py --step first-version` | the moment the piece first opens and works, at the latest one hour in: send its path, keep deepening → `docs/first_version.md` |
 
 ### 4. Check and deliver
 
 | Before | Do → Done |
 |---|---|
-| `lookup.py --step critique-loop --value form=<form> --value approach=<approach>` | rounds: machine checks, captures, shared + form + approach rows, the three worst fixed → `docs/scorecard.md`, `docs/review_log.md` |
+| `lookup.py --step critique-loop --value form=<form> --value approach=<approach>` *(`--full`)* | rounds: machine checks, captures, shared + form + approach rows, the three worst fixed → `docs/scorecard.md`, `docs/review_log.md` |
 | `lookup.py --step assemble-page` *(needs-page)* | `docs/ui_brief.md`; read `../ui/SKILL.md` and follow $baransu:ui in the current session (interactive runs only; otherwise `references/loop-pauses.md`); `verify-page.mjs`, `perf-check.mjs` on its page → `<page-name>.html` |
 | `lookup.py --step ledger-check` | `python3 "<skill>/scripts/ledger-check.py" "<out>"` → exit 0 |
 | `lookup.py --step deliver-report` | the completion report from the evidence |

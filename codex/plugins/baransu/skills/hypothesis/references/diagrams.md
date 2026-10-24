@@ -7,7 +7,7 @@ Every hypothesis gets a series of static state diagrams, drawn by `$baransu:draw
 Invoke `$baransu:draw` once for the whole series, with:
 
 - `--out .codex/hypothesis/<area>/diagrams/` — the figures live inside the hypothesis, so their hashes are part of it;
-- `--quick` and the words 「一個 seed 直出，不用細修」 — one seed, promoted without a judge, no critique loop (the user's decision, 2026-10-24); `$baransu:draw` checks its ledger with `--upto critique-loop`;
+- no `--full`: `$baransu:draw` builds quick by default — no seeds, no judge, no critique loop (the user's decision, 2026-10-24);
 - `--lane diagram`, type **State Machine** (`../../draw/references/diagram/type-state.md`), one piece per diagram, named `d1-<slug>.html`, `d2-<slug>.html`, …;
 - a brief that states the four conditions below, the states, steps and guards of each diagram in the source's words, and each numbered path with its steps.
 
