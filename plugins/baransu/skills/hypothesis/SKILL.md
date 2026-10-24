@@ -15,7 +15,7 @@ All user-facing output is in Traditional Chinese; identifiers, paths, model code
 ## Outcome Contract
 
 - **Outcome**: every claim in scope ends as a hypothesis whose computed state is `established` (成立假說) or `unformalized` (無法成立假說), with nothing unexplained.
-- **Done when**: the rules were confirmed by the user; every model part cites its source; each safety and liveness rule was seen failing on a broken variant; each goal was seen reachable and seen unreachable with one transition removed; the scope is stated; every unformalized part has a reason record; `scripts/hypothesis-status.py --area <area>` prints the intended state; the diagram page (its figures drawn by `/draw`) is open; an `established` code area with a rule 被打破 was handed to `/prove-it` and each path carries its verdict.
+- **Done when**: the rules were confirmed by the user; every model part cites its source; each safety and liveness rule was seen failing on a broken variant; each goal was seen reachable and seen unreachable with one transition removed; the scope is stated; every unformalized part has a reason record; `scripts/hypothesis-status.py --area <area>` prints the intended state; the diagram page (its Mermaid blocks seen drawing) is open; an `established` code area with a rule 被打破 was handed to `/prove-it` and each path carries its verdict.
 - **Evidence**: the `check` block of `hypothesis.json` (tool, version, command, bounds, states, seen_failing, seen_succeeding), `check.txt`, and the status line quoted.
 - **Output**: `.claude/hypothesis/<area>/` per `references/artifact.md`, never archived by `/ship`; no product code edited.
 - **Automation**: ultracode=neutral, loop=assisted（`--maintain` is called by readers without a person and pauses only when a change may have changed a promise with no evidence; a first write needs the person to confirm the rules — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
@@ -50,9 +50,9 @@ Before asking anything, show the person once what this part of the system does f
 
 Every sentence of this run — here, in the questions, the findings and the §7 report — is in `/huh`'s voice (`../huh/SKILL.md`): everyday words, no jargon.
 
-Then show the user, and wait for them:
+Then show every rule at once, and wait until the person has understood them — answer any question about any rule, and ask for the confirmation only once they say they follow:
 
-- one sentence per rule, of kind safety (不能發生), liveness (終究會發生) or goal (做得到), with no variable or action names, each with its citation;
+- one sentence per rule, of kind safety (不能發生), liveness (終究會發生) or goal (做得到), with no variable or action names, each with its citation and a small picture of the bad thing it prevents (for a goal, the thing that must stay possible);
 - for a document, every extracted rule with its quote and location, ticked by the user one by one;
 - every ambiguity as a question with whom to ask, never filled in;
 - every part that will not be formalized, with its reason class, before modelling starts.
@@ -70,7 +70,7 @@ A counterexample every step of which the source can take is a finding: write it 
 
 ## 5. Draw and publish
 
-Have `/baransu:draw` draw the diagram series per `references/diagrams.md` — static State Machine figures into `diagrams/`, built quick (`/draw`'s default, no `--full`): diagram 1 is the happy path with at most 7 states, each next one adds one part, the last numbers every path with the same `P<n>` ids as `paths/` — then write the index page `diagrams.html`. Write `README.md` from `templates/README.md`. Publish per `references/artifact.md` § Writing — `hypothesis.draft.json`, then `scripts/hypothesis-publish.py <area dir>` — and run `scripts/hypothesis-status.py --area <area>`. Quote its line. If it does not print the state you intended, a gate is missing: fix it and publish again. Open the page for the user.
+Write the diagram series as Mermaid blocks in `diagrams.html` per `references/diagrams.md` — diagram 1 is the happy path with at most 7 states, each next one adds one part, the last numbers every path with the same `P<n>` ids as `paths/` — and open it once to see every block draw. Write `README.md` from `templates/README.md`. Publish per `references/artifact.md` § Writing — `hypothesis.draft.json`, then `scripts/hypothesis-publish.py <area dir>` — and run `scripts/hypothesis-status.py --area <area>`. Quote its line. If it does not print the state you intended, a gate is missing: fix it and publish again. Open the page for the user.
 
 When the state is `established`, a rule is 被打破, and the behaviour side is code that runs (a `/draft` sketch is not), invoke `/prove-it` at once on the area's paths, the way a reader that sees `stale` invokes `--maintain`: it replays each `paths/P<n>.md` on the real app with the forced order the path states. A path it 推翻 — the app does not take one of its steps — is a suspected model error (`references/formal.md` § Strict, 5): find the step the model allows and the source does not, fix the model, and publish again. A path 無法到達 stays a finding read from the source, and the report says so. A document has no app to replay on; say that instead.
 
@@ -80,7 +80,7 @@ Follow `references/maintain.md`. It turns on by itself when the target is covere
 
 ## 7. Report
 
-In `/huh`'s voice, plain first, then detail. Each finding, path and question opens with one sentence in everyday words — none of 活性、安全性、精化、不變式、同步點、TLC、模型、狀態空間 — then its technical layer (`file:line`, tool, states, rule name). This rule is this skill's own: it reads `/huh` for the voice and `/show-me` for the visuals, and never invokes them. Then the one closing line, fixed:
+Before any verdict, introduce the hypothesis itself the way §3 shows it — the smallest visual of what this part does for its user, one or two sentences — so the reader knows what is being judged. Then, in `/huh`'s voice, plain first, then detail. Each finding, path and question opens with one sentence in everyday words — none of 活性、安全性、精化、不變式、同步點、TLC、模型、狀態空間 — then its technical layer (`file:line`, tool, states, rule name). This rule is this skill's own: it reads `/huh` for the voice and `/show-me` for the visuals, and never invokes them. Then the one closing line, fixed:
 
 「hypothesis 完成：{area}｜{成立假說／無法成立假說}｜{N} 條規則，{F} 條被打破（{path ids}）、{H} 條守住｜{tool} {version}，{states} 個狀態｜範圍：{bounds}｜同步：{sync}｜圖：{page path}」
 

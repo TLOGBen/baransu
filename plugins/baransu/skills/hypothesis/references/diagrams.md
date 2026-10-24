@@ -1,28 +1,27 @@
 # diagrams — the progressive state-diagram series
 
-Every hypothesis gets a series of static state diagrams, drawn by `/baransu:draw` (`../../draw/SKILL.md`) and listed on one page, `diagrams.html`, opened for the user after every publish (`pwsh.exe Start-Process` or `wslview` on WSL2, `Start-Process` on Windows, `xdg-open` on Linux, `open` on macOS). Its job is understanding: a person who never met formal methods can say each bug path in one sentence after reading it.
+Every hypothesis gets a series of static state diagrams on one page, `diagrams.html`, opened for the user after every publish (`pwsh.exe Start-Process` or `wslview` on WSL2, `Start-Process` on Windows, `xdg-open` on Linux, `open` on macOS). Its job is understanding: a person who never met formal methods can say each bug path in one sentence after reading it. At this stage a diagram is for reading the rules, not a finished figure, so it is text that changes with the model.
 
-## Hand the series to /draw
+## Write the series as Mermaid
 
-Invoke `/baransu:draw` once for the whole series, with:
+Each diagram is one Mermaid `stateDiagram-v2` block in `diagrams.html` (`templates/diagrams.html` loads a pinned Mermaid). Mermaid's own grammar sets three habits:
 
-- `--out .claude/hypothesis/<area>/diagrams/` — the figures live inside the hypothesis, so their hashes are part of it;
-- no `--full`: `/draw` builds quick by default — no seeds, no judge, no critique loop (the user's decision, 2026-10-24);
-- `--lane diagram`, type **State Machine** (`../../draw/references/diagram/type-state.md`), one piece per diagram, named `d1-<slug>.html`, `d2-<slug>.html`, …;
-- a brief that states the four conditions below, the states, steps and guards of each diagram in the source's words, and each numbered path with its steps.
+- name a state with words as `state "主管已核准" as approved` and use the short id in transitions;
+- keep `;` out of every label — Mermaid reads it as the end of a statement and scatters the rest as stray nodes — and keep a transition's label free of a second `:`, which is the label separator;
+- mark a path's broken state with a `classDef` (for example `classDef bad stroke:#b42318`) and name it in the legend.
 
-`/draw` never sees the model files and decides nothing about the hypothesis; the brief is its whole input. When it reports done and its ledger check passes, keep in `diagrams/` only the figure files (`d<n>-<slug>.html`) and `docs/brief.md`, which is what a redraw needs; remove the rest of `/draw`'s working files (`scratch/`, `shots/`, its other `docs/`, generator scripts). They belong to the drawing, not to the hypothesis, and every file kept is hashed on each publish. (The first run kept them all: 116 files, 4 MB, against 6 files and 64 KB after.) When `/draw` cannot run (its preflight fails), the series is drawn as Mermaid `stateDiagram-v2` blocks in `diagrams.html` instead, and the README says so.
+Before publish, open the page in a browser and check that every block drew: no 「Syntax error」, no stray nodes outside the diagram. A figure polished for a presentation is `/baransu:draw`'s, asked for by hand; it is not part of a hypothesis.
 
 ## The four conditions
 
-Each is a yes/no check on what `/draw` returns, before publish:
+Each is a yes/no check on the series, before publish:
 
 1. Diagram 1 is the happy path only, with at most 7 states.
 2. Each next diagram redraws the previous one and adds exactly one part — an actor, a branch, a retry, a concurrent writer — and says which in one sentence.
 3. The last diagram numbers every path `P1…Pn`, with the same ids as `paths/`.
 4. No label is a variable or action name; every label uses the source's own user-facing words.
 
-A figure that fails one is fixed in the brief and drawn again; it is never published as is.
+A diagram that fails one is rewritten; it is never published as is.
 
 ## Ordering the parts
 
@@ -37,7 +36,7 @@ Add parts in the order a reader needs them to see the first path: the parts that
 
 ## The page
 
-`diagrams.html`, from `templates/diagrams.html`, is the index: the rules in plain sentences, then each figure in order (an `<iframe>` of `diagrams/d<n>-<slug>.html` with its one-sentence caption), then the paths and the scope. It names the generation and sync point it was drawn from and points at the status command; it never shows a live verdict of its own. Open it in the user's default browser (or through a local HTTP server): a viewer that snapshots the file as `data:` cannot load the relative `<iframe>`s and shows them blank.
+`diagrams.html`, from `templates/diagrams.html`, is the index: the rules in plain sentences, then each diagram in order (its Mermaid block with its one-sentence caption), then the paths and the scope. It names the generation and sync point it was drawn from and points at the status command; it never shows a live verdict of its own. Open it in the user's default browser; Mermaid draws in the page, so no server is needed.
 
 ## Documents
 
