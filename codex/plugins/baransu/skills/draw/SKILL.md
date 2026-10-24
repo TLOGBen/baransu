@@ -10,7 +10,7 @@ metadata:
 
 Turn what the user hands you into a piece a person can open, scrub, explore or watch. This file is a **step guide and a table of contents**: run the steps in order, each after its step command, which prints the chapters the step needs; nothing is read up front, no file is read whole. $baransu:draw is the user's only entry point and delivers end to end without asking. User-facing output is Traditional Chinese (繁體中文).
 
-**Paths** (absolute): `<skill>` this folder, `<project>` the user's project, `<out>` = `<project>/.codex/draw/<slug>`. Scripts run by absolute path from `<out>`; file names below are relative to `<out>`.
+**Paths** (absolute): `<skill>` this folder, `<project>` the user's project, `<out>` = `<project>/.codex/draw/<slug>`, or the folder named by `--out <dir>` — a caller that keeps the figures inside its own artifact names it, as `/hypothesis` does with `.codex/hypothesis/<area>/diagrams/`; every rule below then applies to that folder. Scripts run by absolute path from `<out>`; file names below are relative to `<out>`.
 
 **The step command.** `Before: lookup.py --step <id>` in a row means:
 
@@ -22,7 +22,7 @@ It prints every chapter the step names (`{…}` topics filled from `--value`, al
 
 **Principles.**
 
-- **Full quality.** Every applicable step and check runs to its done-when; time and cost never lower quality unless the user asked for something quick.
+- **Full quality.** Every applicable step and check runs to its done-when; time and cost never lower quality unless the user asked for something quick. A quick request with no polish — `--quick`, or 「一個 seed 直出」「不用細修」, which `/hypothesis` sends for its diagram series — runs one seed, promotes it without a judge, skips the critique loop, checks the ledger with `ledger-check.py "<out>" --upto critique-loop`, and says 「快速直出，未細修」 in the report.
 - **No mid-run questions.** Form, approach, size, direction and whether a page is needed come from the content; an explicit user choice wins. The one stop: a real asset or fact the brief names that the user did not supply.
 - **Time-aware, never rushed.** Within the first hour, send the user a first version that opens in a browser (no waiting for a reply), then keep deepening it. A step running past twice what you expected gets one progress line — where it stands, what remains — and the build goes on: no wait, no question. A critique row with no gain over two consecutive rounds goes under 未做到的 with its last score and reason; move on.
 - **Examples are mechanics, not looks.** Templates and examples supply contracts (`seek(t)`, the scrubber, render hooks, `L`, the kit); look and interaction come from the references and the brief. Read an example's source for the API you need; anything built from one goes only into `<out>/scratch/`.

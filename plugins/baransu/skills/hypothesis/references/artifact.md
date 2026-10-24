@@ -10,7 +10,8 @@ A fixed tree; nothing else is written in an area:
 .claude/hypothesis/<area>/
   hypothesis.json        # the publish record: coverage, sync point, rules, verdicts, evidence. Written last.
   README.md              # the human page, from templates/README.md
-  diagrams.html          # the progressive diagram series, from templates/diagrams.html
+  diagrams.html          # the index page of the diagram series, from templates/diagrams.html
+  diagrams/              # the figures /baransu:draw drew (--out here), with its docs/
   model/                 # <Name>.tla + <Name>.cfg, or the code-level harness
   variants/              # the broken variants that made each check fail (kept in git)
   paths/                 # P<n>.md — one counterexample script per numbered path
@@ -49,7 +50,7 @@ Four fields, seven classes, one row per unformalized part; schema in `templates/
 
 ## Writing (publish)
 
-1. Write the model, the variants, the paths, `check.log`, `diagrams.html`, `README.md`.
+1. Write the model, the variants, the paths, `check.log`; have `/draw` draw `diagrams/`; write `diagrams.html` and `README.md`.
 2. Write `hypothesis.draft.json`: the whole record without hashes, with `base_generation` set to the generation read at the start of this run (0 for a first publish).
 3. Run `python3 scripts/hypothesis-publish.py <area dir>`. It hashes every cited file, every watch match and every artifact file, then swaps the record in only if `hypothesis.json` still has `base_generation`. Exit 3 means another writer published meanwhile: start the run again from the top. A run that stops before the swap leaves the old record, whose artifact hashes no longer match: readers see `draft`.
 4. Run `scripts/hypothesis-status.py --area <area>` and quote its line. It must print the state you intended; anything else (a `draft` with `no-evidence`) means a gate is missing — fix it and publish again, never edit the record by hand.

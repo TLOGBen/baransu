@@ -15,7 +15,7 @@ All user-facing output is in Traditional Chinese; identifiers, paths, model code
 ## Outcome Contract
 
 - **Outcome**: every claim in scope ends as a hypothesis whose computed state is `proved`, `disproved`, or `unformalized`, with nothing unexplained.
-- **Done when**: the rules were confirmed by the user; every model part cites its source; each safety and liveness rule was seen failing on a broken variant; each goal was seen reachable and seen unreachable with one transition removed; the scope is stated; every unformalized part has a reason record; `scripts/hypothesis-status.py --area <area>` prints the intended state; the diagram page is open.
+- **Done when**: the rules were confirmed by the user; every model part cites its source; each safety and liveness rule was seen failing on a broken variant; each goal was seen reachable and seen unreachable with one transition removed; the scope is stated; every unformalized part has a reason record; `scripts/hypothesis-status.py --area <area>` prints the intended state; the diagram page (its figures drawn by `/draw`) is open.
 - **Evidence**: the `check` block of `hypothesis.json` (tool, version, command, bounds, states, seen_failing, seen_succeeding), `check.log`, and the status line quoted.
 - **Output**: `.claude/hypothesis/<area>/` per `references/artifact.md`, never archived by `/ship`; no product code edited.
 - **Automation**: ultracode=neutral, loop=assisted（`--maintain` is called by readers without a person and pauses only when a change may have changed a promise with no evidence; a first write needs the person to confirm the rules — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
@@ -66,7 +66,7 @@ A counterexample every step of which the source can take is a finding: write it 
 
 ## 5. Draw and publish
 
-Build `diagrams.html` per `references/diagrams.md`: diagram 1 is the happy path with at most 7 states; each next diagram adds one part; the last numbers every path with the same `P<n>` ids as `paths/`. Write `README.md` from `templates/README.md`. Publish per `references/artifact.md` § Writing — `hypothesis.draft.json`, then `scripts/hypothesis-publish.py <area dir>` — and run `scripts/hypothesis-status.py --area <area>`. Quote its line. If it does not print the state you intended, a gate is missing: fix it and publish again. Open the page for the user.
+Have `/baransu:draw` draw the diagram series per `references/diagrams.md` — static State Machine figures into `diagrams/`, `--quick`, one seed with no polish: diagram 1 is the happy path with at most 7 states, each next one adds one part, the last numbers every path with the same `P<n>` ids as `paths/` — then write the index page `diagrams.html`. Write `README.md` from `templates/README.md`. Publish per `references/artifact.md` § Writing — `hypothesis.draft.json`, then `scripts/hypothesis-publish.py <area dir>` — and run `scripts/hypothesis-status.py --area <area>`. Quote its line. If it does not print the state you intended, a gate is missing: fix it and publish again. Open the page for the user.
 
 ## 6. Keep it in step (`--maintain`)
 

@@ -1,6 +1,6 @@
 # Answer key — /hypothesis known-answer exams
 
-Not for the agent taking the exam. Grade its `.claude/hypothesis/` output against this file.
+Not for the agent taking the exam. Score its `.claude/hypothesis/` output against this file.
 
 ## approval-code
 
