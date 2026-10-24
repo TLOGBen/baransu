@@ -15,7 +15,7 @@ All user-facing output is in Traditional Chinese; identifiers, paths, model code
 ## Outcome Contract
 
 - **Outcome**: every claim in scope ends as a hypothesis whose computed state is `proved`, `disproved`, or `unformalized`, with nothing unexplained.
-- **Done when**: the rules were confirmed by the user; every model part cites its source; each safety and liveness rule was seen failing on a broken variant; each goal was seen reachable and seen unreachable with one transition removed; the scope is stated; every unformalized part has a reason record; `scripts/hypothesis-status.py --area <area>` prints the intended state; the diagram page (its figures drawn by `/draw`) is open.
+- **Done when**: the rules were confirmed by the user; every model part cites its source; each safety and liveness rule was seen failing on a broken variant; each goal was seen reachable and seen unreachable with one transition removed; the scope is stated; every unformalized part has a reason record; `scripts/hypothesis-status.py --area <area>` prints the intended state; the diagram page (its figures drawn by `/draw`) is open; a `disproved` code area was handed to `/prove-it` and each path carries its verdict.
 - **Evidence**: the `check` block of `hypothesis.json` (tool, version, command, bounds, states, seen_failing, seen_succeeding), `check.log`, and the status line quoted.
 - **Output**: `.claude/hypothesis/<area>/` per `references/artifact.md`, never archived by `/ship`; no product code edited.
 - **Automation**: ultracode=neutral, loop=assisted（`--maintain` is called by readers without a person and pauses only when a change may have changed a promise with no evidence; a first write needs the person to confirm the rules — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
@@ -68,6 +68,8 @@ A counterexample every step of which the source can take is a finding: write it 
 
 Have `/baransu:draw` draw the diagram series per `references/diagrams.md` — static State Machine figures into `diagrams/`, `--quick`, one seed with no polish: diagram 1 is the happy path with at most 7 states, each next one adds one part, the last numbers every path with the same `P<n>` ids as `paths/` — then write the index page `diagrams.html`. Write `README.md` from `templates/README.md`. Publish per `references/artifact.md` § Writing — `hypothesis.draft.json`, then `scripts/hypothesis-publish.py <area dir>` — and run `scripts/hypothesis-status.py --area <area>`. Quote its line. If it does not print the state you intended, a gate is missing: fix it and publish again. Open the page for the user.
 
+When the state is `disproved` and the behaviour side is code, invoke `/prove-it` at once on the area's paths, the way a reader that sees `stale` invokes `--maintain`: it replays each `paths/P<n>.md` on the real app with the forced order the path states. A path it 推翻 — the app does not take one of its steps — is a suspected model error (`references/formal.md` § Strict, 5): find the step the model allows and the source does not, fix the model, and publish again. A path 無法到達 stays a finding read from the source, and the report says so. A document has no app to replay on; say that instead.
+
 ## 6. Keep it in step (`--maintain`)
 
 Follow `references/maintain.md`. It turns on by itself when the target is covered by a `stale`, `draft` or `legacy` hypothesis, and readers invoke it when they see `stale`. Start from `hypothesis-status.py --all`; for each listed area, read every change since `sync.commit` and every `new-writer` the script names twice — what the source does now, the way `/how` reads it, and why it changed, the way `/why` looks for reasons — sort each into the four outcomes, rerun before and after, re-derive the variants when the model changed, then publish as §5. The first run offers to move any `.claude/prove-it/formal/<area>/` (§ Migration).
@@ -78,7 +80,7 @@ Plain first, then detail. Each finding, path and question opens with one sentenc
 
 「hypothesis 完成：{area}｜{N} 條規則，{F} 條不成立（{path ids}）、{H} 條成立｜{tool} {version}，{states} 個狀態｜範圍：{bounds}｜同步：{sync}｜圖：{page path}」
 
-For documents add 「矛盾 {c}｜缺漏 {g}｜模糊 {a}」. Add the unformalized count and the README section it lives in.
+For documents add 「矛盾 {c}｜缺漏 {g}｜模糊 {a}」. Add the unformalized count and the README section it lives in. After a replay, `/prove-it`'s own closing line follows, and each path in the report carries its 證實／推翻／無法到達.
 
 ## For readers
 
