@@ -11,7 +11,7 @@ Invoke `$baransu:draw` once for the whole series, with:
 - `--lane diagram`, type **State Machine** (`../../draw/references/diagram/type-state.md`), one piece per diagram, named `d1-<slug>.html`, `d2-<slug>.html`, …;
 - a brief that states the four conditions below, the states, steps and guards of each diagram in the source's words, and each numbered path with its steps.
 
-`$baransu:draw` never sees the model files and decides nothing about the hypothesis; the brief is its whole input. When `$baransu:draw` cannot run (its preflight fails), the series is drawn as Mermaid `stateDiagram-v2` blocks in `diagrams.html` instead, and the README says so.
+`$baransu:draw` never sees the model files and decides nothing about the hypothesis; the brief is its whole input. When it reports done and its ledger check passes, keep in `diagrams/` only the figure files (`d<n>-<slug>.html`) and `docs/brief.md`, which is what a redraw needs; remove the rest of `$baransu:draw`'s working files (`scratch/`, `shots/`, its other `docs/`, generator scripts). They belong to the drawing, not to the hypothesis, and every file kept is hashed on each publish. (The first run kept them all: 116 files, 4 MB, against 6 files and 64 KB after.) When `$baransu:draw` cannot run (its preflight fails), the series is drawn as Mermaid `stateDiagram-v2` blocks in `diagrams.html` instead, and the README says so.
 
 ## The four conditions
 
@@ -37,7 +37,7 @@ Add parts in the order a reader needs them to see the first path: the parts that
 
 ## The page
 
-`diagrams.html`, from `templates/diagrams.html`, is the index: the rules in plain sentences, then each figure in order (an `<iframe>` of `diagrams/d<n>-<slug>.html` with its one-sentence caption), then the paths and the scope. It names the generation and sync point it was drawn from and points at the status command; it never shows a live verdict of its own.
+`diagrams.html`, from `templates/diagrams.html`, is the index: the rules in plain sentences, then each figure in order (an `<iframe>` of `diagrams/d<n>-<slug>.html` with its one-sentence caption), then the paths and the scope. It names the generation and sync point it was drawn from and points at the status command; it never shows a live verdict of its own. Open it in the user's default browser (or through a local HTTP server): a viewer that snapshots the file as `data:` cannot load the relative `<iframe>`s and shows them blank.
 
 ## Documents
 

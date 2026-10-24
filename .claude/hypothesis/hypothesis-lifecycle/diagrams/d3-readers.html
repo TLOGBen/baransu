@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>假說的生命週期 · 圖 3　讀者</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  color-scheme: light dark;
+  --paper: #f5f5f5; --paper-2: #ececec; --node: #ffffff;
+  --ink: #2d3142; --muted: #4f5d75; --soft: #5a6580; --rule: rgba(45,49,66,0.12);
+  --accent: #bf4520; --accent-tint: rgba(191,69,32,0.08);
+  --dot: rgba(45,49,66,0.10); --hatch: rgba(45,49,66,0.28);
+  --font-sans: 'Geist', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', system-ui, sans-serif;
+  --font-serif: 'Instrument Serif', 'Noto Serif', 'Noto Serif TC', 'PingFang TC', 'Microsoft JhengHei', serif;
+  --font-mono: 'Geist Mono', 'Noto Sans Mono CJK TC', ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #2d3142; --paper-2: #393e53; --node: #393e53;
+    --ink: #f5f5f5; --muted: #bfc0c0; --soft: #949eb2; --rule: rgba(245,245,245,0.12);
+    --accent: #f08a59; --accent-tint: rgba(240,138,89,0.10);
+    --dot: rgba(245,245,245,0.10); --hatch: rgba(245,245,245,0.30);
+  }
+}
+html, body { background: var(--paper); color: var(--ink); }
+body { font-family: var(--font-sans); padding: 16px; }
+.frame { max-width: 1200px; width: 100%; margin: 0 auto; }
+.eyebrow { font-family: var(--font-sans); font-size: 12px; font-weight: 500; color: var(--muted); margin-bottom: 4px; }
+h1 { font-family: var(--font-serif); font-size: clamp(1.25rem, 2vw + 0.75rem, 1.75rem); font-weight: 400; line-height: 1.2; color: var(--ink); margin-bottom: 12px; }
+.diagram-container { width: 100%; overflow-x: auto; }
+svg { width: 100%; min-width: 944px; display: block; }
+.bg { fill: var(--paper); }
+.dots circle { fill: var(--dot); }
+.hatch-line { stroke: var(--hatch); stroke-width: 1.2; }
+.st { stroke-width: 1; }
+.st-normal { fill: var(--node); stroke: var(--ink); }
+.st-focal { fill: var(--accent-tint); stroke: var(--accent); stroke-width: 1.4; }
+.st-broken { fill: url(#hatch); stroke: var(--ink); stroke-dasharray: 5 4; }
+.st-broken-focal { fill: url(#hatch); stroke: var(--accent); stroke-width: 1.4; stroke-dasharray: 5 4; }
+.st-under { fill: var(--node); }
+.name { fill: var(--ink); font-size: 12px; font-weight: 600; font-family: var(--font-sans); }
+.x-mark { fill: var(--ink); font-size: 12px; font-weight: 600; font-family: var(--font-sans); }
+.x-mark.focal { fill: var(--accent); }
+.tr { fill: none; stroke: var(--muted); stroke-width: 1.2; }
+.tr-focal { stroke: var(--accent); stroke-width: 1.4; }
+.tr-fix { stroke: var(--ink); stroke-width: 2.2; }
+.tr-broken { stroke-dasharray: 5 4; }
+.m-normal { fill: var(--muted); } .m-focal { fill: var(--accent); } .m-fix { fill: var(--ink); }
+.mask { fill: var(--paper); }
+.lbl-cjk { fill: var(--muted); font-size: 12px; font-weight: 500; font-family: var(--font-sans); }
+.lbl-lat { fill: var(--muted); font-size: 8px; font-weight: 400; letter-spacing: 0.06em; font-family: var(--font-mono); }
+.lbl-focal { fill: var(--accent); }
+.lbl-fix { fill: var(--ink); }
+.start { fill: var(--ink); }
+.block-ring { fill: var(--paper); stroke: var(--ink); stroke-width: 1.2; }
+.block-x { stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; }
+.legend-text { fill: var(--soft); font-size: 12px; font-weight: 500; font-family: var(--font-sans); }
+.legend-rule { stroke: var(--rule); stroke-width: 1; }
+@media print {
+  .diagram-container { overflow-x: visible; }
+  svg { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<div class="frame">
+<p class="eyebrow">狀態機 · 假說的生命週期</p>
+<h1>圖 3　讀者</h1>
+<div class="diagram-container">
+<svg viewBox="-8 80 944 440" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="d3-readers-title d3-readers-desc">
+<title id="d3-readers-title">圖 3　讀者</title>
+<desc id="d3-readers-desc">再加上讀者：過期時 prove-it、review、綠燈重跑三個讀者都回報過期，並自動交給 /hypothesis --maintain，回到已寫下，與來源同步。</desc>
+<defs>
+<pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse" class="dots"><circle cx="1" cy="1" r="0.9"/></pattern>
+<pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line class="hatch-line" x1="0" y1="0" x2="0" y2="8"/></pattern>
+<marker id="m-normal" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="m-normal" points="0 0, 8 3, 0 6"/></marker>
+<marker id="m-focal" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="m-focal" points="0 0, 8 3, 0 6"/></marker>
+<marker id="m-fix" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="m-fix" points="0 0, 8 3, 0 6"/></marker>
+</defs>
+<rect class="bg" x="-8" y="80" width="944" height="440"/>
+<rect x="-8" y="80" width="944" height="440" fill="url(#dots)" opacity="0.55"/>
+<!-- transitions (drawn first) -->
+<line class="tr" x1="46" y1="144" x2="62" y2="144" marker-end="url(#m-normal)"/>
+<line class="tr" x1="160" y1="144" x2="342" y2="144" marker-end="url(#m-normal)"/>
+<line class="tr" x1="488" y1="144" x2="594" y2="144" marker-end="url(#m-normal)"/>
+<line class="tr" x1="740" y1="144" x2="814" y2="144" marker-end="url(#m-normal)"/>
+<path class="tr" d="M 452 168 L 452 296 A 8 8 0 0 0 460 304 L 594 304" marker-end="url(#m-normal)"/>
+<line class="tr" x1="668" y1="168" x2="668" y2="278" marker-end="url(#m-normal)"/>
+<path class="tr" d="M 856 168 L 856 296 A 8 8 0 0 1 848 304 L 742 304" marker-end="url(#m-normal)"/>
+<path class="tr" d="M 644 328 L 644 368 A 8 8 0 0 1 636 376 L 424 376 A 8 8 0 0 1 416 368 L 416 170" marker-end="url(#m-normal)"/>
+<path class="tr" d="M 692 328 L 692 448 A 8 8 0 0 1 684 456 L 222 456" marker-end="url(#m-normal)"/>
+<path class="tr tr-focal" d="M 130 432 L 130 240 A 8 8 0 0 1 138 232 L 372 232 A 8 8 0 0 0 380 224 L 380 170" marker-end="url(#m-focal)"/>
+<circle class="start" cx="40" cy="144" r="6"/>
+<!-- transition labels (masked) -->
+<rect class="mask" x="170" y="120" width="164" height="16" rx="2"/>
+<text class="lbl-cjk" x="252" y="132" text-anchor="middle">寫下（看過失敗、看過成功）</text>
+<rect class="mask" x="492" y="120" width="100" height="16" rx="2"/>
+<text class="lbl-cjk" x="542" y="132" text-anchor="middle">prove-it 重跑</text>
+<rect class="mask" x="750" y="120" width="56" height="16" rx="2"/>
+<text class="lbl-cjk" x="778" y="132" text-anchor="middle">宣告完成</text>
+<rect class="mask" x="472" y="280" width="104" height="16" rx="2"/>
+<text class="lbl-cjk" x="524" y="292" text-anchor="middle">程式或文件被改了</text>
+<rect class="mask" x="676" y="216" width="104" height="16" rx="2"/>
+<text class="lbl-cjk" x="728" y="228" text-anchor="middle">程式或文件被改了</text>
+<rect class="mask" x="746" y="280" width="104" height="16" rx="2"/>
+<text class="lbl-cjk" x="798" y="292" text-anchor="middle">程式或文件被改了</text>
+<rect class="mask" x="466" y="356" width="128" height="12" rx="2"/>
+<text class="lbl-lat" x="530" y="365" text-anchor="middle">/hypothesis --maintain</text>
+<rect class="mask" x="364" y="432" width="184" height="16" rx="2"/>
+<text class="lbl-cjk" x="456" y="444" text-anchor="middle">prove-it／review／綠燈重跑</text>
+<rect class="mask" x="143" y="208" width="224" height="16" rx="2"/>
+<text class="lbl-cjk lbl-focal" x="255" y="220" text-anchor="middle">自動交給 /hypothesis --maintain</text>
+<!-- states -->
+<g id="d3-readers-state-none">
+<rect class="st st-normal" x="64" y="120" width="96" height="48" rx="8"/>
+<text class="name" x="112" y="148" text-anchor="middle">還沒有假說</text>
+</g>
+<g id="d3-readers-state-sync">
+<rect class="st st-normal" x="344" y="120" width="144" height="48" rx="8"/>
+<text class="name" x="416" y="148" text-anchor="middle">已寫下，與來源同步</text>
+</g>
+<g id="d3-readers-state-prove">
+<rect class="st st-normal" x="596" y="120" width="144" height="48" rx="8"/>
+<text class="name" x="668" y="148" text-anchor="middle">prove-it 證明通過</text>
+</g>
+<g id="d3-readers-state-done">
+<rect class="st st-normal" x="816" y="120" width="80" height="48" rx="8"/>
+<text class="name" x="856" y="148" text-anchor="middle">完成</text>
+</g>
+<g id="d3-readers-state-stale">
+<rect class="st st-normal" x="596" y="280" width="144" height="48" rx="8"/>
+<text class="name" x="668" y="308" text-anchor="middle">過期：模型停在舊版</text>
+</g>
+<g id="d3-readers-state-readers">
+<rect class="st st-focal" x="40" y="432" width="180" height="48" rx="8"/>
+<text class="name" x="130" y="460" text-anchor="middle">三個讀者都回報「過期」</text>
+</g>
+</svg>
+</div>
+</div>
+</body>
+</html>

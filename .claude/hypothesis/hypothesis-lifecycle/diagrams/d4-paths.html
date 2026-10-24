@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>假說的生命週期 · 圖 4　兩條出錯的路</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  color-scheme: light dark;
+  --paper: #f5f5f5; --paper-2: #ececec; --node: #ffffff;
+  --ink: #2d3142; --muted: #4f5d75; --soft: #5a6580; --rule: rgba(45,49,66,0.12);
+  --accent: #bf4520; --accent-tint: rgba(191,69,32,0.08);
+  --dot: rgba(45,49,66,0.10); --hatch: rgba(45,49,66,0.28);
+  --font-sans: 'Geist', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', system-ui, sans-serif;
+  --font-serif: 'Instrument Serif', 'Noto Serif', 'Noto Serif TC', 'PingFang TC', 'Microsoft JhengHei', serif;
+  --font-mono: 'Geist Mono', 'Noto Sans Mono CJK TC', ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #2d3142; --paper-2: #393e53; --node: #393e53;
+    --ink: #f5f5f5; --muted: #bfc0c0; --soft: #949eb2; --rule: rgba(245,245,245,0.12);
+    --accent: #f08a59; --accent-tint: rgba(240,138,89,0.10);
+    --dot: rgba(245,245,245,0.10); --hatch: rgba(245,245,245,0.30);
+  }
+}
+html, body { background: var(--paper); color: var(--ink); }
+body { font-family: var(--font-sans); padding: 16px; }
+.frame { max-width: 1200px; width: 100%; margin: 0 auto; }
+.eyebrow { font-family: var(--font-sans); font-size: 12px; font-weight: 500; color: var(--muted); margin-bottom: 4px; }
+h1 { font-family: var(--font-serif); font-size: clamp(1.25rem, 2vw + 0.75rem, 1.75rem); font-weight: 400; line-height: 1.2; color: var(--ink); margin-bottom: 12px; }
+.diagram-container { width: 100%; overflow-x: auto; }
+svg { width: 100%; min-width: 920px; display: block; }
+.bg { fill: var(--paper); }
+.dots circle { fill: var(--dot); }
+.hatch-line { stroke: var(--hatch); stroke-width: 1.2; }
+.st { stroke-width: 1; }
+.st-normal { fill: var(--node); stroke: var(--ink); }
+.st-focal { fill: var(--accent-tint); stroke: var(--accent); stroke-width: 1.4; }
+.st-broken { fill: url(#hatch); stroke: var(--ink); stroke-dasharray: 5 4; }
+.st-broken-focal { fill: url(#hatch); stroke: var(--accent); stroke-width: 1.4; stroke-dasharray: 5 4; }
+.st-under { fill: var(--node); }
+.name { fill: var(--ink); font-size: 12px; font-weight: 600; font-family: var(--font-sans); }
+.x-mark { fill: var(--ink); font-size: 12px; font-weight: 600; font-family: var(--font-sans); }
+.x-mark.focal { fill: var(--accent); }
+.tr { fill: none; stroke: var(--muted); stroke-width: 1.2; }
+.tr-focal { stroke: var(--accent); stroke-width: 1.4; }
+.tr-fix { stroke: var(--ink); stroke-width: 2.2; }
+.tr-broken { stroke-dasharray: 5 4; }
+.m-normal { fill: var(--muted); } .m-focal { fill: var(--accent); } .m-fix { fill: var(--ink); }
+.mask { fill: var(--paper); }
+.lbl-cjk { fill: var(--muted); font-size: 12px; font-weight: 500; font-family: var(--font-sans); }
+.lbl-lat { fill: var(--muted); font-size: 8px; font-weight: 400; letter-spacing: 0.06em; font-family: var(--font-mono); }
+.lbl-focal { fill: var(--accent); }
+.lbl-fix { fill: var(--ink); }
+.start { fill: var(--ink); }
+.block-ring { fill: var(--paper); stroke: var(--ink); stroke-width: 1.2; }
+.block-x { stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; }
+.legend-text { fill: var(--soft); font-size: 12px; font-weight: 500; font-family: var(--font-sans); }
+.legend-rule { stroke: var(--rule); stroke-width: 1; }
+@media print {
+  .diagram-container { overflow-x: visible; }
+  svg { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<div class="frame">
+<p class="eyebrow">狀態機 · 假說的生命週期</p>
+<h1>圖 4　兩條出錯的路</h1>
+<div class="diagram-container">
+<svg viewBox="0 24 920 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="d4-paths-title d4-paths-desc">
+<title id="d4-paths-title">圖 4　兩條出錯的路</title>
+<desc id="d4-paths-desc">兩條編號的出錯路徑。P1：已寫下後程式被改並引入 bug，因為沒有過期拒答，prove-it 重跑仍說通過。P2：改了兩次變成過期，三個讀者重跑都回報過期，但沒有人叫維護，永遠過期、完成走不到。修正後讀者自動交給維護，回到已寫下。</desc>
+<defs>
+<pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse" class="dots"><circle cx="1" cy="1" r="0.9"/></pattern>
+<pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line class="hatch-line" x1="0" y1="0" x2="0" y2="8"/></pattern>
+<marker id="m-normal" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="m-normal" points="0 0, 8 3, 0 6"/></marker>
+<marker id="m-focal" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="m-focal" points="0 0, 8 3, 0 6"/></marker>
+<marker id="m-fix" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon class="m-fix" points="0 0, 8 3, 0 6"/></marker>
+</defs>
+<rect class="bg" x="0" y="24" width="920" height="500"/>
+<rect x="0" y="24" width="920" height="500" fill="url(#dots)" opacity="0.55"/>
+<!-- transitions (drawn first) -->
+<path class="tr tr-broken" d="M 112 232 L 112 104 A 8 8 0 0 1 120 96 L 262 96" marker-end="url(#m-normal)"/>
+<line class="tr tr-broken" x1="444" y1="96" x2="554" y2="96" marker-end="url(#m-normal)"/>
+<path class="tr" d="M 88 280 L 88 392 A 8 8 0 0 0 96 400 L 198 400" marker-end="url(#m-normal)"/>
+<line class="tr" x1="344" y1="400" x2="418" y2="400" marker-end="url(#m-normal)"/>
+<line class="tr tr-broken" x1="600" y1="400" x2="698" y2="400" marker-end="url(#m-normal)"/>
+<path class="tr tr-fix" d="M 510 376 L 510 328 A 8 8 0 0 0 502 320 L 144 320 A 8 8 0 0 1 136 312 L 136 282" marker-end="url(#m-fix)"/>
+<!-- transition labels (masked) -->
+<rect class="mask" x="124" y="72" width="128" height="16" rx="2"/>
+<text class="lbl-cjk" x="188" y="84" text-anchor="middle">改動（沒有過期拒答）</text>
+<rect class="mask" x="450" y="72" width="100" height="16" rx="2"/>
+<text class="lbl-cjk" x="500" y="84" text-anchor="middle">prove-it 重跑</text>
+<rect class="mask" x="116" y="376" width="56" height="16" rx="2"/>
+<text class="lbl-cjk" x="144" y="388" text-anchor="middle">改了兩次</text>
+<rect class="mask" x="354" y="376" width="56" height="16" rx="2"/>
+<text class="lbl-cjk" x="382" y="388" text-anchor="middle">讀者重跑</text>
+<rect class="mask" x="610" y="376" width="80" height="16" rx="2"/>
+<text class="lbl-cjk" x="650" y="388" text-anchor="middle">沒有人叫維護</text>
+<rect class="mask" x="247" y="296" width="152" height="16" rx="2"/>
+<text class="lbl-cjk lbl-fix" x="323" y="308" text-anchor="middle">修正後：讀者自動交給維護</text>
+<!-- states -->
+<g id="d4-paths-state-sync">
+<rect class="st st-normal" x="40" y="232" width="144" height="48" rx="8"/>
+<text class="name" x="112" y="260" text-anchor="middle">已寫下，與來源同步</text>
+</g>
+<g id="d4-paths-state-p1a">
+<rect class="st-under" x="264" y="72" width="180" height="48" rx="8"/>
+<rect class="st st-broken" x="264" y="72" width="180" height="48" rx="8"/>
+<text class="name" x="354" y="100" text-anchor="middle">P1 程式被改，引入 bug</text>
+<text class="x-mark" x="432" y="88" text-anchor="middle" aria-hidden="true">✕</text>
+</g>
+<g id="d4-paths-state-p1b">
+<rect class="st-under" x="556" y="64" width="180" height="64" rx="8"/>
+<rect class="st st-broken-focal" x="556" y="64" width="180" height="64" rx="8"/>
+<text class="name" x="646" y="92" text-anchor="middle">P1 prove-it 說通過，</text>
+<text class="name" x="646" y="108" text-anchor="middle">但程式有 bug</text>
+<text class="x-mark focal" x="724" y="80" text-anchor="middle" aria-hidden="true">✕</text>
+</g>
+<g id="d4-paths-state-stale">
+<rect class="st st-normal" x="200" y="376" width="144" height="48" rx="8"/>
+<text class="name" x="272" y="404" text-anchor="middle">過期：模型停在舊版</text>
+</g>
+<g id="d4-paths-state-readers">
+<rect class="st st-normal" x="420" y="376" width="180" height="48" rx="8"/>
+<text class="name" x="510" y="404" text-anchor="middle">三個讀者都回報「過期」</text>
+</g>
+<g id="d4-paths-state-p2">
+<rect class="st-under" x="700" y="376" width="180" height="48" rx="8"/>
+<rect class="st st-broken-focal" x="700" y="376" width="180" height="48" rx="8"/>
+<text class="name" x="790" y="404" text-anchor="middle">P2 永遠過期，完成走不到</text>
+<text class="x-mark focal" x="868" y="392" text-anchor="middle" aria-hidden="true">✕</text>
+</g>
+<g class="legend">
+<line class="legend-rule" x1="40" y1="456" x2="880" y2="456"/>
+<rect class="st-under" x="40" y="472" width="24" height="16" rx="4"/>
+<rect class="st st-broken" x="40" y="472" width="24" height="16" rx="4"/>
+<text class="legend-text" x="72" y="484">出錯的狀態</text>
+<line class="tr tr-fix" x1="164" y1="480" x2="192" y2="480" marker-end="url(#m-fix)"/>
+<text class="legend-text" x="200" y="484">修正後的路</text>
+</g>
+</svg>
+</div>
+</div>
+</body>
+</html>

@@ -5,13 +5,19 @@
     "watch": [],
     "versions": {},
     "hash_algo": "sha256-lf",
-    "commit": "4040b8e",
+    "commit": "0cbca91",
     "files": {
-      ".claude/think/formal-hypothesis.md": "d4e16b046ee1b78efa1b3ab4abcfc3264fd2e62729bfe80c2dd5cb8d7972f060"
+      ".claude/think/formal-hypothesis.md": "ea60ee264c04e71cf4e0ad6a7d920055c59527e05cca5e8ae4202cf2f4b74135"
     },
     "artifact": {
       "check.log": "13455a178635e04bf726b59d0b49f593b767c7d69b9545301b561d547cd97d20",
-      "diagrams.html": "d10228f21e9b3f2fe2ac5b605a51bd7db5cb9339028caca590ce7c2f158a9655",
+      "diagrams/d1-happy.html": "b4678e58730adac346ab3597b4e5f784575e78101ac62f9515bc08554570d8f2",
+      "diagrams/d2-change.html": "c9d76139bff7fea0504638428faa4f7a83ef970c4e9009ff923f1361616a41af",
+      "diagrams/d3-readers.html": "8daf70265bf7c496eca939ebad292889a1af4fd70425a4d17f9cbf30e7690a8d",
+      "diagrams/d4-paths.html": "9568b8299896570f43f2d9919be968248ce51af6178481c2538f787a90f3d2ae",
+      "diagrams/d5-decisions.html": "6e9753c1f7e9c7a0c2762dce295a8bba5ce54c13d34940cf8be104dfc877f5de",
+      "diagrams/docs/brief.md": "403439eddb7dfaf1711401c623efe483c949ac130be6d42d70ed918ca6da2282",
+      "diagrams.html": "b584c90f64c72ad2eb39ee642594a1d87efaeb455e5f556bc5b0fee09f0597d8",
       "model/Chosen.cfg": "358232a8b0858595e661cbe29608231d33879619e673ce289b7a4ddcbb865ecb",
       "model/Goal.cfg": "19d68b7585c009d5bdc3f2bcbf297263857cabb1de33a3e7cb012471dc1005da",
       "model/Lifecycle.tla": "618110177003db618070c8533cfd48ef6794452f4d3a84c98820d29baf83d09e",
@@ -92,7 +98,7 @@
     {
       "part": "Change",
       "cites": [
-        ".claude/think/formal-hypothesis.md:82"
+        ".claude/think/formal-hypothesis.md:83"
       ]
     },
     {
@@ -111,7 +117,7 @@
     {
       "part": "Migrate",
       "cites": [
-        ".claude/think/formal-hypothesis.md:165"
+        ".claude/think/formal-hypothesis.md:166"
       ]
     },
     {
@@ -161,7 +167,7 @@
       "name": "ReadsMaintained",
       "text": "有人在維護的那一份存在時，沒有人去看沒人管的那一份。",
       "cites": [
-        ".claude/think/formal-hypothesis.md:165"
+        ".claude/think/formal-hypothesis.md:166"
       ],
       "verdict": "held",
       "paths": []
@@ -172,7 +178,7 @@
       "name": "DoneStrict",
       "text": "拿來宣告「做完了」的那一份，真的檢查過「做得到」。",
       "cites": [
-        ".claude/think/formal-hypothesis.md:165"
+        ".claude/think/formal-hypothesis.md:166"
       ],
       "verdict": "held",
       "paths": []
@@ -254,11 +260,18 @@
       "to_commit": "4040b8e",
       "outcome": "no-effect",
       "note": "來源沒變；補上 S2 的看過它失敗（variants/S2-DeclareOnOldPass.cfg）與 G1 拿掉 Declare 後走不到（variants/G1-NoDeclare.cfg）"
+    },
+    {
+      "generation": 3,
+      "from_commit": "4040b8e",
+      "to_commit": null,
+      "outcome": "no-effect",
+      "note": "計畫書這段期間的改動（ADR 不寫、hunt 改名、第七類原因、維護照 /how 與 /why、darkroom 試行目標）都沒有改到生命週期的規則；引用行號 82→83、165→166 已更新。圖組改由 /draw 一次直出（diagrams/），diagrams.html 改為索引頁。"
     }
   ],
   "migrated_from": null,
   "schema": "baransu.hypothesis/1",
   "area": "hypothesis-lifecycle",
-  "generation": 2,
-  "published_at": "2026-10-24T10:51:28+08:00"
+  "generation": 3,
+  "published_at": "2026-10-24T11:24:51+08:00"
 }
