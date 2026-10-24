@@ -26,7 +26,7 @@ Computed by the script at read time; the stored verdict is only an input. The pl
 |---|---|---|---|
 | `broken` | 無法判定 | `hypothesis.json` unparseable or of an unknown schema, or the script could not run | no |
 | `draft` | 假說未成立 | the area dir exists with no `hypothesis.json` yet, or its artifact files differ from what the last publish hashed, or the evidence gates (seen failing, seen succeeding) or a reason record are incomplete | no |
-| `stale` | 過期 | a covered source differs from its sync hash or is missing, or the set of files matching a watch pattern changed | no |
+| `stale` | 過期 | a covered source differs from its sync hash or is missing, a `sources/` copy's original still exists and differs from the copy, or the set of files matching a watch pattern changed | no |
 | `legacy` | 舊位置 | a `.claude/prove-it/formal/<area>/` dir not yet migrated | no |
 | `established` | 成立假說 | fresh and evidence complete; each rule carries the model's prediction, 守住 or 被打破 with a path | yes |
 | `unformalized` | 無法成立假說 | fresh; the attempt ended in reason records only | n/a |

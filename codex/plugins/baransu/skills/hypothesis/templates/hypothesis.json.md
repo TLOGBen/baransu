@@ -36,7 +36,9 @@ The publish record of one area. Written only by `$baransu:hypothesis`, only as t
       "model/Refund.tla": "<sha256-lf>", "model/Refund.cfg": "<sha256-lf>", "model/check.sh": "<sha256-lf>",
       "variants/R1-skip-balance-check.patch": "<sha256-lf>", "variants/R2-no-cancel-check.patch": "<sha256-lf>",
       "variants/R3-pay-twice.patch": "<sha256-lf>",
-      "paths/P1.md": "<sha256-lf>"
+      "paths/P1.md": "<sha256-lf>",
+      "diagrams/d1-happy.html": "<sha256-lf>", "diagrams/d2-two-requests.html": "<sha256-lf>",
+      "diagrams/d3-paths.html": "<sha256-lf>", "diagrams/docs/brief.md": "<sha256-lf>"
     }
   },
 
@@ -111,7 +113,7 @@ The publish record of one area. Written only by `$baransu:hypothesis`, only as t
 - `generation` — increments by one per publish; the compare-and-swap key.
 - `model_map[].cites`, `rules[].cites` — `path` or `path:line[-line]` only; a document's passage goes in `model_map[].quote`.
 - `sync.files` — keys are repo-relative paths (absolute only for a document outside the repo); exactly the files cited by `model_map` and `rules`.
-- `sync.originals` — `{ "<copy under sources/>": "<original path>" }` for each frozen copy whose original is a local file; when the original still exists and its content differs from the copy, the area is `stale` (`changed: <original>`).
+- `sync.originals` — `{ "<repo-relative path of the copy, under the area's sources/>": "<repo-relative path of the original>" }` for each frozen copy whose original is a local file (unlike `sync.artifact`, whose keys are area-relative); when the original still exists and its content differs from the copy, the area is `stale` (`changed: <original>`).
 - `sync.watch[].matched` — sorted; computed with `git grep -l --untracked -E <pattern>` at publish. `sync.watch[].paths` — optional pathspecs that limit the search (default: the whole repo); `.codex/hypothesis/` and `.codex/hypothesis/` are never searched.
 - `sync.artifact` — every file in the area except `hypothesis.json` itself.
 - `check.verdict_at_sync` — the model's prediction: `held` (all rules `held`) | `violated` (any `violated`) | `unformalized` (no model; `rules` may be empty). Records published before the rename say `proved` / `disproved`; the script reads them as `held` / `violated`.

@@ -40,7 +40,7 @@ PAUSE classification for non-interactive drivers: `references/loop-pauses.md`.
 Run `scripts/hypothesis-status.py --files <target>` first (`python` where `python3` is absent):
 
 - an existing `established` hypothesis covering the target is not-trigger 5: rerun it with the `--check` command and write nothing new;
-- a `stale`, `draft` or `broken` one goes to §6;
+- a `stale` or `draft` one goes to §6; a `broken` one never shows under `--files` (its record cannot say what it covers), and neither does a `draft` never published, so also run `--all` and send any `broken` or unpublished area of this target to §6;
 - a `legacy` one of the same area is moved first (§6, Migration) — one area never lives in two places.
 
 Otherwise match the target against H1–H8 and the not-trigger list in `references/formal.md`. Before creating anything, confirm the matched row's default tool runs here (for TLA+: Java and `tla2tools.jar`); a missing tool goes to `$baransu:health`'s environment doctor, and if it stays missing the result is `unformalized`, class `no-tool`, never a half-built area. A miss ends with one reason record (`templates/reason-record.md`) in the caller's output, not under `.codex/hypothesis/`.
@@ -84,7 +84,7 @@ When the state is `established`, a rule is 被打破, and the behaviour side is 
 
 ## 6. Keep it in step (`--maintain`)
 
-Follow `references/maintain.md`. It turns on by itself when the target is covered by a `stale`, `draft` or `legacy` hypothesis, and readers invoke it when they see `stale`. Start from `hypothesis-status.py --all`; for each listed area, read every change since `sync.commit` and every `new-writer` the script names twice — what the source does now, the way `$baransu:how` reads it, and why it changed, the way `$baransu:why` looks for reasons — sort each into the four outcomes, rerun before and after, re-derive the variants when the model changed, then publish as §5. The first run offers to move any `.codex/prove-it/formal/<area>/` (§ Migration).
+Follow `references/maintain.md`. It turns on by itself when the target is covered by a `stale`, `draft` or `legacy` hypothesis, or `--all` lists a `broken` one, and readers invoke it when they see `stale`. Start from `hypothesis-status.py --all`; for each listed area, read every change since `sync.commit` and every `new-writer` the script names twice — what the source does now, the way `$baransu:how` reads it, and why it changed, the way `$baransu:why` looks for reasons — sort each into the four outcomes, rerun before and after, re-derive the variants when the model changed, then publish as §5. The first run offers to move any `.codex/prove-it/formal/<area>/` (§ Migration).
 
 ## 7. Report
 
