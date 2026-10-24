@@ -1,7 +1,7 @@
 <!doctype html>
 <!-- Template: .codex/hypothesis/<area>/diagrams.html — the index of the diagram series.
-     The figures are drawn by $baransu:draw into diagrams/ (references/diagrams.md); this page lists them in order.
-     Replace every {…}; one <figure> per drawn piece. It states no live verdict: it shows the hypothesis as
+     Each diagram is a Mermaid stateDiagram-v2 block (references/diagrams.md), drawn in the page.
+     Replace every {…}; one <figure> per diagram. It states no live verdict: it shows the hypothesis as
      published and points at the status command. -->
 <html lang="zh-Hant">
 <head>
@@ -21,7 +21,7 @@
     h1 { font-size:1.6rem; margin:0 0 4px; } h2 { font-size:1.15rem; margin:32px 0 8px; }
     .as-of, figcaption { color:var(--muted); }
     figure { margin:16px 0 28px; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; }
-    figure iframe { width:100%; height:560px; border:0; }
+    pre.mermaid { margin:0; background:transparent; overflow-x:auto; }
     .bad { color:var(--bad); font-weight:600; }
   </style>
 </head>
@@ -37,13 +37,29 @@
   <h2>圖組</h2>
   <figure>
     <figcaption>圖 1　正常流程：{一句話}</figcaption>
-    <iframe src="diagrams/d1-{slug}.html" title="圖 1"></iframe>
+    <pre class="mermaid">
+stateDiagram-v2
+    state "{狀態一}" as s1
+    state "{狀態二}" as s2
+    [*] --> s1
+    s1 --> s2: {讓它改變的事件}
+    </pre>
   </figure>
   <figure>
     <figcaption>圖 2　加上 {一個元件}：{一句話}</figcaption>
-    <iframe src="diagrams/d2-{slug}.html" title="圖 2"></iframe>
+    <pre class="mermaid">
+stateDiagram-v2
+    state "{狀態一}" as s1
+    state "{狀態二}" as s2
+    state "{P1 壞掉的狀態}" as p1
+    [*] --> s1
+    s1 --> s2: {事件}
+    s1 --> p1: {另一方同時做的事}
+    classDef bad stroke:#b42318,stroke-width:2px
+    class p1 bad
+    </pre>
   </figure>
-  <!-- … one figure per piece; the last is 問題路徑 -->
+  <!-- … one figure per diagram; the last numbers every path. No ";" in any label, no second ":" in a transition label. -->
 
   <h2>問題路徑</h2>
   <ol><li><span class="bad">P1</span>　{白話摘要}（被打破的規則：{R?}）　<a href="paths/P1.md">劇本</a></li></ol>
@@ -52,5 +68,10 @@
   <p>{範圍、假設、沒涵蓋什麼}。窮舉的結論只在這個範圍內成立。</p>
   <p>沒有形式化的部分：{每一條原因紀錄的白話一句與類別；沒有就寫「全部形式化，沒有例外。」}</p>
 </main>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js" integrity="sha384-rbtjAdnIQE/aQJGEgXrVUlMibdfTSa4PQju4HDhN3sR2PmaKFzhEafuePsl9H/9I" crossorigin="anonymous"></script>
+<script>
+  mermaid.initialize({ startOnLoad: true,
+    theme: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default' });
+</script>
 </body>
 </html>
