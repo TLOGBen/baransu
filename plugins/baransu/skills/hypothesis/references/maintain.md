@@ -6,7 +6,7 @@ Moved from the drift pass in `prove-it/references/formal.md` and owned here. The
 
 ## Work list
 
-Run `scripts/hypothesis-status.py --all --json`, or `--area <area>` when one is named. Every area whose state is `stale`, `draft`, `broken` or `legacy` is on the list (a `broken` one is rebuilt from its own files — model, variants, paths, README — and published again); `established` and `unformalized` areas are left as they are. A `changed: <original>` — the original of a `sources/` copy (`sync.originals`) — is read by copying the original into `sources/` again, then sorting it like any other changed source; publishing without the fresh copy leaves the area stale. The `why` field is the starting set of changes: `changed`, `missing`, `new-writer`, `writer-gone`, `artifact-edited`, `no-evidence`.
+Run `scripts/hypothesis-status.py --all --json`, or `--area <area>` when one is named. Every area whose state is `stale`, `draft`, `broken` or `legacy` is on the list (a `broken` one is rebuilt from its own files — model, variants, paths, README — and published again with `base_generation` 0, since its old record cannot be read); `established` and `unformalized` areas are left as they are. A `changed: <original>` — the original of a `sources/` copy (`sync.originals`) — is read by copying the original into `sources/` again, then sorting it like any other changed source; publishing without the fresh copy leaves the area stale. The `why` field is the starting set of changes: `changed`, `missing`, `new-writer`, `writer-gone`, `artifact-edited`, `no-evidence`.
 
 ## Read every change — what it does, and why it changed
 

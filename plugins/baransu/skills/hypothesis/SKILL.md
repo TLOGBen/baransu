@@ -28,7 +28,7 @@ PAUSE classification for non-interactive drivers: `references/loop-pauses.md`.
 Run `scripts/hypothesis-status.py --files <target>` first (`python` where `python3` is absent):
 
 - an existing `established` hypothesis covering the target is not-trigger 5: rerun it with the `--check` command and write nothing new;
-- a `stale` or `draft` one goes to §6; a `broken` one never shows under `--files` (its record cannot say what it covers), so also run `--all` and send any `broken` area to §6;
+- a `stale` or `draft` one goes to §6; a `broken` one never shows under `--files` (its record cannot say what it covers), and neither does a `draft` never published, so also run `--all` and send any `broken` or unpublished area of this target to §6;
 - a `legacy` one of the same area is moved first (§6, Migration) — one area never lives in two places.
 
 Otherwise match the target against H1–H8 and the not-trigger list in `references/formal.md`. Before creating anything, confirm the matched row's default tool runs here (for TLA+: Java and `tla2tools.jar`); a missing tool goes to `/health`'s environment doctor, and if it stays missing the result is `unformalized`, class `no-tool`, never a half-built area. A miss ends with one reason record (`templates/reason-record.md`) in the caller's output, not under `.claude/hypothesis/`.

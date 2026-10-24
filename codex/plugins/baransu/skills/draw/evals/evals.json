@@ -52,7 +52,7 @@
     {
       "id": 9,
       "prompt": "/draw 畫一支 20 秒手繪風的小短片：一隻紙飛機從桌上起飛，繞過一杯咖啡，飛出窗外。要有紙的質感。",
-      "expected_output": "Motion lane, hand-drawn sub-lane: scripts/hand-drawn/ film-template.mjs as the start, references/motion/hand-drawn/workflow.md + motion.md + traps.md read; beat sheet with exposure (ones/twos/holds) and a sound cue per beat; paper texture and boil from styles.md; original props only; contact sheet and strips reviewed ≥ 3 rounds; 24 fps node-canvas render path stated in the report.",
+      "expected_output": "Motion lane, hand-drawn sub-lane: scripts/hand-drawn/ film-template.mjs as the start, references/motion/hand-drawn/workflow.md + motion.md + traps.md read; beat sheet with exposure (ones/twos/holds) and a sound cue per beat; paper texture and boil from styles.md; original props only; contact sheet and strips reviewed (one dailies round by default; ≥ 3 rounds under --full); 24 fps node-canvas render path stated in the report.",
       "files": []
     },
     {
