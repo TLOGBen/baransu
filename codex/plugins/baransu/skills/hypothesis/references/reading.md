@@ -62,7 +62,7 @@ The hand-off to `--maintain` is the reader's own call into the writer, made by t
 
 Exact output shape of each, so a reader quotes rather than paraphrases:
 - `--rules <area>`: header `# <area>  state=<state>  title=<title>`; per rule `<id>  <kind>  <verdict|?>  <sentence>`.
-- `--paths <area>`: per path `<P-id>  <rule>  <verdict|?>  <one-line summary in source words>  <script path>`.
+- `--paths <area>`: the same header as `--rules`, then per path `<P-id>  <rule>  <verdict|?>  <one-line summary in source words>  <script path>`.
 - `--scope <area>`: bounds, assumptions, what is left out — verbatim from the artifact.
 - `--check <area>`: the one pinned rerun command and the tool version; the reader runs it in a scratch dir and records the output in its own record, never in the area. A rerun on an unchanged source that disagrees with the stored verdict is reported 「與紀錄不符」 and treated as `broken`: the model, the tool or the environment moved, and no verdict from that area counts until `$baransu:hypothesis --maintain` explains why.
 

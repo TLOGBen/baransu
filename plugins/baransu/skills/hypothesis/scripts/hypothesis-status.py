@@ -26,6 +26,10 @@ import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+
+for _stream in (sys.stdout, sys.stderr):  # Chinese messages must not come out garbled on a Windows console
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
 from typing import Sequence
 
 SCHEMA = "baransu.hypothesis/1"

@@ -28,6 +28,10 @@ import sys
 import tempfile
 from pathlib import Path
 
+for _stream in (sys.stdout, sys.stderr):  # Chinese messages must not come out garbled on a Windows console
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 HERE = Path(__file__).resolve().parent
 _spec = importlib.util.spec_from_file_location("hypothesis_status", HERE / "hypothesis-status.py")
 status = importlib.util.module_from_spec(_spec)

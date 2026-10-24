@@ -118,8 +118,8 @@ The publish record of one area. Written only by `/hypothesis`, only as the last 
 - `check.seen_failing` — one entry per `safety` or `liveness` rule, `caught: true` required for the area to be `established`.
 - `check.seen_succeeding` — one entry per goal, both `reached` and `unreachable_after` true; every safety and liveness rule appears in some goal's `guards`.
 - `rules[].text` / `goals[].text` / `paths[].summary` / `questions[].question` — plain words, no variable or action names; these strings are what readers quote. `paths[].summary` and `questions[].question` are the plain first layer and contain none of 活性、安全性、精化、不變式、同步點、TLC、模型、狀態空間; the technical layer lives in `paths/P<n>.md`.
-- `paths[].finding` — `bug` (code), `contradiction` | `gap` (document), `refinement-break` (comparison).
+- `paths[].finding` — `bug` (code), `contradiction` | `gap` (document), `refinement-break` (comparison). `paths[].rule` is the first rule the path breaks; `paths[].also` lists any other rules the same path breaks.
 - `questions[]` — every ambiguity, from any source: `{ "id", "quote", "location", "ask": "<whom>", "question" }`; for code, `quote` is the line and `location` its `file:line`.
 - `unformalized[]` — the reason record, `templates/reason-record.md`.
-- `history[]` — one row per publish after the first, the `--maintain` outcome that produced it.
+- `history[]` — one row per publish after the first: the `--maintain` outcome that produced it, or `correction` for a republish that changes no rule, verdict or model meaning (a field fixed, a page aligned), with a `note`.
 - `migrated_from` — `null` or the old `.claude/prove-it/formal/<area>/` path.
