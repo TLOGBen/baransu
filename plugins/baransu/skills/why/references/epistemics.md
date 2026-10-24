@@ -9,7 +9,7 @@ Every claim sits in exactly one tier, and the tier decides where it goes and how
 1. **Direct** — an author wrote the reason down: an ADR's decision and context, a PR body ("fixes pagination for users with more than 1000 items"), a commit message, a code comment ("clamp to 100: the upstream API rejects larger values"), a plan's Key decisions line, the user's own instruction in a transcript. Worded plainly and cited: "This exists because X (source)."
 2. **Supported** — no single source says it, but several independent items point the same way: the PR title says "perf", the ticket is labelled perf, the same week's commits all touch one hot path. Worded with each item listed: "The evidence points to X: A, B, C."
 3. **Inferred** — a reasonable reading that nothing states: the fix merged the same day an incident was reported, so it was likely a hotfix. Worded with the chain visible and hedged: "Given A and B, C seems likely."
-4. **Speculative** — a hypothesis on thin evidence that other explanations fit as well. Worded as a guess: "One possibility is X; no source supports it." It usually belongs in 競爭假說.
+4. **Speculative** — a hypothesis on thin evidence that other explanations fit as well. Worded as a guess: "One possibility is X; no source supports it." It usually belongs in 其他可能的解釋.
 5. **Unknown** — searched and not found. A valid result, worded with what was searched: "Searched the tracker for A and B and the six PRs touching this file since 2024; none gives a reason."
 
 ## Who wrote it
@@ -18,7 +18,7 @@ On a machine where agents write most commits, PR bodies and plans, a written rea
 
 An upstream document or a reproduction is Direct evidence of how a tool behaves, never of why the author chose what they chose; a conclusion that joins the two ("the API rejects values above 100, which is why the code clamps to 100") is Supported at most.
 
-When the same reason appears in several places (a commit, then the instruction file, then a code comment), cite the earliest statement and name the restatements in one line. Restatements that disagree on a fact are a contradiction, not a list of confirmations; restatements that frame the same decision differently go to 競爭假說.
+When the same reason appears in several places (a commit, then the instruction file, then a code comment), cite the earliest statement and name the restatements in one line. Restatements that disagree on a fact are a contradiction, not a list of confirmations; restatements that frame the same decision differently go to 其他可能的解釋.
 
 ## Words
 
@@ -42,7 +42,7 @@ An honest "we don't know" tells the user the answer is not in the obvious places
 
 ## Before presenting
 
-- Every claim in 找到什麼 has a citation; one without moves to 合理推論 or 競爭假說.
+- Every claim in 找到什麼 has a citation; one without moves to 合理推論 or 其他可能的解釋.
 - Each claim's wording matches its tier.
 - No claim uses the code as evidence of its own intent.
 - Every contradiction noticed is shown.

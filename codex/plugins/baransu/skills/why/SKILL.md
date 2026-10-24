@@ -84,8 +84,8 @@ Present the answer in this shape; drop a section that would be empty, except 不
 ### 合理推論
 - **[Inferred]** 帶保留語氣的主張。推理：<因為 A 和 B，所以可能 C>。
 
-### 競爭假說
-- 假說：…　支持：…　反證或缺口：…
+### 其他可能的解釋
+- 解釋：…　支持：…　反證或缺口：…
 
 ### 不知道什麼
 具體的缺口：查了哪裡、用什麼關鍵字、找到什麼（沒有，或只有旁支）。誰可能知道。

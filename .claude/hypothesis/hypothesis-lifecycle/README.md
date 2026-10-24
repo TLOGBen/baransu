@@ -97,5 +97,5 @@
 重跑指令：
 
 ```
-java -cp D:\Workspace\00_Env\tla\tla2tools.jar tlc2.TLC -config <設定>.cfg -deadlock Lifecycle.tla
+java -cp D:\Workspace\00_Env\tla\tla2tools.jar tlc2.TLC -config <設定>.cfg -deadlock -metadir "$env:TEMP\tlc-states" Lifecycle.tla
 ```

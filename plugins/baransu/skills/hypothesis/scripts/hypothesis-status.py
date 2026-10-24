@@ -12,105 +12,312 @@ Usage:
 Exit: 0 every listed area proved; 10 none covers the selector; 1 any other state listed;
       2 the script failed (readers treat as `broken`).
 
-Stdlib only, Python 3.9+, no git required except for --diff and watch patterns
-(without git those make every area with watches `stale` with why `no-git`).
+Stdlib only, Python 3.9+. Run from anywhere inside the repo; paths are repo-relative.
+Without git, --diff fails (exit 2) and every area with watch patterns is `stale` (no-git).
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+import argparse
+import hashlib
+import json
+import re
+import subprocess
+import sys
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Literal, Sequence
+from typing import Sequence
 
 SCHEMA = "baransu.hypothesis/1"
-ROOT = Path(".claude/hypothesis")
-LEGACY_ROOT = Path(".claude/prove-it/formal")
-
-State = Literal["broken", "draft", "stale", "legacy", "proved", "disproved", "unformalized"]
-SHOWS_VERDICT: frozenset[State] = frozenset({"proved", "disproved"})
+REASON_CLASSES = frozenset({"no-tool", "cannot-model", "out-of-scope", "non-trigger",
+                            "no-truth", "user-declined", "handed-off"})
+REASON_FIELDS = ("where", "class", "detail", "until", "instead")
+SHOWS_VERDICT = frozenset({"proved", "disproved"})
+VERDICTS = frozenset({"proved", "disproved", "unformalized"})
 
 
 @dataclass(frozen=True)
 class Why:
-    """One reason an area is not fresh. kind ∈ changed | missing | new-writer | writer-gone
-    | artifact-edited | no-evidence | schema | no-git | unpublished."""
-    kind: str
-    subject: str  # a path, a rule id, or a schema string
+    kind: str     # changed | missing | new-writer | writer-gone | artifact-edited
+    subject: str  # | no-evidence | schema | no-git | unpublished | unparseable
 
 
-@dataclass(frozen=True)
+@dataclass
 class Row:
     area: str
-    state: State
+    state: str
     rules: int
-    sync: str            # short commit, or "<doc>@<version>" for documents
+    sync: str
     why: tuple[Why, ...]
     dir: Path
+    record: dict | None = None
+    covers: frozenset[str] = field(default_factory=frozenset)
+
+
+def _git(root: Path, *args: str) -> str | None:
+    try:
+        out = subprocess.run(["git", *args], cwd=root, capture_output=True, text=True,
+                             encoding="utf-8", errors="replace", check=True)
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return out.stdout
+
+
+def repo_root() -> Path:
+    top = _git(Path.cwd(), "rev-parse", "--show-toplevel")
+    return Path(top.strip()) if top else Path.cwd()
 
 
 def hash_lf(path: Path) -> str | None:
     """sha256 of the file's bytes with CRLF→LF; None when the file is missing."""
-    raise NotImplementedError
+    try:
+        data = path.read_bytes()
+    except OSError:
+        return None
+    return hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
 
 
-def load_record(area_dir: Path) -> dict | None:
-    """Parse hypothesis.json; None when absent or unparseable."""
-    raise NotImplementedError
+def load_record(area_dir: Path) -> tuple[dict | None, Why | None]:
+    p = area_dir / "hypothesis.json"
+    if not p.exists():
+        return None, Why("unpublished", "hypothesis.json")
+    try:
+        rec = json.loads(p.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None, Why("unparseable", "hypothesis.json")
+    if not isinstance(rec, dict) or rec.get("schema") != SCHEMA:
+        found = rec.get("schema") if isinstance(rec, dict) else type(rec).__name__
+        return None, Why("schema", str(found))
+    return rec, None
 
 
-def watch_matches(pattern: str) -> list[str] | None:
-    """Sorted repo-relative paths from `git grep -l --untracked -E pattern`; None without git."""
-    raise NotImplementedError
+def watch_matches(root: Path, pattern: str) -> list[str] | None:
+    """Sorted repo-relative paths matching `pattern`; None without git."""
+    if _git(root, "rev-parse", "--git-dir") is None:
+        return None
+    try:
+        out = subprocess.run(["git", "grep", "-l", "--untracked", "-E", pattern], cwd=root,
+                             capture_output=True, text=True, encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+    if out.returncode not in (0, 1):
+        return None
+    return sorted(line.strip().replace("\\", "/") for line in out.stdout.splitlines() if line.strip())
 
 
-def compute_state(area_dir: Path) -> Row:
-    """First match wins, in this order — the order is the contract (reading.md § States):
-    1. no hypothesis.json → draft (why unpublished); unparseable / wrong schema → broken
-    2. any sync.artifact hash differs or file missing → draft (artifact-edited)
-    3. any sync.files hash differs or file missing → stale (changed / missing)
-    4. any sync.watch matched set differs → stale (new-writer / writer-gone)
-    5. verdict proved|disproved without complete seen_failing / seen_succeeding,
-       or a reason record with an empty field or unknown class,
-       or a file cited in model_map / rules[].cites that is absent from sync.files → draft (no-evidence)
-    6. otherwise → check.verdict_at_sync
-    """
-    raise NotImplementedError
+def cited_files(rec: dict) -> set[str]:
+    cites: list[str] = []
+    for part in rec.get("model_map", []):
+        cites += part.get("cites", [])
+    for rule in rec.get("rules", []):
+        cites += rule.get("cites", [])
+    return {c.rsplit(":", 1)[0] if re.search(r":\d", c) else c for c in cites}
 
 
-def legacy_rows() -> list[Row]:
-    """One `legacy` row per .claude/prove-it/formal/<area>/ not named by any migrated_from."""
-    raise NotImplementedError
+def evidence_gaps(rec: dict) -> list[Why]:
+    gaps: list[Why] = []
+    check = rec.get("check", {})
+    verdict = check.get("verdict_at_sync")
+    if verdict not in VERDICTS:
+        gaps.append(Why("no-evidence", f"verdict={verdict}"))
+        return gaps
+    if verdict in SHOWS_VERDICT:
+        caught = {e.get("rule") for e in check.get("seen_failing", []) if e.get("caught") is True}
+        succeeded = {e.get("goal") for e in check.get("seen_succeeding", [])
+                     if e.get("reached") is True and e.get("unreachable_after") is True}
+        guarded = {r for g in rec.get("goals", []) for r in g.get("guards", [])}
+        for rule in rec.get("rules", []):
+            if rule.get("kind") in ("safety", "liveness"):
+                if rule.get("id") not in caught:
+                    gaps.append(Why("no-evidence", f"{rule.get('id')} 沒看過它失敗"))
+                if rule.get("id") not in guarded:
+                    gaps.append(Why("no-evidence", f"{rule.get('id')} 沒有對應的目標"))
+        for goal in rec.get("goals", []):
+            if goal.get("id") not in succeeded:
+                gaps.append(Why("no-evidence", f"{goal.get('id')} 沒看過它成功"))
+        if not rec.get("goals"):
+            gaps.append(Why("no-evidence", "沒有任何目標規則"))
+    for u in rec.get("unformalized", []):
+        if any(not str(u.get(f, "")).strip() for f in REASON_FIELDS) or u.get("class") not in REASON_CLASSES:
+            gaps.append(Why("no-evidence", f"原因紀錄 {u.get('id', '?')} 不完整"))
+    missing = cited_files(rec) - set(rec.get("sync", {}).get("files", {}))
+    for m in sorted(missing):
+        gaps.append(Why("no-evidence", f"引用了 {m} 卻沒列在同步檔案裡"))
+    return gaps
+
+
+def compute_state(root: Path, area_dir: Path) -> Row:
+    """First match wins, in this order — the order is the contract (reading.md § States)."""
+    area = area_dir.name
+    rec, problem = load_record(area_dir)
+    if rec is None:
+        state = "draft" if problem and problem.kind == "unpublished" else "broken"
+        return Row(area, state, 0, "-", (problem,) if problem else (), area_dir)
+    sync = rec.get("sync", {})
+    covers = frozenset(sync.get("files", {}))
+    for w in sync.get("watch", []):
+        covers |= frozenset(w.get("matched", []))
+    commit = str(sync.get("commit") or "-")[:7]
+    row = lambda state, why: Row(area, state, len(rec.get("rules", [])), commit,
+                                 tuple(why), area_dir, rec, covers)
+
+    edited = [Why("artifact-edited", name) for name, h in sorted(sync.get("artifact", {}).items())
+              if hash_lf(area_dir / name) != h]
+    if edited:
+        return row("draft", edited)
+
+    stale: list[Why] = []
+    for name, h in sorted(sync.get("files", {}).items()):
+        now = hash_lf(root / name)
+        if now is None:
+            stale.append(Why("missing", name))
+        elif now != h:
+            stale.append(Why("changed", name))
+    for w in sync.get("watch", []):
+        now = watch_matches(root, w.get("pattern", ""))
+        if now is None:
+            stale.append(Why("no-git", w.get("state", "?")))
+            continue
+        before = set(w.get("matched", []))
+        stale += [Why("new-writer", p) for p in sorted(set(now) - before)]
+        stale += [Why("writer-gone", p) for p in sorted(before - set(now))]
+    if stale:
+        return row("stale", stale)
+
+    gaps = evidence_gaps(rec)
+    if gaps:
+        return row("draft", gaps)
+    return row(rec["check"]["verdict_at_sync"], [])
+
+
+def legacy_rows(root: Path, migrated: set[str]) -> list[Row]:
+    base = root / ".claude" / "prove-it" / "formal"
+    rows = []
+    if base.is_dir():
+        for d in sorted(p for p in base.iterdir() if p.is_dir()):
+            rel = d.relative_to(root).as_posix()
+            if rel in migrated or rel + "/" in migrated:
+                continue
+            readme = d / "README.md"
+            text = readme.read_text(encoding="utf-8", errors="replace") if readme.exists() else ""
+            named = frozenset(m.group(1) for m in re.finditer(r"`([\w./-]+\.\w+)(?::\d[\d-]*)?`", text))
+            rows.append(Row(d.name, "legacy", 0, "-", (Why("no-evidence", "嚴格檢查未完成"),), d,
+                            None, named))
+    return rows
+
+
+def all_rows(root: Path) -> list[Row]:
+    base = root / ".claude" / "hypothesis"
+    rows = [compute_state(root, d) for d in sorted(base.iterdir()) if d.is_dir()] if base.is_dir() else []
+    migrated = {str(r.record.get("migrated_from")).rstrip("/") for r in rows
+                if r.record and r.record.get("migrated_from")}
+    return rows + legacy_rows(root, migrated)
+
+
+def changed_since(root: Path, base: str) -> list[str]:
+    parts = [_git(root, "diff", "--name-only", base), _git(root, "diff", "--name-only"),
+             _git(root, "ls-files", "--others", "--exclude-standard")]
+    if parts[0] is None:
+        raise RuntimeError(f"git diff {base} 失敗")
+    return sorted({l.strip() for p in parts if p for l in p.splitlines() if l.strip()})
 
 
 def covering(rows: Sequence[Row], files: Sequence[str]) -> list[Row]:
-    """Rows whose sync.files, current watch matches, or recorded watch matches meet `files`.
-    Legacy rows cover by the files their README coverage map names (best effort, marked)."""
-    raise NotImplementedError
+    wanted = {f.replace("\\", "/").lstrip("./") for f in files}
+    def hits(row: Row) -> bool:
+        return any(c == w or c.startswith(w.rstrip("/") + "/") or w.startswith(c) for c in row.covers for w in wanted)
+    return [r for r in rows if hits(r)]
 
 
-def changed_since(base: str) -> list[str]:
-    """`git diff --name-only base` ∪ working tree ∪ untracked, repo-relative, sorted."""
-    raise NotImplementedError
+def fmt_why(why: Sequence[Why]) -> str:
+    return "; ".join(f"{w.kind}: {w.subject}" for w in why) or "-"
 
 
 def print_table(rows: Sequence[Row], as_json: bool) -> None:
-    """Columns: area  state  rules  sync  why. why is '-' or 'kind: subject; …'."""
-    raise NotImplementedError
+    if as_json:
+        print(json.dumps([{"area": r.area, "state": r.state, "rules": r.rules, "sync": r.sync,
+                           "why": [{"kind": w.kind, "subject": w.subject} for w in r.why]}
+                          for r in rows], ensure_ascii=False, indent=1))
+        return
+    for r in rows:
+        print(f"{r.area}\t{r.state}\t{r.rules}\t{r.sync}\t{fmt_why(r.why)}")
 
 
-def print_detail(row: Row, view: Literal["rules", "paths", "scope", "check"], as_json: bool) -> None:
-    """Header '# <area>  state=<state>'. For rules/paths, every per-rule verdict is printed
-    as '?' unless row.state in SHOWS_VERDICT — a reader can never quote a stale pass."""
-    raise NotImplementedError
+def print_detail(row: Row, view: str, as_json: bool) -> None:
+    rec = row.record or {}
+    show = row.state in SHOWS_VERDICT
+    check = rec.get("check", {})
+    if view == "rules":
+        items = [{"id": r.get("id"), "kind": r.get("kind"), "verdict": r.get("verdict") if show else "?",
+                  "text": r.get("text")} for r in rec.get("rules", [])]
+        items += [{"id": g.get("id"), "kind": "goal", "verdict": "reached" if show else "?",
+                   "text": g.get("text")} for g in rec.get("goals", [])]
+    elif view == "paths":
+        rule_verdict = {r.get("id"): r.get("verdict") for r in rec.get("rules", [])}
+        items = [{"id": p.get("id"), "rule": p.get("rule"),
+                  "verdict": rule_verdict.get(p.get("rule")) if show else "?",
+                  "summary": p.get("summary"), "script": p.get("script")} for p in rec.get("paths", [])]
+    elif view == "scope":
+        items = [{"bounds": check.get("bounds"), "assumptions": check.get("assumptions", []),
+                  "left_out": check.get("left_out", []), "unformalized": rec.get("unformalized", [])}]
+    else:
+        items = [{"tool": check.get("tool"), "version": check.get("version"), "command": check.get("command"),
+                  "dir": row.dir.as_posix(), "note": "在暫存目錄裡重跑；結果寫進你自己的紀錄，不寫進這個區塊"}]
+    if as_json:
+        print(json.dumps({"area": row.area, "state": row.state, "items": items}, ensure_ascii=False, indent=1))
+        return
+    print(f"# {row.area}  state={row.state}")
+    for it in items:
+        if view == "rules":
+            print(f"{it['id']}\t{it['kind']}\t{it['verdict']}\t{it['text']}")
+        elif view == "paths":
+            print(f"{it['id']}\t{it['rule']}\t{it['verdict']}\t{it['summary']}\t{it['script']}")
+        else:
+            for k, v in it.items():
+                print(f"{k}: {json.dumps(v, ensure_ascii=False) if not isinstance(v, str) else v}")
 
 
 def exit_code(rows: Sequence[Row]) -> int:
-    """0 if rows and all proved; 10 if no rows; else 1."""
-    raise NotImplementedError
+    if not rows:
+        return 10
+    return 0 if all(r.state == "proved" for r in rows) else 1
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    raise NotImplementedError
+    ap = argparse.ArgumentParser(prog="hypothesis-status.py", add_help=True)
+    sel = ap.add_mutually_exclusive_group(required=True)
+    sel.add_argument("--diff", metavar="BASE")
+    sel.add_argument("--files", nargs="+", metavar="PATH")
+    sel.add_argument("--area")
+    sel.add_argument("--all", action="store_true")
+    for view in ("rules", "paths", "scope", "check"):
+        sel.add_argument(f"--{view}", metavar="AREA")
+    ap.add_argument("--json", action="store_true")
+    a = ap.parse_args(argv)
+    root = repo_root()
+    rows = all_rows(root)
+    for view in ("rules", "paths", "scope", "check"):
+        area = getattr(a, view)
+        if area:
+            match = [r for r in rows if r.area == area]
+            if not match:
+                return 10
+            print_detail(match[0], view, a.json)
+            return exit_code(match)
+    if a.area:
+        rows = [r for r in rows if r.area == a.area]
+    elif a.files:
+        rows = covering(rows, a.files)
+    elif a.diff:
+        rows = covering(rows, changed_since(root, a.diff))
+    print_table(rows, a.json)
+    return exit_code(rows)
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except SystemExit:
+        raise
+    except Exception as exc:  # readers treat exit 2 as `broken`, never as "no hypothesis"
+        print(f"hypothesis-status 失敗：{exc}", file=sys.stderr)
+        raise SystemExit(2)

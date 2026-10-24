@@ -46,7 +46,7 @@ No index file exists. The set of `hypothesis.json` files is the index; `scripts/
 
 ## Reason record
 
-(unimplemented) — Four fields, six classes, one row per unformalized part; schema in `templates/reason-record.md`. The same record shape is used when a caller (hunt, review) declines to write a hypothesis for an H1–H8 match, written into that caller's output.
+(unimplemented) — Four fields, seven classes, one row per unformalized part; schema in `templates/reason-record.md`. The same record shape is used when a caller (hunt, review) declines to write a hypothesis for an H1–H8 match, written into that caller's output.
 
 ## Writing (publish)
 
