@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-`baransu` is a Claude Code plugin distributing twenty-two governance skills. Theme: バランス — deliberate before executing, verify after.
+`baransu` is a Claude Code plugin distributing twenty-three governance skills. Theme: バランス — deliberate before executing, verify after.
 
 ## Philosophy — バランス (Balance)
 
@@ -20,7 +20,7 @@ plugins/
     .claude-plugin/
       plugin.json              # plugin manifest
     skills/
-      think/ review/ write/ ship/ hunt/ health/ read/ learn/ draw/ ui/ codex-skill-transfer/ evolve/ huh/ sayagain/ what-now/ domain-modeling/ why/ how/ teach-me/ show-me/ prove-it/ draft/
+      think/ review/ write/ ship/ hunt/ health/ read/ learn/ draw/ ui/ codex-skill-transfer/ evolve/ huh/ sayagain/ what-now/ domain-modeling/ why/ how/ teach-me/ show-me/ prove-it/ draft/ hypothesis/
       _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md, fact-check.md, modeling.md, selection-telemetry.md, distillation-candidate-matrix.md, auto-flags.md) + evals/ scripts/
     rules/
       anti-patterns.md         # cross-skill behavioral guardrails

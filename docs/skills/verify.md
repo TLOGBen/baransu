@@ -1,10 +1,10 @@
-# 驗證家族：review · hunt · prove-it
+# 驗證家族：review · hunt · prove-it · hypothesis
 
 <img src="../images/family-verify.png" width="320" alt="驗證家族概念圖">
 
 > 換一雙乾淨的眼睛看，拿證據說話；乾淨的結果也是有效的結果。
 
-兩個 skill 分工：`/review` 獨立重驗任何產出、`/hunt` 從症狀追到根因。中頻段的收尾就是 `/review`——8.0.0 起沒有合約、沒有封緘。
+四個 skill 分工：`/review` 獨立重驗任何產出、`/hunt` 從症狀追到根因、`/prove-it` 實際跑一次證明、`/hypothesis` 寫下機器檢查過的假說。中頻段的收尾就是 `/review`——8.0.0 起沒有合約、沒有封緘。
 
 [← 回文件索引](../README.md)
 
@@ -79,11 +79,35 @@ Claude Code：`/baransu:prove-it`　Codex：`$baransu:prove-it`
 **產出**
 - 繁中報告，結尾一行「{P} 項證實、{D} 項推翻、{U} 項無法到達」。
 - 紀錄：`.claude/prove-it/records/<short-sha>-<slug>.md` 與證據檔。
-- 食譜與功能地圖：`.claude/prove-it/recipe.md`、`.claude/prove-it/features/`；`--maintain` 定期保養；沒打也會自動保養這次要用到的那部分：功能或形式化檢查涵蓋的檔案在上次確認之後改過，就先保養它再跑。
-- 形式化檢查：宣稱是「所有順序、所有輸入都成立」（狀態機、重試、取消、並行、parser、溢位）時，跑一次只能抽樣，另建形式化檢查放在 `.claude/prove-it/formal/<area>/`。依問題選工具：順序問題用 model checker（預設 TLA+），程式對所有輸入用程式層驗證器，該語言沒有驗證器就對真的程式產生大量輸入，所有大小都要成立才用證明。每條性質要先在故意弄壞的版本上失敗過，模型每一步都對得上一行程式，寫明邊界與假設，記下同步的 commit；`--maintain` 讀過同步之後的改動，判斷是模型過時還是程式真的壞了。
+- 食譜與功能地圖：`.claude/prove-it/recipe.md`、`.claude/prove-it/features/`；`--maintain` 定期保養；沒打也會自動保養這次要用到的那部分：功能涵蓋的檔案在上次確認之後改過，就先保養它再跑。
+- 所有情況都要成立的宣稱（所有順序、所有輸入）：讀 `/hypothesis` 的假說。過期就先叫它維護；全部成立就重跑它的檢查指令；有規則不成立，就照功能地圖在真的 app 裡用強制順序重現每條反例，地圖沒有對應的功能就先補一份。8.21.0 以前放在 `.claude/prove-it/formal/` 的檢查，搬到 `/hypothesis` 之前最多只算「嚴格檢查未完成」。
 
 **不適用**　只讀不跑的審查 → `/review`；找根因 → `/hunt`；寫或修測試 → 照 `_shared/tdd.md` 實作。
 
 **非互動驅動**　`loop=assisted`。由 `/loop`、cron、Workflow 這類 driver 驅動時，在本機啟動、建食譜、操作都不停；碰到本機以外的副作用，只有驅動指令事先授權、並點名那個動作與對象才做，否則該項記為「無法到達」並回報需要你。
 
 **來源**　改寫自 pstack 的 `create-verification-skill` 與 `maintain-verification-skill`；數字類宣稱的跑法改寫自 `benchmark-checklist`（cursor/plugins，MIT）。
+
+## `/hypothesis`
+
+Claude Code：`/baransu:hypothesis`　Codex：`$baransu:hypothesis`
+
+**用途**　寫下假說：把「系統應該怎麼運作」寫成機器能窮舉檢查的形式模型（預設 TLA+），附白話規則和一張張加元件的狀態圖，讓你看得懂。它是假說唯一的擁有者，也負責在程式或文件改了之後維護；`/prove-it`、`/review`、`/hunt`、`/health`、紅綠的確認綠燈、`/draft` 只讀它。
+
+**什麼時候用**
+- 觸發語：假說、先建立假說、這個模組不能出錯、畫狀態圖給我看、文件有沒有矛盾、A 是否滿足 B、model-check this。
+- 碰到 H1–H8 其中一條時，其他 skill 會主動提出：順序與併發、重試／取消／逾時、多步驟狀態機、金額與數量守恆、權限、不可逆的外部效果、對每個輸入都要成立的程式性質，或你明說。每一條都寫了看得到的訊號和不觸發的例子（`references/formal.md`）。
+- 輸入可以是程式、`/hunt` 的偶發症狀、需求訪談或會議紀錄、RFP／SA／SD，或兩份來源對照（行為端是否滿足規則端）。
+
+**運作方式**　判斷輸入種類並在第一行說出 → 讀來源，記下涵蓋範圍 → 跟你確認一句一條的白話規則（文件逐條勾選，模糊的地方列成要問誰的問題）→ 建模，每一部分引用來源 → 看過它失敗（故意改壞的版本被抓到）、看過它成功（目標走得到，拿掉一步就走不到）→ 用 `/draw` 一次直出狀態圖 → 發布 → 狀態腳本確認可信才算完成。沒有形式化的部分都要寫原因，七類擇一。
+
+**產出**
+- `.claude/hypothesis/<area>/`：`hypothesis.json`（機器讀）、`README.md`（人讀）、`diagrams.html` 與 `diagrams/`、模型、`variants/`（改壞的版本，存進 git）、`paths/`（反例劇本）。`/ship` 永不歸檔。
+- 讀者一律用 `scripts/hypothesis-status.py`：狀態每次讀的時候現算（全部成立、有規則不成立、無法寫成假說、過期、未完成、舊位置、無法判定），只有「全部成立」能算通過；過期時每條規則的結論都印成 `?`。
+- 規則的結論是「成立／不成立」，跟 `/prove-it` 的「證實／推翻」分開。
+
+**不適用**　在真的 app 上證明 → `/prove-it`；找根因 → `/hunt`；跑一次就能確認的主張、外觀與文案 → 照 `_shared/tdd.md`；要精緻的簡報用圖 → 手動叫 `/draw`。
+
+**非互動驅動**　`loop=assisted`。維護由讀者自動叫起；只有兩個停點，都沒有預設值：第一次寫下時確認規則，以及維護時遇到「承諾可能是刻意改的、卻找不到證據」。
+
+**來源**　形式驗證的規則與維護改寫自 pstack 的 `create-formal-verification-skill`、`maintain-formal-verification-skill`；狀態圖的標籤規則取自 `statechart`（cursor/plugins，MIT）。
