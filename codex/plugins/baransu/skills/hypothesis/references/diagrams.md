@@ -1,6 +1,6 @@
 # diagrams — the progressive state-diagram series
 
-Every hypothesis gets a series of static state diagrams, written as Mermaid blocks in its `README.md` § 圖 and shown in the conversation whenever the hypothesis is presented. Markdown renders them where people read it — this chat, GitHub, an editor's preview — so there is no separate page to open. Its job is understanding: a person who never met formal methods can say each bug path in one sentence after reading it. At this stage a diagram is for reading the rules, not a finished figure, so it is text that changes with the model.
+Every hypothesis gets a series of static state diagrams. The durable copy is Mermaid blocks in its `README.md` § 圖, which GitHub and an editor's preview draw. In the conversation the same diagrams are drawn as plain text — the arrow-and-box forms `../../show-me/SKILL.md` lays out — because a chat or a terminal may show a Mermaid block as source; there is no separate page to open. Its job is understanding: a person who never met formal methods can say each bug path in one sentence after reading it. At this stage a diagram is for reading the rules, not a finished figure, so it is text that changes with the model.
 
 ## Write the series as Mermaid
 
@@ -10,7 +10,7 @@ Each diagram is one fenced ```mermaid block holding a `stateDiagram-v2`, under a
 - keep `;` out of every label — Mermaid reads it as the end of a statement and scatters the rest as stray nodes — and keep a transition's label free of a second `:`, which is the label separator;
 - mark a path's broken state with a `classDef` (for example `classDef bad stroke:#b42318`) and name it in the legend.
 
-When the series is shown in the conversation, check that every block drew: no 「Syntax error」, no stray nodes outside the diagram; a block that did not is rewritten before publish. A figure polished for a presentation is `$baransu:draw`'s, asked for by hand; it is not part of a hypothesis.
+A block that would not draw — 「Syntax error」, or stray nodes outside the diagram — is rewritten before publish; when nothing at hand renders Mermaid, check the three habits above line by line. A figure polished for a presentation is `$baransu:draw`'s, asked for by hand; it is not part of a hypothesis.
 
 ## The four conditions
 
