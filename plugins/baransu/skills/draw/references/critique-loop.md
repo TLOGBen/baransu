@@ -1,6 +1,6 @@
 # The critique loop — make the model look at its own frames
 
-The single habit that separates the work people share from the work they post with "it's a bit mid": render, look, score, fix the worst three, repeat. It applies to every form and every approach; only the "look" tool and the approach rows change.
+The single habit that separates the work people share from the work they post with "it's a bit mid": render, look, score, fix the worst three, repeat. It runs under `--full` (`full` on the brief's `When:` line) for every form and every approach; only the "look" tool and the approach rows change. By default a piece is delivered without it.
 
 ## Why it works
 

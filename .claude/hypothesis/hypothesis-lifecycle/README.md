@@ -1,6 +1,6 @@
 # 假說：假說自己的生命週期
 
-> `/baransu:hypothesis` 還沒寫出來之前的手動模擬。輸入是一份文件：計畫 `.claude/think/formal-hypothesis.md`，複製一份放在 `sources/formal-hypothesis.md`（計畫檔會被 /ship 歸檔，假說引用的是這份副本；來源可能已變）。
+> `/baransu:hypothesis` 還沒寫出來之前的手動模擬。輸入是一份文件：計畫 `.claude/think/formal-hypothesis.md`，複製一份放在 `sources/formal-hypothesis.md`（計畫檔會被 /ship 歸檔，假說引用的是這份副本；原件還在而且被改了，狀態腳本會報過期）。
 
 ## 來源與同步點
 
@@ -100,5 +100,5 @@
 重跑指令：
 
 ```
-java -cp D:\Workspace\00_Env\tla\tla2tools.jar tlc2.TLC -config <設定>.cfg -deadlock -metadir "$env:TEMP\tlc-states" Lifecycle.tla
+java -cp D:\Workspace\00_Env\tla\tla2tools.jar tlc2.TLC -config model/<設定>.cfg -deadlock -metadir "$env:TEMP\tlc-states" model/Lifecycle.tla
 ```

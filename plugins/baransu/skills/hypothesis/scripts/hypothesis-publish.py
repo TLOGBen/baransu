@@ -12,8 +12,9 @@ Usage:
 The draft carries `base_generation`: the generation read when this run started
 (0 for a first publish). If `hypothesis.json` has moved on since, nothing is written
 and the exit is 3 (another writer published meanwhile: start the run again).
-Exit: 0 published; 2 failed (including an artifact file git ignores); 3 lost the compare-and-swap,
-or another publish holds a lock younger than ten minutes (an older one is cleared).
+Exit: 0 published; 2 failed (including an artifact file git ignores, with the rule that hides it);
+3 lost the compare-and-swap, or another publish of this area holds the lock (the operating system
+releases a lock when its holder exits, so a killed run never leaves one behind).
 """
 from __future__ import annotations
 
@@ -24,7 +25,7 @@ import json
 import os
 import subprocess
 import sys
-import time
+import tempfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -33,8 +34,28 @@ status = importlib.util.module_from_spec(_spec)
 sys.modules["hypothesis_status"] = status  # dataclasses look their module up here
 _spec.loader.exec_module(status)  # type: ignore[union-attr]
 
-SKIP = {"hypothesis.json", "hypothesis.draft.json", "hypothesis.lock"}
-LOCK_EXPIRES = 600  # seconds
+SKIP = {"hypothesis.json", "hypothesis.draft.json"}
+
+
+def acquire_lock(root: Path, area_dir: Path):
+    """An exclusive, non-blocking lock the operating system drops when the holder exits, killed or not.
+    The lock file lives in the git dir (or the temp dir without git), never in the area, so it is not
+    committed and never needs clearing."""
+    rel = status._git(root, "rev-parse", "--git-path", f"hypothesis-{area_dir.name}.lock")
+    path = (root / rel.strip()) if rel else Path(tempfile.gettempdir()) / f"hypothesis-{area_dir.name}.lock"
+    f = open(path, "a+")
+    try:
+        if os.name == "nt":
+            import msvcrt
+            f.seek(0)
+            msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        f.close()
+        return None
+    return f
 
 
 def current_generation(area_dir: Path) -> int:
@@ -73,28 +94,24 @@ def publish(area_dir: Path, commit: str | None) -> int:
         w["matched"] = now
     artifacts = [p for p in sorted(area_dir.rglob("*"))
                  if p.is_file() and p.name not in SKIP and not p.name.startswith("hypothesis.json.")]
-    ignored = [p for p in artifacts
-               if subprocess.run(["git", "check-ignore", "-q", str(p)], cwd=root).returncode == 0]
+    ignored = []
+    for p in artifacts:
+        r = subprocess.run(["git", "-c", "core.quotepath=false", "check-ignore", "-v", str(p)], cwd=root,
+                           capture_output=True, text=True, encoding="utf-8", errors="replace")
+        if r.returncode == 0:
+            ignored.append(f"{p.relative_to(area_dir).as_posix()}（規則 {r.stdout.split(chr(9))[0].strip()}）")
     if ignored:  # a file git ignores is missing in every other checkout, so its hash turns the area `draft` there
-        print("這些產物檔被 git 忽略，別的 checkout 會看不到：" + "、".join(p.relative_to(area_dir).as_posix() for p in ignored),
-              file=sys.stderr)
+        print("這些產物檔被 git 忽略，別的 checkout 會看不到：" + "、".join(ignored), file=sys.stderr)
         return 2
     sync["artifact"] = {p.relative_to(area_dir).as_posix(): status.hash_lf(p) for p in artifacts}
     draft["schema"] = status.SCHEMA
     draft["area"] = area_dir.name
     draft["generation"] = base + 1
     draft["published_at"] = dt.datetime.now().astimezone().isoformat(timespec="seconds")
-    lock = area_dir / "hypothesis.lock"
-    if lock.exists() and time.time() - lock.stat().st_mtime > LOCK_EXPIRES:
-        # a publish takes seconds; a lock this old was left by a run that was killed mid-swap
-        print(f"清掉 {LOCK_EXPIRES // 60} 分鐘前留下的 {lock.name}（上一次發布中途被中斷）。", file=sys.stderr)
-        lock.unlink()
-    try:  # the compare and the swap happen under one lock, so two writers cannot both pass the compare
-        fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-    except FileExistsError:
-        print(f"另一個寫入者正在發布（{lock.name} 存在，不到 {LOCK_EXPIRES // 60} 分鐘）；請稍後重新開始。", file=sys.stderr)
+    lock = acquire_lock(root, area_dir)
+    if lock is None:
+        print("另一個寫入者正在發布這份假說；請稍後重新開始。", file=sys.stderr)
         return 3
-    os.write(fd, f"{os.getpid()} {time.time():.0f}\n".encode())
     try:
         if current_generation(area_dir) != base:
             print("交換前發現另一個寫入者已發布，沒有寫入；請重新開始。", file=sys.stderr)
@@ -104,8 +121,7 @@ def publish(area_dir: Path, commit: str | None) -> int:
         os.replace(tmp, area_dir / "hypothesis.json")
         draft_path.unlink()
     finally:
-        os.close(fd)
-        lock.unlink()
+        lock.close()  # closing releases the lock; the system also releases it if this process dies
     print(f"已發布：{area_dir.name} 世代 {base + 1}，涵蓋 {len(files)} 個檔案、{len(sync['artifact'])} 個產物檔")
     return 0
 

@@ -21,7 +21,7 @@ It prints every chapter the step names (`{…}` topics filled from `--value`, al
 
 **Principles.**
 
-- **Quick by default.** A piece is built once, directly in `<out>/`: no seeds, no blind judge, no critique loop. Every other applicable step and lane check still runs to its done-when, and the report says 「快速直出，未細修」. `--full`, or 「完整」「精修」「細修」「挑最好的」, declares `full` on the brief's `When:` line: three seeds, a blind judge, and the scored critique loop (`references/seed-hunt.md`). Time and cost never lower quality inside the mode that runs; `--quick` is still accepted and changes nothing.
+- **Quick by default.** A piece is built once, directly in `<out>/`: no seeds, no blind judge, no critique loop. Every other applicable step and lane check still runs to its done-when, and the report says 「快速直出，未細修」. `--full`, or 「精修」「細修」「挑最好的」「跑三個種子」 (words about the process, never 「完整」, which usually describes the content), declares `full` on the brief's `When:` line: three seeds, a blind judge, and the scored critique loop (`references/seed-hunt.md`). Time and cost never lower quality inside the mode that runs; `--quick` is still accepted and changes nothing.
 - **No mid-run questions.** Form, approach, size, direction and whether a page is needed come from the content; an explicit user choice wins. The one stop: a real asset or fact the brief names that the user did not supply.
 - **Time-aware, never rushed.** Within the first hour, send the user a first version that opens in a browser (no waiting for a reply), then keep deepening it. A step running past twice what you expected gets one progress line — where it stands, what remains — and the build goes on: no wait, no question. A critique row with no gain over two consecutive rounds goes under 未做到的 with its last score and reason; move on.
 - **Examples are mechanics, not looks.** Templates and examples supply contracts (`seek(t)`, the scrubber, render hooks, `L`, the kit); look and interaction come from the references and the brief. Read an example's source for the API you need; anything built from one goes only into `<out>/scratch/`.
@@ -79,7 +79,7 @@ A map always uses the diagram system; structure plus one hard-to-see behaviour i
 
 | Before | Do → Done |
 |---|---|
-| `lookup.py --step choose-approach` | → `docs/brief.md` `Approach:`, `When:` (needs-page, seek-overlay, webgl, 3d, pipes, import, track, loop, …), values only — prose goes on `Why:` |
+| `lookup.py --step choose-approach` | → `docs/brief.md` `Approach:`, `When:` (needs-page, seek-overlay, webgl, 3d, pipes, import, track, loop, full, …), values only — prose goes on `Why:` |
 | `lookup.py --step mech-size` *(mechanism)* | Figure, Hero or Epic by part count and moving systems, not mechanism count; the name only → `Size:` |
 | `lookup.py --step brief-and-status-line` | → `docs/brief.md`; send the 開工狀態行, keep building |
 | `lookup.py --step progress-notes` | `date` per step, a progress line past twice a step's share → `docs/progress.md` |
@@ -136,7 +136,7 @@ Phases, gates, rules (determinism, `Motion.cursor`, `Motion.camera`, `Motion.wor
 | `lookup.py --step draft-animatic` | → `out/<slug>.animatic.mp4` |
 | `lookup.py --step keys-bookends` | → `out/keys/bookends.png` |
 | `lookup.py --step keys-layout` | → `docs/key_layout.md` |
-| `lookup.py --step seed-pick-film` | the seeds stop here; the winner goes on → `docs/seed_hunt.md` |
+| `lookup.py --step seed-pick-film` *(`--full`)* | the seeds stop here; the winner goes on → `docs/seed_hunt.md` |
 | `lookup.py --step keys-data-and-stills` | `KEYS` as data → `out/keys/contact.png` |
 | `lookup.py --step shoot-intervals` | → `docs/shotlist.md` |
 | `lookup.py --step shoot-animate` | → `docs/hash.txt` `DETERMINISTIC` |
@@ -150,7 +150,7 @@ Phases, gates, rules (determinism, `Motion.cursor`, `Motion.camera`, `Motion.wor
 
 ## Lane: component
 
-Rules and the /ui hand-off: `references/lanes/component.md`. One interactive figure per `<name>.html`, theme-aware, phone-safe, no page frame or prose; several pieces run the steps per file. Drawn with the diagram system, it also runs § Lane: diagram's plan, layout, markup (into `<name>.html`), check and taste-gate. A mechanism component runs, in order: caption-states, perf-plan; `mech-catalog-and-example` … `mech-painters-order`; figure-card, `mech-frame-card`, rest-frame (the seeds stop here: `seed-pick`); `mech-make-live`, `mech-join-lane`, interaction; `mech-audit` … `mech-review-checklist`; component-check.
+Rules and the /ui hand-off: `references/lanes/component.md`. One interactive figure per `<name>.html`, theme-aware, phone-safe, no page frame or prose; several pieces run the steps per file. Drawn with the diagram system, it also runs § Lane: diagram's plan, layout, markup (into `<name>.html`), check and taste-gate. A mechanism component runs, in order: caption-states, perf-plan; `mech-catalog-and-example` … `mech-painters-order`; figure-card, `mech-frame-card`, rest-frame (under `--full` the seeds stop here: `seed-pick`); `mech-make-live`, `mech-join-lane`, interaction; `mech-audit` … `mech-review-checklist`; component-check.
 
 | Before | Do → Done |
 |---|---|
@@ -250,7 +250,7 @@ Rules: `references/lanes/map.md`.
 用時：{total}；第一版於 {elapsed} 送出
 檢查：{command} → {result}（{captures or receipt path}）
 查詢紀錄：docs/lookups.log（{N} 個步驟）；ledger-check.py → {result}
-評分：{each applicable row}（{N} 輪，docs/review_log.md）
+評分：{each applicable row}（{N} 輪，docs/review_log.md）｜快速直出，未細修（預設；要完整流程請加 --full）
 未做到的：{rule not met, last score and why — a stalled row, a missing asset, an impossible environment — or 無}
 提問：本輪未向使用者提問｜停下來等使用者提供：{the real asset or fact}
 下一步可以更好：{one line}
