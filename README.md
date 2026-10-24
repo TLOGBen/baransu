@@ -6,7 +6,7 @@
 
 <p align="center"><b>バランス。動手前先想，做完後驗證。</b></p>
 
-<p align="center">22 個 skill · Claude Code 與 Codex · v8.19.0</p>
+<p align="center">23 個 skill · Claude Code 與 Codex · v8.22.0</p>
 
 Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引用。7.3.3 修正圖示路徑，既有安裝需更新 plugin。
 
@@ -49,7 +49,8 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 <h3><a href="docs/skills/verify.md">驗證</a></h3>
 <p><i>換一雙乾淨的眼睛看，拿證據說話；乾淨的結果也是有效的結果。</i></p>
 <b><code>/baransu:review</code></b>：乾淨 context 的 reviewer 只讀不跑，找出每一個跟改動對不上的地方；判「成立」也要附原文，拿不準的列「不確定」，判定照規則算，不改目標<br>
-<b><code>/baransu:prove-it</code></b>：照使用者的方式實際跑一次，證明說有問題的真的有問題、說完成的真的完成，留下 review 讀得到的執行紀錄；「所有順序、所有輸入都不會壞」這類宣稱另用形式化驗證證明<br>
+<b><code>/baransu:prove-it</code></b>：照使用者的方式實際跑一次，證明說有問題的真的有問題、說完成的真的完成，留下 review 讀得到的執行紀錄<br>
+<b><code>/baransu:hypothesis</code></b>：寫下假說，把系統該怎麼運作寫成機器窮舉檢查過的形式模型，附白話規則和一張張加元件的狀態圖；程式、偶發問題、需求文件、兩份文件對照都能當輸入，改了會自己維護<br>
 <b><code>/baransu:hunt</code></b>：從症狀追到根因，指到 file:line 才動手修
 </td>
 </tr>
@@ -99,7 +100,7 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 大　多個互相依賴的模組 →  畫成決策圖、切片  →  每片走「中」
 ```
 
-方向未定先 `/think`，形狀不明顯先 `/draft`，出錯了 `/hunt`，想要第二雙眼睛 `/review`，要實際跑一次證明 `/prove-it`，收工 `/ship`。小任務不硬上全套，大任務不偷走輕量路。完整說明：[三頻段路由](docs/routing.md)。
+方向未定先 `/think`，形狀不明顯先 `/draft`，出錯了 `/hunt`，想要第二雙眼睛 `/review`，要實際跑一次證明 `/prove-it`，核心模組不能出錯或文件要查矛盾就寫下假說 `/hypothesis`，收工 `/ship`。小任務不硬上全套，大任務不偷走輕量路。完整說明：[三頻段路由](docs/routing.md)。
 
 ## 快速開始
 
@@ -126,6 +127,8 @@ codex plugin add baransu@baransu
 > 登入後偶爾白畫面，幫我排查　→ `/hunt`
 >
 > review 說匯出會漏最後一列，跑跑看是不是真的　→ `/prove-it`
+>
+> 撤回和核准同時按，偶爾還是會付款；這個簽核模組不能出錯　→ `/hypothesis`
 
 ## 更多
 

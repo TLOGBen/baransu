@@ -1,6 +1,6 @@
 ---
 name: prove-it
-description: "Proves claims by running the real app the way its user does: that a reported problem really fails, and that work said to be done really works. Leaves a record of this version a review can read, and builds the project's run recipe on first use. Trigger On '/prove-it', '證明它', '跑跑看', '實際跑一次', '真的修好了嗎', '證明所有順序都不會壞', 'prove it works', 'model-check this'. Not for reading-only review (/review) or tracing a root cause (/hunt)."
+description: "Proves claims by running the real app the way its user does: that a reported problem really fails, and that work said to be done really works. Leaves a record of this version a review can read, and builds the project's run recipe on first use. Trigger On '/prove-it', '證明它', '跑跑看', '實際跑一次', '真的修好了嗎', 'prove it works'. Not for reading-only review (/review) or tracing a root cause (/hunt)."
 argument-hint: "[claim | finding | change | feature] [--maintain]"
 ---
 
@@ -14,10 +14,10 @@ All user-facing output is in Traditional Chinese; keep commands, paths, identifi
 
 ## Outcome Contract
 
-- **Outcome**: Each claim in scope ends as proved, disproved, or unreachable on this version, shown by driving the real app along its user's path — and, for a claim about every case, by a formal check within stated bounds — with evidence that survives cleanup.
-- **Done when**: Every claim is written as one sentence a run or a formal check can settle; the recipe's doctor passed before the first drive; every claim has a verdict and its evidence; nothing was weakened to reach a verdict; everything the run started is torn down and the evidence is still at its named location.
-- **Evidence**: The record — commit and working-tree state, platform, every command run, and per claim the action driven, the resulting state, and the side effects captured; for a formal check, the fields `references/formal.md` names under Verdict and record.
-- **Output**: Traditional Chinese report in the conversation; the record at `.claude/prove-it/records/<short-sha>-<slug>.md` with its evidence beside it (`/ship` archives `records/` out of Git; the recipe, feature map and formal checks stay); the run recipe at `.claude/prove-it/recipe.md`, its feature map under `.claude/prove-it/features/`, and its formal checks under `.claude/prove-it/formal/`.
+- **Outcome**: Each claim in scope ends as proved, disproved, or unreachable on this version, shown by driving the real app along its user's path — and, for a claim about every case, by the hypothesis that covers it (`/hypothesis`) — with evidence that survives cleanup.
+- **Done when**: Every claim is written as one sentence a run or a hypothesis can settle; the recipe's doctor passed before the first drive; every claim has a verdict and its evidence; nothing was weakened to reach a verdict; everything the run started is torn down and the evidence is still at its named location.
+- **Evidence**: The record — commit and working-tree state, platform, every command run, and per claim the action driven, the resulting state, and the side effects captured; for an every-case claim, the hypothesis status line, the rerun command and its output, and each path replayed on the app.
+- **Output**: Traditional Chinese report in the conversation; the record at `.claude/prove-it/records/<short-sha>-<slug>.md` with its evidence beside it (`/ship` archives `records/` out of Git; the recipe and feature map stay); the run recipe at `.claude/prove-it/recipe.md` and its feature map under `.claude/prove-it/features/`. Hypotheses are `/hypothesis`'s, under `.claude/hypothesis/`; this skill reads them and never writes them.
 - **Automation**: ultracode=neutral, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics; anything reaching outside this machine still needs the person or a standing authorization that names it）
 
 PAUSE classification for non-interactive drivers: `references/loop-pauses.md`.
@@ -29,7 +29,7 @@ Collect the claims in scope and write each as what a user would see:
 - **A problem claim** — a finding, a bug report: the trigger and the wrong result（「按下 diff 按鈕後，『已送出』掛滿 30 秒，其間其他按鈕按不動」）. A `/review` finding already carries its trigger in its chain; use it.
 - **A done claim** — a request, a commit message, a changelog line, a plan's Building section, "tests pass": the action and the right result（「按下專案按鈕會在輸入框放入 `/cmd `，不送出」）.
 - **A claim about timing or order** — a pending mark that must clear, a lock, a retry, a timeout — keeps its moments（「從送出起最多 30 秒」）, because the run has to make those moments happen.
-- **A claim about every case** — every order of steps, every input up to a size（「取消與重跑不論怎麼交錯，會簽清單都不會跟旗標不一致」）— is written with its scope; a run can only sample it, so it also gets a formal check as `references/formal.md` describes.
+- **A claim about every case** — every order of steps, every input up to a size（「取消與重跑不論怎麼交錯，會簽清單都不會跟旗標不一致」）— is written with its scope; a run can only sample it, so it is also settled by a hypothesis (`../hypothesis/SKILL.md`), read as `../hypothesis/references/reading.md` says. When no hypothesis covers it, invoke `/hypothesis` on the claim first.
 - **A claim about a number** — a speedup, a regression, a latency, which option is faster（「匯出在 6 萬列資料集上 p50 快 30%」）— keeps its unit, its data, and its load, and is driven as `references/benchmark.md` describes.
 
 Pin the version before anything runs: the commit, and whether the working tree differs from it. A record that cannot name its version proves nothing about any version.
@@ -40,13 +40,13 @@ Use `.claude/prove-it/recipe.md`. If the repo has none, build it as `references/
 
 ## 3. Drive each claim
 
-Run the doctor before the first drive and again after anything surprising. A claim whose files fall inside the coverage of a formal check the recipe lists reruns that check too, whatever kind of claim it is. Then, per claim:
+Run the doctor before the first drive and again after anything surprising. Run `hypothesis-status.py --files <the files the claims touch>` (`../hypothesis/references/reading.md` § One command): a claim whose files a hypothesis covers is read against it too, whatever kind of claim it is. Then, per claim:
 
 - **Drive the user's path.** A test-only entry, an internal setter, or a mock past the production boundary proves nothing about the path a user has. A dry-run proves only what you saw it skip — files, network, refs — not what its name promises.
 - **Capture the action and what it changed** — the screen, and also files written, rows stored, messages sent, exit codes, logs. A success message alone is not the stored result; read the result back from a second view.
 - **A problem claim** is proved when the run reproduces the wrong result from the stated trigger, and disproved when the trigger, driven as stated, gives the right result. Record which; a finding the run disproves goes back to its author with the run, not silently dropped.
 - **A timing or order claim**: make the bad order happen in the real app — slow a step, stop it midway, run two at once, wait out the limit — and check the promise after each step.
-- **An every-case claim**: run its formal check as `references/formal.md` describes — true to the code, seen failing on a broken variant, its scope stated — and drive the user's path too where one exists; the check proves the model within its bounds, the drive proves the path it took.
+- **An every-case claim**: act on the hypothesis's state per the `/prove-it` column of `../hypothesis/references/reading.md` § State × reader. `stale` → invoke `/hypothesis --maintain <area>` at once and read again; record 「過期」 meanwhile, never a verdict. `established` with every rule 守住 → rerun its `--check` command in a scratch dir and record the output here, never in the area. `established` with a rule 被打破 → replay each path on the real app with forced order: map each step of `paths/P<n>.md` to the feature file whose entry point performs it, at replay time and in this record only; a step no feature file reaches gets a feature file written first, then the replay goes on. `legacy` or `draft` → its best result is 「嚴格檢查未完成」, never proved. Drive the user's path too where one exists: the hypothesis holds within its bounds, the drive proves the path it took. A hypothesis is 成立 or not and its rules 守住 or 被打破; this skill proves it, and its own verdicts stay 證實／推翻／無法到達.
 - **A number claim**: answer every question in `references/benchmark.md` with evidence from runs, and record the verdict, run count, range, and limiter it names.
 - **Unreachable**: when the seed data or the environment cannot reach the claim, record the prerequisite (auth, platform, external state) and the route tried. Never weaken a drive until it passes, and never report one entry point as proved through another.
 
@@ -67,7 +67,7 @@ Close with one line:
 
 ## 5. Keep the recipe honest (`--maintain`)
 
-The recipe and feature map rot as the app changes. Unnamed, `--maintain` turns on per `../_shared/auto-flags.md` for what the run is about to rely on: before the first drive, each feature file and formal check the claims reach whose recorded commit predates a change to the files it covers gets its part of this pass first, and the whole pass runs when the doctor fails because of the recipe itself. Under `--maintain`, follow `references/maintain.md`, and for each formal check the drift pass in `references/formal.md`: cover every feature from source and drive every feature live once, then sort each gap as the map being out of date, the recipe unable to reach working behaviour, or the app being broken — only the first two are fixed here; the third is reported.
+The recipe and feature map rot as the app changes. Unnamed, `--maintain` turns on per `../_shared/auto-flags.md` for what the run is about to rely on: before the first drive, each feature file the claims reach whose recorded commit predates a change to the files it covers gets its part of this pass first, and the whole pass runs when the doctor fails because of the recipe itself. Under `--maintain`, follow `references/maintain.md` (a stale hypothesis is `/hypothesis --maintain`'s, not this pass's): cover every feature from source and drive every feature live once, then sort each gap as the map being out of date, the recipe unable to reach working behaviour, or the app being broken — only the first two are fixed here; the third is reported.
 
 ## Not-for boundaries
 

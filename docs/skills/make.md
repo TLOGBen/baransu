@@ -19,7 +19,7 @@ Claude Code：`/baransu:draw`　Codex：`$baransu:draw`
 **什麼時候用**
 - 想把點子、系統、流程、資料或故事視覺化、畫成圖、做成動畫、分鏡、reel、發表影片、架構圖、流程圖、時序圖、時間軸、圖表或說明頁。
 - 觸發語：`/draw`、畫一下、畫成圖、圖解、做成動畫、做支影片、架構圖、流程圖、時序圖、說明頁、draw this、visualize、make a diagram、animate it、motion graphics；或貼上 Mermaid／draw.io／Excalidraw 要重畫。
-- 參數：`<要畫什麼 | 檔案 | repo 目錄 | 貼上的文字> [--lane diagram|map|film|component] [--format 9:16|1:1|16:9] [--dark]`
+- 參數：`<要畫什麼 | 檔案 | repo 目錄 | 貼上的文字> [--lane diagram|map|film|component] [--format 9:16|1:1|16:9] [--dark] [--out <dir>] [--full]`（`--out` 指定輸出資料夾。預設快速：直接畫一版，不建種子、不盲評、不跑細修迴圈；`--full` 或說「完整」「精修」「細修」才跑三個種子、盲評挑一個、再細修）
 
 **四種形式**
 

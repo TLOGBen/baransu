@@ -30,9 +30,9 @@ Any helper script the recipe ships is executable, and its invocation is written 
 
 `.claude/prove-it/features/README.md` holds the baseline preconditions, the driving conventions, the proof rules, and an index; one file per user-facing feature follows, starting with the three to five the repo shows most plainly (routes, commands, menus, docs). Each feature file, from the user's side, has four sections — `Sub-features`, `How to get to it (user POV)`, `Driving it with <harness>`, `Gotchas` — as `feature-map-example.md` shows. When the seed data lacks a precondition a journey needs, the journey reports a failure and the reason goes in `Gotchas`; the journey is never weakened to pass. A proof that drives one convenient entry point is incomplete when the map lists others. Each feature file ends with the source files its entry points live in and the commit at which it was last driven live, so a later run can see which features the code has moved under.
 
-## Formal checks
+## Hypotheses
 
-A claim about every case gets a formal check under `formal/<area>/`, built and kept as `formal.md` describes; the recipe lists each one with its command and the area it covers.
+The recipe lists no formal checks of its own: every-case claims are settled by hypotheses, which `/hypothesis` owns under `.claude/hypothesis/`. Before driving, run `hypothesis-status.py --files <the files the claims touch>` and act per `../../hypothesis/references/reading.md`. When a hypothesis covers the claims, the Doctor also checks that its tool runs here (for TLA+: `java -version` and the `tla2tools.jar` path the hypothesis names); a missing tool goes to `/health`'s environment doctor.
 
 ## Prove the recipe before relying on it
 

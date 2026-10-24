@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-`baransu` is a Claude Code plugin distributing twenty-two governance skills. Theme: バランス — deliberate before executing, verify after.
+`baransu` is a Claude Code plugin distributing twenty-three governance skills. Theme: バランス — deliberate before executing, verify after.
 
 ## Philosophy — バランス (Balance)
 
@@ -20,8 +20,8 @@ plugins/
     .claude-plugin/
       plugin.json              # plugin manifest
     skills/
-      think/ review/ write/ ship/ hunt/ health/ read/ learn/ draw/ ui/ codex-skill-transfer/ evolve/ huh/ sayagain/ what-now/ domain-modeling/ why/ how/ teach-me/ show-me/ prove-it/ draft/
-      _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md, fact-check.md, modeling.md, selection-telemetry.md, distillation-candidate-matrix.md, auto-flags.md) + evals/ scripts/
+      think/ review/ write/ ship/ hunt/ health/ read/ learn/ draw/ ui/ codex-skill-transfer/ evolve/ huh/ sayagain/ what-now/ domain-modeling/ why/ how/ teach-me/ show-me/ prove-it/ draft/ hypothesis/
+      _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md, fact-check.md, modeling.md, selection-telemetry.md, distillation-candidate-matrix.md, auto-flags.md, hypothesis-states.md) + evals/ scripts/
     rules/
       anti-patterns.md         # cross-skill behavioral guardrails
     agents/
@@ -40,7 +40,8 @@ Invoke with `/baransu:<name>`. Each row says only when to reach for a skill; its
 |-------|---------------|------------------|
 | `/think` | Deliberate before building: align on a restatement, borrow the discipline that already solved this shape of problem (writing the model per `_shared/modeling.md` when a quantity is at stake), take a stance, verify premises, attack for breakage and for size, present, and leave a five-section plan under `.claude/think/` — never code, never a handoff; a settled decision can be brought for testing (拷問我) | 報錯/debugging → `/hunt`；已定案的中型工作 → 直接實作（形狀不明顯先 `/draft`；`_shared/tdd.md` 紅綠）再 `/review`；單檔小修 → `_shared/tdd.md` §7 |
 | `/review` | Independent review of any model output — code, plan, claim — by reading only: a fresh reviewer maps what the change altered and walks every place that states or relies on it; each place holds (with a positive, quoted proof), fails (a departure from a principle, headed with impact, severity 0–5 and confidence, with two citations and its chain), or is uncertain; ends with 不確定 and 排除 lists; `--full` adds a verifier; closes with a verdict computed by a printed rule (NOT PROVEN only for a severity ≥3 problem or a recorded failure) and 「若只能改一處」; a clean review is a valid result | 審「使用者專案」的 agent 配置與 AI 可維護性 → `/health`；找根因 → `/hunt` |
-| `/prove-it` | Proves claims by running the real app the way its user does — that a reported problem really fails, and that work said to be done really works — and leaves a record of this version that `/review` reads; builds the project's run recipe (launch, doctor, drive, evidence, cleanup, feature map) on first use, and a formal check — model checker, code verifier, or proof — for a claim about every order or every input, `--maintain` keeps both honest | 只讀不跑的審查 → `/review`；找根因 → `/hunt` |
+| `/hypothesis` | Writes down how part of a system must behave as a machine-checked formal model (TLA+ by default) with plain rules and step-by-step state diagrams — from code, a `/hunt` symptom, a document, or two sources compared — owns `.claude/hypothesis/` and keeps it in step; readers learn its state from one script line | 在真 app 上證明 → `/prove-it`；找根因 → `/hunt`；跑一次就能確認的主張 → `_shared/tdd.md` |
+| `/prove-it` | Proves claims by running the real app the way its user does — that a reported problem really fails, and that work said to be done really works — and leaves a record of this version that `/review` reads; builds the project's run recipe (launch, doctor, drive, evidence, cleanup, feature map) on first use, `--maintain` keeps it honest; a claim about every order or every input is read against `/hypothesis`, and each path of a hypothesis with a broken rule is replayed on the real app | 只讀不跑的審查 → `/review`；找根因 → `/hunt` |
 | `/draft` | Draft the shape of a change before its code once the direction is settled and the shape is not obvious: ground the touched systems, write callers' usage first, have at least two whole-shape candidates drawn by designers who cannot see each other, screen them with review's structure / taste / readability principles, choose and graft, write the sketch (types, signatures, unimplemented bodies) into the repo where the build accepts it, stop for the user's go; the sketch is the contract implementation fills under `_shared/tdd.md`; `--deepen` finds shapes worth redrawing in existing code | 方向未定、值不值得 → `/think`；形狀已被現有程式決定 → 直接實作；審完成的改動 → `/review` |
 | `/write` | Bilingual copywriting: `zh`/`en` prefix; Refine (existing text), Generate (new), or Proofread (findings table → `錯字修改.html`) | 寫完要 commit/push 的收尾 → `/ship` |
 | `/ship` | Session cleanup: archive `.claude/` working dirs into the main working tree, commit under the repo's own identity and style, push, merge one-way into each named target, optional worktree removal | 只收尾；不寫作、不審查 |
@@ -86,7 +87,7 @@ These have each caused regressions — do not "optimize" them away:
 - **learn's full digest ends with the 批判層 four sections** (來源矛盾點／盲點／信度評分／後續角度): silence is non-compliant — 「查無矛盾」 must be stated affirmatively.
 - **read `raw/` is immutable by construction**: recaptures version to `raw/{slug}_vN`, cascade fetches go through `/tmp` then move — never write `raw/` twice.
 - **verify-skills.py Gate 10 is the contract** for loop-pauses registry completeness: adding or revising a skill's Automation line must clear it (a `loop=drivable`/`assisted` skill ships `references/loop-pauses.md` and owns a canonical row in `_shared/loop-contract.md` §4 — no orphan files, no dead rows; retiring a skill removes its row in the same change). Gate 11 (`green_proof` field-name consistency) was retired in v4.0.0: all four of its surfaces went with the large-band pipeline, so the gate had nothing left to check. Its number is not reused — the gate list stops at 10.
-- **`/ship` archives `prove-it/records` but never the prove-it recipe**: run records and evidence are session output and leave Git; `prove-it/recipe.md`, `prove-it/features/` and `prove-it/formal/` are maintained products and stay. The allowlist in ship Step 1 and Step 2 must list `prove-it/records` identically.
+- **`/ship` archives `prove-it/records` but never the prove-it recipe or a hypothesis**: run records and evidence are session output and leave Git; `prove-it/recipe.md`, `prove-it/features/`, `hypothesis/` (and a not-yet-moved 8.15.0 `prove-it/formal/`) are maintained products and stay. The allowlist in ship Step 1 and Step 2 must list `prove-it/records` identically.
 - **`/show-me` and `/what-now` are user-invocable only on Claude Code**: their frontmatter carries `disable-model-invocation: true`, as upstream does; the Codex copies omit that Claude-only key (codex-skill-transfer flags it as residue), so the Codex skills stay implicitly invocable.
 - **Third-party sources live in each skill's `NOTICE.md`, never in the body**: a SKILL.md or its references do not name or license their upstream — the notice is not loaded and costs no tokens.
 - **No-git projects: ship fast-fails BEFORE any archive move** — archiving without git would strand the moved files with no commit to anchor them.

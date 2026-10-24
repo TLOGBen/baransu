@@ -7,7 +7,7 @@
       "prompt": "排查一下，登入一直失敗",
       "should_trigger": true,
       "expected_skill": "hunt",
-      "expected_behavior": "Symptom-to-root-cause investigation: pick the right observability tool, bisect, confirm hypotheses before touching code."
+      "expected_behavior": "Symptom-to-root-cause investigation: pick the right observability tool, bisect, confirm conjectures before touching code."
     },
     {
       "id": 2,

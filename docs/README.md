@@ -18,7 +18,7 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 
 ## Skill 參考
 
-22 個 skill 分成五個家族。每頁列出每個 skill 的用途、觸發語、參數、產出位置與不適用的情況。
+23 個 skill 分成五個家族。每頁列出每個 skill 的用途、觸發語、參數、產出位置與不適用的情況。
 
 參數（flag）是捷徑，不是唯一的入口：每個 flag 旁邊都寫了「什麼情況會自動開」，沒打 flag 時 skill 會自己判斷，開的那一刻說一次「自動開啟 --x：理由」。你打了就一定開，你說不要就一定不開。會把資料送出這台機器的 flag（`/read` 的 `--use-proxy`）只在它的安全條件內自動開，而且送出前先說：只限這次自己從公開搜尋找到的網址，你貼的網址不會自動送。規則寫在 `plugins/baransu/skills/_shared/auto-flags.md`。
 
@@ -28,7 +28,8 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 | | [`/draft`](skills/plan.md#draft) | 動手前先畫骨架：兩版獨立設計，選定後寫成實作的合約 |
 | [驗證](skills/verify.md) | [`/review`](skills/verify.md#review) | 乾淨 context 獨立重驗任何產出 |
 | | [`/hunt`](skills/verify.md#hunt) | 從症狀追到根因，確認後才修 |
-| | [`/prove-it`](skills/verify.md#prove-it) | 實際跑一次，證明說有問題的真的有問題、說完成的真的完成；「所有情況」的宣稱用形式化驗證 |
+| | [`/prove-it`](skills/verify.md#prove-it) | 實際跑一次，證明說有問題的真的有問題、說完成的真的完成；「所有情況」的宣稱讀 `/hypothesis` 的假說 |
+| | [`/hypothesis`](skills/verify.md#hypothesis) | 把系統該怎麼運作寫成機器檢查過的假說，附白話規則與狀態圖 |
 | [創作](skills/make.md) | [`/draw`](skills/make.md#draw) | 靜態圖、互動圖、影片、互動元件 |
 | | [`/ui`](skills/make.md#ui) | 為你 repo 裡的介面定調並直接改檔 |
 | | [`/write`](skills/make.md#write) | 雙語潤稿、生成、校對 |
@@ -57,7 +58,8 @@ repo 根目錄目前沒有授權檔。以下子模組 vendored 自第三方專�
 - `/why`、`/how`、`/teach-me`：改編自 Cursor pstack 的 why、how、teach（MIT，Lauren Tan），各自的 `NOTICE.md` 附出處與授權全文。
 - `/show-me`：改編自 HumanLayer skills 的 show-me（MIT，HumanLayer），`plugins/baransu/skills/show-me/NOTICE.md` 附出處與授權全文。
 - `/what-now`：改編自 Cursor pstack 的 ketchup（MIT，Lauren Tan），`plugins/baransu/skills/what-now/NOTICE.md` 附出處與授權全文。
-- `/prove-it`：改編自 Cursor pstack 的 create-verification-skill、maintain-verification-skill、create-formal-verification-skill、maintain-formal-verification-skill（MIT，Lauren Tan），`plugins/baransu/skills/prove-it/NOTICE.md` 附出處與授權全文。
+- `/prove-it`：改編自 Cursor pstack 的 create-verification-skill、maintain-verification-skill（MIT，Lauren Tan），`plugins/baransu/skills/prove-it/NOTICE.md` 附出處與授權全文。
+- `/hypothesis`：改編自 Cursor pstack 的 create-formal-verification-skill、maintain-formal-verification-skill、statechart（MIT，Lauren Tan），`plugins/baransu/skills/hypothesis/NOTICE.md` 附出處與授權全文。
 - `/draft`：改編自 Cursor pstack 的 architect、arena（MIT，Lauren Tan），mattpocock/skills 的 codebase-design、improve-codebase-architecture（MIT，Matt Pocock），以及 ponytail（MIT，DietrichGebert），`plugins/baransu/skills/draft/NOTICE.md` 附出處與授權全文。
 - `/write`：去 AI 腔的部分規則改編自 Cursor pstack 的 unslop（MIT），見 `plugins/baransu/skills/write/NOTICE.md`。
 

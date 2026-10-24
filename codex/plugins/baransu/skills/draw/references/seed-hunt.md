@@ -1,6 +1,6 @@
 # Seed hunt — three first versions, one refined
 
-A diagram, a component or a film starts as three independent first versions (seeds), built in parallel up to the point where the piece can be seen; a blind judge picks one, and only that one is refined, checked and finished. A map runs no seeds: its content is the repository's facts and its layout comes from `finalize`.
+Under `--full` (`full` on the brief's `When:` line), a diagram, a component or a film starts as three independent first versions (seeds), built in parallel up to the point where the piece can be seen; a blind judge picks one, and only that one is refined, checked and finished. A map runs no seeds: its content is the repository's facts and its layout comes from `finalize`.
 
 ## Why seeds
 
@@ -23,7 +23,7 @@ A seed never animates, never runs the critique loop and never renders a master. 
 1. Make `scratch/seed-a/`, `scratch/seed-b/` and `scratch/seed-c/`, and copy `docs/brief.md` into each seed's `docs/`. Nothing else is shared: no notes, no direction, no assigned style. The spread comes from independent sampling, not from steering.
 2. Spawn three Codex subagents in parallel with `spawn_agent`, each in a clean context (`fork_turns="none"` on the v2 tool, `fork_context=false` on v1) and each given the same task: the skill folder, its own seed folder as `<out>` (step commands use `--log "<out>/scratch/seed-<x>"`), the instruction to run every applicable step from the first after `seed-hunt` up to the pick step and stop there, never to open a sibling seed folder, and to finish with `docs/seed_note.md`: the idea in one sentence (for a mechanism, the invented object) and the paths of its captures. Wait for all three with `wait_agent` before the pick.
 3. When subagents are unavailable (no `spawn_agent` in the session, or `agents.enabled = false`), build the three seeds one after another in this session, each from the brief alone, without opening an earlier seed while building the next; record `seeds: sequential` in `docs/seed_hunt.md`, because the seeds are then less independent.
-4. A request for something quick (快速, 草圖, quick sketch) runs one seed; `docs/seed_hunt.md` records `seeds: 1 (quick request)` and the pick step promotes it without a judge. A seed that fails (its build breaks, its subagent stops early) is recorded and dropped; the pick runs on the rest.
+4. Without `--full` this file does not apply: the piece is built once, directly in the output folder (SKILL.md § Principles).
 
 The `first-version` milestone is still due within the hour: when the hour comes before the pick, send the first seed that opens (its path under `scratch/`), and say the pick is still to come.
 
