@@ -108,14 +108,14 @@ The publish record of one area. Written only by `/hypothesis`, only as the last 
 - `source_kind` — `code` | `document` | `refinement`. For `refinement`, `roles` adds `{ "behaviour": "<path>", "rules": "<path>" }`.
 - `generation` — increments by one per publish; the compare-and-swap key.
 - `sync.files` — keys are repo-relative paths (absolute only for a document outside the repo); exactly the files cited by `model_map` and `rules`.
-- `sync.watch[].matched` — sorted; computed with `git grep -l --untracked -E <pattern>` at publish.
+- `sync.watch[].matched` — sorted; computed with `git grep -l --untracked -E <pattern>` at publish. `sync.watch[].paths` — optional pathspecs that limit the search (default: the whole repo); `.claude/hypothesis/` and `.codex/hypothesis/` are never searched.
 - `sync.artifact` — every file in the area except `hypothesis.json` itself.
 - `check.verdict_at_sync` — `proved` (all rules `held`) | `disproved` (any `violated`) | `unformalized` (no model; `rules` may be empty).
-- `check.seen_failing` — one entry per `safety` rule, `caught: true` required for a `proved` or `disproved` area to be shown as such.
+- `check.seen_failing` — one entry per `safety` or `liveness` rule, `caught: true` required for a `proved` or `disproved` area to be shown as such.
 - `check.seen_succeeding` — one entry per goal, both `reached` and `unreachable_after` true; every safety rule appears in some goal's `guards`.
 - `rules[].text` / `goals[].text` / `paths[].summary` / `questions[].question` — plain words, no variable or action names; these strings are what readers quote. `paths[].summary` and `questions[].question` are the plain first layer and contain none of 活性、安全性、精化、不變式、同步點、TLC、模型、狀態空間; the technical layer lives in `paths/P<n>.md`.
 - `paths[].finding` — `bug` (code), `contradiction` | `gap` (document), `refinement-break` (comparison).
-- `questions[]` — documents only: `{ "id", "quote", "location", "ask": "<whom>", "question" }` for every ambiguity.
+- `questions[]` — every ambiguity, from any source: `{ "id", "quote", "location", "ask": "<whom>", "question" }`; for code, `quote` is the line and `location` its `file:line`.
 - `unformalized[]` — the reason record, `templates/reason-record.md`.
 - `history[]` — one row per publish after the first, the `--maintain` outcome that produced it.
 - `migrated_from` — `null` or the old `.claude/prove-it/formal/<area>/` path.

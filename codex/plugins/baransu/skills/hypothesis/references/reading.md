@@ -25,6 +25,7 @@ Computed by the script at read time, first match wins; the stored verdict is onl
 | state | means | the stored verdict is shown? |
 |---|---|---|
 | `broken` | `hypothesis.json` unparseable or of an unknown schema, or the script could not run | no |
+| none (`10`) | nothing to read; a claim only every order or every input settles names a hypothesis as the missing record (review `evidence.md` #7) | green | nothing | may hand the symptom to `$baransu:hypothesis <HUNT-id>` | nothing |
 | `draft` | the area dir exists with no `hypothesis.json` yet, or its artifact files differ from what the last publish hashed, or a `proved`/`disproved` verdict lacks its seen-failing / seen-succeeding evidence, or a reason record is incomplete | no |
 | `stale` | a covered source differs from its sync hash or is missing, or the set of files matching a watch pattern changed | no |
 | `legacy` | a `.codex/prove-it/formal/<area>/` dir not yet migrated | no |
@@ -53,7 +54,6 @@ The whole decision; no reader adds judgement to it:
 | `broken` | finding 「無法判定假說狀態」 | red | no verdict | ignore | WARN |
 
 The hand-off to `--maintain` is the reader's own call into the writer, made by the main session, never by a review agent (review only reports). Under a non-interactive driver, `--maintain` pauses only on a "promise changed on purpose" change (`../hypothesis/references/loop-pauses.md`); the reader then reports 「卡住」 with the maintainer's questions and stays red.
-| none (`10`) | when the change lands in H1–H8, write 「coverage lost: needs $baransu:hypothesis」 with one reason record | green | nothing | may hand the symptom to `$baransu:hypothesis <HUNT-id>` | nothing |
 
 ## Detail views
 

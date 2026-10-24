@@ -10,7 +10,7 @@
 
 ## 規則
 
-<!-- fill: Table: id, kind (安全／目標), plain sentence, citation, verdict at publish. Rendered from `hypothesis.json` `rules` and `goals`. -->
+<!-- fill: Table: id, kind (安全／活性／目標), plain sentence, citation, verdict at publish. Rendered from `hypothesis.json` `rules` and `goals`. -->
 
 ## 找到的問題
 

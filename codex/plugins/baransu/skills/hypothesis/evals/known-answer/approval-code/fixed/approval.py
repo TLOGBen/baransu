@@ -3,6 +3,7 @@
 規則：金額 < 1000 只要主管核准；≥ 1000 要主管再財務。核准完成後由付款工作付款。
 申請人在簽核中可以撤回；被退回後可以改金額再送出。
 """
+import threading
 from dataclasses import dataclass, field
 
 THRESHOLD = 1000
@@ -23,6 +24,7 @@ class Request:
 
 
 DB: dict[int, Request] = {}
+_SAVE_LOCK = threading.Lock()
 
 
 def load(rid: int) -> Request:
@@ -31,11 +33,12 @@ def load(rid: int) -> Request:
 
 
 def save(rid: int, r: Request) -> None:
-    """比較後交換：只有版本沒變時才寫入，寫入時版本加一。"""
-    if DB[rid].version != r.version:
-        raise Conflict(rid)
-    r.version += 1
-    DB[rid] = r
+    """比較後交換：只有版本沒變時才寫入，寫入時版本加一。整段在鎖內，比對和寫入之間沒有別的請求插得進來。"""
+    with _SAVE_LOCK:
+        if DB[rid].version != r.version:
+            raise Conflict(rid)
+        r.version += 1
+        DB[rid] = r
 
 
 def required(amount: int) -> list[str]:

@@ -91,12 +91,14 @@ def load_record(area_dir: Path) -> tuple[dict | None, Why | None]:
     return rec, None
 
 
-def watch_matches(root: Path, pattern: str) -> list[str] | None:
-    """Sorted repo-relative paths matching `pattern`; None without git."""
+def watch_matches(root: Path, pattern: str, paths: list[str] | None = None) -> list[str] | None:
+    """Sorted repo-relative paths matching `pattern` within `paths` (default: the repo), never inside a
+    hypothesis area; None without git."""
     if _git(root, "rev-parse", "--git-dir") is None:
         return None
     try:
-        out = subprocess.run(["git", "grep", "-l", "--untracked", "-E", pattern], cwd=root,
+        spec = list(paths or ["."]) + [f":(exclude){d}/hypothesis" for d in AGENT_DIRS]
+        out = subprocess.run(["git", "grep", "-l", "--untracked", "-E", pattern, "--", *spec], cwd=root,
                              capture_output=True, text=True, encoding="utf-8", errors="replace")
     except OSError:
         return None
@@ -174,7 +176,7 @@ def compute_state(root: Path, area_dir: Path) -> Row:
         elif now != h:
             stale.append(Why("changed", name))
     for w in sync.get("watch", []):
-        now = watch_matches(root, w.get("pattern", ""))
+        now = watch_matches(root, w.get("pattern", ""), w.get("paths"))
         if now is None:
             stale.append(Why("no-git", w.get("state", "?")))
             continue

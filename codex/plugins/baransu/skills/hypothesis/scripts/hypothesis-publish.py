@@ -62,7 +62,7 @@ def publish(area_dir: Path, commit: str | None) -> int:
         files[name] = h
     sync["files"] = files
     for w in sync.get("watch", []):
-        now = status.watch_matches(root, w["pattern"])
+        now = status.watch_matches(root, w["pattern"], w.get("paths"))
         if now is None:
             print("寫入樣式需要 git；這裡沒有 git。", file=sys.stderr)
             return 2

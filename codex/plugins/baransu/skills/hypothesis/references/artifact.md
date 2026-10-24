@@ -12,7 +12,7 @@ A fixed tree; nothing else is written in an area:
   README.md              # the human page, from templates/README.md
   diagrams.html          # the index page of the diagram series, from templates/diagrams.html
   diagrams/              # the figures $baransu:draw drew (--out here), with its docs/
-  model/                 # <Name>.tla + <Name>.cfg, or the code-level harness
+  model/                 # <Name>.tla + one .cfg per check, check.sh/check.ps1 running them all; or the code-level harness
   variants/              # the broken variants that made each check fail (kept in git)
   paths/                 # P<n>.md — one counterexample script per numbered path
   check.log              # the raw tool output of the last published run

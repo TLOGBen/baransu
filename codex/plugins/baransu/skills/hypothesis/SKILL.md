@@ -71,7 +71,7 @@ This is the one Input PAUSE of a first write (`references/loop-pauses.md`).
 
 Choose the tool and hold to the strictness rules in `references/formal.md`: true to the source, one indivisible source step is one model step, the source's names. Run the check with one pinned command, sending the tool's scratch output to the system temp dir. Then both evidence gates, both mandatory:
 
-- **seen failing** — for each safety and liveness rule, make a broken variant in a scratch copy of the source, see the check catch it, keep the variant under `variants/`, drop the copy;
+- **seen failing** — for each safety and liveness rule, make a broken variant in a scratch copy of the source, see the check catch it, keep the variant under `variants/`, drop the copy; a rule the source as written already breaks names the source as its evidence instead (`references/formal.md` § Strict, 2);
 - **seen succeeding** — reach each goal, then remove one named transition and see the goal become unreachable.
 
 A counterexample every step of which the source can take is a finding: write it as a script in the source's words under `paths/` (`templates/path.md`). A step the source cannot take is a model error: fix the model and say what was wrong. Never weaken a rule, a bound or the model to pass.
