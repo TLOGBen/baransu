@@ -2,6 +2,11 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.25.0] - 2026-10-24
+
+### Changed
+- **假說的圖不再需要 HTML**：狀態圖直接寫在假說的 `README.md` 裡，一張圖一段 Mermaid；這個聊天、GitHub、編輯器的預覽都會畫出來。確認規則或報告結果時，圖直接貼在對話中，不用開瀏覽器。拿掉 `diagrams.html` 與它的範本；已經發布的假說留著原本的圖照樣能看。Codex 版同步。
+
 ## [8.24.0] - 2026-10-24
 
 ### Changed
