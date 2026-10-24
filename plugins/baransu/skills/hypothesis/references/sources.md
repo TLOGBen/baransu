@@ -4,7 +4,7 @@ Four inputs, one artifact. Each source kind is an adapter that yields the same f
 
 ## Code
 
-Read the entry points and trace control flow before grepping names; map the guarded state first, then every writer of it (the watch patterns come from this map). Citations are `file:line`. Coverage = the files cited. One indivisible step in the code (one transaction, one CAS, one synchronous block) = one model step.
+Read the entry points and trace control flow before grepping names; map the guarded state first, then every writer of it (the watch patterns come from this map). Citations are `file:line`. Coverage = the files cited. What the model takes as one step is one indivisible step in the code as it runs — inside one transaction, one held lock, or one atomic primitive of the runtime; a check and a write in separate statements are two steps, whatever a comment or a function's name says.
 
 ## Symptom (from `/hunt`)
 
