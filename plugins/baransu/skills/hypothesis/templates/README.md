@@ -6,36 +6,36 @@
 
 ## 一句話
 
-(unimplemented) — What part of the system this is about and what must never happen, in one sentence.
+<!-- fill: What part of the system this is about and what must never happen, in one sentence. -->
 
 ## 規則
 
-(unimplemented) — Table: id, kind (安全／目標), plain sentence, citation, verdict at publish. Rendered from `hypothesis.json` `rules` and `goals`.
+<!-- fill: Table: id, kind (安全／目標), plain sentence, citation, verdict at publish. Rendered from `hypothesis.json` `rules` and `goals`. -->
 
 ## 找到的問題
 
-(unimplemented) — One block per path P<n>, plain layer first (the summary and the harm in everyday words, none of 活性、安全性、精化、不變式、同步點、TLC、模型、狀態空間), then 細節: link to `paths/P<n>.md`, and the diagram number where it is drawn. For documents: grouped under 矛盾 / 缺漏 / 模糊（要問誰）.
+<!-- fill: One block per path P<n>, plain layer first (the summary and the harm in everyday words, none of 活性、安全性、精化、不變式、同步點、TLC、模型、狀態空間), then 細節: link to `paths/P<n>.md`, and the diagram number where it is drawn. For documents: grouped under 矛盾 / 缺漏 / 模糊（要問誰）. -->
 
 ## 圖
 
-(unimplemented) — Link to `diagrams.html` and one line per diagram saying which part it adds.
+<!-- fill: Link to `diagrams.html` and one line per diagram saying which part it adds. -->
 
 ## 範圍
 
-(unimplemented) — Bounds, assumptions, what is left out; the sentence 「窮舉的結論只在這個範圍內成立」.
+<!-- fill: Bounds, assumptions, what is left out; the sentence 「窮舉的結論只在這個範圍內成立」. -->
 
 ## 怎麼檢查的
 
-(unimplemented) — Tool and version and why this tool; the one command; states explored and time; seen failing (which variant, which rule caught it); seen succeeding (which goal, which transition removed).
+<!-- fill: Tool and version and why this tool; the one command; states explored and time; seen failing (which variant, which rule caught it); seen succeeding (which goal, which transition removed). -->
 
 ## 對應表
 
-(unimplemented) — Model part → `file:line` (or quote + location). Same content as `model_map`.
+<!-- fill: Model part → `file:line` (or quote + location). Same content as `model_map`. -->
 
 ## 沒有形式化的部分
 
-(unimplemented) — One row per reason record, all four fields. When there are none, the affirmative line 「全部形式化，沒有例外。」 — silence is not allowed.
+<!-- fill: One row per reason record, all four fields. When there are none, the affirmative line 「全部形式化，沒有例外。」 — silence is not allowed. -->
 
 ## 同步點
 
-(unimplemented) — Commit (code) or version + hash (document), generation, and the date of publish; 「涵蓋的檔案改過，本頁結論就失效，以指令輸出為準」.
+<!-- fill: Commit (code) or version + hash (document), generation, and the date of publish; 「涵蓋的檔案改過，本頁結論就失效，以指令輸出為準」. -->

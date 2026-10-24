@@ -4,23 +4,23 @@ The single reader contract. Every reader skill (`/review`, `/hunt`, `/prove-it`,
 
 ## One command
 
-(unimplemented) — The invocation, resolved from the reader's own skill dir:
+The invocation, resolved from the reader's own skill dir (use `python` where `python3` does not exist, as on some Windows machines):
 
 ```
 python3 "$CLAUDE_SKILL_DIR/../hypothesis/scripts/hypothesis-status.py" <selector> [--json]
 ```
 
-Selectors (exactly one): `--diff <base>` (files changed since `<base>`, working tree and untracked included), `--files <path>...`, `--area <area>`, `--all`. Detail views (one area each): `--rules`, `--paths`, `--scope`, `--check`.
+Selectors (exactly one): `--diff <base>` (hypotheses covering files changed since `<base>` — committed, working tree and untracked — plus every hypothesis whose covered content changed even where git does not track or ignores the file), `--files <path>...`, `--area <area>`, `--all`. Detail views (one area each): `--rules`, `--paths`, `--scope`, `--check`.
 
 A missing script, a missing `python3`, or an unparseable output is state `broken` for every area the reader cares about — never a pass, never "no hypothesis".
 
 ## The table line
 
-(unimplemented) — Columns, fixed order: `area  state  rules  sync  why`. `why` is `-` or a `;`-joined list of `changed: <file>`, `missing: <file>`, `new-writer: <file>`, `writer-gone: <file>`, `artifact-edited: <file>`, `no-evidence: <rule>`, `schema: <found>`. `--json` gives the same fields as one object per area.
+Columns, fixed order: `area  state  rules  sync  why`. `why` is `-` or a `;`-joined list of `changed: <file>`, `missing: <file>`, `new-writer: <file>`, `writer-gone: <file>`, `artifact-edited: <file>`, `no-evidence: <what is missing>`, `schema: <found>`, `unparseable: hypothesis.json`, `unpublished: hypothesis.json`, `no-git: <state>`. `--json` gives the same fields as one object per area.
 
 ## States — a closed set
 
-(unimplemented) — Computed by the script at read time, first match wins; the stored verdict is only an input:
+Computed by the script at read time, first match wins; the stored verdict is only an input:
 
 | state | means | the stored verdict is shown? |
 |---|---|---|
@@ -36,11 +36,11 @@ Only `proved` may be reported as passing anything. `--rules` and `--paths` print
 
 ## Exit codes
 
-(unimplemented) — `0` every listed area is `proved`; `10` no area covers the selector; `1` at least one listed area is anything else; `2` the script itself failed (reader treats as `broken`). A reader whose rule is "green" accepts `0` and `10` only.
+`0` every listed area is `proved`; `10` no area covers the selector; `1` at least one listed area is anything else; `2` the script itself failed (reader treats as `broken`). A reader whose rule is "green" accepts `0` and `10` only.
 
 ## State × reader — what to do
 
-(unimplemented) — The whole decision; no reader adds judgement to it:
+The whole decision; no reader adds judgement to it:
 
 | state | `/review` | green step / `/draft` done | `/prove-it` | `/hunt` | `/health` |
 |---|---|---|---|---|---|
@@ -57,7 +57,7 @@ The hand-off to `--maintain` is the reader's own call into the writer, made by t
 
 ## Detail views
 
-(unimplemented) — Exact output shape of each, so a reader quotes rather than paraphrases:
+Exact output shape of each, so a reader quotes rather than paraphrases:
 - `--rules <area>`: header `# <area>  state=<state>`; per rule `<id>  <kind>  <verdict|?>  <sentence>`.
 - `--paths <area>`: per path `<P-id>  <rule>  <verdict|?>  <one-line summary in source words>  <script path>`.
 - `--scope <area>`: bounds, assumptions, what is left out — verbatim from the artifact.
@@ -65,4 +65,4 @@ The hand-off to `--maintain` is the reader's own call into the writer, made by t
 
 ## Legacy
 
-(unimplemented) — Until `/hypothesis --maintain` moves it, a `.claude/prove-it/formal/<area>/` check is read the 8.15.0 way by `/prove-it` only: run its README command, and call it stale when `git log <sync commit>..HEAD -- <covered files>` is non-empty or the working tree differs. Either way it was never seen succeeding and has no reason records, so no reader — `/prove-it` included — may use it to declare anything done: its best result is 「嚴格檢查未完成」. The same holds after the move until one `--maintain` run completes both evidence gates (the script shows it as `draft`, why `no-evidence`).
+Until `/hypothesis --maintain` moves it, a `.claude/prove-it/formal/<area>/` check is read the 8.15.0 way by `/prove-it` only: run its README command, and call it stale when `git log <sync commit>..HEAD -- <covered files>` is non-empty or the working tree differs. Either way it was never seen succeeding and has no reason records, so no reader — `/prove-it` included — may use it to declare anything done: its best result is 「嚴格檢查未完成」. The same holds after the move until one `--maintain` run completes both evidence gates (the script shows it as `draft`, why `no-evidence`).

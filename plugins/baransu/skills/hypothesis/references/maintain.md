@@ -1,35 +1,49 @@
-# maintain — keeping each area in step (`--maintain [area]`)
+# maintain — keeping each hypothesis in step (`--maintain [area]`)
 
 Moved from the drift pass in `prove-it/references/formal.md` and owned here. The work list comes from the status script, not from memory.
 
+`--maintain` turns on by itself, per `../../_shared/auto-flags.md`, when the target a user or a reader names is covered by a hypothesis whose state is `stale`, `draft`, or `legacy`. Readers call it: a reader that sees `stale` invokes `/hypothesis --maintain <area>` at once (`reading.md` § State × reader), so a hypothesis never stays stale waiting for someone to remember.
+
 ## Work list
 
-(unimplemented) — `hypothesis-status.py --all --json` (or `--area <area>`); every area whose state is `stale`, `draft`, or `legacy` is on the list; `proved` / `disproved` / `unformalized` areas are untouched. The `why` field is the starting set of changes: `changed`, `missing`, `new-writer`, `writer-gone`, `artifact-edited`.
+Run `scripts/hypothesis-status.py --all --json`, or `--area <area>` when one is named. Every area whose state is `stale`, `draft`, or `legacy` is on the list; `proved`, `disproved` and `unformalized` areas are left as they are. The `why` field is the starting set of changes: `changed`, `missing`, `new-writer`, `writer-gone`, `artifact-edited`, `no-evidence`.
 
-## Read every change
+## Read every change — what it does, and why it changed
 
-(unimplemented) — For code: `git diff <sync.commit> -- <covered files>` plus the working tree, plus every `new-writer` file whole, plus renames and moves of covered functions (a `missing` file is searched for by its cited symbols). For documents: diff the `/read` Markdown of the old and new versions.
+Two readings per change, done the way two other skills do them:
+
+- **What the source does now** — read it the way `/how` does (`../../how/SKILL.md`): the entry points, the data flow, who owns and writes the guarded state, trusting control flow over names. For code: `git diff <sync.commit> -- <covered files>` plus the working tree, every `new-writer` file whole, and renames or moves of covered functions (a `missing` file is searched for by the symbols it was cited for). Then search for every writer of each model variable again — the watch patterns are a floor, not a guarantee. For documents: diff the `/read` Markdown of the synced and the current original. This reading decides whether the model still describes the source.
+- **Why it changed** — look for the reason the way `/why` does (`../../why/SKILL.md`), nearest record first: the commit messages since `sync.commit`, doc comments and tests touched by the change, the changelog, decision records, plans under `.claude/think/`, a document's revision note. This reading decides whether a promise was changed on purpose. No reason found means no evidence, never "probably intended".
 
 ## Four outcomes
 
-(unimplemented) — Per change, judged against the model, not the commit message:
-- `no-effect` — nothing the model describes changed; rerun the check and the existing variants unchanged; publish with new hashes.
-- `model-update` — the model no longer describes the source; update the model from the source, re-derive the variants, rerun both evidence gates.
-- `promise-changed` — evidence (doc comment, test, changelog, commit message, document revision) says the promise changed on purpose; rewrite the rule citing it; old and new wording in `history`.
-- `bug-candidate` — no such evidence and the check now fails: a new path, `finding: bug`.
+Each change is sorted into exactly one, judged against the model, never against the commit message alone:
+
+- `no-effect` — nothing the model describes changed. Rerun the check and the existing variants unchanged; publish with the new hashes.
+- `model-update` — the model no longer describes the source: a step split in two, a branch added or removed, a check moved, a new path to the guarded state, a value range changed. Update the model from the source (never from what makes it pass), re-derive the variants, and rerun both evidence gates.
+- `promise-changed` — the "why" reading found evidence that the promise changed on purpose. Rewrite the rule citing that evidence; keep old and new wording in `history`.
+- `bug-candidate` — no such evidence, and the check now fails. The counterexample becomes a new path, `finding: bug`.
+
+`model-update` and `bug-candidate` can both hold for one change.
 
 ## Run twice
 
-(unimplemented) — Run the check once as it is before changing anything, once after; record both in `check.log`. `model-update` and `bug-candidate` can both hold.
+Run the check once on the area as it is, before changing anything, and once after; keep both outputs in `check.log`. A pass before the update says only that the old description still holds.
 
 ## Publish or block
 
-(unimplemented) — Publish per `artifact.md` § Writing, which moves the sync point. A change that cannot be sorted (source unreadable, tool missing) ends the area as `blocked` in the report: nothing is published, so readers keep seeing `stale` — never a moved sync point without a check.
+Publish per `artifact.md` § Writing; that is the only step that moves the sync point. A change that cannot be sorted — the source unreadable, the tool missing, or a possible promise change with no evidence — ends the area `blocked` in the report: nothing is published, so readers keep seeing `stale`. Under a non-interactive driver the missing evidence is the one Input PAUSE in `loop-pauses.md`. When a caller (`/hunt`, the green step) was waiting on this maintenance, it may close its own work and leave the questions here; the hypothesis stays `stale` until a person answers them.
 
 ## Migration
 
-(unimplemented) — One area lives in exactly one place at any moment. While `.claude/prove-it/formal/<area>/` exists, `/hypothesis` refuses to write `.claude/hypothesis/<area>/` and asks for the move first. The move, proposed to the user once: `git mv` the whole dir to `.claude/hypothesis/<area>/` (model files into `model/`), build `hypothesis.json` from its README (sync commit, coverage, property, bounds) with `seen_succeeding` and `unformalized` left empty, record `migrated_from`, and publish. The script then shows it as `draft`, why `no-evidence` — 「嚴格檢查未完成」 — until the next `--maintain` run on it completes both evidence gates and the reason records. A move stopped before publish leaves a dir without `hypothesis.json`: `draft`, never `legacy` and never passing.
+One area lives in exactly one place at any moment. While `.claude/prove-it/formal/<area>/` exists, `/hypothesis` refuses to write `.claude/hypothesis/<area>/` and offers the move first, once:
+
+1. `git mv` the whole directory to `.claude/hypothesis/<area>/`, model files into `model/`.
+2. Build `hypothesis.json` from its README (sync commit, coverage, property, bounds), with `seen_succeeding` and `unformalized` left empty, and `migrated_from` set to the old path.
+3. Publish.
+
+The status script then shows the area as `draft`, why `no-evidence` — 「嚴格檢查未完成」 — until a `--maintain` run completes both evidence gates and the reason records. An 8.15.0 check that was never moved is `legacy` and is never usable to declare anything done either. A move stopped before publish leaves a directory without `hypothesis.json`: `draft`, never `legacy`, never passing.
 
 ## Never
 
-(unimplemented) — Edit product code; edit a rule to make a failure pass; move a sync point without a published check.
+Edit product code; edit a rule to make a failure pass; move a sync point without a published check.

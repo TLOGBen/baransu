@@ -6,57 +6,87 @@ argument-hint: "<path|module|HUNT-id|symptom|doc> [--satisfies <rules-doc>] [--m
 
 # hypothesis — write it down so a machine can check it and a person can read it
 
-(unimplemented) — One paragraph: a hypothesis is a claim about how part of a system behaves, always a formal model, citing its source, checked by a tool within a stated scope, explained in plain rules and a progressive diagram set. This skill is its only writer; every other skill reads it through one script and acts on one computed state.
+A hypothesis is a claim about how part of a system — or a process a document describes — must behave, always written as a formal model, citing its source, checked by a tool within a stated scope, and explained in plain rules and a progressive series of state diagrams. This skill is its only writer and keeps it in step when the source changes. Every other skill reads it through one script and acts on one computed state; none of them writes it.
 
-(unimplemented) — Output language line: user-facing output in Traditional Chinese; identifiers, paths, model code and quoted source stay as they are.
+The default this skill corrects: asked to make something "not go wrong", the model writes more tests of the cases it already thought of, or a model that passes because nothing in it can happen. A hypothesis is the opposite of both: every order the model allows is explored, it is seen failing on a broken variant and seen succeeding on its goals, and what was not formalized says why.
+
+All user-facing output is in Traditional Chinese; identifiers, paths, model code and quoted source stay as they are. Words follow the repo glossary (`CONTEXT.md`): a rule 成立 or 不成立, never 證實／推翻, which are `/prove-it`'s.
 
 ## Outcome Contract
 
-- **Outcome**: (unimplemented) — every claim in scope ends as a hypothesis whose computed state is `proved`, `disproved`, or `unformalized`, with nothing unexplained.
-- **Done when**: (unimplemented) — rules confirmed by the user; every model part cites its source; each safety rule seen failing on a broken variant; each goal seen reachable and seen unreachable with one transition removed; scope stated; every unformalized part has a reason record; `hypothesis-status.py --area <area>` prints the intended state; the diagram page is open.
-- **Evidence**: (unimplemented) — the `check` block of `hypothesis.json` (tool, version, command, bounds, states, seen_failing, seen_succeeding) and the check log.
-- **Output**: (unimplemented) — `.claude/hypothesis/<area>/` per `references/artifact.md`; never archived by `/ship`; no product code edited.
-- **Automation**: ultracode=neutral, loop=assisted（`--maintain` is called by readers without a person; it pauses only when a change looks like a promise changed on purpose and needs the person's evidence — read `../_shared/loop-contract.md` first and apply its PAUSE semantics; a first write needs the person to confirm rules and is reported as such, never defaulted）
+- **Outcome**: every claim in scope ends as a hypothesis whose computed state is `proved`, `disproved`, or `unformalized`, with nothing unexplained.
+- **Done when**: the rules were confirmed by the user; every model part cites its source; each safety and liveness rule was seen failing on a broken variant; each goal was seen reachable and seen unreachable with one transition removed; the scope is stated; every unformalized part has a reason record; `scripts/hypothesis-status.py --area <area>` prints the intended state; the diagram page is open.
+- **Evidence**: the `check` block of `hypothesis.json` (tool, version, command, bounds, states, seen_failing, seen_succeeding), `check.log`, and the status line quoted.
+- **Output**: `.claude/hypothesis/<area>/` per `references/artifact.md`, never archived by `/ship`; no product code edited.
+- **Automation**: ultracode=neutral, loop=assisted（`--maintain` is called by readers without a person and pauses only when a change may have changed a promise with no evidence; a first write needs the person to confirm the rules — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
+- **Telemetry**: on invocation, append one selection record per `../_shared/selection-telemetry.md`.
 
 PAUSE classification for non-interactive drivers: `references/loop-pauses.md`.
 
 ## 1. Decide whether this is a hypothesis
 
-(unimplemented) — Run `scripts/hypothesis-status.py --files <target>` first: an existing `proved` or `disproved` area covering the target is the 「已經有一份同步中的假說」 non-trigger — rerun it via `--check`, write nothing new; a `stale` one routes to §6; a `legacy` one of the same area must be moved first (§6 Migration) — one area never lives in two places. Otherwise match the target against H1–H8 and the non-trigger list in `references/formal.md`, and confirm the default tool for the matched row is installed before creating the area dir (a missing tool is `no-tool`, not a half-built area); a miss ends with one reason record (`references/artifact.md` § Reason record), written into the caller's output, not into `.claude/hypothesis/`.
+Run `scripts/hypothesis-status.py --files <target>` first (`python` where `python3` is absent):
+
+- an existing `proved` or `disproved` hypothesis covering the target is not-trigger 5: rerun it with the `--check` command and write nothing new;
+- a `stale` or `draft` one goes to §6;
+- a `legacy` one of the same area is moved first (§6, Migration) — one area never lives in two places.
+
+Otherwise match the target against H1–H8 and the not-trigger list in `references/formal.md`. Before creating anything, confirm the matched row's default tool runs here (for TLA+: Java and `tla2tools.jar`); a missing tool goes to `/health`'s environment doctor, and if it stays missing the result is `unformalized`, class `no-tool`, never a half-built area. A miss ends with one reason record (`templates/reason-record.md`) in the caller's output, not under `.claude/hypothesis/`.
 
 ## 2. Read the source and name the area
 
-(unimplemented) — Decide the input kind from the argument alone and say it in the first status line so the user can correct it: a path or symbol in code → code; a `HUNT-YYYY-NNN` id or a sentence describing a failure → symptom; one document → document; `--satisfies`, or wording such as 「A 是否滿足 B」 → two sources, each a document or code, roles stated in the first line (the one flag kept, because without the wording the direction cannot be guessed). Pick the source adapter (`references/sources.md`). Choose the area slug (stable, the source's own word for the part). Record the coverage set and the watch patterns (the writes to the guarded state) as you read, not after.
+Decide the input kind from the argument alone and say it in the first status line so the user can correct it:
+
+- a path or symbol in code → code;
+- a `HUNT-YYYY-NNN` id, or a sentence describing a failure → symptom;
+- one document → document;
+- `--satisfies`, or wording such as 「A 是否滿足 B」 → two sources, each a document or code, with the roles stated in the first line (the one flag kept, because without the wording the direction cannot be guessed).
+
+Then read the source as its adapter in `references/sources.md` says. Choose the area name (`references/artifact.md` § Area name). Record the coverage — every cited file, and every writer of the guarded state as watch patterns — while you read, not after.
 
 ## 3. Confirm the rules in plain words
 
-(unimplemented) — One sentence per rule, kinds `safety` / `goal`, no variable or action names; each with its citation. For documents, every extracted rule carries its quote and location and the user ticks each. Ambiguities become questions with whom to ask, never filled in. Parts not to be formalized are listed with their reason class before modelling starts.
+Show the user, and wait for them:
+
+- one sentence per rule, of kind safety (不能發生), liveness (終究會發生) or goal (做得到), with no variable or action names, each with its citation;
+- for a document, every extracted rule with its quote and location, ticked by the user one by one;
+- every ambiguity as a question with whom to ask, never filled in;
+- every part that will not be formalized, with its reason class, before modelling starts.
+
+This is the one Input PAUSE of a first write (`references/loop-pauses.md`).
 
 ## 4. Model and check
 
-(unimplemented) — Tool choice and the strictness rules from `references/formal.md`: true to source, one indivisible source step = one model step, the source's names. Run the check with one pinned command. Then the two evidence gates, both mandatory: seen failing (a broken variant per safety rule, kept as a patch under `variants/`, the throwaway copy dropped) and seen succeeding (each goal reached; unreachable after removing one named transition). A counterexample every step of which the source can take is a finding, written as a script in the source's words under `paths/`; never weaken a rule or the model to pass.
+Choose the tool and hold to the strictness rules in `references/formal.md`: true to the source, one indivisible source step is one model step, the source's names. Run the check with one pinned command, sending the tool's scratch output to the system temp dir. Then both evidence gates, both mandatory:
+
+- **seen failing** — for each safety and liveness rule, make a broken variant in a scratch copy of the source, see the check catch it, keep the variant under `variants/`, drop the copy;
+- **seen succeeding** — reach each goal, then remove one named transition and see the goal become unreachable.
+
+A counterexample every step of which the source can take is a finding: write it as a script in the source's words under `paths/` (`templates/path.md`). A step the source cannot take is a model error: fix the model and say what was wrong. Never weaken a rule, a bound or the model to pass.
 
 ## 5. Draw and publish
 
-(unimplemented) — Build `diagrams.html` per `references/diagrams.md` (diagram 1 happy path ≤ 7 states; each next adds one part; the last numbers every bug path with the same `P<n>` ids as `paths/`). Write `README.md` from `templates/README.md`. Write `hypothesis.json` LAST, by compare-and-swap on `generation` (`references/artifact.md` § Writing). Run `hypothesis-status.py --area <area>` and quote its line; open the page.
+Build `diagrams.html` per `references/diagrams.md`: diagram 1 is the happy path with at most 7 states; each next diagram adds one part; the last numbers every path with the same `P<n>` ids as `paths/`. Write `README.md` from `templates/README.md`. Publish per `references/artifact.md` § Writing — `hypothesis.draft.json`, then `scripts/hypothesis-publish.py <area dir>` — and run `scripts/hypothesis-status.py --area <area>`. Quote its line. If it does not print the state you intended, a gate is missing: fix it and publish again. Open the page for the user.
 
 ## 6. Keep it in step (`--maintain`)
 
-(unimplemented) — `references/maintain.md`: start from `hypothesis-status.py --all`; for each non-`proved`/`disproved` area, read every change to its coverage since `sync.commit` plus every `new-writer` the script names, sort into the four outcomes, rerun before and after, re-derive variants when the model changed, then publish as §5. First run offers to migrate `.claude/prove-it/formal/<area>/` (legacy) per `references/maintain.md` § Migration.
+Follow `references/maintain.md`. It turns on by itself when the target is covered by a `stale`, `draft` or `legacy` hypothesis, and readers invoke it when they see `stale`. Start from `hypothesis-status.py --all`; for each listed area, read every change since `sync.commit` and every `new-writer` the script names twice — what the source does now, the way `/how` reads it, and why it changed, the way `/why` looks for reasons — sort each into the four outcomes, rerun before and after, re-derive the variants when the model changed, then publish as §5. The first run offers to move any `.claude/prove-it/formal/<area>/` (§ Migration).
 
 ## 7. Report
 
-(unimplemented) — Plain first, then detail: each finding, path and question opens with one sentence in everyday words (none of 活性、安全性、精化、不變式、同步點、TLC、模型、狀態空間), then its technical layer (`file:line`, tool, states, rule name). This rule is this skill's own; it does not call `/huh`. Then the one closing line, fixed:
-「hypothesis 完成：{area}｜{N} 條規則，{D} 條被推翻（{path ids}）、{H} 條成立｜{tool} {version}，{states} 個狀態｜範圍：{bounds}｜同步：{sync}｜圖：{page path}」
-plus, for documents, 「矛盾 {c}｜缺漏 {g}｜模糊 {a}」, and the unformalized count with the README section it lives in.
+Plain first, then detail. Each finding, path and question opens with one sentence in everyday words — none of 活性、安全性、精化、不變式、同步點、TLC、模型、狀態空間 — then its technical layer (`file:line`, tool, states, rule name). This rule is this skill's own; it does not call `/huh`. Then the one closing line, fixed:
+
+「hypothesis 完成：{area}｜{N} 條規則，{F} 條不成立（{path ids}）、{H} 條成立｜{tool} {version}，{states} 個狀態｜範圍：{bounds}｜同步：{sync}｜圖：{page path}」
+
+For documents add 「矛盾 {c}｜缺漏 {g}｜模糊 {a}」. Add the unformalized count and the README section it lives in.
 
 ## For readers
 
-(unimplemented) — Three lines pointing at `references/reading.md`: readers run the script, read `state`, and act per the state × reader table; they never open `hypothesis.json`, compare commits, or write under `.claude/hypothesis/`.
+Readers — `/prove-it`, `/review`, `/hunt`, `/health`, the green step of `../_shared/tdd.md`, `/draft` — follow `references/reading.md` and nothing else here: they run the status script, read `state`, and act per its state × reader table. They never open `hypothesis.json`, never compare commits or hashes, never write under `.claude/hypothesis/`.
 
 ## Not-for boundaries
 
-- (unimplemented) Proving it on the running app, replaying a counterexample with forced order → `/prove-it`.
-- (unimplemented) Finding the cause of a failure → `/hunt` (which may hand an H1–H3 symptom here).
-- (unimplemented) A claim one run can settle, a static permission check, look and copy → not a hypothesis; red/green under `../_shared/tdd.md`.
-- (unimplemented) A figure polished for a presentation → `/draw`, by hand.
+- Proving it on the running app, replaying a counterexample with forced order → `/prove-it`.
+- Finding the cause of a failure → `/hunt`, which hands an H1–H3 symptom here and turns paths into conjectures.
+- A claim one run can settle, a static permission check, look and copy → not a hypothesis; red/green under `../_shared/tdd.md`.
+- A figure polished for a presentation → `/draw`, by hand.
