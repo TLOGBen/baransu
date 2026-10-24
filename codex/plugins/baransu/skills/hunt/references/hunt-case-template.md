@@ -39,8 +39,9 @@ fix: ""
 
 ## 調查記錄
 
-### 假說 1
-- 假說：
+### 推測 1
+- 推測：
+- 來源（假說的反例路徑，沒有就寫「無」）：
 - 工具（帶 `🎯HUNT-YYYY-NNN` tag）：
 - Probe label / yes-no question:
 - Allowed field names: [exact minimal fields for this probe; the tested systemd reporter example uses `timestamp`, `target`, `probe`, `event`, `result`]

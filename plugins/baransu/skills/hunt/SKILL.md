@@ -1,6 +1,6 @@
 ---
 name: hunt
-description: "Tracks a bug from its symptom to the root cause before any fix — picks the observability tool, bisects, and confirms or discards each hypothesis. Trigger On '/hunt', '排查', '查 bug', '為什麼失敗', '報錯', 'debug', 'not working'. Not for judging finished work (/review) or whether a fix is worth it (/think)."
+description: "Tracks a bug from its symptom to the root cause before any fix — picks the observability tool, bisects, and confirms or discards each conjecture. Trigger On '/hunt', '排查', '查 bug', '為什麼失敗', '報錯', 'debug', 'not working'. Not for judging finished work (/review) or whether a fix is worth it (/think)."
 metadata:
   version: "1.0.0"
   scope: investigation-and-fix
@@ -16,7 +16,7 @@ Whether a guard is a fix turns on one question: is the state that broke the code
 
 **Do not touch code until you can state the root cause in one sentence:**
 > 「根因是 [X]，因為 [證據]。」
-Name a specific file, function, line, or condition. "A state management issue" is not a hypothesis. "Stale cache in `useUser` at `src/hooks/user.ts:42` because the dependency array is missing `userId`" is.
+Name a specific file, function, line, or condition. "A state management issue" is not a conjecture. "Stale cache in `useUser` at `src/hooks/user.ts:42` because the dependency array is missing `userId`" is.
 
 All user-facing output is in **Traditional Chinese (繁體中文)**.
 
@@ -44,11 +44,11 @@ All user-facing output is in **Traditional Chinese (繁體中文)**.
 - Locate step (five questions) must complete before adding the first instrument.
 - Before You Fix (impact analysis + test matrix) is mandatory before any fix.
 - All instruments must carry a HUNT-id tag; remove all after root cause is confirmed.
-- Confirm or Discard: one active yes/no probe at a time; contradicted hypotheses are discarded completely, not patched.
+- Confirm or Discard: one active yes/no probe at a time; contradicted conjectures are discarded completely, not patched.
 - A root cause cannot become `confirmed`, 「已解決」, or 「已解決（附帶條件說明）」 until every observed symptom maps to its causal chain, or an independent evidence citation proves the symptom does not share that chain and the case file records a separate incident id plus next action. A label alone is not separation evidence; otherwise the symptom stays `pending`.
-- Before every probe, declare the exact minimal allowed field names for that hypothesis. Runtime observations, reporter results, verbatim RED evidence, and the case file may retain only those fields after redaction; never retain a complete object, payload, credential, token, cookie, PII, or private path. The tested systemd reporter example below uses `timestamp`, `target`, `probe`, `event`, and `result`; other probe types choose their own minimal allowlist.
-- Two fixes that rest on one premise and fail the same check refute the premise, not the fixes: write the premise down as the next hypothesis and confirm or discard it before a third fix.
-- Three failed hypotheses triggers Handoff format, not another guess.
+- Before every probe, declare the exact minimal allowed field names for that conjecture. Runtime observations, reporter results, verbatim RED evidence, and the case file may retain only those fields after redaction; never retain a complete object, payload, credential, token, cookie, PII, or private path. The tested systemd reporter example below uses `timestamp`, `target`, `probe`, `event`, and `result`; other probe types choose their own minimal allowlist.
+- Two fixes that rest on one premise and fail the same check refute the premise, not the fixes: write the premise down as the next conjecture and confirm or discard it before a third fix.
+- Three failed conjectures triggers Handoff format, not another guess.
 - DB-connected investigation tests must use transactions that always rollback.
 - File writes and external API calls in investigation tests must use mocks.
 
@@ -58,7 +58,7 @@ When these thought patterns surface, stop and re-examine:
 
 | Thought pattern | What it actually means | Rule |
 |------|---------|------|
-| "Let's try this" | No hypothesis — random walk | Stop. Write the hypothesis first, then act. |
+| "Let's try this" | No conjecture — random walk | Stop. Write the conjecture first, then act. |
 | "I'm certain it's X" | Confidence is not evidence | Find one tool that can falsify it before proceeding. |
 | "Probably the same as last time" | Mapping a known pattern onto a new symptom | Re-read the execution path from scratch. |
 | "It works on my side" | Environment difference IS the bug | List every environment difference, then proceed. |
@@ -72,14 +72,14 @@ When these appear, the diagnosis is moving in the right direction:
 
 | Signal | Meaning | Next step |
 |------|------|------|
-| "This log entry matches the hypothesis" | Positive evidence found | Find one independent cross-confirmation before fixing. |
+| "This log entry matches the conjecture" | Positive evidence found | Find one independent cross-confirmation before fixing. |
 | "I can predict what the next error will be" | Mental model is forming | Execute the prediction; if it matches, the model is correct. |
 | "Root cause is in A, symptom appears in B" | Propagation path understood | Walk the call chain from A to B one frame at a time. |
-| "I can write a test that fails on the old code" | Hypothesis is concrete enough to test | Write the test before touching code. |
+| "I can write a test that fails on the old code" | Conjecture is concrete enough to test | Write the test before touching code. |
 
 Progress claims must map to at least one of the above signals.
 
-Do not stay silent while investigating. Emit a short user-visible progress update after Locate, after each hypothesis is confirmed or discarded, and before a fix or Handoff. Each update says what was checked, what the evidence changed, and what concrete check comes next. Report evidence and decisions only; never expose private chain-of-thought.
+Do not stay silent while investigating. Emit a short user-visible progress update after Locate, after each conjecture is confirmed or discarded, and before a fix or Handoff. Each update says what was checked, what the evidence changed, and what concrete check comes next. Report evidence and decisions only; never expose private chain-of-thought.
 
 ---
 
@@ -90,7 +90,7 @@ Eligibility is measured **at routing time**, by running the Scope Blast grep ear
 When BOTH hold: (1) the FIRST instrument, or the error message itself, confirms a one-sentence root cause, AND (2) the routing-time Scope Blast grep returns ≤3 matches still needing a fix/leave verdict (exclude matches inside `tests/` and `.claude/`) — the hunt may compress ceremony. The count that governs is post-exclusion matches requiring a verdict, not raw grep hits (raw hits may be 5 while relevant matches are 1; the Fast Path gates on the 1).
 
 - Locate's five questions answered in one line each.
-- Short-form case file: EXACTLY these five named sections — root cause / fix / 確認方式 / 迴歸守護 / blast verdicts. Before You Fix call-chain analysis and the hypothesis log are omitted on the Fast Path; both return the moment the run leaves the Fast Path (the first instrument fails to confirm, or the blast grows past 3).
+- Short-form case file: EXACTLY these five named sections — root cause / fix / 確認方式 / 迴歸守護 / blast verdicts. Before You Fix call-chain analysis and the conjecture log are omitted on the Fast Path; both return the moment the run leaves the Fast Path (the first instrument fails to confirm, or the blast grows past 3).
 
 When the Fast Path is taken, the case file (trace) MUST carry one routing log line — recognition must be auditable, not inferred from a section heading:
 「Fast Path：首儀器定根因 ✓；blast 候選 N ≤3 → 壓縮儀式」
@@ -112,6 +112,9 @@ Before investigating, pick the tool that can **observe the layer where the probl
 | LSP findReferences | Call chain structure | Who calls this method, what could be affected |
 | bash logging / runtime instrument | Runtime intermediate values | Unexpected branch paths, condition values |
 | Static code read | Static structure | When none of the above can observe the problem layer |
+| `/hypothesis` (a formal model) | Every order of steps the code allows | An intermittent symptom with an H1–H3 signal in `../hypothesis/references/formal.md`; the side-effect rule below fired; the user asks for a 假說 first |
+
+When the `/hypothesis` row is chosen, allocate the case file now (as Locate does, `NNN` and all) and invoke `/hypothesis` with the `HUNT-YYYY-NNN` id; then read the hypothesis as `../hypothesis/references/reading.md` says, in its `/hunt` column. Each path `P<n>` becomes one conjecture, its yes/no taken from the path's probe questions, and the case file records `來源：P<n>` beside it. A hypothesis whose rules all hold never discards a conjecture: it only says no such path exists within its stated scope, so probe outside that scope. A `stale` hypothesis is maintained first (`--maintain`), and its paths may serve as leads meanwhile, labelled 過期. After the fix, the green step of `../_shared/tdd.md` reruns the hypothesis; if its maintenance stops to ask for evidence that a promise changed on purpose, this case still closes, with that question recorded in the case file and left on the hypothesis.
 
 If the problem layer is uncertain, use bash logging first to confirm which module the symptom appears in, then choose the precise tool.
 
@@ -137,10 +140,10 @@ Before instrumenting, run `python3 "$CLAUDE_SKILL_DIR/scripts/hunt-search.py" --
 
 ### Reporter probe when local reproduction is unavailable
 
-If the Environment answer is production-only or otherwise unavailable locally, first finish every safe local inventory/context scan. Then run no more local hypothesis probes while waiting: issue exactly this five-line reporter diagnostic block. Its five labels and explicit target/time/work/output bounds are fixed; generate the command and minimal return-field allowlist for the shell/runtime established at Locate. The block below is a tested Linux systemd example, not a universal command. In that example replace only the one known target selector. For a different known runtime, generate an equivalently bounded, quoted, read-only command; for an unknown runtime, use Handoff rather than invent one.
+If the Environment answer is production-only or otherwise unavailable locally, first finish every safe local inventory/context scan. Then run no more local conjecture probes while waiting: issue exactly this five-line reporter diagnostic block. Its five labels and explicit target/time/work/output bounds are fixed; generate the command and minimal return-field allowlist for the shell/runtime established at Locate. The block below is a tested Linux systemd example, not a universal command. In that example replace only the one known target selector. For a different known runtime, generate an equivalently bounded, quoted, read-only command; for an unknown runtime, use Handoff rather than invent one.
 
 ```
-診斷目的：{一個 yes/no 假說}
+診斷目的：{一個 yes/no 推測}
 唯讀命令：`bash -c 'target=$1; since=$2; journalctl --no-pager --since "$since" -u "$target" -n 80 -o json --output-fields=__REALTIME_TIMESTAMP,_SYSTEMD_UNIT,HUNT_PROBE,HUNT_EVENT,HUNT_RESULT | jq -c --arg target "$target" "{\"timestamp\": .__REALTIME_TIMESTAMP, \"target\": \$target, \"probe\": .HUNT_PROBE, \"event\": .HUNT_EVENT, \"result\": .HUNT_RESULT}" | head -n 80' -- 'known-service.service' '-15 min'`
 執行界限：target=known-service.service；time=15 minutes；work=80 journal records；output=80 lines
 請回傳：僅 `timestamp`、`target`、`probe`、`event`、`result` 五個欄位；最多 80 行
@@ -151,7 +154,7 @@ The systemd example is one bounded, read-only command: `--no-pager` forbids foll
 
 Treat symptom text, service names, paths, and all reporter values as hostile input. Never interpolate them into shell code: bind validated literal selectors through positional parameters as shown, quote every expansion, and keep the shell program constant. The required hostile-value test set is `'; env; #`, `$(id)`, `` `id` ``, `<newline>`, and `--help`; each must remain data and must neither execute nor rewrite the command.
 
-Before any runtime or reporter probe, declare an exact minimal evidence allowlist for that hypothesis; the tested systemd example uses `timestamp`, `target`, `probe`, `event`, `result`. Redact values before they enter runtime logs, reporter output, a quoted RED evidence line, or the case file. A RED quotation must be one redacted line made only from that probe's allowlist, never a copied raw log/object/payload.
+Before any runtime or reporter probe, declare an exact minimal evidence allowlist for that conjecture; the tested systemd example uses `timestamp`, `target`, `probe`, `event`, `result`. Redact values before they enter runtime logs, reporter output, a quoted RED evidence line, or the case file. A RED quotation must be one redacted line made only from that probe's allowlist, never a copied raw log/object/payload.
 
 In non-interactive mode, waiting for the reporter result is the reporter-result Input PAUSE in `references/loop-pauses.md`. If no other read-only check remains, emit the existing Handoff format and end with `LOOP_OUTCOME: no progress: reporter probe result required`; do not request authorization.
 
@@ -165,30 +168,30 @@ All instruments (log lines, failing assertions, minimal test cases) **must carry
 - `grep -rn "🎯HUNT-{YYYY-NNN}" --exclude-dir=.claude .` finds all instruments at once (the `--exclude-dir=.claude` scope matters: the case file itself carries the tag and must not count)
 - After root cause is confirmed, **remove all tagged instruments in one sweep**, verify the build still passes, and confirm the same scoped grep over the source/test dirs returns 0 matches
 
-One probe answers exactly one written yes/no hypothesis. At most one probe may be active at any time, whether it is an assertion, query, test, log, or static hypothesis check. Only an inventory/context scan that answers no hypothesis may run in parallel.
+One probe answers exactly one written yes/no conjecture. At most one probe may be active at any time, whether it is an assertion, query, test, log, or static conjecture check. Only an inventory/context scan that answers no conjecture may run in parallel.
 
-A probe contains either one assertion/query/test/static check, or 2–3 coordinated log sites. In the log-site form, every site has the same HUNT-id and probe label, all sites test the same yes/no hypothesis, and they close together as one probe — never as parallel hypotheses.
+A probe contains either one assertion/query/test/static check, or 2–3 coordinated log sites. In the log-site form, every site has the same HUNT-id and probe label, all sites test the same yes/no conjecture, and they close together as one probe — never as parallel conjectures.
 
 Log bisection therefore uses one log-site probe per round, not 20 instruments or multiple active probes.
 ```
 Probe 1: entry / middle / exit sites answer “does this one path lose the value?” → close the probe
-Probe 2: 2–3 sites inside the identified segment answer the next yes/no hypothesis → close the probe
+Probe 2: 2–3 sites inside the identified segment answer the next yes/no conjecture → close the probe
 Probe 3: usually locates within 5–10 lines
 ```
 
-**Side-effect rule**: If adding a log changes the behavior (the bug disappears, the symptom shifts, the order of events differs), treat that as direct evidence of a timing, lifecycle, or concurrency problem — not as a logging side-effect to dismiss. The act of observing already pointed at the root cause class.
+**Side-effect rule**: If adding a log changes the behavior (the bug disappears, the symptom shifts, the order of events differs), treat that as direct evidence of a timing, lifecycle, or concurrency problem — not as a logging side-effect to dismiss. The act of observing already pointed at the root cause class. When it fires, the `/hypothesis` row of Tool Scan applies.
 
 ---
 
 ## Confirm or Discard
 
-Write one yes/no hypothesis, declare its exact evidence allowlist, then open exactly one probe. Close it and record the result before opening another. A partial explanation may stay a hypothesis, but it cannot set `confirmed` until the complete observed-symptom list is mapped to the causal chain, or an independent evidence citation proves a symptom belongs to another incident and the case file records that incident's id plus next action.
+Write one yes/no conjecture, declare its exact evidence allowlist, then open exactly one probe. Close it and record the result before opening another. A partial explanation may stay a conjecture, but it cannot set `confirmed` until the complete observed-symptom list is mapped to the causal chain, or an independent evidence citation proves a symptom belongs to another incident and the case file records that incident's id plus next action.
 
 After executing:
-- Evidence **supports the hypothesis** → close that first probe, then open one second, independent cross-confirmation probe before proceeding to Before You Fix (next section). Independent means a different observable layer than the first probe (per the Tool Scan layers — UI/render, data state, call-chain structure, runtime intermediate values, static structure). Concretely, if a runtime log probe supported it, the second probe must be a DB query, a failing test, or a UI/render observation — not another runtime log. The sole same-layer exception is an observed failing test that encodes the hypothesis; it is still a second, closed-before-opened probe.
-- Evidence **contradicts the hypothesis** → **discard the hypothesis completely**. Not patch, not explain. Reorient using what was just learned.
+- Evidence **supports the conjecture** → close that first probe, then open one second, independent cross-confirmation probe before proceeding to Before You Fix (next section). Independent means a different observable layer than the first probe (per the Tool Scan layers — UI/render, data state, call-chain structure, runtime intermediate values, static structure). Concretely, if a runtime log probe supported it, the second probe must be a DB query, a failing test, or a UI/render observation — not another runtime log. The sole same-layer exception is an observed failing test that encodes the conjecture; it is still a second, closed-before-opened probe.
+- Evidence **contradicts the conjecture** → **discard the conjecture completely**. Not patch, not explain. Reorient using what was just learned.
 
-A preserved-but-contradicted hypothesis produces a new bug. Discard completely.
+A preserved-but-contradicted conjecture produces a new bug. Discard completely.
 
 ---
 
@@ -236,7 +239,7 @@ If the blast surfaces unrelated bugs, list them in the case file but do not fix 
 
 Activate when: "It worked before and now it's broken" or "It broke after an update."
 
-When the update is a version pair (runtime, framework, dependency), the first hypotheses come from the delta: the known changes of that pair intersected with what this code actually uses, each cited file:line with its site count — a removed API nobody calls is not a hypothesis — and a change that compiles and runs with a different result (locale, encoding, collection order, floating point, a default) outranks one that fails loudly, because the loud one already named itself. Bisect confirms the commit; the delta names the line.
+When the update is a version pair (runtime, framework, dependency), the first conjectures come from the delta: the known changes of that pair intersected with what this code actually uses, each cited file:line with its site count — a removed API nobody calls is not a conjecture — and a change that compiles and runs with a different result (locale, encoding, collection order, floating point, a default) outranks one that fails loudly, because the loud one already named itself. Bisect confirms the commit; the delta names the line.
 
 **Precondition — git repo**: If the project is not a git repo, skip Bisect Mode entirely and fall back to static analysis + instrumentation (Tool Scan / Instrumentation sections). Never wedge trying to bisect what has no history.
 
@@ -255,11 +258,11 @@ Activate when the user says the same issue is still wrong after a previous fix, 
 
 Treat the reference as **evidence, not decoration**. Five-step flow:
 
-1. **List every reported and visible symptom**, preserving the user's exact words where useful (例：「還是慢」「不清楚」「尖刺」「先顯示上一個內容」). Multiple symptoms must all be explained by the eventual hypothesis.
+1. **List every reported and visible symptom**, preserving the user's exact words where useful (例：「還是慢」「不清楚」「尖刺」「先顯示上一個內容」). Multiple symptoms must all be explained by the eventual conjecture.
 2. **Identify the reference oracle**: last-good commit / tag, old build, fixture file, screenshot, downloaded artifact, or the user's described expected state. Name the artifact concretely.
 3. **Define the pass/fail check before editing**. For visual bugs: a narrow screenshot checklist plus the command that renders the view. For behavioral bugs: an automated regression test or deterministic repro.
 4. **Compare current vs. reference and name the exact delta**. Do not generalize an observed defect into "style polish" when the evidence points to a broken render, race, font pipeline, or state path.
-5. **If the same symptom remains after one attempted fix**: this triggers the Hard Rule「Same symptom recurs after fix」(see Hard Rules — stop; no further fix attempts until the hypothesis is rebuilt, though 🎯HUNT-tagged instruments for re-diagnosis remain allowed). Then rebuild the hypothesis from the evidence collected in steps 1–4 above; do not stack more patches onto a disproven explanation.
+5. **If the same symptom remains after one attempted fix**: this triggers the Hard Rule「Same symptom recurs after fix」(see Hard Rules — stop; no further fix attempts until the conjecture is rebuilt, though 🎯HUNT-tagged instruments for re-diagnosis remain allowed). Then rebuild the conjecture from the evidence collected in steps 1–4 above; do not stack more patches onto a disproven explanation.
 
 If the issue is purely subjective UI taste, route to `/baransu:ui` instead. Stay in `/hunt` when the issue is rendering, state, timing, build output, font generation, or a regression from a known-good version.
 
@@ -269,9 +272,9 @@ If the issue is purely subjective UI taste, route to `/baransu:ui` instead. Stay
 
 | Condition | Action |
 |------|------|
-| Same symptom recurs after fix | Stop. Hypothesis was incomplete. Re-read the execution path. No further fix attempts until the hypothesis is rebuilt — adding 🎯HUNT-tagged instruments for re-diagnosis remains allowed. |
-| "Let's try this" appears | Stop. Write the hypothesis before acting. |
-| Three hypothesis failures | Switch to Handoff format (see Output). |
+| Same symptom recurs after fix | Stop. Conjecture was incomplete. Re-read the execution path. No further fix attempts until the conjecture is rebuilt — adding 🎯HUNT-tagged instruments for re-diagnosis remains allowed. |
+| "Let's try this" appears | Stop. Write the conjecture before acting. |
+| Three conjecture failures | Switch to Handoff format (see Output). |
 | Before You Fix incomplete when fix is attempted | Stop. Complete call chain analysis and test matrix first. |
 | External tool fails | Diagnose the cause first (is the server running? is config correct?) before switching tools. |
 | Visual / render bug | Static analysis first (DevTools layers, stacking context); logging is the second step. |
@@ -282,7 +285,7 @@ If the issue is purely subjective UI taste, route to `/baransu:ui` instead. Stay
 | Fix plan or current diff touches 6 or more files (without a Scope Blast pattern justification) | Stop **before adding the 6th file**. Check at two points: (i) when drafting the fix plan, (ii) after each edit. If the scope is genuinely a class-of-bug sweep, route through Scope Blast Mode (which is an explicit exception). If it is symptom-patch creep growing into a refactor, narrow back, or slice it and run the first slice through the medium band (implement under the `../_shared/tdd.md` §7 red/green discipline, then `/baransu:review` for independent re-verification). |
 | Someone (user or agent) deflects suspicion from a specific area — semantic trigger, not literal string match. Examples: 「那段沒問題」「不是那邊的問題」「先別管那個」「我已經檢查過了」, "that part doesn't matter", "I already checked there" | Treat as a signal. The area being deflected from is often where the bug lives — especially in multi-stage pipelines (CI segments, data pipeline stages, baransu plane handoffs) where one stage is excluded from suspicion. Re-examine that area with one targeted instrument before accepting the deflection. |
 
-> In an ultracode session you may dispatch Workflows only for parallel inventory/context scans that answer no hypothesis. They may inform the next serialized probe, but never explore multiple hypothesis lines in parallel.
+> In an ultracode session you may dispatch Workflows only for parallel inventory/context scans that answer no conjecture. They may inform the next serialized probe, but never explore multiple conjecture lines in parallel.
 > When driven by loop, the loop-mode default is assisted: diagnosis advances automatically, but the fix is reported to the driver before being applied.
 
 ---
@@ -325,15 +328,15 @@ After confirming root cause, route the fix by task scope:
 - Single change point, small amount of code → implement directly, building your own red/green task list under the _shared/tdd.md discipline (read `../_shared/tdd.md` §7 before implementing)
 - Multiple files, design decision needed, or cross-module impact → slice the fix and run each slice through the medium band: implement under the `../_shared/tdd.md` §7 red/green discipline → `/baransu:review` for independent re-verification
 
-### Handoff format (use after three hypothesis failures)
+### Handoff format (use after three conjecture failures)
 
 ```
 症狀：[原始錯誤，一句話]
 
-已測試的假說：
-1. [假說 1] → [測試方式] → [結果：因為...排除]
-2. [假說 2] → ...
-3. [假說 3] → ...
+已測試的推測：
+1. [推測 1] → [測試方式] → [結果：因為...排除]
+2. [推測 2] → ...
+3. [推測 3] → ...
 
 已蒐集的證據：[Log / stack trace / 觀測到的中間值 / 重現步驟 / 環境]
 已排除的根因：[已消除的可能性]

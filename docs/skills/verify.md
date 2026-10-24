@@ -51,7 +51,7 @@ Claude Code：`/baransu:hunt`　Codex：`$baransu:hunt`
 - 靜態讀碼先開入口追控制流再 grep 名字，先找資料再找誰碰它；每句主張給 file:line 或說「不知道」。
 - 以 `🎯HUNT-id` 標記臨時探針，確認或排除每個假設後才碰程式；確認後探針全部移除。
 - 修之前先做呼叫鏈分析與測試矩陣；修復跨多檔時切片，每片實作 → `/review`。
-- 特殊模式：Fast Path（瑣碎 bug）、Scope Blast、Bisect（版本對時第一批假說從 delta 來）、Repeated Regression；無法在本機重現時改用回報者探針。
+- 特殊模式：Fast Path（瑣碎 bug）、Scope Blast、Bisect（版本對時第一批推測從 delta 來）、Repeated Regression；無法在本機重現時改用回報者探針。
 - 三個假設都失敗時改出交接報告，不硬修。
 
 **產出**
