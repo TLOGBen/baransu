@@ -299,7 +299,7 @@ def print_detail(row: Row, view: str, as_json: bool) -> None:
     if as_json:
         print(json.dumps({"area": row.area, "state": row.state, "items": items}, ensure_ascii=False, indent=1))
         return
-    print(f"# {row.area}  state={row.state}")
+    print(f"# {row.area}  state={row.state}" + (f"  title={rec['title']}" if rec.get("title") else ""))
     for it in items:
         if view == "rules":
             print(f"{it['id']}\t{it['kind']}\t{it['verdict']}\t{it['text']}")

@@ -54,12 +54,14 @@ The whole decision; no reader adds judgement to it:
 | `broken` | finding 「無法判定假說狀態」 | red | no verdict | ignore | WARN |
 | none (`10`) | nothing to read; a claim only every order or every input settles names a hypothesis as the missing record (review `principles/evidence.md` #7) | green | invoke `$baransu:hypothesis` on an every-case claim first | may hand the symptom to `$baransu:hypothesis <HUNT-id>` | nothing |
 
+**Telling the person.** Whenever a reader tells the person a hypothesis's state or a rule's verdict, it first introduces the hypothesis itself, once per area per report: what the area covers for whoever uses it, as the smallest visual `../../show-me/SKILL.md` lays out with one or two sentences in `$baransu:huh`'s voice (`../../huh/SKILL.md`), built from the `--rules` title and sentences; then the state and the verdicts.
+
 The hand-off to `--maintain` is the reader's own call into the writer, made by the main session, never by a review agent (review only reports). Under a non-interactive driver, `--maintain` pauses only on a "promise changed on purpose" change (`loop-pauses.md`); the reader then reports 「卡住」 with the maintainer's questions and stays red. In the other direction, `$baransu:hypothesis` hands a freshly `established` code area with a rule 被打破 to `$baransu:prove-it` at once (`../SKILL.md` §5).
 
 ## Detail views
 
 Exact output shape of each, so a reader quotes rather than paraphrases:
-- `--rules <area>`: header `# <area>  state=<state>`; per rule `<id>  <kind>  <verdict|?>  <sentence>`.
+- `--rules <area>`: header `# <area>  state=<state>  title=<title>`; per rule `<id>  <kind>  <verdict|?>  <sentence>`.
 - `--paths <area>`: per path `<P-id>  <rule>  <verdict|?>  <one-line summary in source words>  <script path>`.
 - `--scope <area>`: bounds, assumptions, what is left out — verbatim from the artifact.
 - `--check <area>`: the one pinned rerun command and the tool version; the reader runs it in a scratch dir and records the output in its own record, never in the area. A rerun on an unchanged source that disagrees with the stored verdict is reported 「與紀錄不符」 and treated as `broken`: the model, the tool or the environment moved, and no verdict from that area counts until `$baransu:hypothesis --maintain` explains why.
