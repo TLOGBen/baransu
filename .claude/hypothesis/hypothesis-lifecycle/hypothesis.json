@@ -1,0 +1,264 @@
+{
+  "title": "假說自己的生命週期",
+  "source_kind": "document",
+  "sync": {
+    "watch": [],
+    "versions": {},
+    "hash_algo": "sha256-lf",
+    "commit": "4040b8e",
+    "files": {
+      ".claude/think/formal-hypothesis.md": "d4e16b046ee1b78efa1b3ab4abcfc3264fd2e62729bfe80c2dd5cb8d7972f060"
+    },
+    "artifact": {
+      "check.log": "13455a178635e04bf726b59d0b49f593b767c7d69b9545301b561d547cd97d20",
+      "diagrams.html": "d10228f21e9b3f2fe2ac5b605a51bd7db5cb9339028caca590ce7c2f158a9655",
+      "model/Chosen.cfg": "358232a8b0858595e661cbe29608231d33879619e673ce289b7a4ddcbb865ecb",
+      "model/Goal.cfg": "19d68b7585c009d5bdc3f2bcbf297263857cabb1de33a3e7cb012471dc1005da",
+      "model/Lifecycle.tla": "618110177003db618070c8533cfd48ef6794452f4d3a84c98820d29baf83d09e",
+      "README.md": "b78464949488e61bac3f26d99d72beadbf7fdb330eed20836913b56f99d696c4",
+      "variants/BothAllowed.cfg": "9c1e21a18ae9eb5b745c4c75d40e9fb86c310f6bdaec4b7f8af62e72ed2dc669",
+      "variants/G1-NoDeclare.cfg": "55223927685c2c8f3daa69e53b6002dbfb55eea62f454ec12a29c449c7541d84",
+      "variants/GreenWarn.cfg": "68ddf41f6350043fb35c180a1bdebf1ac286a216a6f72c9bec69fb368cbd653d",
+      "variants/MigrateUnmarked.cfg": "7e61689804331d33b16c55c2727f35d904086f8c743e3d3638f8a592bd9b4ad1",
+      "variants/PlanAsWritten.cfg": "0d1cdb43a90b0dae594fb373afffe05235e5e0fefb487dadbd0df59a951a08c8",
+      "variants/S2-DeclareOnOldPass.cfg": "16f275ff34bd4206d05bb15003984af679e166a8a9c501cdd4d3b84412004398",
+      "variants/Today.cfg": "f80ff7bf87b564c227b91c0fc8dfef2c2fb257324c06fbbc8c6f48427466bd24"
+    }
+  },
+  "check": {
+    "tool": "TLC",
+    "version": "2.19",
+    "command": "java -cp <tla2tools.jar> tlc2.TLC -config model/Chosen.cfg -deadlock -metadir <暫存目錄> model/Lifecycle.tla",
+    "bounds": "來源最多改 2 次；3 個讀者（prove-it、review、綠燈）；一份假說；專案可能一開始就有一份 8.15.0 的舊檢查",
+    "assumptions": [
+      "/hypothesis 每次寫下或維護時，都正確做完看過它失敗與看過它成功，所以模型把它當成一步"
+    ],
+    "left_out": [
+      "hunt 的探針流程（見 U1）",
+      "維護停下來等人（見 U2）"
+    ],
+    "states": 3764,
+    "verdict_at_sync": "proved",
+    "seen_failing": [
+      {
+        "rule": "S1",
+        "variant": "variants/Today.cfg",
+        "caught": true
+      },
+      {
+        "rule": "S3",
+        "variant": "variants/GreenWarn.cfg",
+        "caught": true
+      },
+      {
+        "rule": "S4",
+        "variant": "variants/BothAllowed.cfg",
+        "caught": true
+      },
+      {
+        "rule": "S5",
+        "variant": "variants/MigrateUnmarked.cfg",
+        "caught": true
+      },
+      {
+        "rule": "L1",
+        "variant": "variants/PlanAsWritten.cfg",
+        "caught": true
+      },
+      {
+        "rule": "S2",
+        "variant": "variants/S2-DeclareOnOldPass.cfg",
+        "caught": true
+      }
+    ],
+    "seen_succeeding": [
+      {
+        "goal": "G1",
+        "reached": true,
+        "removed_transition": "Declare",
+        "unreachable_after": true,
+        "variant": "variants/G1-NoDeclare.cfg"
+      }
+    ]
+  },
+  "model_map": [
+    {
+      "part": "Write",
+      "cites": [
+        ".claude/think/formal-hypothesis.md:86",
+        ".claude/think/formal-hypothesis.md:87"
+      ]
+    },
+    {
+      "part": "Change",
+      "cites": [
+        ".claude/think/formal-hypothesis.md:82"
+      ]
+    },
+    {
+      "part": "Check",
+      "cites": [
+        ".claude/think/formal-hypothesis.md:38",
+        ".claude/think/formal-hypothesis.md:40"
+      ]
+    },
+    {
+      "part": "Maintain",
+      "cites": [
+        ".claude/think/formal-hypothesis.md:47"
+      ]
+    },
+    {
+      "part": "Migrate",
+      "cites": [
+        ".claude/think/formal-hypothesis.md:165"
+      ]
+    },
+    {
+      "part": "Declare",
+      "cites": [
+        ".claude/think/formal-hypothesis.md:38"
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "id": "S1",
+      "kind": "safety",
+      "name": "NoFalsePass",
+      "text": "說「沒問題」的時候，程式就真的沒問題。",
+      "cites": [
+        ".claude/think/formal-hypothesis.md:40"
+      ],
+      "verdict": "held",
+      "paths": []
+    },
+    {
+      "id": "S2",
+      "kind": "safety",
+      "name": "DoneSound",
+      "text": "說「做完了」的時候，程式就真的沒問題。",
+      "cites": [
+        ".claude/think/formal-hypothesis.md:38"
+      ],
+      "verdict": "held",
+      "paths": []
+    },
+    {
+      "id": "S3",
+      "kind": "safety",
+      "name": "GreenSound",
+      "text": "綠燈放行的時候，程式就真的沒問題。",
+      "cites": [
+        ".claude/think/formal-hypothesis.md:38"
+      ],
+      "verdict": "held",
+      "paths": []
+    },
+    {
+      "id": "S4",
+      "kind": "safety",
+      "name": "ReadsMaintained",
+      "text": "有人在維護的那一份存在時，沒有人去看沒人管的那一份。",
+      "cites": [
+        ".claude/think/formal-hypothesis.md:165"
+      ],
+      "verdict": "held",
+      "paths": []
+    },
+    {
+      "id": "S5",
+      "kind": "safety",
+      "name": "DoneStrict",
+      "text": "拿來宣告「做完了」的那一份，真的檢查過「做得到」。",
+      "cites": [
+        ".claude/think/formal-hypothesis.md:165"
+      ],
+      "verdict": "held",
+      "paths": []
+    },
+    {
+      "id": "L1",
+      "kind": "liveness",
+      "name": "EventuallyInSync",
+      "text": "程式改了之後，那份紀錄終究會跟上。",
+      "cites": [
+        ".claude/think/formal-hypothesis.md:40"
+      ],
+      "verdict": "held",
+      "paths": []
+    }
+  ],
+  "goals": [
+    {
+      "id": "G1",
+      "text": "一個功能可以一路走到「做完了」。",
+      "guards": [
+        "S1",
+        "S2",
+        "S3",
+        "S4",
+        "S5",
+        "L1"
+      ]
+    }
+  ],
+  "paths": [],
+  "questions": [],
+  "unformalized": [
+    {
+      "id": "U1",
+      "where": ".claude/think/formal-hypothesis.md:37「模型通過，不能拿來丟掉線索」",
+      "class": "handed-off",
+      "detail": "hunt 的探針流程不在這份假說裡，交給計畫第三片（hunt 掛勾）時另寫一份假說。",
+      "until": "第三片定義 hunt 的推測、探針、確認三個狀態",
+      "instead": "none"
+    },
+    {
+      "id": "U2",
+      "where": ".claude/think/formal-hypothesis.md:47「承諾是刻意改的」時停下來問人",
+      "class": "handed-off",
+      "detail": "這份模型把維護當成一步完成，沒有「停下來等人」；交給計畫第二片（維護）把維護拆成歸類與等證據兩步再檢查。",
+      "until": "第二片把維護拆成兩步",
+      "instead": "none"
+    },
+    {
+      "id": "U3",
+      "where": ".claude/think/formal-hypothesis.md:86「在丟棄式的副本裡把程式改壞」",
+      "class": "cannot-model",
+      "detail": "取決於模型外的程式內容，以及改壞的方式。",
+      "until": "無",
+      "instead": "red/green test"
+    },
+    {
+      "id": "U4",
+      "where": "狀態圖組「讓人看得懂」",
+      "class": "no-truth",
+      "detail": "看不看得懂是人的判斷。",
+      "until": "無",
+      "instead": "none"
+    },
+    {
+      "id": "U5",
+      "where": "從計畫抽出規則的忠實度",
+      "class": "cannot-model",
+      "detail": "取決於抽取的人或模型有沒有讀錯原文。",
+      "until": "無",
+      "instead": "none"
+    }
+  ],
+  "history": [
+    {
+      "generation": 2,
+      "from_commit": "4040b8e",
+      "to_commit": "4040b8e",
+      "outcome": "no-effect",
+      "note": "來源沒變；補上 S2 的看過它失敗（variants/S2-DeclareOnOldPass.cfg）與 G1 拿掉 Declare 後走不到（variants/G1-NoDeclare.cfg）"
+    }
+  ],
+  "migrated_from": null,
+  "schema": "baransu.hypothesis/1",
+  "area": "hypothesis-lifecycle",
+  "generation": 2,
+  "published_at": "2026-10-24T10:51:28+08:00"
+}

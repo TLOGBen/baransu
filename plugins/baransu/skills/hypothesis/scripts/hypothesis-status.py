@@ -222,10 +222,21 @@ def changed_since(root: Path, base: str) -> list[str]:
 
 
 def covering(rows: Sequence[Row], files: Sequence[str]) -> list[Row]:
-    wanted = {f.replace("\\", "/").lstrip("./") for f in files}
-    def hits(row: Row) -> bool:
-        return any(c == w or c.startswith(w.rstrip("/") + "/") or w.startswith(c) for c in row.covers for w in wanted)
+    def norm(f: str) -> str:
+        f = f.replace("\\", "/")
+        while f.startswith("./"):
+            f = f[2:]
+        return f.rstrip("/")
+    wanted = {norm(f) for f in files}
+    def hits(row: Row) -> bool:  # an exact file, or a directory that contains a covered file
+        return any(c == w or c.startswith(w + "/") for c in row.covers for w in wanted)
     return [r for r in rows if hits(r)]
+
+
+def content_changed(rows: Sequence[Row]) -> list[Row]:
+    """Rows whose covered content changed, whether or not git tracks the file (an ignored
+    or untracked document never shows up in `git diff`, but its hash still moved)."""
+    return [r for r in rows if any(w.kind in ("changed", "missing") for w in r.why)]
 
 
 def fmt_why(why: Sequence[Why]) -> str:
@@ -308,7 +319,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     elif a.files:
         rows = covering(rows, a.files)
     elif a.diff:
-        rows = covering(rows, changed_since(root, a.diff))
+        hit = covering(rows, changed_since(root, a.diff))
+        rows = hit + [r for r in content_changed(rows) if r not in hit]
     print_table(rows, a.json)
     return exit_code(rows)
 

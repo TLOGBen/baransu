@@ -8,7 +8,9 @@ CONSTANTS Guard,         \* TRUE = 過期就拒答；FALSE = 8.15.0 現況
           MaxChanges,    \* 來源最多改幾次
           GreenMode,     \* "red" = 綠燈遇過期算紅燈（已決定）；"warn" = 只提醒
           AllowBoth,     \* TRUE = 允許新舊目錄並存；FALSE = 不並存（已決定）
-          MarkMigrated   \* TRUE = 搬來的假說標「嚴格檢查未完成」（已決定）
+          MarkMigrated,  \* TRUE = 搬來的假說標「嚴格檢查未完成」（已決定）
+          DeclareNeedsCurrent, \* TRUE = 宣告完成只認對目前版本的通過（改壞版本：FALSE）
+          AllowDeclare   \* TRUE = 有「宣告完成」這一步（看過它成功：FALSE 時目標應走不到）
 
 Readers == {"proveit", "review", "green"}
 
@@ -83,8 +85,10 @@ Maintain ==
 
 \* 宣告完成 (plan:「完成 = 假說 X 被證明」；搬來的要先補完嚴格檢查)
 Declare ==
+  /\ AllowDeclare
   /\ ~done
-  /\ rep["proveit"] = "pass" /\ repVer["proveit"] = srcVer
+  /\ rep["proveit"] = "pass"
+  /\ (DeclareNeedsCurrent => repVer["proveit"] = srcVer)
   /\ (MarkMigrated => checked)
   /\ done' = TRUE
   /\ UNCHANGED <<srcVer, srcBug, loc, syncVer, modelBug, oldSync, oldBug, checked,

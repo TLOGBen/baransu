@@ -27,6 +27,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 _spec = importlib.util.spec_from_file_location("hypothesis_status", HERE / "hypothesis-status.py")
 status = importlib.util.module_from_spec(_spec)
+sys.modules["hypothesis_status"] = status  # dataclasses look their module up here
 _spec.loader.exec_module(status)  # type: ignore[union-attr]
 
 SKIP = {"hypothesis.json", "hypothesis.draft.json", "hypothesis.json.tmp"}
