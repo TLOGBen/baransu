@@ -6,7 +6,7 @@ Moved from the drift pass in `prove-it/references/formal.md` and owned here. The
 
 ## Work list
 
-Run `scripts/hypothesis-status.py --all --json`, or `--area <area>` when one is named. Every area whose state is `stale`, `draft`, or `legacy` is on the list; `proved`, `disproved` and `unformalized` areas are left as they are. The `why` field is the starting set of changes: `changed`, `missing`, `new-writer`, `writer-gone`, `artifact-edited`, `no-evidence`.
+Run `scripts/hypothesis-status.py --all --json`, or `--area <area>` when one is named. Every area whose state is `stale`, `draft`, or `legacy` is on the list; `established` and `unformalized` areas are left as they are. The `why` field is the starting set of changes: `changed`, `missing`, `new-writer`, `writer-gone`, `artifact-edited`, `no-evidence`.
 
 ## Read every change — what it does, and why it changed
 
@@ -28,7 +28,7 @@ Each change is sorted into exactly one, judged against the model, never against 
 
 ## Run twice
 
-Run the check once on the area as it is, before changing anything, and once after; keep both outputs in `check.log`. A pass before the update says only that the old description still holds.
+Run the check once on the area as it is, before changing anything, and once after; keep both outputs in `check.txt`. A pass before the update says only that the old description still holds.
 
 ## Publish or block
 

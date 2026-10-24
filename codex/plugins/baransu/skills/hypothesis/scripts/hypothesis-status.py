@@ -9,8 +9,9 @@ Usage:
   hypothesis-status.py (--diff BASE | --files PATH... | --area AREA | --all) [--json]
   hypothesis-status.py (--rules | --paths | --scope | --check) AREA [--json]
 
-Exit: 0 every listed area proved; 10 none covers the selector; 1 any other state listed;
-      2 the script failed (readers treat as `broken`).
+Exit: 0 every listed area is `established` with every rule held (`unformalized` areas are
+      listed, not judged); 10 none covers the selector; 1 anything else listed, or an
+      established area with a broken rule; 2 the script failed (readers treat as `broken`).
 
 Stdlib only, Python 3.9+. Run from anywhere inside the repo; paths are repo-relative.
 Without git, --diff fails (exit 2) and every area with watch patterns is `stale` (no-git).
@@ -31,8 +32,16 @@ SCHEMA = "baransu.hypothesis/1"
 REASON_CLASSES = frozenset({"no-tool", "cannot-model", "out-of-scope", "non-trigger",
                             "no-truth", "user-declined", "handed-off"})
 REASON_FIELDS = ("where", "class", "detail", "until", "instead")
-SHOWS_VERDICT = frozenset({"proved", "disproved"})
-VERDICTS = frozenset({"proved", "disproved", "unformalized"})
+SHOWS_VERDICT = frozenset({"established"})
+# Stored `check.verdict_at_sync`: the model's prediction. `proved`/`disproved` are the names
+# records published before 8.22.0's rename carry; they read as `held`/`violated`.
+OLD_VERDICT = {"proved": "held", "disproved": "violated"}
+VERDICTS = frozenset({"held", "violated", "unformalized"})
+
+
+def stored_verdict(rec: dict) -> str | None:
+    v = rec.get("check", {}).get("verdict_at_sync")
+    return OLD_VERDICT.get(v, v)
 AGENT_DIRS = (".claude", ".codex")  # Claude Code and Codex keep their work under different dirs
 
 
@@ -119,11 +128,11 @@ def cited_files(rec: dict) -> set[str]:
 def evidence_gaps(rec: dict) -> list[Why]:
     gaps: list[Why] = []
     check = rec.get("check", {})
-    verdict = check.get("verdict_at_sync")
+    verdict = stored_verdict(rec)
     if verdict not in VERDICTS:
         gaps.append(Why("no-evidence", f"verdict={verdict}"))
         return gaps
-    if verdict in SHOWS_VERDICT:
+    if verdict in ("held", "violated"):
         caught = {e.get("rule") for e in check.get("seen_failing", []) if e.get("caught") is True}
         succeeded = {e.get("goal") for e in check.get("seen_succeeding", [])
                      if e.get("reached") is True and e.get("unreachable_after") is True}
@@ -189,7 +198,10 @@ def compute_state(root: Path, area_dir: Path) -> Row:
     gaps = evidence_gaps(rec)
     if gaps:
         return row("draft", gaps)
-    return row(rec["check"]["verdict_at_sync"], [])
+    if stored_verdict(rec) == "unformalized":
+        return row("unformalized", [])
+    return row("established", [Why("violated", str(r.get("id"))) for r in rec.get("rules", [])
+                               if r.get("verdict") == "violated"])
 
 
 def legacy_rows(root: Path, migrated: set[str]) -> list[Row]:
@@ -238,9 +250,10 @@ def covering(rows: Sequence[Row], files: Sequence[str]) -> list[Row]:
 
 
 def content_changed(rows: Sequence[Row]) -> list[Row]:
-    """Rows whose covered content changed, whether or not git tracks the file (an ignored
-    or untracked document never shows up in `git diff`, but its hash still moved)."""
-    return [r for r in rows if any(w.kind in ("changed", "missing") for w in r.why)]
+    """Rows that are stale for any reason: covered content changed or went missing, whether
+    or not git tracks the file, or the set of files writing a guarded state changed — a new
+    writer lives in a file the hypothesis never covered, so no file match can find it."""
+    return [r for r in rows if r.state == "stale"]
 
 
 def fmt_why(why: Sequence[Why]) -> str:
@@ -276,7 +289,7 @@ def print_detail(row: Row, view: str, as_json: bool) -> None:
                   "left_out": check.get("left_out", []), "unformalized": rec.get("unformalized", [])}]
     else:
         items = [{"tool": check.get("tool"), "version": check.get("version"), "command": check.get("command"),
-                  "dir": row.dir.as_posix(), "note": "在暫存目錄裡重跑；結果寫進你自己的紀錄，不寫進這個區塊"}]
+                  "dir": row.dir.as_posix(), "note": "在暫存目錄裡重跑；結果寫進你自己的紀錄，不寫進這份假說"}]
     if as_json:
         print(json.dumps({"area": row.area, "state": row.state, "items": items}, ensure_ascii=False, indent=1))
         return
@@ -294,7 +307,8 @@ def print_detail(row: Row, view: str, as_json: bool) -> None:
 def exit_code(rows: Sequence[Row]) -> int:
     if not rows:
         return 10
-    return 0 if all(r.state == "proved" for r in rows) else 1
+    judged = [r for r in rows if r.state != "unformalized"]
+    return 0 if all(r.state == "established" and not r.why for r in judged) else 1
 
 
 def main(argv: Sequence[str] | None = None) -> int:

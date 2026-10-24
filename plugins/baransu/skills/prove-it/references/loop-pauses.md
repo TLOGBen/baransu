@@ -11,3 +11,4 @@ PAUSE classification for non-interactive drivers; semantics in `../../_shared/lo
 | The repo does not build or start as it is | Input | Report `no progress: the base does not build or start` with the precise failure and end the run |
 | A claim whose prerequisite is out of reach (auth, platform, external state) | Input | Record it unreachable with the prerequisite and the route tried, and continue with the other claims |
 | Recipe gap — the app works but the drive cannot reach it | Input | Fix the recipe and drive again before any verdict, as the skill does when a person is present |
+| An every-case claim no hypothesis covers, whose `/hypothesis` first write needs the rules confirmed | Input | Record the claim unreachable with 「假說待確認規則」 as its prerequisite (`../../hypothesis/references/loop-pauses.md`), and continue with the other claims |

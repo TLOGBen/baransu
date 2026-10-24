@@ -15,7 +15,8 @@ A fixed tree; nothing else is written in an area:
   model/                 # <Name>.tla + one .cfg per check, check.sh/check.ps1 running them all; or the code-level harness
   variants/              # the broken variants that made each check fail (kept in git)
   paths/                 # P<n>.md — one counterexample script per numbered path
-  check.log              # the raw tool output of the last published run
+  sources/               # a frozen copy of a source that would otherwise move or change (sources.md)
+  check.txt              # the raw tool output of the last published run (.txt: repos often ignore *.log)
 ```
 
 No index file exists: the set of `hypothesis.json` files is the index, and `scripts/hypothesis-status.py` derives it on every read. `$baransu:ship` never archives `.codex/hypothesis/`.
@@ -38,19 +39,19 @@ Schema `baransu.hypothesis/1`, field by field, in `templates/hypothesis.json.md`
 
 ## Coverage map
 
-`rules[].cites` and `model_map[]` tie each model part (action, variable, constant) to `file:line`, or to a quoted passage and its location. `sync.files` is exactly the set of files those citations name, plus `sync.extra_files` for a covered file nothing cites directly. The README renders the same map as a table.
+`rules[].cites` and `model_map[]` tie each model part (action, variable, constant) to `path:line` (`path:line-line` for a span); a document's quoted passage goes in `model_map[].quote`, never in `cites`. `sync.files` is exactly the set of files those citations name, plus `sync.extra_files` for a covered file nothing cites directly. The README renders the same map as a table.
 
 ## Verdict values
 
-Stored, on the writer's side only: per rule `held` | `violated`; per area `check.verdict_at_sync` = `proved` | `disproved` | `unformalized`. User-facing words: a rule 成立 or 不成立; a hypothesis 全部成立 or 有規則不成立 (never 證實／推翻, which are `$baransu:prove-it`'s). Reader-facing states are computed (`reading.md` § States) and never stored.
+Stored, on the writer's side only: per rule `held` | `violated`; per area `check.verdict_at_sync` = `held` (every rule held) | `violated` (any rule violated) | `unformalized` — the model's prediction. User-facing words: a rule 守住 or 被打破; an area 成立假說 (`established`), 假說未成立 (`draft`), 無法成立假說 (`unformalized`). Never 證實／推翻: proving a hypothesis is `$baransu:prove-it`'s. Reader-facing states are computed (`reading.md` § States) and never stored.
 
 ## Reason record
 
-Five fields (`where`, `class`, `detail`, `until`, `instead`), seven classes, one row per unformalized part; schema in `templates/reason-record.md`. The same shape is used when a caller (`$baransu:hunt`, `$baransu:review`) declines an H1–H8 match, written into that caller's output.
+Five fields (`where`, `class`, `detail`, `until`, `instead`), seven classes, one row per unformalized part; schema in `templates/reason-record.md`. The same shape is used when `$baransu:hunt` declines an H1–H8 match, written into that caller's output.
 
 ## Writing (publish)
 
-1. Write the model, the variants, the paths, `check.log`; have `$baransu:draw` draw `diagrams/`; write `diagrams.html` and `README.md`.
+1. Write the model, the variants, the paths, `check.txt`; have `$baransu:draw` draw `diagrams/`; write `diagrams.html` and `README.md`.
 2. Write `hypothesis.draft.json`: the whole record without hashes, with `base_generation` set to the generation read at the start of this run (0 for a first publish).
 3. Run `python3 scripts/hypothesis-publish.py <area dir>`. It hashes every cited file, every watch match and every artifact file, then swaps the record in only if `hypothesis.json` still has `base_generation`. Exit 3 means another writer published meanwhile: start the run again from the top. A run that stops before the swap leaves the old record, whose artifact hashes no longer match: readers see `draft`.
 4. Run `scripts/hypothesis-status.py --area <area>` and quote its line. It must print the state you intended; anything else (a `draft` with `no-evidence`) means a gate is missing — fix it and publish again, never edit the record by hand.

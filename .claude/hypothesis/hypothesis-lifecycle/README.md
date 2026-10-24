@@ -1,10 +1,10 @@
 # 假說：假說自己的生命週期（模擬試跑，已維護一次）
 
-> `/baransu:hypothesis` 還沒寫出來之前的手動模擬。輸入是一份文件：`.claude/think/formal-hypothesis.md`。
+> `/baransu:hypothesis` 還沒寫出來之前的手動模擬。輸入是一份文件：計畫 `.claude/think/formal-hypothesis.md`，複製一份放在 `sources/formal-hypothesis.md`（計畫檔會被 /ship 歸檔，假說引用的是這份副本；來源可能已變）。
 
 ## 來源與同步點
 
-- **來源**：`.claude/think/formal-hypothesis.md`
+- **來源**：`sources/formal-hypothesis.md`（原件 `.claude/think/formal-hypothesis.md`）
 - **同步點**：SHA-256 `93ca9e94fe8ff8ffb7233898d02dc47d895d1403bf1d94f88cccf8739551d249`（2026-10-24，第一次維護後）
 - **前一個同步點**：`dd119205767decaadc87adff3f9017a53179fe796e9fe17f0b261c0f461add48`
 - **狀態**：同步，嚴格檢查完成。
@@ -49,7 +49,7 @@
 
 | 設定 | 代表什麼 | 狀態數 | 結果 |
 |---|---|---|---|
-| `Chosen` | 現在的計畫，含所有決定 | 3,764 | ✅ S1–S5、L1 全部成立 |
+| `Chosen` | 現在的計畫，含所有決定 | 3,764 | ✅ S1–S5、L1 全部守住 |
 | `Goal` | 「做完了」走不走得到 | 95 | ✅ 走得到，4 步 |
 | `Today` | 8.15.0 現況 | 42 | ❌ S1，路徑 ① |
 | `PlanAsWritten` | 維護靠人叫 | 3,764 | ❌ L1，路徑 ② |

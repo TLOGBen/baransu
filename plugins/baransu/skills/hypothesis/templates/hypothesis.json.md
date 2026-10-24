@@ -30,9 +30,11 @@ The publish record of one area. Written only by `/hypothesis`, only as the last 
         "matched": ["src/approval/pay.ts"] }
     ],
     "artifact": {
-      "README.md": "<sha256-lf>", "diagrams.html": "<sha256-lf>", "check.log": "<sha256-lf>",
+      "README.md": "<sha256-lf>", "diagrams.html": "<sha256-lf>", "check.txt": "<sha256-lf>",
       "model/Approval.tla": "<sha256-lf>", "model/Naive.cfg": "<sha256-lf>",
-      "variants/R1-keep-old-approvals.patch": "<sha256-lf>",
+      "variants/R1-keep-old-approvals.patch": "<sha256-lf>", "variants/R2-no-withdraw-check.patch": "<sha256-lf>",
+      "variants/R3-no-next-approver.patch": "<sha256-lf>", "variants/R2-no-withdraw-check.patch": "<sha256-lf>",
+      "variants/R3-no-next-approver.patch": "<sha256-lf>",
       "paths/P1.md": "<sha256-lf>", "paths/P2.md": "<sha256-lf>"
     }
   },
@@ -44,9 +46,11 @@ The publish record of one area. Written only by `/hypothesis`, only as the last 
     "assumptions": ["each click is handled by one request; the database row is the only shared state"],
     "left_out": ["notification e-mail (see unformalized U1)"],
     "states": 425, "seconds": 0.8,
-    "verdict_at_sync": "disproved",
+    "verdict_at_sync": "violated",
     "seen_failing": [
-      { "rule": "R2", "variant": "variants/R2-no-withdraw-check.patch", "caught": true }
+      { "rule": "R1", "variant": "variants/R1-keep-old-approvals.patch", "caught": true },
+      { "rule": "R2", "variant": "variants/R2-no-withdraw-check.patch", "caught": true },
+      { "rule": "R3", "variant": "variants/R3-no-next-approver.patch", "caught": true }
     ],
     "seen_succeeding": [
       { "goal": "G1", "reached": true, "removed_transition": "Approve", "unreachable_after": true }
@@ -107,12 +111,13 @@ The publish record of one area. Written only by `/hypothesis`, only as the last 
 - `schema` — exact string; any other value makes the area `broken` until the script learns it.
 - `source_kind` — `code` | `document` | `refinement`. For `refinement`, `roles` adds `{ "behaviour": "<path>", "rules": "<path>" }`.
 - `generation` — increments by one per publish; the compare-and-swap key.
+- `model_map[].cites`, `rules[].cites` — `path` or `path:line[-line]` only; a document's passage goes in `model_map[].quote`.
 - `sync.files` — keys are repo-relative paths (absolute only for a document outside the repo); exactly the files cited by `model_map` and `rules`.
 - `sync.watch[].matched` — sorted; computed with `git grep -l --untracked -E <pattern>` at publish. `sync.watch[].paths` — optional pathspecs that limit the search (default: the whole repo); `.claude/hypothesis/` and `.codex/hypothesis/` are never searched.
 - `sync.artifact` — every file in the area except `hypothesis.json` itself.
-- `check.verdict_at_sync` — `proved` (all rules `held`) | `disproved` (any `violated`) | `unformalized` (no model; `rules` may be empty).
-- `check.seen_failing` — one entry per `safety` or `liveness` rule, `caught: true` required for a `proved` or `disproved` area to be shown as such.
-- `check.seen_succeeding` — one entry per goal, both `reached` and `unreachable_after` true; every safety rule appears in some goal's `guards`.
+- `check.verdict_at_sync` — the model's prediction: `held` (all rules `held`) | `violated` (any `violated`) | `unformalized` (no model; `rules` may be empty). Records published before the rename say `proved` / `disproved`; the script reads them as `held` / `violated`.
+- `check.seen_failing` — one entry per `safety` or `liveness` rule, `caught: true` required for the area to be `established`.
+- `check.seen_succeeding` — one entry per goal, both `reached` and `unreachable_after` true; every safety and liveness rule appears in some goal's `guards`.
 - `rules[].text` / `goals[].text` / `paths[].summary` / `questions[].question` — plain words, no variable or action names; these strings are what readers quote. `paths[].summary` and `questions[].question` are the plain first layer and contain none of 活性、安全性、精化、不變式、同步點、TLC、模型、狀態空間; the technical layer lives in `paths/P<n>.md`.
 - `paths[].finding` — `bug` (code), `contradiction` | `gap` (document), `refinement-break` (comparison).
 - `questions[]` — every ambiguity, from any source: `{ "id", "quote", "location", "ask": "<whom>", "question" }`; for code, `quote` is the line and `location` its `file:line`.

@@ -34,7 +34,7 @@
 
 ## 沒有形式化的部分
 
-<!-- fill: One row per reason record, all four fields. When there are none, the affirmative line 「全部形式化，沒有例外。」 — silence is not allowed. -->
+<!-- fill: One row per reason record, all five fields. When there are none, the affirmative line 「全部形式化，沒有例外。」 — silence is not allowed. -->
 
 ## 同步點
 

@@ -10,9 +10,17 @@ Read the entry points and trace control flow before grepping names; map the guar
 
 A `HUNT-YYYY-NNN` id (its case file names the code) or a failure sentence plus a path: the code adapter, with the symptom as the first candidate rule's negation; the resulting paths are handed back to hunt as probes (`templates/path.md` § 給讀者的探針). A model pass is reported as "no such path within scope", never as "the symptom cannot happen".
 
+## Sources that move
+
+A source the area cannot rely on staying where it is — a page read from a URL, or a file under a working dir `$baransu:ship` archives (`.codex/think/`, `.claude/draft/`, any dir in its archive allowlist) — is copied into the area's `sources/`, and the copy is what is cited and hashed. Its README names the original and marks 「來源可能已變」; every `--maintain` compares the original with the copy when the original still exists.
+
+## Sources that move
+
+A source the area cannot rely on staying where it is — a page read from a URL, or a file under a working dir `$baransu:ship` archives (`.codex/think/`, `.claude/draft/`, any dir in its archive allowlist) — is copied into the area's `sources/`, and the copy is what is cited and hashed. Its README names the original and marks 「來源可能已變」; every `--maintain` compares the original with the copy when the original still exists.
+
 ## One document
 
-Convert with `$baransu:read --save` (PDF, docx, …) into `.codex/read/`; cite and hash the original file a person edits, not the conversion. Extract actors, states, steps, rules; every extracted item carries its quote and location (file, section, page or line) and is ticked by the user one by one. What the document leaves unclear becomes a `questions[]` entry with whom to ask — never filled in. Outputs: contradiction (two rules cannot both hold, with the path that collides them), gap (a state with no exit, or a situation with no stated handling), ambiguity (question). A document read from a URL is cited from its saved copy, which never changes; its README marks 「上游可能已變」 and every `--maintain` fetches it again and compares, so an edited web page cannot stay "in sync" forever.
+Convert with `$baransu:read --save` (PDF, docx, …) into `.codex/read/`; cite and hash the original file a person edits, not the conversion. Extract actors, states, steps, rules; every extracted item carries its quote and location (file, section, page or line) and is ticked by the user one by one. What the document leaves unclear becomes a `questions[]` entry with whom to ask — never filled in. Outputs: contradiction (two rules cannot both hold, with the path that collides them), gap (a state with no exit, or a situation with no stated handling), ambiguity (question). A document read from a URL is a source that moves (§ Sources that move): every `--maintain` fetches it again and compares, so an edited web page cannot stay "in sync" forever.
 
 ## Two sources (`--satisfies`)
 

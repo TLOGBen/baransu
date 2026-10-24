@@ -1,6 +1,6 @@
 # reason record — one row per part not formalized
 
-Lives in `hypothesis.json` `unformalized[]` (rendered into README § 沒有形式化的部分), or, when no area is written at all, in the output of the skill that declined (hunt case file, review report) in the same four fields.
+Lives in `hypothesis.json` `unformalized[]` (rendered into README § 沒有形式化的部分), or, when no area is written at all, in the output of the skill that declined (the hunt case file) in the same five fields.
 
 | field | content |
 |---|---|
