@@ -33,6 +33,7 @@ REASON_CLASSES = frozenset({"no-tool", "cannot-model", "out-of-scope", "non-trig
 REASON_FIELDS = ("where", "class", "detail", "until", "instead")
 SHOWS_VERDICT = frozenset({"proved", "disproved"})
 VERDICTS = frozenset({"proved", "disproved", "unformalized"})
+AGENT_DIRS = (".claude", ".codex")  # Claude Code and Codex keep their work under different dirs
 
 
 @dataclass(frozen=True)
@@ -190,9 +191,10 @@ def compute_state(root: Path, area_dir: Path) -> Row:
 
 
 def legacy_rows(root: Path, migrated: set[str]) -> list[Row]:
-    base = root / ".claude" / "prove-it" / "formal"
     rows = []
-    if base.is_dir():
+    for base in (root / dot / "prove-it" / "formal" for dot in AGENT_DIRS):
+        if not base.is_dir():
+            continue
         for d in sorted(p for p in base.iterdir() if p.is_dir()):
             rel = d.relative_to(root).as_posix()
             if rel in migrated or rel + "/" in migrated:
@@ -206,8 +208,8 @@ def legacy_rows(root: Path, migrated: set[str]) -> list[Row]:
 
 
 def all_rows(root: Path) -> list[Row]:
-    base = root / ".claude" / "hypothesis"
-    rows = [compute_state(root, d) for d in sorted(base.iterdir()) if d.is_dir()] if base.is_dir() else []
+    rows = [compute_state(root, d) for base in (root / dot / "hypothesis" for dot in AGENT_DIRS)
+            if base.is_dir() for d in sorted(base.iterdir()) if d.is_dir()]
     migrated = {str(r.record.get("migrated_from")).rstrip("/") for r in rows
                 if r.record and r.record.get("migrated_from")}
     return rows + legacy_rows(root, migrated)

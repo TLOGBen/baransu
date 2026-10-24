@@ -1,6 +1,6 @@
 ---
 name: prove-it
-description: "Proves claims by running the real app the way its user does: that a reported problem really fails, and that work said to be done really works. Leaves a record of this version a review can read, and builds the project's run recipe on first use. Trigger On '/prove-it', '證明它', '跑跑看', '實際跑一次', '真的修好了嗎', '證明所有順序都不會壞', 'prove it works', 'model-check this'. Not for reading-only review (/review) or tracing a root cause (/hunt)."
+description: "Proves claims by running the real app the way its user does: that a reported problem really fails, and that work said to be done really works. Leaves a record of this version a review can read, and builds the project's run recipe on first use. Trigger On '/prove-it', '證明它', '跑跑看', '實際跑一次', '真的修好了嗎', 'prove it works',. Not for reading-only review (/review) or tracing a root cause (/hunt)."
 argument-hint: "[claim | finding | change | feature] [--maintain]"
 ---
 
