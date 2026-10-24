@@ -7,7 +7,7 @@
 - **破壞的規則**：R{k}　{rule text}
 - **傷害**：{one sentence: what the user loses}
 - **發現類型**：bug | 矛盾 | 缺漏 | 精化被打破
-- **圖**：diagrams.html#dN
+- **圖**：README.md § 圖，第 N 張
 
 ## 劇本
 

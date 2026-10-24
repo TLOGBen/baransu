@@ -13,4 +13,4 @@ Exactly two, both Input PAUSEs in the loop contract's classes, and neither has a
 
 ## Never a pause
 
-The `no-effect`, `model-update` and `bug-candidate` outcomes, reruns, publishing, and opening the page all run unattended. A failing check is a finding, not a pause.
+The `no-effect`, `model-update` and `bug-candidate` outcomes, reruns, publishing, and showing the diagrams all run unattended. A failing check is a finding, not a pause.

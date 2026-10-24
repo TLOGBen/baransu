@@ -18,7 +18,17 @@
 
 ## 圖
 
-<!-- fill: Link to `diagrams.html` and one line per diagram saying which part it adds. -->
+<!-- fill: The series per references/diagrams.md — for each diagram, a one-sentence caption saying which part it adds, then its block. No ";" in any label, no second ":" in a transition label. Example of one diagram: -->
+
+圖 1　正常流程：{一句話}
+
+```mermaid
+stateDiagram-v2
+    state "{狀態一}" as s1
+    state "{狀態二}" as s2
+    [*] --> s1
+    s1 --> s2: {讓它改變的事件}
+```
 
 ## 範圍
 

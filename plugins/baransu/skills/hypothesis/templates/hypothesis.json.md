@@ -32,13 +32,11 @@ The publish record of one area. Written only by `/hypothesis`, only as the last 
         "matched": ["src/refund/payout.ts"] }
     ],
     "artifact": {
-      "README.md": "<sha256-lf>", "diagrams.html": "<sha256-lf>", "check.txt": "<sha256-lf>",
+      "README.md": "<sha256-lf>", "check.txt": "<sha256-lf>",
       "model/Refund.tla": "<sha256-lf>", "model/Refund.cfg": "<sha256-lf>", "model/check.sh": "<sha256-lf>",
       "variants/R1-skip-balance-check.patch": "<sha256-lf>", "variants/R2-no-cancel-check.patch": "<sha256-lf>",
       "variants/R3-pay-twice.patch": "<sha256-lf>",
-      "paths/P1.md": "<sha256-lf>",
-      "diagrams/d1-happy.html": "<sha256-lf>", "diagrams/d2-two-requests.html": "<sha256-lf>",
-      "diagrams/d3-paths.html": "<sha256-lf>", "diagrams/docs/brief.md": "<sha256-lf>"
+      "paths/P1.md": "<sha256-lf>"
     }
   },
 

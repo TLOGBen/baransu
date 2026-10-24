@@ -1,16 +1,16 @@
 # diagrams — the progressive state-diagram series
 
-Every hypothesis gets a series of static state diagrams on one page, `diagrams.html`, opened for the user after every publish (`pwsh.exe Start-Process` or `wslview` on WSL2, `Start-Process` on Windows, `xdg-open` on Linux, `open` on macOS). Its job is understanding: a person who never met formal methods can say each bug path in one sentence after reading it. At this stage a diagram is for reading the rules, not a finished figure, so it is text that changes with the model.
+Every hypothesis gets a series of static state diagrams. The durable copy is Mermaid blocks in its `README.md` § 圖, which GitHub and an editor's preview draw. In the conversation the same diagrams are drawn as plain text — the arrow-and-box forms `../../show-me/SKILL.md` lays out — because a chat or a terminal may show a Mermaid block as source; there is no separate page to open. Its job is understanding: a person who never met formal methods can say each bug path in one sentence after reading it. At this stage a diagram is for reading the rules, not a finished figure, so it is text that changes with the model.
 
 ## Write the series as Mermaid
 
-Each diagram is one Mermaid `stateDiagram-v2` block in `diagrams.html` (`templates/diagrams.html` loads a pinned Mermaid). Mermaid's own grammar sets three habits:
+Each diagram is one fenced ```mermaid block holding a `stateDiagram-v2`, under a one-sentence caption, in order. Mermaid's own grammar sets three habits:
 
 - name a state with words as `state "主管已核准" as approved` and use the short id in transitions;
 - keep `;` out of every label — Mermaid reads it as the end of a statement and scatters the rest as stray nodes — and keep a transition's label free of a second `:`, which is the label separator;
 - mark a path's broken state with a `classDef` (for example `classDef bad stroke:#b42318`) and name it in the legend.
 
-Before publish, open the page in a browser and check that every block drew: no 「Syntax error」, no stray nodes outside the diagram. A figure polished for a presentation is `/baransu:draw`'s, asked for by hand; it is not part of a hypothesis.
+A block that would not draw — 「Syntax error」, or stray nodes outside the diagram — is rewritten before publish; when nothing at hand renders Mermaid, check the three habits above line by line. A figure polished for a presentation is `/baransu:draw`'s, asked for by hand; it is not part of a hypothesis.
 
 ## The four conditions
 
@@ -34,9 +34,9 @@ Add parts in the order a reader needs them to see the first path: the parts that
 - A guard is written in brackets in plain words: 「[金額 ≥ 1000]」.
 - A path's broken state is marked and labelled with its path number; the legend says what the mark means.
 
-## The page
+## Where it lives
 
-`diagrams.html`, from `templates/diagrams.html`, is the index: the rules in plain sentences, then each diagram in order (its Mermaid block with its one-sentence caption), then the paths and the scope. It names the generation and sync point it was drawn from and points at the status command; it never shows a live verdict of its own. Open it in the user's default browser; Mermaid draws in the page, so no server is needed.
+`README.md` § 圖 holds the series: each diagram's caption, then its block. The rules, the paths and the scope sit in their own README sections around it, and the page names the generation it was drawn from and points at the status command; it never states a live verdict of its own.
 
 ## Documents
 
