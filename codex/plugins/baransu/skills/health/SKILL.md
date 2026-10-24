@@ -102,7 +102,7 @@ Record four evidence classes, each answered from the collected output and carrie
 | **Risk** | Which paths can lose data, spend money, publish or deploy, cross trust boundaries, or create hard-to-reverse state? |
 | **Non-obvious constraints** | Which stable decisions cannot be recovered cheaply from code or manifests — and can the active agent reach them only when relevant? |
 | **Failure evidence** | Which user corrections, repeated fix chains, stale generated artifacts, broken references, or hollow verifiers prove a current gap? |
-| **Verifier coverage** | Which important outcomes have an executable check at the layer where they can fail? |
+| **Verifier coverage** | Which important outcomes have an executable check at the layer where they can fail? When the project has `.codex/hypothesis/`, run `hypothesis-status.py --all` (`../hypothesis/references/reading.md`) and list every hypothesis that is `stale`, `draft`, `legacy` or `broken` here, with its `why`. |
 
 An absent map, a large file, many skills, few skills, or a high TODO count is informational until tied to one of these classes; prefer a narrow routed invariant plus an executable verifier over descriptive inventory.
 
@@ -197,6 +197,11 @@ in place.
    edits, no improvised detours. If the one-step install fails: stop and report
    loudly — what failed, the exact one-line manual fix, and which shell to run it
    in.
+   Known case — TLA+ for `$baransu:hypothesis`: Java has an official one-step install (winget
+   `Microsoft.OpenJDK.21`, or the platform's package manager); `tla2tools.jar` has none
+   (not in winget, nor in mise's registry, checked 2026-10-24), so it is always this
+   report: download `tla2tools.jar` from https://github.com/tlaplus/tlaplus/releases
+   into a tools folder and pass its path to `java -cp`.
 4. **Fixed receipt** (always emitted, success or not):
    `ENV_DOCTOR ｜ tool: {name} ｜ before: missing ｜ action: {install command | none} ｜ after: {version | still-missing＋原因} ｜ shell: {interactive|login-retry}`
 

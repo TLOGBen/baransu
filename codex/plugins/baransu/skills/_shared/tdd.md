@@ -256,7 +256,9 @@ the start. The four tasks are themselves one vertical slice (§1.2):
 1. Write the red-light test — written only for the new behavior (§1.1); do not write tests for existing behavior
 2. Confirm red — run the test, expect failure
 3. Write the green-light impl — write the minimal implementation sufficient to make the red-light test pass, adding nothing the test did not require (§1.4)
-4. Confirm green — run the tests, all pass with no regression
+4. Confirm green — run the tests, all pass with no regression; then run `hypothesis-status.py --diff <the task's starting commit>` (`../hypothesis/references/reading.md`): green also needs every hypothesis it lists to show `proved`. A `stale` one is red — invoke `$baransu:hypothesis` `--maintain <area>` at once, rerun, and stay red until it prints `proved`; a `disproved`, `draft`, `legacy` or `broken` one is red too. Exit 10 (no hypothesis covers the change) is green, and a repo with no `.codex/hypothesis/` directory skips this check entirely.
+
+When a hypothesis covers the behaviour, its paths are the first red tests: write each `paths/P<n>.md` as a test that reproduces it, and its goals as tests that the good outcome is still reached, before any body is filled.
 
 The order is fixed: do not enter implementation before red is confirmed; do not modify the test during the green phase (the test is the spec).
 
