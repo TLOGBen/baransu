@@ -84,7 +84,7 @@ For documents add 「矛盾 {c}｜缺漏 {g}｜模糊 {a}」. Add the unformaliz
 
 ## For readers
 
-Readers — `/prove-it`, `/review`, `/hunt`, `/health`, the green step of `../_shared/tdd.md`, `/draft` — follow `references/reading.md` and nothing else here: they run the status script, read `state`, and act per its state × reader table. They never open `hypothesis.json`, never compare commits or hashes, never write under `.claude/hypothesis/`.
+Readers — `/prove-it`, `/review`, `/hunt`, `/health`, the green step of `../_shared/tdd.md`, `/draft` — follow `references/reading.md` and nothing else here (the state picture they share is `../_shared/hypothesis-states.md`): they run the status script, read `state`, and act per its state × reader table. They never open `hypothesis.json`, never compare commits or hashes, never write under `.claude/hypothesis/`.
 
 ## Not-for boundaries
 

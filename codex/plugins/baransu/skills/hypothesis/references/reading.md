@@ -20,7 +20,7 @@ Columns, fixed order: `area  state  rules  sync  why`. `why` is `-` or a `;`-joi
 
 ## States — a closed set
 
-Computed by the script at read time; the stored verdict is only an input. The plain name is what a reader shows the user.
+Computed by the script at read time; the stored verdict is only an input. The plain name is what a reader shows the user. How an area moves between these states, and who moves it, is the shared picture `../../_shared/hypothesis-states.md`.
 
 | state | plain name | means | the stored verdict is shown? |
 |---|---|---|---|

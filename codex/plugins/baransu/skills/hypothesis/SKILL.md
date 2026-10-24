@@ -96,7 +96,7 @@ For documents add 「矛盾 {c}｜缺漏 {g}｜模糊 {a}」. Add the unformaliz
 
 ## For readers
 
-Readers — `$baransu:prove-it`, `$baransu:review`, `$baransu:hunt`, `$baransu:health`, the green step of `../_shared/tdd.md`, `$baransu:draft` — follow `references/reading.md` and nothing else here: they run the status script, read `state`, and act per its state × reader table. They never open `hypothesis.json`, never compare commits or hashes, never write under `.codex/hypothesis/`.
+Readers — `$baransu:prove-it`, `$baransu:review`, `$baransu:hunt`, `$baransu:health`, the green step of `../_shared/tdd.md`, `$baransu:draft` — follow `references/reading.md` and nothing else here (the state picture they share is `../_shared/hypothesis-states.md`): they run the status script, read `state`, and act per its state × reader table. They never open `hypothesis.json`, never compare commits or hashes, never write under `.codex/hypothesis/`.
 
 ## Not-for boundaries
 
