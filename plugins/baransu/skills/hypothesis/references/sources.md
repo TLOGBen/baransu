@@ -12,15 +12,15 @@ A `HUNT-YYYY-NNN` id (its case file names the code) or a failure sentence plus a
 
 ## Sources that move
 
-A source the area cannot rely on staying where it is — a page read from a URL, or a file under a working dir `/ship` archives (`.claude/think/`, `.claude/draft/`, any dir in its archive allowlist) — is copied into the area's `sources/`, and the copy is what is cited and hashed. Its README names the original and marks 「來源可能已變」; every `--maintain` compares the original with the copy when the original still exists.
+A source the area cannot rely on staying where it is — a page read from a URL, or a file under a working dir `/ship` archives (`.claude/think/`, `.claude/draft/`, any dir in its archive allowlist) — is copied into the area's `sources/`, and the copy is what is cited and hashed. For a local original, `sync.originals` maps the copy to it, and the status script reports the area `stale` when the original still exists and differs from the copy. A URL has no local original: its README marks 「來源可能已變」, and every `--maintain` run fetches it again and compares; between runs nothing notices an edit to the page.
 
-## Sources that move
+## A sketch (from `/draft`)
 
-A source the area cannot rely on staying where it is — a page read from a URL, or a file under a working dir `/ship` archives (`.claude/think/`, `.claude/draft/`, any dir in its archive allowlist) — is copied into the area's `sources/`, and the copy is what is cited and hashed. Its README names the original and marks 「來源可能已變」; every `--maintain` compares the original with the copy when the original still exists.
+A design-time hypothesis models the sketch's declared contract — its types, signatures, doc comments and pseudocode — not code that runs. A step is indivisible when the sketch declares it so (a transaction, a lock, a compare-and-swap in a signature or an invariant comment); a step the sketch leaves open is a question for the person who chose the shape, run every reading per `formal.md` § Strict, 1. Seen failing breaks the model's copy of a declared guard, since there is no code to break. Nothing is handed to `/prove-it`: nothing runs yet. Filling the bodies makes it stale, and `--maintain` redraws the model from the real code.
 
 ## One document
 
-Convert with `/read --save` (PDF, docx, …) into `.claude/read/`; cite and hash the original file a person edits, not the conversion. Extract actors, states, steps, rules; every extracted item carries its quote and location (file, section, page or line) and is ticked by the user one by one. What the document leaves unclear becomes a `questions[]` entry with whom to ask — never filled in. Outputs: contradiction (two rules cannot both hold, with the path that collides them), gap (a state with no exit, or a situation with no stated handling), ambiguity (question). A document read from a URL is a source that moves (§ Sources that move): every `--maintain` fetches it again and compares, so an edited web page cannot stay "in sync" forever.
+Convert with `/read --save` (PDF, docx, …) into `.claude/read/`; cite and hash the original file a person edits, not the conversion. Extract actors, states, steps, rules; every extracted item carries its quote and location (file, section, page or line) and is ticked by the user one by one. What the document leaves unclear becomes a `questions[]` entry with whom to ask — never filled in. Outputs: contradiction (two rules cannot both hold, with the path that collides them), gap (a state with no exit, or a situation with no stated handling), ambiguity (question). A document read from a URL is a source that moves (§ Sources that move).
 
 ## Two sources (`--satisfies`)
 

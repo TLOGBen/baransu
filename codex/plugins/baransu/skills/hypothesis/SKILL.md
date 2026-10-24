@@ -40,7 +40,7 @@ PAUSE classification for non-interactive drivers: `references/loop-pauses.md`.
 Run `scripts/hypothesis-status.py --files <target>` first (`python` where `python3` is absent):
 
 - an existing `established` hypothesis covering the target is not-trigger 5: rerun it with the `--check` command and write nothing new;
-- a `stale` or `draft` one goes to §6;
+- a `stale`, `draft` or `broken` one goes to §6;
 - a `legacy` one of the same area is moved first (§6, Migration) — one area never lives in two places.
 
 Otherwise match the target against H1–H8 and the not-trigger list in `references/formal.md`. Before creating anything, confirm the matched row's default tool runs here (for TLA+: Java and `tla2tools.jar`); a missing tool goes to `$baransu:health`'s environment doctor, and if it stays missing the result is `unformalized`, class `no-tool`, never a half-built area. A miss ends with one reason record (`templates/reason-record.md`) in the caller's output, not under `.codex/hypothesis/`.
@@ -80,7 +80,7 @@ A counterexample every step of which the source can take is a finding: write it 
 
 Have `$baransu:draw` draw the diagram series per `references/diagrams.md` — static State Machine figures into `diagrams/`, `--quick`, one seed with no polish: diagram 1 is the happy path with at most 7 states, each next one adds one part, the last numbers every path with the same `P<n>` ids as `paths/` — then write the index page `diagrams.html`. Write `README.md` from `templates/README.md`. Publish per `references/artifact.md` § Writing — `hypothesis.draft.json`, then `scripts/hypothesis-publish.py <area dir>` — and run `scripts/hypothesis-status.py --area <area>`. Quote its line. If it does not print the state you intended, a gate is missing: fix it and publish again. Open the page for the user.
 
-When the state is `established`, a rule is 被打破, and the behaviour side is code, invoke `$baransu:prove-it` at once on the area's paths, the way a reader that sees `stale` invokes `--maintain`: it replays each `paths/P<n>.md` on the real app with the forced order the path states. A path it 推翻 — the app does not take one of its steps — is a suspected model error (`references/formal.md` § Strict, 5): find the step the model allows and the source does not, fix the model, and publish again. A path 無法到達 stays a finding read from the source, and the report says so. A document has no app to replay on; say that instead.
+When the state is `established`, a rule is 被打破, and the behaviour side is code that runs (a `$baransu:draft` sketch is not), invoke `$baransu:prove-it` at once on the area's paths, the way a reader that sees `stale` invokes `--maintain`: it replays each `paths/P<n>.md` on the real app with the forced order the path states. A path it 推翻 — the app does not take one of its steps — is a suspected model error (`references/formal.md` § Strict, 5): find the step the model allows and the source does not, fix the model, and publish again. A path 無法到達 stays a finding read from the source, and the report says so. A document has no app to replay on; say that instead.
 
 ## 6. Keep it in step (`--maintain`)
 

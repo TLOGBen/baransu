@@ -2,11 +2,11 @@
 
 Moved from the drift pass in `prove-it/references/formal.md` and owned here. The work list comes from the status script, not from memory.
 
-`--maintain` turns on by itself, per `../../_shared/auto-flags.md`, when the target a user or a reader names is covered by a hypothesis whose state is `stale`, `draft`, or `legacy`. Readers call it: a reader that sees `stale` invokes `$baransu:hypothesis --maintain <area>` at once (`reading.md` § State × reader), so a hypothesis never stays stale waiting for someone to remember.
+`--maintain` turns on by itself, per `../../_shared/auto-flags.md`, when the target a user or a reader names is covered by a hypothesis whose state is `stale`, `draft`, `broken` or `legacy`. Readers call it: a reader that sees `stale` invokes `$baransu:hypothesis --maintain <area>` at once (`reading.md` § State × reader), so a hypothesis never stays stale waiting for someone to remember.
 
 ## Work list
 
-Run `scripts/hypothesis-status.py --all --json`, or `--area <area>` when one is named. Every area whose state is `stale`, `draft`, or `legacy` is on the list; `established` and `unformalized` areas are left as they are. The `why` field is the starting set of changes: `changed`, `missing`, `new-writer`, `writer-gone`, `artifact-edited`, `no-evidence`.
+Run `scripts/hypothesis-status.py --all --json`, or `--area <area>` when one is named. Every area whose state is `stale`, `draft`, `broken` or `legacy` is on the list (a `broken` one is rebuilt from its own files — model, variants, paths, README — and published again); `established` and `unformalized` areas are left as they are. The `why` field is the starting set of changes: `changed`, `missing`, `new-writer`, `writer-gone`, `artifact-edited`, `no-evidence`.
 
 ## Read every change — what it does, and why it changed
 

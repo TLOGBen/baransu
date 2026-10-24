@@ -17,7 +17,7 @@ A row triggers on a signal you can point at in the code, the request, or the doc
 | H5 | Permission and authorization (to the wrong party) | a decision that depends on mutable state (a role changed mid-flow, a delegate, a share link, tenant isolation) or composes several policies | TLA+, or an SMT solver when the policies are logic | one static role check on one endpoint |
 | H6 | Irreversible external effect (reverse impossible) | delete, charge, send a mail or message, publish, deploy, migrate data, write outside the system; "never twice" or "only after X" | TLA+ | a dry run whose skipping was seen |
 | H7 | A property of the code for every input (part of) | parser, decoder, serializer, memory-unsafe code, overflow, a data-structure invariant | a code-level verifier (Kani for Rust, Verus, Dafny) | input whose whole domain one test enumerates |
-| H8 | The user asks | `$baransu:hypothesis`, 「假說」「先建立假說」「這個模組不能出錯」「畫狀態圖給我看」「文件有沒有矛盾」「A 是否滿足 B」, "model-check this" | chosen by the question | — |
+| H8 | The user asks | `$baransu:hypothesis`, 「假說」「先建立假說」「這個模組不能出錯」「畫狀態圖給我看」「文件有沒有矛盾」「A 是否滿足 B」「SD 有沒有滿足 SA」「證明所有順序都不會壞」, "model-check this" | chosen by the question | — |
 
 H7 in a language with no installed or known verifier ends `unformalized`, class `no-tool`, naming the verifier missing. It never falls back to property-based testing: generated inputs sample, and a hypothesis is not a sample.
 

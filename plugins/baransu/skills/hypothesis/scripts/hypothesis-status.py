@@ -65,7 +65,7 @@ class Row:
 
 def _git(root: Path, *args: str) -> str | None:
     try:
-        out = subprocess.run(["git", *args], cwd=root, capture_output=True, text=True,
+        out = subprocess.run(["git", "-c", "core.quotepath=false", *args], cwd=root, capture_output=True, text=True,
                              encoding="utf-8", errors="replace", check=True)
     except (OSError, subprocess.CalledProcessError):
         return None
@@ -107,7 +107,7 @@ def watch_matches(root: Path, pattern: str, paths: list[str] | None = None) -> l
         return None
     try:
         spec = list(paths or ["."]) + [f":(exclude){d}/hypothesis" for d in AGENT_DIRS]
-        out = subprocess.run(["git", "grep", "-l", "--untracked", "-E", pattern, "--", *spec], cwd=root,
+        out = subprocess.run(["git", "-c", "core.quotepath=false", "grep", "-l", "--untracked", "-E", pattern, "--", *spec], cwd=root,
                              capture_output=True, text=True, encoding="utf-8", errors="replace")
     except OSError:
         return None
@@ -148,6 +148,8 @@ def evidence_gaps(rec: dict) -> list[Why]:
                 gaps.append(Why("no-evidence", f"{goal.get('id')} 沒看過它成功"))
         if not rec.get("goals"):
             gaps.append(Why("no-evidence", "沒有任何目標規則"))
+    if verdict == "unformalized" and not rec.get("unformalized"):
+        gaps.append(Why("no-evidence", "無法成立假說卻沒有任何原因紀錄"))
     for u in rec.get("unformalized", []):
         if any(not str(u.get(f, "")).strip() for f in REASON_FIELDS) or u.get("class") not in REASON_CLASSES:
             gaps.append(Why("no-evidence", f"原因紀錄 {u.get('id', '?')} 不完整"))
@@ -184,6 +186,10 @@ def compute_state(root: Path, area_dir: Path) -> Row:
             stale.append(Why("missing", name))
         elif now != h:
             stale.append(Why("changed", name))
+    for copy, original in sorted(sync.get("originals", {}).items()):
+        now = hash_lf(root / original)  # a moved-away original is fine; an edited one makes the copy stale
+        if now is not None and now != hash_lf(root / copy):
+            stale.append(Why("changed", original))
     for w in sync.get("watch", []):
         now = watch_matches(root, w.get("pattern", ""), w.get("paths"))
         if now is None:

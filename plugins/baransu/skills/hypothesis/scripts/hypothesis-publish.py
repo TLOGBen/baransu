@@ -12,7 +12,8 @@ Usage:
 The draft carries `base_generation`: the generation read when this run started
 (0 for a first publish). If `hypothesis.json` has moved on since, nothing is written
 and the exit is 3 (another writer published meanwhile: start the run again).
-Exit: 0 published; 2 failed (including an artifact file git ignores); 3 lost the compare-and-swap.
+Exit: 0 published; 2 failed (including an artifact file git ignores); 3 lost the compare-and-swap,
+or another publish holds a lock younger than ten minutes (an older one is cleared).
 """
 from __future__ import annotations
 
@@ -23,6 +24,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -32,6 +34,7 @@ sys.modules["hypothesis_status"] = status  # dataclasses look their module up he
 _spec.loader.exec_module(status)  # type: ignore[union-attr]
 
 SKIP = {"hypothesis.json", "hypothesis.draft.json", "hypothesis.lock"}
+LOCK_EXPIRES = 600  # seconds
 
 
 def current_generation(area_dir: Path) -> int:
@@ -82,11 +85,16 @@ def publish(area_dir: Path, commit: str | None) -> int:
     draft["generation"] = base + 1
     draft["published_at"] = dt.datetime.now().astimezone().isoformat(timespec="seconds")
     lock = area_dir / "hypothesis.lock"
+    if lock.exists() and time.time() - lock.stat().st_mtime > LOCK_EXPIRES:
+        # a publish takes seconds; a lock this old was left by a run that was killed mid-swap
+        print(f"清掉 {LOCK_EXPIRES // 60} 分鐘前留下的 {lock.name}（上一次發布中途被中斷）。", file=sys.stderr)
+        lock.unlink()
     try:  # the compare and the swap happen under one lock, so two writers cannot both pass the compare
         fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
     except FileExistsError:
-        print(f"另一個寫入者正在發布（{lock.name} 存在）；請重新開始。", file=sys.stderr)
+        print(f"另一個寫入者正在發布（{lock.name} 存在，不到 {LOCK_EXPIRES // 60} 分鐘）；請稍後重新開始。", file=sys.stderr)
         return 3
+    os.write(fd, f"{os.getpid()} {time.time():.0f}\n".encode())
     try:
         if current_generation(area_dir) != base:
             print("交換前發現另一個寫入者已發布，沒有寫入；請重新開始。", file=sys.stderr)

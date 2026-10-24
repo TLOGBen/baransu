@@ -5,7 +5,7 @@
     "watch": [],
     "versions": {},
     "hash_algo": "sha256-lf",
-    "commit": "a7f2f0c",
+    "commit": "70aabe7",
     "files": {
       ".claude/hypothesis/hypothesis-lifecycle/sources/formal-hypothesis.md": "ea60ee264c04e71cf4e0ad6a7d920055c59527e05cca5e8ae4202cf2f4b74135"
     },
@@ -17,11 +17,11 @@
       "diagrams/d4-paths.html": "9568b8299896570f43f2d9919be968248ce51af6178481c2538f787a90f3d2ae",
       "diagrams/d5-decisions.html": "6e9753c1f7e9c7a0c2762dce295a8bba5ce54c13d34940cf8be104dfc877f5de",
       "diagrams/docs/brief.md": "403439eddb7dfaf1711401c623efe483c949ac130be6d42d70ed918ca6da2282",
-      "diagrams.html": "cb218b32cb2bf4491ecca6a6487b898f0fa029ea0f04956a104ba7b15998e07e",
+      "diagrams.html": "9c570b66dd04b958f47f8e8a29c42bb5a9cf813cf827bfe104479b29a0b7cb41",
       "model/Chosen.cfg": "358232a8b0858595e661cbe29608231d33879619e673ce289b7a4ddcbb865ecb",
       "model/Goal.cfg": "19d68b7585c009d5bdc3f2bcbf297263857cabb1de33a3e7cb012471dc1005da",
       "model/Lifecycle.tla": "618110177003db618070c8533cfd48ef6794452f4d3a84c98820d29baf83d09e",
-      "README.md": "aecd76decf4629abf2d8c69a8781d27b9228625ec4135879c42d0a3c2676d761",
+      "README.md": "2cfa027e7c000968fe3a612b3573263a4308b92483803d2761867652ff5133a6",
       "sources/formal-hypothesis.md": "ea60ee264c04e71cf4e0ad6a7d920055c59527e05cca5e8ae4202cf2f4b74135",
       "variants/BothAllowed.cfg": "9c1e21a18ae9eb5b745c4c75d40e9fb86c310f6bdaec4b7f8af62e72ed2dc669",
       "variants/G1-NoDeclare.cfg": "55223927685c2c8f3daa69e53b6002dbfb55eea62f454ec12a29c449c7541d84",
@@ -30,6 +30,9 @@
       "variants/PlanAsWritten.cfg": "0d1cdb43a90b0dae594fb373afffe05235e5e0fefb487dadbd0df59a951a08c8",
       "variants/S2-DeclareOnOldPass.cfg": "16f275ff34bd4206d05bb15003984af679e166a8a9c501cdd4d3b84412004398",
       "variants/Today.cfg": "f80ff7bf87b564c227b91c0fc8dfef2c2fb257324c06fbbc8c6f48427466bd24"
+    },
+    "originals": {
+      ".claude/hypothesis/hypothesis-lifecycle/sources/formal-hypothesis.md": ".claude/think/formal-hypothesis.md"
     }
   },
   "check": {
@@ -268,11 +271,19 @@
       "to_commit": null,
       "outcome": "no-effect",
       "note": "計畫書這段期間的改動（ADR 不寫、hunt 改名、第七類原因、維護照 /how 與 /why、darkroom 試行目標）都沒有改到生命週期的規則；引用行號 82→83、165→166 已更新。圖組改由 /draw 一次直出（diagrams/），diagrams.html 改為索引頁。"
+    },
+    {
+      "generation": 5,
+      "from_commit": "a7f2f0c",
+      "to_commit": "70aabe7",
+      "outcome": "no-effect",
+      "areas_changed": [],
+      "note": "來源改引 sources/ 副本、check.log 改名 check.txt、用詞改為成立假說與守住／被打破、U1／U2 照實改寫；模型與來源內容沒有變"
     }
   ],
   "migrated_from": null,
   "schema": "baransu.hypothesis/1",
   "area": "hypothesis-lifecycle",
-  "generation": 4,
-  "published_at": "2026-10-24T12:22:55+08:00"
+  "generation": 5,
+  "published_at": "2026-10-24T12:43:36+08:00"
 }

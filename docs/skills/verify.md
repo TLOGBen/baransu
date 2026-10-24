@@ -102,7 +102,7 @@ Claude Code：`/baransu:hypothesis`　Codex：`$baransu:hypothesis`
 **運作方式**　判斷輸入種類並在第一行說出 → 讀來源，記下涵蓋範圍 → 跟你確認一句一條的白話規則（文件逐條勾選，模糊的地方列成要問誰的問題）→ 建模，每一部分引用來源 → 看過它失敗（故意改壞的版本被抓到）、看過它成功（目標走得到，拿掉一步就走不到）→ 用 `/draw` 一次直出狀態圖 → 發布 → 狀態腳本確認可信才算完成；來源是程式又有規則被打破時，立刻交給 `/prove-it` 在真的 app 上重現每條反例路徑，重現不出來的路徑當成模型可能有錯，修正後重新發布。沒有形式化的部分都要寫原因，七類擇一。
 
 **產出**
-- `.claude/hypothesis/<area>/`：`hypothesis.json`（機器讀）、`README.md`（人讀）、`diagrams.html` 與 `diagrams/`、模型、`variants/`（改壞的版本，存進 git）、`paths/`（反例劇本）。`/ship` 永不歸檔。
+- `.claude/hypothesis/<area>/`：`hypothesis.json`（機器讀）、`README.md`（人讀）、`diagrams.html` 與 `diagrams/`、模型、`variants/`（改壞的版本，存進 git）、`paths/`（反例劇本）、`sources/`（會被移走或會變的來源副本）、`check.txt`（檢查工具的原始輸出）。`/ship` 永不歸檔。
 - 讀者一律用 `scripts/hypothesis-status.py`：狀態每次讀的時候現算（成立假說、假說未成立、無法成立假說、過期、舊位置、無法判定），只有「成立假說、規則都守住」能算通過；過期時每條規則的結論都印成 `?`。
 - 照實驗的三步分工：觀察 → 成立假說（`/hypothesis`）→ 證明（`/prove-it`）。假說的目的是成立假說；規則的結論是「守住／被打破」，證實或推翻是 `/prove-it` 的事。
 

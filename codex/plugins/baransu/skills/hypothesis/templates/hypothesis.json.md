@@ -1,12 +1,12 @@
 # hypothesis.json — schema `baransu.hypothesis/1`
 
-The publish record of one area. Written only by `$baransu:hypothesis`, only as the last step of a publish, only by compare-and-swap on `generation`. Read only by `scripts/hypothesis-status.py`. Example: the approval known-answer case (naive version).
+The publish record of one area. Written only by `$baransu:hypothesis`, only as the last step of a publish, only by compare-and-swap on `generation`. Read only by `scripts/hypothesis-status.py`. Example: an illustrative refund service — invented for this template, unrelated to the known-answer exams under `evals/`.
 
 ```json
 {
   "schema": "baransu.hypothesis/1",
-  "area": "approval",
-  "title": "簽核流程",
+  "area": "refund",
+  "title": "退款流程",
   "source_kind": "code",
   "generation": 4,
   "published_at": "<ISO-8601 from the clock at publish>",
@@ -15,86 +15,84 @@ The publish record of one area. Written only by `$baransu:hypothesis`, only as t
     "commit": "a1b2c3d",
     "hash_algo": "sha256-lf",
     "files": {
-      "src/approval/submit.ts":   "<sha256-lf>",
-      "src/approval/approve.ts":  "<sha256-lf>",
-      "src/approval/withdraw.ts": "<sha256-lf>",
-      "src/approval/pay.ts":      "<sha256-lf>"
+      "src/refund/request.ts": "<sha256-lf>",
+      "src/refund/review.ts":  "<sha256-lf>",
+      "src/refund/cancel.ts":  "<sha256-lf>",
+      "src/refund/payout.ts":  "<sha256-lf>"
     },
     "versions": {},
+    "originals": {},
     "watch": [
       { "state": "status",
-        "pattern": "\\bstatus\\s*[:=]\\s*['\"](approved|withdrawn|pending|rejected)['\"]",
-        "matched": ["src/approval/approve.ts", "src/approval/submit.ts", "src/approval/withdraw.ts"] },
-      { "state": "paid",
-        "pattern": "\\bpaid\\s*[:=]\\s*true",
-        "matched": ["src/approval/pay.ts"] }
+        "pattern": "\\bstatus\\s*[:=]\\s*['\"](requested|accepted|cancelled|paid)['\"]",
+        "paths": ["src/refund"],
+        "matched": ["src/refund/cancel.ts", "src/refund/request.ts", "src/refund/review.ts"] },
+      { "state": "refunded",
+        "pattern": "\\brefunded\\s*[:=]",
+        "matched": ["src/refund/payout.ts"] }
     ],
     "artifact": {
       "README.md": "<sha256-lf>", "diagrams.html": "<sha256-lf>", "check.txt": "<sha256-lf>",
-      "model/Approval.tla": "<sha256-lf>", "model/Naive.cfg": "<sha256-lf>",
-      "variants/R1-keep-old-approvals.patch": "<sha256-lf>", "variants/R2-no-withdraw-check.patch": "<sha256-lf>",
-      "variants/R3-no-next-approver.patch": "<sha256-lf>", "variants/R2-no-withdraw-check.patch": "<sha256-lf>",
-      "variants/R3-no-next-approver.patch": "<sha256-lf>",
-      "paths/P1.md": "<sha256-lf>", "paths/P2.md": "<sha256-lf>"
+      "model/Refund.tla": "<sha256-lf>", "model/Refund.cfg": "<sha256-lf>", "model/check.sh": "<sha256-lf>",
+      "variants/R1-skip-balance-check.patch": "<sha256-lf>", "variants/R2-no-cancel-check.patch": "<sha256-lf>",
+      "variants/R3-pay-twice.patch": "<sha256-lf>",
+      "paths/P1.md": "<sha256-lf>"
     }
   },
 
   "check": {
     "tool": "TLC", "version": "2.19",
-    "command": "java -XX:+UseParallelGC -cp <tla2tools.jar> tlc2.TLC -deadlock -config model/Naive.cfg model/Approval.tla",
-    "bounds": "Amounts ∈ {500, 2000, 9000}; MaxVersion = 3; one applicant, one manager, one finance",
-    "assumptions": ["each click is handled by one request; the database row is the only shared state"],
-    "left_out": ["notification e-mail (see unformalized U1)"],
-    "states": 425, "seconds": 0.8,
+    "command": "bash model/check.sh <tla2tools.jar>",
+    "bounds": "one order paid 1000; refund amounts ∈ {300, 800}; two refund requests, one reviewer, one payout worker",
+    "assumptions": ["each request runs one handler; the order row is the only shared state; a row write replaces it whole"],
+    "left_out": ["the payment provider's own retries (see unformalized U1)"],
+    "states": 1310, "seconds": 1.2,
     "verdict_at_sync": "violated",
     "seen_failing": [
-      { "rule": "R1", "variant": "variants/R1-keep-old-approvals.patch", "caught": true },
-      { "rule": "R2", "variant": "variants/R2-no-withdraw-check.patch", "caught": true },
-      { "rule": "R3", "variant": "variants/R3-no-next-approver.patch", "caught": true }
+      { "rule": "R1", "variant": "variants/R1-skip-balance-check.patch", "caught": true },
+      { "rule": "R2", "variant": "variants/R2-no-cancel-check.patch", "caught": true },
+      { "rule": "R3", "variant": "variants/R3-pay-twice.patch", "caught": true }
     ],
     "seen_succeeding": [
-      { "goal": "G1", "reached": true, "removed_transition": "Approve", "unreachable_after": true }
+      { "goal": "G1", "reached": true, "removed_transition": "Payout", "unreachable_after": true }
     ]
   },
 
   "model_map": [
-    { "part": "Submit",   "cites": ["src/approval/submit.ts:18-31"] },
-    { "part": "Approve",  "cites": ["src/approval/approve.ts:52-64"] },
-    { "part": "Withdraw", "cites": ["src/approval/withdraw.ts:27-35"] },
-    { "part": "Pay",      "cites": ["src/approval/pay.ts:38-47"] }
+    { "part": "Request", "cites": ["src/refund/request.ts:14-29"] },
+    { "part": "Accept",  "cites": ["src/refund/review.ts:40-58"] },
+    { "part": "Cancel",  "cites": ["src/refund/cancel.ts:21-33"] },
+    { "part": "Payout",  "cites": ["src/refund/payout.ts:30-46"] }
   ],
 
   "rules": [
-    { "id": "R1", "kind": "safety", "name": "PaidMatchesApprovals",
-      "text": "付款金額，一定等於主管和財務核准當下的金額。",
-      "cites": ["src/approval/pay.ts:41"], "verdict": "violated", "paths": ["P1"] },
-    { "id": "R2", "kind": "safety", "name": "NoPayAfterWithdraw",
-      "text": "撤回之後，不會再付款。",
-      "cites": ["src/approval/withdraw.ts:33", "src/approval/pay.ts:39"], "verdict": "violated", "paths": ["P2"] },
-    { "id": "R3", "kind": "safety", "name": "NotStuck",
-      "text": "一張申請不會卡在沒有人能動的狀態。",
-      "cites": ["src/approval/approve.ts:52"], "verdict": "held", "paths": [] }
+    { "id": "R1", "kind": "safety", "name": "NeverRefundMoreThanPaid",
+      "text": "退給客人的總額，絕不超過他付的錢。",
+      "cites": ["src/refund/review.ts:47"], "verdict": "violated", "paths": ["P1"] },
+    { "id": "R2", "kind": "safety", "name": "NoPayoutAfterCancel",
+      "text": "取消的退款，不會再撥款。",
+      "cites": ["src/refund/cancel.ts:30", "src/refund/payout.ts:33"], "verdict": "held", "paths": [] },
+    { "id": "R3", "kind": "safety", "name": "PayoutOnce",
+      "text": "同一筆退款最多撥款一次。",
+      "cites": ["src/refund/payout.ts:41"], "verdict": "held", "paths": [] }
   ],
 
   "goals": [
-    { "id": "G1", "text": "一張 2000 元的申請，可以一路走到付款。", "guards": ["R1", "R2", "R3"] }
+    { "id": "G1", "text": "一筆 300 元的退款，可以一路走到撥款。", "guards": ["R1", "R2", "R3"] }
   ],
 
   "paths": [
     { "id": "P1", "rule": "R1", "finding": "bug",
-      "summary": "改金額後重送，舊的核准還在，用舊核准付了新金額。",
-      "script": "paths/P1.md", "steps": 7 },
-    { "id": "P2", "rule": "R2", "finding": "bug",
-      "summary": "撤回和主管核准同時按下，撤回先寫入、核准後寫入，付款照付。",
-      "script": "paths/P2.md", "steps": 5 }
+      "summary": "兩筆退款同時審核，各自都看到餘額夠，兩筆都撥款，退的比付的多。",
+      "script": "paths/P1.md", "steps": 6 }
   ],
 
   "questions": [],
 
   "unformalized": [
-    { "id": "U1", "where": "src/approval/notify.ts:12-30", "class": "cannot-model",
-      "detail": "寄通知信依賴外部郵件服務的送達結果。",
-      "until": "郵件服務有可建模的送達合約（至少一次／至多一次）",
+    { "id": "U1", "where": "src/refund/payout.ts:50-71", "class": "cannot-model",
+      "detail": "撥款結果取決於金流服務自己的重試與回呼時機。",
+      "until": "金流服務有可建模的送達合約（至少一次／至多一次）",
       "instead": "red/green test" }
   ],
 
@@ -113,6 +111,7 @@ The publish record of one area. Written only by `$baransu:hypothesis`, only as t
 - `generation` — increments by one per publish; the compare-and-swap key.
 - `model_map[].cites`, `rules[].cites` — `path` or `path:line[-line]` only; a document's passage goes in `model_map[].quote`.
 - `sync.files` — keys are repo-relative paths (absolute only for a document outside the repo); exactly the files cited by `model_map` and `rules`.
+- `sync.originals` — `{ "<copy under sources/>": "<original path>" }` for each frozen copy whose original is a local file; when the original still exists and its content differs from the copy, the area is `stale` (`changed: <original>`).
 - `sync.watch[].matched` — sorted; computed with `git grep -l --untracked -E <pattern>` at publish. `sync.watch[].paths` — optional pathspecs that limit the search (default: the whole repo); `.codex/hypothesis/` and `.codex/hypothesis/` are never searched.
 - `sync.artifact` — every file in the area except `hypothesis.json` itself.
 - `check.verdict_at_sync` — the model's prediction: `held` (all rules `held`) | `violated` (any `violated`) | `unformalized` (no model; `rules` may be empty). Records published before the rename say `proved` / `disproved`; the script reads them as `held` / `violated`.
