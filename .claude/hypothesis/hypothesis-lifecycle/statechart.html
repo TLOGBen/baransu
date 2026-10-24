@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>假說生命週期</title>
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1f2328; --muted: #5d636b; --card: #ffffff;
+    --line: #e3e0d8; --accent: #2f6f8f; --bad: #b42318; --bad-bg: #fdecea; --ok: #1a7f37;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15171a; --fg: #e6e6e6; --muted: #a0a6ad; --card: #1d2024;
+      --line: #30343a; --accent: #7fb6d3; --bad: #ff8a80; --bad-bg: #3a1f1d; --ok: #6fd28a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15171a; --fg: #e6e6e6; --muted: #a0a6ad; --card: #1d2024;
+    --line: #30343a; --accent: #7fb6d3; --bad: #ff8a80; --bad-bg: #3a1f1d; --ok: #6fd28a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+         font: 16px/1.7 "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.7rem; margin: 0 0 4px; }
+  h2 { font-size: 1.2rem; margin: 40px 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+  figure { margin: 16px 0 28px; background: var(--card); border: 1px solid var(--line);
+           border-radius: 10px; padding: 16px; overflow-x: auto; }
+  figcaption { color: var(--muted); margin-bottom: 8px; }
+  figcaption b { color: var(--fg); }
+  table { width: 100%; border-collapse: collapse; background: var(--card); }
+  th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: color-mix(in srgb, var(--accent) 10%, var(--card)); }
+  .bad { color: var(--bad); font-weight: 600; }
+  .ok { color: var(--ok); font-weight: 600; }
+  ol.trace { background: var(--bad-bg); border-radius: 8px; padding: 12px 12px 12px 36px; }
+  code { font-size: .92em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>假說的生命週期</h1>
+  <p class="sub">輸入：<code>.claude/think/formal-hypothesis.md</code>（第三版）。用 TLC2 2.19 窮舉，來源最多改 2 次，讀者有 3 個。</p>
+
+  <h2>規則</h2>
+  <ol>
+    <li>讀者對目前版本說「通過」時，目前版本必須真的沒有問題。（plan:40）</li>
+    <li>宣告「完成」時，目前版本必須沒有問題。（plan:38）</li>
+    <li>「完成」必須走得到。（plan:84）</li>
+    <li>假說發布後，終究要跟上最新的程式或文件。（plan:40、plan:53）</li>
+  </ol>
+
+  <h2>狀態圖，一張多一個元件</h2>
+
+  <figure>
+    <figcaption><b>1. 正常流程。</b>寫下假說，prove-it 證明通過，宣告完成。</figcaption>
+    <pre class="mermaid">
+stateDiagram-v2
+  direction LR
+  state "還沒有假說" as none
+  state "已寫下，與來源同步" as sync
+  state "prove-it 證明通過" as proved
+  state "完成" as done
+  [*] --> none
+  none --> sync : 寫下（看過失敗、看過成功）
+  sync --> proved : prove-it 重跑
+  proved --> done : 宣告完成
+    </pre>
+  </figure>
+
+  <figure>
+    <figcaption><b>2. 加上「來源被改了」。</b>程式或文件一改，假說就過期，要靠維護把它拉回同步。</figcaption>
+    <pre class="mermaid">
+stateDiagram-v2
+  direction LR
+  state "還沒有假說" as none
+  state "已寫下，與來源同步" as sync
+  state "prove-it 證明通過" as proved
+  state "完成" as done
+  state "過期：模型停在舊版" as stale
+  [*] --> none
+  none --> sync : 寫下
+  sync --> proved : prove-it 重跑
+  proved --> done : 宣告完成
+  sync --> stale : 程式或文件被改了
+  proved --> stale : 程式或文件被改了
+  done --> stale : 程式或文件被改了
+  stale --> sync : /hypothesis --maintain
+    </pre>
+  </figure>
+
+  <figure>
+    <figcaption><b>3. 加上讀者。</b>prove-it、review、綠燈重跑時，模型過期，就回報「過期」，不回報「通過」。</figcaption>
+    <pre class="mermaid">
+stateDiagram-v2
+  direction LR
+  state "已寫下，與來源同步" as sync
+  state "prove-it 證明通過" as proved
+  state "完成" as done
+  state "過期：模型停在舊版" as stale
+  state "三個讀者都回報「過期」" as reported
+  [*] --> sync : 寫下
+  sync --> proved : prove-it 重跑
+  proved --> done : 宣告完成
+  sync --> stale : 程式或文件被改了
+  proved --> stale : 程式或文件被改了
+  stale --> reported : prove-it／review／綠燈重跑
+  reported --> sync : /hypothesis --maintain
+    </pre>
+  </figure>
+
+  <figure>
+    <figcaption><b>4. 兩條 bug 路徑，有編號。</b>① 是 8.15.0 現況，② 是照計畫原文寫下去會出的問題。</figcaption>
+    <pre class="mermaid">
+stateDiagram-v2
+  direction LR
+  state "已寫下，與來源同步" as sync
+  state "過期：模型停在舊版" as stale
+  state "三個讀者都回報「過期」" as reported
+  state "① 程式被改，引入 bug" as changedBug
+  state "① ❌ prove-it 說「通過」，但程式有 bug" as falsepass
+  state "② ❌ 永遠過期，「完成」走不到" as forever
+  [*] --> sync : 寫下
+  sync --> changedBug : ① 改動（沒有過期拒答）
+  changedBug --> falsepass : ① prove-it 重跑
+  sync --> stale : ② 改了兩次
+  stale --> reported : ② 讀者重跑
+  reported --> forever : ② 沒有人叫維護
+  reported --> sync : 修正後：讀者自動交給維護
+  classDef bad fill:#fdecea,stroke:#b42318,color:#7a1610
+  class falsepass, forever bad
+    </pre>
+  </figure>
+
+  <figure>
+    <figcaption><b>5. 三個決定，各自擋下一條路徑。</b>③ 綠燈只提醒、④ 新舊並存、⑤ 舊檢查直接拿來宣告完成。現在的計畫三條都擋住了。</figcaption>
+    <pre class="mermaid">
+stateDiagram-v2
+  direction LR
+  state "專案裡有 8.15.0 的舊檢查" as old
+  state "已寫下，與來源同步" as sync
+  state "③ 程式被改，引入 bug" as chg
+  state "③ ❌ 綠燈只提醒「過期」就放行" as greenbad
+  state "④ 舊的還在，又寫了一份新的" as both
+  state "④ ❌ prove-it 讀到沒人管的舊那份" as readold
+  state "⑤ ❌ 用沒檢查過「做得到」的舊檢查宣告完成" as donebad
+  state "搬家，標「嚴格檢查未完成」" as migrated
+  [*] --> sync : 寫下
+  [*] --> old
+  sync --> chg : ③ 改動
+  chg --> greenbad : ③ 綠燈重跑
+  old --> both : ④ 允許並存時
+  both --> readold : ④ 讀者重跑
+  old --> donebad : ⑤ prove-it 讀舊的，說通過
+  old --> migrated : 現在的計畫：先搬
+  migrated --> sync : 維護一次，補上嚴格檢查
+  classDef bad fill:#fdecea,stroke:#b42318,color:#7a1610
+  class greenbad, readold, donebad bad
+    </pre>
+  </figure>
+
+  <h2>TLC 結果</h2>
+  <table>
+    <tr><th>設定</th><th>代表什麼</th><th>狀態數</th><th>結果</th></tr>
+    <tr><td><code>Chosen</code></td><td>現在的計畫，含所有決定</td><td>3,764</td><td class="ok">全部成立</td></tr>
+    <tr><td><code>Goal</code></td><td>「完成」走不走得到</td><td>95</td><td class="ok">走得到，4 步</td></tr>
+    <tr><td><code>Today</code></td><td>8.15.0 現況：沒有過期拒答</td><td>42</td><td class="bad">路徑 ①</td></tr>
+    <tr><td><code>PlanAsWritten</code></td><td>維護靠人叫</td><td>3,764</td><td class="bad">路徑 ②</td></tr>
+    <tr><td><code>GreenWarn</code></td><td>綠燈遇過期只提醒</td><td>44</td><td class="bad">路徑 ③</td></tr>
+    <tr><td><code>BothAllowed</code></td><td>允許新舊並存</td><td>36</td><td class="bad">路徑 ④</td></tr>
+    <tr><td><code>MigrateUnmarked</code></td><td>舊檢查不標未完成</td><td>47</td><td class="bad">路徑 ⑤</td></tr>
+  </table>
+  <p>同步點已更新到計畫書目前的版本（維護一次）。詳細的歸類與每條路徑的劇本見 <code>README.md</code>。</p>
+
+  <h2>路徑 ② 的劇本</h2>
+  <ol class="trace">
+    <li>寫下假說（同步點：第 0 版）</li>
+    <li>程式或文件被改了（第 1 版）</li>
+    <li>又被改了一次（第 2 版）</li>
+    <li>prove-it 重跑，回報「過期」</li>
+    <li>review 重跑，回報「過期」</li>
+    <li>綠燈重跑，回報「過期」</li>
+    <li>之後沒有任何動作：plan:40 說「交回 /hypothesis 維護」，卻沒寫由誰叫；plan:195 又讓 /hypothesis 只能由人叫用</li>
+  </ol>
+
+  <h2>原本的兩個模糊（已回答）</h2>
+  <ul>
+    <li>綠燈重跑遇到「過期」→ 算紅燈，自動交給維護（擋下路徑 ③）。</li>
+    <li>新舊兩個目錄 → 不允許並存；舊檢查不論搬了沒有，都要先補嚴格檢查（擋下路徑 ④、⑤）。</li>
+  </ul>
+</main>
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.esm.min.mjs";
+  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  mermaid.initialize({ startOnLoad: true, theme: dark ? "dark" : "default", securityLevel: "strict" });
+</script>
+</body>
+</html>

@@ -195,3 +195,4 @@ Outcome Contract still applies.
 | /how | `../how/references/loop-pauses.md` |
 | /draft | `../draft/references/loop-pauses.md` |
 | /prove-it | `../prove-it/references/loop-pauses.md` |
+| /hypothesis | `../hypothesis/references/loop-pauses.md` |

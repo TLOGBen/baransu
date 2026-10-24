@@ -1,0 +1,3 @@
+# Third-party notice — /baransu:hypothesis
+
+(unimplemented) `references/formal.md` moves here from `prove-it/references/formal.md` with its pstack attribution (`create-formal-verification-skill`, `maintain-formal-verification-skill`, cursor/plugins, MIT, Lauren Tan): what was kept, what changed (owned by its own skill; documents as input; seen succeeding; reason records; blob-hash sync point; read through a script). `references/page.md` label rules adapted from pstack `statechart`, same license. MIT text reproduced once below. `prove-it/NOTICE.md` drops the formal.md paragraph in the same change.
