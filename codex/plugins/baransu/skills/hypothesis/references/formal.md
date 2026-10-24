@@ -29,7 +29,7 @@ Even when a row's words appear, none of these is a hypothesis:
 2. A static permission check on one endpoint.
 3. Look, copy, documentation, a configuration value, a parameter choice.
 4. A read-only query with one reader.
-5. A target already covered by a hypothesis whose state is `proved` or `disproved` — rerun it instead. Decide this from `scripts/hypothesis-status.py --files <target>`, never from memory.
+5. A target already covered by a hypothesis making the same claim, whose state is `proved` or `disproved` — rerun it instead. A different claim about the same source (a comparison against another document, a new rule) is a new hypothesis. Decide this from `scripts/hypothesis-status.py --files <target>`, never from memory.
 6. A prototype the user says will be thrown away.
 
 A declined match is written as one reason record, class `non-trigger`, naming the row, in the output of whoever declined (this skill, `$baransu:hunt`, `$baransu:review`).
@@ -47,7 +47,7 @@ Prefer a tool the repo's developers can install and run. Say which tool and why 
 
 Every tool used must yield, for publish:
 
-- tool name and version, and one pinned command that reruns the check;
+- tool name and version, and one pinned command that reruns the check — a small script in `model/` (`check.sh`, `check.ps1`) when several configurations must run;
 - per rule, `held` or `violated`;
 - per violation, a counterexample trace whose steps map to model parts;
 - the number of states or cases explored, and the seconds taken.
@@ -58,9 +58,9 @@ A tool that cannot yield one of these is not usable for a hypothesis. A tool's s
 
 Each rule maps to the field that records it, so `scripts/hypothesis-status.py` enforces what can be enforced and shows the area as `draft` until it holds:
 
-1. **True to the source** → `model_map` cites every model part (action, variable, constant): `file:line` for code; quoted passage plus location (file, section, page or line) for documents. One indivisible step in the source is one step in the model. Names are the source's. What a document leaves unclear becomes a question, never a filled-in guess.
-2. **Seen failing** → `check.seen_failing`: one entry per safety or liveness rule, the broken variant under `variants/` that the check caught. The broken source is made in a scratch copy under the system temp dir and dropped; the variant file stays in the area and in git.
-3. **Seen succeeding** → `check.seen_succeeding`: every goal reached, and unreachable once one named transition is removed. Every safety and liveness rule is guarded by some goal. A model that passes only because nothing can happen is rejected.
+1. **True to the source** → `model_map` cites every model part (action, variable, constant): `file:line` for code; quoted passage plus location (file, section, page or line) for documents. One indivisible step in the source is one step in the model. Names follow the source; where the tool cannot take them (TLC rejects non-ASCII strings), use an ASCII identifier and map it back in `model_map` and the README's table. What a document leaves unclear becomes a question, never a filled-in guess; when the model cannot run without choosing, run every reading the ambiguity allows and report each reading's verdict under the question.
+2. **Seen failing** → `check.seen_failing`: one entry per safety or liveness rule, the broken variant under `variants/` that the check caught. A rule the source as written already breaks has its evidence in the source itself: name it as the variant (`variants/as-written.md`, or the config that checks the source). The broken source is made in a scratch copy under the system temp dir and dropped; the variant file stays in the area and in git.
+3. **Seen succeeding** → `check.seen_succeeding`: every goal in `goals` reached, and unreachable once one named transition is removed. A goal the source cannot reach is not missing evidence but a finding: record it as a rule of kind `goal` with verdict `violated` and a path, and keep `goals` to the outcomes the model does reach. Every safety and liveness rule is guarded by some goal. A model that passes only because nothing can happen is rejected.
 4. **Scope stated** → `check.bounds`, `assumptions`, `left_out`. An exhaustive check holds within its bounds; a request for no bounds gets a proof.
 5. **Findings stay findings** → a counterexample every step of which the source can take is a `path`. A step the source cannot take is a model error, fixed and said before publish, never published as a path.
 6. **Unformalized parts recorded** → `unformalized[]`, each a complete reason record in one of the seven classes. An area with none says so in its README: 「全部形式化，沒有例外。」

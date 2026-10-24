@@ -266,8 +266,8 @@ def print_detail(row: Row, view: str, as_json: bool) -> None:
                    "text": g.get("text")} for g in rec.get("goals", [])]
     elif view == "paths":
         rule_verdict = {r.get("id"): r.get("verdict") for r in rec.get("rules", [])}
-        items = [{"id": p.get("id"), "rule": p.get("rule"),
-                  "verdict": rule_verdict.get(p.get("rule")) if show else "?",
+        items = [{"id": p.get("id"), "rule": p.get("rule") or "-",
+                  "verdict": (rule_verdict.get(p.get("rule")) or p.get("finding", "-")) if show else "?",
                   "summary": p.get("summary"), "script": p.get("script")} for p in rec.get("paths", [])]
     elif view == "scope":
         items = [{"bounds": check.get("bounds"), "assumptions": check.get("assumptions", []),

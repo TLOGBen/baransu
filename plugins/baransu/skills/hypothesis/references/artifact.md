@@ -46,7 +46,7 @@ Stored, on the writer's side only: per rule `held` | `violated`; per area `check
 
 ## Reason record
 
-Four fields, seven classes, one row per unformalized part; schema in `templates/reason-record.md`. The same shape is used when a caller (`/hunt`, `/review`) declines an H1–H8 match, written into that caller's output.
+Five fields (`where`, `class`, `detail`, `until`, `instead`), seven classes, one row per unformalized part; schema in `templates/reason-record.md`. The same shape is used when a caller (`/hunt`, `/review`) declines an H1–H8 match, written into that caller's output.
 
 ## Writing (publish)
 

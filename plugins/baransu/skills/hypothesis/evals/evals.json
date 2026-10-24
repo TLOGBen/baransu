@@ -1,6 +1,6 @@
 {
   "skill_name": "hypothesis",
-  "note": "Trigger-routing cases plus two known-answer exams. Routing cases are data-only, like the other skills' evals.json. The known-answer exams live under known-answer/ with ANSWER-KEY.md; run them by having a fresh agent follow SKILL.md on a git repo that holds only the fixture (never the key), then score its .claude/hypothesis/ output against the key. First run: 2026-10-24.",
+  "note": "Trigger-routing cases plus two known-answer exams. Routing cases are data-only, like the other skills' evals.json. The known-answer exams live under known-answer/ with ANSWER-KEY.md; run them by having a fresh agent follow SKILL.md on a git repo that holds only the fixture (never the key), telling it to write no telemetry record, then score its .claude/hypothesis/ output against the key. First run: 2026-10-24.",
   "evals": [
     { "id": 1, "prompt": "這個簽核模組不能出錯，幫我寫成假說", "should_trigger": true, "expected_skill": "hypothesis",
       "expected_behavior": "Code input; confirms rules, models with TLA+, shows seen failing and seen succeeding, publishes, opens the diagram page." },
