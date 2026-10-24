@@ -56,9 +56,13 @@ Decide the input kind from the argument alone and say it in the first status lin
 
 Then read the source as its adapter in `references/sources.md` says. Choose the area name (`references/artifact.md` § Area name). Record the coverage — every cited file, and every writer of the guarded state as watch patterns — while you read, not after.
 
-## 3. Confirm the rules in plain words
+## 3. Show it, then confirm the rules
 
-Show the user, and wait for them:
+Before asking anything, show the person once what this part of the system does for whoever uses it: the smallest visual that makes it clear, in a form `../show-me/SKILL.md` lays out (read it; that skill is invoked only by the user) — a flow, a before and after, a small state picture — with one or two sentences beside it. A rule about something the reader cannot picture cannot be confirmed.
+
+Every sentence of this run — here, in the questions, the findings and the §7 report — is in `$baransu:huh`'s voice (`../huh/SKILL.md`): everyday words, no jargon.
+
+Then show the user, and wait for them:
 
 - one sentence per rule, of kind safety (不能發生), liveness (終究會發生) or goal (做得到), with no variable or action names, each with its citation;
 - for a document, every extracted rule with its quote and location, ticked by the user one by one;
@@ -88,7 +92,7 @@ Follow `references/maintain.md`. It turns on by itself when the target is covere
 
 ## 7. Report
 
-Plain first, then detail. Each finding, path and question opens with one sentence in everyday words — none of 活性、安全性、精化、不變式、同步點、TLC、模型、狀態空間 — then its technical layer (`file:line`, tool, states, rule name). This rule is this skill's own; it does not call `$baransu:huh`. Then the one closing line, fixed:
+In `$baransu:huh`'s voice, plain first, then detail. Each finding, path and question opens with one sentence in everyday words — none of 活性、安全性、精化、不變式、同步點、TLC、模型、狀態空間 — then its technical layer (`file:line`, tool, states, rule name). This rule is this skill's own: it reads `$baransu:huh` for the voice and `$baransu:show-me` for the visuals, and never invokes them. Then the one closing line, fixed:
 
 「hypothesis 完成：{area}｜{成立假說／無法成立假說}｜{N} 條規則，{F} 條被打破（{path ids}）、{H} 條守住｜{tool} {version}，{states} 個狀態｜範圍：{bounds}｜同步：{sync}｜圖：{page path}」
 

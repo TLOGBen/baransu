@@ -2,6 +2,11 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.23.0] - 2026-10-24
+
+### Changed
+- **`/hypothesis` 先讓你看懂再問**：確認規則之前，先用 `/show-me` 的方式給一張最小的圖（流程、前後對照或小狀態圖），配一兩句話講這塊程式替使用者做什麼，再拿規則請你確認——讀者想像不出的東西，沒辦法確認它的規則。整份假說的口吻都用 `/huh` 的白話，報告也一樣。不另外問你要哪種講法。Codex 版同步。
+
 ## [8.22.0] - 2026-10-24
 
 ### Added（`/hypothesis`：寫下機器檢查過的假說）
