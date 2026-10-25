@@ -32,7 +32,7 @@ Any helper script the recipe ships is executable, and its invocation is written 
 
 ## Hypotheses
 
-The recipe lists no formal checks of its own: every-case claims are settled by hypotheses, which `/hypothesis` owns under `.claude/hypothesis/`. Before driving, run `hypothesis-status.py --files <the files the claims touch>` and act per `../../hypothesis/references/reading.md`. When a hypothesis covers the claims, the Doctor also checks that its tool runs here (for TLA+: `java -version` and the `tla2tools.jar` path the hypothesis names); a missing tool goes to `/health`'s environment doctor.
+The recipe lists no formal checks of its own: every-case claims are settled by hypotheses, which `/hypothesis` owns under `.claude/hypothesis/`. Before driving, find each hypothesis whose README lists, among what it covers, a file the claims touch, and act on it as `../SKILL.md` §3 says for an every-case claim. When a hypothesis covers the claims, the Doctor also checks that its tool runs here (for TLA+: `java -version` and the `tla2tools.jar` path the hypothesis names); a missing tool goes to `/health`'s environment doctor.
 
 ## Prove the recipe before relying on it
 

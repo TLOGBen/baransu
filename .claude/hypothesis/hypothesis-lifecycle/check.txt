@@ -1,9 +1,0 @@
-model/Chosen.cfg: states=3764 Model checking completed. No error has been found.
-model/Goal.cfg: states=95 Error: Invariant NeverDone is violated.
-variants/BothAllowed.cfg: states=36 Error: Invariant ReadsMaintained is violated.
-variants/G1-NoDeclare.cfg: states=3634 Model checking completed. No error has been found.
-variants/GreenWarn.cfg: states=44 Error: Invariant GreenSound is violated.
-variants/MigrateUnmarked.cfg: states=47 Error: Invariant DoneStrict is violated.
-variants/PlanAsWritten.cfg: states=3764 Error: Temporal properties were violated.
-variants/S2-DeclareOnOldPass.cfg: states=295 Error: Invariant DoneSound is violated.
-variants/Today.cfg: states=42 Error: Invariant NoFalsePass is violated.

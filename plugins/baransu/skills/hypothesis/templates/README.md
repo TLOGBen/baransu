@@ -1,51 +1,85 @@
-<!-- Template: .claude/hypothesis/<area>/README.md — the human page. Every fact a reader skill needs is also in hypothesis.json; this page is for a person reading cold. Section headings below are fixed (Traditional Chinese, user-facing). -->
+# 假說：{一句話的主張}
 
-# 假說：{title}
+- **主張與量詞**：{在所有順序／對每個輸入／任何時刻／這是最佳}
+- **使用者最終需要的**：{一句}
+- **規則確認**：{已確認／未經確認}
+- **涵蓋的對象**：{檔案::符號，或文件與段落}
+- **描述的版本**：{commit 或檔案版本}（之後這些內容改過，就先重跑再相信）
+- **定稿雜湊**：{交件檔與模型檔的 sha256}
+- **重跑**：快速 `{指令}`（約 {秒}）；完整 `{指令}`（約 {分}）
 
-> 狀態以這行指令為準，不以本頁為準：`python3 <hypothesis skill>/scripts/hypothesis-status.py --area {area}`
-
-## 一句話
-
-<!-- fill: What part of the system this is about and what must never happen, in one sentence. -->
-
-## 規則
-
-<!-- fill: Table: id, kind (安全／活性／目標), plain sentence, citation, verdict at publish. Rendered from `hypothesis.json` `rules` and `goals`. -->
-
-## 找到的問題
-
-<!-- fill: One block per path P<n>, plain layer first (the summary and the harm in everyday words, none of 活性、安全性、精化、不變式、同步點、TLC、模型、狀態空間), then 細節: link to `paths/P<n>.md`, and the diagram number where it is drawn. For documents: grouped under 矛盾 / 缺漏 / 模糊（要問誰）. -->
-
-## 圖
-
-<!-- fill: The series per references/diagrams.md — for each diagram, a one-sentence caption saying which part it adds, then its block. No ";" in any label, no second ":" in a transition label. Example of one diagram: -->
-
-圖 1　正常流程：{一句話}
+## 這部分在做什麼
 
 ```mermaid
-stateDiagram-v2
-    state "{狀態一}" as s1
-    state "{狀態二}" as s2
-    [*] --> s1
-    s1 --> s2: {讓它改變的事件}
+{順序題：第 1 張是正常流程，最多 7 個狀態；其他題型：答案最小的圖——時間線、情境表、取捨曲線}
 ```
+
+{順序題：之後每一張多加一個部分，最後一張把每條路徑編號，與 paths/ 相同}
+
+## 裁判：規則
+
+| # | 種類 | 規則（白話） | 出處（擁有者、位置、引文） | 結果 |
+|---|---|---|---|---|
+| R1 | 不能發生 | … | … | 守住／被打破（P1） |
+
+上層規範：{法規、安全規範、合約，或「無」}
+
+## 數學本質
+
+{一行：哪一種、為什麼；混合時哪部分是哪一種}
+
+## 前提
+
+| 前提 | 以為 | 出處 | 怎麼確定（實測／讀出／假設） | 結果 |
+|---|---|---|---|---|
+| 多少：時間、數量、大小、worker 數 | … | … | … | … |
+| 這條路徑真的會走嗎 | … | … | … | … |
+| 資料真的不一樣嗎（含測試資料） | … | … | … | … |
+| 真的同時在跑嗎 | … | … | … | … |
+| 實際跑的是哪一份程式 | … | … | … | … |
+
+裁判的校對：{用哪個已知事實，結果}
+
+## 結論與證書
+
+| 問題 | 答案 | 證書 | 保證／範圍內 |
+|---|---|---|---|
+| 主張成立嗎 | … | {依題型：每個狀態都探索過／每個情境都跑過／gap 0／比例證明／每片等價證書} | … |
+| 最壞情況 | … | {依題型：K 守住、K−1 被打破／界與到達它的情境／放寬模型的下界} | … |
+| 原本的上限或假設對不對 | … | {反例} | … |
+| 界是緊的嗎 | … | {收緊一格就失敗，或「未證明是緊的」} | … |
+| 交件格式 | … | {對過題目要求的格式與規則} | — |
+
+模型裡沒有出處的條件：{列出，或「無」}
+
+## 檢查會說不
+
+| 怎麼弄壞或拿掉 | 結果 |
+|---|---|
+
+## 第二份獨立推導
+
+{用什麼方法、只拿到什麼；結果檔在定稿後才打開；比對結果}
+
+## 讀法
+
+| 問題 | 讀法 | 結論 | 交件 |
+|---|---|---|---|
+| {會改變結論的讀法} | {A／B} | … | {主交件／並列的檔案} |
 
 ## 範圍
 
-<!-- fill: Bounds, assumptions, what is left out; the sentence 「窮舉的結論只在這個範圍內成立」. -->
+{界限與為什麼夠；標為假設的前提；模型常數與交件不同之處；沒有建模的部分與理由}
 
-## 怎麼檢查的
+## 路徑
 
-<!-- fill: Tool and version and why this tool; the one command; states explored and time; seen failing (which variant, which rule caught it); seen succeeding (which goal, which transition removed); seen faithful (who refuted the never-happens list, how many items, and each refuted item in plain words with what it changed in the model). -->
+- [P1](paths/P1.md)：{一句白話；依題型是一條 trace、一個情境、一個實例或一段計數論證}
 
-## 對應表
+## 模型對照
 
-<!-- fill: Model part → `file:line` (or quote + location). Same content as `model_map`. -->
+| 模型裡的名字 | 程式或文件 |
+|---|---|
 
-## 沒有形式化的部分
+## 問題
 
-<!-- fill: One row per reason record, all five fields. When there are none, the affirmative line 「全部形式化，沒有例外。」 — silence is not allowed. -->
-
-## 同步點
-
-<!-- fill: Commit (code) or version + hash (document), generation, and the date of publish; 「涵蓋的檔案改過，本頁結論就失效，以指令輸出為準」. -->
+- {會改變結論的讀法、沒有答案的地方，以及誰能回答}

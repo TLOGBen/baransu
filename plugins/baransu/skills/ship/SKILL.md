@@ -102,7 +102,7 @@ Before moving any item, enforce the local-only boundary:
 
 **Archive allowlist** — exactly the Step 1 `ARCHIVE_DIRS` value, in the same order: `tmp`, `think`, `draft`, `hunt-report`, `evolve`, `review`, `write`, `prove-it/records`. The two lists MUST stay identical; a dir detected in Step 1 but absent here would leave Step 1's detect output unconsumed.
 
-**Never archived**: the `read`, `learn`, `draw`, `design` and `hypothesis` dirs, the prove-it recipe and feature map (`prove-it/recipe.md`, `prove-it/features/`), and any 8.15.0 formal checks not yet moved to `hypothesis/` (`prove-it/formal/`), are kept products and stay in place. Claude Code infrastructure (`worktrees/`, `projects/`, `jobs/`, `plugins/`, `settings*.json`, …) is never touched — the allowlist is explicit precisely so infra is never swept up.
+**Never archived**: the `read`, `learn`, `draw`, `design` and `hypothesis` dirs, the prove-it recipe and feature map (`prove-it/recipe.md`, `prove-it/features/`), and a legacy 8.15.0 `prove-it/formal/`, kept in place, are kept products and stay in place. Claude Code infrastructure (`worktrees/`, `projects/`, `jobs/`, `plugins/`, `settings*.json`, …) is never touched — the allowlist is explicit precisely so infra is never swept up.
 
 For each dir in the allowlist, for each item directly inside the source directory `.claude/{dir}` of the tree /ship runs in:
 - Destination: `$ARCHIVE_ROOT/{item_name}`

@@ -7,7 +7,7 @@ baransu 是一組治理用的 Claude Code skill：動手前先想清楚，動手
 ### 假說
 
 **假說**（Hypothesis）：
-一條關於系統、或文件所描述流程應該如何運作的主張，一律寫成機器可以窮舉或證明的形式模型，附白話規則、狀態圖與檢查結果；只由 `/hypothesis` 寫下與維護。
+一條關於系統、文件所描述的流程、或一個答案應該如何成立的主張：先寫白話規則、認出它是哪種數學題、在任何答案之前寫好能跑的裁判，交出別人不必重做就能核對的證書；紀錄只有 `.claude/hypothesis/<area>/` 的 README 與 model、variants、paths。只由 `/hypothesis` 寫下與維護。
 _Avoid_: 形式檢查、formal check、規格、區塊、area
 
 **規則**（Rule）：
@@ -15,7 +15,7 @@ _Avoid_: 形式檢查、formal check、規格、區塊、area
 _Avoid_: 不變式、性質、property
 
 **成立假說**（Established hypothesis）：
-`/hypothesis` 的目的：模型、證據（看過它失敗、看過它成功、看過它像程式）、範圍都齊了，假說才算成立。成立之後交給 `/prove-it` 證明；沒做完叫「假說未成立」，寫不成形式模型叫「無法成立假說」。
+主張在寫明的範圍內有證書、檢查證明過會說不、範圍與假設都寫明，就是成立。沒有計算出來的狀態：讀者看 README 記的版本之後涵蓋的程式有沒有改，有改就重跑或 `--maintain`。發現交給 `/prove-it`、`/hunt` 或 tdd。
 _Avoid_: proved、disproved、通過（成立的是假說本身，不是程式）
 
 **守住／被打破**（Held / Broken）：
@@ -23,7 +23,7 @@ _Avoid_: proved、disproved、通過（成立的是假說本身，不是程式�
 _Avoid_: 成立／不成立（留給假說本身）、證實、推翻、passed（「證實／推翻／無法到達」是 `/prove-it` 對主張的判定）
 
 **目標**（Goal）：
-一條「這件事必須做得到」的規則，用來證明假說不是空洞的；每條安全規則與活性規則都至少有一個目標守著它。
+一條「這件事必須做得到」的規則，用來證明假說不是空洞的；順序題用它證明模型不是空洞的：拿掉一個轉移，目標就做不到。
 _Avoid_: 可達性、reachability
 
 **看過它失敗**（Seen failing）：

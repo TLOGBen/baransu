@@ -2,6 +2,29 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [9.0.0] - 2026-10-26
+
+### Changed（重寫 /hypothesis：先寫規則、認題型、交證書；依四道題三輪考試）
+- **重畫 /hypothesis 的骨架**：主張與量詞 → 先寫規則（承諾與前提分開、問一次上層規範、會改變結論的讀法列成問題）→ 第二份推導立刻封存派出 → 認出數學題型、在任何答案之前寫好能跑的裁判 → 先量前提並校對裁判 → 建答案（忠於來源、最少改動、用剩餘預算、窮舉紅線）→ 定稿 → 在定稿上驗證一次 → 發現交給 /prove-it、/hunt、tdd → 寫下 → 報告。每一步只用前面已確定的東西。
+- **題型表**：順序、有限情境、強健最佳化、最佳化、多目標、有限制的最佳化、等價、每個輸入、複雜度、兩份文件、太大要拆；每一類各自的裁判、校對、證書、怎麼證明檢查會說不、發現長什麼樣子。TLA+ 只用在順序題，或拿來對放寬的模型求下界。
+- **第二份推導封存**：只拿規則與來源、只准寫自己的暫存目錄、每次重跑都經過有上限的執行器；結果寫進檔案、回報只說「寫好了」，到驗證那一步才打開；對方通過裁判又更好，就回去改。
+- **紅線做成執行器**：`model/check.py` 先跑最小範圍、估下一級，超過預算就拒跑，每次執行都有時間與記憶體上限；交還前收掉這次開的背景程序。
+- **前提分三類**：實測、讀出、假設；交件用擁有者會簽的讀法，其他讀法的答案並列。
+- **假說不修東西**：發現交給 `/prove-it`（真 App 重播）、`/hunt`（原因未定）、tdd 紅綠（改程式，路徑就是第一個紅燈測試）；重構由 `/draft` 與 tdd 建，假說給等價裁判與每片證書。
+- **最佳化十二類與路線**（`_shared/optimization.md`）：新增強健（極小化最大值）與多目標；串流那一類補上「一次讀取挑最好的 k 個」與比例證明；路線改成「先拆成數學子問題、再把每一塊轉換成好解或好證的形式」，第 6 類（拓樸）補上連通、環與切，結構拓樸最佳化歸第 9 類；`/review` 的效能原則 #9 跟著問「怎麼拆、每塊是哪一類」。Codex 版整份同步。
+
+### Removed（不能退回：讀者改讀 README）
+- 狀態腳本與狀態檔：`scripts/`（`hypothesis-status.py`、`hypothesis-publish.py`）、`hypothesis.json`、計算出來的狀態（成立、過期、草稿、legacy、broken）、`references/reading.md`、`formal.md`、`design.md`、`sources.md`、`artifact.md`、`diagrams.md`、`_shared/hypothesis-states.md`。一個假說就是 `.claude/hypothesis/<area>/README.md`（主張、涵蓋、版本、快速與完整重跑指令）加上 `model/`、`variants/`、`paths/`；讀者看涵蓋的程式在那個版本之後有沒有改，有改就重跑或 `--maintain`。既有專案裡舊格式的假說不再被其他 skill 自動讀取。
+- 「看過它像程式」的不可能清單停點、求解設計（洞、反例迴圈）、重構前後的雙盲模型比對，由題型表與第二份推導取代。
+- repo 自己的 `.claude/hypothesis/`：hypothesis-lifecycle、model-fidelity 描述的是被刪的檔案；optimization-route 是規則從未經確認的草稿，路線又已改寫——三份都退役（git 歷史仍在）。
+- `evals/known-answer/`：答案卷綁舊輸出；新的考題放在 repo 之外（盲評材料不進 repo）。
+
+### Changed（讀者跟著改）
+- `_shared/tdd.md` 綠燈、`/prove-it`、`/hunt`、`/draft`、`/health`、`/draw`、`/think`、`/review` 原則、`/ship`、`_shared/modeling.md`、`_shared/loop-contract.md`（Codex 補上 hypothesis 那一列）、`docs/`、CONTEXT.md、CLAUDE.md、README：改讀假說的 README，被刪檔案的連結改指新檔；`prove-it/formal/` 寫成「舊格式、原地保留」。
+
+### Changed（對話裡的圖：介面能畫就直接畫）
+- **有畫圖工具就用它畫**：`/show-me` 規定，介面提供能在對話裡直接畫圖或圖表的工具時，每張圖都用它畫；Mermaid 只有在介面會畫出來的地方才算圖，會顯示成原始碼的介面就不算。純文字的樹狀圖、差異、虛擬碼留給沒有這種工具的介面，以及本來就是文字形狀的內容。`/what-now`、`/teach-me`、`/how`、`/hypothesis` 原本寫死「用 Mermaid／純文字」的地方，改成先用畫圖工具。起因：桌面版 Code 分頁把 `/what-now` 的 Mermaid 流程圖直接顯示成原始碼。
+
 ## [8.27.0] - 2026-10-25
 
 ### Added（依重構比對的 dogfood：抽錯的模型照樣通過全部檢查）

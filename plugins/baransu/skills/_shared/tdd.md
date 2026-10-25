@@ -256,7 +256,7 @@ the start. The four tasks are themselves one vertical slice (§1.2):
 1. Write the red-light test — written only for the new behavior (§1.1); do not write tests for existing behavior
 2. Confirm red — run the test, expect failure
 3. Write the green-light impl — write the minimal implementation sufficient to make the red-light test pass, adding nothing the test did not require (§1.4)
-4. Confirm green — run the tests, all pass with no regression; then run `hypothesis-status.py --diff <the task's starting commit>` (`../hypothesis/references/reading.md`): green also needs it to exit `0` or `10` — every hypothesis it lists `established` with every rule 守住. A `stale` one, or a `draft` whose every reason is `no-evidence`, is red — invoke `/hypothesis` `--maintain <area>` at once, rerun, and stay red until it exits `0`; an `established` one with a rule 被打破, and a `draft`, `legacy` or `broken` one, are red too; an `unformalized` one is listed, not judged. Exit 10 (no hypothesis covers the change) is green, and a repo with neither `.claude/hypothesis/` nor `.claude/prove-it/formal/` skips this check entirely.
+4. Confirm green — run the tests, all pass with no regression; then read the README of each hypothesis under `.claude/hypothesis/`: green also needs every hypothesis whose README lists, among what it covers, a file this task changed to hold on this version. Its covered code has changed since the version the README names, so invoke `/hypothesis --maintain <area>` at once: in step or updated, with every rule 守住, is green; a rule 被打破, a bug, or blocked is red, and stays red until `--maintain` ends with every rule 守住. A hypothesis that covers none of the changed files is not judged, and a repo with no `.claude/hypothesis/` skips this check entirely.
 
 When a hypothesis covers the behaviour, its paths are the first red tests: write each `paths/P<n>.md` as a test that reproduces it, and its goals as tests that the good outcome is still reached, before any body is filled.
 
@@ -318,7 +318,12 @@ unprompted — these steps make that thinking part of the flow on every model.
 2. **Fresh-eyes pass.** Re-read the full diff once as if reviewing a stranger's
    change (fresh-context verification outperforms self-critique; this is its
    zero-cost approximation), then re-run the narrowest verification covering the
-   touched files. A claim that survives both is ready to report.
+   touched files — the task-4 hypothesis check included when a
+   hypothesis covers them, since a green taken before the last edit or a change to
+   its source speaks for a tree that is no longer the one reported. The report names
+   the version that last green ran on — the commit, plus 「未提交的變更」 when the tree
+   was dirty — and claims done for that version only. A claim that survives both is
+   ready to report.
 
 ---
 

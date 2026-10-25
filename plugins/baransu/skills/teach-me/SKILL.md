@@ -44,7 +44,7 @@ Offer to go deeper or to move on, and follow their lead. No quizzes, no asking t
 
 ## 5. Show it
 
-Open the diff, the code, or the output when that is the fastest way to land a point. Draw when a picture is faster than words, and build the picture up: for anything with three or more moving parts, draw a short series where each diagram redraws the last and adds one part — A to B; then A to B to C; then the return edge. One diagram with every part at once, especially saved for the end, is a reference, not teaching. The series belongs to the layer that walks the flow, not to the first two-sentence answer. Use mermaid or ASCII inline for a flow or structure whose labels carry the meaning; for a spatial idea (layout, overlap, scroll position, before and after) hand the figure to `/draw`. A single simple point needs no figure.
+Open the diff, the code, or the output when that is the fastest way to land a point. Draw when a picture is faster than words, and build the picture up: for anything with three or more moving parts, draw a short series where each diagram redraws the last and adds one part — A to B; then A to B to C; then the return edge. One diagram with every part at once, especially saved for the end, is a reference, not teaching. The series belongs to the layer that walks the flow, not to the first two-sentence answer. Draw a flow or structure whose labels carry the meaning with the host's inline drawing tool when it offers one, otherwise as mermaid or ASCII inline; for a spatial idea (layout, overlap, scroll position, before and after) hand the figure to `/draw`. A single simple point needs no figure.
 
 ## How it reads
 

@@ -102,7 +102,7 @@ Record four evidence classes, each answered from the collected output and carrie
 | **Risk** | Which paths can lose data, spend money, publish or deploy, cross trust boundaries, or create hard-to-reverse state? |
 | **Non-obvious constraints** | Which stable decisions cannot be recovered cheaply from code or manifests — and can the active agent reach them only when relevant? |
 | **Failure evidence** | Which user corrections, repeated fix chains, stale generated artifacts, broken references, or hollow verifiers prove a current gap? |
-| **Verifier coverage** | Which important outcomes have an executable check at the layer where they can fail? When the project has `.codex/hypothesis/` or `.codex/prove-it/formal/`, run `hypothesis-status.py --all` (`../hypothesis/references/reading.md`) and list every hypothesis that is `stale`, `draft`, `legacy` or `broken` here, with its `why`, and every `established` one with a rule 被打破 as an open finding. |
+| **Verifier coverage** | Which important outcomes have an executable check at the layer where they can fail? When the project has `.codex/hypothesis/`, read each area's README — what it covers and the version it describes — and list here every hypothesis whose covered code has changed since that version (it needs a rerun or `$baransu:hypothesis --maintain <area>`), and every one with a rule 被打破 as an open finding. |
 
 An absent map, a large file, many skills, few skills, or a high TODO count is informational until tied to one of these classes; prefer a narrow routed invariant plus an executable verifier over descriptive inventory.
 
