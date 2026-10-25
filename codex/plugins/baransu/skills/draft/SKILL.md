@@ -44,6 +44,8 @@ Read every candidate end to end. Screen each against the three principle files a
 
 When a hypothesis already covers the area the change lands in (`hypothesis-status.py --files <area files>`, read per `../hypothesis/references/reading.md`), screen every candidate against its rules too: a candidate under which a rule would no longer hold is rejected or kept only for a graft, with the rule's id named.
 
+When candidates differ in a protocol choice a rule decides — which steps a lock covers, where a retry goes, how many attempts — do not pick it by taste: hand that choice to `$baransu:hypothesis` as a design search (`../hypothesis/references/design.md`), take the design it returns into the chosen shape, and write it in §4, where the hypothesis of the sketch is published.
+
 Choose the base a maintainer can extend most easily without breaking its invariants; on a tie, the smaller interface. Walk each other candidate once more for the one or two things worth grafting, and fold them in by hand so the result stays one idea. Candidates that converged are strong agreement: say so and graft nothing. Candidates that diverge wildly mean the brief was underspecified: fix the brief and draw again, never average them. Each trap another candidate's working-out found that the base also faces becomes a postcondition in the rationale. Remove each candidate's worktree, if it had one, once the choice and the grafts are made.
 
 ## 4. Write the sketch

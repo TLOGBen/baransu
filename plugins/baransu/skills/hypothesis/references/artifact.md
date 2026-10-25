@@ -10,12 +10,15 @@ A fixed tree; nothing else is written in an area:
 .claude/hypothesis/<area>/
   hypothesis.json        # the publish record: coverage, sync point, rules, verdicts, evidence. Written last.
   README.md              # the human page, from templates/README.md, with the diagram series as Mermaid blocks
-  model/                 # <Name>.tla + one .cfg per check, check.sh/check.ps1 running them all; or the code-level harness
+  model/                 # <Name>.tla + one .cfg per check, check.py (or check.sh/check.ps1) running them all; or the code-level harness;
+                         #   model/<role>/ per side when two code sources are compared, model/design/ for a design search (design.md)
   variants/              # the broken variants that made each check fail (kept in git)
   paths/                 # P<n>.md — one counterexample script per numbered path
-  sources/               # a frozen copy of a source that would otherwise move or change (sources.md)
+  sources/               # a frozen copy of a source that would otherwise move or change; sources/<sha>/ for a past commit (sources.md)
   check.txt              # the raw tool output of the last published run (.txt: repos often ignore *.log)
 ```
+
+Every file under `model/` except the `check.*` script and tool scratch output (`__pycache__/`, TLC's `states/`) is a model file, `.cfg` files included: `check.seen_faithful.model` records its hash (`formal.md` § Strict, 7).
 
 No index file exists: the set of `hypothesis.json` files is the index, and `scripts/hypothesis-status.py` derives it on every read. `/ship` never archives `.claude/hypothesis/`.
 

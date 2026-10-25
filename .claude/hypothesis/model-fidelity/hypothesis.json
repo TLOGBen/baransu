@@ -1,0 +1,497 @@
+{
+  "schema": "baransu.hypothesis/1",
+  "area": "model-fidelity",
+  "title": "抽錯的模型會不會一路通過",
+  "source_kind": "document",
+  "sync": {
+    "commit": "c99d9cf",
+    "hash_algo": "sha256-lf",
+    "versions": {
+      "plugins/baransu/skills/hypothesis/SKILL.md": "8.27.0"
+    },
+    "originals": {},
+    "watch": [],
+    "files": {
+      ".claude/hypothesis/model-fidelity/sources/dogfood-2026-10-25.md": "12d42c4a7a8422588e95833f525aa32390a38b233e9c8d7450d96dff6129c3fc",
+      "plugins/baransu/skills/hypothesis/SKILL.md": "115086c0160b9bf90cd67899d57d34dec54f9e81715f1c008d4f18e1148da3d0",
+      "plugins/baransu/skills/hypothesis/references/formal.md": "4c23d7650ed6d5d4736dd8b36a404e95e898b727f425bea6715045e2620e7e2a",
+      "plugins/baransu/skills/hypothesis/references/loop-pauses.md": "e97dbd7b9381aa921259427b8781dc3885a68a4422b1bc994b58627f9649b7aa",
+      "plugins/baransu/skills/hypothesis/references/sources.md": "c47946993ec486aeb4633c49e6f36f2d13ab8b3fb3e3cb1a674a763aa7e473bd"
+    },
+    "artifact": {
+      "check.txt": "5b93b4617144ac0342274215c824c1f649103a2945da72839677abb0f7c9d5bf",
+      "model/check.py": "492f4b05253a2172fee94469d71d9129e8ecb2940aea08d75cdfe8b53eed0b92",
+      "model/Compare-R1.cfg": "3e5d07c8b9e8dfcea2fafa0fbb2f7d5c379c0dd606b2df7e2af24d3ff489c1d9",
+      "model/Compare-R2.cfg": "48eca2a9a6cb9738393949c7a1b135c968bde3f7671e805337d8bbd3f5be53ad",
+      "model/Compare-R3.cfg": "eedc0bb8c83096a2d71d2f64e943aee8058db72331836bbc64fb27d56b4c19ca",
+      "model/Doc-R1.cfg": "deb6201b97661dc91be8122c7cc952167e454a679e804103b825f2bf4c283a02",
+      "model/Doc-R2.cfg": "f694dae44080b59683227a2f2cb03a49056ecd1cd9330b4d0c2b71eb0836945e",
+      "model/Doc-R3.cfg": "808fcbb4cb4a1067f726534735a4db6f48e09df4fea41a0a990d8e5bd585061e",
+      "model/Facts-G1.cfg": "d0dbd28f703b58bfeb8997fe42f077414520c984a6c19200fb3dc93ca49582dc",
+      "model/Facts-G2.cfg": "f9036fe93c9d43cb7353fb79b48339ad3f0eb599ab6b9036d49abbc2e1ff71b8",
+      "model/Facts-R1.cfg": "e5014b0e808281280cf8c83a7b21cc1de0d255049c9ab60ef0aa7d18e7c1a686",
+      "model/Facts-R2.cfg": "518da20d96c549cb01c3bf665762f789b9364c9f7f62d1d79aed05a929a0cf0e",
+      "model/Facts-R3.cfg": "6d9a3ba7dbbc2810f62b2f963521328c2db3de416feb71c10a45c3dd520a717e",
+      "model/FactsUser-R1.cfg": "f434c068a2b03f89a113787090971c02dbe2bc11999ade36a0d05060b1a0c87c",
+      "model/Fidelity.tla": "bc54ef2926ae2f2453f87777d9cf30b9d30f42416210d3c5321176a501ba226b",
+      "README.md": "85dd6d07ad744e78f0b847100a72485f377dd5560c923fff58017c6901bd9633",
+      "sources/dogfood-2026-10-25.md": "12d42c4a7a8422588e95833f525aa32390a38b233e9c8d7450d96dff6129c3fc",
+      "variants/Blind2-R1.cfg": "6750b43b8b9b59502ea496aa651300a40831c8a616806e97ba64c799378aa464",
+      "variants/G1-NoGates.cfg": "a77aa4349e25b844d9477992bdd20036f9dbacbd30ae6ff0cb65ba63a9247737",
+      "variants/G2-NoGates.cfg": "a1a6b95835fe5a1c9e89d37d8c4c62fd21a49516d117472885c0b5023b469032",
+      "variants/R2-NoReplay.cfg": "b91fb35e6a47279a8f711601e1f002d671101414d3875088553a26504bac9476",
+      "variants/R3-NoReplay.cfg": "aba51fc7e5b1c2f3d5d379cdba798cf917d8f6a9d8dc2d216e6acfb19e0c9eab",
+      "variants/SharedChecker-R1.cfg": "ff28d90fa7699d14fdc9ea5b4293ff0d76d464c3f7bb45ee46d4f0decb382e8a",
+      "variants/V826-R1.cfg": "9eac38c9dad075deef0d58e8b70614dbafb04ba92cbe4e39e0161438d6cdb637"
+    }
+  },
+  "check": {
+    "tool": "TLC",
+    "version": "2.19",
+    "command": "python .claude/hypothesis/model-fidelity/model/check.py <tla2tools.jar>",
+    "bounds": "一次執行、一條由模型檢查器判的規則、一段程式或文件（有問題或沒有）；建模者最多兩位，各自抽出跟來源一樣、比來源嚴格或比來源寬的模型；四種流程、兩種來源（會跑的程式、文件）：8.27.0 照寫、8.27.0 程式對程式、8.26.0、只盲抽",
+    "assumptions": [
+      "A1 小範圍投影比對時，跟來源不一樣的模型看得出跟一樣的不同，嚴格的跟寬的也看得出不同；兩份錯得一樣的看不出來（依據 darkroom dogfood：26 處差異全部看出來，修正後歸零）",
+      "A2 一個跟建模者互相看不到、任務是逐條去來源裡找反例、從寫入點往回讀的 agent，看到來源做得到的「不可能」會找出來（依據：darkroom 考試，6 條裡找出刻意放的 1 條，另外又找出 2 條出題者自己也錯的；本假說自己的清單也被這樣反駁了七輪）",
+      "A4 抽錯的模型可能過門檻也可能不過；跟來源一樣的模型一定過",
+      "A5 嚴格的模型，它的不可能清單裡一定有一條來源做得到的事：清單每個變數都有一條封閉清單，模型漏掉的步驟會讓某個變數多出寫入者或值",
+      "A3 重播可靠：程式由 /prove-it 在 app 上重播，文件由沒看過模型的 agent 拿原文逐步核對；來源真的有問題時能證實至少一條路徑，沒問題時會推翻路徑"
+    ],
+    "left_out": [
+      "之後的維護：跨來源變動的部分由 seen_faithful 綁定來源雜湊（formal.md:73），不在一次執行的模型裡",
+      "重構比對那條規則本身的結論，以及比對找到的真正行為改變（sources.md:39）",
+      "以文件或程式當規則端的精化比對（--satisfies）",
+      "模糊用語的多種讀法（formal.md:63）",
+      "人手改檔",
+      "拿真實執行對照通過的模型（見 U1）",
+      "原子性的自動檢查（見 U2）",
+      "抽錯的具體位置（見 U3）",
+      "/draft 骨架型的假說（它的路徑要等程式寫出來才重播）"
+    ],
+    "states": 105,
+    "seconds": 1,
+    "verdict_at_sync": "held",
+    "seen_failing": [
+      {
+        "rule": "R1",
+        "variant": "variants/V826-R1.cfg",
+        "caught": true,
+        "note": "8.26.0 的流程；Blind2、SharedChecker 兩個壞掉版本也被抓到"
+      },
+      {
+        "rule": "R2",
+        "variant": "variants/R2-NoReplay.cfg",
+        "caught": true,
+        "note": "不重播就成立，即 8.27.0 草稿的寫法（原本的 P1）"
+      },
+      {
+        "rule": "R3",
+        "variant": "variants/R3-NoReplay.cfg",
+        "caught": true,
+        "note": "文件不重播即原本的 P2"
+      }
+    ],
+    "seen_succeeding": [
+      {
+        "goal": "G1",
+        "reached": true,
+        "removed_transition": "Gates",
+        "unreachable_after": true,
+        "variant": "variants/G1-NoGates.cfg"
+      },
+      {
+        "goal": "G2",
+        "reached": true,
+        "removed_transition": "Gates",
+        "unreachable_after": true,
+        "variant": "variants/G2-NoGates.cfg"
+      }
+    ],
+    "seen_faithful": {
+      "checker": "全新的 agent，每個只拿到 SKILL.md、formal.md、sources.md、maintain.md、loop-pauses.md 與凍結的 dogfood 紀錄加上清單，看不到模型，從會改變狀態的段落往回讀、逐條反駁；8.27.0 的流程反覆修改，清單一共反駁了十一輪，這是最後一輪",
+      "model": {
+        "model/Compare-R1.cfg": "3e5d07c8b9e8dfcea2fafa0fbb2f7d5c379c0dd606b2df7e2af24d3ff489c1d9",
+        "model/Compare-R2.cfg": "48eca2a9a6cb9738393949c7a1b135c968bde3f7671e805337d8bbd3f5be53ad",
+        "model/Compare-R3.cfg": "eedc0bb8c83096a2d71d2f64e943aee8058db72331836bbc64fb27d56b4c19ca",
+        "model/Doc-R1.cfg": "deb6201b97661dc91be8122c7cc952167e454a679e804103b825f2bf4c283a02",
+        "model/Doc-R2.cfg": "f694dae44080b59683227a2f2cb03a49056ecd1cd9330b4d0c2b71eb0836945e",
+        "model/Doc-R3.cfg": "808fcbb4cb4a1067f726534735a4db6f48e09df4fea41a0a990d8e5bd585061e",
+        "model/Facts-G1.cfg": "d0dbd28f703b58bfeb8997fe42f077414520c984a6c19200fb3dc93ca49582dc",
+        "model/Facts-G2.cfg": "f9036fe93c9d43cb7353fb79b48339ad3f0eb599ab6b9036d49abbc2e1ff71b8",
+        "model/Facts-R1.cfg": "e5014b0e808281280cf8c83a7b21cc1de0d255049c9ab60ef0aa7d18e7c1a686",
+        "model/Facts-R2.cfg": "518da20d96c549cb01c3bf665762f789b9364c9f7f62d1d79aed05a929a0cf0e",
+        "model/Facts-R3.cfg": "6d9a3ba7dbbc2810f62b2f963521328c2db3de416feb71c10a45c3dd520a717e",
+        "model/FactsUser-R1.cfg": "f434c068a2b03f89a113787090971c02dbe2bc11999ade36a0d05060b1a0c87c",
+        "model/Fidelity.tla": "bc54ef2926ae2f2453f87777d9cf30b9d30f42416210d3c5321176a501ba226b"
+      },
+      "sources": {
+        ".claude/hypothesis/model-fidelity/sources/dogfood-2026-10-25.md": "12d42c4a7a8422588e95833f525aa32390a38b233e9c8d7450d96dff6129c3fc",
+        "plugins/baransu/skills/hypothesis/SKILL.md": "115086c0160b9bf90cd67899d57d34dec54f9e81715f1c008d4f18e1148da3d0",
+        "plugins/baransu/skills/hypothesis/references/formal.md": "4c23d7650ed6d5d4736dd8b36a404e95e898b727f425bea6715045e2620e7e2a",
+        "plugins/baransu/skills/hypothesis/references/loop-pauses.md": "e97dbd7b9381aa921259427b8781dc3885a68a4422b1bc994b58627f9649b7aa",
+        "plugins/baransu/skills/hypothesis/references/sources.md": "c47946993ec486aeb4633c49e6f36f2d13ab8b3fb3e3cb1a674a763aa7e473bd"
+      },
+      "facts": [
+        {
+          "id": "F1",
+          "from": "Extract",
+          "kind": "guard",
+          "text": "程式對程式的比對由兩個看不到彼此的建模者各抽一份；其他輸入，文件沒有要求兩位，模型當成一位。",
+          "verdict": "stands"
+        },
+        {
+          "id": "F2",
+          "from": "Check",
+          "kind": "guard",
+          "text": "模型檢查只在模型抽好之後跑；任何一次修模型之後，都會重跑全部檢查。",
+          "verdict": "stands"
+        },
+        {
+          "id": "F3",
+          "from": "Trace",
+          "kind": "guard",
+          "text": "檢查找到反例時，建模者逐步拿來源核對；發現有一步來源走不出來就修模型；核對可能漏看。",
+          "verdict": "stands"
+        },
+        {
+          "id": "F4",
+          "from": "Facts",
+          "kind": "guard",
+          "text": "文件寫明：宣告成立之前，不可能清單要被一個沒看過模型的 agent 反駁過；第一次寫入時還要等使用者看過清單並回應；被反駁的條目照來源改模型，或條目寫得比模型絕對時改寫、交回反駁者。",
+          "verdict": "stands"
+        },
+        {
+          "id": "F5",
+          "from": "Compare",
+          "kind": "guard",
+          "text": "程式對程式時，兩邊各自過完自己的門檻才比對；比出建模差異就修模型、全部重跑；「一樣」只在比過的範圍內主張。",
+          "verdict": "stands"
+        },
+        {
+          "id": "F6",
+          "from": "Gates",
+          "kind": "guard",
+          "text": "文件寫明：三道門檻沒全過，不會宣告成立。",
+          "verdict": "stands"
+        },
+        {
+          "id": "F7",
+          "from": "ReplayStep",
+          "kind": "guard",
+          "text": "有規則被打破時，每條路徑都要先重播（程式在 app 上，文件由沒看過模型的 agent 拿原文逐步核對），每條記下重播結果之前不算成立；重播推翻路徑就修模型、全部重跑。",
+          "verdict": "stands"
+        },
+        {
+          "id": "F8",
+          "from": "Done",
+          "kind": "guard",
+          "text": "宣告成立之後，不會再有一條被打破的規則、它的路徑還沒重播。",
+          "verdict": "stands"
+        },
+        {
+          "id": "F9",
+          "from": "FixAll",
+          "kind": "guard",
+          "text": "模型只照來源修正；不會為了通過而改模型，包括加上沒有來源依據的公平性假設。",
+          "verdict": "stands"
+        },
+        {
+          "id": "F10",
+          "from": "fid",
+          "kind": "writers",
+          "text": "在一次執行裡，模型只會因為照來源修改而改變；每次改完都重跑全部檢查、三道門檻與重播。",
+          "verdict": "stands"
+        },
+        {
+          "id": "F11",
+          "from": "verdict",
+          "kind": "writers",
+          "text": "由模型檢查器判的規則，結論只由跑模型檢查寫入；每次修模型之後重跑。",
+          "verdict": "stands"
+        },
+        {
+          "id": "F12",
+          "from": "pc",
+          "kind": "values",
+          "text": "agent 對清單的反駁、第一次寫入時使用者對清單的回應、反例的逐步核對、以及有規則被打破時的重播，都在宣告成立之前完成。",
+          "verdict": "stands"
+        },
+        {
+          "id": "F13",
+          "from": "did",
+          "kind": "writers",
+          "text": "每次修模型之後，清單反駁、比對、重播（適用時）都會重新做一次，舊的重播結果作廢。",
+          "verdict": "stands"
+        }
+      ]
+    }
+  },
+  "model_map": [
+    {
+      "part": "Extract",
+      "kind": "action",
+      "cites": [
+        "plugins/baransu/skills/hypothesis/SKILL.md:46",
+        "plugins/baransu/skills/hypothesis/references/formal.md:63",
+        "plugins/baransu/skills/hypothesis/references/sources.md:37"
+      ]
+    },
+    {
+      "part": "Check",
+      "kind": "action",
+      "cites": [
+        "plugins/baransu/skills/hypothesis/SKILL.md:65"
+      ]
+    },
+    {
+      "part": "Trace",
+      "kind": "action",
+      "cites": [
+        "plugins/baransu/skills/hypothesis/SKILL.md:71",
+        "plugins/baransu/skills/hypothesis/references/formal.md:67"
+      ]
+    },
+    {
+      "part": "Facts",
+      "kind": "action",
+      "cites": [
+        "plugins/baransu/skills/hypothesis/SKILL.md:69",
+        "plugins/baransu/skills/hypothesis/references/formal.md:69-74"
+      ]
+    },
+    {
+      "part": "Compare",
+      "kind": "action",
+      "cites": [
+        "plugins/baransu/skills/hypothesis/references/sources.md:37-40",
+        ".claude/hypothesis/model-fidelity/sources/dogfood-2026-10-25.md:59-63"
+      ]
+    },
+    {
+      "part": "Gates",
+      "kind": "action",
+      "cites": [
+        "plugins/baransu/skills/hypothesis/SKILL.md:67-68",
+        "plugins/baransu/skills/hypothesis/SKILL.md:75",
+        "plugins/baransu/skills/hypothesis/references/formal.md:64-65",
+        ".claude/hypothesis/model-fidelity/sources/dogfood-2026-10-25.md:92"
+      ]
+    },
+    {
+      "part": "ReplayStep",
+      "kind": "action",
+      "cites": [
+        "plugins/baransu/skills/hypothesis/SKILL.md:77",
+        "plugins/baransu/skills/hypothesis/references/formal.md:67",
+        ".claude/hypothesis/model-fidelity/sources/dogfood-2026-10-25.md:93"
+      ]
+    },
+    {
+      "part": "Done",
+      "kind": "action",
+      "cites": [
+        "plugins/baransu/skills/hypothesis/SKILL.md:77"
+      ]
+    },
+    {
+      "part": "FixAll",
+      "kind": "action",
+      "cites": [
+        "plugins/baransu/skills/hypothesis/references/formal.md:67",
+        "plugins/baransu/skills/hypothesis/references/formal.md:72",
+        ".claude/hypothesis/model-fidelity/sources/dogfood-2026-10-25.md:63"
+      ]
+    },
+    {
+      "part": "fid",
+      "kind": "variable",
+      "cites": [
+        "plugins/baransu/skills/hypothesis/references/formal.md:63",
+        ".claude/hypothesis/model-fidelity/sources/dogfood-2026-10-25.md:53"
+      ]
+    },
+    {
+      "part": "verdict",
+      "kind": "variable",
+      "cites": [
+        "plugins/baransu/skills/hypothesis/SKILL.md:65"
+      ]
+    },
+    {
+      "part": "pc",
+      "kind": "variable",
+      "cites": [
+        "plugins/baransu/skills/hypothesis/SKILL.md:63-77"
+      ]
+    },
+    {
+      "part": "did",
+      "kind": "variable",
+      "cites": [
+        "plugins/baransu/skills/hypothesis/references/formal.md:67"
+      ]
+    },
+    {
+      "part": "code",
+      "observer": true,
+      "rules": [
+        "R1",
+        "R2",
+        "R3",
+        "G1",
+        "G2"
+      ]
+    },
+    {
+      "part": "Process",
+      "kind": "constant",
+      "cites": [
+        "plugins/baransu/skills/hypothesis/SKILL.md:65-69",
+        "plugins/baransu/skills/hypothesis/references/sources.md:35"
+      ]
+    },
+    {
+      "part": "UserKnows",
+      "kind": "constant",
+      "cites": [
+        "plugins/baransu/skills/hypothesis/SKILL.md:54",
+        "plugins/baransu/skills/hypothesis/SKILL.md:69",
+        "plugins/baransu/skills/hypothesis/references/loop-pauses.md:12"
+      ]
+    },
+    {
+      "part": "Checker",
+      "kind": "constant",
+      "cites": [
+        "plugins/baransu/skills/hypothesis/references/formal.md:71",
+        "plugins/baransu/skills/hypothesis/references/formal.md:74"
+      ]
+    },
+    {
+      "part": "Replay",
+      "kind": "constant",
+      "cites": [
+        "plugins/baransu/skills/hypothesis/SKILL.md:77"
+      ]
+    },
+    {
+      "part": "Kind",
+      "kind": "constant",
+      "cites": [
+        "plugins/baransu/skills/hypothesis/SKILL.md:77"
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "id": "R1",
+      "kind": "safety",
+      "name": "NoFalseHeld",
+      "text": "成立的假說說「守住」時，來源真的守得住。",
+      "cites": [
+        "plugins/baransu/skills/hypothesis/SKILL.md:17-18"
+      ],
+      "verdict": "held",
+      "paths": [],
+      "note": "守住的前提是 A2（反駁者獨立）或使用者熟這段來源；8.26.0 的流程、只盲抽、反駁者跟建模者有同樣盲點，三種都會打破它"
+    },
+    {
+      "id": "R2",
+      "kind": "safety",
+      "name": "NoFalseBreak",
+      "text": "成立的假說說「被打破」時，來源真的有問題。",
+      "cites": [
+        "plugins/baransu/skills/hypothesis/SKILL.md:77",
+        "plugins/baransu/skills/hypothesis/references/formal.md:67"
+      ],
+      "verdict": "held",
+      "paths": []
+    },
+    {
+      "id": "R3",
+      "kind": "safety",
+      "name": "NoFalseBreakAfterReplay",
+      "text": "重播之後（或者根本不必重播時），成立的假說說「被打破」時，來源真的有問題。",
+      "cites": [
+        "plugins/baransu/skills/hypothesis/SKILL.md:77"
+      ],
+      "verdict": "held",
+      "paths": []
+    }
+  ],
+  "goals": [
+    {
+      "id": "G1",
+      "text": "來源真的有問題時，假說能找到它並成立。",
+      "guards": [
+        "R1",
+        "R2",
+        "R3"
+      ]
+    },
+    {
+      "id": "G2",
+      "text": "來源沒問題時，假說能成立為「守住」。",
+      "guards": [
+        "R1",
+        "R2",
+        "R3"
+      ]
+    }
+  ],
+  "paths": [],
+  "questions": [],
+  "unformalized": [
+    {
+      "id": "U1",
+      "where": ".claude/hypothesis/model-fidelity/sources/dogfood-2026-10-25.md:102「通過的模型也要拿真實執行驗一次」",
+      "class": "cannot-model",
+      "detail": "拿真實執行的事件順序去對照模型，能不能抓到太嚴的錯，取決於專案的測試有沒有碰到那個邊界，這在模型外。",
+      "until": "專案能插入事件紀錄，並且有碰到邊界的測試",
+      "instead": "none"
+    },
+    {
+      "id": "U2",
+      "where": ".claude/hypothesis/model-fidelity/sources/dogfood-2026-10-25.md:101「原子性要附證據」",
+      "class": "cannot-model",
+      "detail": "一步引用的程式範圍裡，有沒有兩個沒被鎖包住的共享寫入，要看實際程式內容。",
+      "until": "有一支能讀 model_map 引用範圍並找出共享寫入的檢查腳本",
+      "instead": "red/green test"
+    },
+    {
+      "id": "U3",
+      "where": "抽錯的具體樣子",
+      "class": "cannot-model",
+      "detail": "模型只分嚴格、寬、一樣三種，不管錯在哪一步；兩份一樣嚴格的被當成錯在同一處，這是最不利的假設。",
+      "until": "無",
+      "instead": "none"
+    }
+  ],
+  "history": [
+    {
+      "generation": 2,
+      "from_commit": "c99d9cf",
+      "to_commit": "c99d9cf",
+      "outcome": "no-effect",
+      "areas_changed": [],
+      "note": "dogfood 紀錄更新了終究會結束的結果，被引用的行沒變"
+    },
+    {
+      "generation": 3,
+      "from_commit": "c99d9cf",
+      "to_commit": "c99d9cf",
+      "outcome": "model-update",
+      "note": "來源 SKILL.md／formal.md／sources.md／maintain.md 改成 8.27.0：照寫的流程從 8.26.0 換成「抽一份＋不可能清單交給沒看過模型的 agent 反駁」，8.26.0 變成 R1 的看過它失敗；dogfood 紀錄凍結成副本；第三道門檻補上，清單反駁了七輪，推翻的條目照來源修模型（順序、反例核對、門檻沒過時修正而非退回、重播在發布之後、來源種類）或改寫條目；R2 拆出 R3，找到 P1、P2"
+    },
+    {
+      "generation": 4,
+      "from_commit": "c99d9cf",
+      "to_commit": "c99d9cf",
+      "outcome": "model-update",
+      "note": "來源依整體 /review 修正：第一次寫入多一個暫停點（使用者回應不可能清單）、有規則被打破時先重播再成立、文件由 agent 拿原文重播、全部重跑包含重播。模型改成先重播再成立，P1、P2 在 skill 裡修掉，R2、R3 改判守住；不重播的寫法變成它們的看過它失敗"
+    }
+  ],
+  "migrated_from": null,
+  "generation": 4,
+  "published_at": "2026-10-25T10:58:03+08:00"
+}

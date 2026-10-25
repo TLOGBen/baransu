@@ -36,7 +36,7 @@ stateDiagram-v2
 
 ## 怎麼檢查的
 
-<!-- fill: Tool and version and why this tool; the one command; states explored and time; seen failing (which variant, which rule caught it); seen succeeding (which goal, which transition removed). -->
+<!-- fill: Tool and version and why this tool; the one command; states explored and time; seen failing (which variant, which rule caught it); seen succeeding (which goal, which transition removed); seen faithful (who refuted the never-happens list, how many items, and each refuted item in plain words with what it changed in the model). -->
 
 ## 對應表
 

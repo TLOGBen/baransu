@@ -22,15 +22,16 @@ stateDiagram-v2
 
     [*] --> draft: the hypothesis skill starts an area
     legacy --> draft: --maintain moves the 8.15.0 check
-    draft --> established: publish with both evidence gates met
+    draft --> established: publish with the three evidence gates met
     draft --> unformalized: publish with reason records only
     established --> stale: a covered source changed or went missing, an original of a copy changed, or the set of writers changed
     unformalized --> stale: a covered source or an original of a copy changed or went missing
     stale --> established: --maintain republishes
     stale --> unformalized: --maintain republishes
     stale --> stale: --maintain stops for the person, nothing is published
-    established --> draft: an area file edited by hand
+    established --> draft: an area file edited by hand, or a model with no seen-faithful record of its current version
     unformalized --> draft: an area file edited by hand
+    draft --> established: --maintain completes the missing evidence
     established --> established: a rule is broken, prove-it replays every path
     broken --> established: --maintain rebuilds it from its own files
     broken --> unformalized: --maintain rebuilds it from its own files
@@ -42,15 +43,19 @@ stateDiagram-v2
 |---|---|---|---|
 | — → 假說未成立 | a request, an H1–H8 row, a `/hunt` hand-off, a `/draft` sketch | `/hypothesis` | `../hypothesis/SKILL.md` §1 |
 | 舊位置 → 假說未成立 | the first `--maintain` run offers the move | `/hypothesis --maintain` | `../hypothesis/references/maintain.md` § Migration |
-| 假說未成立 → 成立假說 | publish, with every safety and liveness rule seen failing and every goal seen succeeding | `/hypothesis` | `hypothesis-status.py` `evidence_gaps` |
+| 假說未成立 → 成立假說 | publish, with every safety and liveness rule seen failing, every goal seen succeeding, and the model seen faithful on its current version | `/hypothesis` | `hypothesis-status.py` `evidence_gaps` |
 | 假說未成立 → 無法成立假說 | publish, with at least one complete reason record and no model | `/hypothesis` | `hypothesis-status.py` `evidence_gaps` |
 | 成立假說 or 無法成立假說 → 過期 | a covered file's content changed or is gone, a `sources/` copy's original still exists and differs, or a watch pattern's matches changed; computed at read time | nobody writes it: the status script sees it | `hypothesis-status.py` `compute_state` |
 | 過期 → 成立假說 / 無法成立假說 | `--maintain` sorts every change and republishes | a reader that sees 過期 calls `/hypothesis --maintain` at once; the main session makes the call, never a review agent | `../hypothesis/references/maintain.md` |
 | 過期 stays 過期 | `--maintain` cannot sort a change without the person (a promise may have changed on purpose): nothing is published | `/hypothesis --maintain` stops and asks | `../hypothesis/references/maintain.md` § Publish or block |
 | 成立假說 or 無法成立假說 → 假說未成立 | an area file differs from what the last publish hashed | nobody writes it: the status script sees it | `hypothesis-status.py` `compute_state` |
+| 成立假說 → 假說未成立 | the model has no seen-faithful record of its current version — an area published before 8.27.0, or a model file edited since the list was refuted; computed at read time | nobody writes it: the status script sees it | `hypothesis-status.py` `faithful_gaps` |
+| 假說未成立 → 成立假說, evidence only | every `why` is `no-evidence`: `--maintain` completes the missing gate and republishes | a reader that sees it calls `/hypothesis --maintain` at once, as for 過期 | `../hypothesis/references/maintain.md` § Migration |
+| 假說未成立 → 成立假說, a rule 被打破 | every path replayed — on the app for code that runs, by a fresh agent against the quoted passages for a document — and each verdict recorded | `/hypothesis` hands the paths to the replay and republishes with the verdicts | `hypothesis-status.py` `replay_gaps` |
 | 成立假說, a rule 被打破 | right after publish, for code that runs | `/hypothesis` hands the paths to `/prove-it`, which replays each on the real app | `../hypothesis/SKILL.md` §5 |
 | any → 無法判定 | `hypothesis.json` unreadable or of an unknown schema | nobody writes it: the status script sees it | `hypothesis-status.py` `load_record` |
 | 無法判定 → 成立假說 / 無法成立假說 | `--maintain` rebuilds the record from the area's own files and republishes; find the area with `--all`, since a broken record cannot say what it covers | `/hypothesis --maintain` | `../hypothesis/references/maintain.md` § Work list |
 
 Readers never move a state themselves. They read it with `hypothesis-status.py`
-(`../hypothesis/references/reading.md` § One command) and, for 過期, call the writer.
+(`../hypothesis/references/reading.md` § One command) and, for 過期 and for a 假說未成立 whose
+every reason is missing evidence, call the writer.

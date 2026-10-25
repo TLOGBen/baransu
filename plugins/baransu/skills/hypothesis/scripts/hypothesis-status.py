@@ -8,6 +8,7 @@ content hashes; nothing it prints is cached. It never writes a file.
 Usage:
   hypothesis-status.py (--diff BASE | --files PATH... | --area AREA | --all) [--json]
   hypothesis-status.py (--rules | --paths | --scope | --check) AREA [--json]
+  hypothesis-status.py --model-hash AREA   (the hashes check.seen_faithful.model records)
 
 Exit: 0 every listed area is `established` with every rule held (`unformalized` areas are
       listed, not judged); 10 none covers the selector; 1 anything else listed, or an
@@ -129,7 +130,95 @@ def cited_files(rec: dict) -> set[str]:
     return {c.rsplit(":", 1)[0] if re.search(r":\d", c) else c for c in cites}
 
 
-def evidence_gaps(rec: dict) -> list[Why]:
+SCRATCH_PARTS = frozenset({"__pycache__", "states", ".pytest_cache"})  # tool output, never the model
+
+
+def is_model_file(rel: str) -> bool:
+    """`model/...` except the pinned check script and tool scratch output; `.cfg` files count,
+    since a configuration can change a constant the never-happens list relies on."""
+    parts = rel.split("/")
+    return (len(parts) > 1 and parts[0] == "model" and not parts[-1].startswith("check.")
+            and not parts[-1].startswith(".") and not parts[-1].endswith((".pyc", "~"))
+            and not SCRATCH_PARTS & set(parts))
+
+
+def model_files(area_dir: Path) -> dict[str, str | None]:
+    """Every model file now on disk (what the writer records right after the refutation)."""
+    base = area_dir / "model"
+    if not base.is_dir():
+        return {}
+    rels = sorted(p.relative_to(area_dir).as_posix() for p in base.rglob("*") if p.is_file())
+    return {r: hash_lf(area_dir / r) for r in rels if is_model_file(r)}
+
+
+def published_model_files(rec: dict, area_dir: Path) -> dict[str, str | None]:
+    """The model files the last publish recorded (`sync.artifact`), hashed now: a file that
+    appeared in `model/` after the publish is not part of the published model."""
+    return {r: hash_lf(area_dir / r) for r in sorted(rec.get("sync", {}).get("artifact", {})) if is_model_file(r)}
+
+
+FACT_VERDICTS = frozenset({"stands", "refuted"})
+CLOSED_WORLD = frozenset({"writers", "values"})  # `guard` and `fairness` items are allowed beside them
+REPLAY_VERDICTS = frozenset({"證實", "無法到達"})  # 推翻 is a model error, never published as a path
+
+
+def faithful_gaps(rec: dict, area_dir: Path) -> list[Why]:
+    """The third gate, seen faithful: the model's "never happens" list, made from the model
+    itself (one item per action, a closed-world item per variable), refuted against the
+    source by someone who did not write the model, on this exact version of the model."""
+    sf = rec.get("check", {}).get("seen_faithful")
+    if not isinstance(sf, dict) or not sf.get("facts"):
+        return [Why("no-evidence", "沒看過它像程式")]
+    gaps: list[Why] = []
+    if not str(sf.get("checker", "")).strip():
+        gaps.append(Why("no-evidence", "看過它像程式：沒寫是誰反駁的"))
+    recorded = sf.get("model", {}) if isinstance(sf.get("model"), dict) else {}
+    current = published_model_files(rec, area_dir)
+    for name, h in current.items():
+        if recorded.get(name) != h:
+            gaps.append(Why("no-evidence", f"沒看過目前這版模型像程式：{name}"))
+    # the refutation read the source as it was then: a source changed since — even one sorted
+    # `no-effect` by the modeller — needs the list refuted again
+    judged = sf.get("sources", {}) if isinstance(sf.get("sources"), dict) else {}
+    for name, h in sorted(rec.get("sync", {}).get("files", {}).items()):
+        if judged.get(name) != h:
+            gaps.append(Why("no-evidence", f"沒看過它像目前這版來源：{name}"))
+    facts = [f for f in sf["facts"] if isinstance(f, dict)]
+    for f in facts:
+        if f.get("verdict") not in FACT_VERDICTS:
+            gaps.append(Why("no-evidence", f"條目 {f.get('id', '?')} 沒有結論"))
+        elif f.get("verdict") == "refuted" and not str(f.get("fixed", "")).strip():
+            gaps.append(Why("no-evidence", f"條目 {f.get('id', '?')} 被反駁卻沒記修正"))
+    for part in rec.get("model_map", []):
+        name, kind, role = part.get("part"), part.get("kind"), part.get("role")
+        label = f"{role}:{name}" if role else name  # code against code: each side's parts are its own
+        mine = [f for f in facts if f.get("from") == name and f.get("role") == role]
+        if part.get("observer"):
+            continue
+        if kind not in ("action", "variable", "constant"):
+            gaps.append(Why("no-evidence", f"model_map 沒標種類：{label}"))
+        elif kind == "action" and not any(f.get("kind") == "guard" for f in mine):
+            gaps.append(Why("no-evidence", f"動作 {label} 沒有反駁條目"))
+        elif kind == "variable" and not any(f.get("kind") in CLOSED_WORLD for f in mine):
+            gaps.append(Why("no-evidence", f"變數 {label} 沒有封閉清單條目"))
+    return gaps
+
+
+def replay_gaps(rec: dict) -> list[Why]:
+    """A broken rule's paths are known findings only once replayed — on the app for code that
+    runs, by a fresh agent against the quoted passages for a document; until then, readers would
+    act on a path nobody reproduced. A sketch has nothing to replay on."""
+    if rec.get("source_kind") == "sketch":
+        return []
+    gaps: list[Why] = []
+    broken = {r.get("id") for r in rec.get("rules", []) if r.get("verdict") == "violated"}
+    for p in rec.get("paths", []):
+        if p.get("rule") in broken and p.get("replay") not in REPLAY_VERDICTS:
+            gaps.append(Why("no-evidence", f"路徑 {p.get('id', '?')} 還沒重播"))
+    return gaps
+
+
+def evidence_gaps(rec: dict, area_dir: Path) -> list[Why]:
     gaps: list[Why] = []
     check = rec.get("check", {})
     verdict = stored_verdict(rec)
@@ -137,6 +226,8 @@ def evidence_gaps(rec: dict) -> list[Why]:
         gaps.append(Why("no-evidence", f"verdict={verdict}"))
         return gaps
     if verdict in ("held", "violated"):
+        gaps += faithful_gaps(rec, area_dir)
+        gaps += replay_gaps(rec)
         caught = {e.get("rule") for e in check.get("seen_failing", []) if e.get("caught") is True}
         succeeded = {e.get("goal") for e in check.get("seen_succeeding", [])
                      if e.get("reached") is True and e.get("unreachable_after") is True}
@@ -205,7 +296,7 @@ def compute_state(root: Path, area_dir: Path) -> Row:
     if stale:
         return row("stale", stale)
 
-    gaps = evidence_gaps(rec)
+    gaps = evidence_gaps(rec, area_dir)
     if gaps:
         return row("draft", gaps)
     if stored_verdict(rec) == "unformalized":
@@ -330,9 +421,27 @@ def main(argv: Sequence[str] | None = None) -> int:
     sel.add_argument("--all", action="store_true")
     for view in ("rules", "paths", "scope", "check"):
         sel.add_argument(f"--{view}", metavar="AREA")
+    sel.add_argument("--model-hash", metavar="AREA")
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args(argv)
     root = repo_root()
+    if a.model_hash:  # the writer copies both maps into check.seen_faithful right after the refutation
+        dirs = [b / a.model_hash for b in (root / d / "hypothesis" for d in AGENT_DIRS) if (b / a.model_hash).is_dir()]
+        if not dirs:
+            return 10
+        area_dir = dirs[0]
+        rec = None
+        for name in ("hypothesis.draft.json", "hypothesis.json"):  # the record being written wins
+            if (area_dir / name).exists():
+                rec = json.loads((area_dir / name).read_text(encoding="utf-8"))
+                break
+        files = cited_files(rec or {}) | set((rec or {}).get("sync", {}).get("extra_files", []))
+        if not files:  # without the record's citations the sources map would be empty, and publish would fail
+            print("hypothesis-status 失敗：先寫 hypothesis.draft.json 的 model_map 與 rules，再取雜湊", file=sys.stderr)
+            return 2
+        print(json.dumps({"model": model_files(area_dir),
+                          "sources": {f: hash_lf(root / f) for f in sorted(files)}}, ensure_ascii=False, indent=1))
+        return 0
     rows = all_rows(root)
     for view in ("rules", "paths", "scope", "check"):
         area = getattr(a, view)

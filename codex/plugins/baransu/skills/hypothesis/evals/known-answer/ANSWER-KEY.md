@@ -12,13 +12,15 @@ Naive — must find all three, each a path whose every step the code can take, c
 2. **Paid after withdrawal.** `withdraw` and `approve` both `load` a pending request; `withdraw` saves `withdrawn`, then `approve` saves its copy with `approved` (lost update); `pay` pays a withdrawn request. (Any equivalent interleaving counts.)
 3. **Paid an amount someone never approved.** An approval recorded at one amount is counted for another: e.g. manager approves 2000, finance's approve and reject overlap or the request is rejected, edited and resubmitted, and the stale approvals complete the set; payment goes out for an amount the manager never approved at. (Any path where `paid_amount` ≠ the amount some required role approved counts.)
 
-Fixed — must hold every rule above within the stated bounds (no path), with seen failing on a broken variant per rule (e.g. removing the `approvals = []` line, or making `save` skip the version check) and seen succeeding (a request reaches payment; unreachable once the payment step is removed).
+Fixed — must hold every rule above within the stated bounds (no path), with seen failing on a broken variant per rule (e.g. removing the `approvals = []` line, or making `save` skip the version check) and seen succeeding (a request reaches payment; unreachable once the payment step is removed), and seen faithful (the never-happens list holds an item per action and a writers or values item per variable, refuted by a fresh agent from the code; an item it refutes is a model error the agent must fix before publish, never a pass).
 
 Must not: report a bug that needs a step the code cannot take; fall back to tests; skip a reason record for anything left unformalized (e.g. the HTTP layer, real concurrency of the dict).
 
 ## approval-doc
 
 Source: `approval-doc/SA-簽核需求.md` (one document).
+
+Seen faithful holds here too: the never-happens list is refuted by a fresh agent against the document, and every contradiction or gap path is replayed by a fresh agent checking each step against the passage it quotes before the area counts as established.
 
 Must find, each quoting the passage and its location:
 

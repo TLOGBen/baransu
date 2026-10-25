@@ -14,16 +14,19 @@ bound and the standard instrument, and it stops a search for an optimum that can
 
 | Shape (the sign to recognise it) | Class | What to do |
 |---|---|---|
-| Pick a subset that covers / fills / schedules under a budget (set cover, partition, bin packing, constrained scheduling, TSP-like routing) | NP-hard | Stop searching for the optimum. Take a greedy or approximation with its bound stated (greedy set cover ≤ ~ln n × optimum; first-fit bin packing ≤ ~1.7 × optimum), or shrink the instance until exact is cheap. |
+| Pick a subset that covers / fills / schedules under a budget (set cover, partition, bin packing, constrained scheduling, TSP-like routing) | NP-hard | Stop searching for the optimum by hand. Take a greedy or approximation with its bound stated (greedy set cover ≤ ~ln n × optimum; first-fit bin packing ≤ ~1.7 × optimum), or shrink the instance until exact is cheap — a small 0/1 instance is solved exactly by integer programming and proven optimal by its LP bound and dual (next row). |
 | A recurrence over a prefix, an interval or a subset, and the same subproblem recurs (optimal substructure + overlapping subproblems) | Dynamic programming | Write the recurrence and the table size; cost = states × transitions per state. |
-| Linear objective, linear constraints (allocation, budgets, cut sizing, rate limits) | Linear / integer programming | State variables, objective, constraints. LP is cheap; integrality makes it hard — relax and round, or keep the instance small. |
+| Linear objective, linear constraints (allocation, budgets, cut sizing, rate limits) | Linear / integer programming | State variables, objective, constraints. LP is cheap; integrality makes it hard — relax and round, or keep the instance small. The relaxation's dual is a certificate of a lower bound only: the integer answer is optimal when it meets that bound (gap 0), otherwise the gap is reported. A rounded answer whose correctness a rule decides goes back to the model checker (`../hypothesis/references/design.md`). |
 | Order things so every dependency comes first; the longest chain (dependency ordering, release phases) | Topological order, critical path | The critical path is the lower bound on sequential steps; everything off it is slack. |
 | Who gets what, how much can flow, the shortest route (assignment, capacity, routing) | Matching, max-flow / min-cut, shortest path | Polynomial and exact — never approximate what the standard algorithm solves. |
 | "Is X feasible?" is monotone in X (the largest batch that still fits, the smallest timeout that still passes) | Binary search on the answer | log₂(range) feasibility checks instead of a sweep. |
 | A handful of items (subsets of ≤ ~20, permutations of ≤ ~8) | Brute force | Enumerate; no ceremony. |
 
 One line in the stance names the class and its bound; a problem that fits none is modelled
-directly in §2.
+directly in §2. When the request is to optimize something — faster, smaller, fewer, cheaper — or a model
+written under §2 shows a cost the user named, go to `optimization.md` (its §2 starts from that
+model) and name the kind first; that file owns the instrument, the proof and the
+correctness re-check for each kind.
 
 ## 2. Write the model
 

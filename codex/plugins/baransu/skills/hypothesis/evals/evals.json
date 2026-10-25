@@ -1,9 +1,9 @@
 {
   "skill_name": "hypothesis",
-  "note": "Trigger-routing cases plus two known-answer exams. Routing cases are data-only, like the other skills' evals.json. The known-answer exams live under known-answer/ with ANSWER-KEY.md; run them by having a fresh agent follow SKILL.md on a git repo that holds only the fixture (never the key), telling it to write no telemetry record, then score its .codex/hypothesis/ output against the key. First run: 2026-10-24.",
+  "note": "Trigger-routing cases plus two known-answer exams, and the optimizer adapters' exam under known-answer/solver/ (run: uv run --with scipy --with z3-solver python known-answer/solver/exam.py). Routing cases are data-only, like the other skills' evals.json. The known-answer exams live under known-answer/ with ANSWER-KEY.md; run them by having a fresh agent follow SKILL.md on a git repo that holds only the fixture (never the key), telling it to write no telemetry record, then score its .codex/hypothesis/ output against the key. First run: 2026-10-24.",
   "evals": [
     { "id": 1, "prompt": "這個簽核模組不能出錯，幫我寫成假說", "should_trigger": true, "expected_skill": "hypothesis",
-      "expected_behavior": "Code input; confirms rules, models with TLA+, shows seen failing and seen succeeding, publishes, shows the diagram series in the conversation as plain text." },
+      "expected_behavior": "Code input; confirms rules, models with TLA+, shows seen failing and seen succeeding, has the never-happens list refuted by a fresh agent (seen faithful), publishes, shows the diagram series in the conversation as plain text." },
     { "id": 2, "prompt": "docs/SD.md 是否滿足 docs/SA.md？", "should_trigger": true, "expected_skill": "hypothesis",
       "expected_behavior": "Two-source comparison; roles read from the wording (SD behaviour, SA rules) and stated in the first line." },
     { "id": 3, "prompt": "幫我看這份需求訪談紀錄有沒有矛盾", "should_trigger": true, "expected_skill": "hypothesis",
@@ -15,6 +15,10 @@
     { "id": 6, "prompt": "程式一直報錯，幫我查一下", "should_trigger": false, "expected_skill": "hunt",
       "expected_behavior": "A plain error with no ordering signal routes to $baransu:hunt, not $baransu:hypothesis." },
     { "id": 7, "prompt": "實際把 app 跑起來，證明這個修好了", "should_trigger": false, "expected_skill": "prove-it",
-      "expected_behavior": "Proving on the running app is $baransu:prove-it; it may read a hypothesis but does not write one." }
+      "expected_behavior": "Proving on the running app is $baransu:prove-it; it may read a hypothesis but does not write one." },
+    { "id": 8, "prompt": "這次重構把鎖的寫法收成一個模組，重構前後一樣嗎？", "should_trigger": true, "expected_skill": "hypothesis",
+      "expected_behavior": "Code against its past commit: the old files copied to sources/<sha>/ with no sync.originals; two blind models under model/<role>/, compared on what a user observes in both directions at small bounds; every difference traced to the source before equal behaviour is claimed; a new-only platform listed in left_out." },
+    { "id": 9, "prompt": "哪幾步一定要放在鎖裡面，鎖才最短又不會遺失更新？找出最便宜的正確設計", "should_trigger": true, "expected_skill": "hypothesis",
+      "expected_behavior": "Design search per references/design.md: holes and design-space constraints, the solver exam run first, a capped counterexample loop with the monotone cut only after its brute-force check, the optimum with LP bound, dual and gap reported, the chosen design published as an ordinary hypothesis." }
   ]
 }

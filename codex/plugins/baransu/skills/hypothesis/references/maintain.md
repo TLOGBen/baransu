@@ -2,7 +2,7 @@
 
 Moved from the drift pass in `prove-it/references/formal.md` and owned here. The work list comes from the status script, not from memory.
 
-`--maintain` turns on by itself, per `../../_shared/auto-flags.md`, when the target a user or a reader names is covered by a hypothesis whose state is `stale`, `draft`, `broken` or `legacy`. Readers call it: a reader that sees `stale` invokes `$baransu:hypothesis --maintain <area>` at once (`reading.md` § State × reader), so a hypothesis never stays stale waiting for someone to remember.
+`--maintain` turns on by itself, per `../../_shared/auto-flags.md`, when the target a user or a reader names is covered by a hypothesis whose state is `stale`, `draft`, `broken` or `legacy`. Readers call it: a reader that sees `stale`, or a `draft` whose every reason is `no-evidence`, invokes `$baransu:hypothesis --maintain <area>` at once (`reading.md` § State × reader), so a hypothesis never stays stale waiting for someone to remember.
 
 ## Work list
 
@@ -19,8 +19,8 @@ Two readings per change, done the way two other skills do them:
 
 Each change is sorted into exactly one, judged against the model, never against the commit message alone:
 
-- `no-effect` — nothing the model describes changed. Rerun the check and the existing variants unchanged; publish with the new hashes.
-- `model-update` — the model no longer describes the source: a step split in two, a branch added or removed, a check moved, a new path to the guarded state, a value range changed. Update the model from the source (never from what makes it pass), re-derive the variants, and rerun both evidence gates.
+- `no-effect` — nothing the model describes changed. Rerun the check and the existing variants unchanged, have the never-happens list refuted again against the changed source (`no-effect` is the maintainer's judgement, and the refuter is the one who checks it), and publish with the new hashes.
+- `model-update` — the model no longer describes the source: a step split in two, a branch added or removed, a check moved, a new path to the guarded state, a value range changed. Update the model from the source (never from what makes it pass), re-derive the variants and the never-happens list, have the list refuted again by a fresh agent, take the new `--model-hash`, and rerun all three evidence gates. A changed model file leaves the old `seen_faithful` record describing a model that no longer exists; the status script shows the area `draft` until it is redone.
 - `promise-changed` — the "why" reading found evidence that the promise changed on purpose. Rewrite the rule citing that evidence; keep old and new wording in `history`.
 - `bug-candidate` — no such evidence, and the check now fails. The counterexample becomes a new path, `finding: bug`.
 
@@ -42,7 +42,11 @@ One area lives in exactly one place at any moment. While `.codex/prove-it/formal
 2. Build `hypothesis.json` from its README (sync commit, coverage, property, bounds), with `seen_succeeding` and `unformalized` left empty, and `migrated_from` set to the old path.
 3. Publish.
 
-The status script then shows the area as `draft`, why `no-evidence` — 「嚴格檢查未完成」 — until a `--maintain` run completes both evidence gates and the reason records. An 8.15.0 check that was never moved is `legacy` and is never usable to declare anything done either. A move stopped before publish leaves a directory without `hypothesis.json`: `draft`, never `legacy`, never passing.
+The status script then shows the area as `draft`, why `no-evidence` — 「嚴格檢查未完成」 — until a `--maintain` run completes the evidence gates and the reason records.
+
+A `draft` whose every reason is `路徑 P<n> 還沒重播` needs no sorting either: hand its paths to the replay (`../SKILL.md` §5), record each verdict, and publish with history `correction` (or `model-update` when a replay 推翻 a path and the model changed).
+
+An area published before 8.27.0 has no `check.seen_faithful` and no `model_map[].kind`: it shows as `draft`, why `no-evidence: 沒看過它像程式`, and readers hand it here at once (`reading.md` § State × reader). Sort nothing — the source did not change; add the kinds, derive the list, have it refuted, and fix every refuted item from the source. Publish with history outcome `correction` when every item stood, and `model-update` when any did not — a refuted item always changes the model, and the changed model's list is refuted again before publish. An 8.15.0 check that was never moved is `legacy` and is never usable to declare anything done either. A move stopped before publish leaves a directory without `hypothesis.json`: `draft`, never `legacy`, never passing.
 
 ## Never
 
