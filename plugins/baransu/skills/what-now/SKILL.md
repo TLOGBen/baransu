@@ -50,7 +50,7 @@ When something is easier to grasp as a picture than as sentences, draw it: how a
 
 Keep each visual small enough to read at a glance: at most six boxes, with at most eight words in each. Write labels as plain words a person would say, not tags like 「測試：通過」. A fact that needs a sentence belongs in the text, or nowhere.
 
-Embed screenshots and videos when the change is visible, not only as links. If a visible change has none, mark its summary line 「還沒有截圖」 and say there what changed on screen. Draw diagrams and charts from facts you have: Mermaid for how things connect, a chart for numbers. Never invent a number, and never draw or generate a picture of a screen you did not capture. Link only artifacts that exist.
+Embed screenshots and videos when the change is visible, not only as links. If a visible change has none, mark its summary line 「還沒有截圖」 and say there what changed on screen. Draw diagrams and charts from facts you have, with the host's inline drawing tool when it offers one (`../show-me/SKILL.md`): how things connect, or a chart for numbers. Never invent a number, and never draw or generate a picture of a screen you did not capture. Link only artifacts that exist.
 
 ## Not-for boundaries
 

@@ -1,20 +1,24 @@
 {
   "skill_name": "hypothesis",
-  "note": "Trigger-routing cases plus two known-answer exams. Routing cases are data-only, like the other skills' evals.json. The known-answer exams live under known-answer/ with ANSWER-KEY.md; run them by having a fresh agent follow SKILL.md on a git repo that holds only the fixture (never the key), telling it to write no telemetry record, then score its .claude/hypothesis/ output against the key. First run: 2026-10-24.",
+  "note": "Trigger-routing cases, data-only like the other skills' evals.json. Known-answer cases are run outside the repo, as CLAUDE.md keeps A/B blind-evaluation material out of it.",
   "evals": [
     { "id": 1, "prompt": "這個簽核模組不能出錯，幫我寫成假說", "should_trigger": true, "expected_skill": "hypothesis",
-      "expected_behavior": "Code input; confirms rules, models with TLA+, shows seen failing and seen succeeding, publishes, shows the diagram series in the conversation as plain text." },
+      "expected_behavior": "Order kind: rules in plain words confirmed first, the second derivation sent sealed, a TLA+ judge calibrated on a real run, premises measured, the answer frozen and verified once, findings as traces handed to /prove-it." },
     { "id": 2, "prompt": "docs/SD.md 是否滿足 docs/SA.md？", "should_trigger": true, "expected_skill": "hypothesis",
-      "expected_behavior": "Two-source comparison; roles read from the wording (SD behaviour, SA rules) and stated in the first line." },
+      "expected_behavior": "Two documents: SA's rules over SD's model, each rule quoting its passage; contradictions, gaps and ambiguities counted." },
     { "id": 3, "prompt": "幫我看這份需求訪談紀錄有沒有矛盾", "should_trigger": true, "expected_skill": "hypothesis",
       "expected_behavior": "Document input; contradictions, gaps and ambiguities, each quoting its passage; ambiguities stay questions." },
-    { "id": 4, "prompt": "撤回和核准同時按下去偶爾還是會付款，先幫我建立假說", "should_trigger": true, "expected_skill": "hypothesis",
-      "expected_behavior": "Symptom input (H1); paths handed back as probes; a pass never discards a clue." },
-    { "id": 5, "prompt": "按鈕的顏色太淡了，幫我改深一點", "should_trigger": false, "expected_skill": null,
+    { "id": 4, "prompt": "這個縮圖佇列在所有執行順序下都不會把做完的照片再做一次嗎？證明給我看", "should_trigger": true, "expected_skill": "hypothesis",
+      "expected_behavior": "What the test asserts is a rule, what it assumes about timing is a premise; the premise is measured before modelling; the test is never relaxed to pass; the fix is handed to red/green." },
+    { "id": 5, "prompt": "排下個月的班表，大家的預假都劃好了，要最佳的", "should_trigger": true, "expected_skill": "hypothesis",
+      "expected_behavior": "Optimization kind: rules and any law above the document listed before solving; a checker sharing no code with the solver; gap 0 or a structural bound; each rule broken once and caught." },
+    { "id": 6, "prompt": "這次重構把鎖的寫法收成一個模組，重構前後一樣嗎？", "should_trigger": true, "expected_skill": "hypothesis",
+      "expected_behavior": "Equivalence kind: observables named first; both versions on the same inputs; per-change certificate marked guaranteed or within scope; the refactor itself left to /draft and red/green." },
+    { "id": 7, "prompt": "按鈕的顏色太淡了，幫我改深一點", "should_trigger": false, "expected_skill": null,
       "expected_behavior": "Look and copy are a not-trigger; no hypothesis." },
-    { "id": 6, "prompt": "程式一直報錯，幫我查一下", "should_trigger": false, "expected_skill": "hunt",
+    { "id": 8, "prompt": "程式一直報錯，幫我查一下", "should_trigger": false, "expected_skill": "hunt",
       "expected_behavior": "A plain error with no ordering signal routes to /hunt, not /hypothesis." },
-    { "id": 7, "prompt": "實際把 app 跑起來，證明這個修好了", "should_trigger": false, "expected_skill": "prove-it",
+    { "id": 9, "prompt": "實際把 app 跑起來，證明這個修好了", "should_trigger": false, "expected_skill": "prove-it",
       "expected_behavior": "Proving on the running app is /prove-it; it may read a hypothesis but does not write one." }
   ]
 }

@@ -4,13 +4,12 @@ Registered in `../../_shared/loop-contract.md` §4 (Gate 10 in `scripts/verify-s
 
 ## Pauses
 
-Exactly two, both Input PAUSEs in the loop contract's classes, and neither has a default:
+One, an Input PAUSE in the loop contract's classes, with a default:
 
 | Where | PAUSE | Without the person |
 |---|---|---|
-| §3 Confirm the rules, on a first write | Input — the rules a hypothesis will hold the source to are the user's to agree | Nothing is published; the caller reports 「需要人確認規則」 and the run ends `LOOP_OUTCOME: no progress: rules need confirmation`. |
-| `--maintain`, a change that may have changed a promise but the "why" reading found no evidence | Input — only the person can say a promise changed on purpose | The area stays unpublished, so readers keep seeing `stale`; the report lists the questions; the run ends `LOOP_OUTCOME: no progress: promise evidence required`. |
+| §2 The rules, before any answer — the one stop of a first run | Input — the rules the answer is held to, and the readings that change the verdict, are the owner's to agree | The run goes on with the rules as written, checks both readings of every open question, delivers the answer under the owner's reading with the others beside it, and marks the report 未經確認. |
 
 ## Never a pause
 
-The `no-effect`, `model-update` and `bug-candidate` outcomes, reruns, publishing, and showing the diagrams all run unattended. A failing check is a finding, not a pause.
+The second derivation, every check and its estimate, `model/check.py`'s refusal of a run past the budget (it switches to a smaller scope, symmetry, or a proof), freezing, §6, writing the README, and `--maintain` all run unattended. A rule 被打破 is a finding, not a pause.

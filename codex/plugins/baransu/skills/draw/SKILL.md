@@ -10,7 +10,7 @@ metadata:
 
 Turn what the user hands you into a piece a person can open, scrub, explore or watch. This file is a **step guide and a table of contents**: run the steps in order, each after its step command, which prints the chapters the step needs; nothing is read up front, no file is read whole. $baransu:draw is the user's only entry point and delivers end to end without asking. User-facing output is Traditional Chinese (繁體中文).
 
-**Paths** (absolute): `<skill>` this folder, `<project>` the user's project, `<out>` = `<project>/.codex/draw/<slug>`, or the folder named by `--out <dir>` — a caller that keeps the figures inside its own artifact names it, as `/hypothesis` does with `.codex/hypothesis/<area>/diagrams/`; every rule below then applies to that folder. Scripts run by absolute path from `<out>`; file names below are relative to `<out>`.
+**Paths** (absolute): `<skill>` this folder, `<project>` the user's project, `<out>` = `<project>/.codex/draw/<slug>`, or the folder named by `--out <dir>` — a caller that keeps the figures inside its own artifact names it; every rule below then applies to that folder. Scripts run by absolute path from `<out>`; file names below are relative to `<out>`.
 
 **The step command.** `Before: lookup.py --step <id>` in a row means:
 

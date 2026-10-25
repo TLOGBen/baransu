@@ -68,7 +68,7 @@ How to write it:
 
 - Concrete names over abstractions: "`UserService` calls `AuthClient.refresh()`", not "the service delegates to the client".
 - When something is complex, say why it is complex; when it is simple, do not pad it.
-- Add a diagram only when several components talk to each other or data moves through stages: mermaid for a sequence or flow whose labels carry the meaning, ASCII for a small relationship. A diagram that repeats the prose is decoration; leave it out.
+- Add a diagram only when several components talk to each other or data moves through stages, drawn with the host's inline drawing tool when it offers one; otherwise mermaid for a sequence or flow whose labels carry the meaning, ASCII for a small relationship. A diagram that repeats the prose is decoration; leave it out.
 - The sections above set the shape; `$baransu:write` governs the sentences: its embedded rule sets and Direct language section in `../write/SKILL.md`, and `../write/references/writing-principles.md` (shared section plus the reply language), without its Before/After output.
 
 **Placement questions** ("where should this live", "which layer owns this") are answered from the code's existing layering: which module already owns that concept, and what the nearest precedent is. When the honest answer is a choice with tradeoffs rather than a precedent, say so and point to `$baransu:think`.

@@ -9,7 +9,7 @@ Every principle states how things should be. **A problem is a departure from a p
 | `goal.md` | walk | Always: every review checks the target against what the user asked for. | Did what was asked, nothing added, nothing narrowed. |
 | `single-source.md` | walk | The change alters a name, value, rule, or promise that is stated, listed, or mirrored anywhere else. | One fact, one owner; every statement of it holds. |
 | `blast-radius.md` | walk | The change alters behaviour that other code, data, timing, a platform, or a later step relies on. | Each consumer still gets what it needs. |
-| `hypothesis.md` | walk | The change touches a file a hypothesis covers (`hypothesis-status.py --diff`), or the target is a hypothesis. | A machine-checked claim still holds, is kept in step, or is reported. |
+| `hypothesis.md` | walk | The change touches a file a hypothesis covers (named in its README under `.codex/hypothesis/`), or the target is a hypothesis. | A machine-checked claim still holds, is kept in step, or is reported. |
 | `risk.md` | place | The change writes, deletes, migrates, retries, runs concurrently, or does anything hard to undo. | What a failure costs, and whether it recovers. |
 | `evidence.md` | walk | Always: every claim needs its evidence, the review's own verdicts included. | Read the author's record; never produce one. |
 | `tests.md` | place | The change adds, changes, keeps, or relies on a test. | A test proves only what breaking would turn red. |
