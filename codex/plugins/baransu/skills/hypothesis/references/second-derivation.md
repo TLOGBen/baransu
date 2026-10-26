@@ -44,6 +44,15 @@ Write everything — each item of the list with its result, each finding with it
 
 When §6 sends you back to §5 and you fix the model or the answer, send the same agent, or a fresh one, the fix in plain words, the source, and half the ceiling — it now sees what you changed, so this recheck tests the fix, not your independence — with a list of one item per rule the fix touches: "Check whether this fix holds in the source for each of these rules. Do not read anything else." Then stop; one recheck is enough.
 
+## A bound that rests on your own argument
+
+When a bound rests on an argument you wrote, with no source behind it, send a fresh agent the claim, the setting from the request, and the argument, with a scratch directory outside the repository that is the only place it may write, and half the ceiling, every run with a time and a memory limit. What it gets depends on the bound:
+
+- **Best possible** — the argument alone; it is about every answer, so yours has no place in it.
+- **Proven** — the argument and the rules of your answer that the argument names, as the argument states them; never your model files, your code, or reasoning outside the argument.
+
+Ask it: "Check whether this argument is correct; find a hole if there is one; say exactly what it holds for — deterministic or randomised answers, which inputs or metric, which limits — and whether a stronger correct version exists. Do not read anything else." Its answer goes in the report and in the README's bounds table. A hole sends the bound back to §5; the repaired argument goes to a reader once more, then stop.
+
 ## Without a way to send an agent
 
 Say so in the report: the second derivation is missing, not done by you.
