@@ -21,7 +21,7 @@ All user-facing output is in Traditional Chinese; identifiers, paths, model code
 
 - **Outcome**: one claim with its ideal, its proven and best-possible bounds, the gap between them and what would close it, each bound backed by evidence a person can check without redoing the work, and each finding handed on to where it is acted on.
 - **Done when**: the ideal and the rules were written before any answer, the rules confirmed or marked 未經確認 when no one could answer; every question in the README's tables is closed — proven, refuted, or holding within a stated scope — or left open with the reason it cannot change the verdict; the judge ran before any answer code and was calibrated; the answer was frozen and §6 ran on it, the sealed second derivation opened only there; the README holds the ledger, the coverage, the version and both commands; no background process of this run is left.
-- **Evidence**: each question's evidence — the judge's and `model/check.py`'s output on the frozen answer, the arguments, the checks that said no, the second derivation's comparison — and the hashes recorded at freezing.
+- **Evidence**: each question's evidence — the judge's and `model/check.py`'s output on the frozen answer, the arguments and what their readers found, the checks that said no, the second derivation's comparison — and the hashes recorded at freezing.
 - **Output**: a Traditional Chinese report in the conversation and `.claude/hypothesis/<area>/` (README, `model/`, `variants/`, `paths/`), never archived by `/ship`; no product code edited.
 - **Automation**: ultracode=neutral, loop=assisted（the one stop is §2's confirmation; without a person the run goes on with the rules as written and marks the report 未經確認 — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 - **Telemetry**: on invocation, append one selection record per `../_shared/selection-telemetry.md`.
@@ -108,7 +108,7 @@ Then **freeze**: record the hash of every file handed over. From here the answer
 
 Every check in this step runs on the frozen answer, once, and closes a question:
 
-- **Both bounds** of §3's row, shown on the frozen answer. Where they meet, say so; where a gap remains, give its size and whether it is room to improve or not yet known. A bound that rests on your own argument, with no source and no second reader, is reported as such.
+- **Both bounds** of §3's row, shown on the frozen answer. Where they meet, say so; where a gap remains, give its size and whether it is room to improve or not yet known. A bound that rests on your own argument, with no source behind it, goes to a fresh reader as `references/second-derivation.md` sets out, and the report and the README say what that reader found; the argument names the class it holds for — deterministic or randomised answers, which inputs or metric, which limits.
 - **Tightness**: a proven bound is reached by some case — one step better fails. When no case reaches it, keep the proven bound and say it is not shown tight.
 - **The checks can say no**: §3's row, with a fixed count — each rule once, each change once. When the final property is too coarse to catch a break, check the steps the proof rests on.
 - **Every condition cites its source**: list any guard in the model that does not — it is something the model made up.
@@ -129,13 +129,14 @@ Fixing is not this skill's work; the report hands each finding on and names wher
 
 ## 9. Report
 
-Plain first: each finding, path and question opens with one sentence in everyday words, then its technical layer. Pictures in the conversation — here and in §2 — use the host's inline drawing tool when it offers one, otherwise text; Mermaid stays in the README. Then:
+The report exists so the person understands the result well enough to judge it and act on it without redoing the work; a certificate they cannot follow is one they can only take on faith. So it is laid out in the order a person takes things in — from what they already know, one idea at a time, the whole before the parts — as `../teach-me/SKILL.md` §3 and §5 build an explanation up, and with the smallest pictures `../show-me/SKILL.md` lays out (read them; do not invoke them). Pictures in the conversation — here and in §2 — use the host's inline drawing tool when it offers one, otherwise text; Mermaid stays in the README. Every term is the person's own word or is explained where it first appears.
 
-1. **Good, and where this answer stands** — the ideal; what is proven and how (proven for every case, or within a stated scope); what is best possible and how; the gap, and whether it is room to improve or not yet known.
-2. **How it could be better** — what would raise the proven bound or lower the best possible, and what each would cost; or that they meet.
-3. **Each stated limit or assumption** — right, or wrong with its counterexample, the worst case among them; for documents, the contradictions, gaps and ambiguities, each counted.
-4. **What the person can act on** — what §1 said they will do, in their terms, and where each finding goes next.
-5. **Open** — readings that change the verdict and the answer under each, premises still 假設, constants that differ from the answer handed over, conditions in the model with no source, bounds not shown tight, questions left open and why, hypotheses possibly made stale, and 未經確認 when no one confirmed the rules.
+1. **What happened, in one sentence** — the conclusion in the person's terms.
+2. **One picture of the mechanism** — the interleaving, the scenario, the curve, or the two bounds with the answer between them: the smallest picture that shows why.
+3. **Why it can be believed** — for each bound, the one step a person can walk through in their own head: the argument's key sentence, the counterexample itself, or the case that reaches the bound; then how far it reaches — proven for every case, or within a stated scope. Never only the name of the evidence ("TLC", "an argument"); the README holds the rest.
+4. **How far from good, and how to get closer** — the ideal, what is proven, what is best possible, the gap and whether it is room to improve or not yet known; what would close it and what each step costs, or that they meet. Each stated limit or assumption the request carried — right, or wrong with its counterexample, the worst case among them; for documents, the contradictions, gaps and ambiguities, each counted.
+5. **What you can do next** — what §1 said they will do, as their actions, and where each finding goes.
+6. **Still open** — one line each: readings that change the verdict and the answer under each, premises still 假設, constants that differ from the answer handed over, conditions in the model with no source, bounds not shown tight or resting on an argument no one else checked, questions left open and why, hypotheses possibly made stale, and 未經確認 when no one confirmed the rules.
 
 Before handing back, stop every background process this run started. Close with one line:
 
