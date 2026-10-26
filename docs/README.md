@@ -29,7 +29,7 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 | [驗證](skills/verify.md) | [`/review`](skills/verify.md#review) | 乾淨 context 獨立重驗任何產出 |
 | | [`/hunt`](skills/verify.md#hunt) | 從症狀追到根因，確認後才修 |
 | | [`/prove-it`](skills/verify.md#prove-it) | 實際跑一次，證明說有問題的真的有問題、說完成的真的完成；「所有情況」的宣稱讀 `/hypothesis` 的假說 |
-| | [`/hypothesis`](skills/verify.md#hypothesis) | 證明難測的事在所有順序、所有輸入下都成立，或重構前後一樣、答案已經最好：先寫規則、建能跑的裁判，交出可核對的證書 |
+| | [`/hypothesis`](skills/verify.md#hypothesis) | 證明難測的事在所有順序、所有輸入下都成立，或重構前後一樣、答案已經最好：先寫理想與規則，從上下兩邊逼近它，交出可核對的證書與還差多少 |
 | [創作](skills/make.md) | [`/draw`](skills/make.md#draw) | 靜態圖、互動圖、影片、互動元件 |
 | | [`/ui`](skills/make.md#ui) | 為你 repo 裡的介面定調並直接改檔 |
 | | [`/write`](skills/make.md#write) | 雙語潤稿、生成、校對 |

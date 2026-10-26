@@ -8,7 +8,7 @@ A check can keep passing while it describes code that no longer exists; that pas
    - **no longer describes** — a step split, a branch added, a check moved, a new path to the guarded state: the model must change;
    - **promise changed on purpose** — the rule must change, citing the evidence (a doc comment, a test, a changelog, a commit message), with old and new wording;
    - **promise may be broken** — the code changed with no such evidence: a failure that follows is a bug candidate.
-3. **Update from the code**, before rerunning, never shaped by what passes. Keep the bounds unless the change makes them wrong; say so if you must reduce one.
+3. **Update from the code**, before rerunning, never shaped by what passes. Keep the scope unless the change makes it wrong; say so if you must reduce it.
 4. **Rerun.** A pass: in a scratch copy, break the new code the way the rule guards against, and see it caught. A failure: walk the trace against the code; a step the code cannot take is a model error, otherwise it is a bug — name the change that brought it.
 5. **Record**: move the README's version forward to the one you checked; leave it where it was for anything you could not bring in line, and say why.
 
