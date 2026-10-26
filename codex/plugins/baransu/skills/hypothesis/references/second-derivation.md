@@ -46,7 +46,7 @@ When §6 sends you back to §5 and you fix the model or the answer, send the sam
 
 ## A bound that rests on your own argument
 
-When a bound rests on an argument you wrote, with no source behind it, send a fresh agent the claim, the setting from the request, and the argument, with a scratch directory outside the repository that is the only place it may write, and half the ceiling, every run with a time and a memory limit. What it gets depends on the bound:
+When SKILL.md §6 sends a bound's argument to a reader, send a fresh agent the claim, the setting from the request, and the argument, with a scratch directory outside the repository that is the only place it may write, and half the ceiling, every run with a time and a memory limit. What it gets depends on the bound:
 
 - **Best possible** — the argument alone; it is about every answer, so yours has no place in it.
 - **Proven** — the argument and the rules of your answer that the argument names, as the argument states them; never your model files, your code, or reasoning outside the argument.
