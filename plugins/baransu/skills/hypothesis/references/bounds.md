@@ -76,6 +76,8 @@ The exact optimum is out of reach because of a limit — information (decisions 
 
 ## Probability
 
+Outside the table. Judge: the probability computed exactly on a Markov model, worst over every resolution of the nondeterminism, or the algorithm's concentration proof; calibrate on a case with a closed form; a finding is a schedule or order and the probability it reaches.
+
 - **Exact probability** on a Markov chain or decision process, worst over every resolution of the nondeterminism (PRISM, Storm), with sound or interval iteration — plain value iteration can stop far from the value. P.
 - **Concentration.** Chernoff and Hoeffding for independent sums, Azuma for martingales with bounded differences. P, with the independence or martingale premise shown.
 - **Best possible:** Yao's principle, counting and birthday bounds.
@@ -83,13 +85,15 @@ The exact optimum is out of reach because of a limit — information (decisions 
 
 ## Numerical error
 
+Outside the table. Judge: the computation in exact or high precision as reference, the error in ulps or relative terms; calibrate on an input with a known exact result; a finding is an input and its error against the reference.
+
 - **Standard model.** fl(x op y) = (x op y)(1 + δ), |δ| ≤ u, expanded through the computation; FPTaylor and Gappa give a sound bound over an input range with a certificate (Higham 2002; Solovyev et al. 2019). P. Premise: no overflow or underflow, and the build's flags — fast-math, FMA contraction, extended precision — are part of the claim.
 - **Best possible:** the correctly rounded result, half an ulp, which higher working precision can reach even for an ill-conditioned function; when the inputs are themselves known only to working precision, the condition number times the unit roundoff, which a backward-stable algorithm reaches within a constant.
 - **Eigenvectors** and other computed subspaces move with perturbation by the Davis–Kahan sin θ theorem.
 
 ## A domain across kinds: clustering
 
-A domain is not a kind. Clustering spreads over five rows, and each method goes where its question is:
+A domain is not a kind. Clustering spreads over several kinds — rows of the table and the two kinds outside it — and each method goes where its question is:
 
 | Question | Row | Proven | Best possible |
 |---|---|---|---|
