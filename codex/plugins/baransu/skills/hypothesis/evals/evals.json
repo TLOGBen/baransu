@@ -14,6 +14,8 @@
       "expected_behavior": "Optimization kind: rules and any law above the document listed before solving; a checker sharing no code with the solver; gap 0 or a structural bound; each rule broken once and caught." },
     { "id": 6, "prompt": "這次重構把鎖的寫法收成一個模組，重構前後一樣嗎？", "should_trigger": true, "expected_skill": "hypothesis",
       "expected_behavior": "Equivalence kind: observables named first; both versions on the same inputs; per-change certificate marked guaranteed or within scope; the refactor itself left to $baransu:draft and red/green." },
+    { "id": 10, "prompt": "重試加了隨機退避，十次內成功的機率至少 99.9% 嗎？", "should_trigger": true, "expected_skill": "hypothesis",
+      "expected_behavior": "Probability kind: the retry as a Markov model worst over every schedule, or a concentration bound with its independence premise measured; simulation reported within scope at a stated confidence, never as proven." },
     { "id": 7, "prompt": "按鈕的顏色太淡了，幫我改深一點", "should_trigger": false, "expected_skill": null,
       "expected_behavior": "Look and copy are a not-trigger; no hypothesis." },
     { "id": 8, "prompt": "程式一直報錯，幫我查一下", "should_trigger": false, "expected_skill": "hunt",

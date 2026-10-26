@@ -6,7 +6,7 @@
 
 <p align="center"><b>バランス。動手前先想，做完後驗證。</b></p>
 
-<p align="center">23 個 skill · Claude Code 與 Codex · v9.1.1</p>
+<p align="center">23 個 skill · Claude Code 與 Codex · v9.2.0</p>
 
 Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引用。7.3.3 修正圖示路徑，既有安裝需更新 plugin。
 
