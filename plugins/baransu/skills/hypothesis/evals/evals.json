@@ -13,7 +13,7 @@
     { "id": 5, "prompt": "排下個月的班表，大家的預假都劃好了，要最佳的", "should_trigger": true, "expected_skill": "hypothesis",
       "expected_behavior": "Optimization kind: rules and any law above the document listed before solving; a checker sharing no code with the solver; gap 0 or a structural bound; each rule broken once and caught." },
     { "id": 6, "prompt": "這次重構把鎖的寫法收成一個模組，重構前後一樣嗎？", "should_trigger": true, "expected_skill": "hypothesis",
-      "expected_behavior": "Equivalence kind: observables named first; both versions on the same inputs; per-change certificate marked guaranteed or within scope; the refactor itself left to /draft and red/green." },
+      "expected_behavior": "Equivalence kind: observables named first and what may differ confirmed; when the inputs that can occur can be enumerated, the one-run route — both versions run over every input with outside state such as the clock as input, calibrated old against old, shown once to say no, no model or second derivation; otherwise a per-change certificate marked guaranteed or within scope; the refactor itself left to /draft and red/green." },
     { "id": 10, "prompt": "重試加了隨機退避，十次內成功的機率至少 99.9% 嗎？", "should_trigger": true, "expected_skill": "hypothesis",
       "expected_behavior": "Probability kind: the retry as a Markov model worst over every schedule, or a concentration bound with its independence premise measured; simulation reported within scope at a stated confidence, never as proven." },
     { "id": 7, "prompt": "按鈕的顏色太淡了，幫我改深一點", "should_trigger": false, "expected_skill": null,

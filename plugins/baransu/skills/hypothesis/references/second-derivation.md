@@ -42,7 +42,7 @@ Write everything — each item of the list with its result, each finding with it
 
 ## After a fix
 
-When §6 sends you back to §5 and you fix the model or the answer, send the same agent, or a fresh one, the fix in plain words, the source, and half the ceiling — it now sees what you changed, so this recheck tests the fix, not your independence — with a list of one item per rule the fix touches: "Check whether this fix holds in the source for each of these rules. Do not read anything else." Then stop; one recheck is enough.
+When §6 sends you back to §5 and you fix the model or the answer, and the judge and a real run do not already cover what the fix touched, send the same agent, or a fresh one, the fix in plain words, the source, and half the ceiling — it now sees what you changed, so this recheck tests the fix, not your independence — with a list of one item per rule the fix touches: "Check whether this fix holds in the source for each of these rules. Do not read anything else." Then stop; one recheck is enough.
 
 ## An argument a reader checks
 
