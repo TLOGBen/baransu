@@ -110,4 +110,4 @@ Claude Code：`/baransu:hypothesis`　Codex：`$baransu:hypothesis`
 
 **非互動驅動**　`loop=assisted`。只有一個停點：確認規則；沒人回答時照規則原文繼續、兩種讀法都檢查、報告標「未經確認」。維護用 `--maintain` 叫起：使用者指名，或讀假說的 skill 發現涵蓋的程式改過時；不會併進另一份假說的執行。
 
-**來源**　形式驗證的規則與維護改寫自 pstack 的 `create-formal-verification-skill`、`maintain-formal-verification-skill`（cursor/plugins，MIT）。
+**來源**　早期版本改寫自 pstack 的 `create-formal-verification-skill`、`maintain-formal-verification-skill`（cursor/plugins）；之後已整份重寫，不再含原文，NOTICE 只留致謝。

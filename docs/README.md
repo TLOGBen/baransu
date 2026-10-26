@@ -59,7 +59,7 @@ repo 根目錄目前沒有授權檔。以下子模組 vendored 自第三方專�
 - `/show-me`：改編自 HumanLayer skills 的 show-me（MIT，HumanLayer），`plugins/baransu/skills/show-me/NOTICE.md` 附出處與授權全文。
 - `/what-now`：改編自 Cursor pstack 的 ketchup（MIT，Lauren Tan），`plugins/baransu/skills/what-now/NOTICE.md` 附出處與授權全文。
 - `/prove-it`：改編自 Cursor pstack 的 create-verification-skill、maintain-verification-skill（MIT，Lauren Tan），`plugins/baransu/skills/prove-it/NOTICE.md` 附出處與授權全文。
-- `/hypothesis`：改編自 Cursor pstack 的 create-formal-verification-skill、maintain-formal-verification-skill（MIT，Lauren Tan），`plugins/baransu/skills/hypothesis/NOTICE.md` 附出處與授權全文。
+- `/hypothesis`：早期版本改編自 Cursor pstack 的 create-formal-verification-skill、maintain-formal-verification-skill（Lauren Tan）；之後已整份重寫，不再含原文，`plugins/baransu/skills/hypothesis/NOTICE.md` 只留致謝。
 - `/draft`：改編自 Cursor pstack 的 architect、arena（MIT，Lauren Tan），mattpocock/skills 的 codebase-design、improve-codebase-architecture（MIT，Matt Pocock），以及 ponytail（MIT，DietrichGebert），`plugins/baransu/skills/draft/NOTICE.md` 附出處與授權全文。
 - `/write`：去 AI 腔的部分規則改編自 Cursor pstack 的 unslop（MIT），見 `plugins/baransu/skills/write/NOTICE.md`。
 
