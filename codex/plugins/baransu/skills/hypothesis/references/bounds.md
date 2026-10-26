@@ -1,6 +1,6 @@
 # Bounds — how each kind raises what is proven and lowers what is best possible
 
-SKILL.md §3's table names a method per cell. This file holds, for each method, the theorem behind it, what it gives — **P** raises the proven bound, **B** lowers the best possible, **U** turns "within scope" into "proven" — its premises, and the name it goes by in the literature, so it can be looked up. Read the section of the kind §3 named. A method whose premise is not shown gives no bound; the premise goes to §4 as a question, and an unmet one is said in the report.
+A reference for SKILL.md §3, read when a bound needs a method. It holds, for each method, the theorem behind it, what it gives — **P** raises the proven bound, **B** lowers the best possible, **U** turns "within scope" into "proven" — its premises, and the name it goes by in the literature, so it can be looked up. Read the section of the kind §3 named. A method whose premise is not shown gives no bound; the premise goes to §4 as a question, and an unmet one is said in the report.
 
 ## For every kind
 
