@@ -2,6 +2,12 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.30.1] - 2026-10-30
+
+### Fixed（/what-now、/how、/teach-me、/show-me：圖先用平台的內嵌繪圖工具，沒有才用 Mermaid）
+- /how、/teach-me 原本寫「沒有繪圖工具就用 Mermaid」，改成平台會渲染 Mermaid 才用，不會渲染就用 ASCII。/show-me 補上：繪圖工具只列著、還沒載入時，先載入再用；/think 與 /hypothesis 的對話圖照 /show-me 畫，一併生效。Codex 版同步。
+- 視覺的定義不再把「Mermaid 圖」列為一種圖；改成「使用者在這個平台上看得到是圖的東西」，平台只顯示成原始碼的圖表語法不算。畫圖時，平台有內嵌繪圖工具就用它（只列為延後載入的先載入）；沒有這種工具、而且平台會渲染 Mermaid，才寫 Mermaid；兩者都不成立就用 /show-me 的文字形式。Codex 版同步。起因：Claude 桌面版的 /what-now 畫了 Mermaid，畫面上只顯示原始碼，圖等於沒畫；原本的「有工具就用」只是一句話，還要繞去 /show-me 才看得到。
+
 ## [8.30.0] - 2026-10-26
 
 > 這一版收進 /hypothesis 重寫期間的四輪測試迭代（曾在分支與 main 上暫標為 9.0.0、9.1.0、9.1.1、9.2.0，都未正式發布；這幾個版號已經用過，往後不再使用），由新到舊排在下面。

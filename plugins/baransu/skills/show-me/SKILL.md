@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 Help the user understand the current topic of conversation visually. Skip the preamble and keep prose brief. Pick the smallest view that makes the key point clear.
 
-When the host offers a tool that draws a diagram or a chart inline in the conversation, draw every picture with it — a flow, a state picture, a before and after, a chart, or what would otherwise be an HTML page. A Mermaid block is a picture only where the host renders it; where it would show as source, it is not a visual. The text forms below are for a host without such a tool, and for points whose shape is text anyway: pseudocode, a call tree, a file tree, a diff, a code block.
+When the host offers a tool that draws a diagram or a chart inline in the conversation — even one only listed as deferred, which you load first — draw every picture with it — a flow, a state picture, a before and after, a chart, or what would otherwise be an HTML page. A Mermaid block is a picture only where the host renders it; where it would show as source, it is not a visual. The text forms below are for a host without such a tool, and for points whose shape is text anyway: pseudocode, a call tree, a file tree, a diff, a code block.
 
 All user-facing prose is in Traditional Chinese; labels in a figure follow the code or the product they show.
 

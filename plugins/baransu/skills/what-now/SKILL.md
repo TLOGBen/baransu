@@ -44,13 +44,13 @@ For a call between options, give every option the work weighed, each with what i
 
 ## Visuals
 
-A visual is a picture: a screenshot, a video, a Mermaid diagram, a chart, or one of the views `../show-me/SKILL.md` lays out (read it rather than invoking it). A Markdown table is not a visual, even with before and after columns.
+A visual is what the user sees as a picture in this host: a screenshot, a video, a diagram or chart drawn by the host's inline drawing tool, or one of the views `../show-me/SKILL.md` lays out (read it rather than invoking it). A Markdown table is not a visual, even with before and after columns, and neither is diagram source the host shows as text.
 
 When something is easier to grasp as a picture than as sentences, draw it: how a design or system works, a PR stack or dependency chain with each PR's state, a before and after of a fix, or options side by side. Never draw a status list, a list of action items, or boxes with nothing connecting them. Never give a fact twice, in text or across visuals.
 
 Keep each visual small enough to read at a glance: at most six boxes, with at most eight words in each. Write labels as plain words a person would say, not tags like 「測試：通過」. A fact that needs a sentence belongs in the text, or nowhere.
 
-Embed screenshots and videos when the change is visible, not only as links. If a visible change has none, mark its summary line 「還沒有截圖」 and say there what changed on screen. Draw diagrams and charts from facts you have, with the host's inline drawing tool when it offers one (`../show-me/SKILL.md`): how things connect, or a chart for numbers. Never invent a number, and never draw or generate a picture of a screen you did not capture. Link only artifacts that exist.
+Embed screenshots and videos when the change is visible, not only as links. If a visible change has none, mark its summary line 「還沒有截圖」 and say there what changed on screen. Draw diagrams and charts from facts you have: how things connect, or a chart for numbers. Draw them with the host's inline drawing tool whenever it offers one, loading it first if it is only listed as deferred. Write a Mermaid block only when the host has no such tool and renders Mermaid; otherwise use a text form from `../show-me/SKILL.md`. Never invent a number, and never draw or generate a picture of a screen you did not capture. Link only artifacts that exist.
 
 ## Not-for boundaries
 
