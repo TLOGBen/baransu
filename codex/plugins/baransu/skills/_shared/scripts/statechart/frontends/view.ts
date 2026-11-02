@@ -55,7 +55,7 @@ const isPlainObject = (v: unknown): v is { [key: string]: unknown } => {
 
 const isString = (v: unknown) => typeof v === "string";
 
-const VIEW_EXPORTS = ["state", "step", "group", "colors", "title"];
+const VIEW_EXPORTS = ["state", "step", "group", "colors", "title", "rules"]; // baransu: rules
 
 type Inspect = (value: unknown, options: { breakLength: number }) => string;
 
@@ -83,7 +83,16 @@ export function checkView(
   const group = pick("group", "a function", isFunction);
   const exported = pick("colors", "a plain object", isPlainObject);
   const title = pick("title", "a string", isString);
+  const named_rules = pick("rules", "a plain object", isPlainObject); // baransu
   if (wrong.length) throw new Error(`The view's ${list(wrong)}.`);
+  // baransu: each rule name maps to the reader's words for it
+  const rules: { [rule: string]: string } = Object.create(null);
+  const notWords: string[] = [];
+  for (const [name, words] of Object.entries(named_rules ?? {})) {
+    if (typeof words === "string" && words.trim()) rules[name] = words;
+    else notWords.push(JSON.stringify(name));
+  }
+  if (notWords.length) throw new Error(`The view's rules give ${list(notWords)} no words. Give each rule a non-empty string.`);
   if (group !== undefined && exported === undefined)
     throw new Error("The view exports group() but no colors. Give each group a color in colors.");
   const colors: { [group: string]: string } = Object.create(null);
@@ -114,6 +123,7 @@ export function checkView(
     group: named,
     colors,
     title,
+    rules, // baransu
     [checked]: true,
   };
 }

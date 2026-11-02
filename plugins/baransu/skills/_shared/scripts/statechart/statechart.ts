@@ -6,6 +6,7 @@ import path from "node:path";
 import { parseArgs } from "node:util";
 import { killGroup, messageOf } from "./run.ts";
 
+// baransu: the --view help names the rules export
 const USAGE = `Usage: statechart SPEC.tla [--config FILE] [--view FILE] [--out DIR]
 
 Checks SPEC.tla with TLC and draws its state graph as Mermaid. Above 500 states, the chart
@@ -15,6 +16,7 @@ draws only the paths to the rules that break, and with no rule broken there is n
                  group(vars), colors, and title. state() returns a string for a flat chart, an
                  array for parent states, or an object for regions. Default: each state's values.
                  colors gives each group blue, orange, purple, yellow, teal, tan, or pink.
+                 rules maps a rule's name to the reader's words for it.
   --out DIR      Where to write report.md, chart.mmd, tlc.out, and tlc-RULE.out for each
                  property that breaks and each rule that breaks off the chart. The folder must
                  be new or empty. Default: SPEC-chart.

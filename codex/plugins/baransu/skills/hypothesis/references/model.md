@@ -47,7 +47,7 @@ A worst case is a proven bound shown tight. State the count as an invariant (`Re
 
 ## From TLC's result to the README, by program
 
-A TLC result is deterministic, so what the person reads of it — the pictures, the numbered paths, which rules held — comes out of the program in `../../_shared/statechart.md`, never out of reading `tlc.out` and retelling it. Your judgment goes into the view files: the person's words for each state and step.
+A TLC result is deterministic, so what the person reads of it — the pictures, the numbered paths, which rules held — comes out of the program in `../../_shared/statechart.md`, never out of reading `tlc.out` and retelling it. Your judgment goes into the view files: the person's words for each state and step, and in `rules` each rule as a short sentence the person would say (「補位只找正式主管」), never a number or code: a label like `R1` means nothing to someone who did not write the table.
 
 - Write the model so the program can read it (`statechart.md` § What the spec must give it): the judge's rules are the config's `INVARIANT` and `PROPERTY` lines, `Next` is a disjunction of named actions, and a correct end state gets a `Done` step the view hides.
 - The views live in `model/views/`, one per picture: `1-*.mjs` coarse enough to show only the normal path in at most seven states, each next one finer by one part, the last showing every bug path. Each picture in the README is that view's `chart.mmd`, pasted as the program wrote it, with its rendered SVG beside it in `model/charts/`.

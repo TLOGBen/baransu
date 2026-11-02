@@ -2,6 +2,16 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.33.0] - 2026-11-02
+
+### Changed（statechart 圖：圖例改中文、規則用讀者的名字、每格標出打破哪條規則）
+- view 可以多輸出 `rules`，把規則名對到讀者的說法，例如 `{ Qualified: "補位只找正式主管" }`，寫白話短句、不寫編號；圖例和格子都用這個名字，沒給的規則維持原名，給了空字串會報錯並說明怎麼改。
+- 圖例與平行區塊的外框改成中文（「圖例」「同時」「會打破：…」「通往出錯的最短路徑：…」）。
+- 會打破規則的格子多一行小字，寫出打破哪幾條：「打破 R1」是這格背後每個模型狀態都打破，「可能打破 R2」是只有部分打破。FUBON 模型上，部裡有一般員工的情境「已建立路線」只打破 R2，重算後 R1、R2 都打破，跟程式報告的路徑一致。
+- 改在搬進來的 statechart 核心（`view.ts`、`ir.ts`、`regions.ts`、`mermaid.ts`、`statechart.ts` 的說明），每行標 `// baransu`，`NOTICE.md` 記下修改；`report.md` 維持上游的英文與規則原名，`compare-charts.mjs` 靠它解析。
+- `chart-model.mjs` 把同一個狀態的第二行字當附註讀，比對時不會把「打破 R1」當成不同狀態；`chart-to-spec.mjs` 遇到中文的 `%% never` 名稱，TLA+ 裡用 `Rule1`，產生的 view 用 `rules` 顯示回中文名稱。
+- `/hypothesis` 的 `references/model.md`：view 的 `rules` 寫規則的白話短句（「補位只找正式主管」），不寫 R1 這種編號；沒寫過規則表的人看不懂編號。Codex 版同步。
+
 ## [8.32.0] - 2026-11-02
 
 ### Added（/hypothesis、/show-me：從談好的狀態圖產生 TLA+ 骨架、程式對照 spec、標出改動修好了什麼；Pele 渲染）

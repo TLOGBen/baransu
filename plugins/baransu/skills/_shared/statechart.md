@@ -28,6 +28,7 @@ A JavaScript module (`.mjs`) that only maps values to words. Each function depen
 - `state(vars)` — the reader's name for a model state. A string gives a flat chart; an array gives nested states (`v.main.split(".")`); an object gives one parallel region per key (`({ Playback: v.playback, Volume: v.volume })`). In `vars`, a TLA+ sequence is an object keyed from 1 and a set is an array.
 - `step(action, from, to)` — the arrow's label, as the reader sees it happen ("you press pay", "the bank times out"), never the code's or the action's name. Return `null` to hide a step. A step that happens only under a condition ends with it in brackets, in the reader's words: `you press pay [while the file loads]`. In a regions chart the program writes conditions on other regions itself; do not add brackets for those.
 - `group(vars)`, `colors`, `title` — optional: a phase per state and its color class, and the chart's title.
+- `rules` — optional: each rule's name mapped to the reader's words for it (`{ Qualified: "補位只找正式主管" }`), a short sentence and never a number or code. The legend and the line under each marked state use these words; a rule left out keeps its name. Give every rule the reader will see.
 
 Labels are what the reader can see or cares about ("Paying", "Lease held, write pending"), with no variable names. Two model states that act the same for the reader share one label. A step that stays inside one label is not drawn; split the label when the reader must see it.
 
@@ -38,7 +39,7 @@ A sequence of pictures — the normal path first, then one part added at a time 
 ## Reading the report
 
 - Each broken rule has its shortest path, numbered from the start state, each step written as the view's arrow label and the state it reaches. That numbered list is the finding; copy it as the program wrote it.
-- In `chart.mmd`, a state marked `breaks` breaks a rule in every model state behind it, `mayBreak` in some; the legend names which rule. States on a shortest bug path are `bugPath`; a state a liveness counterexample repeats forever is `repeats`. The chart also shows states after a bug, because TLC goes past it.
+- In `chart.mmd`, a state marked `breaks` breaks a rule in every model state behind it, `mayBreak` in some. A second line in each marked state names its rules — 「打破 補位只找正式主管」 for a rule broken in every model state behind it, 「可能打破 …」 for some — and the legend, in Chinese, names the rules of each mark. States on a shortest bug path are `bugPath`; a state a liveness counterexample repeats forever is `repeats`. The chart also shows states after a bug, because TLC goes past it.
 - With `VIEW` or `SYMMETRY`, states TLC treats as the same are one state, and an arrow may lead to that one; the report says so. Past a `CONSTRAINT` TLC checks the rules but does not explore or check deadlock; a shortest path may end there.
 - Above 500 states the chart draws only the paths to broken rules, and with none broken it writes no `chart.mmd`; the report still gives every verdict. Make the model smaller to see the whole graph.
 

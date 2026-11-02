@@ -99,6 +99,9 @@ const MARK_STYLES = {
 };
 
 export function mermaidLines(chart: Chart) {
+  // baransu: rule names in the reader's words, joined the Chinese way
+  const named = (names: Iterable<string>) =>
+    [...names].map((n) => chart.rules[n] ?? n).sort(byText).join("、");
   let next = 0;
   const marks: string[] = [];
   const used = new Set<string>();
@@ -142,6 +145,16 @@ export function mermaidLines(chart: Chart) {
             leaf.breaks.length && !leaf.works ? "mayBreak" : undefined;
           if (mark) for (const b of leaf.breaks) if (b.always) mark = "breaks";
           if (mark) for (const b of leaf.breaks) rules[mark].add(b.rule.name);
+          if (mark) {
+            // baransu: a second line naming the rules this state breaks
+            const always = new Set<string>();
+            const some = new Set<string>();
+            for (const b of leaf.breaks) (b.always ? always : some).add(b.rule.name);
+            const tag = [always.size ? `打破 ${named(always)}` : "", some.size ? `可能打破 ${named(some)}` : ""]
+              .filter(Boolean)
+              .join("；");
+            out.push(`${indent}${sid}: ${esc(tag)}`);
+          }
           const trail = [leaf.lead && "bugPath", leaf.repeats && "repeats"];
           const color = leaf.group === undefined ? undefined : chart.colors[String(leaf.group)];
           for (const cls of [color, mark, ...trail])
@@ -162,7 +175,7 @@ export function mermaidLines(chart: Chart) {
   };
   let body: string[];
   if (chart.regions.length > 1) {
-    body = [`  state "At the same time" as all {`];
+    body = [`  state "同時" as all {`]; // baransu: Chinese
     for (const [i, r] of chart.regions.entries()) {
       if (i) body.push("    --");
       body.push(`    state "${esc(r.name, true)}" as r${i} {`);
@@ -174,10 +187,11 @@ export function mermaidLines(chart: Chart) {
   const legend: string[][] = [];
   for (const entry of [
     ...Object.entries(chart.colors),
-    [`Breaks ${or(rules.breaks)}`, "breaks"],
-    [`Breaks ${or(rules.mayBreak)} in some cases`, "mayBreak"],
-    [`Path to the ${or(chart.paths)} bug`, "bugPath"],
-    [`Repeats forever, so ${or(chart.loops)} breaks`, "repeats"],
+    // baransu: the legend in Chinese, with the reader's rule names
+    [`會打破：${named(rules.breaks)}`, "breaks"],
+    [`某些情況會打破：${named(rules.mayBreak)}`, "mayBreak"],
+    [`通往出錯的最短路徑：${named(chart.paths)}`, "bugPath"],
+    [`一直重複，所以被打破：${named(chart.loops)}`, "repeats"],
   ])
     if (used.has(entry[1])) legend.push(entry);
   const lines: string[] = [];
@@ -186,7 +200,7 @@ export function mermaidLines(chart: Chart) {
   lines.push("stateDiagram-v2");
   if (chart.regions.length > 1) lines.push("  direction LR");
   if (legend.length) {
-    lines.push(`  state "Legend" as legend {`);
+    lines.push(`  state "圖例" as legend {`); // baransu: Chinese
     for (const [i, [text]] of legend.entries()) lines.push(`    lg${i}: ${esc(text)}`);
     lines.push("  }");
     for (const [i, [, cls]] of legend.entries()) lines.push(`  class lg${i} ${cls}`);

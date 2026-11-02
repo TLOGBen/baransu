@@ -289,6 +289,7 @@ export function drawRegions(
     inside,
     quiet: m - sorted.length,
     colors: view.colors ?? {},
+    rules: view.rules ?? {}, // baransu
     paths,
     loops,
   };

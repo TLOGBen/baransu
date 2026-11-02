@@ -54,10 +54,19 @@ export function parseChart(text) {
     }
     return { path, region };
   };
+  // The first label a state gets is its name; a later one (the program's 「打破 R1」 line)
+  // is a note under it, so it never changes which state it is.
+  const labelled = new Set();
+  const notes = new Map(); // id -> [extra lines]
   const declare = (id, label) => {
     if (label !== undefined) label = decode(label);
-    if (!caption.has(id)) caption.set(id, label ?? id);
-    else if (label) caption.set(id, label);
+    if (label !== undefined && labelled.has(id)) {
+      if (!notes.has(id)) notes.set(id, []);
+      notes.get(id).push(label);
+    } else if (label !== undefined) {
+      caption.set(id, label);
+      labelled.add(id);
+    } else if (!caption.has(id)) caption.set(id, id);
     if (!kinds.has(id)) {
       kinds.set(id, where());
       order.push(id);
@@ -113,7 +122,7 @@ export function parseChart(text) {
   const states = new Map();
   for (const id of order) {
     const k = key(id);
-    if (!states.has(k)) states.set(k, { id, label: caption.get(id), path: [...kinds.get(id).path, caption.get(id)], region: kinds.get(id).region, marks: new Set(), color: undefined });
+    if (!states.has(k)) states.set(k, { id, label: caption.get(id), path: [...kinds.get(id).path, caption.get(id)], region: kinds.get(id).region, notes: notes.get(id) ?? [], marks: new Set(), color: undefined });
   }
   const MARKS = new Set(["breaks", "mayBreak", "bugPath", "repeats"]);
   for (const [id, cls] of classes) {

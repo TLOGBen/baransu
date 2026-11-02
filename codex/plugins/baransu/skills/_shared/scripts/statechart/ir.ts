@@ -144,6 +144,7 @@ export type View = {
   group?: (vars: Vars) => unknown;
   colors?: { [group: string]: string };
   title?: string;
+  rules?: { [rule: string]: string }; // baransu: the reader's words for each rule
 };
 
 export const checked = Symbol("checked");
@@ -234,6 +235,7 @@ export type Chart = {
   inside: number;
   quiet: number;
   colors: { [group: string]: string };
+  rules: { [rule: string]: string }; // baransu
   paths: string[];
   loops: string[];
   lie?: string;
