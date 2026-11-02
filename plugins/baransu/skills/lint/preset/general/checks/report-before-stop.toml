@@ -1,0 +1,5 @@
+# 重新: a turn that did work and ended without saying where things stand is redone at the start of the next turn, the way /what-now reports.
+severity = "warn"
+action = "重新"
+builtin = "report-before-stop"
+message = "做了事就交代現況：有什麼等使用者決定、做到哪、哪些沒驗證"

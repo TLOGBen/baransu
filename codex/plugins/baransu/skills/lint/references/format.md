@@ -15,10 +15,14 @@ One check per file; the file name without `.toml` is its id. The mod reads a sma
 | `builtin` | One of the built-ins below, in place of `forbid` / `run`. |
 | `message` | What to write instead. Shown with every finding. |
 | `changed` | A note shown at `commit` / `done` whenever the change touches a file in `files`, pass or fail. For a check whose truth lives outside the code, like a model of it. |
-| `from` | Set by `$baransu:lint init` on a copied preset check: `baransu-preset@<version>`. |
+| `from` | Set by `/lint init` on a copied preset check: `baransu-preset@<version>`. |
 | `origin` | The commit the mistake was found in, when there is one. |
+| `action` | `重新` on a built-in whose answer is a redo: the words already reached the user, so the model says it again the right way. |
+| `redo` | On a 重新 built-in, the instruction the model gets in place of the default (`user-language`: restate the way `$baransu:huh` does; `explain-before-edit`: explain the step the way `$baransu:show-me` does; `report-before-stop`: report the way `$baransu:what-now` does). |
 
 Exactly one of `forbid`, `run`, `builtin` per check.
+
+Four answers, from before the act to after it: **error** stops it; **hold** (`destructive-preview`) stops it once to show what it touches; **warn** lets it run and says so; **重新** comes after the words already reached the user and asks for them again, the right way.
 
 ## ast-grep rules: `rules/<id>.yml`
 
@@ -34,24 +38,26 @@ Checks the mod computes itself, because they are about the session or the repo r
 | `secret-files` | commit | Flags staged files whose names look like secrets (`.env`, `*.pem`, `*.key`, `id_rsa*`, `*.p12`, `credentials*.json`). |
 | `built-before-commit` | commit | Flags a commit or push when no command ran since the last edit — nothing was built or tested. |
 | `up-to-date` | commit | Fetches, then flags a commit or push while the upstream has commits this branch lacks. |
-| `session-record` | done | Lists the commands run since the last edit with how each ended, and whether `$baransu:review` ran since then, so `$baransu:ship` can see whether the change was built, tested and reviewed. |
+| `session-record` | done | Lists the commands run since the last edit with how each ended (a background command does not count as run; an edit is counted even before `.claude/lint/` existed), and whether `$baransu:review` ran since then, so `$baransu:ship` can see whether the change was built, tested and reviewed. |
 | `worktree-cleanup` | session start | Lists worktrees whose branch is already merged and could be removed. |
-| `destructive-preview` | bash | Before a command that deletes, moves or discards (`rm`, `mv`, `Remove-Item`, `git clean`, `git reset --hard`, `git checkout --`, `git restore`, `git branch -D`, `git worktree remove`, `git stash drop` / `clear`), lists what it would touch — each path as a file, a folder with its entry count, or missing; the files `git clean -n` names; the changes a reset or restore drops; the branch's last commits and whether it is merged; a worktree's uncommitted files. At `error` the first run is held back with that list and the same command again goes through. |
-| `explain-before-edit` | edit | Flags a turn whose first edit or Bash call came before any text to the user. |
+| `destructive-preview` | bash | Before a command that deletes, moves or discards (`rm`, `mv`, `Remove-Item`, `rd`, `rimraf`, `git rm`, `git clean`, `git reset --hard`, `git checkout --`, `git restore`, `git branch -D`, `git worktree remove`, `git stash drop` / `clear`), lists what it would touch — each path as a file, a folder with its entry count, or missing; the files `git clean -n` names; the changes a reset or restore drops; the branch's last commits and whether it is merged; a worktree's uncommitted files. At `error` the first run is held back with that list and the same command again goes through — for the same actor (main loop or a subagent), in the same shell directory (the mod follows `cd`, separately for Bash and PowerShell), and only until the turn ends. A `sudo`, `env` or `npx` prefix, a `( … )` subshell and `bash -c` / `pwsh -c` / `cmd /c` are seen through; a path with `~` or `$` is shown as one the mod cannot expand; `find … -delete` and `xargs rm` are held with a note, since what they delete cannot be listed beforehand. |
+| `explain-before-edit` | edit | 重新. The first edit or shell command of a main-loop turn came before any text to the user: the model explains the step the way `$baransu:show-me` does. At `error` the call is held until it does. |
+| `report-before-stop` | turn end | 重新. A main-loop turn that edited or ran something ended without a report (60 letters or more after the last such step, code included, a Chinese character counting as two): the user's next message, a slash command that reaches the model included, or else the next main-loop command, carries the request to report the way `$baransu:what-now` does. A later turn that reports clears it. |
 | `correction-to-lint` | every user message | When the user's message reads as a correction（「又犯」「不是這樣」「說過了」, "again", "wrong"）, a notice says so and the model is told to fix first, then decide whether the mistake can become a check — hand it to `$baransu:lint` if it can, say why in one line if it cannot. So a mistake the user had to correct once becomes a candidate check every time, not only when someone remembers. |
-| `user-language` | every reply | Checks what the model actually wrote: when the user writes Chinese (`language = "..."` when set, else read from the user's latest message) and a block the model sends is English prose — code and backticks left out — the person sees it flagged at once and the model is told on its next call. A reminder in the system prompt alone did not stop the slip, so this reads the output. |
+| `user-language` | every reply | 重新. Checks what the model actually wrote: when the user writes Chinese (`language = "..."` when set, else read from the user's latest message, a slash command's arguments included) and a block the model sends is English prose — code and backticks left out — the person sees it flagged and the model restates each such block once, the way `$baransu:huh` does, by the user's next message at the latest. A reminder in the system prompt alone did not stop the slip, so this reads the output. |
+| `built-before-commit`, `up-to-date`, … | | Every built-in's state is kept in the session (`$.state`), so a reload of the mod forgets nothing. The rules this state keeps in every order of events are checked by a TLA+ model in baransu's repo, `.claude/hypothesis/lint-mod-state/`. |
 
 ## A TLA+ model as a check
 
-`$baransu:lint init` writes these only at the 嚴格 level. This is how a state the code must keep — a state machine's rules, an order that must never happen — stays true while the code keeps changing. A `$baransu:hypothesis` judge registers as a `run` check: `on = ["done"]`, `files` the code the hypothesis covers, `run` the TLC command its README gives, `severity = "error"`. The check runs only when the covered code changed. TLC exits 0 when every rule holds and non-zero on a violation or a deadlock, so a broken rule stops `$baransu:ship`.
+`/lint init` writes these only at the 嚴格 level. This is how a state the code must keep — a state machine's rules, an order that must never happen — stays true while the code keeps changing. A `$baransu:hypothesis` judge registers as a `run` check: `on = ["done"]`, `files` the code the hypothesis covers, `run` the TLC command its README gives, `severity = "error"`. The check runs only when the covered code changed. TLC exits 0 when every rule holds and non-zero on a violation or a deadlock, so a broken rule stops `$baransu:ship`.
 
-TLC checks the spec, not the code: when the code changed and the spec did not, TLC still passes. So the check carries a `changed` note that sends the model to `$baransu:hypothesis --maintain` whenever the covered code moved, pass or fail; maintenance redraws the model from the changed code and reruns the judge. The check's own TLC run catches a spec edit that breaks a rule.
+TLC checks the spec, not the code: when the code changed and the spec did not, TLC still passes. So the check carries a `changed` note that sends the model to `/hypothesis --maintain` whenever the covered code moved, pass or fail; maintenance redraws the model from the changed code and reruns the judge. The check's own TLC run catches a spec edit that breaks a rule.
 
 ```toml
 on = ["done"]
 severity = "error"
 files = ["src/billing/**"]
 run = ["tlc", "-workers", "1", "-config", ".claude/hypothesis/billing/Billing.cfg", ".claude/hypothesis/billing/Billing.tla"]
-changed = "billing 的程式改了：先跑 $baransu:hypothesis --maintain，讓模型跟上程式再驗證"
+changed = "billing 的程式改了：先跑 /baransu:hypothesis --maintain，讓模型跟上程式再驗證"
 message = "billing 的假說有規則被打破；照 .claude/hypothesis/billing/README.md 的出錯路徑修"
 ```

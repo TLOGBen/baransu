@@ -96,6 +96,7 @@ These have each caused regressions — do not "optimize" them away:
 - **No-git projects: ship fast-fails BEFORE any archive move** — archiving without git would strand the moved files with no commit to anchor them.
 - **`/ship` never archives `.claude/lint/`**: it is a kept product, like `hypothesis/`; it is not in ship's archive allowlist and is named in Step 2's never-archived line.
 - **The lint mod does nothing without `.claude/lint/`**: every hook in `hooks/lint.ts` returns `next(e)` untouched when the project has no such folder, and every gating hook carries a `.catch` that hands the call on, so a failing mod never blocks the user's own step. It writes the lint record into `/review` as a record only — review reads it under its own verdict rule and is never told to run or stop.
+- **The lint mod's cross-event state lives in `$.state`, never in a module variable**: a reload of the mod starts module variables over, which lost owed redos, the edit record and the turn's flags (TLA+ model and paths: `.claude/hypothesis/lint-mod-state/`). The state's type is `plugins/baransu/types/index.d.ts`, named by `plugin.json`'s `types`. Anything taken from that state for delivery is taken synchronously before any `await`, so two calls in flight never both deliver it. A change to the mod's state reruns that hypothesis (`/baransu:hypothesis --maintain`).
 - **Cross-skill guardrails**: behavioral anti-patterns that apply across skills live in `plugins/baransu/rules/anti-patterns.md`; the skill-specific invariants above stay here.
 
 ## Verification

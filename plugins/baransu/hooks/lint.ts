@@ -1,4 +1,5 @@
 import type { Register } from 'claude-code'
+import type { LintState } from '../types'
 
 // baransu lint mod: reads the project's .claude/lint/ and runs each check at its
 // moment — after an edit, before a git commit or push, before /ship or /review,
@@ -18,8 +19,10 @@ type Check = {
   message: string
   changed?: string
   language?: string
+  redo?: string
 }
-type Finding = { id: string; severity: 'error' | 'warn' | 'note'; text: string }
+// `redo` (重新) is the fourth answer: the words already reached the user, so the fix is to say it again the right way.
+type Finding = { id: string; severity: 'error' | 'warn' | 'redo' | 'note'; text: string }
 
 const LINT = '.claude/lint'
 const EDIT_TOOLS = new Set(['Edit', 'Write', 'MultiEdit', 'NotebookEdit'])
@@ -28,22 +31,40 @@ const GIT_WRITE = /\bgit\b[^|;&\n]*\b(commit|push)\b/
 const DONE_SKILLS = new Set(['ship', 'review', 'baransu:ship', 'baransu:review'])
 const CORRECTION = /又犯|又錯|又忘|又來了|不是這樣|(?<!對)不對(?!勁)|錯了|說過了?|講過|跟你說|別再|不要再|為什麼又|\bagain\b|\bwrong\b|told you|\bstop doing\b|don'?t do that/i
 
-// ---- session memory (module scope: a reload starts it over) ----
-let editSeq = 0
-let reviewedAt = -1
-const commands: { cmd: string; ok: boolean; seq: number }[] = []
-let spokeThisTurn = true
-let userLanguage: string | undefined
+// ---- session memory: kept in $.state, so a reload of the mod (module variables start over) loses none of it ----
+// The model of this state and the rules it keeps: .claude/hypothesis/lint-mod-state/.
+const freshState = (): LintState => ({ editSeq: 0, reviewedAt: -1, commands: [], spoke: true, previewed: [], slips: [], tools: 0, textAfterTools: '' })
+let S: LintState = freshState()
+let loading: Promise<void> | undefined
+const STATE_REF = { plugin: 'baransu', key: 'lint' } as const
+function restore($: any): Promise<void> {
+  return (loading ??= (async () => {
+    try {
+      const r = await $.state.get(STATE_REF)
+      if (r?.value) S = { ...freshState(), ...r.value }
+    } catch {}
+  })())
+}
+function persist($: any) {
+  try {
+    Promise.resolve($.state.set(STATE_REF, JSON.parse(JSON.stringify(S)))).catch(() => {})
+  } catch {}
+}
 let gitFactsText: string | undefined
-const previewed = new Set<string>()
-let languageSlip: string | undefined
 
 // Share of Han characters among letters, code left out.
 function hanShare(text: string): { han: number; letters: number } {
   const prose = text.replace(/```[\s\S]*?```/g, ' ').replace(/`[^`\n]*`/g, ' ').replace(/https?:\/\/\S+/g, ' ')
   return { han: (prose.match(/\p{Script=Han}/gu) ?? []).length, letters: (prose.match(/\p{L}/gu) ?? []).length }
 }
-const wantsChinese = () => !!userLanguage && /中文|zh/i.test(userLanguage)
+const wantsChinese = () => !!S.userLanguage && /中文|zh/i.test(S.userLanguage)
+const slipHead = (text: string) => `${text.split('\n')[0].slice(0, 40)}…`
+// The fix for a reply in the wrong language: restate it in the user's language the way /huh does.
+// A check's own `redo` replaces the default instruction.
+function restateNote(c: Check, text: string): string {
+  const how = c.redo ?? `先照 /baransu:huh 的方式，用使用者的語言（${S.userLanguage}）把這段重新說一次——白話、不加術語，說的是同一件事；之後寫給使用者看的文字一律用這個語言。`
+  return `baransu lint（${c.id}，重新）：剛才給使用者的那段寫成英文了。${how}那段原文：\n"""\n${text}\n"""`
+}
 
 // ---- small TOML subset: key = "s" | 's' | ["a", 'b'], # comments ----
 function parseToml(src: string): Record<string, string | string[]> {
@@ -184,6 +205,7 @@ async function readChecks($: any, root: string): Promise<{ checks: Check[]; prob
         message: typeof t.message === 'string' ? t.message : '',
         changed: typeof t.changed === 'string' ? t.changed : undefined,
         language: typeof t.language === 'string' ? t.language : undefined,
+        redo: typeof t.redo === 'string' ? t.redo : undefined,
       })
     } catch (err) {
       problems.push({ id, severity: 'warn', text: `設定讀不懂：checks/${entry.name}：${(err as Error).message}` })
@@ -318,14 +340,14 @@ async function secretFiles($: any, root: string, c: Check): Promise<Finding[]> {
 }
 // At commit: was anything built or tested since the last edit? At done, also: was it reviewed?
 function sessionRecord(c: Check, needReview: boolean): Finding[] {
-  const after = commands.filter(x => x.seq === editSeq && !GIT_WRITE.test(x.cmd))
+  const after = S.commands.filter(x => x.seq === S.editSeq && !GIT_WRITE.test(x.cmd))
   const lines = after.slice(-15).map(x => `  ${x.ok ? '✓' : '✗'} ${x.cmd.slice(0, 120)}`)
-  const reviewed = editSeq === 0 ? '這個 session 沒有改檔' : reviewedAt >= editSeq ? '有' : '沒有'
+  const reviewed = S.editSeq === 0 ? '這個 session 沒有改檔' : S.reviewedAt >= S.editSeq ? '有' : '沒有'
   const text = [
     `最後一次改檔之後跑過的指令：${lines.length ? '\n' + lines.join('\n') : '（沒有）'}`,
     ...(needReview ? [`最後一次改檔之後有沒有跑 /review：${reviewed}`] : []),
   ].join('\n')
-  const missing = editSeq > 0 && (lines.length === 0 || (needReview && reviewedAt < editSeq))
+  const missing = S.editSeq > 0 && (lines.length === 0 || (needReview && S.reviewedAt < S.editSeq))
   return [{ id: c.id, severity: missing ? (c.severity as 'error' | 'warn') : 'note', text: missing ? `${text}\n${c.message}` : text }]
 }
 // Before a commit or push: has the remote moved on since this branch last caught up?
@@ -375,47 +397,106 @@ function commandFindings(checks: Check[], command: string): Finding[] {
   }
   return out
 }
+// The commands of a command line: split on && || ; | and newlines outside quotes only,
+// so a script passed in quotes (node -e "...", python -c '...') stays one command.
+function segments(command: string): string[] {
+  const out: string[] = []
+  let cur = ''
+  let quote = ''
+  for (let i = 0; i < command.length; i++) {
+    const ch = command[i]
+    if (quote) {
+      if (ch === quote) quote = ''
+      cur += ch
+    } else if (ch === '"' || ch === "'") {
+      quote = ch
+      cur += ch
+    } else if (ch === ';' || ch === '\n' || ch === '|' || (ch === '&' && command[i + 1] === '&')) {
+      if (ch === '&' || (ch === '|' && command[i + 1] === '|')) i++
+      out.push(cur)
+      cur = ''
+    } else cur += ch
+  }
+  out.push(cur)
+  return out
+}
 // Words of one shell segment, quotes removed.
 function words(segment: string): string[] {
-  return (segment.match(/"[^"]*"|'[^']*'|\S+/g) ?? []).map(w => w.replace(/^["']|["']$/g, ''))
+  // A subshell's parentheses, `(cd x && rm y)`, are not part of the words.
+  const plain = segment.replace(/^\s*\(+/, '').replace(/\)+\s*$/, '')
+  return (plain.match(/"[^"]*"|'[^']*'|\S+/g) ?? []).map(w => w.replace(/^["']|["']$/g, ''))
 }
-async function describePath($: any, p: string): Promise<string> {
-  if (/[*?[]/.test(p)) return `${p}（萬用字元：先 ls 看實際範圍）`
+async function describePath($: any, root: string, p: string): Promise<string> {
+  const shown = relTo(root, p)
+  if (/[~$%]/.test(p)) return `${shown}（含 ~ 或變數，mod 無法展開：改寫成實際路徑再刪）`
+  if (/[*?[]/.test(p)) return `${shown}（萬用字元：先 ls 看實際範圍）`
   try {
-    if (!(await $.fs.exists(p))) return `${p}（不存在）`
+    if (!(await $.fs.exists(p))) return `${shown}（不存在）`
     const s = await $.fs.stat(p)
     if (s.kind === 'dir') {
       const n = (await $.fs.list(p)).length
-      return `${p}/（資料夾，第一層 ${n} 項）`
+      return `${shown}/（資料夾，第一層 ${n} 項）`
     }
-    return `${p}（檔案）`
+    return `${shown}（檔案）`
   } catch {
-    return `${p}（讀不到）`
+    return `${shown}（讀不到）`
   }
 }
-async function destructivePreview($: any, root: string, command: string): Promise<string[]> {
+// The words of a segment without a leading wrapper (sudo, env VAR=x, command, nohup, time, doas).
+function bare(w: string[]): string[] {
+  let i = 0
+  while (i < w.length && (/^(sudo|doas|command|nohup|time|env|npx|bunx|pnpx)$/i.test(w[i]) || /^[A-Za-z_][A-Za-z0-9_]*=/.test(w[i]))) i++
+  return w.slice(i)
+}
+// Where the shell is after this command: each `cd` in it, applied in order from `cwd`.
+function trackCd(cwd: string, command: string): string {
+  let dir = cwd.replace(/\\/g, '/').replace(/\/$/, '')
+  for (const seg of segments(command)) {
+    const w = bare(words(seg.trim()))
+    if (w.length && /^(cd|set-location|pushd)$/i.test(w[0]) && w[1])
+      dir = /^([A-Za-z]:)?[\\/]/.test(w[1]) ? w[1].replace(/\\/g, '/').replace(/\/$/, '') : `${dir}/${w[1]}`.replace(/\/\.$/, '')
+  }
+  return dir
+}
+// A shell command that writes files counts as an edit: sed -i, tee, a redirect to a file, Set-Content, git apply, patch.
+function writesFiles(command: string): boolean {
+  const unquoted = command.replace(/"[^"]*"|'[^']*'/g, '""')
+  return /\bsed\s+(-[a-zA-Z]*i|--in-place)|\btee\b|\b(Set-Content|Add-Content|Out-File)\b|\bgit\s+apply\b|\bpatch\s/i.test(unquoted) ||
+    /(^|[^0-9&>])>>?\s*(?!&|\/dev\/null|\$null\b|nul\b)[^\s|;&]/i.test(unquoted)
+}
+async function destructivePreview($: any, root: string, command: string, cwd: string): Promise<string[]> {
   const out: string[] = []
   const lines = async (argv: string[], max = 15) =>
-    String((await run($, argv, root, 30000)).stdout).trim().split(/\r?\n/).filter(Boolean).slice(0, max)
-  // A `cd` earlier in the same command moves where later relative paths point.
-  let base = ''
+    String((await run($, argv, cwd, 30000)).stdout).trim().split(/\r?\n/).filter(Boolean).slice(0, max)
+  // Relative paths start from where the shell is; a `cd` earlier in the same command moves it.
+  let base = cwd.replace(/\\/g, '/').replace(/\/$/, '')
   const at = (p: string) => (/^([A-Za-z]:)?[\\/]/.test(p) || !base ? p : `${base}/${p}`)
-  for (const seg of command.split(/&&|\|\||;|\||\r?\n/)) {
-    const w = words(seg.trim())
+  for (const seg of segments(command)) {
+    const w = bare(words(seg.trim()))
     if (!w.length) continue
     const cmd = w[0].toLowerCase()
     const args = w.slice(1).filter(a => !a.startsWith('-'))
-    if ((cmd === 'cd' || cmd === 'set-location') && args[0]) {
+    const script = ['bash', 'sh', 'zsh', 'pwsh', 'powershell'].includes(cmd) ? w[w.findIndex(x => /^-(c|command)$/i.test(x)) + 1] : cmd === 'cmd' ? w[w.findIndex(x => /^\/c$/i.test(x)) + 1] : undefined
+    if (script && w.some(x => /^(-c|-command|\/c)$/i.test(x))) {
+      // A script handed to another shell: preview what it would run.
+      out.push(...(await destructivePreview($, root, script, base)))
+    } else if (cmd === 'find' && w.includes('-delete')) {
+      out.push(`find … -delete 會刪掉符合條件的檔案：先把 -delete 換成 -print 看一次清單`)
+    } else if (cmd === 'xargs' && /^(rm|rmdir|del|remove-item)$/i.test(w.find((x, i) => i > 0 && !x.startsWith('-')) ?? '')) {
+      out.push(`xargs ${w.slice(1).join(' ')}：要刪什麼由前一個指令的輸出決定，無法事先列出；先單獨跑前一段看清單`)
+    } else if ((cmd === 'cd' || cmd === 'set-location') && args[0]) {
       base = at(args[0]).replace(/\\/g, '/').replace(/\/$/, '')
-    } else if (['rm', 'rmdir', 'del', 'remove-item', 'ri', 'erase'].includes(cmd)) {
-      for (const a of args) out.push(`刪除 ${await describePath($, at(a))}`)
+    } else if (['rm', 'rmdir', 'rd', 'del', 'remove-item', 'ri', 'erase', 'rimraf'].includes(cmd)) {
+      for (const a of args.filter(x => !/^\/[a-z]$/i.test(x))) out.push(`刪除 ${await describePath($, root, at(a))}`)
     } else if (['mv', 'move-item', 'move'].includes(cmd) && args.length >= 2) {
       const dest = args[args.length - 1]
-      for (const a of args.slice(0, -1)) out.push(`搬移 ${await describePath($, at(a))} → ${await describePath($, at(dest))}`)
+      for (const a of args.slice(0, -1)) out.push(`搬移 ${await describePath($, root, at(a))} → ${await describePath($, root, at(dest))}`)
     } else if (cmd === 'git') {
       const sub = w[1]
       const rest = w.slice(2)
-      if (sub === 'clean') {
+      if (sub === 'rm' && !rest.includes('--cached')) {
+        for (const a of rest.filter(x => !x.startsWith('-'))) out.push(`git rm 刪除 ${await describePath($, root, at(a))}`)
+      } else if (sub === 'clean') {
         const flags = ['-n', ...(rest.some(a => /^-[a-z]*d/.test(a)) ? ['-d'] : []), ...(rest.some(a => /^-[a-z]*x/i.test(a)) ? ['-x'] : [])]
         const hit = await lines(['git', 'clean', ...flags])
         out.push(...(hit.length ? hit.map(h => `git clean 會刪：${h.replace(/^Would remove /, '')}`) : ['git clean：沒有要刪的檔案']))
@@ -481,13 +562,13 @@ function render(moment: keyof typeof MOMENT, where: string, findings: Finding[])
   const errors = findings.filter(f => f.severity === 'error').length
   const warns = findings.filter(f => f.severity === 'warn').length
   const head = `lint · ${MOMENT[moment]}${where ? ' · ' + where : ''}：${errors} error、${warns} warn`
-  const mark = { error: '✖', warn: '⚠', note: '·' } as const
+  const mark = { error: '✖', warn: '⚠', redo: '↻', note: '·' } as const
   return [head, ...findings.map(f => `${mark[f.severity]} ${f.id}：${f.text}`)].join('\n')
 }
 // ---- drawing: a card for each held or refused call, and a band above the prompt ----
 // A card: an optional bold title (what happened), a meta line (which lint moment, the counts),
 // the findings, and an optional footer (what to do next). `replace` draws it in place of the error text.
-type Drawn = { kind: 'hold' | 'error' | 'warn'; title?: string; meta: string; lines: Finding[]; footer?: string; replace?: boolean }
+type Drawn = { kind: 'hold' | 'error' | 'warn' | 'redo'; title?: string; meta: string; lines: Finding[]; footer?: string; replace?: boolean }
 const drawn = new Map<string, Drawn>()
 
 // Colors from the design canvas "Lint 卡片樣式": tint, border, strong text, meta text, body text, icon.
@@ -495,6 +576,7 @@ const PALETTE = {
   error: { bg: '#FDF3F3', border: '#F2CFCF', strong: '#8E1B1B', meta: '#A35A5A', body: '#3B2020', icon: '#D63B3B', chip: '#F0C6C6' },
   hold: { bg: '#FDF7EA', border: '#EFD9A6', strong: '#7A4A06', meta: '#9C6E2A', body: '#3A2A0E', icon: '#E39A1C', chip: '#F0DDB0' },
   warn: { bg: '#FFFBF2', border: '#F3E3BD', strong: '#7A4A06', meta: '#9C6E2A', body: '#3A2A0E', icon: '#C98A16', chip: '#F0DDB0' },
+  redo: { bg: '#EFF5FD', border: '#C8DAF2', strong: '#1C4E8E', meta: '#4E70A3', body: '#1D2A3C', icon: '#2F6FD0', chip: '#C8DAF2' },
 } as const
 const SHIELD = 'M14 3.5 L22.5 6.8 V13 C22.5 18.4 18.9 22.3 14 24.5 C9.1 22.3 5.5 18.4 5.5 13 V6.8 Z'
 function iconSvg(kind: Drawn['kind']): string {
@@ -504,6 +586,8 @@ function iconSvg(kind: Drawn['kind']): string {
     return svg(`<circle cx="14" cy="14" r="10" fill="none" stroke="${c}" stroke-width="1.6"><animate attributeName="r" values="9;14;14" keyTimes="0;0.7;1" dur="1.6s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.6;0;0" keyTimes="0;0.7;1" dur="1.6s" repeatCount="indefinite"/></circle><path d="${SHIELD}" fill="${c}"/><rect x="12.8" y="8.6" width="2.4" height="7" rx="1.2" fill="#fff"/><circle cx="14" cy="18.8" r="1.5" fill="#fff"/>`)
   if (kind === 'hold')
     return svg(`<path d="${SHIELD}" fill="${c}"/><g><animate attributeName="opacity" values="1;0.45;1" dur="1.8s" repeatCount="indefinite"/><rect x="10.6" y="9.4" width="2.4" height="8.4" rx="1" fill="#fff"/><rect x="15" y="9.4" width="2.4" height="8.4" rx="1" fill="#fff"/></g>`)
+  if (kind === 'redo')
+    return svg(`<g><animateTransform attributeName="transform" type="rotate" from="0 14 14" to="360 14 14" dur="6s" repeatCount="indefinite"/><path d="M21.5 11.5 A8 8 0 1 0 22 16.5" fill="none" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><path d="M22.8 6.8 L22.2 12.2 L16.9 11.2" fill="none" stroke="${c}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></g>`)
   return svg(`<path d="M14 4.5 L24 22 H4 Z" fill="none" stroke="${c}" stroke-width="1.8" stroke-linejoin="round"/><rect x="13.1" y="11" width="1.8" height="6" rx="0.9" fill="${c}"/><circle cx="14" cy="19.4" r="1.1" fill="${c}"/>`)
 }
 function card($: any, e: any, d: Drawn): any {
@@ -512,12 +596,12 @@ function card($: any, e: any, d: Drawn): any {
   const terminal = e.surface === 'terminal'
   const p = PALETTE[d.kind]
   // The terminal keeps theme colors so the card reads in any terminal palette.
-  const strong = terminal ? (d.kind === 'error' ? 'error' : 'warning') : p.strong
+  const strong = terminal ? (d.kind === 'error' ? 'error' : d.kind === 'redo' ? 'suggestion' : 'warning') : p.strong
   const meta = terminal ? 'subtle' : p.meta
   const body = terminal ? 'text' : p.body
   const icon = !terminal && els.Svg
     ? h(els.Svg, { source: iconSvg(d.kind), alt: d.title ?? d.meta, width: 28, height: 28, isInteractive: true })
-    : h(Text, { color: strong, bold: true }, d.kind === 'hold' ? '⏸' : d.kind === 'error' ? '✖' : '⚠')
+    : h(Text, { color: strong, bold: true }, { hold: '⏸', error: '✖', warn: '⚠', redo: '↻' }[d.kind])
   const line = (l: Finding) => l.id
     ? h(Box, { flexDirection: 'row', gap: 'sm' },
         h(Text, { mono: true, size: 'footnote', color: strong, backgroundColor: terminal ? undefined : '#FFFFFF' }, terminal ? `[${l.id}]` : ` ${l.id} `),
@@ -538,9 +622,10 @@ function summarize(moment: string, findings: Finding[]): Drawn | null {
   const shown = findings.filter(f => f.severity !== 'note')
   if (!shown.length) return null
   const errors = shown.filter(f => f.severity === 'error').length
-  const warns = shown.length - errors
-  const counts = [errors ? `${errors} error` : '', warns ? `${warns} warn` : ''].filter(Boolean).join('、')
-  return { kind: errors ? 'error' : 'warn', meta: `lint · ${moment} · ${counts}`, lines: shown }
+  const warns = shown.filter(f => f.severity === 'warn').length
+  const redos = shown.filter(f => f.severity === 'redo').length
+  const counts = [errors ? `${errors} error` : '', warns ? `${warns} warn` : '', redos ? `${redos} 重新` : ''].filter(Boolean).join('、')
+  return { kind: errors ? 'error' : warns ? 'warn' : 'redo', meta: `lint · ${moment} · ${counts}`, lines: shown }
 }
 
 async function notify($: any, text: string) {
@@ -553,6 +638,7 @@ export const register: Register = on => {
   // Session start: worktrees left behind, and the repo's git facts for the model.
   on('session.start', async ($, e, next) => {
     const result = await next(e)
+    await restore($)
     const root = await projectRoot($)
     if (!(await hasLint($, root))) return result
     const { checks } = await loadChecks($, root!)
@@ -563,62 +649,136 @@ export const register: Register = on => {
     }
     if (checks.some(c => c.builtin === 'git-facts')) gitFactsText = (await gitFacts($, root!)).text
     const lang = checks.find(c => c.builtin === 'user-language')
-    if (lang?.language) userLanguage = lang.language
+    if (lang?.language) S.userLanguage = lang.language
+    if (!S.cwd) S.cwd = root
+    persist($)
     return result
   })
 
   // The model reads the repo's git facts and the user's language in the system prompt.
   on('prompt.compose', async ($, e, next) => {
     const result = await next(e)
+    await restore($)
     const add: { id: string; text: string; scope: 'session' }[] = []
     if (gitFactsText) add.push({ id: 'baransu:lint-git', text: `這個 repo 的 git 習慣（baransu lint）。commit、push、開分支前照這些：\n${gitFactsText}`, scope: 'session' })
-    if (userLanguage) add.push({ id: 'baransu:lint-language', text: `使用者的慣用語言：${userLanguage}。寫給使用者看的文字一律用這個語言。`, scope: 'session' })
+    if (S.userLanguage) add.push({ id: 'baransu:lint-language', text: `使用者的慣用語言：${S.userLanguage}。寫給使用者看的文字一律用這個語言。`, scope: 'session' })
     return add.length ? { ...result, sections: [...result.sections, ...add] } : result
   })
 
-  // What the user types: their language, and whether they are correcting the model.
+  // What the user types — a slash command's arguments included: their language, the redos owed, a correction.
   on('prompt.submit', async ($, e, next) => {
-    if (!e.isMeta && !e.command && e.text.trim()) {
-      const root = await projectRoot($)
-      if (await hasLint($, root)) {
-        const { checks } = await loadChecks($, root!)
-        const lang = checks.find(c => c.builtin === 'user-language')
-        if (lang && !lang.language) {
-          const han = (e.text.match(/\p{Script=Han}/gu) ?? []).length
-          const letters = (e.text.match(/\p{L}/gu) ?? []).length
-          userLanguage = letters && han / letters > 0.2 ? '中文（照使用者用的字，繁體或簡體）' : 'English'
-        }
-        const fix = checks.find(c => c.builtin === 'correction-to-lint')
-        // Only the words the user typed: drop tagged blocks the host or an artifact attached.
-        const typed = e.text.replace(/<([a-z][\w-]*)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ').replace(/<[a-z][\w-]*\b[^>]*\/>/gi, ' ')
-        if (fix && CORRECTION.test(typed)) {
-          await notify($, `lint · ${fix.id}：這像是在糾正，修完後會評估能不能寫成 lint`)
-          return next({ ...e, context: [...(e.context ?? []), `baransu lint（${fix.id}）：使用者在糾正你。先照他說的修好，再判斷這個錯能不能寫成檢查：能，就交給 /baransu:lint 新增（附上這次錯在哪、怎麼修、出錯的 commit）；不能，用一句話說明為什麼。${fix.message}`] })
-        }
-      }
+    if (e.isMeta || !e.text.trim()) return next(e)
+    await restore($)
+    // Only a message the model will read takes what is owed: plain text, or a skill command (`plugin:skill`).
+    // A built-in like /cost or /model opens no model turn, so it leaves the redos for the next message.
+    const delivers = !e.command || String(e.command.name ?? '').includes(':')
+    // Take what is owed at once, before any await, and save that at once: nothing else can deliver it too,
+    // and a reload in between cannot hand it out a second time.
+    const slips = delivers ? S.slips.splice(0) : []
+    const owedReport = delivers ? S.pendingReport : undefined
+    if (delivers) S.pendingReport = undefined
+    persist($)
+    const putBack = () => {
+      S.slips.unshift(...slips)
+      if (owedReport && !S.pendingReport) S.pendingReport = owedReport
+      persist($)
     }
-    return next(e)
+    try {
+    const root = await projectRoot($)
+    if (!(await hasLint($, root))) {
+      putBack()
+      return next(e)
+    }
+    const { checks } = await loadChecks($, root!)
+    const typed = e.text
+      .replace(/<([a-z][\w-]*)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ')
+      .replace(/<[a-z][\w-]*\b[^>]*\/>/gi, ' ')
+      .replace(/^\s*\/\S+/, ' ')
+    const lang = checks.find(c => c.builtin === 'user-language')
+    if (lang && !lang.language) {
+      const han = (typed.match(/\p{Script=Han}/gu) ?? []).length
+      const letters = (typed.match(/\p{L}/gu) ?? []).length
+      if (letters) S.userLanguage = han / letters > 0.2 ? '中文（照使用者用的字，繁體或簡體）' : 'English'
+    }
+    const notes: string[] = []
+    if (lang) notes.push(...slips.map(t => restateNote(lang, t)))
+    if (owedReport) {
+      const rc = checks.find(c => c.id === owedReport)
+      const how = rc?.redo ?? `先照 ${$.plugin.root}/skills/what-now/SKILL.md 的寫法（那個 skill 只有使用者能叫，讀它照做）重新交代：第一句說有什麼等使用者決定或沒有；做了什麼、做到哪、哪些沒驗證；每個等他決定的事附上建議、依據和風險。`
+      notes.push(`baransu lint（${owedReport}，重新）：上一輪做了事，結束前卻沒交代現況。回應這則訊息之前，${how}`)
+    }
+    const fix = checks.find(c => c.builtin === 'correction-to-lint')
+    if (fix && CORRECTION.test(typed)) {
+      await notify($, `lint · ${fix.id}：這像是在糾正，修完後會評估能不能寫成 lint`)
+      notes.push(`baransu lint（${fix.id}）：使用者在糾正你。先照他說的修好，再判斷這個錯能不能寫成檢查：能，就交給 /baransu:lint 新增（附上這次錯在哪、怎麼修、出錯的 commit）；不能，用一句話說明為什麼。${fix.message}`)
+    }
+    persist($)
+    return notes.length ? next({ ...e, context: [...(e.context ?? []), ...notes] }) : next(e)
+    } catch (err) {
+      // Whatever failed after the take, what was taken goes back to be delivered next time.
+      putBack()
+      throw err
+    }
   }).catch(($, e, next) => next(e))
 
-  // A reply that ended the turn in the wrong language is shown to the person now; the model hears it on its next call.
+  // At the end of a turn: a reply in the wrong language, or work done with no account of where it stands,
+  // is shown to the person now; the model is told to redo it at the start of the next turn.
   on('turn.complete', async ($, e: any, next) => {
     const result = await next(e)
-    if (!e.agentId && languageSlip !== undefined) await notify($, `lint · user-language：剛才那段寫成英文了（「${languageSlip}…」）`)
+    if (e.agentId) return result
+    await restore($)
+    if (S.slips.length) await notify($, `lint · user-language：剛才那段寫成英文了（「${slipHead(S.slips[S.slips.length - 1])}」）→ 重新：下一步用你的語言再說一次`)
+    const root = await projectRoot($)
+    if (await hasLint($, root)) {
+      const { checks } = await loadChecks($, root!)
+      const c = checks.find(x => x.builtin === 'report-before-stop')
+      // A report counts its whole text, tables and code included; a Han character says about what three letters do.
+      const latin = (S.textAfterTools.match(/\p{L}/gu) ?? []).length
+      const han = (S.textAfterTools.match(/\p{Script=Han}/gu) ?? []).length
+      const reported = latin + 2 * han >= 60
+      if (reported) S.pendingReport = undefined
+      else if (c && S.tools > 0) {
+        S.pendingReport = c.id
+        await notify($, `lint · ${c.id}：這一輪做了事，結束前卻沒交代現況 → 重新：下一步照 what-now 交代`)
+      }
+    }
+    persist($)
     return result
   })
 
-  // A new turn on the main loop has not spoken to the user yet.
-  on('turn.start', ($, e, next) => {
-    if (!e.agentId) spokeThisTurn = false
+  // A new main-loop turn: nothing said, nothing done; delete approvals from the last turn end (they last one turn).
+  on('turn.start', async ($, e, next) => {
+    if (!e.agentId) {
+      await restore($)
+      S.spoke = false
+      S.tools = 0
+      S.textAfterTools = ''
+      S.previewed = []
+      persist($)
+    }
     return next(e)
   })
-  on('session.append', ($, e, next) => {
+  // The model's text as it streams: it arrives before a tool call of the same message does, while the
+  // message's row is kept only later. So "spoke this turn" is read here, not from session.append.
+  on('turn.step', async function* ($: any, e: any, next: any) {
+    const it = next(e)[Symbol.asyncIterator]()
+    for (;;) {
+      const { value, done } = await it.next()
+      if (done) return value
+      if (!e.agentId && value?.kind === 'text' && String(value.text ?? '').trim()) S.spoke = true
+      yield value
+    }
+  } as any)
+  on('session.append', async ($, e, next) => {
     if (!e.agentId && e.message.type === 'assistant') {
+      await restore($)
       const text = (e.message.content as any[]).filter(b => b.type === 'text').map(b => String(b.text)).join('\n')
-      if (text.trim()) spokeThisTurn = true
-      // The user writes Chinese and this block is English prose: flag it on the next tool call.
+      if (text.trim()) S.spoke = true
+      S.textAfterTools += `\n${text}`
+      // The user writes Chinese and this block is English prose: owe a restate of this block.
       const { han, letters } = hanShare(text)
-      if (wantsChinese() && letters >= 40 && han / letters < 0.1) languageSlip = text.trim().split('\n')[0].slice(0, 60)
+      if (wantsChinese() && letters >= 40 && han / letters < 0.1) S.slips.push(text.trim().slice(0, 800))
+      persist($)
     }
     return next(e)
   }).catch(($, e, next) => next(e))
@@ -628,44 +788,81 @@ export const register: Register = on => {
     const isEdit = EDIT_TOOLS.has(tool)
     const isBash = SHELL_TOOLS.has(tool)
     if (!isEdit && !isBash) return next(e)
+    await restore($)
+    const main = !e.agentId
+    // Take what is owed at once, before any await, and save that: two calls in flight never both deliver it,
+    // and a reload while the tool runs cannot hand it out again.
+    const slips = main ? S.slips.splice(0) : []
+    const owedReport = main ? S.pendingReport : undefined
+    if (main) {
+      S.pendingReport = undefined
+      S.tools++
+      S.textAfterTools = ''
+    }
+    const seqAtStart = S.editSeq
+    persist($)
+    const putBack = () => {
+      S.slips.unshift(...slips)
+      if (owedReport && !S.pendingReport) S.pendingReport = owedReport
+      persist($)
+    }
+    const shell = tool === 'PowerShell' ? 'ps' : 'sh'
+    try {
     const root = await projectRoot($)
-    if (!(await hasLint($, root))) return next(e)
+    if (!(await hasLint($, root))) {
+      putBack()
+      // Nothing is checked without .claude/lint/, but edits still count for a /lint set up later this session.
+      const r: any = await next(e)
+      if (r && !r.deny && !r.isError && (isEdit || (isBash && writesFiles(String(e.command ?? ''))))) {
+        S.editSeq++
+        persist($)
+      }
+      return r
+    }
+    const { checks } = await loadChecks($, root!)
+    const cwdNow = (shell === 'ps' ? S.psCwd : S.cwd) ?? root!
     const command: string = isBash ? String(e.command ?? '') : ''
     const context: string[] = []
     // Everything lint says about this call is drawn as one card under it.
     const inline: Finding[] = []
+    // A refused call still hands the model what it is owed: the notes ride on the refusal.
     const refuse = (d: Drawn, deny: string) => {
       drawn.set(e.tool_use_id, { ...d, replace: true })
-      return { deny }
+      persist($)
+      return { deny: [deny, ...context].join('\n\n') }
     }
 
-    // A block written in the wrong language since the last call.
-    if (languageSlip !== undefined) {
-      const { checks } = await loadChecks($, root!)
-      const c = checks.find(x => x.builtin === 'user-language')
-      if (c && !e.agentId) {
-        inline.push({ id: c.id, severity: 'warn', text: `剛才那段寫成英文了（「${languageSlip}…」）` })
-        context.push(`baransu lint（${c.id}）：剛才給使用者的那段寫成英文了（「${languageSlip}…」）。使用者用 ${userLanguage}；接下來寫給使用者看的文字一律用這個語言。`)
+    // Blocks written in the wrong language since the last call: redo each in the user's language.
+    const lang = checks.find(x => x.builtin === 'user-language')
+    if (lang)
+      for (const t of slips) {
+        inline.push({ id: lang.id, severity: 'redo', text: `剛才那段寫成英文了（「${slipHead(t)}」）→ 重新：用你的語言再說一次` })
+        context.push(restateNote(lang, t))
       }
-      languageSlip = undefined
+
+    // A report owed from the last turn that the user's next message did not carry (it was typed while that turn ran).
+    if (owedReport) {
+      const rc = checks.find(c => c.id === owedReport)
+      const how = rc?.redo ?? `先照 ${$.plugin.root}/skills/what-now/SKILL.md 的寫法（那個 skill 只有使用者能叫，讀它照做）重新交代上一輪的現況：有什麼等使用者決定、做了什麼、做到哪、哪些沒驗證。`
+      inline.push({ id: owedReport, severity: 'redo', text: '上一輪做了事卻沒交代現況 → 重新：照 what-now 交代' })
+      context.push(`baransu lint（${owedReport}，重新）：上一輪做了事，結束前卻沒交代現況。${how}`)
     }
 
     // Explain before acting: the first edit or command of a turn should follow words to the user.
-    if (!e.agentId && !spokeThisTurn) {
-      const { checks } = await loadChecks($, root!)
+    if (main && !S.spoke) {
       const c = checks.find(x => x.builtin === 'explain-before-edit')
-      spokeThisTurn = true
+      S.spoke = true
       if (c) {
-        const f: Finding = { id: c.id, severity: c.severity === 'error' ? 'error' : 'warn', text: `這一輪還沒跟使用者說明，就先${isEdit ? '改檔' : '跑指令'}了` }
-        if (c.severity === 'error') return refuse({ kind: 'error', title: '沒有執行', meta: `lint · ${c.id}`, lines: [f], footer: c.message }, c.message)
-        inline.push(f)
-        context.push(`baransu lint（${c.id}）：${c.message}`)
+        const what = `這一輪還沒跟使用者說明，就先${isEdit ? '改檔' : '跑指令'}了`
+        const how = c.redo ?? `照 ${$.plugin.root}/skills/show-me/SKILL.md 的寫法（那個 skill 只有使用者能叫，讀它照做），用最小的一張圖或幾行文字跟使用者說明這一步要做什麼、會動到什麼、為什麼，再繼續`
+        if (c.severity === 'error') return refuse({ kind: 'error', title: '沒有執行', meta: `lint · ${c.id}`, lines: [{ id: c.id, severity: 'error', text: what }], footer: '先說明要做什麼，再下一次' }, `baransu lint（${c.id}）：${what}。${how}。`)
+        inline.push({ id: c.id, severity: 'redo', text: `${what} → 重新：先說明要做什麼` })
+        context.push(`baransu lint（${c.id}，重新）：${what}。${how}。`)
       }
     }
 
     // Before any shell command: checks that read the command line itself.
     if (isBash) {
-      const { checks } = await loadChecks($, root!)
       const findings = commandFindings(checks, command)
       if (findings.some(f => f.severity === 'error')) {
         return refuse({ ...summarize('指令前', findings)!, title: '沒有執行', footer: '照上面改寫這個指令再跑' }, `${render('bash', '', findings)}\n照上面改寫這個指令再跑。`)
@@ -675,12 +872,14 @@ export const register: Register = on => {
         context.push(render('bash', '', findings))
       }
 
-      // Before a command that deletes, moves or discards: show the model what it will touch, once.
+      // Before a command that deletes, moves or discards: show what it will touch, once per actor, directory and turn.
       const preview = checks.find(c => c.builtin === 'destructive-preview')
-      if (preview && !previewed.has(command)) {
-        const touched = await destructivePreview($, root!, command)
+      const dir = main ? cwdNow : root!
+      const key = `${e.agentId ?? 'main'}|${shell}|${dir}|${command}`
+      if (preview && !S.previewed.includes(key)) {
+        const touched = await destructivePreview($, root!, command, dir)
         if (touched.length) {
-          previewed.add(command)
+          S.previewed.push(key)
           const text = `lint · ${preview.id}：這個指令會動到\n${touched.map(t => `  ${t}`).join('\n')}`
           const lines = touched.map(t => ({ id: '', severity: 'note' as const, text: t }))
           if (preview.severity === 'error') return refuse({ kind: 'hold', title: '先確認會動到的東西', meta: 'lint · 刪除前預覽', lines, footer: '確認沒錯，再下一次同樣的指令就會執行' }, `${text}\n${preview.message}`)
@@ -704,13 +903,26 @@ export const register: Register = on => {
     }
 
     const result: any = await next(e)
-    if (isBash && result && !result.deny) commands.push({ cmd: command, ok: result.isError !== true, seq: editSeq })
+    const ran = result && !result.deny
+    // A call refused further down, or a run that failed, carries no notes: what was taken goes back.
+    if (!ran || result.isError) putBack()
+    if (isBash && ran) {
+      // A shell command that writes files is an edit, not a check run after one. A background command
+      // has only started, so it is not a run; a command counts against the edit count it started at.
+      if (writesFiles(command)) S.editSeq++
+      else if (!e.run_in_background) S.commands.push({ cmd: command, ok: result.isError !== true, seq: seqAtStart })
+      if (main && !result.isError) {
+        const moved = trackCd(cwdNow, command)
+        if (shell === 'ps') S.psCwd = moved
+        else S.cwd = moved
+      }
+    }
 
     // After a successful edit.
     const file = isEdit ? relTo(root!, String(e.file_path ?? e.notebook_path ?? '')) : ''
     const insideRepo = file !== '' && !/^([A-Za-z]:)?\//.test(file)
-    if (isEdit && insideRepo && result && !result.deny && !result.isError) {
-      editSeq++
+    if (isEdit && ran && !result.isError) S.editSeq++
+    if (isEdit && insideRepo && ran && !result.isError) {
       if (file.startsWith(`${LINT}/`)) checksCache = undefined
       const findings = (await runMoment($, root!, 'edit', { file })).filter(f => f.severity !== 'note')
       if (findings.length) {
@@ -719,12 +931,18 @@ export const register: Register = on => {
       }
     }
 
-    if (inline.length && result && !result.deny) {
+    persist($)
+    if (inline.length && ran) {
       const d = summarize(isEdit ? `改檔後 · ${file}` : GIT_WRITE.test(command) ? 'commit 前' : '指令前', inline)
       drawn.set(e.tool_use_id, d ?? { kind: 'warn', meta: 'lint', lines: inline })
     }
-    if (context.length && result && !result.deny && !result.isError) return { ...result, context: [...(result.context ?? []), ...context] }
+    if (context.length && ran && !result.isError) return { ...result, context: [...(result.context ?? []), ...context] }
     return result
+    } catch (err) {
+      // Whatever failed after the take, what was taken goes back to be delivered next time.
+      putBack()
+      throw err
+    }
   }).catch(($, e, next) => next(e))
 
   // Lint's card under the call it is about: in place of the error text for a held or refused call,
@@ -742,7 +960,11 @@ export const register: Register = on => {
     const result = await next(e)
     if (!DONE_SKILLS.has(e.skill)) return result
     const isReview = e.skill.endsWith('review')
-    if (isReview) reviewedAt = editSeq
+    await restore($)
+    if (isReview) {
+      S.reviewedAt = S.editSeq
+      persist($)
+    }
     const root = await projectRoot($)
     if (!(await hasLint($, root))) return result
     const findings = await runMoment($, root!, 'done')
