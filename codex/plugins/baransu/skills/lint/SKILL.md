@@ -59,5 +59,6 @@ The baransu mod reads `.claude/lint/` and runs, at each moment, the checks whose
 - **commit** — before a Bash call that runs `git commit` or `git push`: those checks, and the git built-ins.
 - **done** — before `$baransu:ship` or `$baransu:review` starts: every `done` check, ast-grep on the whole tree, and the session record. The result is written at the top of the skill's text as this version's lint record; for `$baransu:ship` an error means stop.
 - **session start** — the worktree built-in.
+- **each user message** — when it reads as a correction, the model is asked, after fixing, whether the mistake can become a check here.
 
 Errors and warnings are shown to the person as a notice row in the chat and handed to the model with the tool result. An error before a commit refuses that Bash call with the reason. A project without `.claude/lint/` gets nothing from the mod.

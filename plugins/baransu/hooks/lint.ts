@@ -26,6 +26,7 @@ const EDIT_TOOLS = new Set(['Edit', 'Write', 'MultiEdit', 'NotebookEdit'])
 const SHELL_TOOLS = new Set(['Bash', 'PowerShell'])
 const GIT_WRITE = /\bgit\b[^|;&\n]*\b(commit|push)\b/
 const DONE_SKILLS = new Set(['ship', 'review', 'baransu:ship', 'baransu:review'])
+const CORRECTION = /又犯|又錯|又忘|又來了|不是這樣|(?<!對)不對(?!勁)|錯了|說過了?|講過|跟你說|別再|不要再|為什麼又|\bagain\b|\bwrong\b|told you|\bstop doing\b|don'?t do that/i
 
 // ---- session memory (module scope: a reload starts it over) ----
 let editSeq = 0
@@ -462,7 +463,7 @@ export const register: Register = on => {
     return add.length ? { ...result, sections: [...result.sections, ...add] } : result
   })
 
-  // The user's language, from what they type, unless a check pins it.
+  // What the user types: their language, and whether they are correcting the model.
   on('prompt.submit', async ($, e, next) => {
     if (!e.isMeta && !e.command && e.text.trim()) {
       const root = await projectRoot($)
@@ -473,6 +474,11 @@ export const register: Register = on => {
           const han = (e.text.match(/\p{Script=Han}/gu) ?? []).length
           const letters = (e.text.match(/\p{L}/gu) ?? []).length
           userLanguage = letters && han / letters > 0.2 ? '中文（照使用者用的字，繁體或簡體）' : 'English'
+        }
+        const fix = checks.find(c => c.builtin === 'correction-to-lint')
+        if (fix && CORRECTION.test(e.text)) {
+          await notify($, `lint · ${fix.id}：這像是在糾正，修完後會評估能不能寫成 lint`)
+          return next({ ...e, context: [...(e.context ?? []), `baransu lint（${fix.id}）：使用者在糾正你。先照他說的修好，再判斷這個錯能不能寫成檢查：能，就交給 /baransu:lint 新增（附上這次錯在哪、怎麼修、出錯的 commit）；不能，用一句話說明為什麼。${fix.message}`] })
         }
       }
     }

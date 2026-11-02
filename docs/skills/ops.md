@@ -79,6 +79,7 @@ Claude Code：`/baransu:lint`　Codex：`$baransu:lint`
 - git commit／push 前：該時機的檢查、機密檔、git 習慣（帳號、co-author、該直接 push 還是開 PR）；有 error 就擋下這次指令。
 - `/ship`、`/review` 前：全部 `done` 檢查、整個專案的 ast-grep，以及「最後一次改檔後跑過哪些指令、有沒有 review 過」；結果寫在 skill 文字最前面，`/ship` 遇到 error 會停，`/review` 只當成紀錄讀。
 - session 開始：提醒已合併卻沒清掉的 worktree，並把 repo 的 git 習慣交給模型。
+- 你糾正模型時（「又犯」「不是這樣」「說過了」）：聊天裡標一句，模型修完後要判斷這個錯能不能寫成 lint，能就交給 `/lint`。
 
 **產出**　專案的 `.claude/lint/`（`checks/<id>.toml`、`rules/<id>.yml`、`sgconfig.yml`）。`/ship` 不會歸檔它。格式在 `plugins/baransu/skills/lint/references/format.md`。
 

@@ -2,6 +2,11 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.35.0] - 2026-11-02
+
+### Added（/lint：被糾正的錯，每次都評估能不能寫成 lint）
+- 內建檢查 `correction-to-lint`（預設集通用組，warn）：使用者的訊息讀起來像糾正（「又犯」「不是這樣」「說過了」、again、wrong）時，聊天裡標一句，並要模型先照糾正修好，再判斷這個錯能不能寫成檢查：能就交給 `/lint` 新增，不能就說明原因。「這樣對不對」這類問句不算。baransu 自己的 `.claude/lint/` 也啟用。
+
 ## [8.34.0] - 2026-11-02
 
 ### Added（/lint 與 baransu 第一個 mod：抓到一次的錯寫成檢查，在對的時機自動跑）

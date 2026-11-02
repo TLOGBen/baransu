@@ -36,6 +36,7 @@ Checks the mod computes itself, because they are about the session or the repo r
 | `worktree-cleanup` | session start | Lists worktrees whose branch is already merged and could be removed. |
 | `destructive-preview` | bash | Before a command that deletes, moves or discards (`rm`, `mv`, `Remove-Item`, `git clean`, `git reset --hard`, `git checkout --`, `git restore`, `git branch -D`, `git worktree remove`, `git stash drop` / `clear`), lists what it would touch — each path as a file, a folder with its entry count, or missing; the files `git clean -n` names; the changes a reset or restore drops; the branch's last commits and whether it is merged; a worktree's uncommitted files. At `error` the first run is held back with that list and the same command again goes through. |
 | `explain-before-edit` | edit | Flags a turn whose first edit or Bash call came before any text to the user. |
+| `correction-to-lint` | every user message | When the user's message reads as a correction（「又犯」「不是這樣」「說過了」, "again", "wrong"）, a notice says so and the model is told to fix first, then decide whether the mistake can become a check — hand it to `/lint` if it can, say why in one line if it cannot. So a mistake the user had to correct once becomes a candidate check every time, not only when someone remembers. |
 | `user-language` | every turn | Tells the model the user's language: `language = "..."` when set, else the language of the user's latest message. |
 
 ## A TLA+ model as a check

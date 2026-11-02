@@ -1,0 +1,4 @@
+# Every mistake the user has to correct is a candidate check: when the user's message reads as a correction, the model is asked, after fixing, whether the mistake can become a lint.
+severity = "warn"
+builtin = "correction-to-lint"
+message = "同一個錯不該讓使用者糾正第二次"
