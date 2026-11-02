@@ -42,8 +42,31 @@ A sequence of pictures — the normal path first, then one part added at a time 
 - With `VIEW` or `SYMMETRY`, states TLC treats as the same are one state, and an arrow may lead to that one; the report says so. Past a `CONSTRAINT` TLC checks the rules but does not explore or check deadlock; a shortest path may end there.
 - Above 500 states the chart draws only the paths to broken rules, and with none broken it writes no `chart.mmd`; the report still gives every verdict. Make the model smaller to see the whole graph.
 
+## Comparing two runs
+
+`node <this folder>/scripts/statechart-tools/compare-charts.mjs A_DIR B_DIR --mode fixed|against [--a WORDS] [--b WORDS] [--title WORDS] --out NEW_DIR` merges two runs into one chart and a rule-by-rule table. Both runs use the same view, so states match by their words; give the merged chart its own `--title` when the view's title names one side.
+
+- `--mode fixed`: A is the model today, B the model with the change. A state is `fixed` (breaks a rule in A, not in B), `stillBreaks`, or `newBreak` (breaks only in B); a state or step only one side has is marked and named in the report. This is the picture of what a change repairs.
+- `--mode against`: A models the code, B is the agreed spec. States and steps only one side has are marked, and a state takes the worse of its two marks. This is the picture of where the code departs from the spec.
+
+The comparison reads what the two charts draw: states, starts, arrows and their conditions, and the marks. It does not replay one model's bug on the other; the table says, per rule, whether each side holds or breaks it.
+
+## From an agreed chart to a spec
+
+When the behaviour is not built yet — a `/draft` sketch, a flow still being designed — agree the chart with the person first, then let the program write the model:
+
+`node <this folder>/scripts/statechart-tools/chart-to-spec.mjs CHART.mmd --module NAME [--dir DIR] --out NEW_DIR`
+
+- The chart is a Mermaid `stateDiagram-v2` with ASCII state ids and the person's words as labels (`s1: 購物車`, or `state "購物車" as cart`). It is flat, or one top group split by `--` into named regions; each region becomes one variable. Each step label is one action, and it moves every region whose current state has a step with that label. Write a step's condition on other regions at its label's end in brackets, in the words the program draws (`同步完成 [when 線上]`), with a `%% when ID, ID` (or `%% when not ID, ID`) line right after it.
+- Each rule is a line `%% never NAME: A & B -- the person's sentence`, A and B being states of different regions; NAME is an ASCII identifier. A state with no step out is an intended end and gets a `Done` step; a stop anywhere else is reported as a deadlock — a design bug.
+- The first run writes `NAMERules.tla` (the rules, in a module of their own), `NAME.tla` (the model, which extends it), `NAME.cfg` and `NAME.view.mjs` — ASCII identifiers in the spec, the person's words only in the view and comments — checks them, and compares the chart the spec draws with the agreed chart: a fresh skeleton prints `same`. A broken rule there is a bug in the agreed design; take it to the people who agreed the chart.
+- Later, add the real code's guards and variables to `NAME.tla`, each condition with the file and line it comes from, and run the same command with a new `--out`: an existing `NAME.tla` is kept, and every place the code departs from the chart is printed — a state the spec never reaches, a step only one side has, a condition that differs. For each, ask whether the code or the chart is wrong.
+- Exit 0 is no broken rule and no difference, 1 a broken rule or a difference, 2 a run that did not finish.
+
 ## Showing it
 
-In the conversation, when the host offers an inline drawing tool — even one only listed as deferred, which you load first — draw `chart.mmd` with it: the same states, groups, arrows, labels and marks, in the same arrangement, nothing merged, regrouped or added. Without such a tool, show `chart.mmd` as a `mermaid` block where the host renders Mermaid; otherwise give the report's numbered paths as text. A file the person keeps, such as a README, holds `chart.mmd` itself. Say what the model leaves out and which steps the view hides.
+In the conversation, when the host offers an inline drawing tool — even one only listed as deferred, which you load first — draw `chart.mmd` with it: the same states, groups, arrows, labels and marks, in the same arrangement, nothing merged, regrouped or added. Without such a tool, show `chart.mmd` as a `mermaid` block where the host renders Mermaid; otherwise give the report's numbered paths as text.
+
+A file the person keeps, such as a README, holds `chart.mmd` itself, with the SVG that `node <this folder>/scripts/statechart-tools/render.mjs chart.mmd` writes beside it; give that SVG too when the person asks for an image. It renders with Pele, colours every mark of both programs, and follows the viewer's light or dark setting. Pele is installed once outside the repo (`npm install pele@1.9.0` in `~/.local/share/pele`, or the folder `PELE_DIR` names); when it is missing, say so with that command and keep the `.mmd`. Say what the model leaves out and which steps the view hides.
 
 When the model describes code, replay each bug path against the real code, one step per action; a path the code cannot take is a model error until shown otherwise.

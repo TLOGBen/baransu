@@ -2,6 +2,17 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.32.0] - 2026-11-02
+
+### Added（/hypothesis、/show-me：從談好的狀態圖產生 TLA+ 骨架、程式對照 spec、標出改動修好了什麼；Pele 渲染）
+- 新增 `_shared/scripts/statechart-tools/`，三支自己寫的程式，接在 statechart 程式的輸出後面，不動搬進來的核心。pstack 舊版有這三個功能，10/27 改寫成 TypeScript 時拿掉了；這裡用較小的寫法補回來，出處寫在同目錄的 `NOTICE.md`。
+  - `chart-to-spec.mjs`：把跟讀者談好的 Mermaid 狀態圖（可分平行區塊，`%% never` 寫規則、`%% when` 寫條件）轉成 TLA+ 骨架並馬上檢查，再比對 spec 畫回來的圖跟原圖。識別名稱一律 ASCII、讀者的話放在 view 裡，所以中文圖也能給 TLC 跑；規則寫在獨立的 `XRules.tla`，模型 `EXTENDS` 它；沒有出口的狀態算刻意的結束，加 `Done`。之後把真程式的條件加進骨架再跑，會保留改過的 spec，列出跟圖不一樣的狀態、步驟和條件。適合先 `/draft` 再 `/hypothesis` 的流程。
+  - `compare-charts.mjs`：把同一份 view 跑出的兩次結果合成一張圖和一張逐條規則對照表。`--mode fixed` 標出已修好（綠）、還在壞（紅）、改動後才壞（紫）；`--mode against` 標出只有程式有、只有 spec 有的狀態和步驟。比的是兩張圖畫出的狀態、步驟、條件和標記，不在另一個模型上重播出錯故事。
+  - `render.mjs`：用 Pele 把 `.mmd` 畫成 SVG，套上游的配色，加上比對用的新顏色，跟著讀者的淺色／深色設定。Pele 裝在 repo 外（`~/.local/share/pele`），不隨 plugin 發布。Mermaid 預設排版會切掉的區塊標題，Pele 畫得完整。
+- `_shared/statechart.md` 新增〈Comparing two runs〉〈From an agreed chart to a spec〉兩節；〈Showing it〉補上 README 旁放 Pele 畫的 SVG。
+- `/hypothesis`：`references/model.md` 補上三種用法：答案是改動時，README 多一張「修好了什麼」；程式要遵守既有 spec 時用 `--mode against`；還沒有實作的來源，在 §2 跟讀者談好圖，再交給 `chart-to-spec.mjs` 產生骨架。SKILL.md 沒動。
+- `/show-me`：只有流程時畫成圖交給 `chart-to-spec.mjs`；要說明改動修好了什麼、或程式跟 spec 差在哪，給合併後的圖。Codex 版同步。
+
 ## [8.31.0] - 2026-11-02
 
 ### Added（/hypothesis、/show-me：TLC 的結果由程式轉成狀態圖與編號出錯路徑）
