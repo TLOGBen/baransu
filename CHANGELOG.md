@@ -2,6 +2,15 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.31.0] - 2026-11-02
+
+### Added（/hypothesis、/show-me：TLC 的結果由程式轉成狀態圖與編號出錯路徑）
+- 新增 `_shared/scripts/statechart/`：搬進 pstack 的 `statechart` 程式（cursor/plugins，MIT，commit `ae5650f`）。給它 TLA+ 規格、設定和一個 view 檔，它自己跑 TLC，每條被打破的規則都給一條最短出錯路徑、照順序編號，畫出 Mermaid 狀態圖並標出會壞的狀態，列出守住的規則。改了四處讓它能在 Windows 跑：用 `taskkill` 結束程序、TLC 輸出改用 `\n` 換行（不然認不出被打破的規則）、子程序不開主控台視窗、不起 `/bin/sh` 收尾程序；每行標 `// baransu:`，出處與修改寫在同目錄的 `NOTICE.md`。另修一個上游的問題：新版 TLC 的 SANY 把模組註解包在 CDATA 裡，上游照 TLC 1.7.4 寫的解析器讀錯，只要 spec `EXTENDS Sequences` 就失敗；改成把 CDATA 整段當文字讀。測試沒搬。
+- 新增 `_shared/statechart.md`：怎麼跑、規格要給它什麼（`Next` 寫成各個動作的 `\/`、結束狀態加一個什麼都不改的 `Done`）、view 怎麼用讀者的話命名狀態與箭頭、報告怎麼讀。對話裡顯示圖時，平台有內嵌繪圖工具就用它照 `chart.mmd` 原樣畫（狀態、分組、箭頭、標記與排法都不改），沒有才用 Mermaid；README 這類留下來的檔案放 `chart.mmd` 本身。
+- `/hypothesis`：順序題的 README 圖與 `paths/P<n>.md` 改由程式產生，不再由 agent 讀 `tlc.out` 手寫；agent 只寫 `model/views/` 裡的 view。「最多 7 個狀態、一次加一部分」的教法照舊，做法改成每張圖用比上一張細一點的 view 跑同一份規格。規定寫在 `references/model.md` 新的一節，SKILL.md 只在 §8 補一句，範本跟著改。
+- `/show-me`：新增狀態機的畫法，說明步驟與順序、哪裡會出錯、現在在哪個狀態；手上有 TLA+ 模型或 TLC 結果，或重點是「哪種順序會壞」時，圖和路徑由同一支程式產生。
+- 起因：一份實際跑出的 hypothesis README（FUBON workflow-vacancy-source）讀不懂，滿篇模型用語，沒有一張畫出狀態怎麼移動的圖；SKILL.md 早就要求用白話寫，但光靠規定守不住。原則：確定的結果交給確定的程式處理，模型只做需要判斷的命名。Codex 版同步。
+
 ## [8.30.1] - 2026-10-30
 
 ### Fixed（/what-now、/how、/teach-me、/show-me：圖先用平台的內嵌繪圖工具，沒有才用 Mermaid）

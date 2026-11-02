@@ -70,6 +70,8 @@ sequenceDiagram
     Daemon-->>UI: stream result
 ```
 
+- Show steps and their order, where a flow can go wrong, or where things stand now as a state machine: states in the person's words, arrows for what happens. When a TLA+ model or a TLC result is at hand — from `$baransu:hypothesis`, the repo, or the conversation — or the point is which order breaks something, the chart and the numbered path to each break come from the program in `../_shared/statechart.md`, not from your hand: write the view (and, when only the flow exists, a small spec), run it, and show what it wrote. To show where things stand now, mark the current state in its label in the view.
+
 - Use `diff` when the point is what changes and the surrounding shape already exists. Match the diff shape to the topic.
 
 For a component change:
