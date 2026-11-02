@@ -19,31 +19,35 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 TLC = shutil.which("tlc") or str(Path.home() / ".local" / "bin" / "tlc")
 TIME_LIMIT = 120  # seconds per run
-BUDGET = 300      # seconds for the whole list
+BUDGET = 1500     # seconds for the whole list
 
-INVARIANTS = {"R1", "R2", "R4", "R6", "R7", "R8", "R9", "R10"}
+INVARIANTS = {"R1", "R2", "R4", "R6", "R7", "R8", "R9", "R10", "R11"}
 PROPERTIES = {"R3", "R5"}
 
-# (fix, break, rule, expected)  expected: "held" or "violated"
-ALL = ["R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10"]
+# (version, break, rule, expected)  expected: "held" or "violated"
+# version: "v1" the source before the first fix, "v2" the source at 0917b911, "now" the source now.
+ALL = ["R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10", "R11"]
+V2_BROKEN = {"R1", "R4", "R5", "R6", "R7", "R8", "R11"}  # what the review of 0917b911 found, each a path below
 RUNS = (
-    # the source as it is
-    [("FALSE", "none", r, "held" if r == "R3" else "violated") for r in ALL]
-    # the proposed change
-    + [("TRUE", "none", r, "held") for r in ALL]
-    # the checks can say no: one planted bug per rule the change keeps that the source did not already break
-    + [("TRUE", r, r, "violated") for r in ["R2", "R3", "R5", "R7", "R8"]]
+    [("v1", "none", r, "held" if r == "R3" else "violated") for r in ALL]
+    + [("v2", "none", r, "violated" if r in V2_BROKEN else "held") for r in ALL]
+    + [("now", "none", r, "held") for r in ALL]
+    # the checks can say no: one planted bug per rule the newest source keeps that it would otherwise hold
+    + [("now", r, r, "violated") for r in ["R2", "R3", "R5", "R7", "R8", "R11"]]
 )
+CONSTS = {"v1": ("FALSE", "FALSE"), "v2": ("TRUE", "FALSE"), "now": ("TRUE", "TRUE")}
 
 
-def cfg(fix: str, brk: str, rule: str, steps: int) -> str:
+def cfg(version: str, brk: str, rule: str, steps: int) -> str:
     kind = "INVARIANT" if rule in INVARIANTS else "PROPERTY"
+    fix, now = CONSTS[version]
     return (
         "SPECIFICATION Spec\n"
         "CONSTANTS\n"
         "  Blocks = {1, 2}\n"
         '  Cmds = {"c1", "c2"}\n'
         f"  Fix = {fix}\n"
+        f"  Now = {now}\n"
         f'  Break = "{brk}"\n'
         f"  MaxSteps = {steps}\n"
         f"{kind} {rule}\n"
@@ -89,16 +93,16 @@ def main() -> int:
     traces.mkdir(exist_ok=True)
     for fix, brk, rule, expected in RUNS:
         if spent > BUDGET:
-            print(f"budget spent ({spent:.0f}s): stopping before {rule} fix={fix} break={brk}")
+            print(f"budget spent ({spent:.0f}s): stopping before {rule} {fix} break={brk}")
             return 2
         verdict, n, secs, text = run_one(fix, brk, rule, steps)
         spent += secs
         ok = verdict == expected
         bad += not ok
-        label = f"{rule:<4} fix={fix:<5} break={brk:<4}"
+        label = f"{rule:<4} {fix:<4} break={brk:<4}"
         print(f"{'ok ' if ok else 'BAD'} {label} {verdict:<8} (expected {expected}) states={n} {secs:.1f}s")
         if verdict == "violated" and brk == "none":
-            (traces / f"{rule}-fix{fix}.txt").write_text(text, encoding="utf-8")
+            (traces / f"{rule}-{fix}.txt").write_text(text, encoding="utf-8")
     print(f"MaxSteps={steps}; {len(RUNS) - bad}/{len(RUNS)} as expected; {spent:.0f}s")
     return 1 if bad else 0
 

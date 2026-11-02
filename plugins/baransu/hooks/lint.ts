@@ -1,5 +1,5 @@
 import type { Register } from 'claude-code'
-import type { LintState } from '../types'
+import type { LintCard, LintFinding, LintState } from '../types'
 
 // baransu lint mod: reads the project's .claude/lint/ and runs each check at its
 // moment — after an edit, before a git commit or push, before /ship or /review,
@@ -22,7 +22,7 @@ type Check = {
   redo?: string
 }
 // `redo` (重新) is the fourth answer: the words already reached the user, so the fix is to say it again the right way.
-type Finding = { id: string; severity: 'error' | 'warn' | 'redo' | 'note'; text: string }
+type Finding = LintFinding
 
 const LINT = '.claude/lint'
 const EDIT_TOOLS = new Set(['Edit', 'Write', 'MultiEdit', 'NotebookEdit'])
@@ -33,7 +33,7 @@ const CORRECTION = /又犯|又錯|又忘|又來了|不是這樣|(?<!對)不對(?
 
 // ---- session memory: kept in $.state, so a reload of the mod (module variables start over) loses none of it ----
 // The model of this state and the rules it keeps: .claude/hypothesis/lint-mod-state/.
-const freshState = (): LintState => ({ editSeq: 0, reviewedAt: -1, commands: [], spoke: true, previewed: [], slips: [], tools: 0, textAfterTools: '' })
+const freshState = (): LintState => ({ editSeq: 0, reviewedAt: -1, commands: [], spoke: true, previewed: [], steps: {}, slips: [], tools: 0, textAfterTools: '', cards: {} })
 let S: LintState = freshState()
 let loading: Promise<void> | undefined
 const STATE_REF = { plugin: 'baransu', key: 'lint' } as const
@@ -50,11 +50,12 @@ function persist($: any) {
     Promise.resolve($.state.set(STATE_REF, JSON.parse(JSON.stringify(S)))).catch(() => {})
   } catch {}
 }
-let gitFactsText: string | undefined
 
 // Share of Han characters among letters, code left out.
 function hanShare(text: string): { han: number; letters: number } {
+  // Code, links and identifiers (session.start, lint.ts, camelCase, snake_case, a/path) are not prose.
   const prose = text.replace(/```[\s\S]*?```/g, ' ').replace(/`[^`\n]*`/g, ' ').replace(/https?:\/\/\S+/g, ' ')
+    .replace(/[A-Za-z0-9_$-]*[._/\\][A-Za-z0-9_$./\\-]+|\b[a-z]+[A-Z][A-Za-z0-9]*\b/g, ' ')
   return { han: (prose.match(/\p{Script=Han}/gu) ?? []).length, letters: (prose.match(/\p{L}/gu) ?? []).length }
 }
 const wantsChinese = () => !!S.userLanguage && /中文|zh/i.test(S.userLanguage)
@@ -448,16 +449,6 @@ function bare(w: string[]): string[] {
   while (i < w.length && (/^(sudo|doas|command|nohup|time|env|npx|bunx|pnpx)$/i.test(w[i]) || /^[A-Za-z_][A-Za-z0-9_]*=/.test(w[i]))) i++
   return w.slice(i)
 }
-// Where the shell is after this command: each `cd` in it, applied in order from `cwd`.
-function trackCd(cwd: string, command: string): string {
-  let dir = cwd.replace(/\\/g, '/').replace(/\/$/, '')
-  for (const seg of segments(command)) {
-    const w = bare(words(seg.trim()))
-    if (w.length && /^(cd|set-location|pushd)$/i.test(w[0]) && w[1])
-      dir = /^([A-Za-z]:)?[\\/]/.test(w[1]) ? w[1].replace(/\\/g, '/').replace(/\/$/, '') : `${dir}/${w[1]}`.replace(/\/\.$/, '')
-  }
-  return dir
-}
 // A shell command that writes files counts as an edit: sed -i, tee, a redirect to a file, Set-Content, git apply, patch.
 function writesFiles(command: string): boolean {
   const unquoted = command.replace(/"[^"]*"|'[^']*'/g, '""')
@@ -480,8 +471,12 @@ async function destructivePreview($: any, root: string, command: string, cwd: st
     if (script && w.some(x => /^(-c|-command|\/c)$/i.test(x))) {
       // A script handed to another shell: preview what it would run.
       out.push(...(await destructivePreview($, root, script, base)))
-    } else if (cmd === 'find' && w.includes('-delete')) {
-      out.push(`find … -delete 會刪掉符合條件的檔案：先把 -delete 換成 -print 看一次清單`)
+    } else if (cmd === 'find' && (w.includes('-delete') || w.some((x, i) => /^-(exec|execdir|ok)$/.test(x) && /^(rm|rmdir|del|remove-item|unlink|shred)$/i.test(w[i + 1] ?? '')))) {
+      // List what it would delete: the same search with its action replaced by -print.
+      const action = w.findIndex(x => /^-(delete|exec|execdir|ok)$/.test(x))
+      const r = await run($, ['find', ...w.slice(1, action), '-print'], base, 30000)
+      const hit = r.exitCode === 0 ? String(r.stdout).trim().split(/\r?\n/).filter(Boolean) : []
+      out.push(...(hit.length ? [`find 會刪 ${hit.length} 項：`, ...hit.slice(0, 15).map(h => `  ${relTo(root, at(h).replace(/\/\.\//g, '/'))}`)] : ['find 會刪除符合條件的檔案，但列不出清單：先把刪除動作換成 -print 跑一次']))
     } else if (cmd === 'xargs' && /^(rm|rmdir|del|remove-item)$/i.test(w.find((x, i) => i > 0 && !x.startsWith('-')) ?? '')) {
       out.push(`xargs ${w.slice(1).join(' ')}：要刪什麼由前一個指令的輸出決定，無法事先列出；先單獨跑前一段看清單`)
     } else if ((cmd === 'cd' || cmd === 'set-location') && args[0]) {
@@ -568,8 +563,13 @@ function render(moment: keyof typeof MOMENT, where: string, findings: Finding[])
 // ---- drawing: a card for each held or refused call, and a band above the prompt ----
 // A card: an optional bold title (what happened), a meta line (which lint moment, the counts),
 // the findings, and an optional footer (what to do next). `replace` draws it in place of the error text.
-type Drawn = { kind: 'hold' | 'error' | 'warn' | 'redo'; title?: string; meta: string; lines: Finding[]; footer?: string; replace?: boolean }
-const drawn = new Map<string, Drawn>()
+// The cards are kept in $.state (S.cards), so a reload of the mod still draws them.
+type Drawn = LintCard
+function keepCard(id: string, d: Drawn) {
+  S.cards[id] = d
+  const ids = Object.keys(S.cards)
+  for (const old of ids.slice(0, Math.max(0, ids.length - 100))) delete S.cards[old]
+}
 
 // Colors from the design canvas "Lint 卡片樣式": tint, border, strong text, meta text, body text, icon.
 const PALETTE = {
@@ -634,6 +634,31 @@ async function notify($: any, text: string) {
   } catch {}
 }
 
+// The model's text as it streams, in order: it arrives before a tool call of the same message does,
+// while the message's row is kept only later. So "spoke this turn" and the text after the last step
+// are read here, not from session.append. Each main-loop response is one step.
+// A plugin hooks turn.step once: main.ts registers it and chains this with the status line's.
+export async function* lintTurnStep($: any, e: any, next: any): any {
+  await restore($)
+  const who = e.agentId ?? 'main'
+  S.steps[who] = (S.steps[who] ?? 0) + 1
+  persist($)
+  const it = next(e)[Symbol.asyncIterator]()
+  for (;;) {
+    const { value, done } = await it.next()
+    if (done) return value
+    if (!e.agentId && value?.kind === 'text') {
+      const t = String(value.text ?? '')
+      S.textAfterTools += t
+      if (t.trim() && !S.spoke) {
+        S.spoke = true
+        persist($)
+      }
+    }
+    yield value
+  }
+}
+
 export const register: Register = on => {
   // Session start: worktrees left behind, and the repo's git facts for the model.
   on('session.start', async ($, e, next) => {
@@ -647,10 +672,9 @@ export const register: Register = on => {
       const f = await worktreeCleanup($, root!, wt)
       if (f.length) await notify($, `lint · session 開始 · 沒清掉的 worktree\n${f.map(x => `⚠ ${x.text}`).join('\n')}`)
     }
-    if (checks.some(c => c.builtin === 'git-facts')) gitFactsText = (await gitFacts($, root!)).text
+    if (checks.some(c => c.builtin === 'git-facts')) S.gitFacts = (await gitFacts($, root!)).text
     const lang = checks.find(c => c.builtin === 'user-language')
     if (lang?.language) S.userLanguage = lang.language
-    if (!S.cwd) S.cwd = root
     persist($)
     return result
   })
@@ -660,7 +684,7 @@ export const register: Register = on => {
     const result = await next(e)
     await restore($)
     const add: { id: string; text: string; scope: 'session' }[] = []
-    if (gitFactsText) add.push({ id: 'baransu:lint-git', text: `這個 repo 的 git 習慣（baransu lint）。commit、push、開分支前照這些：\n${gitFactsText}`, scope: 'session' })
+    if (S.gitFacts) add.push({ id: 'baransu:lint-git', text: `這個 repo 的 git 習慣（baransu lint）。commit、push、開分支前照這些：\n${S.gitFacts}`, scope: 'session' })
     if (S.userLanguage) add.push({ id: 'baransu:lint-language', text: `使用者的慣用語言：${S.userLanguage}。寫給使用者看的文字一律用這個語言。`, scope: 'session' })
     return add.length ? { ...result, sections: [...result.sections, ...add] } : result
   })
@@ -669,18 +693,27 @@ export const register: Register = on => {
   on('prompt.submit', async ($, e, next) => {
     if (e.isMeta || !e.text.trim()) return next(e)
     await restore($)
-    // Only a message the model will read takes what is owed: plain text, or a skill command (`plugin:skill`).
-    // A built-in like /cost or /model opens no model turn, so it leaves the redos for the next message.
-    const delivers = !e.command || String(e.command.name ?? '').includes(':')
+    // Plain text, or a message typed into a running turn, reaches the model: it takes what is owed.
+    // A slash command may open no model turn (/cost, /model): it carries a copy, and what it carried
+    // is taken only when its turn starts (turn.start), so a command that opens none leaves it owed.
+    const takes = !e.command || !!e.turnId
     // Take what is owed at once, before any await, and save that at once: nothing else can deliver it too,
     // and a reload in between cannot hand it out a second time.
-    const slips = delivers ? S.slips.splice(0) : []
-    const owedReport = delivers ? S.pendingReport : undefined
-    if (delivers) S.pendingReport = undefined
+    const slips = takes ? S.slips.splice(0) : [...S.slips]
+    const owedReport = S.pendingReport
+    if (takes) {
+      S.pendingReport = undefined
+      S.offered = undefined
+    } else S.offered = { slips, report: owedReport }
     persist($)
+    let returned = false
     const putBack = () => {
-      S.slips.unshift(...slips)
-      if (owedReport && !S.pendingReport) S.pendingReport = owedReport
+      if (returned) return
+      returned = true
+      if (takes) {
+        S.slips.unshift(...slips)
+        if (owedReport && !S.pendingReport) S.pendingReport = owedReport
+      } else S.offered = undefined
       persist($)
     }
     try {
@@ -713,7 +746,10 @@ export const register: Register = on => {
       notes.push(`baransu lint（${fix.id}）：使用者在糾正你。先照他說的修好，再判斷這個錯能不能寫成檢查：能，就交給 /baransu:lint 新增（附上這次錯在哪、怎麼修、出錯的 commit）；不能，用一句話說明為什麼。${fix.message}`)
     }
     persist($)
-    return notes.length ? next({ ...e, context: [...(e.context ?? []), ...notes] }) : next(e)
+    const r: any = await (notes.length ? next({ ...e, context: [...(e.context ?? []), ...notes] }) : next(e))
+    // The prompt did not enter (a hook or a settings hook below refused it): what it took is still owed.
+    if (r && 'drop' in r && r.drop) putBack()
+    return r
     } catch (err) {
       // Whatever failed after the take, what was taken goes back to be delivered next time.
       putBack()
@@ -727,15 +763,20 @@ export const register: Register = on => {
     const result = await next(e)
     if (e.agentId) return result
     await restore($)
+    // A /review counts only once the turn that ran it ends with an answer, not when it was stopped.
+    if (S.reviewPending !== undefined) {
+      if (e.reason === 'answer') S.reviewedAt = S.reviewPending
+      S.reviewPending = undefined
+    }
     if (S.slips.length) await notify($, `lint · user-language：剛才那段寫成英文了（「${slipHead(S.slips[S.slips.length - 1])}」）→ 重新：下一步用你的語言再說一次`)
     const root = await projectRoot($)
     if (await hasLint($, root)) {
       const { checks } = await loadChecks($, root!)
       const c = checks.find(x => x.builtin === 'report-before-stop')
-      // A report counts its whole text, tables and code included; a Han character says about what three letters do.
-      const latin = (S.textAfterTools.match(/\p{L}/gu) ?? []).length
+      // A report counts its whole text, tables and code included; a Han character counts as two letters.
+      const letters = (S.textAfterTools.match(/\p{L}/gu) ?? []).length
       const han = (S.textAfterTools.match(/\p{Script=Han}/gu) ?? []).length
-      const reported = latin + 2 * han >= 60
+      const reported = letters - han + 2 * han >= 60
       if (reported) S.pendingReport = undefined
       else if (c && S.tools > 0) {
         S.pendingReport = c.id
@@ -754,27 +795,34 @@ export const register: Register = on => {
       S.tools = 0
       S.textAfterTools = ''
       S.previewed = []
+      // A slash command's message carried a copy of what was owed; it opened this turn, so that is delivered.
+      if (S.offered && e.text) {
+        for (const t of S.offered.slips) {
+          const i = S.slips.indexOf(t)
+          if (i >= 0) S.slips.splice(i, 1)
+        }
+        if (S.offered.report && S.pendingReport === S.offered.report) S.pendingReport = undefined
+        S.offered = undefined
+      }
       persist($)
     }
     return next(e)
   })
-  // The model's text as it streams: it arrives before a tool call of the same message does, while the
-  // message's row is kept only later. So "spoke this turn" is read here, not from session.append.
-  on('turn.step', async function* ($: any, e: any, next: any) {
-    const it = next(e)[Symbol.asyncIterator]()
-    for (;;) {
-      const { value, done } = await it.next()
-      if (done) return value
-      if (!e.agentId && value?.kind === 'text' && String(value.text ?? '').trim()) S.spoke = true
-      yield value
+  // /clear goes on under a new session with no session.start: what was owed belongs to the old one.
+  on('session.end', async ($, e: any, next) => {
+    if (e.reason === 'clear') {
+      await restore($)
+      S = { ...freshState(), userLanguage: S.userLanguage, gitFacts: S.gitFacts }
+      persist($)
     }
-  } as any)
+    return next(e)
+  })
+  // turn.step is registered once for the plugin in main.ts, which calls lintTurnStep.
   on('session.append', async ($, e, next) => {
     if (!e.agentId && e.message.type === 'assistant') {
       await restore($)
       const text = (e.message.content as any[]).filter(b => b.type === 'text').map(b => String(b.text)).join('\n')
       if (text.trim()) S.spoke = true
-      S.textAfterTools += `\n${text}`
       // The user writes Chinese and this block is English prose: owe a restate of this block.
       const { han, letters } = hanShare(text)
       if (wantsChinese() && letters >= 40 && han / letters < 0.1) S.slips.push(text.trim().slice(0, 800))
@@ -794,14 +842,14 @@ export const register: Register = on => {
     // and a reload while the tool runs cannot hand it out again.
     const slips = main ? S.slips.splice(0) : []
     const owedReport = main ? S.pendingReport : undefined
-    if (main) {
-      S.pendingReport = undefined
-      S.tools++
-      S.textAfterTools = ''
-    }
+    if (main) S.pendingReport = undefined
     const seqAtStart = S.editSeq
+    const stepAtStart = S.steps[e.agentId ?? 'main'] ?? 0
     persist($)
+    let returned = false
     const putBack = () => {
+      if (returned) return
+      returned = true
       S.slips.unshift(...slips)
       if (owedReport && !S.pendingReport) S.pendingReport = owedReport
       persist($)
@@ -820,14 +868,19 @@ export const register: Register = on => {
       return r
     }
     const { checks } = await loadChecks($, root!)
-    const cwdNow = (shell === 'ps' ? S.psCwd : S.cwd) ?? root!
+    // Where this call's shell is: the session's own directory, read inside the hook (a subagent's own).
+    // A foreground `cd` moves it; a subshell or a backgrounded command does not.
+    let cwdNow = root!
+    try {
+      cwdNow = String(await $.session.cwd()).replace(/\\/g, '/').replace(/\/$/, '') || root!
+    } catch {}
     const command: string = isBash ? String(e.command ?? '') : ''
     const context: string[] = []
     // Everything lint says about this call is drawn as one card under it.
     const inline: Finding[] = []
     // A refused call still hands the model what it is owed: the notes ride on the refusal.
     const refuse = (d: Drawn, deny: string) => {
-      drawn.set(e.tool_use_id, { ...d, replace: true })
+      keepCard(e.tool_use_id, { ...d, replace: true })
       persist($)
       return { deny: [deny, ...context].join('\n\n') }
     }
@@ -873,13 +926,14 @@ export const register: Register = on => {
       }
 
       // Before a command that deletes, moves or discards: show what it will touch, once per actor, directory and turn.
+      // The same command passes only in a later response than the one held, after the model has read the list.
       const preview = checks.find(c => c.builtin === 'destructive-preview')
-      const dir = main ? cwdNow : root!
-      const key = `${e.agentId ?? 'main'}|${shell}|${dir}|${command}`
-      if (preview && !S.previewed.includes(key)) {
-        const touched = await destructivePreview($, root!, command, dir)
+      const key = `${e.agentId ?? 'main'}|${shell}|${cwdNow}|${command}`
+      const seen = S.previewed.find(p => p.key === key)
+      if (preview && !(seen && seen.step < stepAtStart)) {
+        const touched = await destructivePreview($, root!, command, cwdNow)
         if (touched.length) {
-          S.previewed.push(key)
+          if (!seen) S.previewed.push({ key, step: stepAtStart })
           const text = `lint · ${preview.id}：這個指令會動到\n${touched.map(t => `  ${t}`).join('\n')}`
           const lines = touched.map(t => ({ id: '', severity: 'note' as const, text: t }))
           if (preview.severity === 'error') return refuse({ kind: 'hold', title: '先確認會動到的東西', meta: 'lint · 刪除前預覽', lines, footer: '確認沒錯，再下一次同樣的指令就會執行' }, `${text}\n${preview.message}`)
@@ -906,16 +960,16 @@ export const register: Register = on => {
     const ran = result && !result.deny
     // A call refused further down, or a run that failed, carries no notes: what was taken goes back.
     if (!ran || result.isError) putBack()
+    // Work done this turn, and the text after it starts over; a read-only call (git status, ls) does neither.
+    if (main && ran && !result.isReadOnly) {
+      S.tools++
+      S.textAfterTools = ''
+    }
     if (isBash && ran) {
       // A shell command that writes files is an edit, not a check run after one. A background command
       // has only started, so it is not a run; a command counts against the edit count it started at.
       if (writesFiles(command)) S.editSeq++
       else if (!e.run_in_background) S.commands.push({ cmd: command, ok: result.isError !== true, seq: seqAtStart })
-      if (main && !result.isError) {
-        const moved = trackCd(cwdNow, command)
-        if (shell === 'ps') S.psCwd = moved
-        else S.cwd = moved
-      }
     }
 
     // After a successful edit.
@@ -934,7 +988,8 @@ export const register: Register = on => {
     persist($)
     if (inline.length && ran) {
       const d = summarize(isEdit ? `改檔後 · ${file}` : GIT_WRITE.test(command) ? 'commit 前' : '指令前', inline)
-      drawn.set(e.tool_use_id, d ?? { kind: 'warn', meta: 'lint', lines: inline })
+      keepCard(e.tool_use_id, d ?? { kind: 'warn', meta: 'lint', lines: inline })
+      persist($)
     }
     if (context.length && ran && !result.isError) return { ...result, context: [...(result.context ?? []), ...context] }
     return result
@@ -948,7 +1003,8 @@ export const register: Register = on => {
   // Lint's card under the call it is about: in place of the error text for a held or refused call,
   // below the tool's own result otherwise.
   on('ui.render', { component: 'ToolResult' }, async ($, e: any, next) => {
-    const d = drawn.get(e.props?.tool_use_id)
+    await restore($)
+    const d = S.cards[e.props?.tool_use_id]
     if (!d) return next(e)
     if (d.replace) return card($, e, d)
     const { Box } = $.ui.resolve(e) as any
@@ -962,7 +1018,8 @@ export const register: Register = on => {
     const isReview = e.skill.endsWith('review')
     await restore($)
     if (isReview) {
-      S.reviewedAt = S.editSeq
+      // Counted when the review's turn ends with an answer (turn.complete), not when it starts.
+      S.reviewPending = S.editSeq
       persist($)
     }
     const root = await projectRoot($)

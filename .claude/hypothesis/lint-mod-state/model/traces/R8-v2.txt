@@ -1,0 +1,230 @@
+TLC2 Version 2026.10.30.154139 (rev: 090e85c)
+Running breadth-first search Model-Checking with fp 43 and seed 2596655296780752028 with 1 worker on 32 cores with 981MB heap and 64MB offheap memory [pid: 54088] (Windows 11 10.0 amd64, Eclipse Adoptium 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
+Parsing file C:\Users\jimts\AppData\Local\Temp\lintmod-8z7kvyz_\LintMod.tla
+Parsing file C:\Users\jimts\AppData\Local\Temp\lintmod-8z7kvyz_\LintRules.tla
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-13848726294623294460\Integers.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-13848726294623294460\FiniteSets.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-13848726294623294460\_TLCTrace.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-13848726294623294460\Naturals.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-13848726294623294460\Sequences.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-13848726294623294460\TLC.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-13848726294623294460\TLCExt.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module LintRules
+Semantic processing of module Integers
+Semantic processing of module TLC
+Semantic processing of module TLCExt
+Semantic processing of module _TLCTrace
+Semantic processing of module LintMod
+Linting of module LintRules
+Linting of module TLCExt
+Linting of module _TLCTrace
+Linting of module LintMod
+Starting... (2026-11-02 18:13:57)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-11-02 18:13:57.
+Error: Invariant R8 is violated.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+/\ userSpokeG = FALSE
+/\ reviewedAfterG = FALSE
+/\ actsTurnG = 0
+/\ reportOwedG = FALSE
+/\ heldEverG = {}
+/\ lastOutcome = "ok"
+/\ tools = FALSE
+/\ snap = <<{}, {}>>
+/\ cmdSeqs = {}
+/\ actor = "host"
+/\ n = 0
+/\ langKnown = FALSE
+/\ pc = <<"idle", "idle">>
+/\ heldStepG = {}
+/\ textLong = FALSE
+/\ explainNow = FALSE
+/\ workG = FALSE
+/\ cwdG = "a"
+/\ ev = "Init"
+/\ restated = <<0, 0>>
+/\ beginStep = <<0, 0>>
+/\ spokeTurnG = FALSE
+/\ claimReviewed = FALSE
+/\ explainFlags = 0
+/\ pendingReport = FALSE
+/\ execCmd = <<>>
+/\ spoke = TRUE
+/\ nextBlock = 1
+/\ trackedCwd = "a"
+/\ late = "none"
+/\ reportG = FALSE
+/\ lastSeen = {}
+/\ editedG = FALSE
+/\ execStep = 0
+/\ editSeq = 0
+/\ reviewedAt = -1
+/\ claimNoEdit = FALSE
+/\ previewed = {}
+/\ inTurn = FALSE
+/\ slips = {}
+/\ claimCmd = FALSE
+/\ heldTurnG = {}
+/\ reportEmits = 0
+/\ cmdAfterG = FALSE
+/\ wrongG = {}
+/\ stepC = 0
+/\ seen = <<{}, {}>>
+
+State 2: <SubAct("edit") line 251, col 3 to line 270, col 62 of module LintMod>
+/\ userSpokeG = FALSE
+/\ reviewedAfterG = FALSE
+/\ actsTurnG = 0
+/\ reportOwedG = FALSE
+/\ heldEverG = {}
+/\ lastOutcome = "ok"
+/\ tools = FALSE
+/\ snap = <<{}, {}>>
+/\ cmdSeqs = {}
+/\ actor = "sub"
+/\ n = 1
+/\ langKnown = FALSE
+/\ pc = <<"idle", "idle">>
+/\ heldStepG = {}
+/\ textLong = FALSE
+/\ explainNow = FALSE
+/\ workG = FALSE
+/\ cwdG = "a"
+/\ ev = "SubAct"
+/\ restated = <<0, 0>>
+/\ beginStep = <<0, 0>>
+/\ spokeTurnG = FALSE
+/\ claimReviewed = FALSE
+/\ explainFlags = 0
+/\ pendingReport = FALSE
+/\ execCmd = <<>>
+/\ spoke = TRUE
+/\ nextBlock = 1
+/\ trackedCwd = "a"
+/\ late = "none"
+/\ reportG = FALSE
+/\ lastSeen = {}
+/\ editedG = TRUE
+/\ execStep = 0
+/\ editSeq = 1
+/\ reviewedAt = -1
+/\ claimNoEdit = FALSE
+/\ previewed = {}
+/\ inTurn = FALSE
+/\ slips = {}
+/\ claimCmd = FALSE
+/\ heldTurnG = {}
+/\ reportEmits = 0
+/\ cmdAfterG = FALSE
+/\ wrongG = {}
+/\ stepC = 0
+/\ seen = <<{}, {}>>
+
+State 3: <Review(FALSE) line 288, col 3 to line 294, col 39 of module LintMod>
+/\ userSpokeG = FALSE
+/\ reviewedAfterG = FALSE
+/\ actsTurnG = 0
+/\ reportOwedG = FALSE
+/\ heldEverG = {}
+/\ lastOutcome = "ok"
+/\ tools = FALSE
+/\ snap = <<{}, {}>>
+/\ cmdSeqs = {}
+/\ actor = "main"
+/\ n = 2
+/\ langKnown = FALSE
+/\ pc = <<"idle", "idle">>
+/\ heldStepG = {}
+/\ textLong = FALSE
+/\ explainNow = FALSE
+/\ workG = FALSE
+/\ cwdG = "a"
+/\ ev = "Review"
+/\ restated = <<0, 0>>
+/\ beginStep = <<0, 0>>
+/\ spokeTurnG = FALSE
+/\ claimReviewed = FALSE
+/\ explainFlags = 0
+/\ pendingReport = FALSE
+/\ execCmd = <<>>
+/\ spoke = TRUE
+/\ nextBlock = 1
+/\ trackedCwd = "a"
+/\ late = "none"
+/\ reportG = FALSE
+/\ lastSeen = {}
+/\ editedG = TRUE
+/\ execStep = 0
+/\ editSeq = 1
+/\ reviewedAt = 1
+/\ claimNoEdit = FALSE
+/\ previewed = {}
+/\ inTurn = FALSE
+/\ slips = {}
+/\ claimCmd = FALSE
+/\ heldTurnG = {}
+/\ reportEmits = 0
+/\ cmdAfterG = FALSE
+/\ wrongG = {}
+/\ stepC = 0
+/\ seen = <<{}, {}>>
+
+State 4: <Ship line 298, col 3 to line 304, col 62 of module LintMod>
+/\ userSpokeG = FALSE
+/\ reviewedAfterG = FALSE
+/\ actsTurnG = 0
+/\ reportOwedG = FALSE
+/\ heldEverG = {}
+/\ lastOutcome = "ok"
+/\ tools = FALSE
+/\ snap = <<{}, {}>>
+/\ cmdSeqs = {}
+/\ actor = "main"
+/\ n = 3
+/\ langKnown = FALSE
+/\ pc = <<"idle", "idle">>
+/\ heldStepG = {}
+/\ textLong = FALSE
+/\ explainNow = FALSE
+/\ workG = FALSE
+/\ cwdG = "a"
+/\ ev = "Ship"
+/\ restated = <<0, 0>>
+/\ beginStep = <<0, 0>>
+/\ spokeTurnG = FALSE
+/\ claimReviewed = TRUE
+/\ explainFlags = 0
+/\ pendingReport = FALSE
+/\ execCmd = <<>>
+/\ spoke = TRUE
+/\ nextBlock = 1
+/\ trackedCwd = "a"
+/\ late = "none"
+/\ reportG = FALSE
+/\ lastSeen = {}
+/\ editedG = TRUE
+/\ execStep = 0
+/\ editSeq = 1
+/\ reviewedAt = 1
+/\ claimNoEdit = FALSE
+/\ previewed = {}
+/\ inTurn = FALSE
+/\ slips = {}
+/\ claimCmd = FALSE
+/\ heldTurnG = {}
+/\ reportEmits = 0
+/\ cmdAfterG = FALSE
+/\ wrongG = {}
+/\ stepC = 0
+/\ seen = <<{}, {}>>
+
+1957 states generated, 856 distinct states found, 758 states left on queue.
+The depth of the complete state graph search is 4.
+Finished in 00s at (2026-11-02 18:13:57)
+Trace exploration spec path: .\LintMod_TTrace_1793614436.tla
+Picked up JAVA_TOOL_OPTIONS: -Xmx1g

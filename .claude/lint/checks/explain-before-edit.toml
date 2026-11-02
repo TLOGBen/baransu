@@ -1,6 +1,6 @@
 from = "baransu-preset@8.37.0"
 # 重新: the first edit or command of a turn came before any words to the user, so the model explains the step the way /show-me does.
-# error instead holds the call until the step is explained.
+# error instead holds the call once, until the model explains the step.
 severity = "warn"
 action = "重新"
 builtin = "explain-before-edit"

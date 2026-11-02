@@ -1,132 +1,203 @@
 ---- MODULE LintMod ----
 (* The lint mod's cross-event state (plugins/baransu/hooks/lint.ts), one action
-   per hook step. Fix = FALSE is the source as it is; Fix = TRUE is the proposed change.
-   Break plants one bug per rule, to show the judge can say no.
+   per hook step. Three versions of the source:
+     Fix = FALSE              the source before the first fix (8.37.0 as first committed),
+     Fix = TRUE, Now = FALSE  the source at 0917b911 (the first and second rounds of fixes),
+     Fix = TRUE, Now = TRUE   the source now (the fixes from the review of 0917b911).
+   Break plants one bug per rule in the newest version, to show the judge can say no.
    A main-loop Edit/Write/Bash call is two steps, MainBegin and MainEnd, because the
-   source awaits between reading lint.ts::languageSlip and clearing it; two calls may overlap. *)
+   source awaits between taking what is owed and running the tool; two calls may overlap. *)
 EXTENDS LintRules, Integers, FiniteSets
 
-CONSTANTS Fix, Break, MaxSteps
+CONSTANTS Fix, Now, Break, MaxSteps
 
+N == Fix /\ Now
+V2 == Fix /\ ~Now
 Calls == {1, 2}
 Dirs == {"a", "b"}
-ActKinds == {"edit", "bash", "bashwrite", "cd"} \cup Cmds
+Other(d) == IF d = "a" THEN "b" ELSE "a"
+\* cd: a foreground cd (the shell moves, even when a later part of the same command fails);
+\* subcd: a cd inside ( ... ) (the shell does not move); ro: a read-only command (git status).
+ActKinds == {"edit", "bash", "bashwrite", "cd", "subcd", "ro"} \cup Cmds
 Outcomes == {"ok", "deny", "error"}
+\* plain text; ns: a skill command with a namespace (/baransu:ship); skill: one without (/everything-search);
+\* builtin: a command that opens no model turn (/cost).
+MsgKinds == {"plain", "ns", "skill", "builtin"}
 
 VARIABLES
   n, inTurn,           \* step counter (scope); a main turn is running
-  spoke,               \* lint.ts::spokeThisTurn
-  slips,               \* lint.ts::languageSlip (source: one block or none; Fix: a set)
-  tools,               \* lint.ts::toolsThisTurn > 0
-  textLong,            \* lint.ts::textAfterTools reads as a report
-  pendingReport,       \* lint.ts::pendingReport
-  previewed,           \* lint.ts::previewed (source: command strings; Fix: <<actor, command, directory>>)
-  editSeq,             \* lint.ts::editSeq
-  reviewedAt,          \* lint.ts::reviewedAt
-  cmdSeqs,             \* the editSeq values in lint.ts::commands
-  langKnown,           \* lint.ts::userLanguage is set
-  trackedCwd,          \* Fix: the shell directory the mod tracks from cd commands
+  spoke,               \* lint.ts S.spoke
+  slips,               \* lint.ts S.slips (first source: one block or none)
+  tools,               \* lint.ts S.tools > 0
+  textLong,            \* lint.ts S.textAfterTools reads as a report
+  pendingReport,       \* lint.ts S.pendingReport
+  previewed,           \* lint.ts S.previewed (first source: commands; 0917b911: <<actor, command, dir>>;
+                       \*   now: <<<<actor, command, dir>>, response>> for the main loop)
+  editSeq,             \* lint.ts S.editSeq
+  reviewedAt,          \* lint.ts S.reviewedAt
+  cmdSeqs,             \* the editSeq values in lint.ts S.commands
+  langKnown,           \* lint.ts S.userLanguage is set
+  trackedCwd,          \* 0917b911: the shell directory the mod tracked from cd commands (trackCd)
+  stepC,               \* the main loop's model responses so far (turn.step; lint.ts S.steps.main)
   pc, snap, seen,      \* per main call: "idle"/"mid", restates it took, wrong blocks written before it began
-  cwdG,                \* ghost: the main shell's real directory
+  beginStep,           \* per main call: the response it was sent in
+  cwdG,                \* ghost: the main shell's real directory ($.session.cwd())
   userSpokeG,          \* ghost: the user has written (their language is known)
   nextBlock,           \* ghost: id for the next wrong-language block
-  workG, reportG       \* ghost: this turn edited or ran something / reported after its last such step
+  workG, reportG,      \* ghost: this turn edited or ran something / reported after its last such step
+  late                 \* ghost: text streamed before a call whose row is appended only later: "none", "pre", "armed"
 
 codeVars == <<spoke, slips, tools, textLong, pendingReport, previewed, editSeq, reviewedAt, cmdSeqs, langKnown, trackedCwd>>
-vars == <<judgeVars, codeVars, n, inTurn, pc, snap, seen, cwdG, userSpokeG, nextBlock, workG, reportG>>
+vars == <<judgeVars, codeVars, n, inTurn, stepC, pc, snap, seen, beginStep, cwdG, userSpokeG, nextBlock, workG, reportG, late>>
 
 Restate(S) == [b \in Blocks |-> IF b \in S THEN restated[b] + (IF Break = "R2" THEN 2 ELSE 1) ELSE restated[b]]
 Idle == \A c \in Calls : pc[c] = "idle"
-NoOut == explainNow' = FALSE /\ execCmd' = <<>>
+NoOut == explainNow' = FALSE /\ execCmd' = <<>> /\ execStep' = execStep
 NoClaim == UNCHANGED <<claimNoEdit, claimReviewed, claimCmd>>
 NoLast == UNCHANGED <<lastSeen, lastOutcome>>
+NoHold == UNCHANGED <<heldTurnG, heldEverG, heldStepG>>
 Step == n < MaxSteps /\ n' = n + 1
 Key(actor0, cmd, dir) == IF Fix THEN <<actor0, cmd, dir>> ELSE cmd
 
 Init ==
   /\ ev = "Init" /\ actor = "host" /\ wrongG = {} /\ restated = [b \in Blocks |-> 0]
   /\ reportOwedG = FALSE /\ reportEmits = 0 /\ explainFlags = 0 /\ explainNow = FALSE
-  /\ heldTurnG = {} /\ heldEverG = {} /\ execCmd = <<>>
+  /\ heldTurnG = {} /\ heldEverG = {} /\ heldStepG = {} /\ execCmd = <<>> /\ execStep = 0
   /\ editedG = FALSE /\ reviewedAfterG = FALSE /\ cmdAfterG = FALSE
   /\ claimNoEdit = FALSE /\ claimReviewed = FALSE /\ claimCmd = FALSE
   /\ spokeTurnG = FALSE /\ actsTurnG = 0 /\ lastSeen = {} /\ lastOutcome = "ok"
   /\ n = 0 /\ inTurn = FALSE
-  /\ spoke = TRUE                 \* lint.ts: let spokeThisTurn = true
+  /\ spoke = TRUE                 \* lint.ts freshState: spoke: true
   /\ slips = {} /\ tools = FALSE /\ textLong = FALSE /\ pendingReport = FALSE
   /\ previewed = {} /\ editSeq = 0 /\ reviewedAt = -1 /\ cmdSeqs = {} /\ langKnown = FALSE /\ trackedCwd = "a"
+  /\ stepC = 0
   /\ pc = [c \in Calls |-> "idle"] /\ snap = [c \in Calls |-> {}] /\ seen = [c \in Calls |-> {}]
-  /\ cwdG = "a" /\ userSpokeG = FALSE /\ nextBlock = 1 /\ workG = FALSE /\ reportG = FALSE
+  /\ beginStep = [c \in Calls |-> 0]
+  /\ cwdG = "a" /\ userSpokeG = FALSE /\ nextBlock = 1 /\ workG = FALSE /\ reportG = FALSE /\ late = "none"
 
-\* lint.ts::register prompt.submit, a message the user typed. cmdMsg: a slash command (e.command set; the source skips those).
-UserPrompt(cmdMsg) ==
-  /\ Step /\ Idle /\ ev' = "UserPrompt" /\ actor' = "user" /\ NoOut /\ NoClaim /\ NoLast
+\* lint.ts prompt.submit, a message the user typed. The first source skipped slash commands; 0917b911 took what is
+\* owed for a namespaced command only; now a slash command's turn delivers what it carried (turn.start).
+\* A built-in like /cost opens no turn and takes nothing in any version.
+UserPrompt(msg) ==
+  /\ Step /\ Idle /\ ev' = (IF msg = "builtin" THEN "Builtin" ELSE "UserPrompt") /\ actor' = "user"
+  /\ NoOut /\ NoClaim /\ NoLast /\ NoHold
   /\ userSpokeG' = TRUE
-  /\ langKnown' = (langKnown \/ ~cmdMsg \/ Fix)   \* the Fix also reads the language from a slash command's arguments
-  /\ LET consume == Fix \/ ~cmdMsg IN
+  /\ langKnown' = (langKnown \/ msg = "plain" \/ Fix)   \* the fixes also read the language from a command's arguments
+  /\ LET consume == msg = "plain" \/ (Fix /\ msg = "ns") \/ (N /\ msg = "skill") IN
      /\ restated' = IF consume THEN Restate(slips) ELSE restated
      /\ slips' = IF consume THEN {} ELSE slips
      /\ pendingReport' = IF consume THEN FALSE ELSE pendingReport
      /\ reportEmits' = IF consume /\ pendingReport THEN reportEmits + 1 ELSE reportEmits
      /\ reportOwedG' = IF consume /\ pendingReport THEN FALSE ELSE reportOwedG
-  /\ UNCHANGED <<wrongG, explainFlags, heldTurnG, heldEverG, editedG, reviewedAfterG, cmdAfterG, spokeTurnG, actsTurnG,
+  /\ UNCHANGED <<wrongG, explainFlags, editedG, reviewedAfterG, cmdAfterG, spokeTurnG, actsTurnG,
                  spoke, tools, textLong, previewed, editSeq, reviewedAt, cmdSeqs, trackedCwd,
-                 inTurn, pc, snap, seen, cwdG, nextBlock, workG, reportG>>
+                 inTurn, stepC, pc, snap, seen, beginStep, cwdG, nextBlock, workG, reportG, late>>
 
-\* lint.ts::register turn.start (main loop). Fix also ends this turn's preview approvals (reading D1-B).
+\* A plain message a hook or a settings hook beneath refused (prompt.submit's { drop }): it never reached the model.
+\* The earlier sources had already taken what was owed; now it goes back.
+Dropped ==
+  /\ Step /\ Idle /\ ev' = "Dropped" /\ actor' = "user" /\ NoOut /\ NoClaim /\ NoLast /\ NoHold
+  /\ slips' = IF N THEN slips ELSE {}
+  /\ pendingReport' = IF N THEN pendingReport ELSE FALSE
+  /\ UNCHANGED <<wrongG, restated, reportOwedG, reportEmits, explainFlags, editedG, reviewedAfterG, cmdAfterG,
+                 spokeTurnG, actsTurnG, spoke, tools, textLong, previewed, editSeq, reviewedAt, cmdSeqs, langKnown,
+                 trackedCwd, inTurn, stepC, pc, snap, seen, beginStep, cwdG, userSpokeG, nextBlock, workG, reportG, late>>
+
+\* lint.ts turn.start (main loop). The fixes also end this turn's preview approvals (reading D1-B).
 TurnStart ==
   /\ Step /\ ~inTurn /\ ev' = "TurnStart" /\ actor' = "host" /\ NoOut /\ NoClaim /\ NoLast
   /\ inTurn' = TRUE /\ spoke' = FALSE /\ tools' = FALSE /\ textLong' = FALSE
   /\ previewed' = IF Fix THEN {} ELSE previewed
-  /\ spokeTurnG' = FALSE /\ actsTurnG' = 0 /\ workG' = FALSE /\ reportG' = FALSE /\ heldTurnG' = {}
-  /\ UNCHANGED <<wrongG, restated, reportOwedG, reportEmits, explainFlags, heldEverG, editedG, reviewedAfterG, cmdAfterG,
-                 slips, pendingReport, editSeq, reviewedAt, cmdSeqs, langKnown, trackedCwd,
-                 pc, snap, seen, cwdG, userSpokeG, nextBlock>>
+  /\ spokeTurnG' = FALSE /\ actsTurnG' = 0 /\ workG' = FALSE /\ reportG' = FALSE /\ heldTurnG' = {} /\ late' = "none"
+  /\ UNCHANGED <<wrongG, restated, reportOwedG, reportEmits, explainFlags, heldEverG, heldStepG, editedG, reviewedAfterG,
+                 cmdAfterG, slips, pendingReport, editSeq, reviewedAt, cmdSeqs, langKnown, trackedCwd,
+                 stepC, pc, snap, seen, beginStep, cwdG, userSpokeG, nextBlock>>
 
-\* lint.ts::register session.append (main loop, assistant text). wrong: English prose to a Chinese user; long: a report.
-\* The source records a wrong block only while lint.ts::userLanguage is set (wantsChinese).
+\* lint.ts turn.step (main loop): a new model response begins.
+MainStep ==
+  /\ Step /\ inTurn /\ ev' = "MainStep" /\ actor' = "host" /\ NoOut /\ NoClaim /\ NoLast /\ NoHold
+  /\ stepC' = stepC + 1
+  /\ UNCHANGED <<wrongG, restated, reportOwedG, reportEmits, explainFlags, editedG, reviewedAfterG, cmdAfterG,
+                 spokeTurnG, actsTurnG, codeVars, inTurn, pc, snap, seen, beginStep, cwdG, userSpokeG, nextBlock,
+                 workG, reportG, late>>
+
+\* Text streamed before a call of the same response (turn.step text chunks); its row is appended later (LateAppend).
+\* 0917b911 read "spoke" from the stream; the newest source also reads the report from it.
+MainPre(long) ==
+  /\ Step /\ inTurn /\ Idle /\ late = "none" /\ ev' = "MainPre" /\ actor' = "main" /\ NoOut /\ NoClaim /\ NoLast /\ NoHold
+  /\ spoke' = IF Fix THEN TRUE ELSE spoke
+  /\ spokeTurnG' = TRUE
+  /\ reportG' = (reportG \/ long)
+  /\ textLong' = IF N THEN (textLong \/ long) ELSE textLong
+  /\ late' = IF long THEN "pre" ELSE "none"   \* only a long row matters later; a short one changes no report
+  /\ UNCHANGED <<wrongG, restated, reportOwedG, reportEmits, explainFlags, editedG, reviewedAfterG, cmdAfterG,
+                 actsTurnG, slips, tools, pendingReport, previewed, editSeq, reviewedAt, cmdSeqs, langKnown, trackedCwd,
+                 inTurn, stepC, pc, snap, seen, beginStep, cwdG, userSpokeG, nextBlock, workG>>
+
+\* The row of that long streamed text is appended (session.append), after a call when one followed ("armed").
+\* The earlier sources counted it as words after the call; the newest reads words from the stream only.
+LateAppend ==
+  /\ Step /\ Idle /\ late # "none" /\ ev' = "LateAppend" /\ actor' = "main" /\ NoOut /\ NoClaim /\ NoLast /\ NoHold
+  /\ spoke' = TRUE
+  /\ textLong' = IF N THEN textLong ELSE TRUE
+  /\ late' = "none"
+  /\ UNCHANGED <<wrongG, restated, reportOwedG, reportEmits, explainFlags, editedG, reviewedAfterG, cmdAfterG,
+                 spokeTurnG, actsTurnG, slips, tools, pendingReport, previewed, editSeq, reviewedAt, cmdSeqs, langKnown,
+                 trackedCwd, inTurn, stepC, pc, snap, seen, beginStep, cwdG, userSpokeG, nextBlock, workG, reportG>>
+
+\* Text after the last call, streamed and appended (session.append, main loop). wrong: English prose to a Chinese
+\* user; long: a report. A wrong block is recorded only while lint.ts S.userLanguage is set (wantsChinese).
 MainText(wrong, long) ==
-  /\ Step /\ inTurn /\ ev' = "MainText" /\ actor' = "main" /\ NoOut /\ NoClaim /\ NoLast
+  /\ Step /\ inTurn /\ late = "none" /\ ev' = "MainText" /\ actor' = "main" /\ NoOut /\ NoClaim /\ NoLast /\ NoHold
   /\ (wrong => (userSpokeG /\ nextBlock \in Blocks))
   /\ spoke' = TRUE /\ spokeTurnG' = TRUE
   /\ textLong' = (textLong \/ long) /\ reportG' = (reportG \/ long)
   /\ wrongG' = IF wrong THEN wrongG \cup {nextBlock} ELSE wrongG
   /\ nextBlock' = IF wrong THEN nextBlock + 1 ELSE nextBlock
   /\ slips' = IF wrong /\ langKnown THEN (IF Fix THEN slips \cup {nextBlock} ELSE {nextBlock}) ELSE slips
-  /\ UNCHANGED <<restated, reportOwedG, reportEmits, explainFlags, heldTurnG, heldEverG, editedG, reviewedAfterG, cmdAfterG,
+  /\ UNCHANGED <<restated, reportOwedG, reportEmits, explainFlags, editedG, reviewedAfterG, cmdAfterG,
                  actsTurnG, tools, pendingReport, previewed, editSeq, reviewedAt, cmdSeqs, langKnown, trackedCwd,
-                 inTurn, pc, snap, seen, cwdG, userSpokeG, workG>>
+                 inTurn, stepC, pc, snap, seen, beginStep, cwdG, userSpokeG, workG, late>>
 
-\* lint.ts::register session.append with e.agentId: ignored.
+\* lint.ts session.append with e.agentId: ignored.
 SubText ==
-  /\ Step /\ ev' = "SubText" /\ actor' = "sub" /\ NoOut /\ NoClaim /\ NoLast
-  /\ UNCHANGED <<wrongG, restated, reportOwedG, reportEmits, explainFlags, heldTurnG, heldEverG, editedG, reviewedAfterG,
-                 cmdAfterG, spokeTurnG, actsTurnG, codeVars, inTurn, pc, snap, seen, cwdG, userSpokeG, nextBlock, workG, reportG>>
+  /\ Step /\ ev' = "SubText" /\ actor' = "sub" /\ NoOut /\ NoClaim /\ NoLast /\ NoHold
+  /\ UNCHANGED <<wrongG, restated, reportOwedG, reportEmits, explainFlags, editedG, reviewedAfterG,
+                 cmdAfterG, spokeTurnG, actsTurnG, codeVars, inTurn, stepC, pc, snap, seen, beginStep, cwdG,
+                 userSpokeG, nextBlock, workG, reportG, late>>
 
-\* lint.ts::register tool.call, main loop, a tool that is not Edit/Write/Bash (Read, a plan update, ...).
-\* The source counts it as work and forgets a report written before it; the Fix counts only edits and commands.
+\* lint.ts tool.call, main loop, a tool that is not Edit/Write/Bash (Read, a plan update, ...).
+\* The first source counted it as work and forgot a report written before it; the fixes count only edits and commands.
 MainRead ==
-  /\ Step /\ inTurn /\ ev' = "MainRead" /\ actor' = "main" /\ NoOut /\ NoClaim /\ NoLast
+  /\ Step /\ inTurn /\ ev' = "MainRead" /\ actor' = "main" /\ NoOut /\ NoClaim /\ NoLast /\ NoHold
   /\ tools' = IF Fix THEN tools ELSE TRUE
   /\ textLong' = IF Fix THEN textLong ELSE FALSE
-  /\ UNCHANGED <<wrongG, restated, reportOwedG, reportEmits, explainFlags, heldTurnG, heldEverG, editedG, reviewedAfterG,
+  /\ UNCHANGED <<wrongG, restated, reportOwedG, reportEmits, explainFlags, editedG, reviewedAfterG,
                  cmdAfterG, spokeTurnG, actsTurnG, spoke, slips, pendingReport, previewed, editSeq, reviewedAt, cmdSeqs,
-                 langKnown, trackedCwd, inTurn, pc, snap, seen, cwdG, userSpokeG, nextBlock, workG, reportG>>
+                 langKnown, trackedCwd, inTurn, stepC, pc, snap, seen, beginStep, cwdG, userSpokeG, nextBlock,
+                 workG, reportG, late>>
 
-\* lint.ts::register tool.call, main loop, Edit/Write/Bash, first part: count the work; the Fix takes the pending
-\* restates at once (the source reads lint.ts::languageSlip only after awaiting projectRoot and loadChecks).
+\* lint.ts tool.call, main loop, Edit/Write/Bash, first part. The fixes take the pending restates at once (the first
+\* source read them only after awaiting). The earlier sources count the work and forget the report here, for any
+\* call; the newest does it after the call ran, and not for a read-only command.
 MainBegin(c) ==
-  /\ Step /\ inTurn /\ pc[c] = "idle" /\ ev' = "MainBegin" /\ actor' = "main" /\ NoOut /\ NoClaim /\ NoLast
+  /\ Step /\ inTurn /\ pc[c] = "idle" /\ ev' = "MainBegin" /\ actor' = "main" /\ NoOut /\ NoClaim /\ NoLast /\ NoHold
   /\ pc' = [pc EXCEPT ![c] = "mid"]
   /\ seen' = [seen EXCEPT ![c] = wrongG]
   /\ snap' = [snap EXCEPT ![c] = slips]
+  /\ beginStep' = [beginStep EXCEPT ![c] = stepC]
   /\ slips' = IF Fix THEN {} ELSE slips
-  /\ tools' = TRUE /\ textLong' = FALSE /\ workG' = TRUE /\ reportG' = FALSE
-  /\ UNCHANGED <<wrongG, restated, reportOwedG, reportEmits, explainFlags, heldTurnG, heldEverG, editedG, reviewedAfterG,
+  /\ tools' = IF N THEN tools ELSE TRUE
+  /\ textLong' = IF N THEN textLong ELSE FALSE
+  /\ UNCHANGED <<wrongG, restated, reportOwedG, reportEmits, explainFlags, editedG, reviewedAfterG,
                  cmdAfterG, spokeTurnG, actsTurnG, spoke, pendingReport, previewed, editSeq, reviewedAt, cmdSeqs,
-                 langKnown, trackedCwd, inTurn, cwdG, userSpokeG, nextBlock>>
+                 langKnown, trackedCwd, inTurn, stepC, cwdG, userSpokeG, nextBlock, workG, reportG, late>>
 
 \* Second part: deliver restates, explain-first, preview, run, record. outcome: "deny" when another check refuses it,
-\* "error" when it runs and fails. The source attaches the restate only to a successful result and has already cleared it.
+\* "error" when it runs and fails.
+\* Where the delete is previewed: the first source used one directory; 0917b911 the directory it tracked from cd
+\* commands (moved by a subshell cd, not moved when the command failed); the newest reads the real one.
+\* When it passes: the earlier sources on any later call; the newest only in a later response than the held one.
 MainEnd(c, kind, outcome) ==
   /\ Step /\ pc[c] = "mid" /\ ev' = "MainAct" /\ actor' = "main" /\ NoClaim
   /\ pc' = [pc EXCEPT ![c] = "idle"] /\ snap' = [snap EXCEPT ![c] = {}]
@@ -134,36 +205,50 @@ MainEnd(c, kind, outcome) ==
   /\ explainNow' = ~spoke
   /\ explainFlags' = (IF ~spoke THEN explainFlags + 1 ELSE explainFlags)
   /\ spoke' = TRUE
-  /\ LET isDel  == kind \in Cmds
-         dir    == IF Fix THEN trackedCwd ELSE "a"
-         key    == Key("main", kind, dir)
-         target == <<"main", kind, cwdG>>
-         held   == isDel /\ ~(key \in previewed \/ (Break = "R7" /\ previewed # {}))
-         out    == IF held THEN "deny" ELSE outcome
-         ran    == out # "deny"
-         taken  == snap[c] IN
+  /\ LET isDel   == kind \in Cmds
+         dir     == IF N THEN cwdG ELSE IF Fix THEN trackedCwd ELSE "a"
+         key     == Key("main", kind, dir)
+         passes  == IF N /\ Break # "R11"
+                      THEN \E s \in 0..(beginStep[c] - 1) : <<key, s>> \in previewed
+                      ELSE IF N THEN \E s \in 0..MaxSteps : <<key, s>> \in previewed
+                      ELSE key \in previewed
+         held    == isDel /\ ~(passes \/ (Break = "R7" /\ previewed # {}))
+         rec     == IF N THEN <<key, beginStep[c]>> ELSE key
+         target  == <<"main", kind, cwdG>>
+         out     == IF held THEN "deny" ELSE outcome
+         ran     == out # "deny"
+         ranWork == ran /\ kind # "ro"
+         taken   == snap[c] IN
      /\ lastOutcome' = out
      /\ restated' = IF Fix THEN (IF out # "error" THEN Restate(taken) ELSE restated)
                            ELSE (IF out = "ok" THEN Restate(taken) ELSE restated)
      /\ slips' = IF Fix THEN (IF out = "error" THEN slips \cup taken ELSE slips) ELSE {}
-     /\ previewed' = IF held THEN previewed \cup {key} ELSE previewed
+     /\ previewed' = IF held THEN previewed \cup {rec} ELSE previewed
      /\ heldTurnG' = IF held THEN heldTurnG \cup {target} ELSE heldTurnG
      /\ heldEverG' = IF held THEN heldEverG \cup {target} ELSE heldEverG
+     /\ heldStepG' = IF held THEN heldStepG \cup {<<target, beginStep[c]>>} ELSE heldStepG
      /\ execCmd' = IF isDel /\ ran THEN target ELSE <<>>
-     /\ cwdG' = IF kind = "cd" /\ ran THEN (IF cwdG = "a" THEN "b" ELSE "a") ELSE cwdG
-     /\ trackedCwd' = IF Fix /\ kind = "cd" /\ ran THEN (IF cwdG = "a" THEN "b" ELSE "a") ELSE trackedCwd
+     /\ execStep' = beginStep[c]
+     /\ cwdG' = IF kind = "cd" /\ ran THEN Other(cwdG) ELSE cwdG
+     /\ trackedCwd' = IF V2 /\ out = "ok" /\ kind \in {"cd", "subcd"} THEN Other(trackedCwd) ELSE trackedCwd
+     /\ tools' = IF N THEN (tools \/ ranWork) ELSE tools
+     /\ textLong' = IF N /\ ranWork THEN FALSE ELSE textLong
+     /\ workG' = (workG \/ ranWork)
+     /\ reportG' = IF ranWork THEN FALSE ELSE reportG
+     /\ late' = IF late = "pre" THEN "armed" ELSE late
      /\ editSeq' = IF ran /\ (kind = "edit" \/ (Fix /\ kind = "bashwrite")) THEN editSeq + 1 ELSE editSeq
      /\ editedG' = (editedG \/ (ran /\ kind \in {"edit", "bashwrite"}))
      /\ reviewedAfterG' = IF ran /\ kind \in {"edit", "bashwrite"} THEN FALSE ELSE reviewedAfterG
      /\ cmdSeqs' = IF ran /\ kind # "edit" /\ ~(Fix /\ kind = "bashwrite") THEN cmdSeqs \cup {editSeq} ELSE cmdSeqs
      /\ cmdAfterG' = IF ran /\ kind \in {"edit", "bashwrite"} THEN FALSE ELSE (cmdAfterG \/ ran)
-  /\ UNCHANGED <<wrongG, reportOwedG, reportEmits, spokeTurnG, tools, textLong, pendingReport, reviewedAt, langKnown,
-                 inTurn, seen, userSpokeG, nextBlock, workG, reportG>>
+  /\ UNCHANGED <<wrongG, reportOwedG, reportEmits, spokeTurnG, pendingReport, reviewedAt, langKnown,
+                 inTurn, stepC, seen, beginStep, userSpokeG, nextBlock>>
 
-\* lint.ts::register tool.call with e.agentId, Edit/Write/Bash. The source drops a pending restate here.
-\* A subagent's shell is its own; its directory is "a".
+\* lint.ts tool.call with e.agentId, Edit/Write/Bash. The first source dropped a pending restate here.
+\* A subagent's shell is its own; its directory is "a". (The newest source also counts a subagent's responses;
+\* the model lets a subagent's repeat through on any later call, which is weaker than the source.)
 SubAct(kind) ==
-  /\ Step /\ kind # "cd" /\ ev' = "SubAct" /\ actor' = "sub" /\ NoClaim /\ explainNow' = FALSE /\ NoLast
+  /\ Step /\ kind \notin {"cd", "subcd"} /\ ev' = "SubAct" /\ actor' = "sub" /\ NoClaim /\ explainNow' = FALSE /\ NoLast
   /\ slips' = IF Fix THEN slips ELSE {}
   /\ explainFlags' = IF Break = "R3" THEN explainFlags + 1 ELSE explainFlags
   /\ LET isDel  == kind \in Cmds
@@ -181,51 +266,76 @@ SubAct(kind) ==
      /\ cmdSeqs' = IF ran /\ kind # "edit" /\ ~(Fix /\ kind = "bashwrite") THEN cmdSeqs \cup {editSeq} ELSE cmdSeqs
      /\ cmdAfterG' = IF ran /\ kind \in {"edit", "bashwrite"} THEN FALSE ELSE (cmdAfterG \/ ran)
   /\ UNCHANGED <<wrongG, restated, reportOwedG, reportEmits, spokeTurnG, actsTurnG, spoke, tools, textLong, pendingReport,
-                 reviewedAt, langKnown, trackedCwd, inTurn, pc, snap, seen, cwdG, userSpokeG, nextBlock, workG, reportG>>
+                 reviewedAt, langKnown, trackedCwd, heldStepG, execStep, inTurn, stepC, pc, snap, seen, beginStep, cwdG,
+                 userSpokeG, nextBlock, workG, reportG, late>>
 
-\* lint.ts::register turn.complete (main loop). The Fix also clears a report owed from before when this turn reported.
+\* lint.ts turn.complete (main loop). The fixes also clear a report owed from before when this turn reported.
+\* Every streamed row is appended before the turn ends.
 TurnComplete ==
-  /\ Step /\ inTurn /\ Idle /\ ev' = "TurnComplete" /\ actor' = "host" /\ NoOut /\ NoClaim /\ NoLast
+  /\ Step /\ inTurn /\ Idle /\ late = "none" /\ ev' = "TurnComplete" /\ actor' = "host" /\ NoOut /\ NoClaim /\ NoLast /\ NoHold
   /\ inTurn' = FALSE
   /\ pendingReport' = IF Break = "R5" THEN TRUE
                       ELSE IF Fix /\ textLong THEN FALSE
                       ELSE pendingReport \/ (tools /\ ~textLong)
   /\ reportOwedG' = IF reportG THEN FALSE ELSE (reportOwedG \/ workG)
-  /\ UNCHANGED <<wrongG, restated, reportEmits, explainFlags, heldTurnG, heldEverG, editedG, reviewedAfterG, cmdAfterG,
+  /\ UNCHANGED <<wrongG, restated, reportEmits, explainFlags, editedG, reviewedAfterG, cmdAfterG,
                  spokeTurnG, actsTurnG, spoke, slips, tools, textLong, previewed, editSeq, reviewedAt, cmdSeqs,
-                 langKnown, trackedCwd, pc, snap, seen, cwdG, userSpokeG, nextBlock, workG, reportG>>
+                 langKnown, trackedCwd, stepC, pc, snap, seen, beginStep, cwdG, userSpokeG, nextBlock, workG, reportG, late>>
 
-\* lint.ts::register skill.prompt for review: reviewedAt = editSeq.
-Review ==
-  /\ Step /\ ev' = "Review" /\ actor' = "main" /\ NoOut /\ NoClaim /\ NoLast
-  /\ reviewedAt' = editSeq /\ reviewedAfterG' = TRUE
-  /\ UNCHANGED <<wrongG, restated, reportOwedG, reportEmits, explainFlags, heldTurnG, heldEverG, editedG, cmdAfterG,
+\* A /review, started and ended (answered) or stopped by the user. The earlier sources counted it when it
+\* started (skill.prompt); the newest when its turn ends with an answer (turn.complete).
+Review(answered) ==
+  /\ Step /\ ev' = "Review" /\ actor' = "main" /\ NoOut /\ NoClaim /\ NoLast /\ NoHold
+  /\ reviewedAt' = IF N /\ ~answered THEN reviewedAt ELSE editSeq
+  /\ reviewedAfterG' = (reviewedAfterG \/ answered)
+  /\ UNCHANGED <<wrongG, restated, reportOwedG, reportEmits, explainFlags, editedG, cmdAfterG,
                  spokeTurnG, actsTurnG, spoke, slips, tools, textLong, pendingReport, previewed, editSeq, cmdSeqs,
-                 langKnown, trackedCwd, inTurn, pc, snap, seen, cwdG, userSpokeG, nextBlock, workG, reportG>>
+                 langKnown, trackedCwd, inTurn, stepC, pc, snap, seen, beginStep, cwdG, userSpokeG, nextBlock,
+                 workG, reportG, late>>
 
-\* lint.ts::sessionRecord, read when skill.prompt for ship runs.
+\* lint.ts sessionRecord, read when skill.prompt for ship runs.
 Ship ==
-  /\ Step /\ ev' = "Ship" /\ actor' = "main" /\ NoOut /\ NoLast
+  /\ Step /\ ev' = "Ship" /\ actor' = "main" /\ NoOut /\ NoLast /\ NoHold
   /\ claimNoEdit' = (editSeq = 0)
   /\ claimReviewed' = (editSeq > 0 /\ (reviewedAt >= editSeq \/ (Break = "R8" /\ reviewedAt >= 0)))
   /\ claimCmd' = (editSeq > 0 /\ editSeq \in cmdSeqs)
-  /\ UNCHANGED <<wrongG, restated, reportOwedG, reportEmits, explainFlags, heldTurnG, heldEverG, editedG, reviewedAfterG,
-                 cmdAfterG, spokeTurnG, actsTurnG, codeVars, inTurn, pc, snap, seen, cwdG, userSpokeG, nextBlock, workG, reportG>>
+  /\ UNCHANGED <<wrongG, restated, reportOwedG, reportEmits, explainFlags, editedG, reviewedAfterG,
+                 cmdAfterG, spokeTurnG, actsTurnG, codeVars, inTurn, stepC, pc, snap, seen, beginStep, cwdG,
+                 userSpokeG, nextBlock, workG, reportG, late>>
 
-\* The engine reloads the hooks module: the source's module variables start over; the Fix keeps them in $.state.
+\* The engine reloads the hooks module: the first source's module variables start over; the fixes keep them in $.state.
 Reload ==
-  /\ Step /\ Idle /\ ev' = "Reload" /\ actor' = "host" /\ NoOut /\ NoClaim /\ NoLast
+  /\ Step /\ Idle /\ ev' = "Reload" /\ actor' = "host" /\ NoOut /\ NoClaim /\ NoLast /\ NoHold
   /\ IF Fix
        THEN UNCHANGED codeVars
        ELSE /\ spoke' = TRUE /\ slips' = {} /\ tools' = FALSE /\ textLong' = FALSE /\ pendingReport' = FALSE
             /\ previewed' = {} /\ editSeq' = 0 /\ reviewedAt' = -1 /\ cmdSeqs' = {} /\ langKnown' = FALSE
             /\ trackedCwd' = "a"
-  /\ UNCHANGED <<wrongG, restated, reportOwedG, reportEmits, explainFlags, heldTurnG, heldEverG, editedG, reviewedAfterG,
-                 cmdAfterG, spokeTurnG, actsTurnG, inTurn, pc, snap, seen, cwdG, userSpokeG, nextBlock, workG, reportG>>
+  /\ UNCHANGED <<wrongG, restated, reportOwedG, reportEmits, explainFlags, editedG, reviewedAfterG,
+                 cmdAfterG, spokeTurnG, actsTurnG, inTurn, stepC, pc, snap, seen, beginStep, cwdG, userSpokeG,
+                 nextBlock, workG, reportG, late>>
+
+\* /clear: the conversation goes on under a new session id, with no session.start. Nothing is owed to the new one.
+\* The newest source starts its state over (session.end, reason clear); the earlier ones kept it.
+Clear ==
+  /\ Step /\ Idle /\ ~inTurn /\ ev' = "Clear" /\ actor' = "host" /\ NoOut /\ NoClaim /\ NoLast
+  /\ wrongG' = {} /\ reportOwedG' = FALSE /\ editedG' = FALSE /\ reviewedAfterG' = FALSE /\ cmdAfterG' = FALSE
+  /\ heldTurnG' = {}
+  /\ IF N
+       THEN /\ spoke' = TRUE /\ slips' = {} /\ tools' = FALSE /\ textLong' = FALSE /\ pendingReport' = FALSE
+            /\ previewed' = {} /\ editSeq' = 0 /\ reviewedAt' = -1 /\ cmdSeqs' = {}
+            /\ UNCHANGED <<langKnown, trackedCwd>>
+       ELSE UNCHANGED codeVars
+  /\ UNCHANGED <<restated, reportEmits, explainFlags, heldEverG, heldStepG, spokeTurnG, actsTurnG,
+                 inTurn, stepC, pc, snap, seen, beginStep, cwdG, userSpokeG, nextBlock, workG, reportG, late>>
 
 Next ==
-  \/ \E m \in BOOLEAN : UserPrompt(m)
+  \/ \E m \in MsgKinds : UserPrompt(m)
+  \/ Dropped
   \/ TurnStart
+  \/ MainStep
+  \/ \E l \in BOOLEAN : MainPre(l)
+  \/ LateAppend
   \/ \E w \in BOOLEAN, l \in BOOLEAN : MainText(w, l)
   \/ SubText
   \/ MainRead
@@ -233,9 +343,10 @@ Next ==
   \/ \E c \in Calls, k \in ActKinds, o \in Outcomes : MainEnd(c, k, o)
   \/ \E k \in ActKinds : SubAct(k)
   \/ TurnComplete
-  \/ Review
+  \/ \E a \in BOOLEAN : Review(a)
   \/ Ship
   \/ Reload
+  \/ Clear
 
 Spec == Init /\ [][Next]_vars
 ====

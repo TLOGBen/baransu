@@ -23,7 +23,9 @@ plugins/
       think/ review/ write/ ship/ hunt/ health/ read/ learn/ draw/ ui/ codex-skill-transfer/ evolve/ huh/ sayagain/ what-now/ domain-modeling/ why/ how/ teach-me/ show-me/ prove-it/ draft/ hypothesis/ lint/
       _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md, fact-check.md, modeling.md, optimization.md, selection-telemetry.md, distillation-candidate-matrix.md, auto-flags.md) + evals/ scripts/
     hooks/
-      hooks.json  lint.ts      # the lint mod: runs a project's .claude/lint/ checks at their moments
+      hooks.json  main.ts      # the plugin's one hooks module: registers lint.ts and statusline.ts
+      lint.ts                  # the lint mod: runs a project's .claude/lint/ checks at their moments
+      statusline.ts            # the status line under the prompt: model, effort, context, cache, 5-hour and 7-day windows
     rules/
       anti-patterns.md         # cross-skill behavioral guardrails
     agents/
@@ -97,6 +99,7 @@ These have each caused regressions — do not "optimize" them away:
 - **`/ship` never archives `.claude/lint/`**: it is a kept product, like `hypothesis/`; it is not in ship's archive allowlist and is named in Step 2's never-archived line.
 - **The lint mod does nothing without `.claude/lint/`**: every hook in `hooks/lint.ts` returns `next(e)` untouched when the project has no such folder, and every gating hook carries a `.catch` that hands the call on, so a failing mod never blocks the user's own step. It writes the lint record into `/review` as a record only — review reads it under its own verdict rule and is never told to run or stop.
 - **The lint mod's cross-event state lives in `$.state`, never in a module variable**: a reload of the mod starts module variables over, which lost owed redos, the edit record and the turn's flags (TLA+ model and paths: `.claude/hypothesis/lint-mod-state/`). The state's type is `plugins/baransu/types/index.d.ts`, named by `plugin.json`'s `types`. Anything taken from that state for delivery is taken synchronously before any `await`, so two calls in flight never both deliver it. A change to the mod's state reruns that hypothesis (`/baransu:hypothesis --maintain`).
+- **One hooks module, each event hooked once**: the engine loads one module per plugin (`hooks/hooks.json` → `main.ts`), refuses a second `on()` for the same event and matcher, and reads event names only as string literals. A part hooks the events only it reads in its own `register`; an event two parts read (`turn.step` today) is registered once in `main.ts`, which chains the parts' exported handlers.
 - **Cross-skill guardrails**: behavioral anti-patterns that apply across skills live in `plugins/baransu/rules/anti-patterns.md`; the skill-specific invariants above stay here.
 
 ## Verification
