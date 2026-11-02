@@ -2,6 +2,17 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.37.0] - 2026-11-02
+
+### Changed（lint 卡片畫在工具呼叫底下，照設計稿重做樣式）
+- lint 卡片改成畫在對話裡那個工具呼叫底下：擋下或暫停的指令只畫卡片，照常執行的指令是原本的結果加上底下的卡片。拿掉輸入框上方的狀態列（擋在那裡、也會卡）；有卡片的工具呼叫不再另外發系統訊息列。
+- 樣式照 artifact 設計稿「Lint 卡片樣式」：淡色底、細框線、粗體標題（「沒有執行」「先確認會動到的東西」）、一行說明是哪個時機與幾個 error／warn、等寬字的規則 id 標籤、頁尾寫下一步。桌面版的 SVG 盾牌圖示：擋下時外圈脈動，暫停時符號明暗閃爍；警告是三角形，不加動畫。終端機沿用主題色。
+- 速度：repo 根目錄每個工作目錄只查一次；檢查檔 5 秒內不重讀，改了 `.claude/lint/` 立刻重讀。
+
+### Fixed
+- `git-facts`：push 不再比對 git config 的身分，改查要推上去的 commit 是誰寫的（依 repo 判斷身分 commit 後，push 原本會被誤擋）。
+- `correction-to-lint`：只看使用者自己打的字，先拿掉 `<…>` 標籤夾帶的區塊（artifact 狀態說明裡的「read it again」原本會被當成糾正）。
+
 ## [8.36.0] - 2026-11-02
 
 ### Added（lint 結果畫成卡片與狀態列；commit 前先 build、先看是不是最新版；語言改成檢查實際輸出）

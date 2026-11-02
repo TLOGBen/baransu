@@ -134,18 +134,33 @@ function pathspecs(c: Check): string[] {
 }
 
 // ---- project ----
+// The repo root is asked once per working directory; the checks are reread at most every few seconds,
+// or at once after an edit inside .claude/lint/.
+const rootCache = new Map<string, string | undefined>()
+let checksCache: { root: string; at: number; value: { checks: Check[]; problems: Finding[] } } | undefined
 async function projectRoot($: any): Promise<string | undefined> {
+  let cwd = ''
+  try { cwd = await $.session.cwd() } catch {}
+  if (rootCache.has(cwd)) return rootCache.get(cwd)
+  let root: string | undefined
   try {
     const r = await $.process.run(['git', 'rev-parse', '--show-toplevel'])
-    if (r.exitCode === 0) return r.stdout.trim().replace(/\\/g, '/')
+    if (r.exitCode === 0) root = r.stdout.trim().replace(/\\/g, '/')
   } catch {}
-  return undefined
+  rootCache.set(cwd, root)
+  return root
 }
 function relTo(root: string, file: string): string {
   const f = file.replace(/\\/g, '/')
   return f.toLowerCase().startsWith(root.toLowerCase() + '/') ? f.slice(root.length + 1) : f
 }
 async function loadChecks($: any, root: string): Promise<{ checks: Check[]; problems: Finding[] }> {
+  if (checksCache && checksCache.root === root && Date.now() - checksCache.at < 5000) return checksCache.value
+  const value = await readChecks($, root)
+  checksCache = { root, at: Date.now(), value }
+  return value
+}
+async function readChecks($: any, root: string): Promise<{ checks: Check[]; problems: Finding[] }> {
   const checks: Check[] = []
   const problems: Finding[] = []
   const dir = `${root}/${LINT}/checks`
@@ -272,12 +287,21 @@ async function gitFacts($: any, root: string): Promise<{ text: string; authors: 
 async function gitFactsAtCommit($: any, root: string, c: Check, command: string): Promise<Finding[]> {
   const f = await gitFacts($, root)
   const out: Finding[] = []
-  // `git -c user.email=X commit` commits as X whatever the config says.
-  const override = /-c\s+["']?user\.email=["']?([^"'\s]+)/.exec(command)?.[1]
-  const email = (override ?? String((await run($, ['git', 'config', 'user.email'], root)).stdout)).trim().toLowerCase()
   const sev = c.severity as 'error' | 'warn'
-  if (f.commits >= 5 && email && !f.authors.some(a => a.toLowerCase().includes(`<${email}>`)))
-    out.push({ id: c.id, severity: sev, text: `目前的 git 身分 <${email}> 不在這個 repo 的近期作者裡。${c.message}\n${f.text}` })
+  const known = (email: string) => f.authors.some(a => a.toLowerCase().includes(`<${email}>`))
+  if (/\bcommit\b/.test(command)) {
+    // `git -c user.email=X commit` commits as X whatever the config says.
+    const override = /-c\s+["']?user\.email=["']?([^"'\s]+)/.exec(command)?.[1]
+    const email = (override ?? String((await run($, ['git', 'config', 'user.email'], root)).stdout)).trim().toLowerCase()
+    if (f.commits >= 5 && email && !known(email))
+      out.push({ id: c.id, severity: sev, text: `目前的 git 身分 <${email}> 不在這個 repo 的近期作者裡。${c.message}\n${f.text}` })
+  } else if (/\bpush\b/.test(command)) {
+    // A push makes no commit: what matters is who wrote the commits it sends.
+    const sent = String((await run($, ['git', 'log', '@{u}..HEAD', '--format=%ae'], root)).stdout).split(/\r?\n/).map(s => s.trim().toLowerCase()).filter(Boolean)
+    const strangers = [...new Set(sent.filter(e => !known(e)))]
+    if (f.commits >= 5 && strangers.length)
+      out.push({ id: c.id, severity: sev, text: `要推上去的 commit 裡有不屬於這個 repo 近期作者的身分：${strangers.join('、')}。${c.message}` })
+  }
   if (/\bcommit\b/.test(command) && /Co-Authored-By:/i.test(command) && f.coAuthor === 0 && f.commits >= 5)
     out.push({ id: c.id, severity: sev, text: `這個 repo 近 30 個 commit 都沒有 Co-Authored-By，這次卻加了。${c.message}` })
   const branch = (await run($, ['git', 'rev-parse', '--abbrev-ref', 'HEAD'], root)).stdout.trim()
@@ -461,48 +485,62 @@ function render(moment: keyof typeof MOMENT, where: string, findings: Finding[])
   return [head, ...findings.map(f => `${mark[f.severity]} ${f.id}：${f.text}`)].join('\n')
 }
 // ---- drawing: a card for each held or refused call, and a band above the prompt ----
-type Drawn = { kind: 'hold' | 'error' | 'warn'; title: string; lines: Finding[] }
+// A card: an optional bold title (what happened), a meta line (which lint moment, the counts),
+// the findings, and an optional footer (what to do next). `replace` draws it in place of the error text.
+type Drawn = { kind: 'hold' | 'error' | 'warn'; title?: string; meta: string; lines: Finding[]; footer?: string; replace?: boolean }
 const drawn = new Map<string, Drawn>()
-let lastRun: Drawn | null = null
-let bandHidden = false
 
-const HEX = { error: '#E24B4A', warn: '#EF9F27', hold: '#EF9F27' } as const
+// Colors from the design canvas "Lint 卡片樣式": tint, border, strong text, meta text, body text, icon.
+const PALETTE = {
+  error: { bg: '#FDF3F3', border: '#F2CFCF', strong: '#8E1B1B', meta: '#A35A5A', body: '#3B2020', icon: '#D63B3B', chip: '#F0C6C6' },
+  hold: { bg: '#FDF7EA', border: '#EFD9A6', strong: '#7A4A06', meta: '#9C6E2A', body: '#3A2A0E', icon: '#E39A1C', chip: '#F0DDB0' },
+  warn: { bg: '#FFFBF2', border: '#F3E3BD', strong: '#7A4A06', meta: '#9C6E2A', body: '#3A2A0E', icon: '#C98A16', chip: '#F0DDB0' },
+} as const
+const SHIELD = 'M14 3.5 L22.5 6.8 V13 C22.5 18.4 18.9 22.3 14 24.5 C9.1 22.3 5.5 18.4 5.5 13 V6.8 Z'
 function iconSvg(kind: Drawn['kind']): string {
-  const c = HEX[kind]
-  const pulse = kind === 'error'
-    ? `<circle cx="16" cy="16" r="11" fill="none" stroke="${c}" stroke-width="2"><animate attributeName="r" values="10;15;10" dur="1.6s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0;0.7" dur="1.6s" repeatCount="indefinite"/></circle>`
-    : ''
-  const mark = kind === 'hold'
-    ? `<rect x="12.5" y="10.5" width="2.6" height="9" rx="1" fill="#fff"/><rect x="16.9" y="10.5" width="2.6" height="9" rx="1" fill="#fff"/>`
-    : `<rect x="14.7" y="9.5" width="2.6" height="7.5" rx="1.3" fill="#fff"/><circle cx="16" cy="20.6" r="1.6" fill="#fff"/>`
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">${pulse}<path d="M16 4 L25 7.5 V14.5 C25 20.5 21 24.8 16 27 C11 24.8 7 20.5 7 14.5 V7.5 Z" fill="${c}"/>${mark}</svg>`
+  const c = PALETTE[kind].icon
+  const svg = (body: string) => `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28" overflow="visible">${body}</svg>`
+  if (kind === 'error')
+    return svg(`<circle cx="14" cy="14" r="10" fill="none" stroke="${c}" stroke-width="1.6"><animate attributeName="r" values="9;14;14" keyTimes="0;0.7;1" dur="1.6s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.6;0;0" keyTimes="0;0.7;1" dur="1.6s" repeatCount="indefinite"/></circle><path d="${SHIELD}" fill="${c}"/><rect x="12.8" y="8.6" width="2.4" height="7" rx="1.2" fill="#fff"/><circle cx="14" cy="18.8" r="1.5" fill="#fff"/>`)
+  if (kind === 'hold')
+    return svg(`<path d="${SHIELD}" fill="${c}"/><g><animate attributeName="opacity" values="1;0.45;1" dur="1.8s" repeatCount="indefinite"/><rect x="10.6" y="9.4" width="2.4" height="8.4" rx="1" fill="#fff"/><rect x="15" y="9.4" width="2.4" height="8.4" rx="1" fill="#fff"/></g>`)
+  return svg(`<path d="M14 4.5 L24 22 H4 Z" fill="none" stroke="${c}" stroke-width="1.8" stroke-linejoin="round"/><rect x="13.1" y="11" width="1.8" height="6" rx="0.9" fill="${c}"/><circle cx="14" cy="19.4" r="1.1" fill="${c}"/>`)
 }
-function card($: any, e: any, d: Drawn, extra: unknown[] = []): any {
+function card($: any, e: any, d: Drawn): any {
   const els = $.ui.resolve(e) as any
   const { Box, Text } = els
-  const theme = d.kind === 'error' ? 'error' : 'warning'
-  const icon = e.surface !== 'terminal' && els.Svg
-    ? h(els.Svg, { source: iconSvg(d.kind), alt: d.title, width: 32, height: 32, isInteractive: true })
-    : h(Text, { color: theme, bold: true }, d.kind === 'hold' ? '⏸' : d.kind === 'error' ? '✖' : '⚠')
-  const mark = { error: '✖', warn: '⚠', note: '·' } as const
-  return h(Box, { flexDirection: 'row', gap: 1, borderStyle: 'round', borderColor: theme, paddingX: 1 },
+  const terminal = e.surface === 'terminal'
+  const p = PALETTE[d.kind]
+  // The terminal keeps theme colors so the card reads in any terminal palette.
+  const strong = terminal ? (d.kind === 'error' ? 'error' : 'warning') : p.strong
+  const meta = terminal ? 'subtle' : p.meta
+  const body = terminal ? 'text' : p.body
+  const icon = !terminal && els.Svg
+    ? h(els.Svg, { source: iconSvg(d.kind), alt: d.title ?? d.meta, width: 28, height: 28, isInteractive: true })
+    : h(Text, { color: strong, bold: true }, d.kind === 'hold' ? '⏸' : d.kind === 'error' ? '✖' : '⚠')
+  const line = (l: Finding) => l.id
+    ? h(Box, { flexDirection: 'row', gap: 'sm' },
+        h(Text, { mono: true, size: 'footnote', color: strong, backgroundColor: terminal ? undefined : '#FFFFFF' }, terminal ? `[${l.id}]` : ` ${l.id} `),
+        h(Text, { color: body }, l.text.split('\n')[0]))
+    : h(Text, { color: body }, `· ${l.text}`)
+  return h(Box, { flexDirection: 'row', gap: 'md', borderStyle: 'round', borderColor: terminal ? strong : p.border, backgroundColor: terminal ? undefined : p.bg, padding: 'md' },
     icon,
-    h(Box, { flexDirection: 'column', flexShrink: 1 },
-      h(Text, { bold: true, color: theme }, d.title),
-      ...d.lines.slice(0, 6).map(l => h(Text, { color: l.severity === 'error' ? 'error' : l.severity === 'warn' ? 'warning' : 'subtle' }, `${mark[l.severity]} ${l.id}  ${l.text.split('\n')[0]}`)),
-      ...extra))
+    h(Box, { flexDirection: 'column', gap: 'sm', flexShrink: 1 },
+      d.title
+        ? h(Box, { flexDirection: 'row', gap: 'md', flexWrap: 'wrap' },
+            h(Text, { bold: true, color: strong }, d.title),
+            h(Text, { size: 'footnote', color: meta }, d.meta))
+        : h(Text, { size: 'footnote', color: meta }, d.meta),
+      ...d.lines.slice(0, 6).map(line),
+      ...(d.footer ? [h(Text, { size: 'footnote', color: meta }, d.footer)] : [])))
 }
 function summarize(moment: string, findings: Finding[]): Drawn | null {
   const shown = findings.filter(f => f.severity !== 'note')
   if (!shown.length) return null
   const errors = shown.filter(f => f.severity === 'error').length
   const warns = shown.length - errors
-  return { kind: errors ? 'error' : 'warn', title: `lint · ${moment}：${errors} error、${warns} warn`, lines: shown }
-}
-function remember($: any, d: Drawn | null) {
-  lastRun = d
-  bandHidden = false
-  try { $.ui.invalidate('ui.render') } catch {}
+  const counts = [errors ? `${errors} error` : '', warns ? `${warns} warn` : ''].filter(Boolean).join('、')
+  return { kind: errors ? 'error' : 'warn', meta: `lint · ${moment} · ${counts}`, lines: shown }
 }
 
 async function notify($: any, text: string) {
@@ -551,7 +589,9 @@ export const register: Register = on => {
           userLanguage = letters && han / letters > 0.2 ? '中文（照使用者用的字，繁體或簡體）' : 'English'
         }
         const fix = checks.find(c => c.builtin === 'correction-to-lint')
-        if (fix && CORRECTION.test(e.text)) {
+        // Only the words the user typed: drop tagged blocks the host or an artifact attached.
+        const typed = e.text.replace(/<([a-z][\w-]*)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ').replace(/<[a-z][\w-]*\b[^>]*\/>/gi, ' ')
+        if (fix && CORRECTION.test(typed)) {
           await notify($, `lint · ${fix.id}：這像是在糾正，修完後會評估能不能寫成 lint`)
           return next({ ...e, context: [...(e.context ?? []), `baransu lint（${fix.id}）：使用者在糾正你。先照他說的修好，再判斷這個錯能不能寫成檢查：能，就交給 /baransu:lint 新增（附上這次錯在哪、怎麼修、出錯的 commit）；不能，用一句話說明為什麼。${fix.message}`] })
         }
@@ -592,13 +632,19 @@ export const register: Register = on => {
     if (!(await hasLint($, root))) return next(e)
     const command: string = isBash ? String(e.command ?? '') : ''
     const context: string[] = []
+    // Everything lint says about this call is drawn as one card under it.
+    const inline: Finding[] = []
+    const refuse = (d: Drawn, deny: string) => {
+      drawn.set(e.tool_use_id, { ...d, replace: true })
+      return { deny }
+    }
 
     // A block written in the wrong language since the last call.
     if (languageSlip !== undefined) {
       const { checks } = await loadChecks($, root!)
       const c = checks.find(x => x.builtin === 'user-language')
       if (c && !e.agentId) {
-        await notify($, `lint · ${c.id}：剛才那段寫成英文了（「${languageSlip}…」）`)
+        inline.push({ id: c.id, severity: 'warn', text: `剛才那段寫成英文了（「${languageSlip}…」）` })
         context.push(`baransu lint（${c.id}）：剛才給使用者的那段寫成英文了（「${languageSlip}…」）。使用者用 ${userLanguage}；接下來寫給使用者看的文字一律用這個語言。`)
       }
       languageSlip = undefined
@@ -610,8 +656,9 @@ export const register: Register = on => {
       const c = checks.find(x => x.builtin === 'explain-before-edit')
       spokeThisTurn = true
       if (c) {
-        await notify($, `lint · ${c.id}：這一輪還沒跟使用者說明，就先${isEdit ? '改檔' : '跑指令'}了`)
-        if (c.severity === 'error') return { deny: c.message }
+        const f: Finding = { id: c.id, severity: c.severity === 'error' ? 'error' : 'warn', text: `這一輪還沒跟使用者說明，就先${isEdit ? '改檔' : '跑指令'}了` }
+        if (c.severity === 'error') return refuse({ kind: 'error', title: '沒有執行', meta: `lint · ${c.id}`, lines: [f], footer: c.message }, c.message)
+        inline.push(f)
         context.push(`baransu lint（${c.id}）：${c.message}`)
       }
     }
@@ -620,14 +667,11 @@ export const register: Register = on => {
     if (isBash) {
       const { checks } = await loadChecks($, root!)
       const findings = commandFindings(checks, command)
-      const bashDrawn = summarize('指令前', findings)
-      if (bashDrawn) remember($, bashDrawn)
       if (findings.some(f => f.severity === 'error')) {
-        drawn.set(e.tool_use_id, { ...bashDrawn!, title: `${bashDrawn!.title} · 已擋下，沒有執行` })
-        return { deny: `${render('bash', '', findings)}\n照上面改寫這個指令再跑。` }
+        return refuse({ ...summarize('指令前', findings)!, title: '沒有執行', footer: '照上面改寫這個指令再跑' }, `${render('bash', '', findings)}\n照上面改寫這個指令再跑。`)
       }
       if (findings.length) {
-        await notify($, render('bash', '', findings))
+        inline.push(...findings)
         context.push(render('bash', '', findings))
       }
 
@@ -638,12 +682,9 @@ export const register: Register = on => {
         if (touched.length) {
           previewed.add(command)
           const text = `lint · ${preview.id}：這個指令會動到\n${touched.map(t => `  ${t}`).join('\n')}`
-          const hold: Drawn = { kind: 'hold', title: '已暫停：先確認這個指令會動到的東西，再下一次同樣的指令就會執行', lines: touched.map(t => ({ id: '', severity: 'note' as const, text: t })) }
-          if (preview.severity === 'error') {
-            drawn.set(e.tool_use_id, hold)
-            return { deny: `${text}\n${preview.message}` }
-          }
-          await notify($, text)
+          const lines = touched.map(t => ({ id: '', severity: 'note' as const, text: t }))
+          if (preview.severity === 'error') return refuse({ kind: 'hold', title: '先確認會動到的東西', meta: 'lint · 刪除前預覽', lines, footer: '確認沒錯，再下一次同樣的指令就會執行' }, `${text}\n${preview.message}`)
+          inline.push(...lines)
           context.push(text)
         }
       }
@@ -652,14 +693,12 @@ export const register: Register = on => {
     // Before a git commit or push.
     if (isBash && GIT_WRITE.test(command)) {
       const findings = await runMoment($, root!, 'commit', { command })
-      const commitDrawn = summarize('commit 前', findings)
-      remember($, commitDrawn)
       if (findings.some(f => f.severity === 'error')) {
-        drawn.set(e.tool_use_id, { ...commitDrawn!, title: `${commitDrawn!.title} · 已擋下，沒有 commit` })
-        return { deny: `${render('commit', '', findings)}\n修好 error 再 commit / push。` }
+        return refuse({ ...summarize('commit 前', findings)!, title: /\bpush\b/.test(command) ? '沒有 push' : '沒有 commit', footer: '修好 error 再 commit／push' }, `${render('commit', '', findings)}\n修好 error 再 commit / push。`)
       }
-      if (findings.length) {
-        await notify($, render('commit', '', findings))
+      const shown = findings.filter(f => f.severity !== 'note')
+      if (shown.length) {
+        inline.push(...shown)
         context.push(render('commit', '', findings))
       }
     }
@@ -672,30 +711,30 @@ export const register: Register = on => {
     const insideRepo = file !== '' && !/^([A-Za-z]:)?\//.test(file)
     if (isEdit && insideRepo && result && !result.deny && !result.isError) {
       editSeq++
+      if (file.startsWith(`${LINT}/`)) checksCache = undefined
       const findings = (await runMoment($, root!, 'edit', { file })).filter(f => f.severity !== 'note')
-      remember($, summarize(`改檔後 · ${file}`, findings))
       if (findings.length) {
-        const text = render('edit', file, findings)
-        await notify($, text)
-        context.push(`${text}\n修好 error；warn 判斷要不要改。`)
+        inline.push(...findings)
+        context.push(`${render('edit', file, findings)}\n修好 error；warn 判斷要不要改。`)
       }
+    }
+
+    if (inline.length && result && !result.deny) {
+      const d = summarize(isEdit ? `改檔後 · ${file}` : GIT_WRITE.test(command) ? 'commit 前' : '指令前', inline)
+      drawn.set(e.tool_use_id, d ?? { kind: 'warn', meta: 'lint', lines: inline })
     }
     if (context.length && result && !result.deny && !result.isError) return { ...result, context: [...(result.context ?? []), ...context] }
     return result
   }).catch(($, e, next) => next(e))
 
-  // A call lint held or refused is drawn as a card instead of the plain error text.
-  on('ui.render', { component: 'ToolResult' }, ($, e: any, next) => {
+  // Lint's card under the call it is about: in place of the error text for a held or refused call,
+  // below the tool's own result otherwise.
+  on('ui.render', { component: 'ToolResult' }, async ($, e: any, next) => {
     const d = drawn.get(e.props?.tool_use_id)
-    return d ? card($, e, d) : next(e)
-  })
-
-  // The latest lint result stays above the prompt until the next run passes or the user hides it.
-  on('ui.render', { component: 'AbovePrompt' }, ($, e: any, next) => {
-    if (!lastRun || bandHidden || e.props?.hasSurvey) return next(e)
-    const { Button } = $.ui.resolve(e) as any
-    const hide = h(Button, { key: 'lint-hide', label: '收起', onPress: () => { bandHidden = true; try { $.ui.invalidate('ui.render') } catch {} } })
-    return card($, e, { ...lastRun, lines: lastRun.lines.slice(0, 3) }, [hide])
+    if (!d) return next(e)
+    if (d.replace) return card($, e, d)
+    const { Box } = $.ui.resolve(e) as any
+    return h(Box, { flexDirection: 'column', gap: 1 }, await next(e), card($, e, d)) as any
   })
 
   // Before /ship or /review: the full set, written as this version's lint record.
@@ -707,7 +746,6 @@ export const register: Register = on => {
     const root = await projectRoot($)
     if (!(await hasLint($, root))) return result
     const findings = await runMoment($, root!, 'done')
-    remember($, summarize(`收尾前 · ${isReview ? '/review' : '/ship'}`, findings))
     const text = render('done', isReview ? '/review' : '/ship', findings)
     await notify($, text)
     const errors = findings.some(f => f.severity === 'error')
