@@ -2,6 +2,23 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.36.0] - 2026-11-02
+
+### Added（lint 結果畫成卡片與狀態列；commit 前先 build、先看是不是最新版；語言改成檢查實際輸出）
+- lint 擋下或暫停的工具呼叫，改由 mod 畫成卡片：桌面版、VS Code、手機用 SVG 盾牌圖示（error 紅色加脈動光暈、暫停是黃色暫停符號），終端機用彩色文字與 `✖` `⚠` `⏸`。輸入框上方常駐最近一次 lint 結果（前三筆，可收起），下一次通過就消失。
+- 新內建檢查 `built-before-commit`（commit／push 前，最後一次改檔後沒跑過任何指令就提醒）與 `up-to-date`（commit／push 前先 fetch，遠端有本機沒有的 commit 就提醒）。預設 warn，`/lint init` 選嚴格時兩條改成 error。
+
+### Changed
+- `user-language` 不再只是系統提示裡的一句叮嚀：mod 看模型實際送出的文字，使用者寫中文而那段幾乎全是英文（不算程式碼與反引號）時，立刻在聊天裡標出，下一個工具呼叫再提醒模型。同一個 session 已證明只靠叮嚀擋不住。
+- `/lint init` 的個人組改成先讀懂專案，再推薦 3 到 7 項並說明為什麼適合，不再整份端出來勾選。
+
+### Fixed
+- `drive-scan`、`heredoc-backslash-path` 的 regex 用 `''` 表示單引號，在 TOML 單引號字串裡不合法，mod 讀不懂；改用 `\x27`。
+- 刪除前預覽在指令先 `cd` 進子資料夾時，路徑判斷錯成「不存在」；現在跟著 `cd` 走。
+- 改的檔在 repo 外時，mod 不再對它跑檢查（原本會變成一筆 `git grep` 報錯的雜訊）。
+- `git-facts`：指令用 `git -c user.email=… commit` 指定身分時以它為準，不再只看 git config（/ship 依 repo 判斷身分的 commit 原本會被誤擋）。
+- `git-facts`：「習慣開 PR」改看主線最近 20 個 commit 有沒有超過一半是 PR／MR 合併；本機的 `Merge branch 'x' into main` 不算 PR（原本會把直接 push 的 repo 誤判成習慣開 PR）。
+
 ## [8.35.0] - 2026-11-02
 
 ### Added（/lint：被糾正的錯，每次都評估能不能寫成 lint）

@@ -1,0 +1,8 @@
+# from: baransu-preset@8.35.0
+# Source: owner's memory — fresh-profile Chromium launches count as failed Windows logons and lock the account.
+id: ts-bare-chromium-launch
+language: typescript
+severity: error
+message: chromium.launch() 每次用全新 profile，每開一個分頁就是一次 Windows 登入失敗，十次鎖帳號；改用預先 seed 過 profile（Local State 的 password_manager.os_password_last_changed）的啟動方式
+rule:
+  pattern: chromium.launch($$$)

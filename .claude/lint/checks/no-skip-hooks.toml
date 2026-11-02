@@ -1,0 +1,6 @@
+from = "baransu-preset@8.35.0"
+# Hooks and signing are the repo's own checks; skipping them hides the failure instead of fixing it.
+on = ["bash"]
+severity = "error"
+forbid = '\bgit\b[^\n]*(--no-verify|--no-gpg-sign|-c\s+commit\.gpgsign=false)'
+message = "不要跳過 git hook 或簽章；hook 失敗就查原因修好"

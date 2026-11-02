@@ -36,6 +36,14 @@ let spokeThisTurn = true
 let userLanguage: string | undefined
 let gitFactsText: string | undefined
 const previewed = new Set<string>()
+let languageSlip: string | undefined
+
+// Share of Han characters among letters, code left out.
+function hanShare(text: string): { han: number; letters: number } {
+  const prose = text.replace(/```[\s\S]*?```/g, ' ').replace(/`[^`\n]*`/g, ' ').replace(/https?:\/\/\S+/g, ' ')
+  return { han: (prose.match(/\p{Script=Han}/gu) ?? []).length, letters: (prose.match(/\p{L}/gu) ?? []).length }
+}
+const wantsChinese = () => !!userLanguage && /中文|zh/i.test(userLanguage)
 
 // ---- small TOML subset: key = "s" | 's' | ["a", 'b'], # comments ----
 function parseToml(src: string): Record<string, string | string[]> {
@@ -227,7 +235,7 @@ async function changedFiles($: any, root: string): Promise<string[]> {
 }
 
 // ---- built-ins ----
-async function gitFacts($: any, root: string): Promise<{ text: string; authors: string[]; commits: number; coAuthor: number; prMerges: number; defaultBranch: string }> {
+async function gitFacts($: any, root: string): Promise<{ text: string; authors: string[]; commits: number; coAuthor: number; prHabit: boolean; defaultBranch: string }> {
   const out = async (argv: string[]): Promise<string> => String((await run($, argv, root, 30000)).stdout).trim()
   const remote = await out(['git', 'remote', 'get-url', 'origin'])
   let visibility = '未知'
@@ -244,8 +252,11 @@ async function gitFacts($: any, root: string): Promise<{ text: string; authors: 
   const subjects = (await out(['git', 'log', '-8', '--format=%s'])).split(/\r?\n/).filter(Boolean)
   const bodies = await out(['git', 'log', '-30', '--format=%B%x00'])
   const coAuthor = bodies.split('\0').filter(b => /Co-Authored-By:/i.test(b)).length
-  const merges = (await out(['git', 'log', '-50', '--merges', '--format=%s'])).split(/\r?\n/).filter(Boolean)
-  const prMerges = merges.filter(s => /Merge pull request|See merge request|Merge branch '.+' into/.test(s)).length
+  // The habit is what the main line does lately: of its last 20 first-parent commits, how many are PR or MR merges.
+  // A local `Merge branch 'x' into main` is not a PR.
+  const line = (await out(['git', 'log', '-20', '--first-parent', '--format=%s'])).split(/\r?\n/).filter(Boolean)
+  const prMerges = line.filter(s => /^Merge pull request #\d+|See merge request /.test(s)).length
+  const prHabit = line.length > 0 && prMerges * 2 > line.length
   const head = await out(['git', 'symbolic-ref', '--short', 'refs/remotes/origin/HEAD'])
   const defaultBranch = head.replace(/^origin\//, '') || 'main'
   const branch = await out(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
@@ -254,21 +265,23 @@ async function gitFacts($: any, root: string): Promise<{ text: string; authors: 
     `目前身分：${name} <${email}>；近期作者：${authors.slice(0, 3).join('、') || '（沒有歷史）'}`,
     `近期 commit 標題：\n${subjects.map(s => `  - ${s}`).join('\n')}`,
     `近 30 個 commit 有 Co-Authored-By 的：${coAuthor} 個`,
-    `目前分支：${branch}；主分支：${defaultBranch}；近 50 個 merge 裡來自 PR/MR 的：${prMerges} 個（${prMerges >= 3 ? '習慣開 PR/MR' : '習慣直接 push'}）`,
+    `目前分支：${branch}；主分支：${defaultBranch}；主線最近 ${line.length} 個 commit 裡來自 PR/MR 合併的：${prMerges} 個（${prHabit ? '習慣開 PR/MR' : '習慣直接 push'}）`,
   ].join('\n')
-  return { text, authors: [...counts.keys()], commits: authorLines.length, coAuthor, prMerges, defaultBranch }
+  return { text, authors: [...counts.keys()], commits: authorLines.length, coAuthor, prHabit, defaultBranch }
 }
 async function gitFactsAtCommit($: any, root: string, c: Check, command: string): Promise<Finding[]> {
   const f = await gitFacts($, root)
   const out: Finding[] = []
-  const email = (await run($, ['git', 'config', 'user.email'], root)).stdout.trim().toLowerCase()
+  // `git -c user.email=X commit` commits as X whatever the config says.
+  const override = /-c\s+["']?user\.email=["']?([^"'\s]+)/.exec(command)?.[1]
+  const email = (override ?? String((await run($, ['git', 'config', 'user.email'], root)).stdout)).trim().toLowerCase()
   const sev = c.severity as 'error' | 'warn'
   if (f.commits >= 5 && email && !f.authors.some(a => a.toLowerCase().includes(`<${email}>`)))
     out.push({ id: c.id, severity: sev, text: `目前的 git 身分 <${email}> 不在這個 repo 的近期作者裡。${c.message}\n${f.text}` })
   if (/\bcommit\b/.test(command) && /Co-Authored-By:/i.test(command) && f.coAuthor === 0 && f.commits >= 5)
     out.push({ id: c.id, severity: sev, text: `這個 repo 近 30 個 commit 都沒有 Co-Authored-By，這次卻加了。${c.message}` })
   const branch = (await run($, ['git', 'rev-parse', '--abbrev-ref', 'HEAD'], root)).stdout.trim()
-  if (/\bpush\b/.test(command) && f.prMerges >= 3 && branch === f.defaultBranch)
+  if (/\bpush\b/.test(command) && f.prHabit && branch === f.defaultBranch)
     out.push({ id: c.id, severity: sev, text: `這個 repo 習慣透過 PR/MR 合併，這次卻直接 push 到 ${f.defaultBranch}。${c.message}` })
   return out
 }
@@ -279,16 +292,26 @@ async function secretFiles($: any, root: string, c: Check): Promise<Finding[]> {
   )
   return bad.map((p: string) => ({ id: c.id, severity: c.severity as 'error' | 'warn', text: `${p}：${c.message}` }))
 }
-function sessionRecord(c: Check): Finding[] {
-  const after = commands.filter(x => x.seq === editSeq)
+// At commit: was anything built or tested since the last edit? At done, also: was it reviewed?
+function sessionRecord(c: Check, needReview: boolean): Finding[] {
+  const after = commands.filter(x => x.seq === editSeq && !GIT_WRITE.test(x.cmd))
   const lines = after.slice(-15).map(x => `  ${x.ok ? '✓' : '✗'} ${x.cmd.slice(0, 120)}`)
   const reviewed = editSeq === 0 ? '這個 session 沒有改檔' : reviewedAt >= editSeq ? '有' : '沒有'
   const text = [
     `最後一次改檔之後跑過的指令：${lines.length ? '\n' + lines.join('\n') : '（沒有）'}`,
-    `最後一次改檔之後有沒有跑 /review：${reviewed}`,
+    ...(needReview ? [`最後一次改檔之後有沒有跑 /review：${reviewed}`] : []),
   ].join('\n')
-  const missing = editSeq > 0 && (lines.length === 0 || reviewedAt < editSeq)
+  const missing = editSeq > 0 && (lines.length === 0 || (needReview && reviewedAt < editSeq))
   return [{ id: c.id, severity: missing ? (c.severity as 'error' | 'warn') : 'note', text: missing ? `${text}\n${c.message}` : text }]
+}
+// Before a commit or push: has the remote moved on since this branch last caught up?
+async function upToDate($: any, root: string, c: Check): Promise<Finding[]> {
+  const fetched = await run($, ['git', 'fetch', '--quiet'], root, 20000)
+  if (fetched.exitCode !== 0) return [{ id: c.id, severity: 'warn', text: `git fetch 沒成功，無法確認是不是最新版：${tail(fetched.stderr, 2)}` }]
+  const behind = await run($, ['git', 'rev-list', '--count', 'HEAD..@{u}'], root, 10000)
+  if (behind.exitCode !== 0) return []
+  const n = Number(String(behind.stdout).trim())
+  return n > 0 ? [{ id: c.id, severity: c.severity as 'error' | 'warn', text: `遠端有 ${n} 個本機還沒有的 commit。${c.message}` }] : []
 }
 async function worktreeCleanup($: any, root: string, c: Check): Promise<Finding[]> {
   const list = (await run($, ['git', 'worktree', 'list', '--porcelain'], root)).stdout
@@ -350,16 +373,21 @@ async function destructivePreview($: any, root: string, command: string): Promis
   const out: string[] = []
   const lines = async (argv: string[], max = 15) =>
     String((await run($, argv, root, 30000)).stdout).trim().split(/\r?\n/).filter(Boolean).slice(0, max)
+  // A `cd` earlier in the same command moves where later relative paths point.
+  let base = ''
+  const at = (p: string) => (/^([A-Za-z]:)?[\\/]/.test(p) || !base ? p : `${base}/${p}`)
   for (const seg of command.split(/&&|\|\||;|\||\r?\n/)) {
     const w = words(seg.trim())
     if (!w.length) continue
     const cmd = w[0].toLowerCase()
     const args = w.slice(1).filter(a => !a.startsWith('-'))
-    if (['rm', 'rmdir', 'del', 'remove-item', 'ri', 'erase'].includes(cmd)) {
-      for (const a of args) out.push(`刪除 ${await describePath($, a)}`)
+    if ((cmd === 'cd' || cmd === 'set-location') && args[0]) {
+      base = at(args[0]).replace(/\\/g, '/').replace(/\/$/, '')
+    } else if (['rm', 'rmdir', 'del', 'remove-item', 'ri', 'erase'].includes(cmd)) {
+      for (const a of args) out.push(`刪除 ${await describePath($, at(a))}`)
     } else if (['mv', 'move-item', 'move'].includes(cmd) && args.length >= 2) {
       const dest = args[args.length - 1]
-      for (const a of args.slice(0, -1)) out.push(`搬移 ${await describePath($, a)} → ${await describePath($, dest)}`)
+      for (const a of args.slice(0, -1)) out.push(`搬移 ${await describePath($, at(a))} → ${await describePath($, at(dest))}`)
     } else if (cmd === 'git') {
       const sub = w[1]
       const rest = w.slice(2)
@@ -403,7 +431,9 @@ async function runMoment($: any, root: string, moment: 'edit' | 'commit' | 'done
     if (c.builtin) {
       if (moment === 'commit' && c.builtin === 'git-facts') out.push(...(await gitFactsAtCommit($, root, c, opts.command ?? '')))
       if (moment === 'commit' && c.builtin === 'secret-files') out.push(...(await secretFiles($, root, c)))
-      if (moment === 'done' && c.builtin === 'session-record') out.push(...sessionRecord(c))
+      if (moment === 'commit' && c.builtin === 'built-before-commit') out.push(...sessionRecord(c, false).filter(f => f.severity !== 'note'))
+      if (moment === 'commit' && c.builtin === 'up-to-date') out.push(...(await upToDate($, root, c)))
+      if (moment === 'done' && c.builtin === 'session-record') out.push(...sessionRecord(c, true))
       continue
     }
     if (!c.on.includes(moment)) continue
@@ -430,6 +460,51 @@ function render(moment: keyof typeof MOMENT, where: string, findings: Finding[])
   const mark = { error: '✖', warn: '⚠', note: '·' } as const
   return [head, ...findings.map(f => `${mark[f.severity]} ${f.id}：${f.text}`)].join('\n')
 }
+// ---- drawing: a card for each held or refused call, and a band above the prompt ----
+type Drawn = { kind: 'hold' | 'error' | 'warn'; title: string; lines: Finding[] }
+const drawn = new Map<string, Drawn>()
+let lastRun: Drawn | null = null
+let bandHidden = false
+
+const HEX = { error: '#E24B4A', warn: '#EF9F27', hold: '#EF9F27' } as const
+function iconSvg(kind: Drawn['kind']): string {
+  const c = HEX[kind]
+  const pulse = kind === 'error'
+    ? `<circle cx="16" cy="16" r="11" fill="none" stroke="${c}" stroke-width="2"><animate attributeName="r" values="10;15;10" dur="1.6s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0;0.7" dur="1.6s" repeatCount="indefinite"/></circle>`
+    : ''
+  const mark = kind === 'hold'
+    ? `<rect x="12.5" y="10.5" width="2.6" height="9" rx="1" fill="#fff"/><rect x="16.9" y="10.5" width="2.6" height="9" rx="1" fill="#fff"/>`
+    : `<rect x="14.7" y="9.5" width="2.6" height="7.5" rx="1.3" fill="#fff"/><circle cx="16" cy="20.6" r="1.6" fill="#fff"/>`
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">${pulse}<path d="M16 4 L25 7.5 V14.5 C25 20.5 21 24.8 16 27 C11 24.8 7 20.5 7 14.5 V7.5 Z" fill="${c}"/>${mark}</svg>`
+}
+function card($: any, e: any, d: Drawn, extra: unknown[] = []): any {
+  const els = $.ui.resolve(e) as any
+  const { Box, Text } = els
+  const theme = d.kind === 'error' ? 'error' : 'warning'
+  const icon = e.surface !== 'terminal' && els.Svg
+    ? h(els.Svg, { source: iconSvg(d.kind), alt: d.title, width: 32, height: 32, isInteractive: true })
+    : h(Text, { color: theme, bold: true }, d.kind === 'hold' ? '⏸' : d.kind === 'error' ? '✖' : '⚠')
+  const mark = { error: '✖', warn: '⚠', note: '·' } as const
+  return h(Box, { flexDirection: 'row', gap: 1, borderStyle: 'round', borderColor: theme, paddingX: 1 },
+    icon,
+    h(Box, { flexDirection: 'column', flexShrink: 1 },
+      h(Text, { bold: true, color: theme }, d.title),
+      ...d.lines.slice(0, 6).map(l => h(Text, { color: l.severity === 'error' ? 'error' : l.severity === 'warn' ? 'warning' : 'subtle' }, `${mark[l.severity]} ${l.id}  ${l.text.split('\n')[0]}`)),
+      ...extra))
+}
+function summarize(moment: string, findings: Finding[]): Drawn | null {
+  const shown = findings.filter(f => f.severity !== 'note')
+  if (!shown.length) return null
+  const errors = shown.filter(f => f.severity === 'error').length
+  const warns = shown.length - errors
+  return { kind: errors ? 'error' : 'warn', title: `lint · ${moment}：${errors} error、${warns} warn`, lines: shown }
+}
+function remember($: any, d: Drawn | null) {
+  lastRun = d
+  bandHidden = false
+  try { $.ui.invalidate('ui.render') } catch {}
+}
+
 async function notify($: any, text: string) {
   try {
     await $.session.append({ message: { type: 'system', content: [{ type: 'text', text }] } })
@@ -485,14 +560,26 @@ export const register: Register = on => {
     return next(e)
   }).catch(($, e, next) => next(e))
 
+  // A reply that ended the turn in the wrong language is shown to the person now; the model hears it on its next call.
+  on('turn.complete', async ($, e: any, next) => {
+    const result = await next(e)
+    if (!e.agentId && languageSlip !== undefined) await notify($, `lint · user-language：剛才那段寫成英文了（「${languageSlip}…」）`)
+    return result
+  })
+
   // A new turn on the main loop has not spoken to the user yet.
   on('turn.start', ($, e, next) => {
     if (!e.agentId) spokeThisTurn = false
     return next(e)
   })
   on('session.append', ($, e, next) => {
-    if (!e.agentId && e.message.type === 'assistant' && (e.message.content as any[]).some(b => b.type === 'text' && String(b.text).trim()))
-      spokeThisTurn = true
+    if (!e.agentId && e.message.type === 'assistant') {
+      const text = (e.message.content as any[]).filter(b => b.type === 'text').map(b => String(b.text)).join('\n')
+      if (text.trim()) spokeThisTurn = true
+      // The user writes Chinese and this block is English prose: flag it on the next tool call.
+      const { han, letters } = hanShare(text)
+      if (wantsChinese() && letters >= 40 && han / letters < 0.1) languageSlip = text.trim().split('\n')[0].slice(0, 60)
+    }
     return next(e)
   }).catch(($, e, next) => next(e))
 
@@ -505,6 +592,17 @@ export const register: Register = on => {
     if (!(await hasLint($, root))) return next(e)
     const command: string = isBash ? String(e.command ?? '') : ''
     const context: string[] = []
+
+    // A block written in the wrong language since the last call.
+    if (languageSlip !== undefined) {
+      const { checks } = await loadChecks($, root!)
+      const c = checks.find(x => x.builtin === 'user-language')
+      if (c && !e.agentId) {
+        await notify($, `lint · ${c.id}：剛才那段寫成英文了（「${languageSlip}…」）`)
+        context.push(`baransu lint（${c.id}）：剛才給使用者的那段寫成英文了（「${languageSlip}…」）。使用者用 ${userLanguage}；接下來寫給使用者看的文字一律用這個語言。`)
+      }
+      languageSlip = undefined
+    }
 
     // Explain before acting: the first edit or command of a turn should follow words to the user.
     if (!e.agentId && !spokeThisTurn) {
@@ -522,9 +620,16 @@ export const register: Register = on => {
     if (isBash) {
       const { checks } = await loadChecks($, root!)
       const findings = commandFindings(checks, command)
-      if (findings.length) await notify($, render('bash', '', findings))
-      if (findings.some(f => f.severity === 'error')) return { deny: `${render('bash', '', findings)}\n照上面改寫這個指令再跑。` }
-      if (findings.length) context.push(render('bash', '', findings))
+      const bashDrawn = summarize('指令前', findings)
+      if (bashDrawn) remember($, bashDrawn)
+      if (findings.some(f => f.severity === 'error')) {
+        drawn.set(e.tool_use_id, { ...bashDrawn!, title: `${bashDrawn!.title} · 已擋下，沒有執行` })
+        return { deny: `${render('bash', '', findings)}\n照上面改寫這個指令再跑。` }
+      }
+      if (findings.length) {
+        await notify($, render('bash', '', findings))
+        context.push(render('bash', '', findings))
+      }
 
       // Before a command that deletes, moves or discards: show the model what it will touch, once.
       const preview = checks.find(c => c.builtin === 'destructive-preview')
@@ -533,8 +638,12 @@ export const register: Register = on => {
         if (touched.length) {
           previewed.add(command)
           const text = `lint · ${preview.id}：這個指令會動到\n${touched.map(t => `  ${t}`).join('\n')}`
+          const hold: Drawn = { kind: 'hold', title: '已暫停：先確認這個指令會動到的東西，再下一次同樣的指令就會執行', lines: touched.map(t => ({ id: '', severity: 'note' as const, text: t })) }
+          if (preview.severity === 'error') {
+            drawn.set(e.tool_use_id, hold)
+            return { deny: `${text}\n${preview.message}` }
+          }
           await notify($, text)
-          if (preview.severity === 'error') return { deny: `${text}\n${preview.message}` }
           context.push(text)
         }
       }
@@ -543,19 +652,28 @@ export const register: Register = on => {
     // Before a git commit or push.
     if (isBash && GIT_WRITE.test(command)) {
       const findings = await runMoment($, root!, 'commit', { command })
-      if (findings.length) await notify($, render('commit', '', findings))
-      if (findings.some(f => f.severity === 'error')) return { deny: `${render('commit', '', findings)}\n修好 error 再 commit / push。` }
-      if (findings.length) context.push(render('commit', '', findings))
+      const commitDrawn = summarize('commit 前', findings)
+      remember($, commitDrawn)
+      if (findings.some(f => f.severity === 'error')) {
+        drawn.set(e.tool_use_id, { ...commitDrawn!, title: `${commitDrawn!.title} · 已擋下，沒有 commit` })
+        return { deny: `${render('commit', '', findings)}\n修好 error 再 commit / push。` }
+      }
+      if (findings.length) {
+        await notify($, render('commit', '', findings))
+        context.push(render('commit', '', findings))
+      }
     }
 
     const result: any = await next(e)
     if (isBash && result && !result.deny) commands.push({ cmd: command, ok: result.isError !== true, seq: editSeq })
 
     // After a successful edit.
-    if (isEdit && result && !result.deny && !result.isError) {
+    const file = isEdit ? relTo(root!, String(e.file_path ?? e.notebook_path ?? '')) : ''
+    const insideRepo = file !== '' && !/^([A-Za-z]:)?\//.test(file)
+    if (isEdit && insideRepo && result && !result.deny && !result.isError) {
       editSeq++
-      const file = relTo(root!, String(e.file_path ?? e.notebook_path ?? ''))
       const findings = (await runMoment($, root!, 'edit', { file })).filter(f => f.severity !== 'note')
+      remember($, summarize(`改檔後 · ${file}`, findings))
       if (findings.length) {
         const text = render('edit', file, findings)
         await notify($, text)
@@ -566,6 +684,20 @@ export const register: Register = on => {
     return result
   }).catch(($, e, next) => next(e))
 
+  // A call lint held or refused is drawn as a card instead of the plain error text.
+  on('ui.render', { component: 'ToolResult' }, ($, e: any, next) => {
+    const d = drawn.get(e.props?.tool_use_id)
+    return d ? card($, e, d) : next(e)
+  })
+
+  // The latest lint result stays above the prompt until the next run passes or the user hides it.
+  on('ui.render', { component: 'AbovePrompt' }, ($, e: any, next) => {
+    if (!lastRun || bandHidden || e.props?.hasSurvey) return next(e)
+    const { Button } = $.ui.resolve(e) as any
+    const hide = h(Button, { key: 'lint-hide', label: '收起', onPress: () => { bandHidden = true; try { $.ui.invalidate('ui.render') } catch {} } })
+    return card($, e, { ...lastRun, lines: lastRun.lines.slice(0, 3) }, [hide])
+  })
+
   // Before /ship or /review: the full set, written as this version's lint record.
   on('skill.prompt', async ($, e, next) => {
     const result = await next(e)
@@ -575,6 +707,7 @@ export const register: Register = on => {
     const root = await projectRoot($)
     if (!(await hasLint($, root))) return result
     const findings = await runMoment($, root!, 'done')
+    remember($, summarize(`收尾前 · ${isReview ? '/review' : '/ship'}`, findings))
     const text = render('done', isReview ? '/review' : '/ship', findings)
     await notify($, text)
     const errors = findings.some(f => f.severity === 'error')

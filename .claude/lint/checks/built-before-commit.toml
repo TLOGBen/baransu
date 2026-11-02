@@ -1,0 +1,5 @@
+from = "baransu-preset@8.36.0"
+# Before a commit or push: was anything built or tested since the last edit? 嚴格 level raises this to error.
+severity = "warn"
+builtin = "built-before-commit"
+message = "改檔之後還沒 build 或測試過；盡量先跑過再 commit"

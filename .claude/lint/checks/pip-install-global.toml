@@ -1,0 +1,7 @@
+from = "baransu-preset@8.35.0"
+# Source: owner's cli-tools rule — run Python through uv, never pip install into the global interpreter.
+on = ["edit"]
+severity = "warn"
+files = ["*.sh", "*.ps1"]
+forbid = '(^|[;&|(]\s*|^\s*)(python3? -m )?pip3? install\b'
+message = "不要 pip install 進全域直譯器；用 uv（uv run --with、PEP 723 或 uvx）"

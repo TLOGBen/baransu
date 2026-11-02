@@ -1,5 +1,6 @@
 from = "baransu-preset@8.34.0"
 # Source: /ship INV-8, commits speak for this repo, applied to every commit.
-severity = "error"
+# warn until the plugin is updated to 8.36.0 (the user approved, 2026-11-02): 8.35.0 ignores `git -c user.email=` and counts local merges as PRs, so it refuses /ship's own commit. Put back to error after updating.
+severity = "warn"
 builtin = "git-facts"
 message = "照這個 repo 的習慣：用它近期 commit 的作者身分、格式與語言，co-author 與 push / PR 方式也照過去"

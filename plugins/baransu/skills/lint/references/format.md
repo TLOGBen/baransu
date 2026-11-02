@@ -32,12 +32,14 @@ Checks the mod computes itself, because they are about the session or the repo r
 |---|---|---|
 | `git-facts` | session start, commit | Collects the repo's facts: remote and whether it is public or private (GitHub through `gh`; other hosts read 「未知」), the configured author against recent authors, the format and language of recent subjects, whether past commits carry `Co-Authored-By`, the default branch and whether work reaches it by direct push or by PR / MR merges. The facts go to the model at session start. At commit it flags an author that matches no recent author, a `Co-Authored-By` trailer in a repo that never used one, and a push to the default branch in a repo that merges through PRs. |
 | `secret-files` | commit | Flags staged files whose names look like secrets (`.env`, `*.pem`, `*.key`, `id_rsa*`, `*.p12`, `credentials*.json`). |
+| `built-before-commit` | commit | Flags a commit or push when no command ran since the last edit — nothing was built or tested. |
+| `up-to-date` | commit | Fetches, then flags a commit or push while the upstream has commits this branch lacks. |
 | `session-record` | done | Lists the commands run since the last edit with how each ended, and whether `/review` ran since then, so `/ship` can see whether the change was built, tested and reviewed. |
 | `worktree-cleanup` | session start | Lists worktrees whose branch is already merged and could be removed. |
 | `destructive-preview` | bash | Before a command that deletes, moves or discards (`rm`, `mv`, `Remove-Item`, `git clean`, `git reset --hard`, `git checkout --`, `git restore`, `git branch -D`, `git worktree remove`, `git stash drop` / `clear`), lists what it would touch — each path as a file, a folder with its entry count, or missing; the files `git clean -n` names; the changes a reset or restore drops; the branch's last commits and whether it is merged; a worktree's uncommitted files. At `error` the first run is held back with that list and the same command again goes through. |
 | `explain-before-edit` | edit | Flags a turn whose first edit or Bash call came before any text to the user. |
 | `correction-to-lint` | every user message | When the user's message reads as a correction（「又犯」「不是這樣」「說過了」, "again", "wrong"）, a notice says so and the model is told to fix first, then decide whether the mistake can become a check — hand it to `/lint` if it can, say why in one line if it cannot. So a mistake the user had to correct once becomes a candidate check every time, not only when someone remembers. |
-| `user-language` | every turn | Tells the model the user's language: `language = "..."` when set, else the language of the user's latest message. |
+| `user-language` | every reply | Checks what the model actually wrote: when the user writes Chinese (`language = "..."` when set, else read from the user's latest message) and a block the model sends is English prose — code and backticks left out — the person sees it flagged at once and the model is told on its next call. A reminder in the system prompt alone did not stop the slip, so this reads the output. |
 
 ## A TLA+ model as a check
 

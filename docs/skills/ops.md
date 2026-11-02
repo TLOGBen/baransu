@@ -76,7 +76,8 @@ Claude Code：`/baransu:lint`　Codex：`$baransu:lint`
 **mod 什麼時候跑**
 - 改檔後：範圍內的檢查和 ast-grep 規則，只看剛改的那個檔。
 - 每個指令前：比對指令本身的規則（例如不准 force push、不准跳過 hook）；刪除、搬移、丟棄改動的指令，先列出會動到哪些東西，擋一次，同樣的指令再下一次才放行。
-- git commit／push 前：該時機的檢查、機密檔、git 習慣（帳號、co-author、該直接 push 還是開 PR）；有 error 就擋下這次指令。
+- git commit／push 前：該時機的檢查、機密檔、git 習慣（帳號、co-author、該直接 push 還是開 PR）、改檔後有沒有 build 或測試過、是不是最新版；有 error 就擋下這次指令。
+- 結果的樣子：擋下或暫停的指令畫成卡片（桌面版有 SVG 圖示與動畫），輸入框上方常駐最近一次結果；模型寫錯語言時也會標出來。
 - `/ship`、`/review` 前：全部 `done` 檢查、整個專案的 ast-grep，以及「最後一次改檔後跑過哪些指令、有沒有 review 過」；結果寫在 skill 文字最前面，`/ship` 遇到 error 會停，`/review` 只當成紀錄讀。
 - session 開始：提醒已合併卻沒清掉的 worktree，並把 repo 的 git 習慣交給模型。
 - 你糾正模型時（「又犯」「不是這樣」「說過了」）：聊天裡標一句，模型修完後要判斷這個錯能不能寫成 lint，能就交給 `/lint`。

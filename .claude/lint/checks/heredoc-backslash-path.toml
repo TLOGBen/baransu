@@ -1,0 +1,7 @@
+from = "baransu-preset@8.35.0"
+# Source: owner's rules escape-heavy-content-use-write and python-no-backslash-paths.
+# \x27 is a single quote: a TOML literal string cannot hold one.
+on = ["bash"]
+severity = "warn"
+forbid = '<<-?\s*[\x27"]?\w+[\x27"]?[\s\S]*[A-Za-z]:\\[A-Za-z]'
+message = "heredoc 裡夾著 Windows 反斜線路徑，跳脫會悄悄變掉；內容改用 Write 工具寫進檔案，路徑用正斜線"
