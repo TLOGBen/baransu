@@ -50,7 +50,7 @@ Choose the base a maintainer can extend most easily without breaking its invaria
 
 ## 4. Write the sketch
 
-Write the chosen shape into the repo's own files: types, signatures, the module map, doc comments stating intent and invariants, bodies that raise the language's not-implemented error, and pseudocode comments for the tricky logic. An invariant goes into a type first, then a check, and into prose last. A reader traces data from input to output by reading types and signatures alone. Build or type-check it: a sketch the compiler rejects is not a contract. Write `.codex/draft/<slug>.md` as `references/rationale.md` lays out.
+Write the chosen shape into the repo's own files: types, signatures, the module map, doc comments stating intent and invariants, bodies that raise the language's not-implemented error, and pseudocode comments for the tricky logic. An invariant goes into a type first, then a check (a `.claude/lint/` entry, written through `$baransu:lint`), and into prose last. A reader traces data from input to output by reading types and signatures alone. Build or type-check it: a sketch the compiler rejects is not a contract. Write `.codex/draft/<slug>.md` as `references/rationale.md` lays out.
 
 When the chosen shape meets a row of H1–H8 in `../hypothesis/references/model.md`, invoke `$baransu:hypothesis` on the sketch before this stop: a design-time hypothesis whose coverage is the sketch's files, so the same stop shows the shape, the rules in plain words with their diagrams, and the checker's verdict. Filling the bodies later changes the code it covers after the version its README names; the green step hands it to `--maintain`, which redraws the model from the real code.
 

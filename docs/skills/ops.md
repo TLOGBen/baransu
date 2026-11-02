@@ -1,4 +1,4 @@
-# 維運家族：ship · health · evolve · codex-skill-transfer
+# 維運家族：ship · health · lint · evolve · codex-skill-transfer
 
 <img src="../images/family-ops.png" width="320" alt="維運家族概念圖">
 
@@ -57,6 +57,34 @@ Claude Code：`/baransu:health`　Codex：`$baransu:health`
 - 取代 lint／typecheck
 
 **非互動驅動**　`loop=assisted`。
+
+---
+
+## `/lint`
+
+Claude Code：`/baransu:lint`　Codex：`$baransu:lint`
+
+**用途**　維護專案的 `.claude/lint/`：一個錯被抓到一次，就寫成檢查，讓它之後不能再發生。baransu 附帶的 mod 會在對的時機自動跑這些檢查，結果顯示在聊天裡。
+
+**什麼時候用**
+- 第一次用：`/lint init`，選等級（關閉／預設／嚴格），把預設集複製進專案。預設集分通用與個人兩組；嚴格會把專案裡每份 `/hypothesis` 的 TLA+ 模型註冊成檢查。
+- 新增、停用、改嚴重度（error／warn／off）；`/hunt`、`/health`、`/draft` 找到該寫成檢查的錯時也交給它。
+- 介紹現有的檢查（照時機分組畫給你看），或解釋某條規則為什麼存在。
+- 預設集更新後同步：`/lint sync`。
+- 觸發語：`/lint`、lint 規則、加一條 lint、初始化 lint、這條規則為什麼、lint preset、別再犯這個錯。
+
+**mod 什麼時候跑**
+- 改檔後：範圍內的檢查和 ast-grep 規則，只看剛改的那個檔。
+- 每個指令前：比對指令本身的規則（例如不准 force push、不准跳過 hook）；刪除、搬移、丟棄改動的指令，先列出會動到哪些東西，擋一次，同樣的指令再下一次才放行。
+- git commit／push 前：該時機的檢查、機密檔、git 習慣（帳號、co-author、該直接 push 還是開 PR）；有 error 就擋下這次指令。
+- `/ship`、`/review` 前：全部 `done` 檢查、整個專案的 ast-grep，以及「最後一次改檔後跑過哪些指令、有沒有 review 過」；結果寫在 skill 文字最前面，`/ship` 遇到 error 會停，`/review` 只當成紀錄讀。
+- session 開始：提醒已合併卻沒清掉的 worktree，並把 repo 的 git 習慣交給模型。
+
+**產出**　專案的 `.claude/lint/`（`checks/<id>.toml`、`rules/<id>.yml`、`sgconfig.yml`）。`/ship` 不會歸檔它。格式在 `plugins/baransu/skills/lint/references/format.md`。
+
+**不適用**　找根因 → `/hunt`；體檢 agent 配置 → `/health`。
+
+**非互動驅動**　`loop=not-drivable`。
 
 ---
 

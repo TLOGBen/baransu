@@ -224,6 +224,7 @@ Activate after the root cause is confirmed and before declaring the bug fixed. T
 2. **`grep -rn <pattern>`** across the repo. Exclude generated directories, build output, and vendored dependencies. For class-of-bug patterns (e.g. "any handler missing the lock"), grep for the surrounding shape, not just the literal text.
 3. **For each match, record a decision in the case file's `Scope Blast` section** (template line per match: `<file:line> — fix | leave: <reason> | unsure: <question>`). After a user reply resolves an `unsure`, update the same line to `unsure → fix` or `unsure → leave: <reason> after user reply <date>`. Do not silently skip a match.
 4. **Do not claim fixed until** (a) every grep match has a recorded decision in the case file's `Scope Blast` section, AND (b) the success report's `迴歸守護` line names the regression test — or a justified 無 with its reason — **and** cites the case file's Scope Blast section by id (例：`[tests/foo.spec.ts:42] + Scope Blast: HUNT-YYYY-NNN §3`).
+5. **When the grep found the same shape in another place**, the regression test guards one site and the shape can return at the next. Hand the pattern, the fix, and the commit that carried the bug to `/lint` as a check, so the class cannot come back; the `迴歸守護` line names that check beside the test.
 
 Common triggers:
 - Visual bug fixed on one page → every other page using the same component, layout, or media-query breakpoint.

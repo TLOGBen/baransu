@@ -1,0 +1,17 @@
+# Source: _shared/tdd.md — behavior tests assert named values, never tautologies.
+id: py-tautological-assert
+language: python
+severity: error
+message: 恆真的 assert：行為壞了也不會變紅；期望值要取自需求（已知字面值），斷言被測程式的輸出
+files:
+  - "**/test_*.py"
+  - "**/*_test.py"
+  - "**/tests/**/*.py"
+rule:
+  any:
+    - pattern: assert True
+    - pattern: assert $A == $A
+    - all:
+        - pattern: assert $L == $R
+        - has: { field: left, kind: integer }
+        - has: { field: right, kind: integer }

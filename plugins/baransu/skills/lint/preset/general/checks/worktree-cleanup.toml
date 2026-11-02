@@ -1,0 +1,4 @@
+# Worktrees whose branch is already merged should not linger after the work is done.
+severity = "warn"
+builtin = "worktree-cleanup"
+message = "這些 worktree 的分支已經合併，可以用 git worktree remove 清掉"

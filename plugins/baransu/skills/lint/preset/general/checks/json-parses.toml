@@ -1,0 +1,7 @@
+# Source: /ship requires every structured file it touched to still parse.
+on = ["edit"]
+severity = "error"
+files = ["*.json"]
+ignores = ["tsconfig*.json", "jsconfig*.json", ".vscode/**", "devcontainer.json", ".devcontainer/**"]
+run = ["jq", "empty", "{file}"]
+message = "改完的 JSON 解析失敗；修好語法（帶註解的 JSONC 請加進 ignores）"

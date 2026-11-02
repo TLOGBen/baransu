@@ -12,7 +12,7 @@ These principles correct Claude's observed defaults in Chinese and English prose
 
 ## Shared principles — 中英共通
 
-Source: these five, the en entries 7–10 and the metaphor nouns in en entry 1 are adapted from the `unslop` skill in Cursor's pstack plugin (MIT; see `../NOTICE.md`), with zh equivalents added. They are tells that look the same in both languages; the language-specific sections below hold the ones that do not.
+Source: these five, the en entries 7–10 and the metaphor nouns in en entry 1 are adapted from the upstream skill credited in `../NOTICE.md`, with zh equivalents added. They are tells that look the same in both languages; the language-specific sections below hold the ones that do not.
 
 ---
 

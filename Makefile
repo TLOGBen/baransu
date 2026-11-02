@@ -2,6 +2,11 @@
 # CLAUDE.md § Verification): `make test` runs only the structural verifier,
 # which is the mechanism anchor the principles bind to, not a unit test.
 
+# The scripts print emoji and Chinese; a Windows console on cp950 raises
+# UnicodeEncodeError on them unless Python writes UTF-8.
+export PYTHONIOENCODING := utf-8
+export PYTHONUTF8 := 1
+
 .PHONY: test parity-check ship-check
 test:
 	python3 scripts/verify-skills.py

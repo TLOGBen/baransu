@@ -1,0 +1,13 @@
+# Source: _shared/tdd.md — behavior tests assert named values, never tautologies. (.js copy)
+id: js-tautological-expect
+language: javascript
+severity: error
+message: 恆真的 expect：兩邊是同一個值，行為壞了也不會變紅；expect 被測程式的輸出，期望值用需求給的字面值
+files:
+  - "**/*.test.*"
+  - "**/*.spec.*"
+rule:
+  any:
+    - pattern: expect($A).toBe($A)
+    - pattern: expect($A).toEqual($A)
+    - pattern: expect($A).toStrictEqual($A)

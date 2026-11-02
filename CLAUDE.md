@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-`baransu` is a Claude Code plugin distributing twenty-three governance skills. Theme: バランス — deliberate before executing, verify after.
+`baransu` is a Claude Code plugin distributing twenty-four governance skills. Theme: バランス — deliberate before executing, verify after.
 
 ## Philosophy — バランス (Balance)
 
@@ -20,8 +20,10 @@ plugins/
     .claude-plugin/
       plugin.json              # plugin manifest
     skills/
-      think/ review/ write/ ship/ hunt/ health/ read/ learn/ draw/ ui/ codex-skill-transfer/ evolve/ huh/ sayagain/ what-now/ domain-modeling/ why/ how/ teach-me/ show-me/ prove-it/ draft/ hypothesis/
+      think/ review/ write/ ship/ hunt/ health/ read/ learn/ draw/ ui/ codex-skill-transfer/ evolve/ huh/ sayagain/ what-now/ domain-modeling/ why/ how/ teach-me/ show-me/ prove-it/ draft/ hypothesis/ lint/
       _shared/                 # cross-skill references (tdd.md, loop-contract.md, output-journal.md, fact-check.md, modeling.md, optimization.md, selection-telemetry.md, distillation-candidate-matrix.md, auto-flags.md) + evals/ scripts/
+    hooks/
+      hooks.json  lint.ts      # the lint mod: runs a project's .claude/lint/ checks at their moments
     rules/
       anti-patterns.md         # cross-skill behavioral guardrails
     agents/
@@ -47,6 +49,7 @@ Invoke with `/baransu:<name>`. Each row says only when to reach for a skill; its
 | `/ship` | Session cleanup: archive `.claude/` working dirs into the main working tree, commit under the repo's own identity and style, push, merge one-way into each named target, optional worktree removal | 只收尾；不寫作、不審查 |
 | `/hunt` | Bug diagnosis: symptom → root cause via observability-first investigation | 「值不值得修」是價值判斷 → `/think` 存廢判決 (Kill/Keep/Pivot) |
 | `/health` | Audit the user project's agent configuration and AI-maintainability: budget-aware five-layer audit (config → instructions → tools → verifiers → maintainability), calibrated to evidence and risk rather than repository size; a mistake the user keeps correcting gets a focused mistake-class pass whose fixes close only on a red-on-the-past, green-at-HEAD proof and keep a rule → enforcer table | baransu 自身結構驗證 → `scripts/verify-skills.py`；審單次模型輸出 → `/review` |
+| `/lint` | Keep the project's `.claude/lint/`: copy baransu's preset in at a level (關閉／預設／嚴格), add a check, change its severity or disable it (one TOML file each, error / warn / off, file scope; ast-grep rules beside them), introduce or explain what runs, sync after a preset update; `/hunt`, `/health`, `/draft` hand their new checks here; the plugin's lint mod (`hooks/lint.ts`) runs each check at its moment — after an edit, before each shell command (with a preview of what a delete would touch), before a git commit or push, before `/ship` or `/review`, at session start — and shows findings in the chat | 找根因 → `/hunt`；體檢 agent 配置 → `/health` |
 | `/read` | Read any content into the conversation as Markdown — URL, path, glob, Chrome, `--topic`, `--web`, `--gh`, `--x`; keeps an offline copy under `.claude/read/` only when saving is asked for or another skill will read it | 要消化成筆記 → `/learn`；要畫成圖或動畫 → `/draw` |
 | `/ui` | The design lead for the UI in your repo: builds or reshapes web UI with deliberate palette / type / layout / motion choices and writes the files directly; learns a design language from a reference into `.claude/design/reference-<slug>.md`; designs the explanatory pages that embed the pieces `/draw` produces (handed over automatically in the same turn, or called directly to adjust) | Claude Design 畫布 mockup → 內建 `design` skill；單件圖、影片、機構、互動元件 → `/draw`；小寫 `design.md` 技術架構文件不歸這裡管 |
 | `/learn` | Research pipeline: Collect→Digest→Outline→Fill In→Refine; `--brief` stops at Digest | 只要離線原文不要筆記 → `/read --save` |
@@ -91,6 +94,8 @@ These have each caused regressions — do not "optimize" them away:
 - **`/show-me` and `/what-now` are user-invocable only on Claude Code**: their frontmatter carries `disable-model-invocation: true`, as upstream does; the Codex copies omit that Claude-only key (codex-skill-transfer flags it as residue), so the Codex skills stay implicitly invocable.
 - **Third-party sources live in each skill's `NOTICE.md`, never in the body**: a SKILL.md or its references do not name or license their upstream — the notice is not loaded and costs no tokens.
 - **No-git projects: ship fast-fails BEFORE any archive move** — archiving without git would strand the moved files with no commit to anchor them.
+- **`/ship` never archives `.claude/lint/`**: it is a kept product, like `hypothesis/`; it is not in ship's archive allowlist and is named in Step 2's never-archived line.
+- **The lint mod does nothing without `.claude/lint/`**: every hook in `hooks/lint.ts` returns `next(e)` untouched when the project has no such folder, and every gating hook carries a `.catch` that hands the call on, so a failing mod never blocks the user's own step. It writes the lint record into `/review` as a record only — review reads it under its own verdict rule and is never told to run or stop.
 - **Cross-skill guardrails**: behavioral anti-patterns that apply across skills live in `plugins/baransu/rules/anti-patterns.md`; the skill-specific invariants above stay here.
 
 ## Verification

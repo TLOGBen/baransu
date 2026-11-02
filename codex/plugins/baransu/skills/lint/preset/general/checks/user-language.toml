@@ -1,0 +1,4 @@
+# Text for the user is written in the user's language. Set language = "zh-TW" to pin it; unset, the mod reads it from the user's latest message.
+severity = "warn"
+builtin = "user-language"
+message = "輸出給使用者的文字用使用者的慣用語言"

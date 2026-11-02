@@ -1,0 +1,4 @@
+# The user should know what is about to change before a file is edited or a command runs.
+severity = "warn"
+builtin = "explain-before-edit"
+message = "動手前先用一兩句話告訴使用者要做什麼、為什麼"

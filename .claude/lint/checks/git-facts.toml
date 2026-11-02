@@ -1,0 +1,5 @@
+from = "baransu-preset@8.34.0"
+# Source: /ship INV-8, commits speak for this repo, applied to every commit.
+severity = "error"
+builtin = "git-facts"
+message = "照這個 repo 的習慣：用它近期 commit 的作者身分、格式與語言，co-author 與 push / PR 方式也照過去"

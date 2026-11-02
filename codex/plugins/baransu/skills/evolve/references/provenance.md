@@ -22,7 +22,7 @@ For each artifact evolve ships, record one of `獨立得出` (independently deri
 | 9-dimension rubric — dimension **names** | 獨立得出 |
 | rubric dims 3/4/6 — **concepts** | 概念對齊 darwin 但措辭自寫 |
 | rubric dims 1/2/7/8/9 | 獨立得出（from baransu skill conventions） |
-| rubric dim 5 Economy + the finding shape (implicated clause / origin / replacement) | 概念對齊 cursor/plugins pstack（MIT：laziness protocol、subtract-before-you-add、reflect 的 already-covered／decision-changing 準則）但措辭自寫 |
+| rubric dim 5 Economy + the finding shape (implicated clause / origin / replacement) | 概念對齊 `../NOTICE.md` 列的上游（laziness protocol、subtract-before-you-add、reflect 的 already-covered／decision-changing 準則）但措辭自寫 |
 | rubric scoring language + weights | 獨立得出 |
 | result-card fields/layout | 獨立得出（via $baransu:draw page lane） |
 | ratchet / snapshot / keep-restore mechanism | 概念對齊（autoresearch/darwin ratchet）但措辭自寫 |
@@ -31,7 +31,7 @@ For each artifact evolve ships, record one of `獨立得出` (independently deri
 | phenomenon → impact → root → bedrock → verification chain; four operations with evidence; blind known-answer exam taken twice, noise band, cost in the keep bar, case-term gate, decision ledger, falsification by cost without result, checkpoint return | 獨立得出（baransu review 基石迭代，2026-10-17～18） |
 | stage structure of SKILL.md | 獨立得出（baransu skill house style） |
 
-No line of darwin-skill or pstack prose is reproduced verbatim. If a future review finds substantial textual similarity in any row, rewrite that row's artifact before keeping it.
+No line of the upstream prose credited in `../NOTICE.md` is reproduced verbatim. If a future review finds substantial textual similarity in any row, rewrite that row's artifact before keeping it.
 
 ## Optional skillopt boundary
 

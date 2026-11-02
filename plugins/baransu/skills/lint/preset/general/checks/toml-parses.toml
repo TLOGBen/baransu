@@ -1,0 +1,6 @@
+# Source: /ship requires every structured file it touched to still parse.
+on = ["edit"]
+severity = "error"
+files = ["*.toml"]
+run = ["yq", "-p", "toml", ".", "{file}"]
+message = "改完的 TOML 解析失敗；修好語法"

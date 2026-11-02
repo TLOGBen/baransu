@@ -1,0 +1,15 @@
+# Source: _shared/tdd.md — mock only at system boundaries. (.js copy)
+id: js-mock-internal-module
+language: javascript
+severity: warning
+message: mock 了自己專案的模組（相對路徑或 @/ 別名）；只在系統邊界（外部 SDK、時間、亂數）mock，內部行為從公開介面驗證
+files:
+  - "**/*.test.*"
+  - "**/*.spec.*"
+rule:
+  any:
+    - pattern: jest.mock($P $$$)
+    - pattern: vi.mock($P $$$)
+constraints:
+  P:
+    regex: '^[''"`](\.{1,2}/|@/|~/)'

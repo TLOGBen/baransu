@@ -2,6 +2,21 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.34.0] - 2026-11-02
+
+### Added（/lint 與 baransu 第一個 mod：抓到一次的錯寫成檢查，在對的時機自動跑）
+- 新增 `/lint`：維護專案的 `.claude/lint/`。一個檢查一個 TOML 檔（`on` 時機、`severity` error／warn／off、`files` 範圍、`forbid` regex 或 `run` 指令或 `builtin`），旁邊放 ast-grep 規則。`init` 依等級（關閉／預設／嚴格）複製預設集；可以新增、調整、停用、介紹（照時機分組畫出來）、解釋、同步。格式寫在 `skills/lint/references/format.md`。
+- 預設集只在 `skills/lint/preset/` 維護，取材自擁有者的規則與 baransu 既有的防護：通用組有衝突標記、殘留的 `🎯HUNT-` 探針、JSON／YAML／TOML 仍可解析、私鑰內容、機密檔進 commit、恆真的 `expect`／`assert`、mock 內部模組（warn）、TLA+ 字串含非 ASCII、`$TMPDIR/`（warn），以及 git 習慣、收尾紀錄、worktree 清理、動手前先說明、使用者語言這幾個內建檢查；個人組有 Python 反斜線路徑、全域 `pip install`、`op` 印出秘密、裸的 `chromium.launch()`。嚴格等級會把每份 `/hypothesis` 的 TLA+ 模型註冊成檢查：涵蓋的程式一改就跑 TLC，並提醒先 `--maintain`。
+- 新增 `hooks/lint.ts`（baransu 第一個 mod）：改檔後跑範圍內的檢查和 ast-grep；git commit／push 前跑檢查、機密檔與 git 習慣（帳號不符、多加 co-author、該開 PR 卻直接 push 主分支），有 error 就擋；`/ship`、`/review` 前跑全部 `done` 檢查並附上「最後一次改檔後跑過哪些指令、有沒有 review」，寫在 skill 文字最前面，ship 遇 error 停、review 只當紀錄；session 開始提醒沒清的 worktree，並把 git 習慣與使用者語言放進系統提示。結果用系統訊息列顯示在聊天裡，模型從工具結果拿到同樣內容。沒有 `.claude/lint/` 的專案完全不受影響。
+- 新時機 `bash`：每個 Bash／PowerShell 指令前，`forbid` 直接比對指令文字。預設集加上不准 force push、不准跳過 hook（通用），以及刪除搬移要單獨一次呼叫、heredoc 夾帶 Windows 反斜線路徑、掃整顆磁碟、指令裡 `pip install`（個人）。內建 `destructive-preview`：`rm`、`mv`、`git clean`、`reset --hard`、`branch -D`、`worktree remove` 等指令先列出會動到哪些東西，擋一次，同樣的指令再下一次才放行。
+- baransu repo 自己的 `.claude/lint/`：`plugin.json` 不放 `skills` 陣列、`/ship` 刪分支不用 `-d`、上游來源不進本文、`Makefile` 保留 UTF-8 輸出設定。
+- `Makefile` 匯出 `PYTHONIOENCODING=utf-8`、`PYTHONUTF8=1`：在 cp950 的 Windows 上，`make test` 印出 emoji 時不再 `UnicodeEncodeError`。
+
+### Changed
+- `/health` 錯誤類別的「lint 或 CI 檢查」改由 `/lint` 寫進 `.claude/lint/`，由 lint 執行的規則記在檢查自己的 `origin`；`/draft` 的不變量檢查同樣交給 `/lint`；`/hunt` 的 Scope Blast 在別處也找到同樣寫法時，交給 `/lint` 寫成檢查；`/ship` 遇到 lint 紀錄有 error 就不 commit，`.claude/lint/` 永不封存。
+- `/evolve`、`/write` 的 references 不再點名上游，改指向各自的 `NOTICE.md`（`/evolve` 新增 `NOTICE.md`）。
+- 各處 skill 數量 23 → 24。Codex 版同步（mod 只在 Claude Code 上跑）。
+
 ## [8.33.0] - 2026-11-02
 
 ### Changed（statechart 圖：圖例改中文、規則用讀者的名字、每格標出打破哪條規則）

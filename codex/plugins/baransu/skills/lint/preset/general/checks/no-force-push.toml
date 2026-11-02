@@ -1,0 +1,5 @@
+# Source: /ship never force-pushes; a force push rewrites what others may have pulled.
+on = ["bash"]
+severity = "error"
+forbid = '\bgit\b[^\n|;&]*\bpush\b[^\n|;&]*(\s--force(\s|$)|\s-f(\s|$))'
+message = "不要 force push；真的要改寫遠端歷史，先問使用者，再用 --force-with-lease"
