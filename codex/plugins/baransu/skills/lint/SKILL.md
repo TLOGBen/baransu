@@ -35,7 +35,7 @@ All user-facing output is in Traditional Chinese.
 
 - **關閉** — no preset; only the project's own checks.
 - **預設** — `preset/general/`, and from `preset/personal/` the 3–7 checks that fit this project. Read the project first — its languages, scripts, shells, tools, and the owner's rules that apply to it — then recommend those checks, one line each with why it fits here, and let the user confirm. Never hand over the whole personal list to tick.
-- **嚴格** — 預設, with `built-before-commit` and `up-to-date` raised to `error`, plus one TLA+ check per `.claude/hypothesis/<area>/` in the project, written from that hypothesis's README as `references/format.md` (last section) shows. The TLA+ checks stay off below this level: most projects keep no model, and TLC is the slowest check there is.
+- **嚴格** — 預設, with `built-before-commit`, `up-to-date` and `private-key-material` raised to `error`, plus one TLA+ check per `.claude/hypothesis/<area>/` in the project, written from that hypothesis's README as `references/format.md` (last section) shows. The TLA+ checks stay off below this level: most projects keep no model, and TLC is the slowest check there is.
 
 Then copy into the project: show the list with one line per check and let the user drop any before copying. Write `sgconfig.yml` when any rule is copied. Each copied file keeps a `from = "baransu-preset@<version>"` line, the version from `../../.claude-plugin/plugin.json`. If `.claude/lint/` would be ignored by git (`git check-ignore`), say so, because the checks would then not reach the repo or its CI.
 

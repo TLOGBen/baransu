@@ -1,5 +1,6 @@
 # Source: /ship INV-7 stops on secret files; this catches the key inside any file.
+# warn by default: test keys and docs that quote a key header are common; the 嚴格 level raises it to error.
 on = ["edit", "commit"]
-severity = "error"
+severity = "warn"
 forbid = '-----BEGIN ([A-Z]+ )?PRIVATE KEY-----'
 message = "檔案內含私鑰；改用 secret manager 或 op:// 參照，不要讓金鑰進 repo"

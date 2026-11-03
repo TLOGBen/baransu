@@ -1,0 +1,114 @@
+TLC2 Version 2026.10.30.154139 (rev: 090e85c)
+Running breadth-first search Model-Checking with fp 28 and seed 8476043230644218390 with 1 worker on 32 cores with 981MB heap and 64MB offheap memory [pid: 52364] (Windows 11 10.0 amd64, Eclipse Adoptium 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
+Parsing file C:\Users\jimts\AppData\Local\Temp\cards-4rdub2uh\CardRender.tla
+Parsing file C:\Users\jimts\AppData\Local\Temp\cards-4rdub2uh\CardRules.tla
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-17012098732413258420\Integers.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-17012098732413258420\_TLCTrace.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-17012098732413258420\Naturals.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-17012098732413258420\FiniteSets.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-17012098732413258420\Sequences.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-17012098732413258420\TLC.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-17012098732413258420\TLCExt.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module CardRules
+Semantic processing of module Integers
+Semantic processing of module TLC
+Semantic processing of module TLCExt
+Semantic processing of module _TLCTrace
+Semantic processing of module CardRender
+Linting of module CardRules
+Linting of module TLCExt
+Linting of module _TLCTrace
+Linting of module CardRender
+Starting... (2026-11-03 15:08:28)
+Computing initial states...
+Finished computing initial states: 2 distinct states generated at 2026-11-03 15:08:28.
+Error: Invariant Q1 is violated.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+/\ nextSeq = 1
+/\ kept = <<FALSE, FALSE>>
+/\ errDrawn = <<FALSE, FALSE>>
+/\ mode = <<"none", "none">>
+/\ held = <<FALSE, FALSE>>
+/\ user = "none"
+/\ outcome = <<"plain", "plain">>
+/\ n = 0
+/\ open = FALSE
+/\ seq = <<0, 0>>
+/\ running = <<FALSE, FALSE>>
+/\ openBase = FALSE
+/\ owed = <<FALSE, FALSE>>
+/\ cardDrawn = <<0, 0>>
+
+State 2: <Start(1,"held") line 69, col 3 to line 79, col 45 of module CardRender>
+/\ nextSeq = 2
+/\ kept = <<FALSE, FALSE>>
+/\ errDrawn = <<FALSE, FALSE>>
+/\ mode = <<"solo", "none">>
+/\ held = <<TRUE, FALSE>>
+/\ user = "none"
+/\ outcome = <<"held", "plain">>
+/\ n = 1
+/\ open = FALSE
+/\ seq = <<1, 0>>
+/\ running = <<TRUE, FALSE>>
+/\ openBase = FALSE
+/\ owed = <<FALSE, FALSE>>
+/\ cardDrawn = <<0, 0>>
+
+State 3: <Start(2,"held") line 69, col 3 to line 79, col 45 of module CardRender>
+/\ nextSeq = 3
+/\ kept = <<FALSE, FALSE>>
+/\ errDrawn = <<FALSE, FALSE>>
+/\ mode = <<"group", "group">>
+/\ held = <<TRUE, TRUE>>
+/\ user = "none"
+/\ outcome = <<"held", "held">>
+/\ n = 2
+/\ open = FALSE
+/\ seq = <<1, 2>>
+/\ running = <<TRUE, TRUE>>
+/\ openBase = FALSE
+/\ owed = <<FALSE, FALSE>>
+/\ cardDrawn = <<0, 0>>
+
+State 4: <Finish(1) line 84, col 3 to line 92, col 68 of module CardRender>
+/\ nextSeq = 3
+/\ kept = <<FALSE, FALSE>>
+/\ errDrawn = <<FALSE, FALSE>>
+/\ mode = <<"group", "group">>
+/\ held = <<TRUE, TRUE>>
+/\ user = "none"
+/\ outcome = <<"held", "held">>
+/\ n = 3
+/\ open = FALSE
+/\ seq = <<1, 2>>
+/\ running = <<FALSE, TRUE>>
+/\ openBase = FALSE
+/\ owed = <<TRUE, FALSE>>
+/\ cardDrawn = <<0, 0>>
+
+State 5: <KeepLate(1) line 96, col 3 to line 98, col 104 of module CardRender>
+/\ nextSeq = 3
+/\ kept = <<TRUE, FALSE>>
+/\ errDrawn = <<FALSE, FALSE>>
+/\ mode = <<"group", "group">>
+/\ held = <<TRUE, TRUE>>
+/\ user = "none"
+/\ outcome = <<"held", "held">>
+/\ n = 4
+/\ open = FALSE
+/\ seq = <<1, 2>>
+/\ running = <<FALSE, TRUE>>
+/\ openBase = FALSE
+/\ owed = <<FALSE, FALSE>>
+/\ cardDrawn = <<0, 0>>
+
+599 states generated, 269 distinct states found, 189 states left on queue.
+The depth of the complete state graph search is 5.
+Finished in 00s at (2026-11-03 15:08:28)
+Trace exploration spec path: .\CardRender_TTrace_1793689707.tla
+Picked up JAVA_TOOL_OPTIONS: -Xmx1g

@@ -84,12 +84,32 @@ export const register: Register = on => {
     return toolResult(await lint.toolCall(ev, () => next(e), outcomeOf)) as any
   }).catch(($, e, next) => next(e))
 
+  // A card is drawn on the call's row (ToolUse), the one place every row passes: a standalone row and a row inside a
+  // folded group alike (HUNT-2026-002: a folded group's rows draw their result inline, with no ToolResult). A held
+  // call's card stands in place of its error text, so that text is emptied in the row and in a standalone result.
+  on('ui.render', { component: 'ToolUse' }, async ($, e: any, next) => {
+    const d = (await engine.ready(hostOf($))).cardFor(e.props?.tool_use_id)
+    if (!d || e.props?.isRunning) return next(e)
+    const row = await next(d.replace ? { ...e, props: { ...e.props, output: '' } } : e)
+    const { Box } = $.ui.resolve(e) as any
+    return h(Box, { flexDirection: 'column', gap: 1 }, row, drawCard($, e, d)) as any
+  })
+
+  // A standalone held call: its card is on the row above, so its result draws nothing (an errored ToolResult draws
+  // the error text whatever its output says, so the result is answered here rather than rewritten).
   on('ui.render', { component: 'ToolResult' }, async ($, e: any, next) => {
     const d = (await engine.ready(hostOf($))).cardFor(e.props?.tool_use_id)
-    if (!d) return next(e)
-    if (d.replace) return drawCard($, e, d)
+    if (!d?.replace) return next(e)
     const { Box } = $.ui.resolve(e) as any
-    return h(Box, { flexDirection: 'column', gap: 1 }, await next(e), drawCard($, e, d)) as any
+    return h(Box, null) as any
+  })
+
+  // A folded group drawn as one line hides its rows, so one holding a call with a card unfolds (user 2026-11-03, Q1-b).
+  on('ui.render', { component: 'ToolGroup' }, async ($, e: any, next) => {
+    if (e.props?.isExpanded) return next(e)
+    const lint = await engine.ready(hostOf($))
+    const carded = (e.props?.calls ?? []).some((c: any) => c.tool_use_id && lint.cardFor(c.tool_use_id))
+    return next(carded ? { ...e, props: { ...e.props, isExpanded: true } } : e)
   })
 
   on('skill.prompt', async ($, e, next) => {

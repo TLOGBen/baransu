@@ -21,7 +21,7 @@ TLC = shutil.which("tlc") or str(Path.home() / ".local" / "bin" / "tlc")
 TIME_LIMIT = 120  # seconds per run
 BUDGET = 1500     # seconds for the whole list
 
-INVARIANTS = {"R1", "R2", "R4", "R6", "R7", "R8", "R9", "R10", "R11"}
+INVARIANTS = {"R1", "R2", "R4", "R6", "R7", "R8", "R9", "R10", "R11", "R12"}
 PROPERTIES = {"R3", "R5"}
 
 # (version, break, rule, expected)  expected: "held" or "violated"
@@ -38,8 +38,28 @@ RUNS = (
 CONSTS = {"v1": ("FALSE", "FALSE"), "v2": ("TRUE", "FALSE"), "now": ("TRUE", "TRUE")}
 
 
-def cfg(version: str, brk: str, rule: str, steps: int) -> str:
-    kind = "INVARIANT" if rule in INVARIANTS else "PROPERTY"
+# --mutants: which hook steps no rule can do without. Each mutant removes one step's core effect from the
+# newest source (Mut in LintMod.tla); the rules it breaks say where a unit test must hold that step.
+MUTANTS = {
+    "prompt-take": "prompt.submit hands over what is owed",
+    "start-reset": "turn.start resets the turn's flags",
+    "stream-deaf": "turn.step text before a call is heard",
+    "text-deaf": "text after the last call is heard",
+    "call-take": "a main call takes the restates owed",
+    "no-explain": "the first act with no words is flagged",
+    "no-hold": "a delete is held for preview",
+    "work-keeps-report": "a call that did work forgets the report before it",
+    "no-edit-count": "an edit is counted",
+    "no-owe": "turn.complete records the report owed",
+    "review-ignored": "an answered /review is recorded",
+    "reload-forgets": "a reload keeps the state",
+    "clear-keeps": "/clear starts the state over",
+}
+
+
+def cfg(version: str, brk: str, rule: str, steps: int, mut: str = "none") -> str:
+    rules = rule.split(",")
+    kind = "INVARIANT" if rules[0] in INVARIANTS else "PROPERTY"
     fix, now = CONSTS[version]
     return (
         "SPECIFICATION Spec\n"
@@ -50,21 +70,23 @@ def cfg(version: str, brk: str, rule: str, steps: int) -> str:
         f"  Now = {now}\n"
         f'  Break = "{brk}"\n'
         f"  MaxSteps = {steps}\n"
-        f"{kind} {rule}\n"
+        f'  Mut = "{mut}"\n'
+        + "".join(f"{kind} {r}\n" for r in rules)
     )
 
 
-def run_one(fix: str, brk: str, rule: str, steps: int):
+def run_one(fix: str, brk: str, rule: str, steps: int, mut: str = "none"):
     work = Path(tempfile.mkdtemp(prefix="lintmod-"))
     try:
         for name in ("LintRules.tla", "LintMod.tla"):
             shutil.copy(HERE / name, work / name)
-        (work / "Run.cfg").write_text(cfg(fix, brk, rule, steps), encoding="ascii")
+        (work / "Run.cfg").write_text(cfg(fix, brk, rule, steps, mut), encoding="ascii")
         env = dict(os.environ, JAVA_TOOL_OPTIONS="-Xmx1g")
         t0 = time.time()
+        cont = ["-continue"] if "," in rule else []
         try:
             out = subprocess.run(
-                [TLC, "-workers", "1", "-deadlock", "-metadir", str(work / "meta"), "-config", "Run.cfg", "LintMod.tla"],
+                [TLC, "-workers", "1", "-deadlock", *cont, "-metadir", str(work / "meta"), "-config", "Run.cfg", "LintMod.tla"],
                 cwd=work, env=env, capture_output=True, text=True, timeout=TIME_LIMIT,
             )
             text = out.stdout + out.stderr
@@ -84,9 +106,31 @@ def run_one(fix: str, brk: str, rule: str, steps: int):
         shutil.rmtree(work, ignore_errors=True)
 
 
+def mutants(steps: int) -> int:
+    inv = ",".join(sorted(INVARIANTS, key=lambda r: int(r[1:])))
+    spent = 0.0
+    for mut, what in MUTANTS.items():
+        broken = []
+        for rule in [inv, "R3", "R5"]:
+            if spent > BUDGET:
+                print(f"budget spent ({spent:.0f}s): stopping at {mut}")
+                return 2
+            verdict, n, secs, text = run_one("now", "none", rule, steps, mut)
+            spent += secs
+            if verdict == "timeout" or verdict == "error":
+                broken.append(f"{rule}:{verdict}")
+            else:
+                broken += sorted(set(re.findall(r"(?:Invariant|property) (R\d+) is violated", text)), key=lambda r: int(r[1:]))
+        print(f"{mut:<18} {what:<52} breaks: {', '.join(broken) or '(none)'}")
+    print(f"MaxSteps={steps}; {len(MUTANTS)} mutants; {spent:.0f}s")
+    return 0
+
+
 def main() -> int:
     # 7 is the smallest scope where the parallel double restate (R2) appears; quick runs it too.
     steps = 7 if "--quick" in sys.argv else 8
+    if "--mutants" in sys.argv:
+        return mutants(steps)
     spent = 0.0
     bad = 0
     traces = HERE / "traces"

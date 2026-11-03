@@ -109,11 +109,13 @@ type Taken = {
   giveBack(): void
 }
 
-/** Keep a card under its call id; past 100 cards the oldest go (as today: state must not grow without bound). */
+/** Keep a card under its call id; past 500 cards the oldest go. Every save copies the whole state, and that copy
+ *  grows with the cards (measured 2026-11-03: about 6 ms at 500, 130 ms at 10,000), so the state must not grow
+ *  without bound. */
 function keepCard(s: LintState, id: string, d: Card) {
   s.cards[id] = d
   const ids = Object.keys(s.cards)
-  for (const old of ids.slice(0, Math.max(0, ids.length - 100))) delete s.cards[old]
+  for (const old of ids.slice(0, Math.max(0, ids.length - 500))) delete s.cards[old]
 }
 
 // ================================================================ inbound port
@@ -322,7 +324,7 @@ async function submitAfterTake<H, R>(
  *   main && o.ran && !o.isReadOnly → tools++, textAfterTools = ''
  *   shell && o.ran → writesFiles ? editSeq++ : (!background && commands.push({ cmd, ok: !o.isError, seq: at.editSeq }))
  *   edit && o.ran && !o.isError → editSeq++; ports.config.edited(h, file); in repo → runMoment('edit', file)
- *   card kept under e.id when lines (keepCard: the oldest cards are dropped past 100, as today — state must
+ *   card kept under e.id when lines (keepCard: the oldest cards are dropped past 500 — state must
  *     not grow without bound); notes returned only when o.ran && !o.isError
  *
  * destructive-preview — key = `${agent ?? 'main'}|${shell}|${cwd}|${command}`; seen = previewed[key]
@@ -330,7 +332,7 @@ async function submitAfterTake<H, R>(
  *   Else touched = await destructivePreview(...); if touched: record {key, step: at.step} unless seen;
  *   error → deny with kind 'hold'. Two copies in one response share at.step, so both are held (R11).
  *
- * A deny: keep the card (replace: true; same 100-card trim), save, return { kind: 'deny', reason: [deny, ...notes].join('\n\n') }.
+ * A deny: keep the card (replace: true; same 500-card trim), save, return { kind: 'deny', reason: [deny, ...notes].join('\n\n') }.
  * The taken items ride on the refusal and are not given back — the model reads them in the refusal.
  *
  * Twice / halfway: the whole body sits in try/catch → giveBack, so a throw anywhere after the take re-owes
@@ -389,15 +391,16 @@ async function callAfterTake<H, R>(
       context.push(`baransu lint（${taken.report}，重新）：上一輪做了事，結束前卻沒交代現況。${how}`)
     }
 
-    // Words before acting: the first edit or command of a turn should follow a restatement of what the user wants.
-    if (main && !S().spoke) {
+    // Words before acting: the first file change of a turn — an edit, or a command that writes a file — should
+    // follow a word on how it will be done. A read-only look is no act and leaves the turn's flag as it is.
+    if (main && !S().spoke && (isEdit || (isBash && writesFiles(command)))) {
       const c = find(config, 'explain-before-edit')
       S().spoke = true
       if (c) {
-        const what = `這一輪還沒跟使用者說話，就先${isEdit ? '改檔' : '跑指令'}了`
-        const how = c.redo ?? '先用一兩句話重述使用者要什麼、要解決什麼問題，然後直接繼續，不等他確認；只有真的不確定他要什麼時才停下來問'
-        if (c.severity === 'error') return refuse({ kind: 'error', title: '沒有執行', meta: `lint · ${c.id}`, lines: [{ id: c.id, severity: 'error', text: what }], footer: '先重述使用者要什麼，再下一次' }, `baransu lint（${c.id}）：${what}。${how}。`)
-        inline.push({ id: c.id, severity: 'redo', text: `${what} → 重新：先重述使用者要什麼` })
+        const what = '這一輪還沒說要怎麼動手，就先改檔了'
+        const how = c.redo ?? '改檔前先用一兩句話說要怎麼動手：改哪些檔、怎麼改，然後直接繼續，不等他確認；只有真的不確定他要什麼時才停下來問'
+        if (c.severity === 'error') return refuse({ kind: 'error', title: '沒有執行', meta: `lint · ${c.id}`, lines: [{ id: c.id, severity: 'error', text: what }], footer: '先說要怎麼動手，再下一次' }, `baransu lint（${c.id}）：${what}。${how}。`)
+        inline.push({ id: c.id, severity: 'redo', text: `${what} → 重新：先說要怎麼動手` })
         context.push(`baransu lint（${c.id}，重新）：${what}。${how}。`)
       }
     }

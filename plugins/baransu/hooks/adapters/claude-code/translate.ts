@@ -55,14 +55,14 @@ export const withContext = (e: Args<'prompt.submit'>, notes: readonly string[]):
 export const droppedPrompt = (r: any): boolean => !!r && 'drop' in r && !!r.drop
 
 /**
- * A streamed text piece of a model response. null for every other chunk kind (thinking, tool, input, stop,
- * engine). The subagent is carried, not filtered: whether a subagent's text counts is the engine's rule.
- * This is the seam to test for the explain-before-edit bug: if the real host streams the text under a
- * different chunk shape than `{ kind: 'text', text }`, this returns null and the engine never hears it.
+ * A piece of a model response the person sees: a text chunk, or a thinking chunk that carries text. On
+ * Claude Opus 5.5 the words between tool calls stream as thinking blocks and are shown; hidden reasoning
+ * streams as thinking with empty text (HUNT-2026-001). null for empty thinking and every other kind. The
+ * subagent is carried, not filtered: whether a subagent's words count is the engine's rule.
  */
 export function streamedText(e: Pick<Args<'turn.step'>, 'turnId' | 'index'> & { agentId?: string }, chunk: TurnStepChunk | unknown): SpokenEvent | null {
   const c = chunk as any
-  if (c?.kind !== 'text') return null
+  if (c?.kind !== 'text' && !(c?.kind === 'thinking' && c.text)) return null
   return { ...actorOf(e), text: String(c.text ?? '') }
 }
 

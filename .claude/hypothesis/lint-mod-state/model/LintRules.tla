@@ -70,6 +70,10 @@ R9 == ev = "Ship" => (claimNoEdit => ~editedG)
 \* R10: the first main-loop edit or command of a turn, with no text before it, is flagged.
 R10 == (ev = "MainAct" /\ actsTurnG = 1 /\ ~spokeTurnG) => explainNow
 
+\* R12 (rule A, user 2026-11-03): an act is never flagged "explain first" when the main loop wrote words the
+\* person saw earlier this turn.
+R12 == (ev = "MainAct" /\ explainNow) => ~spokeTurnG
+
 \* R11: a main-loop delete runs only after the model had the preview in hand: it was held in an earlier response
 \* than the one that sends it to run (not by a copy sent in the same response).
 R11 == (execCmd # <<>> /\ execCmd[1] = "main") => \E s \in 0..(execStep - 1) : <<execCmd, s>> \in heldStepG

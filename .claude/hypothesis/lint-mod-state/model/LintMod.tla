@@ -12,7 +12,10 @@
    source awaits between taking what is owed and running the tool; two calls may overlap. *)
 EXTENDS LintRules, Integers, FiniteSets
 
-CONSTANTS Fix, Now, Break, MaxSteps
+CONSTANTS Fix, Now, Break, MaxSteps,
+  Mut   \* "none", or one hook step whose core effect is removed, to find the steps no rule can do without
+
+M(x) == Mut = x
 
 N == Fix /\ Now
 V2 == Fix /\ ~Now
@@ -86,7 +89,7 @@ UserPrompt(msg) ==
   /\ NoOut /\ NoClaim /\ NoLast /\ NoHold
   /\ userSpokeG' = TRUE
   /\ langKnown' = (langKnown \/ msg = "plain" \/ Fix)   \* the fixes also read the language from a command's arguments
-  /\ LET consume == msg = "plain" \/ (Fix /\ msg = "ns") \/ (N /\ msg = "skill") IN
+  /\ LET consume == ~M("prompt-take") /\ (msg = "plain" \/ (Fix /\ msg = "ns") \/ (N /\ msg = "skill")) IN
      /\ restated' = IF consume THEN Restate(slips) ELSE restated
      /\ slips' = IF consume THEN {} ELSE slips
      /\ pendingReport' = IF consume THEN FALSE ELSE pendingReport
@@ -109,8 +112,11 @@ Dropped ==
 \* lint.ts turn.start (main loop). The fixes also end this turn's preview approvals (reading D1-B).
 TurnStart ==
   /\ Step /\ ~inTurn /\ ev' = "TurnStart" /\ actor' = "host" /\ NoOut /\ NoClaim /\ NoLast
-  /\ inTurn' = TRUE /\ spoke' = FALSE /\ tools' = FALSE /\ textLong' = FALSE
-  /\ previewed' = IF Fix THEN {} ELSE previewed
+  /\ inTurn' = TRUE
+  /\ spoke' = IF M("start-reset") THEN spoke ELSE FALSE
+  /\ tools' = IF M("start-reset") THEN tools ELSE FALSE
+  /\ textLong' = IF M("start-reset") THEN textLong ELSE FALSE
+  /\ previewed' = IF Fix /\ ~M("start-reset") THEN {} ELSE previewed
   /\ spokeTurnG' = FALSE /\ actsTurnG' = 0 /\ workG' = FALSE /\ reportG' = FALSE /\ heldTurnG' = {} /\ late' = "none"
   /\ UNCHANGED <<wrongG, restated, reportOwedG, reportEmits, explainFlags, heldEverG, heldStepG, editedG, reviewedAfterG,
                  cmdAfterG, slips, pendingReport, editSeq, reviewedAt, cmdSeqs, langKnown, trackedCwd,
@@ -128,10 +134,10 @@ MainStep ==
 \* 0917b911 read "spoke" from the stream; the newest source also reads the report from it.
 MainPre(long) ==
   /\ Step /\ inTurn /\ Idle /\ late = "none" /\ ev' = "MainPre" /\ actor' = "main" /\ NoOut /\ NoClaim /\ NoLast /\ NoHold
-  /\ spoke' = IF Fix THEN TRUE ELSE spoke
+  /\ spoke' = IF Fix /\ ~M("stream-deaf") THEN TRUE ELSE spoke
   /\ spokeTurnG' = TRUE
   /\ reportG' = (reportG \/ long)
-  /\ textLong' = IF N THEN (textLong \/ long) ELSE textLong
+  /\ textLong' = IF N /\ ~M("stream-deaf") THEN (textLong \/ long) ELSE textLong
   /\ late' = IF long THEN "pre" ELSE "none"   \* only a long row matters later; a short one changes no report
   /\ UNCHANGED <<wrongG, restated, reportOwedG, reportEmits, explainFlags, editedG, reviewedAfterG, cmdAfterG,
                  actsTurnG, slips, tools, pendingReport, previewed, editSeq, reviewedAt, cmdSeqs, langKnown, trackedCwd,
@@ -153,8 +159,8 @@ LateAppend ==
 MainText(wrong, long) ==
   /\ Step /\ inTurn /\ late = "none" /\ ev' = "MainText" /\ actor' = "main" /\ NoOut /\ NoClaim /\ NoLast /\ NoHold
   /\ (wrong => (userSpokeG /\ nextBlock \in Blocks))
-  /\ spoke' = TRUE /\ spokeTurnG' = TRUE
-  /\ textLong' = (textLong \/ long) /\ reportG' = (reportG \/ long)
+  /\ spoke' = (spoke \/ ~M("text-deaf")) /\ spokeTurnG' = TRUE
+  /\ textLong' = (textLong \/ (long /\ ~M("text-deaf"))) /\ reportG' = (reportG \/ long)
   /\ wrongG' = IF wrong THEN wrongG \cup {nextBlock} ELSE wrongG
   /\ nextBlock' = IF wrong THEN nextBlock + 1 ELSE nextBlock
   /\ slips' = IF wrong /\ langKnown THEN (IF Fix THEN slips \cup {nextBlock} ELSE {nextBlock}) ELSE slips
@@ -189,7 +195,7 @@ MainBegin(c) ==
   /\ seen' = [seen EXCEPT ![c] = wrongG]
   /\ snap' = [snap EXCEPT ![c] = slips]
   /\ beginStep' = [beginStep EXCEPT ![c] = stepC]
-  /\ slips' = IF Fix THEN {} ELSE slips
+  /\ slips' = IF Fix /\ ~M("call-take") THEN {} ELSE slips
   /\ tools' = IF N THEN tools ELSE TRUE
   /\ textLong' = IF N THEN textLong ELSE FALSE
   /\ UNCHANGED <<wrongG, restated, reportOwedG, reportEmits, explainFlags, editedG, reviewedAfterG,
@@ -205,8 +211,8 @@ MainEnd(c, kind, outcome) ==
   /\ Step /\ pc[c] = "mid" /\ ev' = "MainAct" /\ actor' = "main" /\ NoClaim
   /\ pc' = [pc EXCEPT ![c] = "idle"] /\ snap' = [snap EXCEPT ![c] = {}]
   /\ actsTurnG' = actsTurnG + 1 /\ lastSeen' = seen[c]
-  /\ explainNow' = ~spoke
-  /\ explainFlags' = (IF ~spoke THEN explainFlags + 1 ELSE explainFlags)
+  /\ explainNow' = (~spoke /\ ~M("no-explain"))
+  /\ explainFlags' = (IF ~spoke /\ ~M("no-explain") THEN explainFlags + 1 ELSE explainFlags)
   /\ spoke' = TRUE
   /\ LET isDel   == kind \in Cmds
          dir     == IF N THEN cwdG ELSE IF Fix THEN trackedCwd ELSE "a"
@@ -215,7 +221,7 @@ MainEnd(c, kind, outcome) ==
                       THEN \E s \in 0..(beginStep[c] - 1) : <<key, s>> \in previewed
                       ELSE IF N THEN \E s \in 0..MaxSteps : <<key, s>> \in previewed
                       ELSE key \in previewed
-         held    == isDel /\ ~(passes \/ (Break = "R7" /\ previewed # {}))
+         held    == isDel /\ ~M("no-hold") /\ ~(passes \/ (Break = "R7" /\ previewed # {}))
          rec     == IF N THEN <<key, beginStep[c]>> ELSE key
          target  == <<"main", kind, cwdG>>
          out     == IF held THEN "deny" ELSE outcome
@@ -235,11 +241,11 @@ MainEnd(c, kind, outcome) ==
      /\ cwdG' = IF kind = "cd" /\ ran THEN Other(cwdG) ELSE cwdG
      /\ trackedCwd' = IF V2 /\ out = "ok" /\ kind \in {"cd", "subcd"} THEN Other(trackedCwd) ELSE trackedCwd
      /\ tools' = IF N THEN (tools \/ ranWork) ELSE tools
-     /\ textLong' = IF N /\ ranWork THEN FALSE ELSE textLong
+     /\ textLong' = IF N /\ ranWork /\ ~M("work-keeps-report") THEN FALSE ELSE textLong
      /\ workG' = (workG \/ ranWork)
      /\ reportG' = IF ranWork THEN FALSE ELSE reportG
      /\ late' = IF late = "pre" THEN "armed" ELSE late
-     /\ editSeq' = IF ran /\ (kind = "edit" \/ (Fix /\ kind = "bashwrite")) THEN editSeq + 1 ELSE editSeq
+     /\ editSeq' = IF ran /\ ~M("no-edit-count") /\ (kind = "edit" \/ (Fix /\ kind = "bashwrite")) THEN editSeq + 1 ELSE editSeq
      /\ editedG' = (editedG \/ (ran /\ kind \in {"edit", "bashwrite"}))
      /\ reviewedAfterG' = IF ran /\ kind \in {"edit", "bashwrite"} THEN FALSE ELSE reviewedAfterG
      /\ cmdSeqs' = IF ran /\ kind # "edit" /\ ~(Fix /\ kind = "bashwrite") THEN cmdSeqs \cup {editSeq} ELSE cmdSeqs
@@ -278,6 +284,7 @@ TurnComplete ==
   /\ Step /\ inTurn /\ Idle /\ late = "none" /\ ev' = "TurnComplete" /\ actor' = "host" /\ NoOut /\ NoClaim /\ NoLast /\ NoHold
   /\ inTurn' = FALSE
   /\ pendingReport' = IF Break = "R5" THEN TRUE
+                      ELSE IF M("no-owe") THEN pendingReport
                       ELSE IF Fix /\ textLong THEN FALSE
                       ELSE pendingReport \/ (tools /\ ~textLong)
   /\ reportOwedG' = IF reportG THEN FALSE ELSE (reportOwedG \/ workG)
@@ -289,7 +296,7 @@ TurnComplete ==
 \* started (skill.prompt); the newest when its turn ends with an answer (turn.complete).
 Review(answered) ==
   /\ Step /\ ev' = "Review" /\ actor' = "main" /\ NoOut /\ NoClaim /\ NoLast /\ NoHold
-  /\ reviewedAt' = IF N /\ ~answered THEN reviewedAt ELSE editSeq
+  /\ reviewedAt' = IF (N /\ ~answered) \/ M("review-ignored") THEN reviewedAt ELSE editSeq
   /\ reviewedAfterG' = (reviewedAfterG \/ answered)
   /\ UNCHANGED <<wrongG, restated, reportOwedG, reportEmits, explainFlags, editedG, cmdAfterG,
                  spokeTurnG, actsTurnG, spoke, slips, tools, textLong, pendingReport, previewed, editSeq, cmdSeqs,
@@ -309,7 +316,7 @@ Ship ==
 \* The engine reloads the hooks module: the first source's module variables start over; the fixes keep them in $.state.
 Reload ==
   /\ Step /\ Idle /\ ev' = "Reload" /\ actor' = "host" /\ NoOut /\ NoClaim /\ NoLast /\ NoHold
-  /\ IF Fix
+  /\ IF Fix /\ ~M("reload-forgets")
        THEN UNCHANGED codeVars
        ELSE /\ spoke' = TRUE /\ slips' = {} /\ tools' = FALSE /\ textLong' = FALSE /\ pendingReport' = FALSE
             /\ previewed' = {} /\ editSeq' = 0 /\ reviewedAt' = -1 /\ cmdSeqs' = {} /\ langKnown' = FALSE
@@ -324,7 +331,7 @@ Clear ==
   /\ Step /\ Idle /\ ~inTurn /\ ev' = "Clear" /\ actor' = "host" /\ NoOut /\ NoClaim /\ NoLast
   /\ wrongG' = {} /\ reportOwedG' = FALSE /\ editedG' = FALSE /\ reviewedAfterG' = FALSE /\ cmdAfterG' = FALSE
   /\ heldTurnG' = {}
-  /\ IF N
+  /\ IF N /\ ~M("clear-keeps")
        THEN /\ spoke' = TRUE /\ slips' = {} /\ tools' = FALSE /\ textLong' = FALSE /\ pendingReport' = FALSE
             /\ previewed' = {} /\ editSeq' = 0 /\ reviewedAt' = -1 /\ cmdSeqs' = {}
             /\ UNCHANGED <<langKnown, trackedCwd>>

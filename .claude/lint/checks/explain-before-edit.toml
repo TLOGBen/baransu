@@ -1,7 +1,8 @@
-from = "baransu-preset@8.40.0"
-# 重新: the first edit or command of a turn came before any words to the user, so the model restates the user's goal in a sentence or two, then goes on.
+from = "baransu-preset@8.40.1"
+# 重新: the first file change of a turn (an edit, or a command that writes a file) came before any words to the user,
+# so the model says in a sentence or two how it will make the change, then goes on. A read-only command is no change.
 # error instead holds the call once, until the model has said it.
 severity = "warn"
 action = "重新"
 builtin = "explain-before-edit"
-message = "動手前先用一兩句話重述使用者要什麼、要解決什麼問題"
+message = "改檔前先用一兩句話說要怎麼動手：改哪些檔、怎麼改"

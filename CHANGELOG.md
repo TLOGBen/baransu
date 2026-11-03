@@ -2,6 +2,23 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.40.1] - 2026-11-03
+
+### Fixed（lint）
+- 「動手前要說明」和「收尾前要交代」不再誤報（HUNT-2026-001）：
+  - 換成 Claude Opus 5.5 之後，模型在工具之間寫給使用者的話不再以 `text` 送出，而是放在 `thinking` 區塊裡，App 照樣顯示在畫面上（官方 Opus 5.5 migration guide〈Text between tool calls is returned in thinking blocks〉）。mod 原本只把 `text` 當成說話，所以先說了話仍被標「沒先說明」，交代過了仍被要求重新交代。
+  - 現在算的是使用者畫面上看到的：`text`，或帶文字的 `thinking`。看不到的思考（空的 `thinking`）照舊不算。
+- lint 卡片不再「閃一下就不見」（HUNT-2026-002）：
+  - 桌面版把連續的工具呼叫收成一組後，組裡每一列改由工具列元件畫結果，不再經過 lint 掛卡片的地方，所以被擋下的刪除只剩紅字，跑完的工具底下的 warn 卡片也會消失。
+  - 卡片改畫在工具那一列上，獨立的一列和組裡的列都看得到；被擋下的呼叫，卡片取代紅字。
+  - 收成一行的組裡有帶卡片的呼叫時，那一組自動展開。
+  - 用 TLC 列舉呼叫開始、結束、收進組、展開收合、捲動、重新載入、卡片上限、`/clear` 的所有順序，修正後在範圍內全部守住（`.claude/hypothesis/lint-cards/`）。
+- 「動手前要說明」只管改檔：Edit／Write，或會寫檔的指令（`>`、`sed -i`、`tee`、`Set-Content` 這類）。`grep`、`ls`、`git status` 這種只讀的指令不再觸發，也不會用掉這一輪的提醒。提醒的內容從「重述使用者要什麼」改成「改檔前先說要怎麼動手：改哪些檔、怎麼改」。
+
+### Changed（lint）
+- 預設的 `private-key-material`（私鑰內容）改成 warn；選嚴格等級時才升成 error。
+- 每個 session 保留的 lint 卡片從最近 100 張放寬到 500 張，捲回較早的地方也看得到。卡片只存在這個 session 的記憶體裡（`$.state`），關掉就沒了，不會寫成永久快取。實測每次存檔的複製時間：100 張約 1.5 ms、500 張約 6 ms、1 萬張約 130 ms，所以仍保留上限。
+
 ## [8.40.0] - 2026-11-03
 
 ### Fixed（lint）

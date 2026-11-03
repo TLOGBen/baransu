@@ -78,7 +78,7 @@
 | 同一則訊息裡的工具呼叫，hook 可能交錯執行 | 可能 | host 並行跑工具 | 假設 | 模型兩個呼叫同時進行 |
 | `$.session.cwd()` 是 shell 真正所在的目錄：前景 `cd` 會移動它，背景指令和子殼層不會；在 hook 裡讀到的是該執行者自己的 | 是 | `claude-code.d.ts` `cwd`「keep the value read inside the hook…(a subagent's own)」、`backgroundCwdHint`「the session cwd was not changed by a backgrounded command」 | 讀出；實際 session 未另外量 | 模型的 `cwdG` 就是它 |
 | 每次模型回覆是一個 `turn.step`；同一次回覆的工具呼叫都在下一個 step 之前 | 是 | `TurnStepInput`「a model request of the turn」 | 讀出 | 模型的 `MainStep` |
-| 工具呼叫之前的文字先串流（turn.step），它那一列的 session.append 在工具呼叫之後 | 是 | lint.ts 註解；0917b911 的 review | 讀出（程式註解）；引擎測試 F8 模擬這個順序 | 模型的 `MainPre`／`LateAppend`。**存疑**（2026-11-03）：真實 App 裡模型先寫了文字再動手，「動手前要說明」仍然觸發，表示文字沒被當成「說過話」——這個前提或它在 mock 測試裡的樣子可能不對。要在真實 App 實測（`/prove-it` 或 `/hunt`）；它影響的是「不該提醒卻提醒」，不在 R1–R11 裡（R10 只管該提醒的有沒有提醒） |
+| 工具呼叫之前的文字先串流（turn.step），它那一列的 session.append 在工具呼叫之後 | 是 | lint.ts 註解；0917b911 的 review | 讀出（程式註解）；引擎測試 F8 模擬這個順序 | 模型的 `MainPre`／`LateAppend`。**已推翻**（2026-11-03，HUNT-2026-001）：在 Claude Opus 5.5 上，模型在工具之間對使用者說的話以 `thinking` 區塊送出（官方 Opus 5.5 migration guide「Text between tool calls is returned in thinking blocks」，每個工具前最多一段；看不到的思考是空字串），App 照樣顯示給使用者；mod 只把 `text` chunk 當成說話。實測：log 4673–4765 text 0、thinking 38，transcript 的那段 thinking 就是使用者畫面上的話。這是事件內容的前提，不是事件順序，R1–R11 的結論不受影響；修正在 `translate.ts`（見案件檔） |
 | `result.isReadOnly` 標出唯讀的指令 | 是 | `claude-code.d.ts`「Bash `ls`: set」 | 讀出 | 模型的 `ro` |
 | `/clear` 觸發 `session.end`（reason `clear`），之後沒有 `session.start` | 是 | `SessionEndInput` 的說明 | 讀出 | 模型的 `Clear` |
 | 「交代」＝最後一次做事之後串流出 60 個字母以上（漢字算兩個） | 是 | 設計 | 讀出（程式） | 範圍外的判讀不在模型內 |
@@ -101,6 +101,28 @@
 - 0917b911（`Fix=TRUE, Now=FALSE`）：R1、R4、R5、R6、R7、R8、R11 被打破（P11–P17）。
 - 現在的版本植入一個 bug（Break）：R2 重述兩次、R3 subagent 觸發標記、R5 無條件欠交代、R7 一放行全部放行、R8 review 判斷忽略改檔、R11 放行不看回覆序號——六個都被抓到。
 - 引擎測試 41 個：P1–P9 在 8.37.0 第一版紅；新加的 12 個（F1–F8、F14、語言誤報）在 0917b911 紅；全部在 8.37.1 綠。原本 P10 的回合結束事件格式不完整，mod 的 hook 被跳過，之前是假綠，已改正。
+
+## 關鍵節點（突變分析，2026-11-03）
+
+問題：哪些 hook 步驟是任何狀態變化下都不准出錯的——單元測試該守在哪裡。做法：模型加常數 `Mut`，每個值拿掉一個步驟的核心效果，`python check.py --mutants --quick`（MaxSteps 7，R1–R12 全查；`-continue` 一次列出所有被打破的不變式）。`Mut = "none"` 時模型與之前相同。新增 R12（規則 A，使用者 2026-11-03）：動作前已經說過話，就不能被標「先說明」。
+
+| 節點（拿掉的效果） | 打破的規則 | 守著它的單元測試 |
+|---|---|---|
+| 重新載入後狀態還在（`reload-forgets`） | R1、R4、R9、R10 | P8（R9）、P9（R10）；R1、R4 在重新載入後**沒有測試** |
+| `/clear` 重設狀態（`clear-keeps`） | R5、R6、R8 | F14（只測 R1）；R5、R6、R8 在 `/clear` 後**沒有測試** |
+| 使用者訊息帶走欠的東西（`prompt-take`） | R1、R4 | P4、Q1、F7、F2 |
+| turn.start 重設這一輪的旗標（`start-reset`） | R6、R10 | P5（R6）；R10 在新一輪開始時**沒有測試** |
+| 工具前的串流文字被聽到（`stream-deaf`） | R12、R5 | 8.40.1 的 thinking 測試、spoke 三個測試 |
+| 最後一個工具後的文字被聽到（`text-deaf`） | R12、R5 | P10、F5 |
+| 改檔被計數（`no-edit-count`） | R8、R9 | P7、P8 |
+| 主迴圈的呼叫帶走待重述（`call-take`） | R2 | P3 |
+| 第一個沒說話的動作被標出（`no-explain`） | R10 | P9、8.40.1 的 hidden-thinking 測試 |
+| 刪除先暫停預覽（`no-hold`） | R6 | rm 被暫停、F3、F4 |
+| 做了事就忘掉之前的交代（`work-keeps-report`） | R4 | F8 |
+| turn.complete 記下欠交代（`no-owe`） | R4 | Q2 |
+| 答完的 /review 被記下（`review-ignored`） | **無** | — |
+
+讀法：打破越多規則的節點越關鍵；「沒有測試」的格子是單元測試該補的地方。`review-ignored` 沒打破任何規則，表示規則有洞，不是節點不重要：R8 只禁止「宣稱 review 過卻沒有」，沒有規則要求「review 過就要記下」，所以收尾紀錄把做過的 review 說成沒做（誤擋 /ship）在模型裡抓不到。補一條反向規則要使用者確認。
 
 ## 獨立推導
 
