@@ -12,7 +12,9 @@ const STATE = atom({ plugin: 'baransu', key: 'statusline' } as const, { tick: 0 
 
 const WINDOW_MS: Record<string, number> = { five_hour: 5 * 3600e3, seven_day: 7 * 86400e3 }
 const LABEL: Record<string, string> = { five_hour: '5 小時', seven_day: '7 天' }
-type Win = { kind: string; label: string; left: number; time: number; reset: string; risk: 0 | 1 | 2 }
+type Win = { kind: string; label: string; left: number; time: number; reset: string; risk: 0 | 1 | 2; unlimited?: boolean }
+// What a window says: its budget left, or 不限 for a plan with no such window.
+const winText = (w: Win) => (w.unlimited ? `${w.label} 不限` : `${w.label} 剩 ${w.left}%`)
 type Line = { model: string; effort?: string; ctx?: number; cache?: number; wins: Win[]; working: boolean }
 
 const pad = (n: number) => String(n).padStart(2, '0')
@@ -43,6 +45,10 @@ async function reading($: any, working: boolean): Promise<Line> {
     const time = Math.max(0, Math.min(100, Math.round((until / span) * 100)))
     wins.push({ kind: r.kind, label: LABEL[r.kind], left, time, reset: resetText(r.kind, r.resetsAt, now), risk: riskOf(left, time) })
   }
+  // A plan with weekly limits but no 5-hour one (Ultra) still gets its 5-hour slot, marked 不限.
+  if (wins.length && !wins.some(w => w.kind === 'five_hour')) {
+    wins.push({ kind: 'five_hour', label: LABEL.five_hour, left: 100, time: 100, reset: '', risk: 0, unlimited: true })
+  }
   wins.sort((a, b) => (a.kind === 'five_hour' ? -1 : b.kind === 'five_hour' ? 1 : 0))
   return { model, effort: s.effort, ctx: usage?.context?.percent, cache: s.cache, wins, working }
 }
@@ -63,7 +69,7 @@ function terminalTail(l: Line): string {
   const parts = [`${modelName(l.model)}${l.effort ? ` ${l.effort}` : ''}`]
   if (l.ctx !== undefined) parts.push(`context ${l.ctx}%${ctxNote(l.ctx)}`)
   if (l.cache !== undefined) parts.push(`cache ${l.cache}%`)
-  for (const w of l.wins) parts.push(`${w.label} 剩 ${w.left}%${w.reset ? `（${w.reset} 補回）` : ''}`)
+  for (const w of l.wins) parts.push(`${winText(w)}${w.reset ? `（${w.reset} 補回）` : ''}`)
   return parts.join('   ')
 }
 
@@ -84,6 +90,8 @@ function ctxBar(ctx: number, colour: string): string {
 const lastLeft = new Map<string, number>()
 const W = 96
 function windowBar(w: Win, colour: string, hot: boolean): string {
+  // No such window on this plan: one full, quiet line, with no clock under it.
+  if (w.unlimited) return svg(W + 8, 14, `<rect x="4" y="3" width="${W}" height="5" rx="2.5" fill="${C.grey}" fill-opacity=".45"/>`)
   const to = (W * w.left) / 100
   const from = lastLeft.get(w.kind)
   lastLeft.set(w.kind, to)
@@ -110,8 +118,8 @@ function desktopRow(els: any, l: Line, columns: number): any {
   const { Box, Text: T, Svg } = els
   const Text = (props: any, s: string) => h(T, { size: 'footnote', ...props }, s)
   const focus = focusOf(l.wins)
-  const bars = columns >= 100
-  const resets = columns >= 70
+  const bars = columns >= 80
+  const resets = columns >= 60
   const item = (key: string, ...kids: any[]) => h(Box, { key, flexDirection: 'row', columnGap: 1, alignItems: 'center', flexShrink: 0 }, ...kids)
   const parts: any[] = []
   if (l.working) parts.push(item('spin', h(Svg, { source: SPINNER, alt: '執行中', width: 14, height: 14, isInteractive: true })))
@@ -128,8 +136,8 @@ function desktopRow(els: any, l: Line, columns: number): any {
     const hot = focus === w
     const colour = hot ? (w.risk === 2 ? C.red : C.amber) : C.grey
     parts.push(item(w.kind,
-      hot ? Text({ color: colour, weight: 'semibold', tabular: true }, `${w.label} 剩 ${w.left}%`) : Text({ tabular: true }, `${w.label} 剩 ${w.left}%`),
-      bars ? h(Svg, { source: windowBar(w, colour, hot), alt: `${w.label} 剩 ${w.left}%，時間剩 ${w.time}%`, width: W + 8, height: 14, isInteractive: true }) : null,
+      hot ? Text({ color: colour, weight: 'semibold', tabular: true }, winText(w)) : Text({ tabular: true }, winText(w)),
+      bars ? h(Svg, { source: windowBar(w, colour, hot), alt: w.unlimited ? winText(w) : `${winText(w)}，時間剩 ${w.time}%`, width: W + 8, height: 14, isInteractive: true }) : null,
       w.reset && resets && w.kind === 'five_hour' ? Text({ dimColor: true, tabular: true }, w.reset) : null))
   }
   return h(Box, { flexDirection: 'row', flexWrap: 'nowrap', columnGap: 2, alignItems: 'center' }, ...parts)
@@ -185,7 +193,10 @@ export const register: Register = on => {
     tickEachMinute($)
     const line = await reading($, !!e.props?.isWorking)
     if (!line.model && !line.wins.length && line.ctx === undefined) return next(e)
-    return h(els.Box, { flexDirection: 'column', rowGap: 1 }, desktopRow(els, line, e.props?.bodyColumns ?? 120), await next(e)) as any
+    // What else draws in the band (another plugin, the engine) goes under the row; nothing there, no row for it.
+    const row = desktopRow(els, line, e.props?.bodyColumns ?? 120)
+    const rest = await next(e)
+    return (rest ? h(els.Box, { flexDirection: 'column', rowGap: 1 }, row, rest) : row) as any
   }).catch(($, e, next) => next(e))
 
   on('ui.render', { component: 'PromptHint' }, async ($, e: any, next) => {
