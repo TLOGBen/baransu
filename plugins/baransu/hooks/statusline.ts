@@ -2,9 +2,11 @@ import { atom, read, update } from 'claude-code'
 import type { Register } from 'claude-code'
 import type { StatuslineState } from '../types'
 
-// The status line under the prompt: model and effort, context with a compaction reminder, cache hit rate,
-// and the 5-hour and 7-day windows as two-layer lines (thick: budget left; thin: time left until it refills).
-// Only the window most at risk is coloured. Design: https://claude.ai/artifact/EkcP9pAz6y89uYhuFSkUUD.
+// The status line: model and effort, context with a compaction reminder, cache hit rate, and the 5-hour
+// and 7-day windows as two-layer lines (thick: budget left; thin: time left until it refills). Only the
+// window most at risk is coloured. Design: https://claude.ai/artifact/EkcP9pAz6y89uYhuFSkUUD.
+// The desktop draws it as a row above the prompt: text in the app's own Text, only the bars as small SVG.
+// The terminal adds it to the end of the hint line under the prompt.
 
 const STATE = atom({ plugin: 'baransu', key: 'statusline' } as const, { tick: 0 } as StatuslineState)
 
@@ -59,87 +61,79 @@ function terminalTail(l: Line): string {
   return parts.join('   ')
 }
 
-const esc = (s: string) => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
+// The app draws an SVG as an image that knows nothing of its theme, so these read on light and dark alike.
+const C = { amber: '#c0841a', red: '#d64545', blue: '#3b7dd8', grey: '#8a8f98', text: '#7d838c' }
+const svg = (w: number, h: number, body: string) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${body}</svg>`
+const MOTION = '<style>@media (prefers-reduced-motion: reduce){*{animation:none!important}}</style>'
+
+const SPINNER = svg(14, 14, `${MOTION}<style>@keyframes spin{to{transform:rotate(360deg)}}.s{transform-origin:7px 7px;animation:spin 1.4s linear infinite}</style><circle cx="7" cy="7" r="5" fill="none" stroke="${C.grey}" stroke-opacity=".3" stroke-width="2"/><path class="s" d="M7 2 A5 5 0 0 1 12 7" fill="none" stroke="${C.grey}" stroke-width="2" stroke-linecap="round"/>`)
+
+const EFFORTS = ['low', 'medium', 'high', 'xhigh', 'max']
+function effortBars(effort: string): string {
+  const n = EFFORTS.indexOf(effort) + 1
+  return svg(28, 12, EFFORTS.map((_, i) => `<rect x="${i * 6}" y="${12 - (4 + i * 2)}" width="4" height="${4 + i * 2}" rx="1" fill="${C.text}" fill-opacity="${i < n ? 1 : 0.25}"/>`).join(''))
+}
+
+function ctxBar(ctx: number, colour: string): string {
+  return svg(56, 6, `<rect width="56" height="6" rx="3" fill="${C.grey}" fill-opacity=".28"/><rect width="${Math.max(6, (56 * ctx) / 100)}" height="6" rx="3" fill="${colour}"/>`)
+}
+
 // What the last drawing showed, so a changed value slides from there. Only the motion uses it; after a
 // reload of the mod the next drawing simply starts without a slide.
 const lastLeft = new Map<string, number>()
+const W = 96
+function windowBar(w: Win, colour: string, hot: boolean): string {
+  const to = (W * w.left) / 100
+  const from = lastLeft.get(w.kind)
+  lastLeft.set(w.kind, to)
+  const slide = from !== undefined && Math.abs(from - to) > 0.5
+  const css = [
+    MOTION,
+    slide ? `<style>@keyframes s{from{width:${from}px}to{width:${to}px}}.f{animation:s .7s cubic-bezier(.2,.8,.2,1) both}</style>` : '',
+    hot ? '<style>@keyframes p{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.9);opacity:.35}}.cap{transform-box:fill-box;transform-origin:center;animation:p 1.3s ease-in-out infinite}</style>' : '',
+  ].join('')
+  return svg(W + 8, 14,
+    `${css}<g transform="translate(4 0)">` +
+    `<rect y="3" width="${W}" height="5" rx="2.5" fill="${C.grey}" fill-opacity=".28"/>` +
+    `<rect class="f" y="3" width="${to}" height="5" rx="2.5" fill="${colour}"/>` +
+    (hot ? `<circle class="cap" cx="${to}" cy="5.5" r="3.5" fill="${colour}"/>` : '') +
+    `<rect y="11" width="${W}" height="2" rx="1" fill="${C.grey}" fill-opacity=".2"/>` +
+    `<rect y="11" width="${(W * w.time) / 100}" height="2" rx="1" fill="${C.grey}"/></g>`)
+}
 
-function svgLine(l: Line): { source: string; width: number } {
+function desktopRow(els: any, l: Line, columns: number): any {
+  const { Box, Text, Svg } = els
   const focus = focusOf(l.wins)
-  const col = (r: number) => (r === 2 ? 'var(--red)' : 'var(--amber)')
-  const x0 = 0
-  let x = x0
-  const out: string[] = []
-  const text = (t: string, cls = 't', extra = '') => {
-    out.push(`<text x="${x}" y="16" class="${cls}"${extra}>${esc(t)}</text>`)
-    // A rough width: CJK about one em, everything else about 0.58 em at 12 px.
-    x += [...t].reduce((n, c) => n + (/[　-鿿＀-￯]/.test(c) ? 12 : 7), 0)
-  }
-  const keyframes: string[] = []
-  // Model and effort, with the spinner while a turn runs.
-  out.push(`<g transform="translate(${x + 7} 12)"><circle r="5" fill="none" style="stroke:var(--track)" stroke-width="2"/><path class="${l.working ? 'spin' : ''}" d="M0 -5 A5 5 0 0 1 5 0" fill="none" style="stroke:var(--muted)" stroke-width="2" stroke-linecap="round"/></g>`)
-  x += 20
-  text(l.model || 'Claude', 'b')
-  x += 6
-  if (l.effort) {
-    const levels = ['low', 'medium', 'high', 'xhigh', 'max']
-    const n = levels.indexOf(l.effort) + 1
-    for (let i = 0; i < 5; i++) out.push(`<rect x="${x + i * 6}" y="${18 - (6 + i * 2)}" width="4" height="${6 + i * 2}" rx="1" style="fill:var(${i < n ? '--text' : '--track'})"/>`)
-    x += 34
-    text(l.effort, 'm')
-  }
-  x += 24
-  // Context and its compaction reminder.
+  const bars = columns >= 80
+  const item = (key: string, ...kids: any[]) => h(Box, { key, flexDirection: 'row', columnGap: 1, alignItems: 'center' }, ...kids)
+  const parts: any[] = []
+  parts.push(item('model',
+    l.working ? h(Svg, { source: SPINNER, alt: '執行中', width: 14, height: 14, isInteractive: true }) : null,
+    h(Text, { weight: 'semibold' }, l.model || 'Claude'),
+    l.effort ? h(Svg, { source: effortBars(l.effort), alt: `努力度 ${l.effort}`, width: 28, height: 12 }) : null,
+    l.effort ? h(Text, { dimColor: true }, l.effort) : null))
   if (l.ctx !== undefined) {
-    const c = l.ctx >= 90 ? 'var(--red)' : l.ctx >= 75 ? 'var(--amber)' : 'var(--grey)'
-    text('context', 'm')
-    x += 6
-    out.push(`<rect x="${x}" y="10" width="72" height="4" rx="2" style="fill:var(--track)"/><rect x="${x}" y="10" width="${(72 * l.ctx) / 100}" height="4" rx="2" style="fill:${c}"/>`)
-    x += 80
-    text(`${l.ctx}%${ctxNote(l.ctx)}`, l.ctx >= 75 ? 'b' : 't', l.ctx >= 75 ? ` style="fill:${c}"` : '')
-    x += 24
+    const colour = l.ctx >= 90 ? C.red : l.ctx >= 75 ? C.amber : C.grey
+    parts.push(item('ctx',
+      h(Text, { dimColor: true }, 'context'),
+      bars ? h(Svg, { source: ctxBar(l.ctx, colour), alt: `context ${l.ctx}%`, width: 56, height: 6 }) : null,
+      l.ctx >= 75
+        ? h(Text, { color: colour, weight: 'semibold', tabular: true }, `${l.ctx}%${ctxNote(l.ctx)}`)
+        : h(Text, { tabular: true }, `${l.ctx}%`)))
   }
   if (l.cache !== undefined) {
-    text('cache', 'm')
-    x += 6
-    text(`${l.cache}%`, 'b', ' style="fill:var(--blue)"')
-    x += 24
+    parts.push(item('cache', h(Text, { dimColor: true }, 'cache'), h(Text, { color: C.blue, weight: 'semibold', tabular: true }, `${l.cache}%`)))
   }
-  // The two-layer lines.
-  l.wins.forEach((w, i) => {
+  for (const w of l.wins) {
     const hot = focus === w
-    const c = hot ? col(w.risk) : 'var(--grey)'
-    text(`${w.label} 剩 ${w.left}%`, hot ? 'b' : 't', hot ? ` style="fill:${c}"` : '')
-    x += 8
-    const from = lastLeft.get(w.kind)
-    const to = (120 * w.left) / 100
-    const slide = from !== undefined && Math.abs(from - to) > 0.5
-    if (slide) keyframes.push(`@keyframes s${i}{from{width:${from}px}to{width:${to}px}}`)
-    lastLeft.set(w.kind, to)
-    out.push(`<rect x="${x}" y="7" width="120" height="5" rx="2.5" style="fill:var(--track)"/>`)
-    out.push(`<rect x="${x}" y="7" width="${to}" height="5" rx="2.5" style="fill:${c}${slide ? `;animation:s${i} .7s cubic-bezier(.2,.8,.2,1) both` : ''}"/>`)
-    if (hot) out.push(`<circle class="cap" cx="${x + to}" cy="9.5" r="3.5" style="fill:${c}"/>`)
-    out.push(`<rect x="${x}" y="15" width="120" height="2" rx="1" style="fill:var(--line)"/><rect x="${x}" y="15" width="${(120 * w.time) / 100}" height="2" rx="1" style="fill:var(--grey)"/>`)
-    x += 128
-    if (w.reset) text(`${w.reset} 補回`, 'm')
-    x += 24
-  })
-  const width = Math.ceil(x)
-  const style = `
-:root{--text:#1F2421;--muted:#646B67;--track:#DCDFDB;--line:#E6E8E5;--grey:#9AA19D;--amber:#B87507;--red:#C2362F;--blue:#2F6FD0}
-@media (prefers-color-scheme: dark){:root{--text:#E8ECE9;--muted:#A3ABA6;--track:#3A423E;--line:#2C3330;--grey:#7D8681;--amber:#E0A54A;--red:#EE6A5F;--blue:#7FA8EA}}
-text{font:12px "Noto Sans TC","Microsoft JhengHei","PingFang TC",system-ui,sans-serif;font-variant-numeric:tabular-nums}
-.t{fill:var(--text)}.m{fill:var(--muted)}.b{fill:var(--text);font-weight:700}
-@keyframes cap{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.9);opacity:.35}}
-@keyframes spin{to{transform:rotate(360deg)}}
-.cap{transform-box:fill-box;transform-origin:center;animation:cap 1.3s ease-in-out infinite}
-.spin{transform-origin:0 0;animation:spin 1.4s linear infinite}
-${keyframes.join('\n')}
-@media (prefers-reduced-motion: reduce){*{animation:none!important}}`
-  return {
-    width,
-    source: `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="24" viewBox="0 0 ${width} 24"><style>${style}</style>${out.join('')}</svg>`,
+    const colour = hot ? (w.risk === 2 ? C.red : C.amber) : C.grey
+    parts.push(item(w.kind,
+      hot ? h(Text, { color: colour, weight: 'semibold', tabular: true }, `${w.label} 剩 ${w.left}%`) : h(Text, { tabular: true }, `${w.label} 剩 ${w.left}%`),
+      bars ? h(Svg, { source: windowBar(w, colour, hot), alt: `${w.label} 剩 ${w.left}%，時間剩 ${w.time}%`, width: W + 8, height: 14, isInteractive: true }) : null,
+      w.reset ? h(Text, { dimColor: true, tabular: true }, `${w.reset} 補回`) : null))
   }
+  return h(Box, { flexDirection: 'row', flexWrap: 'wrap', columnGap: 3, rowGap: 1, alignItems: 'center' }, ...parts)
 }
 
 // What only a main-loop response carries: its effort, and how much of its input came from the cache.
@@ -168,6 +162,16 @@ export async function* statuslineTurnStep($: any, e: any, next: any): any {
   }
 }
 
+// A window's time layer, and the colour judged against it, move with the clock while nothing else
+// redraws the row (no turn, no usage change): redraw each minute.
+// Started by the first drawing; a reload starts the module, and so this, over.
+let ticking = false
+function tickEachMinute($: any) {
+  if (ticking) return
+  ticking = true
+  try { $.clock.every(60e3, () => $.ui.invalidate('ui.render')) } catch { ticking = false }
+}
+
 export const register: Register = on => {
   // The session's usage moved (a turn ended, a window moved a point): redraw.
   on('session.measure', async ($, e, next) => {
@@ -175,16 +179,21 @@ export const register: Register = on => {
     return next(e)
   })
 
-  on('ui.render', { component: 'PromptHint' }, async ($, e: any, next) => {
-    const line = await reading($, !!e.props?.isWorking)
-    if (!line.model && !line.wins.length && line.ctx === undefined) return next(e)
-    if (e.surface === 'terminal') return next({ ...e, props: { ...e.props, tail: terminalTail(line) } })
+  on('ui.render', { component: 'AbovePrompt' }, async ($, e: any, next) => {
+    if (e.surface === 'terminal' || e.props?.hasSurvey) return next(e)
     const els = $.ui.resolve(e) as any
     if (!els.Svg) return next(e)
-    const { source, width } = svgLine(line)
-    const hint = await next(e)
-    return h(els.Box, { flexDirection: 'column', gap: 'xs' },
-      h(els.Svg, { source, alt: terminalTail(line), width, height: 24, isInteractive: true }),
-      hint) as any
+    tickEachMinute($)
+    const line = await reading($, !!e.props?.isWorking)
+    if (!line.model && !line.wins.length && line.ctx === undefined) return next(e)
+    return h(els.Box, { flexDirection: 'column', rowGap: 1 }, desktopRow(els, line, e.props?.bodyColumns ?? 120), await next(e)) as any
+  }).catch(($, e, next) => next(e))
+
+  on('ui.render', { component: 'PromptHint' }, async ($, e: any, next) => {
+    if (e.surface !== 'terminal') return next(e)
+    tickEachMinute($)
+    const line = await reading($, !!e.props?.isWorking)
+    if (!line.model && !line.wins.length && line.ctx === undefined) return next(e)
+    return next({ ...e, props: { ...e.props, tail: terminalTail(line) } })
   }).catch(($, e, next) => next(e))
 }

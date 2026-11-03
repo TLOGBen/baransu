@@ -25,7 +25,7 @@ plugins/
     hooks/
       hooks.json  main.ts      # the plugin's one hooks module: registers lint.ts and statusline.ts
       lint.ts                  # the lint mod: runs a project's .claude/lint/ checks at their moments
-      statusline.ts            # the status line under the prompt: model, effort, context, cache, 5-hour and 7-day windows
+      statusline.ts            # the status line (desktop: a row above the prompt; terminal: the hint line's tail): model, effort, context, cache, 5-hour and 7-day windows
     rules/
       anti-patterns.md         # cross-skill behavioral guardrails
     agents/
