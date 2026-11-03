@@ -6,14 +6,17 @@
    can never be taken, and neither SANY nor TLC says so (TLC just explores fewer states). A variable primed in one
    branch of IF ... THEN UNCHANGED ... ELSE is not top-level and is left alone.
 
-Used by .claude/lint/checks/tla-parses.toml. Both checks come from mistakes made on 2026-11-03.
+Copied into a project's .claude/lint/scripts/ by /lint init at the 嚴格 level, with checks/tla-parses.toml beside
+it. Both checks come from mistakes made on 2026-11-03. The jar is TLA2TOOLS_JAR when set, else the usual install
+path; with no jar at all the module is not checked and the reason is printed (exit 0: a missing tool is no error).
 """
+import os
 import re
 import subprocess
 import sys
 from pathlib import Path
 
-JAR = Path.home() / ".local" / "share" / "formal" / "tla" / "tla2tools.jar"
+JAR = Path(os.environ.get("TLA2TOOLS_JAR") or Path.home() / ".local" / "share" / "formal" / "tla" / "tla2tools.jar")
 DEF = re.compile(r"^([A-Za-z_]\w*)\s*(\([^)]*\))?\s*==")
 TUPLE = re.compile(r"^([A-Za-z_]\w*)\s*==\s*<<(.*?)>>\s*$", re.S)
 
@@ -97,10 +100,15 @@ def contradictions(text: str) -> list[str]:
 
 
 def main() -> int:
+    for stream in (sys.stdout, sys.stderr):
+        stream.reconfigure(encoding="utf-8")
     if len(sys.argv) != 2:
         print("usage: tla-parse.py <file.tla>")
         return 2
     path = Path(sys.argv[1]).resolve()
+    if not JAR.is_file():
+        print(f"找不到 tla2tools.jar（{JAR}），這個模組沒檢查；設 TLA2TOOLS_JAR 指到它", file=sys.stderr)
+        return 0
     err = sany(path)
     if err:
         print(err)

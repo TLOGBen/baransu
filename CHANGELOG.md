@@ -2,6 +2,21 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.42.0] - 2026-11-03
+
+### Added（lint）
+- `/lint help`：介紹 lint 怎麼用，包括等級、時機、一條檢查能做的事、六種結果，以及 error 在各時機的效果。
+- `/lint show`：從檢查檔列出這個專案的每條規則，照時機分組，每條寫出範圍、白話說它在找什麼、等級，關掉的也列出來。`help` 和 `show` 都不會先跑全部檢查。
+- 嚴格等級多一條 `tla-parses`：
+  - 改 `.tla` 檔時，用 SANY 解析，並抓「同一個動作既改一個變數、又把它列進 UNCHANGED」（這種動作永遠不會發生，TLC 也不會提醒）。
+  - 腳本隨檢查一起複製到 `.claude/lint/scripts/`；機器上沒有 tla2tools.jar 時不檢查，也不算失敗。
+
+### Fixed（lint 預設規則）
+- `no-force-push` 也擋 `git push origin +main` 這種在分支名前加 `+` 的強制推送。
+- `no-skip-hooks` 也擋 `git commit -n`（`--no-verify` 的縮寫）；commit 訊息裡出現的 `-n` 不算。
+- `secret-files` 不再擋 `.env.example`、`.sample`、`.template` 這類範例檔。
+- 個人組的兩條 pip 規則合併成一條 `pip-install-global`，同時在指令前和改檔後跑；`pip-install-command` 移除。
+
 ## [8.41.0] - 2026-11-03
 
 ### Added（lint）

@@ -241,6 +241,8 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
     },
 
     async skillPrompt(e: DoneSkillEvent): Promise<SkillPreface> {
+      // `/lint help` explains, `/lint show` lists the checks from their files: neither runs one.
+      if (e.skill === 'lint' && /^(help|show)\b/i.test(e.args)) return null
       const isReview = e.skill === 'review'
       if (isReview) {
         // Counted when the review's turn ends with an answer (turnCompleted), not when it starts.

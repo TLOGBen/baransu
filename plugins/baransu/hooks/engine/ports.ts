@@ -79,6 +79,57 @@ export type Ports<H> = {
   readonly whatNowSkill: (h: H) => string
 }
 
+// ---------------------------------------------------------------- scope types (sketch: not wired into Ports yet)
+// Wiring adds `machine: Machine<H>` and `languages: readonly Language[]` to Ports (.claude/draft/lint-scope.md).
+
+/**
+ * What only the host's machine knows, for `when` guards. Hides how the host exposes the platform, the
+ * environment and PATH lookup (adapters/claude-code/machine.ts). Each answer is a domain value, never a raw
+ * platform string. Never throws: an answer it cannot get is undefined.
+ */
+export interface Machine<H> {
+  os(h: H): Promise<'windows' | 'linux' | 'mac' | undefined>
+  /** undefined: not set. */
+  env(h: H, name: string): Promise<string | undefined>
+  /** Whether a command name resolves on the PATH of the shell the checks run in. */
+  onPath(h: H, command: string): Promise<boolean | undefined>
+}
+
+/** One fact a source line states. `spec` is the specifier as written; resolution is the language's job. */
+export type SourceFact =
+  | { readonly kind: 'import'; readonly spec: string }
+  /** A namespace (C#), package (Java), or module path (Rust `mod x;`) the file declares. */
+  | { readonly kind: 'declare'; readonly name: string }
+  /** A name other files can use (exported function, public class), for the mentions relation. */
+  | { readonly kind: 'export'; readonly name: string }
+
+/** What resolution may consult: the project's files of this language, and who declares what. */
+export type TreeView = {
+  readonly files: ReadonlySet<string>
+  /** declare name → files declaring it (C# namespace → its files, Java package → its files). */
+  readonly declared: ReadonlyMap<string, readonly string[]>
+}
+
+/**
+ * One language's import syntax, like RuleConverter a pure reader the engine is handed: it sees text, never the
+ * outside; the engine runs the git greps. Five adapters in util/languages/ cover six languages (TypeScript and
+ * JavaScript share one). Adding a language is one file there and one line in its index.
+ */
+export interface Language {
+  readonly id: string
+  /** Lower-case extensions without the dot. Two languages never share one. */
+  readonly exts: readonly string[]
+  /** A PCRE (git grep -P) matching every line that can carry a SourceFact. Over-matching is fine. */
+  readonly lines: string
+  /** One grepped line → its facts. */
+  read(path: string, line: string): readonly SourceFact[]
+  /** A specifier → project files it names; [] for anything outside the project. */
+  resolve(spec: string, from: string, tree: TreeView): readonly string[]
+  /** A PCRE matching a line in another file that imports `path`, for the edit moment's one-hop search.
+   *  null: not findable by name. */
+  importerPattern(path: string, ownFacts: readonly SourceFact[]): string | null
+}
+
 // ================================================================ portIn
 
 /** The engine as a module holds it: one per module load. */

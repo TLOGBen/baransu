@@ -1,7 +1,7 @@
 ---
 name: lint
 description: "Keeps a project's lint gate in `.claude/lint/`: copies baransu's preset into the project, adds, disables or changes the severity of a check, explains why a rule exists, and syncs the preset after an update; the baransu mod then runs each check at its moment — after an edit, before a git commit or push, before /ship or /review, and first thing when this skill is called (every check, manual-only ones included) — and shows the result in the chat. Trigger On '/lint', 'lint 規則', '加一條 lint', '初始化 lint', '這條規則為什麼', 'lint preset', '別再犯這個錯'. Not for diagnosing a failure (/hunt) or auditing agent config (/health)."
-argument-hint: "[init | add <mistake> | <check> off|warn|error | why <check> | sync] — runs every check first"
+argument-hint: "[help | show | init | add <mistake> | <check> off|warn|error | why <check> | sync] — runs every check first (not for help or show)"
 ---
 
 # lint — keep the checks that make a known mistake impossible
@@ -36,7 +36,7 @@ All user-facing output is in Traditional Chinese.
 
 - **關閉** — no preset; only the project's own checks.
 - **預設** — `preset/general/`, and from `preset/personal/` the 3–7 checks that fit this project. Read the project first — its languages, scripts, shells, tools, and the owner's rules that apply to it — then recommend those checks, one line each with why it fits here, and let the user confirm. Never hand over the whole personal list to tick.
-- **嚴格** — 預設, with `built-before-commit`, `up-to-date` and `private-key-material` raised to `error`, plus one TLA+ check per `.claude/hypothesis/<area>/` in the project, written from that hypothesis's README as `references/format.md` (last section) shows. The TLA+ checks stay off below this level: most projects keep no model, and TLC is the slowest check there is.
+- **嚴格** — 預設, with `built-before-commit`, `up-to-date` and `private-key-material` raised to `error`, plus one TLA+ check per `.claude/hypothesis/<area>/` in the project, written from that hypothesis's README as `references/format.md` (last section) shows, and `preset/strict/`: its `tla-parses` check, copied to `checks/`, with its script copied to `.claude/lint/scripts/tla-parse.py` (it parses each edited `.tla` with SANY and catches an action that both changes a variable and lists it in UNCHANGED). The TLA+ checks stay off below this level: most projects keep no model, and TLC is the slowest check there is.
 
 Then copy into the project: show the list with one line per check and let the user drop any before copying. Write `sgconfig.yml` when any rule is copied. Each copied file keeps a `from = "baransu-preset@<version>"` line, the version from `../../.claude-plugin/plugin.json`. If `.claude/lint/` would be ignored by git (`git check-ignore`), say so, because the checks would then not reach the repo or its CI.
 
@@ -44,7 +44,9 @@ Then copy into the project: show the list with one line per check and let the us
 
 **Disable or change severity.** Change `severity` to `error`, `warn` or `off` in that check's file. Never delete a preset check the user only wants quiet: `off` keeps it visible to the next sync.
 
-**Introduce** (`/lint` with no other ask, or 「現在有哪些 lint」). Show what the project's lint does, grouped by the moments "What the mod does" lists (manual included: the checks that run only when this skill is called) — each check in one line: what it blocks and how severe. Pick the smallest view that makes the shape clear from the forms `../show-me/SKILL.md` lays out (a flow of those moments is usually it) and draw it inline; that skill is invoked only by the user, so read it rather than calling it.
+**Help** (`/lint help`, or 「lint 怎麼用」). Explain how lint is used, for someone who has not used it: what it is for, the three levels, the moments a check can run at, what a check can do (`forbid`, `run`, an ast-grep rule, a built-in), every outcome — error, warn, off, 重新, a preview's hold (held once, let through when sent again in a later response), a note — and what an error does at each moment (after an edit it is shown, the edit already made; before a command or a commit the call is refused; before `/ship` it says stop; before `/review` it is a record only; `explain-before-edit` at error holds the edit once), the uses of this skill, and one example check file. Take every fact from `references/format.md` and this file, not from memory. Nothing is run.
+
+**Show** (`/lint show`, or 「現在有哪些 lint」). List every check in this project's `.claude/lint/`, read from the files — the ones turned off too — grouped by the moment it runs at, one row each: its id; its scope in plain words (「整個專案」, 「只看 `*.tla`」, 「`src/` 底下，排除測試」); what it looks for in plain words — a `forbid` regex or a `run` command translated into what it catches, a built-in by what it does — never the raw pattern alone; and its level (error / warn / off, and 重新 for a redo built-in). End with the ast-grep rules, one line each. Nothing is run. `/lint` with no other ask runs every check first (the mod does), says what that found, then shows this list.
 
 **Explain.** For a check id or a message the user saw: what it blocks, the evidence it came from (its `from`, its `origin` commit, or the rule it restates), and what to write instead. Read the file and the commit; do not answer from memory.
 

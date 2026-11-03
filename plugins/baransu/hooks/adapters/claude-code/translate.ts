@@ -79,7 +79,9 @@ export const turnEndEvent = (e: Args<'turn.complete'>): TurnEndEvent => ({ ...ac
 export const skillEvent = (e: Args<'skill.prompt'>): DoneSkillEvent | null => {
   const name = (e as any).skill
   if (typeof name !== 'string' || !name) return null
-  return { skill: Object.hasOwn(DONE_SKILLS, name) ? DONE_SKILLS[name] : 'other', name }
+  // The host appends what was typed after the skill as the text's last line, `ARGUMENTS: …`.
+  const args = /\nARGUMENTS:[ \t]*([^\n]*)\s*$/.exec(String((e as any).text ?? ''))?.[1].trim() ?? ''
+  return { skill: Object.hasOwn(DONE_SKILLS, name) ? DONE_SKILLS[name] : 'other', name, args }
 }
 
 /** Pass each chunk on unchanged, calling `see` on the way, and return the generator's own return value. */

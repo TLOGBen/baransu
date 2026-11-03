@@ -14,7 +14,7 @@ import type { Check, Config, Finding, LintState } from './types'
  * Then the git built-ins and "what the change touches" are asked of that repo, and forbid and ast-grep report
  * only its files.
  */
-type Look<H> = {
+export type Look<H> = {
   readonly runner: Runner<H>
   readonly h: H
   readonly config: Config
@@ -288,8 +288,10 @@ async function gitFactsAtCommit<H>(look: Look<H>, c: Check, command: string): Pr
 
 async function secretFiles<H>(look: Look<H>, c: Check): Promise<Finding[]> {
   const staged = (await runGit(look, ['git', 'diff', '--cached', '--name-only'])).stdout.split(/\r?\n/).filter(Boolean)
+  // A committed example (.env.example, app.env.sample, .env.template) shows the shape of a secret, not one.
   const bad = staged.filter((p: string) =>
-    /(^|\/)(\.env(\..*)?|[^/]*\.pem|[^/]*\.key|id_rsa[^/]*|[^/]*\.p12|credentials[^/]*\.json)$/i.test(p),
+    /(^|\/)(\.env(\..*)?|[^/]*\.pem|[^/]*\.key|id_rsa[^/]*|[^/]*\.p12|credentials[^/]*\.json)$/i.test(p) &&
+    !/\.(example|sample|template)$/i.test(p),
   )
   return bad.map((p: string) => ({ id: c.id, severity: c.severity, text: `${p}：${c.message}` }))
 }

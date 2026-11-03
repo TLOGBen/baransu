@@ -115,8 +115,9 @@ export type SpokenEvent = Actor & { readonly text: string }
 /** A whole assistant row as it is kept (session.append) — counts as speaking and is read for its language. */
 export type ReplyEvent = Actor & { readonly text: string }
 /** A skill starting. `skill`: /ship and /review read the done moment's record, /lint the manual run; any other
- *  skill ('other') gets a record only from the checks whose `on` names it. `name` is the skill as invoked. */
-export type DoneSkillEvent = { readonly skill: 'ship' | 'review' | 'lint' | 'other'; readonly name: string }
+ *  skill ('other') gets a record only from the checks whose `on` names it. `name` is the skill as invoked;
+ *  `args` what was typed after it (`/lint help` → 'help'), '' when nothing was. */
+export type DoneSkillEvent = { readonly skill: 'ship' | 'review' | 'lint' | 'other'; readonly name: string; readonly args: string }
 
 // ---------------------------------------------------------------- verdicts
 
