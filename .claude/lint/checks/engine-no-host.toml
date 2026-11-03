@@ -1,0 +1,8 @@
+# The lint engine knows nothing of Claude Code: the host's `$` (and anything reached through it) appears only
+# under adapters/. An engine or util file that touches `$.` puts the platform back inside the engine, and the
+# next adapter would have to fake Claude Code to reuse it.
+severity = "error"
+on = ["edit", "commit", "done"]
+files = ["plugins/baransu/hooks/engine/**", "plugins/baransu/hooks/util/**"]
+forbid = '\$\.[a-z]'
+message = "引擎和 util 不碰平台：把需要的東西加成 engine/ports.ts 的 portOut，由 adapters/claude-code 實作"

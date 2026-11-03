@@ -2,6 +2,38 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.40.0] - 2026-11-03
+
+### Fixed（lint）
+- 不是 git repo 的資料夾也吃得到 lint：
+  - 原本 mod 只用 `git rev-parse` 找專案根目錄。像 NDSP_Workspace 這種底下放好幾個 repo、本身不是 repo 的工作資料夾，整個 mod 都沒啟動，`.claude/lint/` 裡的三十條檢查全部沒作用，連「照使用者語言」也沒抓到英文回覆。
+  - 現在根目錄改成：從目前所在的資料夾往上找，第一個有 `.claude/lint/` 的資料夾。找不到才退回 git 的根目錄。
+  - 工作資料夾裡的 commit 和 push，每一個 git 寫入各在它所在的子 repo 檢查一次。子 repo 從指令讀出，看 `cd`、`Set-Location` 或 `git -C`；同一行指令 commit 兩個 repo，兩個都會檢查。
+    - 身分與推送習慣、機敏檔、是否最新，以及「這次改到哪些檔」，都讀那個子 repo。
+    - `forbid` 和 ast-grep 照樣用 lint 根目錄的設定、路徑範圍和 sgconfig，結果只保留那個子 repo 的檔案，所以工作資料夾層級的檔不會擋 commit。帶 `files` 的 `run` 只在那個子 repo 改到它的檔案時跑；不帶 `files` 的 `run` 照舊在 lint 根目錄跑。
+    - 一次 commit 好幾個 repo 時，每條訊息前面標出是哪個 repo。
+  - `.claude/lint/` 放在某個 repo 的子資料夾裡時，commit 的 git 檢查讀那個 repo。
+  - 看不出 commit 在哪個 repo 時（路徑用了 `~`、變數、`cd -`、`popd`，或 git 包在 `bash -c` 這類指令裡），或那個目錄沒有 repo 可以檢查時，會給一條 warn 說明「commit 照常執行，但檢查沒有跑」，不會安靜跳過。
+  - 工作資料夾裡判斷「這是不是 commit／push」，只看真的由 git 開頭的那一段指令，`for …; do`、`if …; then` 這類開頭的關鍵字會先拿掉再看。`rg "git push"`、`echo "…git commit…"`、`git log --grep commit` 這種只是提到的，不會當成 commit。包在 `bash -c`、`pwsh -c`、`cmd /c` 裡的 commit 會給 warn，說明看不出在哪個 repo。
+  - 一般專案（根目錄本身就是 repo）的 commit 照舊在根目錄檢查，行為跟 8.39 一樣。
+  - 其他時機在非 git 資料夾裡照樣跑。`forbid` 改用 `git grep --no-index --exclude-standard` 搜整個資料夾，各 repo 自己的 `.gitignore` 照樣生效，不會掃到 `node_modules` 這類被忽略的檔案。worktree 清理和給模型的 git 習慣屬於某個 repo，在非 git 的根目錄跳過。
+  - `/lint` 逐檔跑 `{file}` 檢查時，中文檔名照原樣傳給檢查指令，不會被 git 加上引號而誤報。
+  - 同一個對話裡先開 session、後來才 `/lint init` 的資料夾，不用重新載入 mod 就會生效。
+
+### Added（lint）
+- 在輸入框打 `/lint` 時會提示可以接的參數：`init`、`add <錯誤>`、`<檢查> off|warn|error`、`why <檢查>`、`sync`，並說明會先跑全部檢查。
+- 手動時機 `on = ["manual"]`：只在叫 `/lint` 時跑，改檔、commit、收尾都不跑，適合程式碼風格或很慢的測試。
+- 叫 `/lint` 時先跑一次全部，結果放在 skill 最前面，模型先用一兩句話交代再做事。「全部」包括：`on` 裡有 manual、edit、commit 或 done 的 `forbid` 和 `run` 檢查（`run` 不管有沒有改到它的檔案都跑；帶 `{file}` 的對範圍內每個檔各跑一次，最多 200 個），加上 ast-grep 掃整個專案。
+- `.claude/lint/lint.json`（選用）：用 `converter` 選轉換器（目前只有 `toml`），用 `checks` 和 `sgconfig` 改路徑。路徑相對於 lint.json 所在的資料夾，不能跳出專案。
+
+### Changed（lint）
+- 「動手前要說明」（`explain-before-edit`）觸發後，要模型做的事改成：先用一兩句話重述使用者要什麼、要解決什麼問題，然後直接繼續，不等確認；只有真的不確定時才停下來問。原本是照 show-me 畫圖說明這一步，太重，也沒對準「有沒有理解使用者」。預設檢查檔與 format.md（含 Codex 版）一併改寫。
+- lint mod 分層重寫：
+  - 拆成三層：`hooks/engine/`（引擎，不知道 Claude Code，也不碰檔案）、`hooks/util/converters/`（規則檔轉換器）、`hooks/adapters/claude-code/`（唯一碰 `$` 的地方）。原本 1038 行的 `hooks/lint.ts` 已刪除。
+  - 引擎的 portIn／portOut 由引擎定義、轉接層實作。
+  - 行為與每一句中文都不變，證據是新舊兩版在 56 個情境上逐字比對一致，41 個原有測試也全過。
+- 新增本 repo 的檢查 `engine-no-host`：`hooks/engine/` 與 `hooks/util/` 裡不准出現 `$.`，平台只能出現在轉接層。
+
 ## [8.39.0] - 2026-11-03
 
 ### Removed（狀態列）

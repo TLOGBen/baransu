@@ -7,9 +7,20 @@
 - **差距**：在範圍內「相遇」；範圍外（更多步、更多同時呼叫）只靠論證，見界與證據。
 - **主張與量詞**：在所有事件順序下（prompt.submit 的各種訊息、turn.start、turn.step、session.append、主迴圈與 subagent 的 tool.call、turn.complete、skill.prompt、mod 重新載入、`/clear` 任意交錯）
 - **規則確認**：R1–R10 已確認（使用者 2026-11-02；讀法 D1 選 B、D2 選 A）。R11 **未經確認**：它把 R6 收緊成「看過預覽才放行」，來自 0917b911 的 review（使用者要求全部修好），沒有另外請使用者確認這條文字。
-- **涵蓋的對象**：`plugins/baransu/hooks/lint.ts` 的狀態物件 `S`（`restore`、`persist`）與讀寫它的 hook：`prompt.submit`、`turn.start`、`turn.step`、`session.append`、`session.end`、`tool.call`、`turn.complete`、`skill.prompt`、`ui.render`；型別 `plugins/baransu/types/index.d.ts`
-- **描述的版本**：8.37.1（lint.ts sha256 `502d5c3e8d86…`）
-- **定稿雜湊**：LintRules.tla `72f43553d653…`、LintMod.tla `b81a5fe34379…`、check.py `5c9b84c65f46…`、lint.ts `502d5c3e8d86…`、types/index.d.ts `52df08ef23e5…`
+- **涵蓋的對象**：`plugins/baransu/hooks/engine/engine.ts` 的狀態（`Memory`：`ready` 載入、`take`／`giveBack`、`save`）與讀寫它的方法：`promptSubmit`、`turnStarted`、`stepBegan`／`textStreamed`、`replyAppended`、`cleared`、`toolCall`、`turnCompleted`、`skillPrompt`、`cardFor`；平台事件到這些方法的翻譯 `hooks/adapters/claude-code/hooks.ts`、`translate.ts`；存取 `$.state` 的 `ports.ts`（`hostState`）；`hooks/main.ts` 註冊的 `turn.step`；型別 `plugins/baransu/types/index.d.ts`。模型的每個動作原本對應 lint.ts 的一個 hook，現在對應一個引擎方法（一對一，見 Q6）
+- **描述的版本**：8.40.0（分層後；engine.ts sha256 `adea58e89a1e…`）
+- **定稿雜湊**：LintRules.tla `72f43553d653…`、LintMod.tla `922ce7d1532a…`（8.40 只改了開頭與變數的註解，指向新的 engine.ts；動作不變）、check.py `5c9b84c65f46…`、engine.ts `adea58e89a1e…`、hooks.ts `0d3adf75de9d…`、translate.ts `b290e67c935e…`、ports.ts `6822c45ff5cf…`、main.ts `d083274f294d…`、types/index.d.ts `52df08ef23e5…`
+- **維護紀錄**：2026-11-03 `--maintain`：8.37.1 之後的改動（`turn.step` 本體抽成 `lintTurnStep` 由 `main.ts` 呼叫、狀態列加上又拿掉、「動手前要說明」的提示文字）都分類為「沒有影響」；重跑 `--quick` 39/39 符合預期（716 秒）。結果：in step。
+  2026-11-03 第二次 `--maintain`（分層實作完成）：lint.ts 刪除，狀態與 hook 的邏輯搬進 `engine/engine.ts` 的方法、平台事件的翻譯搬進 `adapters/claude-code/`。分類：
+  - 「不再描述」：只有名稱，每個 hook 對應到一個方法，粒度不變，模型的動作改對到方法名稱，模型本身不用改。
+  - 「沒有影響」：新增的兩件事不寫跨事件狀態——非 git 資料夾的根目錄（`Config.git`），和手動時機（`/lint` 走 `skillPrompt`，不動 `reviewPending`）。
+  - 證據：
+    - 新舊兩版在 56 個情境上逐字一致，包括 P11–P17 的路徑和最後存下的狀態（紀錄 `lint-engine-impl-equivalence.txt`，/ship 後在本機的 `.claude/archived/`）。
+    - 41 個原有測試在新引擎上全過。
+    - 重跑 `--quick`，39/39 符合預期（638 秒）。
+  
+  結果：updated（涵蓋與雜湊），in step。
+  之後兩次 review 的修正（commit 的檢查改在所在的子 repo、`edited` 回傳是否清掉快取、`/lint` 逐檔跑）分類為「沒有影響」：都發生在拿走欠的東西之後，不寫 `$.state`，跨事件狀態沒變；沒有重跑 TLC，只更新雜湊（engine.ts `adea58e89a1e…`、ports.ts `6822c45ff5cf…`）。
 - **重跑**：`cd model && python check.py --quick`（39 個 run，MaxSteps 7，約 10 分鐘；預算 1500 秒）；不加 `--quick` 是 MaxSteps 8，會在預算用完時停下，結論不靠它
 
 ## 問題帳
@@ -21,8 +32,9 @@
 | Q3 | 模型有沒有漏掉原始碼會走的路徑（翻譯對不對） | 翻譯 | 獨立推導、複查、review | 推翻後修正（兩次） | 第一次漏了 6 類（見「獨立推導」）；0917b911 的 review 再找到：模型的 cd 追蹤在指令失敗時跟程式不一樣、模型假設追蹤的目錄永遠是真的、沒有「同一次回覆」「唯讀指令」「工具前的文字」「被擋下的訊息」「沒有命名空間的 skill」「中途停掉的 review」「/clear」。都已補進模型，0917b911 成為第二個版本 |
 | Q4 | 範圍 7 夠不夠 | 範圍 | 每條規則的植入 bug、0917b911 的每個錯都在範圍 7 被抓到 | 範圍內 | 平行重複重述（R2）在 7 首次出現；0917b911 的錯最長 7 步（R7） |
 | Q5 | 0917b911 打破哪些規則 | 已證明 | TLC 跑 `Fix=TRUE, Now=FALSE` | 推翻 | R1、R4、R5、R6、R7、R8、R11（P11–P17）；R6 與 R5 的路徑是 review 沒列到的 |
+| Q6 | `/draft` 的分層骨架（`.claude/draft/lint-engine.md`，本體未填）會不會讓哪條規則不成立 | 翻譯 | 對照骨架與模型的動作粒度 | 實作後結清：逐字比對 56/56 加 TLC 39/39 | 不需改模型：引擎的每個方法對應現在的一個 hook，方法裡同步的那段就是模型的一個動作；拿走在 await 之前（`toolCall`／`promptSubmit` 不是 async、`StateStore.save` 回傳 void）、放回、在拿走時讀步數、預覽 key 與「下一次回覆才放行」、review 答完才算、`/clear` 保留語言與 git 事實，都原樣保留。存檔照今天的做法每次當下寫出，前提「寫入依序存進 `$.state`」維持假設。`proceed` 之後丟例外時要放回拿走的東西（骨架後置條件 1）；平台保證已呼叫過的 `next` 不會重跑工具 |
 
-還開著的列與理由：無。
+還開著的列與理由：無（Q6 已在實作後結清）。
 
 ## 這部分在做什麼
 
@@ -66,12 +78,12 @@
 | 同一則訊息裡的工具呼叫，hook 可能交錯執行 | 可能 | host 並行跑工具 | 假設 | 模型兩個呼叫同時進行 |
 | `$.session.cwd()` 是 shell 真正所在的目錄：前景 `cd` 會移動它，背景指令和子殼層不會；在 hook 裡讀到的是該執行者自己的 | 是 | `claude-code.d.ts` `cwd`「keep the value read inside the hook…(a subagent's own)」、`backgroundCwdHint`「the session cwd was not changed by a backgrounded command」 | 讀出；實際 session 未另外量 | 模型的 `cwdG` 就是它 |
 | 每次模型回覆是一個 `turn.step`；同一次回覆的工具呼叫都在下一個 step 之前 | 是 | `TurnStepInput`「a model request of the turn」 | 讀出 | 模型的 `MainStep` |
-| 工具呼叫之前的文字先串流（turn.step），它那一列的 session.append 在工具呼叫之後 | 是 | lint.ts 註解；0917b911 的 review | 讀出（程式註解）；引擎測試 F8 模擬這個順序 | 模型的 `MainPre`／`LateAppend` |
+| 工具呼叫之前的文字先串流（turn.step），它那一列的 session.append 在工具呼叫之後 | 是 | lint.ts 註解；0917b911 的 review | 讀出（程式註解）；引擎測試 F8 模擬這個順序 | 模型的 `MainPre`／`LateAppend`。**存疑**（2026-11-03）：真實 App 裡模型先寫了文字再動手，「動手前要說明」仍然觸發，表示文字沒被當成「說過話」——這個前提或它在 mock 測試裡的樣子可能不對。要在真實 App 實測（`/prove-it` 或 `/hunt`）；它影響的是「不該提醒卻提醒」，不在 R1–R11 裡（R10 只管該提醒的有沒有提醒） |
 | `result.isReadOnly` 標出唯讀的指令 | 是 | `claude-code.d.ts`「Bash `ls`: set」 | 讀出 | 模型的 `ro` |
 | `/clear` 觸發 `session.end`（reason `clear`），之後沒有 `session.start` | 是 | `SessionEndInput` 的說明 | 讀出 | 模型的 `Clear` |
 | 「交代」＝最後一次做事之後串流出 60 個字母以上（漢字算兩個） | 是 | 設計 | 讀出（程式） | 範圍外的判讀不在模型內 |
 | 用 Bash 寫檔的判斷（`writesFiles`） | 啟發式 | 程式 | 假設 | 模型假設判斷正確 |
-| 狀態的每次寫入都依序存進 `$.state` | 假設 | — | 假設 | 模型把每個動作當成一次存好；`turn.step` 中途重新載入不在模型內 |
+| 狀態的每次寫入都依序存進 `$.state` | 假設 | — | 假設 | 模型把每個動作當成一次存好；`turn.step` 中途重新載入不在模型內。分層後的 `hostState.save` 照今天的做法每次當下寫出，這個前提維持假設（依序存檔在 review 後撤回：它延後寫入，reload 時會掉資料） |
 
 裁判的校對：這個 session 的實際運作——寫英文後下一個工具呼叫被標出（user-language）、`rm` 先被暫停再放行、指令字串不同就再擋一次（destructive-preview）、沒先說明就跑指令被標出（explain-before-edit）——與模型的對應步驟一致。
 

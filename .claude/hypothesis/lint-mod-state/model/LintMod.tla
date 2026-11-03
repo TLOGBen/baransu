@@ -1,6 +1,9 @@
 ---- MODULE LintMod ----
-(* The lint mod's cross-event state (plugins/baransu/hooks/lint.ts), one action
-   per hook step. Three versions of the source:
+(* The lint mod's cross-event state, one action per hook step. Since 8.40 the state is
+   the Memory of plugins/baransu/hooks/engine/engine.ts and each hook step is one engine
+   method (one to one); up to 8.39 it was S in plugins/baransu/hooks/lint.ts
+   (git show 58de798a:plugins/baransu/hooks/lint.ts). Below, "S.x" names a field of that
+   state. Three versions of the source:
      Fix = FALSE              the source before the first fix (8.37.0 as first committed),
      Fix = TRUE, Now = FALSE  the source at 0917b911 (the first and second rounds of fixes),
      Fix = TRUE, Now = TRUE   the source now (the fixes from the review of 0917b911).
@@ -26,19 +29,19 @@ MsgKinds == {"plain", "ns", "skill", "builtin"}
 
 VARIABLES
   n, inTurn,           \* step counter (scope); a main turn is running
-  spoke,               \* lint.ts S.spoke
-  slips,               \* lint.ts S.slips (first source: one block or none)
-  tools,               \* lint.ts S.tools > 0
-  textLong,            \* lint.ts S.textAfterTools reads as a report
-  pendingReport,       \* lint.ts S.pendingReport
-  previewed,           \* lint.ts S.previewed (first source: commands; 0917b911: <<actor, command, dir>>;
+  spoke,               \* S.spoke
+  slips,               \* S.slips (first source: one block or none)
+  tools,               \* S.tools > 0
+  textLong,            \* S.textAfterTools reads as a report
+  pendingReport,       \* S.pendingReport
+  previewed,           \* S.previewed (first source: commands; 0917b911: <<actor, command, dir>>;
                        \*   now: <<<<actor, command, dir>>, response>> for the main loop)
-  editSeq,             \* lint.ts S.editSeq
-  reviewedAt,          \* lint.ts S.reviewedAt
-  cmdSeqs,             \* the editSeq values in lint.ts S.commands
-  langKnown,           \* lint.ts S.userLanguage is set
+  editSeq,             \* S.editSeq
+  reviewedAt,          \* S.reviewedAt
+  cmdSeqs,             \* the editSeq values in S.commands
+  langKnown,           \* S.userLanguage is set
   trackedCwd,          \* 0917b911: the shell directory the mod tracked from cd commands (trackCd)
-  stepC,               \* the main loop's model responses so far (turn.step; lint.ts S.steps.main)
+  stepC,               \* the main loop's model responses so far (turn.step; S.steps.main)
   pc, snap, seen,      \* per main call: "idle"/"mid", restates it took, wrong blocks written before it began
   beginStep,           \* per main call: the response it was sent in
   cwdG,                \* ghost: the main shell's real directory ($.session.cwd())
@@ -146,7 +149,7 @@ LateAppend ==
                  trackedCwd, inTurn, stepC, pc, snap, seen, beginStep, cwdG, userSpokeG, nextBlock, workG, reportG>>
 
 \* Text after the last call, streamed and appended (session.append, main loop). wrong: English prose to a Chinese
-\* user; long: a report. A wrong block is recorded only while lint.ts S.userLanguage is set (wantsChinese).
+\* user; long: a report. A wrong block is recorded only while S.userLanguage is set (wantsChinese).
 MainText(wrong, long) ==
   /\ Step /\ inTurn /\ late = "none" /\ ev' = "MainText" /\ actor' = "main" /\ NoOut /\ NoClaim /\ NoLast /\ NoHold
   /\ (wrong => (userSpokeG /\ nextBlock \in Blocks))

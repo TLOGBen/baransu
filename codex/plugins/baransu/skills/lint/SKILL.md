@@ -1,11 +1,11 @@
 ---
 name: lint
-description: "Keeps a project's lint gate in `.claude/lint/`: copies baransu's preset into the project, adds, disables or changes the severity of a check, explains why a rule exists, and syncs the preset after an update; the baransu mod then runs each check at its moment — after an edit, before a git commit or push, before $baransu:ship or $baransu:review — and shows the result in the chat. Trigger On '$baransu:lint', 'lint 規則', '加一條 lint', '初始化 lint', '這條規則為什麼', 'lint preset', '別再犯這個錯'. Not for diagnosing a failure ($baransu:hunt) or auditing agent config ($baransu:health)."
+description: "Keeps a project's lint gate in `.claude/lint/`: copies baransu's preset into the project, adds, disables or changes the severity of a check, explains why a rule exists, and syncs the preset after an update; the baransu mod then runs each check at its moment — after an edit, before a git commit or push, before $baransu:ship or $baransu:review, and first thing when this skill is called (every check, manual-only ones included) — and shows the result in the chat. Trigger On '$baransu:lint', 'lint 規則', '加一條 lint', '初始化 lint', '這條規則為什麼', 'lint preset', '別再犯這個錯'. Not for diagnosing a failure ($baransu:hunt) or auditing agent config ($baransu:health)."
 ---
 
 # lint — keep the checks that make a known mistake impossible
 
-A mistake an agent has found once should not be possible again. This skill owns the project's `.claude/lint/` folder: what each check catches, when it runs, how severe it is. It never runs the checks itself; the baransu mod does that at four moments and shows the result in the chat (see "What the mod does"). `$baransu:hunt`, `$baransu:health` and `$baransu:draft` decide that a check should exist; they hand the writing to this skill, so the format has one owner.
+A mistake an agent has found once should not be possible again. This skill owns the project's `.claude/lint/` folder: what each check catches, when it runs, how severe it is. It never runs the checks itself; the baransu mod does that at each moment "What the mod does" lists — calling this skill is one of them — and shows the result in the chat (see "What the mod does"). `$baransu:hunt`, `$baransu:health` and `$baransu:draft` decide that a check should exist; they hand the writing to this skill, so the format has one owner.
 
 All user-facing output is in Traditional Chinese.
 
@@ -21,6 +21,7 @@ All user-facing output is in Traditional Chinese.
 
 ```
 .claude/lint/
+  lint.json             # optional: converter, checks folder, sgconfig path (format.md)
   sgconfig.yml          # ast-grep config: ruleDirs: [rules]
   checks/<id>.toml      # one check per file; the file name is its id
   rules/<id>.yml        # ast-grep rules, ast-grep's own format
@@ -42,7 +43,7 @@ Then copy into the project: show the list with one line per check and let the us
 
 **Disable or change severity.** Change `severity` to `error`, `warn` or `off` in that check's file. Never delete a preset check the user only wants quiet: `off` keeps it visible to the next sync.
 
-**Introduce** (`$baransu:lint` with no other ask, or 「現在有哪些 lint」). Show what the project's lint does, grouped by moment — after an edit, before a commit, before `$baransu:ship` or `$baransu:review`, at session start — each check in one line: what it blocks and how severe. Pick the smallest view that makes the shape clear from the forms `../show-me/SKILL.md` lays out (a flow of the four moments is usually it) and draw it inline; that skill is invoked only by the user, so read it rather than calling it.
+**Introduce** (`$baransu:lint` with no other ask, or 「現在有哪些 lint」). Show what the project's lint does, grouped by the moments "What the mod does" lists (manual included: the checks that run only when this skill is called) — each check in one line: what it blocks and how severe. Pick the smallest view that makes the shape clear from the forms `../show-me/SKILL.md` lays out (a flow of those moments is usually it) and draw it inline; that skill is invoked only by the user, so read it rather than calling it.
 
 **Explain.** For a check id or a message the user saw: what it blocks, the evidence it came from (its `from`, its `origin` commit, or the rule it restates), and what to write instead. Read the file and the commit; do not answer from memory.
 
@@ -58,6 +59,7 @@ The baransu mod reads `.claude/lint/` and runs, at each moment, the checks whose
 - **bash** — before every Bash or PowerShell command: checks whose `forbid` reads the command line, and the preview of what a deleting or discarding command would touch.
 - **commit** — before a Bash call that runs `git commit` or `git push`: those checks, and the git built-ins.
 - **done** — before `$baransu:ship` or `$baransu:review` starts: every `done` check, ast-grep on the whole tree, and the session record. The result is written at the top of the skill's text as this version's lint record; for `$baransu:ship` an error means stop.
+- **manual** — when this skill is called: every check on files over the whole tree — each `forbid` and `run` whose `on` names `manual`, `edit`, `commit` or `done` — and ast-grep, written at the top of this skill's text. When the text opens with that 「Lint 紀錄」, tell the person what it found in a sentence or two (saying so when it found nothing) before the work they asked for. A check `on = ["manual"]` runs only here.
 - **session start** — the worktree built-in.
 - **each user message** — when it reads as a correction, the model is asked, after fixing, whether the mistake can become a check here.
 

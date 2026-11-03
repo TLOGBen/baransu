@@ -1,7 +1,7 @@
-from = "baransu-preset@8.37.0"
-# 重新: the first edit or command of a turn came before any words to the user, so the model explains the step the way /show-me does.
-# error instead holds the call once, until the model explains the step.
+from = "baransu-preset@8.40.0"
+# 重新: the first edit or command of a turn came before any words to the user, so the model restates the user's goal in a sentence or two, then goes on.
+# error instead holds the call once, until the model has said it.
 severity = "warn"
 action = "重新"
 builtin = "explain-before-edit"
-message = "動手前先說明要做什麼、會動到什麼、為什麼"
+message = "動手前先用一兩句話重述使用者要什麼、要解決什麼問題"
