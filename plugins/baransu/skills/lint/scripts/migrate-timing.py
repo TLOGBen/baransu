@@ -1,6 +1,6 @@
 """Rewrite a project's lint timings to the 8.43 form. Used by `/lint sync`.
 
-  python migrate-timing.py <lint-folder>        rewrite lint.toml, sets/*.toml and checks/*.toml in place
+  python migrate-timing.py <lint-folder>        rewrite config.toml (or lint.toml), sets/**/*.toml and checks/*.toml in place
   python migrate-timing.py --text < file         print one file's text rewritten (for tests and fixtures)
 
 Per check table (a `[check.<id>]` table, or a whole one-check file):
@@ -177,7 +177,7 @@ def main() -> int:
         print(__doc__)
         return 2
     root = Path(sys.argv[1])
-    files = [root / "lint.toml", *sorted((root / "sets").glob("*.toml")), *sorted((root / "checks").glob("*.toml"))]
+    files = [root / "config.toml", root / "lint.toml", *sorted((root / "sets").rglob("*.toml")), *sorted((root / "checks").glob("*.toml"))]
     files = [f for f in files if f.is_file()]
     # newline="": CRLF stays CRLF.
     texts = {f: f.open(encoding="utf-8", newline="").read() for f in files}

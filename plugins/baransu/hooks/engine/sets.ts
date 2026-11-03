@@ -1,4 +1,4 @@
-// Collections: lint.toml's `extends` and its own [check.<id>] tables → the checks in force, each field with the
+// Collections: config.toml's `extends` and its own [check.<id>] tables → the checks in force, each field with the
 // layer it came from. Pure; the one place the merge rule is written (lint-collections plan). The adapter only
 // reads the files; readCheck then turns each resolved table into a Check, as for a single check file.
 
@@ -8,7 +8,7 @@ export type ResolvedCheck = {
   readonly id: string
   /** The merged fields, as one check file would hold them (no `strict`; `severity` already chosen). */
   readonly raw: RawTable
-  /** Field → the layer that set it: a collection's path, `<path>（strict）`, `extends[n].severity`, or `lint.toml`. */
+  /** Field → the layer that set it: a collection's path, `<path>（strict）`, `extends[n].severity`, or `config.toml`. */
   readonly origin: Readonly<Record<string, string>>
 }
 
@@ -27,14 +27,15 @@ const strings = (v: unknown): string[] | undefined =>
   Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : typeof v === 'string' ? [v] : undefined
 
 /**
- * The merge rule, the same at every layer, in order: each `extends` entry in written order, then lint.toml's own
+ * The merge rule, the same at every layer, in order: each `extends` entry in written order, then config.toml's own
  * [check.<id>] tables.
- * - A table with an action (forbid, run, builtin) is a definition: it replaces the whole check of that id.
- * - A table without one is a patch: each field it writes replaces that field (a list or `options` whole); a
+ * - Every table in a set is a definition: it replaces the whole check of that id (a check of only a message is
+ *   one too). In config.toml a table with an action (forbid, run, builtin) is a definition; one without is a patch.
+ *   A patch: each field it writes replaces that field (a list or `options` whole); a
  *   patch naming no check loaded so far is a problem.
- * - Severity, strongest first: lint.toml's patch > the extends entry's `severity` > the collection's `strict`
+ * - Severity, strongest first: config.toml's patch > the extends entry's `severity` > the collection's `strict`
  *   (with `level = "strict"`) or `severity`. A check the collection ships `off` stays off under an extends
- *   severity; only lint.toml turns it on.
+ *   severity; only config.toml turns it on.
  * - `only` / `except` choose which ids of a collection load; an id they name that the collection lacks is a
  *   problem.
  */
@@ -44,8 +45,8 @@ export function resolveSets(main: RawTable, sets: ReadonlyMap<string, RawTable>)
   const acc = new Map<string, { raw: Record<string, unknown>; origin: Record<string, string> }>()
 
   const actionLayer = (o: Record<string, string>) => ACTIONS.map(a => o[a]).find(Boolean) ?? ''
-  const apply = (id: string, raw: Record<string, unknown>, origin: Record<string, string>, layer: string) => {
-    if (ACTIONS.some(a => a in raw)) {
+  const apply = (id: string, raw: Record<string, unknown>, origin: Record<string, string>, layer: string, define = false) => {
+    if (define || ACTIONS.some(a => a in raw)) {
       const had = acc.get(id)
       if (had) shadowed.push({ id, by: layer, was: actionLayer(had.origin) })
       acc.set(id, { raw: { ...raw }, origin: { ...origin } })
@@ -92,7 +93,7 @@ export function resolveSets(main: RawTable, sets: ReadonlyMap<string, RawTable>)
         raw.severity = e.severity
         origin.severity = `${at}.severity`
       }
-      apply(id, raw, origin, path)
+      apply(id, raw, origin, path, true)
     }
   })
 
@@ -101,7 +102,7 @@ export function resolveSets(main: RawTable, sets: ReadonlyMap<string, RawTable>)
     if (!t) continue
     const raw: Record<string, unknown> = { ...t }
     delete raw.strict
-    apply(id, raw, Object.fromEntries(Object.keys(raw).map(k => [k, 'lint.toml'])), 'lint.toml')
+    apply(id, raw, Object.fromEntries(Object.keys(raw).map(k => [k, 'config.toml'])), 'config.toml')
   }
 
   return {

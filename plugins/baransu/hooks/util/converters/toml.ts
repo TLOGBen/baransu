@@ -9,7 +9,6 @@ import type { RawCheck, RawTable, RuleConverter } from '../../engine'
 
 export const toml: RuleConverter = {
   name: 'toml',
-  extension: '.toml',
   parse(source: string): RawCheck {
     return parseToml(source)
   },

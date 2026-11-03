@@ -2,5 +2,7 @@
 
 export { createEngine } from './engine'
 export { readCheck } from './check'
+export { resolveSets } from './sets'
+export { configFromFiles, CONFIG, DEFAULTS, type LintSettings } from './folder'
 export type { Engine, Lint, Ports, ConfigSource, Runner, RunResult, PathProbe, StateStore, Notify, RuleConverter, Clock } from './ports'
 export type * from './types'

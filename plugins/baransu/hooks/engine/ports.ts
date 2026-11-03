@@ -18,8 +18,11 @@ export interface ConfigSource<H> {
    *  May cache; must not throw (an unreadable file is a `problems` entry, not an error). */
   load(h: H): Promise<Config | null>
   /** A file at this root-relative path was just edited. The source drops its cache when the file is its own
-   *  (under .claude/lint, or the checks folder / sgconfig lint.json named) and says so: true → read it again. */
+   *  (a rule file under .claude/lint) and says so: true → read it again. */
   edited(h: H, file: string): boolean
+  /** Forget what was read: the next load reads the folder again. Called when /lint starts, the one place the
+   *  rules are changed. */
+  reload(): void
 }
 
 export type RunResult = { exitCode: number; stdout: string; stderr: string }
@@ -38,8 +41,6 @@ export interface Runner<H> {
   probe(h: H, path: string): Promise<PathProbe>
   /** A file's text (around:edit's before and after); null when it does not exist or cannot be read. Never throws. */
   read(h: H, path: string): Promise<string | null>
-  /** Write a file, creating its folders (around's LINT_BEFORE copies). false when it could not. Never throws. */
-  write(h: H, path: string, text: string): Promise<boolean>
 }
 
 /**
@@ -76,12 +77,10 @@ export interface Notify<H> {
   notice(h: H, text: string): Promise<void>
 }
 
-/** Reads one check file's text into raw fields. Throws with a short message the person reads. */
+/** Reads one set file's text into raw fields. Throws with a short message the person reads. */
 export interface RuleConverter {
-  /** The name `lint.json`'s `converter` field selects. */
+  /** The name config.toml's `[settings] converter` selects. */
   readonly name: string
-  /** The file ending of a check file, dot included (`.toml`); the id is the file name without it. */
-  readonly extension: string
   parse(source: string): RawCheck
 }
 

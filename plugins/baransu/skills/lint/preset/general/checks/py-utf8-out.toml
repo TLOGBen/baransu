@@ -1,9 +1,0 @@
-# Source: 2026-11-03, eol-flip.py printed its Chinese finding through a cp950 console and came out garbled; the
-# text was built in a list and printed later, so no single line shows it. Owner rule: Python that prints 中文
-# sets UTF-8 first. Read per file by a script (an ast walk), since a regex on one line cannot see it.
-on = ["post:edit", "pre:commit", "pre:push"]
-severity = "warn"
-scope = "diff"
-ext = ["py"]
-run = ["python", ".claude/lint/scripts/py-utf8-out.py", "{file}"]
-message = "這支 Python 會印出中文：在 main 開頭加 sys.stdout.reconfigure(encoding=\"utf-8\")，Windows 的 cp950 才不會報錯或變亂碼"

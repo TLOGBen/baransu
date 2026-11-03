@@ -33,7 +33,9 @@ def migrate(text: str) -> tuple[str, list[str]]:
     on = re.search(r"^\s*on\s*=\s*(.*)$", body, re.M)
     has_scope = re.search(r"^\s*scope\s*=", body, re.M)
     # `on` naming commit or done, or a skill whose run joins done (/ship, /review): those ran only when touched.
-    joins_done = on and re.search(r"[\"'](commit|done|skill:(baransu:)?(ship|review))[\"']", on.group(1))
+    # The same timings as migrate-timing.py writes them (pre:commit, pre:push, pre:skill:ship …), so the two
+    # scripts give the same result in either order.
+    joins_done = on and re.search(r"[\"']((pre:)?(commit|push)|done|(pre:)?skill:(baransu:)?(ship|review))[\"']", on.group(1))
     if run and "{file}" not in run.group(1) and joins_done and not has_scope:
         # Appended at the end, never inside a field: a `file = [` list may span lines.
         nl = "\r\n" if "\r\n" in body else "\n"

@@ -1,5 +1,0 @@
-# 重新: a turn that did work and wants to end without saying where things stand is held at its stop once, and reports in the same turn, the way /what-now does.
-severity = "retry"
-action = "重新"
-builtin = "report-before-stop"
-message = "做了事就交代現況：有什麼等使用者決定、做到哪、哪些沒驗證"

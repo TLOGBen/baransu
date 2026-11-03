@@ -3,7 +3,7 @@
 // does there) → send (the host's way for that timing: refuse, hold the stop, a line, a 重新, the card, the
 // queue). Nothing here names a host event; adapters/claude-code translates.
 
-import { addedLines, aroundEnv, CACHE, diffHead, diffTree, MAX_SPANS, snapEdit, snapHead, snapTree, treeBefore, wantsAround, type HeadSnap, type TreeSnap } from './around'
+import { addedLines, aroundEnv, diffHead, diffTree, headBefore, MAX_SPANS, snapEdit, snapHead, snapTree, treeBefore, wantsAround, type HeadSnap, type Store, type TreeSnap } from './around'
 import { builtinOf, namesSkill, relTo } from './check'
 import { commitLook, gitFacts, runMoment, worktreeCleanup, type Look } from './moments'
 import type { Engine, Lint, Ports } from './ports'
@@ -201,6 +201,10 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
       const lang = find(config, 'user-language')
       if (lang?.language) S().userLanguage = lang.language
       save()
+      // The around store keeps every snapshot it was given: what is older than two days no act still reads.
+      const store = await storePath(h, ports)
+      if ((await ports.runner.probe(h, store)).kind === 'dir')
+        await ports.runner.run(h, ['git', `--git-dir=${store}`, 'gc', '--quiet', '--prune=2.days.ago'], { cwd: config.root, timeoutMs: 60000 })
     },
 
     async systemNotes(): Promise<SystemNote[]> {
@@ -261,13 +265,17 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
       const main = S().steps.main ?? 0
       if (S().answering?.length) S().answering = S().answering!.filter(a => a.step >= main)
       const unseen = takeAnswerCard(S())
+      if (S().lintTurn) {
+        S().lintTurn = false
+        ports.config.reload()
+      }
       save()
       if (unseen) await ports.notify.notice(h, [unseen.meta, ...unseen.lines.map(l => `${l.severity === 'error' ? '✖' : l.severity === 'warn' ? '⚠' : '·'} ${l.id ? `${l.id}：` : ''}${l.text}`)].join('\n'))
       if (S().slips.length) await ports.notify.notice(h, `lint · user-language：剛才那段寫成英文了（「${slipHead(S().slips[S().slips.length - 1])}」）→ 重新：下一步用你的語言再說一次`)
     },
 
     cleared() {
-      memory.s = { ...freshState(), userLanguage: S().userLanguage, gitFacts: S().gitFacts, timers: S().timers }
+      memory.s = { ...freshState(), userLanguage: S().userLanguage, gitFacts: S().gitFacts, timers: S().timers, objects: S().objects }
       save()
     },
 
@@ -341,6 +349,14 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
 
     async skillPrompt(e: DoneSkillEvent): Promise<SkillPreface> {
       // `/lint help` explains, `/lint show` lists the checks from their files: neither runs one.
+      // /lint is where the rules change: what was read is forgotten, and this call reads the folder again.
+      if (e.skill === 'lint') {
+        ports.config.reload()
+        // The rules change after this moment, through the commands /lint runs (copying sets, the migration
+        // scripts): each main-loop command while it runs, and the end of its turn, read the folder again.
+        S().lintTurn = true
+        save()
+      }
       if (e.skill === 'lint' && /^(help|show)\b/i.test(e.args)) return null
       const isReview = e.skill === 'review'
       if (isReview) {
@@ -426,7 +442,7 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
     async agentStarted(e) {
       const config = await ports.config.load(h)
       if (!config || !wantsAround(config.checks, 'agent')) return
-      const snap = await snapTree(lookOf(ports, h, config))
+      const snap = await snapTree(lookOf(ports, h, config), await storeOf(h, ports, memory, config.root))
       const spans = { ...(S().spans ?? {}), [e.agent]: { agentType: e.agentType, entries: { ...snap.entries } } }
       const ids = Object.keys(spans)
       for (const old of ids.slice(0, Math.max(0, ids.length - MAX_SPANS))) delete spans[old]
@@ -451,8 +467,9 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
       const findings = await runMoment(look, S(), { key: 'post:agent', agentType: e.agentType, text: e.text })
       if (span) {
         const snap: TreeSnap = { kind: 'tree', entries: span.entries }
-        const d = await diffTree(look, snap)
-        const env = await aroundEnv(look, d.changed, treeBefore(look, snap), runWanted(config, 'around:agent'), e.agent)
+        const store = await storeOf(h, ports, memory, config.root)
+        const d = await diffTree(look, snap, store)
+        const env = await aroundEnv(look, d.changed, treeBefore(look, snap), runWanted(config, 'around:agent'), store)
         findings.push(...(await runMoment(look, S(), { key: 'around:agent', agentType: e.agentType, changed: d.changed }, env)))
       }
       if (!findings.length) return
@@ -472,8 +489,8 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
       const config = await ports.config.load(h)
       if (!config || e.change === 'unlink') return
       const file = relTo(config.root, e.file)
-      // Outside the root, git's own files, and the mod's own LINT_BEFORE copies are no change of the person's.
-      if (/^([A-Za-z]:)?\//.test(file) || file.startsWith('.git/') || file.startsWith(`${CACHE}/`)) return
+      // Outside the root and git's own files are no change of the person's.
+      if (/^([A-Za-z]:)?\//.test(file) || file.startsWith('.git/')) return
       // Claude's own write this turn is not a change made outside Claude.
       if ((S().touched ?? []).some(t => t.toLowerCase() === file.toLowerCase())) return
       const findings = await runMoment(lookOf(ports, h, config), S(), { key: 'post:file', files: [file] })
@@ -486,7 +503,31 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
   }
 }
 
-/** Whether a `run` check is due at an around timing (only then are LINT_BEFORE copies written). */
+/**
+ * The mod's own object store for around snapshots: one bare git in the system's temp folder,
+ * `baransu-lint.git`, shared by every session on the machine (its objects are named by their content, so two
+ * sessions writing at once write the same thing), made the first time one is needed and named in
+ * LintState.objects so a reload finds it again. Nothing goes into the project. Its old objects are pruned at
+ * session start (sessionStarted). undefined when git cannot make one: around then has the changed paths only.
+ */
+async function storeOf<H>(h: H, ports: Ports<H>, memory: Memory<H>, root: string): Promise<Store | undefined> {
+  const had = memory.s.objects
+  if (had && (await ports.runner.probe(h, had)).kind === 'dir') return { dir: had }
+  const dir = await storePath(h, ports)
+  const there = (await ports.runner.probe(h, dir)).kind === 'dir'
+  if (!there && (await ports.runner.run(h, ['git', 'init', '--bare', '--quiet', dir], { cwd: root, timeoutMs: 20000 })).exitCode !== 0) return undefined
+  memory.s.objects = dir
+  memory.save(h)
+  return { dir }
+}
+
+/** Where the store is: `baransu-lint.git` in the system's temp folder (TEMP, TMP, TMPDIR, else /tmp). */
+async function storePath<H>(h: H, ports: Ports<H>): Promise<string> {
+  const tmp = (await ports.machine.env(h, 'TEMP')) ?? (await ports.machine.env(h, 'TMP')) ?? (await ports.machine.env(h, 'TMPDIR')) ?? '/tmp'
+  return `${tmp.replace(/\\/g, '/').replace(/\/+$/, '')}/baransu-lint.git`
+}
+
+/** Whether a `run` check is due at an around timing (only then is LINT_BEFORE worked out). */
 const runWanted = (config: Config, key: TimingKey) => config.checks.some(c => c.action.kind === 'run' && c.on.some(t => t.key === key))
 
 // ================================================================ waits (after:<act>:<n>)
@@ -674,6 +715,7 @@ async function callAfterTake<H, R>(
   let editSnap: Awaited<ReturnType<typeof snapEdit>> | undefined
   let treeSnap: TreeSnap | undefined
   let headSnap: HeadSnap | undefined
+  let store: Store | undefined
   let touchedFile: string | undefined
   try {
     config = await ports.config.load(h)
@@ -825,8 +867,11 @@ async function callAfterTake<H, R>(
     if (plain.length) context.push(render(isEdit ? 'edit' : gitWrite ? 'commit' : 'bash', isEdit ? file : '', plain))
 
     // Snapshots for around:<act>, and Claude's own write for post:file — both only when a check reads them.
-    if (isEdit && insideRepo && wantsAround(config.checks, 'edit')) editSnap = await snapEdit(look, file)
-    if (isBash && wantsAround(config.checks, 'bash')) treeSnap = await snapTree(look)
+    const aroundEdit = isEdit && insideRepo && wantsAround(config.checks, 'edit')
+    const aroundBash = isBash && wantsAround(config.checks, 'bash')
+    if (aroundEdit || aroundBash) store = await storeOf(h, ports, memory, root)
+    if (aroundEdit) editSnap = await snapEdit(look, file, store)
+    if (aroundBash) treeSnap = await snapTree(look, store)
     if (gitWrite && wantsAround(config.checks, 'commit')) headSnap = await snapHead(look)
     if (isEdit && insideRepo && config.checks.some(c => c.on.some(t => t.key === 'post:file'))) {
       touchedFile = file
@@ -866,6 +911,8 @@ async function callAfterTake<H, R>(
       S().tools++
       S().textAfterTools = ''
     }
+    // While /lint runs, a command may have rewritten the rules: the next load reads them again.
+    if (isBash && main && o.ran && S().lintTurn) ports.config.reload()
     if (isBash && o.ran) {
       // A shell command that writes files is an edit, not a check run after one. A background command
       // has only started, so it is not a run; a command counts against the edit count it started at.
@@ -881,7 +928,7 @@ async function callAfterTake<H, R>(
     let postKey: TimingKey = 'post:bash'
     if (isEdit && insideRepo && o.ran && !o.isError) {
       postKey = 'post:edit'
-      // An edit to the lint config (wherever lint.json put it) drops the source's cache: this moment reads the
+      // An edit to a rule file under .claude/lint drops what the source kept: this moment reads the
       // checks again. The config source alone knows which files are its own.
       const fresh = ports.config.edited(h, file) ? ((await ports.config.load(h)) ?? config) : config
       const freshLook = { ...look, config: fresh }
@@ -889,15 +936,16 @@ async function callAfterTake<H, R>(
       if (editSnap?.kind === 'edit') {
         const after = await ports.runner.read(h, `${config.root}/${file}`)
         const added = addedLines(editSnap.text, after)
-        const env = await aroundEnv(freshLook, [file], async () => editSnap?.kind === 'edit' ? editSnap.text : null, runWanted(fresh, 'around:edit'), e.id)
+        const before = editSnap.hash
+        const env = await aroundEnv(freshLook, [file], async () => before, runWanted(fresh, 'around:edit'), store)
         post.push(...(await runMoment(freshLook, S(), { key: 'around:edit', file, added }, env)))
       } else if (editSnap?.kind === 'too-big') post.push({ id: 'around', severity: 'note', quiet: true, text: `${file} 超過 1 MB，around:edit 沒有檢查` })
     }
     if (isBash && o.ran) {
       post.push(...(await runMoment(look, S(), { key: 'post:bash', command, output: o.output ?? '', failed: o.isError })))
       if (treeSnap) {
-        const d = await diffTree(look, treeSnap)
-        const env = await aroundEnv(look, d.changed, treeBefore(look, treeSnap), runWanted(config, 'around:bash'), e.id)
+        const d = await diffTree(look, treeSnap, store)
+        const env = await aroundEnv(look, d.changed, treeBefore(look, treeSnap), runWanted(config, 'around:bash'), store)
         post.push(...(await runMoment(look, S(), { key: 'around:bash', command, changed: d.changed }, env)))
       }
     }
@@ -915,10 +963,7 @@ async function callAfterTake<H, R>(
       }
       if (headSnap) {
         const d = await diffHead(look, headSnap)
-        const env = await aroundEnv(look, d.changed, async p => {
-          const r = await ports.runner.run(h, ['git', 'show', `${headSnap!.sha}:${p}`], { cwd: config!.root, timeoutMs: 10000 })
-          return r.exitCode === 0 ? String(r.stdout) : null
-        }, runWanted(config, 'around:commit'), e.id)
+        const env = await aroundEnv(look, d.changed, headBefore(look, headSnap), runWanted(config, 'around:commit'), undefined)
         if (commits) gitPost.push(...(await runMoment(look, S(), { key: 'around:commit', ...git, commits: d.commits, changed: d.changed }, env)))
       }
     }

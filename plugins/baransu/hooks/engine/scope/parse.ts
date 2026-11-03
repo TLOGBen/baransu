@@ -50,7 +50,7 @@ const MAX_DEPTH = 6
  *   when    ← each "!"? name (":" arg)?; name not in FACTS → problem (so a typo does not silently gate).
  *   A regex that does not compile → problem.
  *   Any problem → { ok: false, problems }: readCheck keeps the check out of force and the config source shows
- *   each as 「設定讀不懂：checks/<id>：<text>」.
+ *   each as 「設定讀不懂：<id>（<where it is written>）：<text>」.
  */
 export function scopeFrom(raw: Readonly<Record<string, unknown>>, factNames: readonly string[]): ScopeRead {
   const problems: string[] = []

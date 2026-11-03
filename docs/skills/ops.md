@@ -82,7 +82,7 @@ Claude Code：`/baransu:lint`　Codex：`$baransu:lint`
 - session 開始：提醒已合併卻沒清掉的 worktree，並把 repo 的 git 習慣交給模型。
 - 你糾正模型時（「又犯」「不是這樣」「說過了」）：聊天裡標一句，模型修完後要判斷這個錯能不能寫成 lint，能就交給 `/lint`。
 
-**產出**　專案的 `.claude/lint/`（`checks/<id>.toml`、`rules/<id>.yml`、`sgconfig.yml`）。`/ship` 不會歸檔它。格式在 `plugins/baransu/skills/lint/references/format.md`。
+**產出**　專案的 `.claude/lint/`（`config.toml`、`sets/baransu/` 預設合集、`sets/local/` 自己的合集、`rules/<id>.yml`、`sgconfig.yml`）。`/ship` 不會歸檔它。格式在 `plugins/baransu/skills/lint/references/format.md`。
 
 **不適用**　找根因 → `/hunt`；體檢 agent 配置 → `/health`。
 

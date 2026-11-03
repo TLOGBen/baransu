@@ -1,6 +1,0 @@
-# Source: owner's rule destructive-step-alone — delete or move in its own call, after the new file is confirmed.
-# A lone `cd <dir> && <delete or move>` is still one step and passes. \x27 is a single quote: a TOML literal string cannot hold one.
-on = ["pre:bash"]
-severity = "warn"
-forbid = '^(?!\s*cd\s+("[^"]*"|\x27[^\x27]*\x27|\S+)\s*&&\s*(rm|rmdir|mv|Remove-Item|Move-Item|del)\b[^&;|\n]*(?![\s\S]))[\s\S]*(&&|;|\|\||\n)\s*(rm|rmdir|mv|Remove-Item|Move-Item|del)\b'
-message = "刪除、搬移要單獨一次呼叫，放在確認新檔案存在、內容正確之後；前一步失敗時，同一串的刪除照樣會跑"

@@ -1,7 +1,0 @@
-# Hooks and signing are the repo's own checks; skipping them hides the failure instead of fixing it.
-# git commit -n is --no-verify's short form; a -n inside the quoted message is not, so the match stops at a quote.
-# \x27 is a single quote: a TOML literal string cannot hold one.
-on = ["pre:bash"]
-severity = "error"
-forbid = '\bgit\b[^\n]*(--no-verify|--no-gpg-sign|-c\s+commit\.gpgsign=false)|\bgit\b[^\n|;&"\x27]*\bcommit\b[^\n|;&"\x27]*\s-n(\s|$)'
-message = "不要跳過 git hook 或簽章；hook 失敗就查原因修好"

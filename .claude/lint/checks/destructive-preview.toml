@@ -1,6 +1,0 @@
-from = "baransu-preset@8.35.0"
-# Before a command deletes, moves or discards, the model sees exactly what it will touch.
-# check: the first run is held back with the list; the same command in a later response goes through. error holds it every time.
-severity = "check"
-builtin = "destructive-preview"
-message = "先看上面列出會動到的東西；確定沒錯，再下一次同樣的指令"

@@ -1,6 +1,0 @@
-# Source: TLC rejects non-ASCII strings.
-on = ["post:edit"]
-severity = "error"
-ext = ["tla"]
-forbid = '"[^"\n]*[^\x00-\x7F][^"\n]*"'
-message = "TLC 不收非 ASCII 字串常值；字串改英文，中文只放註解或 view 檔"

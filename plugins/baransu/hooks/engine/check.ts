@@ -48,7 +48,7 @@ const SEVERITIES: readonly Severity[] = ['error', 'check', 'retry', 'warn', 'inf
  * its message (and a `changed` note). An unknown builtin name is kept as is and matches no built-in.
  * `remind = "true"`: its message goes into the system prompt; refused on a check with a file scope.
  * Any problem keeps the whole check out of force; each comes back so the config source shows it as
- * 「設定讀不懂：checks/<id>：<text>」. Never throws.
+ * 「設定讀不懂：<id>（<where it is written>）：<text>」. Never throws.
  */
 export function readCheck(id: string, raw: RawCheck, factNames: readonly string[] = Object.keys(FACTS)): CheckRead {
   const t = raw as Record<string, unknown>

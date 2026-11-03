@@ -1,0 +1,31 @@
+# baransu-preset@8.44.0
+# baransu lint 設定。
+# sets/baransu/ 是 baransu 的預設合集：/lint sync 會整包換成新版，不要手改；要改哪條，在下面用 [check.<id>] 寫要改的欄位。
+# sets/local/ 是這個 repo 自己的合集，sync 不會動。
+
+[[extends]]
+set = "sets/baransu/git.toml"
+
+[[extends]]
+set = "sets/baransu/files.toml"
+
+[[extends]]
+set = "sets/baransu/docs.toml"
+
+[[extends]]
+set = "sets/baransu/env.toml"
+
+[[extends]]
+set = "sets/baransu/runtime.toml"
+
+# TLA+ 用嚴格等級：這個 repo 有 hypothesis 模型，tla-parses 要開。
+[[extends]]
+set = "sets/baransu/tla.toml"
+level = "strict"
+
+[[extends]]
+set = "sets/local/repo.toml"
+
+# 私鑰內容在這個 repo 一律擋下（嚴格等級的值）。
+[check.private-key-material]
+severity = "error"

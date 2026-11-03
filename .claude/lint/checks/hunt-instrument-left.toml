@@ -1,7 +1,0 @@
-from = "baransu-preset@8.35.0"
-# Source: /hunt closes only when every 🎯HUNT-tagged instrument is removed.
-on = ["pre:commit", "pre:push", "pre:skill:ship", "pre:skill:review"]
-severity = "error"
-ignores = [".claude/**", ".codex/**"]
-forbid = '🎯HUNT-\d{4}-\d{3}'
-message = "/hunt 的探針沒拆；根因確認後一次移除所有 🎯HUNT 工具"

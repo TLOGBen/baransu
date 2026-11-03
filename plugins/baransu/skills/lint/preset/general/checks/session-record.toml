@@ -1,4 +1,0 @@
-# Before /ship or /review: was the change built, tested, linted and reviewed after the last edit?
-severity = "warn"
-builtin = "session-record"
-message = "最後一次改檔之後還沒有建置、測試或 review 的紀錄；先跑過再收尾"

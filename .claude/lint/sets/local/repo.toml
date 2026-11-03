@@ -1,0 +1,58 @@
+# 這個 repo 自己的檢查：預設合集沒有、只對 baransu 有意義的規則。
+
+# The lint engine knows nothing of Claude Code: the host's `$` (and anything reached through it) appears only
+# under adapters/. An engine or util file that touches `$.` puts the platform back inside the engine, and the
+# next adapter would have to fake Claude Code to reuse it.
+[check.engine-no-host]
+severity = "error"
+on = ["post:edit", "pre:commit", "pre:push", "pre:skill:ship", "pre:skill:review"]
+file = ["plugins/baransu/hooks/engine/**", "plugins/baransu/hooks/util/**"]
+forbid = '\$\.[a-z]'
+message = "引擎和 util 不碰平台：把需要的東西加成 engine/ports.ts 的 portOut，由 adapters/claude-code 實作"
+
+# Source: owner's CLAUDE.md — Python printing emoji or Chinese raises UnicodeEncodeError under cp950.
+# `make ship-check` failed on it on 2026-11-02 until the Makefile exported UTF-8.
+[check.makefile-python-utf8]
+on = ["post:edit", "pre:commit", "pre:push"]
+severity = "error"
+file = ["Makefile"]
+run = ["git", "grep", "-q", "--untracked", "export PYTHONUTF8", "--", "Makefile"]
+message = "Makefile 要保留 export PYTHONIOENCODING := utf-8 與 export PYTHONUTF8 := 1；少了它，make test 在 cp950 的 Windows 上會 UnicodeEncodeError"
+scope = "diff"
+
+# Source: CLAUDE.md Non-obvious Invariants — Claude Code discovers skills from the filesystem; a skills array was added in v0.3.0 and reverted.
+[check.plugin-json-no-skills-array]
+on = ["post:edit", "pre:commit", "pre:push"]
+severity = "error"
+file = ["**/.claude-plugin/plugin.json", "codex/plugins/baransu/plugin.json"]
+forbid = '"skills"\s*:'
+message = "plugin.json 不放 skills 陣列；skill 由檔案系統探索"
+
+# Source: CLAUDE.md Non-obvious Invariants — after push the branch is unmerged locally, so -d always fails.
+[check.ship-branch-delete-capital-d]
+on = ["post:edit", "pre:commit", "pre:push"]
+severity = "error"
+file = ["plugins/baransu/skills/ship/**", "codex/plugins/baransu/skills/ship/**"]
+forbid = '\bbranch -d\b'
+message = "/ship 刪分支要用 git -C \"$MAIN_REPO\" branch -D；-d 在 push 後一定失敗"
+
+# Source: 2026-11-03, LintMod.tla Deliver: `ansStepG' = IF d THEN s ELSE ansStepG /\ checksG' = ...` on one line.
+# ELSE reaches to the end of the expression, so the next conjunct became part of the ELSE branch; TLC failed
+# every run. Flags a value after ELSE followed on the same line by /\ and a primed variable or UNCHANGED.
+# ELSE IF ..., ELSE /\ ..., and a /\ inside ( ) or << >> are left alone.
+# \x27 is a single quote: a TOML literal string cannot hold one.
+[check.tla-else-swallows]
+on = ["post:edit", "pre:commit", "pre:push"]
+severity = "error"
+file = ["*.tla"]
+forbid = '\bELSE\s+(?!IF\b|/\\)[^()<>\n]*/\\\s*(\w+\x27|UNCHANGED\b)'
+message = "ELSE 會一路吃到運算式結尾，同一行後面的 /\\ 會變成 ELSE 的一部分；把 IF … THEN … ELSE … 整段加上括號，或把下一個條件換到新的一行"
+
+# Source: CLAUDE.md Non-obvious Invariants — third-party sources live in each skill's NOTICE.md, never in the body.
+[check.upstream-name-in-body]
+on = ["post:edit", "pre:commit", "pre:push"]
+severity = "error"
+file = ["plugins/baransu/skills/**/*.md", "codex/plugins/baransu/skills/**/*.md"]
+ignores = ["**/NOTICE.md"]
+forbid = '(?i)pstack|Lauren Tan|cursor/plugins'
+message = "上游來源只寫在該 skill 的 NOTICE.md；本文和 references 不點名、不寫授權"

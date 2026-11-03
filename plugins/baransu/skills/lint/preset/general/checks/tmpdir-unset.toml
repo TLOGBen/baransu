@@ -1,6 +1,0 @@
-# Source: owner's CLAUDE.md — $TMPDIR can be empty (Git Bash on Windows is one such shell).
-on = ["post:edit"]
-severity = "warn"
-file = ["*.sh", "*.bash", "*.zsh", "Makefile"]
-forbid = '\$\{?TMPDIR\}?/'
-message = "$TMPDIR 在有些環境是空的（例如 Git Bash），$TMPDIR/x 會變成根目錄底下的 /x；改用 ${TMPDIR:-/tmp}/x 或專案內的暫存目錄"

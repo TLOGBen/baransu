@@ -20,7 +20,6 @@ export type Host = {
   readonly stat: (path: string) => Promise<any>
   readonly list: (path: string) => Promise<any>
   readonly read: (path: string) => Promise<any>
-  readonly write: (path: string, text: string) => Promise<any>
   readonly now: () => Promise<number>
   readonly after: (ms: number, fn: () => void) => unknown
   readonly cwd: () => Promise<any>
@@ -40,7 +39,6 @@ export function hostOf($: Dollar): Host {
     stat: path => $.fs.stat(path),
     list: path => $.fs.list(path),
     read: path => $.fs.read(path),
-    write: (path, text) => $.fs.write(path, text),
     now: () => $.clock.now(),
     after: (ms, fn) => $.clock.after(ms, fn),
     cwd: () => $.session.cwd(),
@@ -99,14 +97,6 @@ export const hostRunner: Runner<Host> = {
       return typeof r === 'string' ? r : typeof r?.text === 'string' ? r.text : null
     } catch {
       return null
-    }
-  },
-  async write(h, path, text) {
-    try {
-      await h.write(path, text)
-      return true
-    } catch {
-      return false
     }
   },
 }

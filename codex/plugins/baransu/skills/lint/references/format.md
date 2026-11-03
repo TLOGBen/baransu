@@ -1,20 +1,38 @@
 # `.claude/lint/` format
 
-## Where it lives: the root and `lint.json`
+## Where it lives: the root, `config.toml` and the sets
 
 The project's root is the nearest folder, from the session's directory upward, that holds `.claude/lint/` — a git repo or a plain folder (a workspace over several repos). With none found, the git top level. In a plain folder every check still runs, and settings, globs and `sgconfig` are always read from the lint root. `forbid` searches the folder's files with each repo's own `.gitignore` applied (`git grep --no-index --exclude-standard`). A commit or push there is checked once per git write, in the repo it commits in — the directory the command reaches through `cd`, `Set-Location` or `git -C`: the git built-ins (`git-facts`, `secret-files`, `up-to-date`) and "what the change touches" read that repo, and `forbid` and ast-grep report only that repo's files; a `run` with `scope = "diff"` runs when that repo's change touches its scope, any other `run` runs at the lint root as at any moment. When `.claude/lint` sits in a repo's subfolder, a commit's git built-ins read that repo. A commit whose directory the text does not show (`~`, a variable, `cd -`, `popd`, git inside another command) or that has no repo to check gets a warning that its checks did not run; the commit itself goes ahead. `worktree-cleanup` and the git facts given to the model belong to a repo and are skipped at a plain-folder root. In an ordinary project (the root is a repo) a commit is checked at the root, as before.
 
-`.claude/lint/lint.json` is optional, plain JSON, and the one fixed path; every other path is named inside it, relative to its folder, and may not leave the project (a path that does falls back to its default and is reported). Its fields and defaults:
+The folder:
 
-| Field | Default | Meaning |
-|---|---|---|
-| `converter` | `"toml"` | Which reader turns a check file into a check. `toml` is the only one today. |
-| `checks` | `"checks"` | The folder of check files. |
-| `sgconfig` | `"sgconfig.yml"` | ast-grep's config; where the rules live is its own `ruleDirs`. |
+```
+.claude/lint/
+  config.toml           # [settings] · [[extends]] the sets in force · [check.<id>] changes to a preset check
+  sets/baransu/*.toml   # baransu's preset sets: copied by $baransu:lint init, replaced whole by $baransu:lint sync
+  sets/local/*.toml     # the project's own sets
+  rules/<id>.yml        # ast-grep rules
+  scripts/              # scripts a `run` check names
+  sgconfig.yml          # ast-grep's config
+```
 
-## A check: `checks/<id>.toml`
+The mod reads the folder once and keeps what it read in memory: it reads it again when `$baransu:lint` is called and when a file under the folder is edited (dot folders are not rules). Nothing is written into the folder.
 
-One check per file; the file name without `.toml` is its id. The mod reads a small subset of TOML: `key = "string"`, `key = 'literal string'`, `key = ["a", 'b']`, and `#` comments. Use single-quoted literal strings for regexes, so backslashes stay as written.
+`config.toml` is the one fixed path. Its parts:
+
+| Part | Meaning |
+|---|---|
+| `[settings]` | `converter` (default `"toml"`): the reader of the sets, `toml` the only one today. `sgconfig` (default `"sgconfig.yml"`): ast-grep's config, relative to `.claude/lint/` and inside it; where the rules live is its own `ruleDirs`. A value that is not a string, or a path outside the folder, keeps the default and is reported. |
+| `[[extends]]` | One set in force: `set = "sets/baransu/git.toml"`; `level = "strict"` takes the set's `strict` values; `severity` sets every check of the set; `only = [...]` / `except = [...]` choose its checks. In written order. |
+| `[check.<id>]` | A change to a check a set brought in: only the fields it writes replace that check's (`severity = "off"` turns it off). A table with `forbid`, `run` or `builtin` defines a whole check instead. |
+
+A set is a file of `[check.<id>]` tables, each one whole check. Which wins, from first to last: each extends entry in order (a later definition of the same id replaces an earlier one), then `config.toml`'s own tables. For a check's level the strongest is `config.toml`'s, then an extends entry's `severity`, then the set's `strict` (at `level = "strict"`) or `severity`.
+
+A project still in the layout before 8.44 — `checks/<id>.toml`, `lint.json`, `lint.toml` — gets one 「設定讀不懂」 naming `$baransu:lint sync`, and those files' checks are not in force until sync moves them.
+
+## A check: a `[check.<id>]` table
+
+One table per check in a set; the table's name after `check.` is its id. The mod reads a small subset of TOML: `[table]` headers, `[[extends]]`, `key = "string"`, `key = 'literal string'`, `key = ["a", 'b']` (on one line or several), and `#` comments. Use single-quoted literal strings for regexes, so backslashes stay as written.
 
 | Field | Meaning |
 |---|---|
@@ -23,11 +41,10 @@ One check per file; the file name without `.toml` is its id. The mod reads a sma
 | `remind` | `true`: the check's `message` is in the system prompt from the start, so the model knows the rule before it acts, not only after a slip. Only on a check with no file scope (`folder`, `file`, `ext`, `scope`): a reminder for some files would be said for every file. |
 | `scope`, `via`, `depth`, `folder`, `file`, `ext`, `ignores`, `actions`, `when` | Which files, acts and environments the check covers — see 範圍 below. All absent: every file, every occurrence of its moments. |
 | `forbid` | A regex that must not match any line in scope. On files it is PCRE, as `git grep -P` reads it; on a command line, a deleted path or a reply it is a JavaScript regex, a leading `(?i)` meaning ignore case. |
-| `run` | A command as an argument list. A non-zero exit is a failure, and the output's last lines are shown. `{file}` becomes a path: at `post:edit` the edited file (or, with `scope = "related"`, each file one hop away), at `post:file` each file changed outside Claude, at `manual` each file in scope, before a commit, a push, `$baransu:ship` or `$baransu:review` each file of a `diff` or `related` scope; a whole-tree `{file}` check does not run there. At a timing whose subject is text (時機 below) the command runs once with the text in `LINT_TEXT`; at an `around:` timing it also gets `LINT_CHANGED` (the changed paths, one per line) and `LINT_BEFORE` (a folder holding each changed file as it was before). A command without `{file}` runs once; with `scope = "diff"` or `"related"` only when the change touches its scope, so a slow check (a test suite, TLC) runs only when its code moved. The command must be one the project can run on its own, so CI can run the same command. At most 500 files are checked; the rest are counted on the card. |
+| `run` | A command as an argument list. A non-zero exit is a failure, and the output's last lines are shown. `{file}` becomes a path: at `post:edit` the edited file (or, with `scope = "related"`, each file one hop away), at `post:file` each file changed outside Claude, at `manual` each file in scope, before a commit, a push, `$baransu:ship` or `$baransu:review` each file of a `diff` or `related` scope; a whole-tree `{file}` check does not run there. At a timing whose subject is text (時機 below) the command runs once with the text in `LINT_TEXT`; at an `around:` timing it also gets `LINT_CHANGED` (the changed paths, one per line) and `LINT_BEFORE` (one line per changed path, `<path>` a tab and the blob of its content before the act; empty for a new file; left out when a before could not be kept, so a script never reads "new" for "unknown"), read with `git --git-dir="$LINT_GIT_DIR" cat-file blob <blob>`. `LINT_GIT_DIR` is the mod's own bare git in the system's temp folder (for `around:commit`, the project's own git, which holds the commit before), and `GIT_ALTERNATE_OBJECT_DIRECTORIES` lets the same command reach a blob the project's git holds; nothing is written into the project. A command without `{file}` runs once; with `scope = "diff"` or `"related"` only when the change touches its scope, so a slow check (a test suite, TLC) runs only when its code moved. The command must be one the project can run on its own, so CI can run the same command. At most 500 files are checked; the rest are counted on the card. |
 | `builtin` | One of the built-ins below, in place of `forbid` / `run`. |
 | `message` | What to write instead. Shown with every finding. |
 | `changed` | A note before a commit, a push, `$baransu:ship` or `$baransu:review` whenever the change touches a file in the check's scope, pass or fail; it reaches the model, not only the card. For a check whose truth lives outside the code, like a model of it. |
-| `from` | Set by `$baransu:lint init` on a copied preset check: `baransu-preset@<version>`. |
 | `origin` | The commit the mistake was found in, when there is one. |
 | `action` | A label for the reader: `重新` on a built-in whose answer is a redo (the words already reached the user, so the model says it again the right way). The mod does not read it; the built-in decides. |
 | `redo` | On a 重新 built-in, the instruction the model gets in place of the default (`user-language`: restate the way `$baransu:huh` does; `explain-before-edit`: say how the change will be made in a sentence or two, then go on; `report-before-stop`: report the way `$baransu:what-now` does). |

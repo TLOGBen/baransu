@@ -1,7 +1,0 @@
-from = "baransu-preset@8.35.0"
-# Source: owner's CLAUDE.md — locate files with Everything (es), never scan a whole drive or the home directory.
-# \x27 is a single quote: a TOML literal string cannot hold one.
-on = ["pre:bash"]
-severity = "warn"
-forbid = '(?i)(\bfind\s+(/|/mnt/c|/c|~|C:/?)(\s|$))|(\b(Get-ChildItem|gci|dir|ls)\b[^|\n]*-Recurse[^|\n]*\s(\x27?[A-Za-z]:\\?\x27?|~|\$HOME|\$env:USERPROFILE)(\s|$))'
-message = "找檔案用 es -n 50 -cp 65001 <名稱>（Everything）；掃整顆磁碟或家目錄又慢又會逾時"

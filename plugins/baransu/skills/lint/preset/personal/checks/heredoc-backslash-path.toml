@@ -1,9 +1,0 @@
-# Source: owner's rules escape-heavy-content-use-write and python-no-backslash-paths.
-# A heredoc body holding a backslash escape (\n, \t, \", \\) or a Windows path: the script inside adds a layer of
-# escaping, and a mistake there fails or silently changes the text (8.43.0: a Python replace script written through
-# a heredoc lost its \n and stopped). At error the command is held before it runs, so the model writes the file first.
-# \x27 is a single quote: a TOML literal string cannot hold one.
-on = ["pre:bash"]
-severity = "error"
-forbid = '<<-?\s*[\x27"]?\w+[\x27"]?[\s\S]*(\\[ntr"\x27\\]|[A-Za-z]:\\[A-Za-z])'
-message = "heredoc 裡有反斜線跳脫或 Windows 路徑，多一層跳脫容易寫錯；先用 Write 把腳本或內容寫成檔案再執行，路徑用正斜線"

@@ -1,14 +1,14 @@
 TLC2 Version 2026.10.30.154139 (rev: 090e85c)
-Running breadth-first search Model-Checking with fp 2 and seed -7376307900652401050 with 1 worker on 32 cores with 981MB heap and 64MB offheap memory [pid: 33824] (Windows 11 10.0 amd64, Eclipse Adoptium 21.0.13 64bit, MSBDiskFPSet, DiskStateQueue).
-Parsing file C:\Users\jimts\AppData\Local\Temp\lintmod-milb5fb2\LintMod.tla
-Parsing file C:\Users\jimts\AppData\Local\Temp\lintmod-milb5fb2\LintRules.tla
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-14465883221229496645\Integers.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-14465883221229496645\FiniteSets.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-14465883221229496645\_TLCTrace.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-14465883221229496645\Naturals.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-14465883221229496645\Sequences.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-14465883221229496645\TLC.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-14465883221229496645\TLCExt.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Running breadth-first search Model-Checking with fp 48 and seed -6203801443718027641 with 1 worker on 32 cores with 981MB heap and 64MB offheap memory [pid: 36312] (Windows 11 10.0 amd64, Eclipse Adoptium 21.0.13 64bit, MSBDiskFPSet, DiskStateQueue).
+Parsing file C:\Users\jimts\AppData\Local\Temp\lintmod-881mq4u1\LintMod.tla
+Parsing file C:\Users\jimts\AppData\Local\Temp\lintmod-881mq4u1\LintRules.tla
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-3504081125620232167\Integers.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-3504081125620232167\FiniteSets.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-3504081125620232167\_TLCTrace.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-3504081125620232167\Naturals.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-3504081125620232167\Sequences.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-3504081125620232167\TLC.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-3504081125620232167\TLCExt.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
 Semantic processing of module Naturals
 Semantic processing of module Sequences
 Semantic processing of module FiniteSets
@@ -22,9 +22,9 @@ Linting of module LintRules
 Linting of module TLCExt
 Linting of module _TLCTrace
 Linting of module LintMod
-Starting... (2026-11-03 22:58:30)
+Starting... (2026-11-04 07:13:05)
 Computing initial states...
-Finished computing initial states: 1 distinct state generated at 2026-11-03 22:58:30.
+Finished computing initial states: 1 distinct state generated at 2026-11-04 07:13:06.
 Error: Invariant R11 is violated.
 Error: The behavior up to this point is:
 State 1: <Initial predicate>
@@ -431,6 +431,6 @@ State 6: <MainEnd(2,"c1","ok") line 306, col 3 to line 358, col 72 of module Lin
 
 85398 states generated, 22294 distinct states found, 18816 states left on queue.
 The depth of the complete state graph search is 6.
-Finished in 01s at (2026-11-03 22:58:31)
-Trace exploration spec path: .\LintMod_TTrace_1793717910.tla
+Finished in 01s at (2026-11-04 07:13:06)
+Trace exploration spec path: .\LintMod_TTrace_1793747585.tla
 Picked up JAVA_TOOL_OPTIONS: -Xmx1g

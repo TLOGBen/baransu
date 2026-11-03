@@ -1,6 +1,0 @@
-# Source: CLAUDE.md Non-obvious Invariants — after push the branch is unmerged locally, so -d always fails.
-on = ["post:edit", "pre:commit", "pre:push"]
-severity = "error"
-files = ["plugins/baransu/skills/ship/**", "codex/plugins/baransu/skills/ship/**"]
-forbid = '\bbranch -d\b'
-message = "/ship 刪分支要用 git -C \"$MAIN_REPO\" branch -D；-d 在 push 後一定失敗"

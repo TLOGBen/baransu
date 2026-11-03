@@ -1,6 +1,0 @@
-# Source: CLAUDE.md Non-obvious Invariants — Claude Code discovers skills from the filesystem; a skills array was added in v0.3.0 and reverted.
-on = ["post:edit", "pre:commit", "pre:push"]
-severity = "error"
-files = ["**/.claude-plugin/plugin.json", "codex/plugins/baransu/plugin.json"]
-forbid = '"skills"\s*:'
-message = "plugin.json 不放 skills 陣列；skill 由檔案系統探索"

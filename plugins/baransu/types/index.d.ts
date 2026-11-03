@@ -43,7 +43,13 @@ export type LintState = {
   // around:agent snapshots, by subagent id: each path git status listed at its start, with its content hash.
   // At most MAX_SPANS; taken (removed) synchronously when the subagent ends.
   spans?: Record<string, { agentType: string; entries: Record<string, string> }>
-  // after:<act>:<wait> deadlines, by check id: when the wait runs out (ms since the epoch) and its timing.
+  // The mod's own object store for around snapshots: a bare git in the system's temp folder (engine.ts storeOf),
+  // made the first time a session needs it. Nothing about it is in the project.
+  objects?: string
+  // /lint ran this turn: the rules may change through its commands, so each main-loop command and the turn's end
+  // read them again. Cleared when the turn ends.
+  lintTurn?: boolean
+  // after:<act>:<wait> deadlines, by check id and timing (`<id>|<key>`): when the wait runs out (ms since the epoch) and its timing.
   // Moved later by every such act; taken synchronously when it runs out. Re-armed when the mod loads.
   timers?: Record<string, { key: 'after:edit' | 'after:bash' | 'after:commit' | 'after:push'; due: number }>
 }

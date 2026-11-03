@@ -1,6 +1,0 @@
-# Source: /ship never force-pushes; a force push rewrites what others may have pulled.
-# A refspec led by + (git push origin +main) forces that one ref, so it counts too.
-on = ["pre:bash"]
-severity = "error"
-forbid = '\bgit\b[^\n|;&]*\bpush\b[^\n|;&]*(\s--force(\s|$)|\s-f(\s|$)|\s\+\S)'
-message = "不要 force push；真的要改寫遠端歷史，先問使用者，再用 --force-with-lease"

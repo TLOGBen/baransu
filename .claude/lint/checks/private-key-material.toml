@@ -1,6 +1,0 @@
-from = "baransu-preset@8.35.0"
-# Source: /ship INV-7 stops on secret files; this catches the key inside any file.
-on = ["post:edit", "pre:commit", "pre:push"]
-severity = "error"
-forbid = '-----BEGIN ([A-Z]+ )?PRIVATE KEY-----'
-message = "檔案內含私鑰；改用 secret manager 或 op:// 參照，不要讓金鑰進 repo"

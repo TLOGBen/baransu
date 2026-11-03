@@ -2,6 +2,34 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.44.0] - 2026-11-04
+
+### Changed（lint：合集版面，需要 `/lint sync`）
+- `.claude/lint/` 改成合集的版面：
+  - `config.toml`：寫 `[settings]`，以及要用哪些合集、個別規則要改什麼。
+  - `sets/baransu/`：baransu 的預設合集。`/lint sync` 會整包換新，不要手改。
+  - `sets/local/`：這個專案自己的合集，`/lint sync` 不會動。
+- 拿掉一條一個檔的 `checks/`、`lint.json` 和 `lint.toml`。還在用舊版面的專案會收到一則「設定讀不懂」，提示跑 `/lint sync`。在搬完之前，那些規則不會生效。`/lint sync` 用新的 `scripts/migrate-layout.py` 搬家，先寫好新的檔案，確認沒問題後，再另外跑一次 `--remove` 刪掉舊檔。
+- 要改預設合集裡的某一條，在 `config.toml` 寫 `[check.<id>]`，只寫要改的欄位。之後 `/lint sync` 換新合集時，你的修改不會被蓋掉。
+- 規則只在 session 開始時讀一次，之後放在記憶體裡，不再每 5 秒重讀。兩種情況會重讀：叫 `/lint` 時，以及 Claude 改了 `.claude/lint/` 底下的檔時。
+- `/lint init` 改成：選合集、寫 `config.toml`、把合集複製到 `sets/baransu/`。預設規則在 baransu 裡的位置變成 `preset/sets/`、`preset/rules/`、`preset/scripts/`，拿掉舊的 `general`、`personal`、`strict`。
+- lint 不再在專案裡寫任何檔案。around 時機要的「改動前內容」，改存在系統暫存資料夾的一個 bare git 裡。腳本從 `LINT_BEFORE` 拿到「路徑 → 雜湊值」，再用 `git --git-dir="$LINT_GIT_DIR" cat-file blob` 讀出內容。`.claude/lint/.cache` 不再使用。
+
+### Fixed（lint）
+- 合集裡只有 `message` 的規則（例如計時器提醒），原本被當成「要改別條規則」，因此回報名稱打錯。現在合集檔裡的每一條都當成一條完整的規則。
+- `migrate-scope.py` 遇到已經是新時機寫法的規則（`pre:commit`、`pre:skill:ship`），原本漏加 `scope = "diff"`，會讓比較慢的檢查變成每次 commit 都跑。
+- 這個 repo 有 14 條規則還用舊的 `files` 欄位，所以沒有生效。這次一起遷移，改用合集。
+- `/lint` 執行期間用指令改的規則（例如 `/lint sync` 複製新合集），原本要等下一次叫 `/lint` 才生效。現在 `/lint` 那一輪的每個指令之後都會重讀，那一輪結束時再讀一次。
+- around:commit 的 `run` 檢查原本拿不到 `LINT_GIT_DIR`，現在改用專案自己的 git。改動前的內容沒存成功時，不會再給 `LINT_BEFORE`，免得腳本把「不知道」當成「新檔」。
+- 舊版面的檔還留在 `config.toml` 旁邊時，只提醒一句，不算「設定讀不懂」，所以 sync 的「確認沒有設定讀不懂」做得到。
+- `[settings] sgconfig` 可以指到專案自己的 `sgconfig.yml`（例如 `../../sgconfig.yml`），只有指到專案外面才算錯。
+- 暫存的 git 固定只有一個（`baransu-lint.git`），每次 session 開始時（包括全新的 session）清掉兩天前的內容，不會越積越多。暫存 git 建不起來時，改動前後仍然比得出差別，只是不給 `LINT_BEFORE`。
+- `migrate-layout.py`：
+  - 舊的 `checks/` 檔會先套用 `files` 改名和新時機寫法，再搬過去，所以 sync 的步驟不必照順序跑。
+  - 原本來自預設合集的規則，只在 `config.toml` 留下和預設不一樣的欄位，下次 sync 才會跟著更新。
+  - 已經有內容的新檔不會被覆蓋。
+  - `--remove` 只負責刪掉舊檔。
+
 ## [8.43.0] - 2026-11-03
 
 ### Changed（lint：時機，需要 `/lint sync`）

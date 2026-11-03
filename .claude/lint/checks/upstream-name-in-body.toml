@@ -1,7 +1,0 @@
-# Source: CLAUDE.md Non-obvious Invariants — third-party sources live in each skill's NOTICE.md, never in the body.
-on = ["post:edit", "pre:commit", "pre:push"]
-severity = "error"
-files = ["plugins/baransu/skills/**/*.md", "codex/plugins/baransu/skills/**/*.md"]
-ignores = ["**/NOTICE.md"]
-forbid = '(?i)pstack|Lauren Tan|cursor/plugins'
-message = "上游來源只寫在該 skill 的 NOTICE.md；本文和 references 不點名、不寫授權"
