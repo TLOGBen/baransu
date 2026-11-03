@@ -2,6 +2,12 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.38.2] - 2026-11-03
+
+### Changed（狀態列）
+- 桌面版收成固定一行，不再換行：工作中的轉圈、context、5 小時、7 天。模型、努力度與 cache 拿掉（模型和努力度 app 在輸入框下方已經有），字縮成 app 註腳的大小、間距收緊。5 小時只寫補回的時刻（例如 18:40），7 天不寫日期，看細線就知道還有多久。視窗窄時先拿掉長條，再拿掉時刻。
+- 終端機版的模型改成人看的名字（`claude-opus-5-5` → `Opus 5.5`）。
+
 ## [8.38.1] - 2026-11-03
 
 ### Fixed（狀態列）

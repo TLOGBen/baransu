@@ -5,8 +5,8 @@ import type { StatuslineState } from '../types'
 // The status line: model and effort, context with a compaction reminder, cache hit rate, and the 5-hour
 // and 7-day windows as two-layer lines (thick: budget left; thin: time left until it refills). Only the
 // window most at risk is coloured. Design: https://claude.ai/artifact/EkcP9pAz6y89uYhuFSkUUD.
-// The desktop draws it as a row above the prompt: text in the app's own Text, only the bars as small SVG.
-// The terminal adds it to the end of the hint line under the prompt.
+// The desktop draws one row above the prompt: text in the app's own Text, only the bars and the spinner
+// as small SVG. The terminal adds the whole line to the end of the hint line under the prompt.
 
 const STATE = atom({ plugin: 'baransu', key: 'statusline' } as const, { tick: 0 } as StatuslineState)
 
@@ -53,8 +53,14 @@ function focusOf(wins: Win[]): Win | undefined {
 }
 const ctxNote = (ctx?: number) => (ctx === undefined ? '' : ctx >= 90 ? ' 即將自動壓縮' : ctx >= 75 ? ' 可以先 /compact' : '')
 
+// `claude-opus-5-5` as people say it, `Opus 5.5`; anything else as given.
+function modelName(id: string): string {
+  const m = /^claude-([a-z]+)-(\d+)(?:-(\d{1,2}))?(?:\b|$)/.exec(id)
+  return m ? `${m[1][0].toUpperCase()}${m[1].slice(1)} ${m[2]}${m[3] ? `.${m[3]}` : ''}` : id
+}
+
 function terminalTail(l: Line): string {
-  const parts = [`${l.model}${l.effort ? ` ${l.effort}` : ''}`]
+  const parts = [`${modelName(l.model)}${l.effort ? ` ${l.effort}` : ''}`]
   if (l.ctx !== undefined) parts.push(`context ${l.ctx}%${ctxNote(l.ctx)}`)
   if (l.cache !== undefined) parts.push(`cache ${l.cache}%`)
   for (const w of l.wins) parts.push(`${w.label} 剩 ${w.left}%${w.reset ? `（${w.reset} 補回）` : ''}`)
@@ -62,18 +68,12 @@ function terminalTail(l: Line): string {
 }
 
 // The app draws an SVG as an image that knows nothing of its theme, so these read on light and dark alike.
-const C = { amber: '#c0841a', red: '#d64545', blue: '#3b7dd8', grey: '#8a8f98', text: '#7d838c' }
+const C = { amber: '#c0841a', red: '#d64545', grey: '#8a8f98' }
 const svg = (w: number, h: number, body: string) =>
   `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${body}</svg>`
 const MOTION = '<style>@media (prefers-reduced-motion: reduce){*{animation:none!important}}</style>'
 
 const SPINNER = svg(14, 14, `${MOTION}<style>@keyframes spin{to{transform:rotate(360deg)}}.s{transform-origin:7px 7px;animation:spin 1.4s linear infinite}</style><circle cx="7" cy="7" r="5" fill="none" stroke="${C.grey}" stroke-opacity=".3" stroke-width="2"/><path class="s" d="M7 2 A5 5 0 0 1 12 7" fill="none" stroke="${C.grey}" stroke-width="2" stroke-linecap="round"/>`)
-
-const EFFORTS = ['low', 'medium', 'high', 'xhigh', 'max']
-function effortBars(effort: string): string {
-  const n = EFFORTS.indexOf(effort) + 1
-  return svg(28, 12, EFFORTS.map((_, i) => `<rect x="${i * 6}" y="${12 - (4 + i * 2)}" width="4" height="${4 + i * 2}" rx="1" fill="${C.text}" fill-opacity="${i < n ? 1 : 0.25}"/>`).join(''))
-}
 
 function ctxBar(ctx: number, colour: string): string {
   return svg(56, 6, `<rect width="56" height="6" rx="3" fill="${C.grey}" fill-opacity=".28"/><rect width="${Math.max(6, (56 * ctx) / 100)}" height="6" rx="3" fill="${colour}"/>`)
@@ -102,38 +102,37 @@ function windowBar(w: Win, colour: string, hot: boolean): string {
     `<rect y="11" width="${(W * w.time) / 100}" height="2" rx="1" fill="${C.grey}"/></g>`)
 }
 
+// One row, never wrapped: a spinner while a turn runs, context, and the two windows. The app already
+// shows the model and the effort under the prompt, so the row leaves them out, and the cache rate with
+// them. Only the 5-hour window names its refill time; the 7-day one's thin line already says how far off
+// it is. Where it is narrow it drops the bars, then that refill time.
 function desktopRow(els: any, l: Line, columns: number): any {
-  const { Box, Text, Svg } = els
+  const { Box, Text: T, Svg } = els
+  const Text = (props: any, s: string) => h(T, { size: 'footnote', ...props }, s)
   const focus = focusOf(l.wins)
-  const bars = columns >= 80
-  const item = (key: string, ...kids: any[]) => h(Box, { key, flexDirection: 'row', columnGap: 1, alignItems: 'center' }, ...kids)
+  const bars = columns >= 100
+  const resets = columns >= 70
+  const item = (key: string, ...kids: any[]) => h(Box, { key, flexDirection: 'row', columnGap: 1, alignItems: 'center', flexShrink: 0 }, ...kids)
   const parts: any[] = []
-  parts.push(item('model',
-    l.working ? h(Svg, { source: SPINNER, alt: '執行中', width: 14, height: 14, isInteractive: true }) : null,
-    h(Text, { weight: 'semibold' }, l.model || 'Claude'),
-    l.effort ? h(Svg, { source: effortBars(l.effort), alt: `努力度 ${l.effort}`, width: 28, height: 12 }) : null,
-    l.effort ? h(Text, { dimColor: true }, l.effort) : null))
+  if (l.working) parts.push(item('spin', h(Svg, { source: SPINNER, alt: '執行中', width: 14, height: 14, isInteractive: true })))
   if (l.ctx !== undefined) {
     const colour = l.ctx >= 90 ? C.red : l.ctx >= 75 ? C.amber : C.grey
     parts.push(item('ctx',
-      h(Text, { dimColor: true }, 'context'),
+      Text({ dimColor: true }, 'context'),
       bars ? h(Svg, { source: ctxBar(l.ctx, colour), alt: `context ${l.ctx}%`, width: 56, height: 6 }) : null,
       l.ctx >= 75
-        ? h(Text, { color: colour, weight: 'semibold', tabular: true }, `${l.ctx}%${ctxNote(l.ctx)}`)
-        : h(Text, { tabular: true }, `${l.ctx}%`)))
-  }
-  if (l.cache !== undefined) {
-    parts.push(item('cache', h(Text, { dimColor: true }, 'cache'), h(Text, { color: C.blue, weight: 'semibold', tabular: true }, `${l.cache}%`)))
+        ? Text({ color: colour, weight: 'semibold', tabular: true }, `${l.ctx}%${ctxNote(l.ctx)}`)
+        : Text({ tabular: true }, `${l.ctx}%`)))
   }
   for (const w of l.wins) {
     const hot = focus === w
     const colour = hot ? (w.risk === 2 ? C.red : C.amber) : C.grey
     parts.push(item(w.kind,
-      hot ? h(Text, { color: colour, weight: 'semibold', tabular: true }, `${w.label} 剩 ${w.left}%`) : h(Text, { tabular: true }, `${w.label} 剩 ${w.left}%`),
+      hot ? Text({ color: colour, weight: 'semibold', tabular: true }, `${w.label} 剩 ${w.left}%`) : Text({ tabular: true }, `${w.label} 剩 ${w.left}%`),
       bars ? h(Svg, { source: windowBar(w, colour, hot), alt: `${w.label} 剩 ${w.left}%，時間剩 ${w.time}%`, width: W + 8, height: 14, isInteractive: true }) : null,
-      w.reset ? h(Text, { dimColor: true, tabular: true }, `${w.reset} 補回`) : null))
+      w.reset && resets && w.kind === 'five_hour' ? Text({ dimColor: true, tabular: true }, w.reset) : null))
   }
-  return h(Box, { flexDirection: 'row', flexWrap: 'wrap', columnGap: 3, rowGap: 1, alignItems: 'center' }, ...parts)
+  return h(Box, { flexDirection: 'row', flexWrap: 'nowrap', columnGap: 2, alignItems: 'center' }, ...parts)
 }
 
 // What only a main-loop response carries: its effort, and how much of its input came from the cache.
