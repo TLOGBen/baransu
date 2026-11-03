@@ -4,8 +4,8 @@
 #     nor TLC said so.
 # .claude/lint/scripts/tla-parse.py (copied with this check at the 嚴格 level) reads the module the way TLC will
 # (SANY from its folder, by bare name), then looks for the second shape. No tla2tools.jar: not checked, no error.
-on = ["edit"]
+on = ["post:edit"]
 severity = "error"
-files = ["*.tla"]
+file = ["*.tla"]
 run = ["python", ".claude/lint/scripts/tla-parse.py", "{file}"]
 message = "TLA+ 模組有問題：照上面列出的行修好（保留字如 NEW、LAMBDA 不能當名稱；同一個動作不能既改一個變數、又把它列進 UNCHANGED）"

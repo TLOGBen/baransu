@@ -1,7 +1,7 @@
 // The ConfigSource on Claude Code: finds the project root, reads `.claude/lint/lint.json` if any, picks the
 // converter by name, reads the check files. Its cache is a cache, not state: a reload just reads again.
 
-import { checkFrom, type Check, type Config, type ConfigSource, type Finding } from '../../engine'
+import { readCheck, type Check, type Config, type ConfigSource, type Finding } from '../../engine'
 import { converterNamed } from '../../util/converters'
 import type { Host } from './ports'
 
@@ -78,7 +78,8 @@ export function resolveSettings(root: string, json: unknown): { value: LintSetti
  * - lint.json unreadable JSON → defaults + problem; unknown converter → no checks + problem.
  * - the checks folder missing → no checks, no problem (as 8.39's readChecks did).
  * - every `<checks>/*<converter.extension>` file: a parse throw → 「設定讀不懂：checks/<name>：<message>」
- *   (same words as today); otherwise checkFrom(id, fields), and an undefined result (an off check) is left out.
+ *   (same words as today); otherwise readCheck(id, fields): an off check is left out, and a scope it cannot
+ *   read keeps the check out with one problem per thing it could not read.
  * - sgconfig: its path, relative to root. Whether the file exists is asked when ast-grep is about to run
  *   (as today, per moment), not cached here.
  * Runs twice: same answer, or the cached one. Stops halfway: nothing written.
@@ -149,8 +150,10 @@ export function hostConfig(): ConfigSource<Host> {
         problems.push({ id, severity: 'warn', text: `設定讀不懂：${label}/${entry.name}：${(err as Error).message}` })
         continue
       }
-      const c = checkFrom(id, fields)
-      if (c) checks.push(c)
+      const c = readCheck(id, fields)
+      if (c.kind === 'check') checks.push(c.check)
+      else if (c.kind === 'problems')
+        for (const p of c.problems) problems.push({ id, severity: 'warn', text: `設定讀不懂：${label}/${entry.name}：${p}（這條檢查沒有生效）` })
     }
     return { settings, value: value() }
   }

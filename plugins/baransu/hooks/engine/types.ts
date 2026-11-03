@@ -13,8 +13,14 @@ export type { LintState }
 
 /** A check that is in force. `off` never reaches the engine: the config source drops an off check, so a
  *  check the user turned off cannot fire anywhere (today: readChecks' last line). */
-export type Severity = 'error' | 'warn'
-export type Moment = 'edit' | 'commit' | 'done' | 'bash' | 'manual'
+/**
+ * A check's level (format.md, 等級). What it does depends on the timing: one cell of timing.ts TABLE per
+ * level and timing, and nothing else decides it. `off` never reaches the engine. The mapping to a finding is
+ * moments.ts `level`.
+ */
+export type Severity = 'error' | 'check' | 'retry' | 'warn' | 'info'
+/** When a check runs: `<side>:<act>[:<arg>]` or `manual`, parsed (timing.ts). */
+export type { Timing } from './timing'
 export type Builtin =
   | 'git-facts' | 'secret-files' | 'built-before-commit' | 'up-to-date' | 'session-record' | 'worktree-cleanup'
   | 'destructive-preview' | 'explain-before-edit' | 'report-before-stop' | 'correction-to-lint' | 'user-language'
@@ -31,12 +37,14 @@ export type CheckAction =
 /** One check as the engine uses it, whatever file format it came from. */
 export type Check = {
   readonly id: string
-  readonly on: readonly Moment[]
-  /** The skills it runs before, from `on = ["skill:<name>"]` (`skill:hypothesis` also names `baransu:hypothesis`). */
-  readonly skills: readonly string[]
+  /** When it runs. Empty only for a check whose actions imply the timing, and for a built-in (BUILTIN_AT). */
+  readonly on: readonly import('./timing').Timing[]
   readonly severity: Severity
-  readonly files: readonly string[]
-  readonly ignores: readonly string[]
+  /** `remind = true`: its message is in the system prompt from the start (prompt.compose), not only after a
+   *  slip. Only on a check with no file scope (readCheck refuses it otherwise). */
+  readonly remind?: boolean
+  /** Which files, acts and environments the check covers (scopeFrom; format.md, 範圍). */
+  readonly scope: import('./scope/types').Scope
   readonly action: CheckAction
   readonly message: string
   readonly changed?: string
@@ -46,7 +54,11 @@ export type Check = {
 }
 
 /** A check file's fields as a converter read them, before the engine fills defaults. */
-export type RawCheck = Readonly<Record<string, string | readonly string[]>>
+/** A value a converter reads: a string, a list of strings, a table, or a list of tables (`[[extends]]`). */
+export type RawValue = string | readonly string[] | RawTable | readonly RawTable[]
+/** One table of a check file or a collection; a whole file is one too. */
+export type RawTable = { readonly [key: string]: RawValue }
+export type RawCheck = RawTable
 
 /** Everything the engine reads about a project. `null` from the config source means: no lint here, idle. */
 export type Config = {
@@ -92,12 +104,14 @@ export type ToolCallEvent = Actor & {
    *  preview's paths and its key alike. */
   readonly cwd: string
 } & (
-  | { readonly kind: 'edit'; readonly file: string }
+  /** `text`: what the call writes (Write's content, Edit's and MultiEdit's new strings joined). */
+  | { readonly kind: 'edit'; readonly file: string; readonly text: string }
   | { readonly kind: 'shell'; readonly shell: 'sh' | 'ps'; readonly command: string; readonly background: boolean }
 )
 
-/** How the host's own handling of a call ended. `ran` false: refused further down. */
-export type Outcome = { readonly ran: boolean; readonly isError: boolean; readonly isReadOnly: boolean }
+/** How the host's own handling of a call ended. `ran` false: refused further down. `output`: a shell
+ *  command's stdout and stderr ('' for an edit or when the host gave none), for post:bash. */
+export type Outcome = { readonly ran: boolean; readonly isError: boolean; readonly isReadOnly: boolean; readonly output?: string }
 
 export type PromptEvent = {
   /** What the person typed, tags and a leading slash command removed. */
@@ -113,11 +127,32 @@ export type TurnEndEvent = Actor & { readonly answered: boolean }
 /** Text the model streamed (turn.step) — counts as speaking and as text after the last step. */
 export type SpokenEvent = Actor & { readonly text: string }
 /** A whole assistant row as it is kept (session.append) — counts as speaking and is read for its language. */
-export type ReplyEvent = Actor & { readonly text: string }
+export type ReplyEvent = Actor & {
+  readonly text: string
+  /** What the person sees of the row: its text blocks plus thinking blocks that carry text (the same reading
+   *  as streamedText). '' for a row of only a tool_use or an empty thinking — such a row answers no 重新.
+   *  The redo checks run on this, not on `text` (lint-scope sketch, postcondition 12). Required once filled. */
+  readonly visible: string
+}
 /** A skill starting. `skill`: /ship and /review read the done moment's record, /lint the manual run; any other
  *  skill ('other') gets a record only from the checks whose `on` names it. `name` is the skill as invoked;
  *  `args` what was typed after it (`/lint help` → 'help'), '' when nothing was. */
 export type DoneSkillEvent = { readonly skill: 'ship' | 'review' | 'lint' | 'other'; readonly name: string; readonly args: string }
+
+/** The main loop wants to end its turn (classic.Stop). `text`: last_assistant_message. The host's stop_hook_active
+ *  is not read: each check's one hold is the engine's own record (an error's hold must not use up the report's). */
+export type StopEvent = { readonly text: string }
+/** A subagent starting (agent.spawn, after the host started it: `agent` is its id). */
+export type AgentStartEvent = { readonly agent: string; readonly agentType: string }
+/** A subagent ended (classic.SubagentStop). `agentType` '' is the host's own compaction. */
+export type AgentStopEvent = { readonly agent: string; readonly agentType: string; readonly text: string }
+/** A compaction of the main conversation (session.compact; a subagent's own is not one). */
+export type CompactEvent = { readonly instructions: string }
+/** A file the host saw change (classic.FileChanged), absolute or root-relative. */
+export type FileChangedEvent = { readonly file: string; readonly change: 'change' | 'add' | 'unlink' }
+
+/** A stop's answer: go on ending, or `hold` with the reason the model reads in the same turn. */
+export type StopVerdict = { readonly kind: 'stop' } | { readonly kind: 'hold'; readonly reason: string }
 
 // ---------------------------------------------------------------- verdicts
 

@@ -1,14 +1,14 @@
 TLC2 Version 2026.10.30.154139 (rev: 090e85c)
-Running breadth-first search Model-Checking with fp 78 and seed -6164995977754493052 with 1 worker on 32 cores with 981MB heap and 64MB offheap memory [pid: 21924] (Windows 11 10.0 amd64, Eclipse Adoptium 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
-Parsing file C:\Users\jimts\AppData\Local\Temp\lintmod-s6wdknrh\LintMod.tla
-Parsing file C:\Users\jimts\AppData\Local\Temp\lintmod-s6wdknrh\LintRules.tla
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-16348197868004504080\Integers.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-16348197868004504080\FiniteSets.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-16348197868004504080\_TLCTrace.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-16348197868004504080\Naturals.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-16348197868004504080\Sequences.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-16348197868004504080\TLC.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-16348197868004504080\TLCExt.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Running breadth-first search Model-Checking with fp 100 and seed 5572547715158725195 with 1 worker on 32 cores with 981MB heap and 64MB offheap memory [pid: 696] (Windows 11 10.0 amd64, Eclipse Adoptium 21.0.13 64bit, MSBDiskFPSet, DiskStateQueue).
+Parsing file C:\Users\jimts\AppData\Local\Temp\lintmod-jmdgs68_\LintMod.tla
+Parsing file C:\Users\jimts\AppData\Local\Temp\lintmod-jmdgs68_\LintRules.tla
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-8813365204346289418\Integers.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-8813365204346289418\FiniteSets.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-8813365204346289418\_TLCTrace.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-8813365204346289418\Naturals.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-8813365204346289418\Sequences.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-8813365204346289418\TLC.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-8813365204346289418\TLCExt.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
 Semantic processing of module Naturals
 Semantic processing of module Sequences
 Semantic processing of module FiniteSets
@@ -22,30 +22,39 @@ Linting of module LintRules
 Linting of module TLCExt
 Linting of module _TLCTrace
 Linting of module LintMod
-Starting... (2026-11-03 15:21:49)
+Starting... (2026-11-03 22:54:40)
 Computing initial states...
-Finished computing initial states: 1 distinct state generated at 2026-11-03 15:21:49.
+Finished computing initial states: 1 distinct state generated at 2026-11-03 22:54:40.
 Error: Invariant R8 is violated.
 Error: The behavior up to this point is:
 State 1: <Initial predicate>
+/\ rowStep = 0
 /\ userSpokeG = FALSE
 /\ reviewedAfterG = FALSE
+/\ qOwedG = FALSE
+/\ rowLate = FALSE
 /\ actsTurnG = 0
 /\ reportOwedG = FALSE
 /\ heldEverG = {}
+/\ dupG = FALSE
 /\ lastOutcome = "ok"
+/\ askWarrantedG = FALSE
 /\ tools = FALSE
 /\ snap = <<{}, {}>>
 /\ cmdSeqs = {}
 /\ actor = "host"
+/\ checkNow = FALSE
+/\ snapQ = <<FALSE, FALSE>>
 /\ n = 0
 /\ langKnown = FALSE
+/\ answerRowG = FALSE
 /\ pc = <<"idle", "idle">>
 /\ heldStepG = {}
 /\ textLong = FALSE
 /\ explainNow = FALSE
 /\ workG = FALSE
 /\ cwdG = "a"
+/\ checksG = {}
 /\ ev = "Init"
 /\ restated = <<0, 0>>
 /\ beginStep = <<0, 0>>
@@ -56,45 +65,63 @@ State 1: <Initial predicate>
 /\ execCmd = <<>>
 /\ spoke = TRUE
 /\ nextBlock = 1
+/\ answering = {}
 /\ trackedCwd = "a"
 /\ late = "none"
 /\ reportG = FALSE
+/\ stopHoldsG = 0
 /\ lastSeen = {}
 /\ editedG = FALSE
 /\ execStep = 0
 /\ editSeq = 0
+/\ stopPassedG = FALSE
+/\ stopHeld = FALSE
 /\ reviewedAt = -1
 /\ claimNoEdit = FALSE
 /\ previewed = {}
+/\ ansOwedG = {}
 /\ inTurn = FALSE
 /\ slips = {}
 /\ claimCmd = FALSE
 /\ heldTurnG = {}
+/\ stopHolds = 0
 /\ reportEmits = 0
 /\ cmdAfterG = FALSE
 /\ wrongG = {}
 /\ stepC = 0
+/\ askedG = FALSE
+/\ qDeliv = 0
 /\ seen = <<{}, {}>>
+/\ queued = FALSE
 
-State 2: <SubAct("edit") line 260, col 3 to line 279, col 62 of module LintMod>
+State 2: <SubAct("edit") line 364, col 3 to line 385, col 62 of module LintMod>
+/\ rowStep = 0
 /\ userSpokeG = FALSE
 /\ reviewedAfterG = FALSE
+/\ qOwedG = FALSE
+/\ rowLate = FALSE
 /\ actsTurnG = 0
 /\ reportOwedG = FALSE
 /\ heldEverG = {}
+/\ dupG = FALSE
 /\ lastOutcome = "ok"
+/\ askWarrantedG = FALSE
 /\ tools = FALSE
 /\ snap = <<{}, {}>>
 /\ cmdSeqs = {}
 /\ actor = "sub"
+/\ checkNow = FALSE
+/\ snapQ = <<FALSE, FALSE>>
 /\ n = 1
 /\ langKnown = FALSE
+/\ answerRowG = FALSE
 /\ pc = <<"idle", "idle">>
 /\ heldStepG = {}
 /\ textLong = FALSE
 /\ explainNow = FALSE
 /\ workG = FALSE
 /\ cwdG = "a"
+/\ checksG = {}
 /\ ev = "SubAct"
 /\ restated = <<0, 0>>
 /\ beginStep = <<0, 0>>
@@ -105,45 +132,63 @@ State 2: <SubAct("edit") line 260, col 3 to line 279, col 62 of module LintMod>
 /\ execCmd = <<>>
 /\ spoke = TRUE
 /\ nextBlock = 1
+/\ answering = {}
 /\ trackedCwd = "a"
 /\ late = "none"
 /\ reportG = FALSE
+/\ stopHoldsG = 0
 /\ lastSeen = {}
 /\ editedG = TRUE
 /\ execStep = 0
 /\ editSeq = 1
+/\ stopPassedG = FALSE
+/\ stopHeld = FALSE
 /\ reviewedAt = -1
 /\ claimNoEdit = FALSE
 /\ previewed = {}
+/\ ansOwedG = {}
 /\ inTurn = FALSE
 /\ slips = {}
 /\ claimCmd = FALSE
 /\ heldTurnG = {}
+/\ stopHolds = 0
 /\ reportEmits = 0
 /\ cmdAfterG = FALSE
 /\ wrongG = {}
 /\ stepC = 0
+/\ askedG = FALSE
+/\ qDeliv = 0
 /\ seen = <<{}, {}>>
+/\ queued = FALSE
 
-State 3: <SubAct("bashwrite") line 260, col 3 to line 279, col 62 of module LintMod>
+State 3: <SubAct("bashwrite") line 364, col 3 to line 385, col 62 of module LintMod>
+/\ rowStep = 0
 /\ userSpokeG = FALSE
 /\ reviewedAfterG = FALSE
+/\ qOwedG = FALSE
+/\ rowLate = FALSE
 /\ actsTurnG = 0
 /\ reportOwedG = FALSE
 /\ heldEverG = {}
+/\ dupG = FALSE
 /\ lastOutcome = "ok"
+/\ askWarrantedG = FALSE
 /\ tools = FALSE
 /\ snap = <<{}, {}>>
 /\ cmdSeqs = {1}
 /\ actor = "sub"
+/\ checkNow = FALSE
+/\ snapQ = <<FALSE, FALSE>>
 /\ n = 2
 /\ langKnown = FALSE
+/\ answerRowG = FALSE
 /\ pc = <<"idle", "idle">>
 /\ heldStepG = {}
 /\ textLong = FALSE
 /\ explainNow = FALSE
 /\ workG = FALSE
 /\ cwdG = "a"
+/\ checksG = {}
 /\ ev = "SubAct"
 /\ restated = <<0, 0>>
 /\ beginStep = <<0, 0>>
@@ -154,45 +199,63 @@ State 3: <SubAct("bashwrite") line 260, col 3 to line 279, col 62 of module Lint
 /\ execCmd = <<>>
 /\ spoke = TRUE
 /\ nextBlock = 1
+/\ answering = {}
 /\ trackedCwd = "a"
 /\ late = "none"
 /\ reportG = FALSE
+/\ stopHoldsG = 0
 /\ lastSeen = {}
 /\ editedG = TRUE
 /\ execStep = 0
 /\ editSeq = 1
+/\ stopPassedG = FALSE
+/\ stopHeld = FALSE
 /\ reviewedAt = -1
 /\ claimNoEdit = FALSE
 /\ previewed = {}
+/\ ansOwedG = {}
 /\ inTurn = FALSE
 /\ slips = {}
 /\ claimCmd = FALSE
 /\ heldTurnG = {}
+/\ stopHolds = 0
 /\ reportEmits = 0
 /\ cmdAfterG = FALSE
 /\ wrongG = {}
 /\ stepC = 0
+/\ askedG = FALSE
+/\ qDeliv = 0
 /\ seen = <<{}, {}>>
+/\ queued = FALSE
 
-State 4: <Ship line 310, col 3 to line 316, col 62 of module LintMod>
+State 4: <Ship line 429, col 3 to line 437, col 62 of module LintMod>
+/\ rowStep = 0
 /\ userSpokeG = FALSE
 /\ reviewedAfterG = FALSE
+/\ qOwedG = FALSE
+/\ rowLate = FALSE
 /\ actsTurnG = 0
 /\ reportOwedG = FALSE
 /\ heldEverG = {}
+/\ dupG = FALSE
 /\ lastOutcome = "ok"
+/\ askWarrantedG = FALSE
 /\ tools = FALSE
 /\ snap = <<{}, {}>>
 /\ cmdSeqs = {1}
 /\ actor = "main"
+/\ checkNow = FALSE
+/\ snapQ = <<FALSE, FALSE>>
 /\ n = 3
 /\ langKnown = FALSE
+/\ answerRowG = FALSE
 /\ pc = <<"idle", "idle">>
 /\ heldStepG = {}
 /\ textLong = FALSE
 /\ explainNow = FALSE
 /\ workG = FALSE
 /\ cwdG = "a"
+/\ checksG = {}
 /\ ev = "Ship"
 /\ restated = <<0, 0>>
 /\ beginStep = <<0, 0>>
@@ -203,28 +266,37 @@ State 4: <Ship line 310, col 3 to line 316, col 62 of module LintMod>
 /\ execCmd = <<>>
 /\ spoke = TRUE
 /\ nextBlock = 1
+/\ answering = {}
 /\ trackedCwd = "a"
 /\ late = "none"
 /\ reportG = FALSE
+/\ stopHoldsG = 0
 /\ lastSeen = {}
 /\ editedG = TRUE
 /\ execStep = 0
 /\ editSeq = 1
+/\ stopPassedG = FALSE
+/\ stopHeld = FALSE
 /\ reviewedAt = -1
 /\ claimNoEdit = FALSE
 /\ previewed = {}
+/\ ansOwedG = {}
 /\ inTurn = FALSE
 /\ slips = {}
 /\ claimCmd = TRUE
 /\ heldTurnG = {}
+/\ stopHolds = 0
 /\ reportEmits = 0
 /\ cmdAfterG = FALSE
 /\ wrongG = {}
 /\ stepC = 0
+/\ askedG = FALSE
+/\ qDeliv = 0
 /\ seen = <<{}, {}>>
+/\ queued = FALSE
 
-2458 states generated, 1229 distinct states found, 1106 states left on queue.
+2507 states generated, 1251 distinct states found, 1127 states left on queue.
 The depth of the complete state graph search is 4.
-Finished in 01s at (2026-11-03 15:21:50)
-Trace exploration spec path: .\LintMod_TTrace_1793690508.tla
+Finished in 00s at (2026-11-03 22:54:40)
+Trace exploration spec path: .\LintMod_TTrace_1793717680.tla
 Picked up JAVA_TOOL_OPTIONS: -Xmx1g

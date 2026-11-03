@@ -5,26 +5,29 @@
 
 import type { Card, Check, Finding } from './types'
 
-export const MOMENT = { edit: '改檔後', commit: 'commit 前', done: '收尾前', bash: '指令前', manual: '手動', skill: 'skill 前' } as const
+export const MOMENT = { edit: '改檔', commit: 'commit 前', done: '收尾前', bash: '指令', manual: '手動', skill: 'skill 前', reply: '回應後', stop: '結束這一輪前', agent: 'subagent 結束後', compact: '壓縮', file: 'Claude 之外改檔後', after: '時間到' } as const
 
 /** `lint · <moment> · <where>：N error、M warn` and one line per finding. */
-export function render(moment: keyof typeof MOMENT, where: string, findings: readonly Finding[]): string {
+export function render(moment: keyof typeof MOMENT, where: string, all: readonly Finding[]): string {
+  // A quiet finding is for the person's card only (lint-scope postcondition 14).
+  const findings = all.filter(f => !f.quiet)
   const errors = findings.filter(f => f.severity === 'error').length
   const warns = findings.filter(f => f.severity === 'warn').length
   const head = `lint · ${MOMENT[moment]}${where ? ' · ' + where : ''}：${errors} error、${warns} warn`
-  const mark = { error: '✖', warn: '⚠', redo: '↻', note: '·' } as const
+  const mark = { error: '✖', check: '⏸', warn: '⚠', retry: '↻', note: '·' } as const
   return [head, ...findings.map(f => `${mark[f.severity]} ${f.id}：${f.text}`)].join('\n')
 }
 
-/** The card for a set of findings, notes left out; null when nothing is left to show. */
+/** The card for a set of findings, notes left out except quiet ones (they exist for the card); null when
+ *  nothing is left to show. A card of quiet notes alone is a warn card. */
 export function summarize(moment: string, findings: readonly Finding[]): Card | null {
-  const shown = findings.filter(f => f.severity !== 'note')
+  const shown = findings.filter(f => f.severity !== 'note' || f.quiet)
   if (!shown.length) return null
   const errors = shown.filter(f => f.severity === 'error').length
   const warns = shown.filter(f => f.severity === 'warn').length
-  const redos = shown.filter(f => f.severity === 'redo').length
+  const redos = shown.filter(f => f.severity === 'retry').length
   const counts = [errors ? `${errors} error` : '', warns ? `${warns} warn` : '', redos ? `${redos} 重新` : ''].filter(Boolean).join('、')
-  return { kind: errors ? 'error' : warns ? 'warn' : 'redo', meta: `lint · ${moment} · ${counts}`, lines: shown }
+  return { kind: errors ? 'error' : warns ? 'warn' : 'retry', meta: `lint · ${moment} · ${counts}`, lines: shown }
 }
 
 /** Han characters and letters, code / links / identifiers left out. */

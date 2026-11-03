@@ -1,7 +1,7 @@
 # Source: /ship requires every structured file it touched to still parse.
-on = ["edit"]
+on = ["post:edit"]
 severity = "error"
-files = ["*.yml", "*.yaml"]
+ext = ["yml", "yaml"]
 ignores = ["**/templates/**"]
 run = ["yq", ".", "{file}"]
 message = "改完的 YAML 解析失敗；修好縮排或語法（Helm 這類模板請加進 ignores）"

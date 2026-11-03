@@ -7,6 +7,7 @@
 import type {
   Config, DoneSkillEvent, LintState, Outcome, PromptEvent, RawCheck, ReplyEvent, SkillPreface,
   SpokenEvent, SystemNote, ToolCallEvent, ToolVerdict, TurnEndEvent, TurnStartEvent, Card, Actor,
+  AgentStartEvent, AgentStopEvent, CompactEvent, FileChangedEvent, StopEvent, StopVerdict,
 } from './types'
 
 // ================================================================ portOut
@@ -30,10 +31,24 @@ export type PathProbe =
 
 /** The outside world the checks look at: commands (git, ast-grep, a check's own `run`) and paths. */
 export interface Runner<H> {
-  /** Never throws: a command that cannot start is `exitCode: -1` with `無法執行：<reason>` in stderr. */
-  run(h: H, argv: readonly string[], opts: { cwd: string; timeoutMs?: number }): Promise<RunResult>
+  /** Never throws: a command that cannot start is `exitCode: -1` with `無法執行：<reason>` in stderr. `env`
+   *  is added to the command's environment (LINT_TEXT, LINT_CHANGED, LINT_BEFORE). */
+  run(h: H, argv: readonly string[], opts: { cwd: string; timeoutMs?: number; env?: Readonly<Record<string, string>> }): Promise<RunResult>
   /** What is at an absolute path, for the delete preview. Never throws. */
   probe(h: H, path: string): Promise<PathProbe>
+  /** A file's text (around:edit's before and after); null when it does not exist or cannot be read. Never throws. */
+  read(h: H, path: string): Promise<string | null>
+  /** Write a file, creating its folders (around's LINT_BEFORE copies). false when it could not. Never throws. */
+  write(h: H, path: string, text: string): Promise<boolean>
+}
+
+/**
+ * Time, and one wait. `after` runs `fn` once after `ms`; a reload of the mod cancels its waits, so the engine
+ * keeps every deadline in LintState and arms them again when it loads. `fn` must not throw.
+ */
+export interface Clock<H> {
+  now(h: H): Promise<number>
+  after(h: H, ms: number, fn: () => void): void
 }
 
 /**
@@ -75,12 +90,16 @@ export type Ports<H> = {
   readonly runner: Runner<H>
   readonly state: StateStore<H>
   readonly notify: Notify<H>
+  readonly clock: Clock<H>
   /** Where the what-now skill file is, for report-before-stop's default redo text. */
   readonly whatNowSkill: (h: H) => string
+  /** For a check's `when` guards. */
+  readonly machine: Machine<H>
+  /** The languages `scope = "related"` reads imports of (util/languages LANGUAGES on Claude Code). */
+  readonly languages: readonly Language[]
 }
 
-// ---------------------------------------------------------------- scope types (sketch: not wired into Ports yet)
-// Wiring adds `machine: Machine<H>` and `languages: readonly Language[]` to Ports (.claude/draft/lint-scope.md).
+// ---------------------------------------------------------------- what scopes read (Ports.machine, Ports.languages)
 
 /**
  * What only the host's machine knows, for `when` guards. Hides how the host exposes the platform, the
@@ -121,7 +140,14 @@ export interface Language {
   readonly exts: readonly string[]
   /** A PCRE (git grep -P) matching every line that can carry a SourceFact. Over-matching is fine. */
   readonly lines: string
-  /** One grepped line → its facts. */
+  /**
+   * A statement that may span lines (`use a::{` … `};` in Rust, `from x import (` … `)` in Python): given the
+   * grepped line, the closing text that ends it, or null when the line is whole. The relation then greps with
+   * `-A <CONTINUE_LINES>` for this language and joins the following lines up to and including the closer before
+   * calling read. Absent: every statement is one line (TypeScript reads the `from '…'` line on its own).
+   */
+  continues?(line: string): string | null
+  /** One grepped statement (a line, or lines joined by `continues`) → its facts. */
   read(path: string, line: string): readonly SourceFact[]
   /** A specifier → project files it names; [] for anything outside the project. */
   resolve(spec: string, from: string, tree: TreeView): readonly string[]
@@ -153,7 +179,10 @@ export interface Engine<H> {
  */
 export interface Lint<H> {
   sessionStarted(): Promise<void>
-  systemNotes(): SystemNote[]
+  /** What the system prompt carries: the repo's git habits, the user's language, and each `remind` check. */
+  systemNotes(): Promise<SystemNote[]>
+  /** The folders FileChanged should watch (the lint root), or none when no check reads post:file. */
+  watchPaths(): Promise<readonly string[]>
 
   /** TAKES. Runs `proceed` with the notes the prompt should carry; gives back what it took if `proceed`
    *  throws or `dropped(result)` says the prompt never entered. */
@@ -166,7 +195,8 @@ export interface Lint<H> {
 
   stepBegan(actor: Actor): void
   textStreamed(e: SpokenEvent): void
-  replyAppended(e: ReplyEvent): void
+  /** Synchronous part first (speech, slips, the 重新 answered, saved); then the redo checks on that answer. */
+  replyAppended(e: ReplyEvent): Promise<void>
 
   /** TAKES. Gates the call, runs `proceed` unless denied, then runs the after-moment. Gives back what it took
    *  when the call is denied further down, errors, or anything throws. */
@@ -174,4 +204,16 @@ export interface Lint<H> {
 
   skillPrompt(e: DoneSkillEvent): Promise<SkillPreface>
   cardFor(callId: string): Card | undefined
+
+  /** The main loop wants to end its turn: pre:stop. A hold re-prompts the model in the same turn. */
+  stopping(e: StopEvent): Promise<StopVerdict>
+  /** A subagent started: an around:agent snapshot, kept by its id. */
+  agentStarted(e: AgentStartEvent): Promise<void>
+  /** A subagent ended: post:agent and around:agent; lines for the model are queued. TAKES its snapshot. */
+  agentStopped(e: AgentStopEvent): Promise<void>
+  /** A compaction: pre:compact before `proceed`, post:compact after it with the summary `summary(r)` reads.
+   *  TAKES what is owed and writes it into the instructions; gives it back when `skipped(r)`. */
+  compacting<R>(e: CompactEvent, proceed: (instructions: string) => Promise<R>, skipped: (r: R) => boolean, summary: (r: R) => string): Promise<R>
+  /** A file changed: post:file for a file Claude did not write this turn. */
+  fileChanged(e: FileChangedEvent): Promise<void>
 }

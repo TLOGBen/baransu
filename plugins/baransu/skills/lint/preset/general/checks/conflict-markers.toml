@@ -1,6 +1,7 @@
 # Source: /ship Step 2b item 5 greps for these before committing.
-on = ["commit", "done"]
+on = ["pre:commit", "pre:push", "pre:skill:ship", "pre:skill:review"]
 severity = "error"
+scope = "diff"
 ignores = [".claude/**"]
 forbid = '^(<<<<<<<|\|{7}|>>>>>>>)( |$)'
 message = "殘留合併衝突標記；逐塊讀兩邊（含 diff3 的 base 段）解掉再存"

@@ -32,11 +32,22 @@ VARIABLES
   spokeTurnG,     \* truth: the main loop wrote text to the user this turn
   actsTurnG,      \* truth: main-loop edits and shell commands this turn
   lastSeen,       \* truth: the wrong blocks written before the call that just ended began
-  lastOutcome     \* how that call ended: "ok", "deny" (refused or held), "error" (it ran and failed)
+  lastOutcome,    \* how that call ended: "ok", "deny" (refused or held), "error" (it ran and failed)
+  ansOwedG,       \* truth: the 重新 deliveries owed an answer, each as the model response after which the model
+                  \*   holds it (it answers in a later one); several can be owed at once
+  dupG,           \* output: a delivery was checked a second time
+  answerRowG,     \* truth: this event appended a main-loop row that answers a delivered 重新
+  checkNow,       \* output: this event ran the redo checks on a reply
+  checksG,        \* output: the deliveries (by response) the redo checks have run for
+  askWarrantedG,  \* truth, set at a stop (8.43): this turn did work, has not reported after it, and was not asked yet
+  stopHoldsG,     \* output: how many times this turn was held at a stop
+  qOwedG,         \* truth: a line for the model was queued and has not reached it
+  qDeliv          \* output: how many times the queued line was handed to the model
 
 judgeVars == <<ev, actor, wrongG, restated, reportOwedG, reportEmits, explainFlags, explainNow,
                heldTurnG, heldEverG, heldStepG, execCmd, execStep, editedG, reviewedAfterG, cmdAfterG,
-               claimNoEdit, claimReviewed, claimCmd, spokeTurnG, actsTurnG, lastSeen, lastOutcome>>
+               claimNoEdit, claimReviewed, claimCmd, spokeTurnG, actsTurnG, lastSeen, lastOutcome,
+               ansOwedG, dupG, answerRowG, checkNow, checksG, askWarrantedG, stopHoldsG, qOwedG, qDeliv>>
 
 \* R1: by the next user message the model reads at the latest, every wrong block was asked to be restated.
 \* (A main call in flight may still be carrying the request, so the user's next message is the point it must be done by.
@@ -49,11 +60,22 @@ R2 == \A b \in Blocks : restated[b] <= 1
 \* R3: a subagent event gives no main-loop redo.
 R3 == [][actor' = "sub" => (restated' = restated /\ reportEmits' = reportEmits /\ explainFlags' = explainFlags)]_judgeVars
 
-\* R4: the user's next message after a turn that owed a report carries the report request.
+\* R4: a turn that did work and ended without a report is asked for one. Up to 8.42 the request rode on the
+\* user's next message; since 8.43 it comes at the stop, in the same turn (reportOwedG: owed and never asked).
+\* Either way, by the user's next message nothing is owed that was never asked for.
 R4 == ev = "UserPrompt" => ~reportOwedG
 
-\* R5: a report request is given only when one is owed.
-R5 == [][reportEmits' > reportEmits => reportOwedG]_judgeVars
+\* R5: a report request is given only when one is owed: from an earlier turn (up to 8.42), or by this turn at its
+\* stop (since 8.43, askWarrantedG).
+R5 == [][reportEmits' > reportEmits => (reportOwedG \/ askWarrantedG')]_judgeVars
+
+\* R19 (8.43): a turn is held at a stop at most STOP_HOLDS (3) times for an error, plus once for a report or a
+\* check, so a check that cannot pass never traps the turn.
+R19 == stopHoldsG <= 4
+
+\* R21 (8.43): a line queued for the model (a stop or a subagent's end that passed, a file changed outside, a wait
+\* run out) reaches it at most once, and by the user's next message at the latest.
+R21 == qDeliv <= 1 /\ (ev = "UserPrompt" => ~qOwedG)
 
 \* R6: a delete runs only if it was held for preview earlier in this same turn (reading D1-B).
 R6 == execCmd # <<>> => execCmd \in heldTurnG
@@ -72,6 +94,17 @@ R10 == (ev = "MainAct" /\ actsTurnG = 1 /\ ~spokeTurnG) => explainNow
 
 \* R13 (user 2026-11-03): the /ship record says "reviewed after the last edit" whenever a review did answer after it.
 R13 == ev = "Ship" => ((editedG /\ reviewedAfterG) => claimReviewed)
+
+\* The redo checks (lint-scope sketch, user 2026-11-03; readings: the answer is the first main row with content
+\* written after the model holds the 重新; a turn that ends first drops it; one row answering two kinds is one check).
+\* R14 (A): a row that answers a delivered 重新 is checked.
+R14 == answerRowG => checkNow
+\* R15 (B): one delivery is checked at most once.
+R15 == ~dupG
+\* R16 (C): only an answer is checked.
+R16 == checkNow => answerRowG
+\* R17 (D): a subagent's event never runs the redo checks.
+R17 == actor = "sub" => ~checkNow
 
 \* R12 (rule A, user 2026-11-03): an act is never flagged "explain first" when the main loop wrote words the
 \* person saw earlier this turn.

@@ -36,9 +36,37 @@ export function writesFiles(command: string): boolean {
     /(^|[^0-9&>])>>?\s*(?!&|\/dev\/null|\$null\b|nul\b)[^\s|;&]/i.test(unquoted)
 }
 
-/** True for `git … commit|push`. Pure. */
+/**
+ * True when a segment of the command runs `git [-C dir] [-c k=v] commit|push` (through sudo/env wrappers, a
+ * shell keyword, `bash -c` / `pwsh -c`). Words that only mention git — a heredoc's text, a quoted argument
+ * (`rg "git push"`), a comment — are not one (found 2026-11-03: a script's prose held both words). Pure.
+ */
 export function isGitWrite(command: string): boolean {
-  return GIT_WRITE.test(command)
+  return gitWrites(command).length > 0
+}
+
+/** Which git writes a command runs — `commit`, `push`, or both — read the same way as isGitWrite: a word in
+ *  a message (`git commit -m "push later"`) or a branch name (`git push origin commit-fix`) is neither. Pure. */
+export function gitWrites(command: string): ('commit' | 'push')[] {
+  if (!GIT_WRITE.test(command)) return []
+  const out = new Set<'commit' | 'push'>()
+  for (const seg of segments(command)) {
+    let w = bare(words(seg.trim()))
+    while (w.length && /^(do|then|else|elif|\{|!|\(+)$/.test(w[0])) w = bare(w.slice(1))
+    if (!w.length) continue
+    const cmd = w[0].replace(/^\(+/, '').toLowerCase()
+    const flag = w.findIndex(x => /^(-c|-command|\/c)$/i.test(x))
+    if (['bash', 'sh', 'zsh', 'pwsh', 'powershell', 'cmd'].includes(cmd) && flag > 0 && w[flag + 1]) {
+      for (const x of gitWrites(w[flag + 1])) out.add(x)
+      continue
+    }
+    if (cmd !== 'git') continue
+    let i = 1
+    while (i < w.length && (w[i] === '-C' || w[i] === '-c' || w[i] === '--git-dir' || w[i] === '--work-tree')) i += 2
+    while (i < w.length && w[i].startsWith('-')) i++
+    if (w[i] === 'commit' || w[i] === 'push') out.add(w[i] as 'commit' | 'push')
+  }
+  return (['commit', 'push'] as const).filter(x => out.has(x))
 }
 
 /**
@@ -157,6 +185,64 @@ async function describePath<H>(runner: Runner<H>, h: H, root: string, p: string)
 }
 
 /**
+ * lint-scope sketch: the root-relative paths a command deletes or moves away, for `actions = ["delete"]`
+ * (Occurrence bash.deletes). Pure: the same reading as destructivePreview — cd inside the command, wrappers,
+ * `( … )`, `bash -c` — for rm / rmdir / rd / del / Remove-Item / rimraf / mv's sources / git rm (not --cached).
+ * What only a run can tell (find -delete, git clean, reset --hard, xargs rm) is not listed (format.md says so).
+ * A path with ~ or a variable is kept as written. Paths outside the root are dropped. null: nothing destructive.
+ */
+export function deletedPaths(command: string, cwd: string, root: string): string[] | null {
+  const found = deletedAbsolute(command, cwd.replace(/\\/g, '/').replace(/\/$/, ''))
+  if (!found.length) return null
+  const r = root.replace(/\\/g, '/').replace(/\/$/, '')
+  const out: string[] = []
+  for (const p of found) {
+    const f = p.replace(/\\/g, '/').replace(/\/+$/, '')
+    if (/[~$%]/.test(f)) out.push(f)
+    else if (f.toLowerCase() === r.toLowerCase()) out.push('')
+    else {
+      const rel = relTo(r, f)
+      if (rel !== f) out.push(rel)
+    }
+  }
+  return out.length ? out : null
+}
+
+/** The worktrees a command removes (`git worktree remove <path>`), as written, for `actions =
+ *  ["worktree-remove"]`. Pure; sees through `bash -c` like deletedPaths. null: none. */
+export function removedWorktrees(command: string): string[] | null {
+  const out: string[] = []
+  for (const seg of segments(command)) {
+    const w = bare(words(seg.trim()))
+    if (!w.length) continue
+    const cmd = w[0].toLowerCase()
+    const flag = w.findIndex(x => /^(-c|-command|\/c)$/i.test(x))
+    if (['bash', 'sh', 'zsh', 'pwsh', 'powershell', 'cmd'].includes(cmd) && flag > 0 && w[flag + 1]) out.push(...(removedWorktrees(w[flag + 1]) ?? []))
+    else if (cmd === 'git' && w[1] === 'worktree' && w[2] === 'remove') out.push(...w.slice(3).filter(a => !a.startsWith('-')))
+  }
+  return out.length ? out : null
+}
+
+function deletedAbsolute(command: string, cwd: string): string[] {
+  const out: string[] = []
+  let base = cwd
+  const at = (p: string) => (/^([A-Za-z]:)?[\\/]/.test(p) || /^[~$%]/.test(p) || !base ? p : `${base}/${p}`.replace(/\/\.\//g, '/').replace(/\/\.$/, ''))
+  for (const seg of segments(command)) {
+    const w = bare(words(seg.trim()))
+    if (!w.length) continue
+    const cmd = w[0].toLowerCase()
+    const args = w.slice(1).filter(a => !a.startsWith('-'))
+    const flag = w.findIndex(x => /^(-c|-command|\/c)$/i.test(x))
+    if (['bash', 'sh', 'zsh', 'pwsh', 'powershell', 'cmd'].includes(cmd) && flag > 0 && w[flag + 1]) out.push(...deletedAbsolute(w[flag + 1], base))
+    else if ((cmd === 'cd' || cmd === 'set-location') && args[0]) base = at(args[0]).replace(/\\/g, '/').replace(/\/$/, '')
+    else if (['rm', 'rmdir', 'rd', 'del', 'remove-item', 'ri', 'erase', 'rimraf'].includes(cmd)) out.push(...args.filter(x => !/^\/[a-z]$/i.test(x)).map(at))
+    else if (['mv', 'move-item', 'move'].includes(cmd) && args.length >= 2) out.push(...args.slice(0, -1).map(at))
+    else if (cmd === 'git' && w[1] === 'rm' && !w.includes('--cached')) out.push(...w.slice(2).filter(x => !x.startsWith('-')).map(at))
+  }
+  return out
+}
+
+/**
  * The lines 「刪除 …」「搬移 … → …」「git clean 會刪：…」… a command would touch, read from `cwd` (the actor's
  * real directory), following a `cd` inside the same command, seeing through sudo/env/npx, `( … )` and
  * `bash -c` / `pwsh -c` / `cmd /c` (recursively). Empty: nothing destructive.
@@ -220,7 +306,10 @@ export async function destructivePreview<H>(runner: Runner<H>, h: H, root: strin
       } else if (sub === 'worktree' && w[2] === 'remove') {
         for (const p of w.slice(3).filter(a => !a.startsWith('-'))) {
           const dirty = await lines(['git', '-C', p, 'status', '--short'])
-          out.push(`移除 worktree ${p}：${dirty.length ? `還有 ${dirty.length} 個沒 commit 的改動（${dirty.slice(0, 5).join('、')}）` : '乾淨'}`)
+          const branch = (await lines(['git', '-C', p, 'rev-parse', '--abbrev-ref', 'HEAD'], 1))[0] ?? ''
+          const unpushed = branch && branch !== 'HEAD' ? await lines(['git', '-C', p, 'log', '--oneline', `${branch}`, '--not', '--remotes'], 50) : []
+          const pushed = !branch || branch === 'HEAD' ? '沒有分支' : unpushed.length ? `分支 ${branch} 有 ${unpushed.length} 個 commit 不在遠端` : `分支 ${branch} 都在遠端`
+          out.push(`移除 worktree ${p}：${dirty.length ? `還有 ${dirty.length} 個沒 commit 的改動（${dirty.slice(0, 5).join('、')}）` : '乾淨'}；${pushed}`)
         }
       } else if (sub === 'stash' && (w[2] === 'drop' || w[2] === 'clear')) {
         const list = await lines(['git', 'stash', 'list'])

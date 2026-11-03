@@ -1,6 +1,6 @@
 // The outbound ports, implemented on Claude Code's `$`. Each is a thin translation; none decides anything.
 
-import type { LintState, Notify, PathProbe, Runner, RunResult, StateStore } from '../../engine'
+import type { Clock, LintState, Notify, PathProbe, Runner, RunResult, StateStore } from '../../engine'
 
 /** The dispatch's `$`. Typed loosely, as 8.39's lint.ts did. Only this adapter's own functions take it. */
 export type Dollar = any
@@ -15,11 +15,14 @@ export type Dollar = any
 export type Host = {
   readonly stateGet: () => Promise<any>
   readonly stateSet: (value: unknown) => unknown
-  readonly run: (argv: readonly string[], opts?: { cwd: string; timeoutMs: number }) => Promise<any>
+  readonly run: (argv: readonly string[], opts?: { cwd: string; timeoutMs: number; env?: Readonly<Record<string, string>> }) => Promise<any>
   readonly exists: (path: string) => Promise<any>
   readonly stat: (path: string) => Promise<any>
   readonly list: (path: string) => Promise<any>
   readonly read: (path: string) => Promise<any>
+  readonly write: (path: string, text: string) => Promise<any>
+  readonly now: () => Promise<number>
+  readonly after: (ms: number, fn: () => void) => unknown
   readonly cwd: () => Promise<any>
   readonly append: (text: string) => Promise<any>
   readonly pluginRoot: () => string
@@ -37,6 +40,9 @@ export function hostOf($: Dollar): Host {
     stat: path => $.fs.stat(path),
     list: path => $.fs.list(path),
     read: path => $.fs.read(path),
+    write: (path, text) => $.fs.write(path, text),
+    now: () => $.clock.now(),
+    after: (ms, fn) => $.clock.after(ms, fn),
     cwd: () => $.session.cwd(),
     append: text => $.session.append({ message: { type: 'system', content: [{ type: 'text', text }] } }),
     pluginRoot: () => String($.plugin.root),
@@ -69,9 +75,9 @@ export const hostState: StateStore<Host> = {
 
 /** `$.process.run` and `$.fs`. */
 export const hostRunner: Runner<Host> = {
-  async run(h, argv, { cwd, timeoutMs = 120000 }): Promise<RunResult> {
+  async run(h, argv, { cwd, timeoutMs = 120000, env }): Promise<RunResult> {
     try {
-      return await h.run(argv, { cwd, timeoutMs })
+      return await h.run(argv, { cwd, timeoutMs, ...(env ? { env } : {}) })
     } catch (err) {
       return { exitCode: -1, stdout: '', stderr: `無法執行：${(err as Error).message}` }
     }
@@ -85,6 +91,44 @@ export const hostRunner: Runner<Host> = {
     } catch {
       return { kind: 'unreadable' }
     }
+  },
+  async read(h, path) {
+    try {
+      if (!(await h.exists(path))) return null
+      const r = await h.read(path)
+      return typeof r === 'string' ? r : typeof r?.text === 'string' ? r.text : null
+    } catch {
+      return null
+    }
+  },
+  async write(h, path, text) {
+    try {
+      await h.write(path, text)
+      return true
+    } catch {
+      return false
+    }
+  },
+}
+
+/** `$.clock`. A wait armed with one dispatch's `$` runs its callback in the mod's environment; a reload
+ *  cancels it (the engine re-arms from LintState). A failure to arm is swallowed: the deadline stays stored. */
+export const hostClock: Clock<Host> = {
+  async now(h) {
+    try {
+      return Number(await h.now())
+    } catch {
+      return Date.now()
+    }
+  },
+  after(h, ms, fn) {
+    try {
+      h.after(ms, () => {
+        try {
+          fn()
+        } catch {}
+      })
+    } catch {}
   },
 }
 

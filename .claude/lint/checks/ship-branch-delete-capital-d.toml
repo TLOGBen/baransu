@@ -1,5 +1,5 @@
 # Source: CLAUDE.md Non-obvious Invariants — after push the branch is unmerged locally, so -d always fails.
-on = ["edit", "commit"]
+on = ["post:edit", "pre:commit", "pre:push"]
 severity = "error"
 files = ["plugins/baransu/skills/ship/**", "codex/plugins/baransu/skills/ship/**"]
 forbid = '\bbranch -d\b'

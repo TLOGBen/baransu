@@ -1,0 +1,10 @@
+# Source: 2026-11-03, a migration script rewrote 30 check files on Windows: Python's write_text turned LF into
+# CRLF, so files whose content was unchanged still showed as modified; in a repo that keeps CRLF or has no eol
+# conversion, every line of such a file would be committed as changed. The script compares raw bytes with what
+# git itself would check out (`git cat-file --filters`), so core.autocrlf and .gitattributes are respected and
+# a flip git hides from `git diff` is still seen.
+on = ["post:edit", "pre:commit", "pre:push"]
+severity = "warn"
+scope = "diff"
+run = ["python", ".claude/lint/scripts/eol-flip.py", "{file}"]
+message = "這個檔的換行整個變了：照原檔的換行寫回（Python 用 open(..., newline='') 或讀寫 bytes），不要讓沒改的行也算改動"

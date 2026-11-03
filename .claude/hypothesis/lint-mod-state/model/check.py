@@ -18,10 +18,10 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 TLC = shutil.which("tlc") or str(Path.home() / ".local" / "bin" / "tlc")
-TIME_LIMIT = 120  # seconds per run
+TIME_LIMIT = 180  # seconds per run (R3 on v1 takes ~125s since the redo-check actions)
 BUDGET = 1500     # seconds for the whole list
 
-INVARIANTS = {"R1", "R2", "R4", "R6", "R7", "R8", "R9", "R10", "R11", "R12", "R13"}
+INVARIANTS = {"R1", "R2", "R4", "R6", "R7", "R8", "R9", "R10", "R11", "R12", "R13", "R14", "R15", "R16", "R17", "R19", "R21"}
 PROPERTIES = {"R3", "R5"}
 
 # (version, break, rule, expected)  expected: "held" or "violated"
@@ -34,8 +34,17 @@ RUNS = (
     + [("now", "none", r, "held") for r in ALL + ["R12", "R13"]]
     # the checks can say no: one planted bug per rule the newest source keeps that it would otherwise hold
     + [("now", r, r, "violated") for r in ["R2", "R3", "R5", "R7", "R8", "R11"]]
+    # the redo checks (lint-scope sketch): held as designed, broken by a naive take and by each planted bug
+    + [("now", "none", r, "held") for r in ["R14", "R15", "R16", "R17"]]
+    + [("now-naive", "none", "R16", "violated")]
+    + [("now", r, r, "violated") for r in ["R14", "R15", "R17"]]
+    # each part of the fix is needed: taking on a row with nothing visible, and dropping an unread 重新 at turn end
+    + [("now", "vis", "R14", "violated"), ("now", "queued", "R14", "violated")]
+    # 8.43: the stop is held a bounded number of times, and a queued line reaches the model once
+    + [("now", "none", r, "held") for r in ["R19", "R21"]]
+    + [("now", r, r, "violated") for r in ["R19", "R21"]]
 )
-CONSTS = {"v1": ("FALSE", "FALSE"), "v2": ("TRUE", "FALSE"), "now": ("TRUE", "TRUE")}
+CONSTS = {"v1": ("FALSE", "FALSE"), "v2": ("TRUE", "FALSE"), "now": ("TRUE", "TRUE"), "now-naive": ("TRUE", "TRUE")}
 
 
 # --mutants: which hook steps no rule can do without. Each mutant removes one step's core effect from the
@@ -50,7 +59,7 @@ MUTANTS = {
     "no-hold": "a delete is held for preview",
     "work-keeps-report": "a call that did work forgets the report before it",
     "no-edit-count": "an edit is counted",
-    "no-owe": "turn.complete records the report owed",
+    "no-owe": "the stop finds the report owed (8.43; turn.complete before)",
     "review-ignored": "an answered /review is recorded",
     "reload-forgets": "a reload keeps the state",
     "clear-keeps": "/clear starts the state over",
@@ -71,6 +80,7 @@ def cfg(version: str, brk: str, rule: str, steps: int, mut: str = "none") -> str
         f'  Break = "{brk}"\n'
         f"  MaxSteps = {steps}\n"
         f'  Mut = "{mut}"\n'
+        f'  Ans = "{"naive" if version == "now-naive" else "step"}"\n'
         + "".join(f"{kind} {r}\n" for r in rules)
     )
 
@@ -143,10 +153,11 @@ def main() -> int:
         spent += secs
         ok = verdict == expected
         bad += not ok
-        label = f"{rule:<4} {fix:<4} break={brk:<4}"
+        label = f"{rule:<4} {fix:<9} break={brk:<4}"
         print(f"{'ok ' if ok else 'BAD'} {label} {verdict:<8} (expected {expected}) states={n} {secs:.1f}s")
         if verdict == "violated" and brk == "none":
-            (traces / f"{rule}-{fix}.txt").write_text(text, encoding="utf-8")
+            # newline="\n": the traces are LF in git; the default would write CRLF on Windows.
+            (traces / f"{rule}-{fix}.txt").write_text(text, encoding="utf-8", newline="\n")
     print(f"MaxSteps={steps}; {len(RUNS) - bad}/{len(RUNS)} as expected; {spent:.0f}s")
     return 1 if bad else 0
 

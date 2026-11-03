@@ -1,6 +1,6 @@
 from = "baransu-preset@8.35.0"
 # Source: /ship requires every structured file it touched to still parse.
-on = ["edit"]
+on = ["post:edit"]
 severity = "error"
 files = ["*.json"]
 ignores = ["tsconfig*.json", "jsconfig*.json", ".vscode/**", "devcontainer.json", ".devcontainer/**"]

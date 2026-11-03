@@ -1,5 +1,5 @@
 # Source: /hunt closes only when every 🎯HUNT-tagged instrument is removed.
-on = ["commit", "done"]
+on = ["pre:commit", "pre:push", "pre:skill:ship", "pre:skill:review"]
 severity = "error"
 ignores = [".claude/**", ".codex/**"]
 forbid = '🎯HUNT-\d{4}-\d{3}'

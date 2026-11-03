@@ -1,6 +1,6 @@
 from = "baransu-preset@8.35.0"
 # Source: /ship Step 2b item 5 greps for these before committing.
-on = ["commit", "done"]
+on = ["pre:commit", "pre:push", "pre:skill:ship", "pre:skill:review"]
 severity = "error"
 ignores = [".claude/**"]
 forbid = '^(<<<<<<<|\|{7}|>>>>>>>)( |$)'

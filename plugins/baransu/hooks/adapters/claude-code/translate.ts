@@ -4,7 +4,8 @@
 
 import type { Args, TurnStepChunk } from 'claude-code'
 import type {
-  Actor, DoneSkillEvent, Outcome, PromptEvent, ReplyEvent, SpokenEvent, ToolCallEvent, ToolVerdict, TurnEndEvent, TurnStartEvent,
+  Actor, AgentStopEvent, DoneSkillEvent, FileChangedEvent, Outcome, PromptEvent, ReplyEvent, SpokenEvent, StopEvent, StopVerdict,
+  ToolCallEvent, ToolVerdict, TurnEndEvent, TurnStartEvent,
 } from '../../engine'
 
 const EDIT_TOOLS = new Set(['Edit', 'Write', 'MultiEdit', 'NotebookEdit'])
@@ -23,14 +24,41 @@ export const isLintTool = (e: Args<'tool.call'>): boolean => EDIT_TOOLS.has(e.to
 export function toolEvent(e: Args<'tool.call'>, cwd: string): ToolCallEvent | null {
   const a = e as any
   const base = { id: a.tool_use_id, ...actorOf(a), cwd: String(cwd).replace(/\\/g, '/').replace(/\/$/, '') }
-  if (EDIT_TOOLS.has(a.tool)) return { ...base, kind: 'edit', file: String(a.file_path ?? a.notebook_path ?? '') }
+  if (EDIT_TOOLS.has(a.tool)) return { ...base, kind: 'edit', file: String(a.file_path ?? a.notebook_path ?? ''), text: writtenText(a) }
   if (SHELL_TOOLS.has(a.tool)) return { ...base, kind: 'shell', shell: a.tool === 'PowerShell' ? 'ps' : 'sh', command: String(a.command ?? ''), background: !!a.run_in_background }
   return null
 }
 
-/** How the host's own handling ended, read off its result. A `deny` from below: not ran. */
+/** What an edit tool writes: Write's content, Edit's new text, MultiEdit's new texts joined, a notebook cell's. */
+export function writtenText(a: any): string {
+  if (typeof a.content === 'string') return a.content
+  if (typeof a.new_string === 'string') return a.new_string
+  if (Array.isArray(a.edits)) return a.edits.map((x: any) => String(x?.new_string ?? '')).join('\n')
+  if (typeof a.new_source === 'string') return a.new_source
+  return ''
+}
+
+/** How the host's own handling ended, read off its result. A `deny` from below: not ran. `output`: a shell
+ *  tool's stdout and stderr, for post:bash. */
 export function outcomeOf(r: any): Outcome {
-  return { ran: !!r && !r.deny, isError: r?.isError === true, isReadOnly: r?.isReadOnly === true }
+  const res = r?.result
+  const output = res && typeof res === 'object' ? [res.stdout, res.stderr].filter((x: unknown) => typeof x === 'string' && x).join('\n') : typeof res === 'string' ? res : ''
+  return { ran: !!r && !r.deny, isError: r?.isError === true, isReadOnly: r?.isReadOnly === true, output }
+}
+
+/** classic.Stop → the stop the engine settles. */
+export const stopEvent = (e: any): StopEvent => ({ text: String(e?.last_assistant_message ?? '') })
+/** The stop's verdict as the classic hook's answer: `block` re-prompts the model in the same turn. */
+export const stopResult = (r: any, v: StopVerdict) => (v.kind === 'hold' ? { ...r, block: v.reason } : r)
+/** classic.SubagentStop → the subagent's end. */
+export const agentStopEvent = (e: any): AgentStopEvent => ({ agent: String(e?.agent_id ?? ''), agentType: String(e?.agent_type ?? ''), text: String(e?.last_assistant_message ?? '') })
+/** classic.FileChanged → a file change. */
+export const fileChangedEvent = (e: any): FileChangedEvent | null =>
+  typeof e?.file_path === 'string' && e.file_path ? { file: e.file_path.replace(/\\/g, '/'), change: e.event === 'add' || e.event === 'unlink' ? e.event : 'change' } : null
+/** The text of a compaction's summary: every message's text after it, joined. */
+export function compactSummary(r: any): string {
+  const ms = Array.isArray(r?.messages) ? r.messages : []
+  return ms.map((m: any) => (typeof m?.text === 'string' ? m.text : Array.isArray(m?.content) ? m.content.map((b: any) => String(b?.text ?? '')).join('\n') : '')).join('\n').slice(0, 200_000)
 }
 
 /** The verdict as the hook's return: a refusal, or the host's result with the notes appended to its context. */
@@ -66,12 +94,19 @@ export function streamedText(e: Pick<Args<'turn.step'>, 'turnId' | 'index'> & { 
   return { ...actorOf(e), text: String(c.text ?? '') }
 }
 
-/** An assistant row's text blocks, joined. null for user, attachment and system rows. */
+/** An assistant row's text blocks, joined; `visible` adds the thinking blocks that carry text (what the person
+ *  sees, as streamedText reads it — Opus 5.5 writes its words between tool calls there). null for user,
+ *  attachment and system rows. */
 export function appendedReply(e: Args<'session.append'>): ReplyEvent | null {
   const a = e as any
   if (a.message?.type !== 'assistant' || !Array.isArray(a.message.content)) return null
-  const text = (a.message.content as any[]).filter(b => b.type === 'text').map(b => String(b.text)).join('\n')
-  return { ...actorOf(a), text }
+  const blocks = a.message.content as any[]
+  const text = blocks.filter(b => b.type === 'text').map(b => String(b.text)).join('\n')
+  const visible = blocks
+    .map(b => (b.type === 'text' ? String(b.text ?? '') : b.type === 'thinking' ? String(b.thinking ?? b.text ?? '') : ''))
+    .filter(t => t.trim())
+    .join('\n')
+  return { ...actorOf(a), text, visible }
 }
 
 export const turnStartEvent = (e: Args<'turn.start'>): TurnStartEvent => ({ ...actorOf(e as any), text: (e as any).text })

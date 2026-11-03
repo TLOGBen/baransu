@@ -1,6 +1,6 @@
 # Source: owner's CLAUDE.md — Python printing emoji or Chinese raises UnicodeEncodeError under cp950.
 # `make ship-check` failed on it on 2026-11-02 until the Makefile exported UTF-8.
-on = ["edit", "commit"]
+on = ["post:edit", "pre:commit", "pre:push"]
 severity = "error"
 files = ["Makefile"]
 run = ["git", "grep", "-q", "--untracked", "export PYTHONUTF8", "--", "Makefile"]

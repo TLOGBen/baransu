@@ -2,6 +2,60 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.43.0] - 2026-11-03
+
+### Changed（lint：時機，需要 `/lint sync`）
+- 檢查的 `on` 改寫成「哪一邊:哪個動作」：`pre`（動作之前，還擋得住）、`post`（之後，只能要求修好或重做）、`around`（之後，看前後的差別：只比對新出現的行、新改到的檔、新的 commit）。另有 `after:<動作>:<多久>`（例如 `after:edit:10m`：改完十分鐘都沒有下一次改檔就提醒，要給模型的話等它下一步才送，不會叫醒它）和 `manual`。
+- 新的動作：
+  - `pre:stop`：模型要結束這一輪之前。擋下來時，模型在同一輪接著做。
+  - `post:agent`、`around:agent`：subagent 結束後。
+  - `pre:compact`、`post:compact`：壓縮前後；還欠著的「重新」會寫進壓縮指示，壓縮後不會不見。
+  - `post:file`：在 Claude 之外被改的檔，例如你在編輯器裡改的。Claude 這一輪用 Edit、Write 寫的檔不算；它用 shell 指令寫的檔目前還是會算進去。
+  - `post:retry`：原本的 `actions = ["redo"]`。
+- 等級多了 `check` 和 `info`，共六種：error、check、retry、warn、info、off。每種等級在每個時機做什麼，都只由一張表決定（`hooks/engine/timing.ts`）。
+  - 動作之前：error 擋下；check 擋一次，同一個動作在後面的回應再送一次就放行；retry 照樣執行，但要模型重做；warn 給模型一行；info 只顯示在卡片上。
+  - 動作之後：error 要求修好；check 在這裡是設定錯誤；retry、warn、info 和動作之前一樣。
+  - 例外：結束這一輪前，error 一輪最多擋 3 次，之後放行並告訴你；subagent 結束後、外部改檔、時間到，都只能用 warn 或 info；壓縮前也只能用 warn 或 info。
+  - 時機不接受的等級，會讓整條檢查不生效，並顯示「設定讀不懂」。
+- 改檔前就能擋：`pre:edit` 的 `forbid` 比對的是要寫進去的文字，檔案還沒被改。
+- 指令跑完能看結果：`post:bash` 讀指令的輸出；`run` 檢查在讀文字的時機會從 `LINT_TEXT` 拿到那段文字，在 around 時機另外拿到 `LINT_CHANGED`（改到的路徑）和 `LINT_BEFORE`（改動前的副本放在哪個資料夾）。
+- `remind = true`：這條規則一開始就寫進系統提示，模型動手前就知道，不必等犯錯後才收到「重新」。只能用在沒有限定檔案範圍的檢查。
+- `report-before-stop` 改掛在 `pre:stop`：做了事卻沒交代，這一輪就先不讓它結束，在同一輪補交代，不再等到下一輪。
+- `destructive-preview` 的預設等級是 `check`（擋一次）。刪 worktree 改成 `pre:bash` 的 `actions = ["worktree-remove"]`，預覽會列出它的分支有沒有推上遠端。
+- 遷移：舊寫法會讓那條檢查不生效，並提示跑 `/lint sync`。`/lint sync` 會用 `scripts/migrate-timing.py` 自動改寫。
+  - `on` 對照：`edit` → `post:edit`；`bash` → `pre:bash`；`commit` → `pre:commit`、`pre:push`；`done` → `pre:skill:ship`、`pre:skill:review`；`skill:x` → `pre:skill:x`。
+  - `actions` 對照：`push` → `pre:push`；`redo` → `post:retry`。
+  - 內建檢查的等級也一起改：刪除前預覽和「先說明」的 error 改成 check；「先說明」、語言、收尾交代的 warn 改成 retry。
+
+### Fixed（lint）
+- 判斷「是不是 git commit／push」改成只看真正執行的指令。heredoc 或註解裡剛好同時出現 git 和 commit 這兩個字，不會再被當成 commit 而擋下。
+- 一般的紀錄（`changed` 說明、收尾紀錄）會送到模型，不只畫在卡片上。
+- 結束這一輪前的檢查有兩個問題，TLC 模型（hypothesis lint-mod-state 的 R4、R5）抓出來後都修好了：
+  - 這一輪先被別的 error 擋過一次，之後做了事卻沒交代，交代的要求就再也不會出現。
+  - 已經要求過交代，之後每次被 error 擋，都會再要求一次。
+
+### Added（lint：範圍）
+- 一條檢查可以指定它管哪些檔、哪些動作、哪些環境，組合規則只有一條：不同欄位之間是「而且」，同一欄位裡是「或者」。
+  - `scope`：`all`（整個專案，預設）、`diff`（這次改到的檔；改檔時是那個檔，push 時是要送出的檔）、`related`（改到的檔，加上它 import 的檔和 import 它的檔，往上、往下各走三層）。
+  - `related` 讀 TypeScript／JavaScript、Python、C#、Java、Rust 的 import，Rust 和 Python 寫成多行也讀得到；`via = ["mentions"]` 再加上提到改動檔名或它匯出名稱的檔。改檔當下只走一層，commit、收尾前、`/lint` 時才走完整層數。
+  - `folder`、`file`、`ext`：資料夾、檔名樣式、副檔名，都可以用 `re:` 寫正規式；`file` 可以用 `@docs`（文件）、`@env`（環境設定檔）、`@run`（怎麼跑、怎麼部署）、`@tla`（`.tla` 和同名的 `.cfg`）。`ext = ["TLA+"]` 只代表 `.tla`。
+  - `actions`：`delete`（刪除或搬移前，讀被刪的路徑；刪掉上層資料夾也算刪到）、`worktree-remove`（刪 worktree 前）。只在 push 時、讀「重新」的回答，改用時機 `pre:push`、`post:retry`。
+  - `when`：`os:windows`、`tool:tlc`、`env:CI`、`branch:main`、`git`、`exists:Dockerfile`，可以加 `!`。缺工具時只在卡片上寫「沒有 tlc，這條沒檢查」。
+  - 範圍寫錯時整條檢查不生效，並列出每個讀不懂的地方，不會只丟掉一項而默默變成掃整個專案。
+- 「重新」的回答會被檢查：模型照「重新」重講、先說明、交代之後，`on = ["post:retry"]` 的檢查讀它的回答，結果畫成新的「回答檢查過了」卡片，畫在下一個工具呼叫上；只有 error 會用一行告訴模型，其他只給人看。
+- 範圍帶來的提示（缺工具、超過 500 個檔被裁掉）只畫在卡片上，不送進模型。
+- format.md 每一種範圍附一個可以直接抄的樣板。
+- 預設規則新增三條，各附一支腳本（`/lint init` 一起複製到 `.claude/lint/scripts/`）：
+  - `eol-flip`：檔案的換行整個從 LF 變成 CRLF（或反過來）。直接比位元組，`.gitattributes` 讓 git diff 看不出來時也抓得到。
+  - `py-utf8-out`：Python 會印出中文，卻沒把輸出設成 UTF-8。
+  - `csv-utf8-bom`：CSV 不是 UTF-8 with BOM（Excel 開中文才不會亂碼）。
+
+### Changed（lint，需要 `/lint sync`）
+- 檢查檔的 `files` 改成 `file`。舊的 `files` 會讓那條檢查不生效，並提示跑 `/lint sync`；`/lint sync` 用 `scripts/migrate-scope.py` 自動改寫，專案自己寫的檢查也一起改。
+- 取消「寫了 `files` 的 `run` 只在改到時才跑」這條暗規則；要等程式改了才跑就寫 `scope = "diff"`。遷移時，`on` 有 commit 或 done、沒有 `{file}` 的 `run` 檢查會自動加上 `scope = "diff"`，慢的檢查（TLC、測試）不會變成每次都跑。
+- `{file}` 的 `run` 檢查在 commit、收尾前也會跑，對象是 `diff` 或 `related` 範圍裡的每個檔；上限從 200 個改成 500 個。
+- `heredoc-backslash-path` 改成抓 heredoc 裡任何反斜線跳脫（`\n`、`\"`、Windows 路徑），等級升成 error：指令在執行前就退回，改用 Write 寫檔。
+
 ## [8.42.0] - 2026-11-03
 
 ### Added（lint）

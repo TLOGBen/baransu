@@ -1,6 +1,6 @@
 from = "baransu-preset@8.35.0"
 # Source: owner's CLAUDE.md — $TMPDIR can be empty (Git Bash on Windows is one such shell).
-on = ["edit"]
+on = ["post:edit"]
 severity = "warn"
 files = ["*.sh", "*.bash", "*.zsh", "Makefile"]
 forbid = '\$\{?TMPDIR\}?/'

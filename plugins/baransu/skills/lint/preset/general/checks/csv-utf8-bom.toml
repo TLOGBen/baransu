@@ -1,0 +1,8 @@
+# Source: owner 2026-11-03 — CSV is written as UTF-8 with a BOM, so Excel opens 中文 correctly. Without the BOM
+# Excel reads the file in the machine's legacy code page. A data file, so scoped by extension, not as a document.
+on = ["post:edit", "pre:commit", "pre:push"]
+severity = "warn"
+scope = "diff"
+ext = ["csv"]
+run = ["python", ".claude/lint/scripts/csv-utf8-bom.py", "{file}"]
+message = "CSV 要存成 UTF-8 with BOM：Python 用 open(..., encoding=\"utf-8-sig\", newline=\"\")，pandas 用 to_csv(..., encoding=\"utf-8-sig\")"

@@ -5,7 +5,7 @@ from = "baransu-preset@8.42.0"
 #     nor TLC said so.
 # .claude/lint/scripts/tla-parse.py (copied with this check at the 嚴格 level) reads the module the way TLC will
 # (SANY from its folder, by bare name), then looks for the second shape. No tla2tools.jar: not checked, no error.
-on = ["edit"]
+on = ["post:edit"]
 severity = "error"
 files = ["*.tla"]
 run = ["python", ".claude/lint/scripts/tla-parse.py", "{file}"]

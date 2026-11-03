@@ -1,6 +1,6 @@
 from = "baransu-preset@8.35.0"
 # Source: TLC rejects non-ASCII strings.
-on = ["edit"]
+on = ["post:edit"]
 severity = "error"
 files = ["*.tla"]
 forbid = '"[^"\n]*[^\x00-\x7F][^"\n]*"'
