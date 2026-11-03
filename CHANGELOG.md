@@ -2,6 +2,11 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.39.0] - 2026-11-03
+
+### Removed（狀態列）
+- 拿掉 8.38.0 起的狀態列（`hooks/statusline.ts`）：桌面版畫在 app 的灰底裡，上下間距由 app 決定、mod 調不到，看起來不整齊。`hooks/main.ts` 留著當唯一入口，只註冊 lint；型別裡的 `statusline` 狀態一起拿掉。
+
 ## [8.38.3] - 2026-11-03
 
 ### Fixed（狀態列）

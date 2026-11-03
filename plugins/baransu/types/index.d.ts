@@ -24,18 +24,8 @@ export type LintState = {
   cards: Record<string, LintCard>
 }
 
-// The status line's own readings: what only a model response carries, and a counter that redraws the line.
-export type StatuslineState = {
-  // The effort the last main-loop response asked for (turn.step's effort).
-  effort?: string
-  // Cache-read tokens over all input tokens of the last main-loop response, 0 to 100.
-  cache?: number
-  // Bumped when the session's usage moved (session.measure), so the line redraws.
-  tick: number
-}
-
 declare module 'claude-code' {
   interface PluginState {
-    baransu: { lint: LintState; statusline: StatuslineState }
+    baransu: { lint: LintState }
   }
 }
