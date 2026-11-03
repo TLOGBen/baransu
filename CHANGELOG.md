@@ -2,6 +2,12 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.44.1] - 2026-11-04
+
+### Fixed（lint）
+- 刪除前的預覽，在 Git Bash 用 `cd /c/...` 之後，或直接寫 `/c/...` 路徑時，原本對不到專案裡的檔案，會顯示成「不存在」。現在 `/c/` 會換成 `C:/`，`..` 也會收合。
+- `rm -rf dist 2>&1` 這類指令裡的轉向（`2>&1`、`> 檔案`、`2>/dev/null`），原本被當成要刪的路徑列進預覽。現在會略過。
+
 ## [8.44.0] - 2026-11-04
 
 ### Changed（lint：合集版面，需要 `/lint sync`）

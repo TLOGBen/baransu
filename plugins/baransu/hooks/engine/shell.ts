@@ -173,6 +173,31 @@ function bare(w: string[]): string[] {
   return w.slice(i)
 }
 
+// The path a shell at `base` reaches with `p`: a Git Bash drive path (`/c/x`) is that drive's when the base is a
+// Windows path, `.` and `..` folded. A path led by ~ or a variable stays as written.
+function joinPath(base: string, p: string): string {
+  if (/^[~$%]/.test(p)) return p
+  let t = p.replace(/\\/g, '/')
+  if (/^[A-Za-z]:/.test(base)) t = t.replace(/^\/([A-Za-z])(\/|$)/, (_, d, s) => `${d.toUpperCase()}:${s || '/'}`)
+  const full = /^([A-Za-z]:)?\//.test(t) || !base ? t : `${base}/${t}`
+  const out: string[] = []
+  for (const part of full.split('/')) {
+    if (part === '..') { if (out.length > 1) out.pop() } else if (part !== '.' && (part !== '' || out.length === 0)) out.push(part)
+  }
+  return out.join('/') || '/'
+}
+
+// A segment's words without its redirections (`2>&1`, `> out.txt`, `2>/dev/null`): they name no argument.
+function noRedirects(w: string[]): string[] {
+  const out: string[] = []
+  for (let i = 0; i < w.length; i++) {
+    const m = /^(\d*|&)(>>?|<)(.*)$/.exec(w[i])
+    if (!m) out.push(w[i])
+    else if (m[3] === '') i++ // the target is the next word
+  }
+  return out
+}
+
 async function describePath<H>(runner: Runner<H>, h: H, root: string, p: string): Promise<string> {
   const shown = relTo(root, p)
   if (/[~$%]/.test(p)) return `${shown}（含 ~ 或變數，mod 無法展開：改寫成實際路徑再刪）`
@@ -226,15 +251,15 @@ export function removedWorktrees(command: string): string[] | null {
 function deletedAbsolute(command: string, cwd: string): string[] {
   const out: string[] = []
   let base = cwd
-  const at = (p: string) => (/^([A-Za-z]:)?[\\/]/.test(p) || /^[~$%]/.test(p) || !base ? p : `${base}/${p}`.replace(/\/\.\//g, '/').replace(/\/\.$/, ''))
+  const at = (p: string) => joinPath(base, p)
   for (const seg of segments(command)) {
-    const w = bare(words(seg.trim()))
+    const w = noRedirects(bare(words(seg.trim())))
     if (!w.length) continue
     const cmd = w[0].toLowerCase()
     const args = w.slice(1).filter(a => !a.startsWith('-'))
     const flag = w.findIndex(x => /^(-c|-command|\/c)$/i.test(x))
     if (['bash', 'sh', 'zsh', 'pwsh', 'powershell', 'cmd'].includes(cmd) && flag > 0 && w[flag + 1]) out.push(...deletedAbsolute(w[flag + 1], base))
-    else if ((cmd === 'cd' || cmd === 'set-location') && args[0]) base = at(args[0]).replace(/\\/g, '/').replace(/\/$/, '')
+    else if ((cmd === 'cd' || cmd === 'set-location') && args[0]) base = at(args[0])
     else if (['rm', 'rmdir', 'rd', 'del', 'remove-item', 'ri', 'erase', 'rimraf'].includes(cmd)) out.push(...args.filter(x => !/^\/[a-z]$/i.test(x)).map(at))
     else if (['mv', 'move-item', 'move'].includes(cmd) && args.length >= 2) out.push(...args.slice(0, -1).map(at))
     else if (cmd === 'git' && w[1] === 'rm' && !w.includes('--cached')) out.push(...w.slice(2).filter(x => !x.startsWith('-')).map(at))
@@ -255,10 +280,10 @@ export async function destructivePreview<H>(runner: Runner<H>, h: H, root: strin
     String((await runner.run(h, argv, { cwd, timeoutMs: 30000 })).stdout).trim().split(/\r?\n/).filter(Boolean).slice(0, max)
   // Relative paths start from where the shell is; a `cd` earlier in the same command moves it.
   let base = cwd.replace(/\\/g, '/').replace(/\/$/, '')
-  const at = (p: string) => (/^([A-Za-z]:)?[\\/]/.test(p) || !base ? p : `${base}/${p}`)
+  const at = (p: string) => joinPath(base, p)
   const describe = (p: string) => describePath(runner, h, root, p)
   for (const seg of segments(command)) {
-    const w = bare(words(seg.trim()))
+    const w = noRedirects(bare(words(seg.trim())))
     if (!w.length) continue
     const cmd = w[0].toLowerCase()
     const args = w.slice(1).filter(a => !a.startsWith('-'))
@@ -275,7 +300,7 @@ export async function destructivePreview<H>(runner: Runner<H>, h: H, root: strin
     } else if (cmd === 'xargs' && /^(rm|rmdir|del|remove-item)$/i.test(w.find((x, i) => i > 0 && !x.startsWith('-')) ?? '')) {
       out.push(`xargs ${w.slice(1).join(' ')}：要刪什麼由前一個指令的輸出決定，無法事先列出；先單獨跑前一段看清單`)
     } else if ((cmd === 'cd' || cmd === 'set-location') && args[0]) {
-      base = at(args[0]).replace(/\\/g, '/').replace(/\/$/, '')
+      base = at(args[0])
     } else if (['rm', 'rmdir', 'rd', 'del', 'remove-item', 'ri', 'erase', 'rimraf'].includes(cmd)) {
       for (const a of args.filter(x => !/^\/[a-z]$/i.test(x))) out.push(`刪除 ${await describe(at(a))}`)
     } else if (['mv', 'move-item', 'move'].includes(cmd) && args.length >= 2) {
