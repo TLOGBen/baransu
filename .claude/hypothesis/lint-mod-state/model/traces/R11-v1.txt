@@ -1,14 +1,14 @@
 TLC2 Version 2026.10.30.154139 (rev: 090e85c)
-Running breadth-first search Model-Checking with fp 6 and seed -6668562195192589171 with 1 worker on 32 cores with 981MB heap and 64MB offheap memory [pid: 44660] (Windows 11 10.0 amd64, Eclipse Adoptium 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
-Parsing file C:\Users\jimts\AppData\Local\Temp\lintmod-0hb3rc9d\LintMod.tla
-Parsing file C:\Users\jimts\AppData\Local\Temp\lintmod-0hb3rc9d\LintRules.tla
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-15702684729480540412\Integers.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-15702684729480540412\FiniteSets.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-15702684729480540412\_TLCTrace.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-15702684729480540412\Naturals.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-15702684729480540412\Sequences.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-15702684729480540412\TLC.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-15702684729480540412\TLCExt.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Running breadth-first search Model-Checking with fp 80 and seed -5967185290017782796 with 1 worker on 32 cores with 981MB heap and 64MB offheap memory [pid: 24384] (Windows 11 10.0 amd64, Eclipse Adoptium 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
+Parsing file C:\Users\jimts\AppData\Local\Temp\lintmod-9f2ss67e\LintMod.tla
+Parsing file C:\Users\jimts\AppData\Local\Temp\lintmod-9f2ss67e\LintRules.tla
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-11265198643266230920\Integers.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-11265198643266230920\FiniteSets.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-11265198643266230920\_TLCTrace.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-11265198643266230920\Naturals.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-11265198643266230920\Sequences.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-11265198643266230920\TLC.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-11265198643266230920\TLCExt.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
 Semantic processing of module Naturals
 Semantic processing of module Sequences
 Semantic processing of module FiniteSets
@@ -22,9 +22,9 @@ Linting of module LintRules
 Linting of module TLCExt
 Linting of module _TLCTrace
 Linting of module LintMod
-Starting... (2026-11-03 11:43:19)
+Starting... (2026-11-03 15:21:53)
 Computing initial states...
-Finished computing initial states: 1 distinct state generated at 2026-11-03 11:43:19.
+Finished computing initial states: 1 distinct state generated at 2026-11-03 15:21:54.
 Error: Invariant R11 is violated.
 Error: The behavior up to this point is:
 State 1: <Initial predicate>
@@ -76,7 +76,7 @@ State 1: <Initial predicate>
 /\ stepC = 0
 /\ seen = <<{}, {}>>
 
-State 2: <TurnStart line 108, col 3 to line 114, col 80 of module LintMod>
+State 2: <TurnStart line 114, col 3 to line 123, col 80 of module LintMod>
 /\ userSpokeG = FALSE
 /\ reviewedAfterG = FALSE
 /\ actsTurnG = 0
@@ -125,7 +125,7 @@ State 2: <TurnStart line 108, col 3 to line 114, col 80 of module LintMod>
 /\ stepC = 0
 /\ seen = <<{}, {}>>
 
-State 3: <MainBegin(1) line 184, col 3 to line 194, col 106 of module LintMod>
+State 3: <MainBegin(1) line 193, col 3 to line 203, col 106 of module LintMod>
 /\ userSpokeG = FALSE
 /\ reviewedAfterG = FALSE
 /\ actsTurnG = 0
@@ -174,7 +174,7 @@ State 3: <MainBegin(1) line 184, col 3 to line 194, col 106 of module LintMod>
 /\ stepC = 0
 /\ seen = <<{}, {}>>
 
-State 4: <SubAct("c1") line 251, col 3 to line 270, col 62 of module LintMod>
+State 4: <SubAct("c1") line 260, col 3 to line 279, col 62 of module LintMod>
 /\ userSpokeG = FALSE
 /\ reviewedAfterG = FALSE
 /\ actsTurnG = 0
@@ -223,7 +223,7 @@ State 4: <SubAct("c1") line 251, col 3 to line 270, col 62 of module LintMod>
 /\ stepC = 0
 /\ seen = <<{}, {}>>
 
-State 5: <MainEnd(1,"c1","ok") line 202, col 3 to line 245, col 72 of module LintMod>
+State 5: <MainEnd(1,"c1","ok") line 211, col 3 to line 254, col 72 of module LintMod>
 /\ userSpokeG = FALSE
 /\ reviewedAfterG = FALSE
 /\ actsTurnG = 1
@@ -272,8 +272,8 @@ State 5: <MainEnd(1,"c1","ok") line 202, col 3 to line 245, col 72 of module Lin
 /\ stepC = 0
 /\ seen = <<{}, {}>>
 
-15011 states generated, 5935 distinct states found, 5224 states left on queue.
+15223 states generated, 5943 distinct states found, 5232 states left on queue.
 The depth of the complete state graph search is 5.
-Finished in 00s at (2026-11-03 11:43:19)
-Trace exploration spec path: .\LintMod_TTrace_1793677399.tla
+Finished in 00s at (2026-11-03 15:21:54)
+Trace exploration spec path: .\LintMod_TTrace_1793690513.tla
 Picked up JAVA_TOOL_OPTIONS: -Xmx1g

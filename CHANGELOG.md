@@ -2,6 +2,20 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.41.0] - 2026-11-03
+
+### Added（lint）
+- 檢查可以在指定的 skill 開始前跑：`on = ["skill:baransu:hypothesis"]`（寫 `skill:hypothesis` 也行），那個 skill 一開始就掃整個專案跑這條檢查，結果放在 skill 指示的最上面；有 error 時模型會先交代給你再做。沒有任何檢查指名的 skill 原封不動。指名 `/ship` 或 `/review` 的檢查跟著它們收尾前的檢查一起跑；`/lint` 也會跑這種檢查。
+
+### Fixed（lint）
+- 被使用者打斷的一輪不再算「欠交代」：你插話或按停止打斷時，下一則訊息不會再收到「上一輪做了事，結束前卻沒交代」。只有正常答完的一輪才檢查有沒有交代；更早欠下的交代照舊。
+- 「說過話」「講過話」不再被當成你在糾正：原本「查說過話的 bug」會被讀成「我說過了」，要模型想想能不能加一條 lint。
+- push 寫了 refspec 時照它判斷：`git push origin tmp:main` 落在 main，習慣開 PR 的 repo 會被標出，即使目前在別的分支；要推上去的 commit 作者，看 `tmp` 有、`origin/main` 沒有的那些，不再看目前分支和它的上游。
+
+### Added（lint）
+- TLA+ 模型加上 R13：收尾紀錄在改檔後答完過 /review 時，一定寫「有 review」（之前只禁止反方向）；被打斷的一輪不欠交代也寫進模型。
+- 補上突變分析找到的測試缺口：重新載入後欠的重說與交代照樣送出、`/clear` 後不欠交代且刪除重新預覽且收尾紀錄不算之前的改檔、新的一輪開始後改檔前要再說明；每個測試都在弄壞對應程式時變紅。
+
 ## [8.40.1] - 2026-11-03
 
 ### Fixed（lint）

@@ -1,7 +1,7 @@
 // The engine: one memory of the cross-event state per module load, and the inbound port over it.
 // Reads like today's register(), minus every host detail: each hook body became one method here.
 
-import { builtinOf, relTo } from './check'
+import { builtinOf, namesSkill, relTo } from './check'
 import { commandFindings, commitLook, gitFacts, runMoment, worktreeCleanup } from './moments'
 import type { Engine, Lint, Ports } from './ports'
 import { commitDirs, destructivePreview, isGitWrite, writesFiles } from './shell'
@@ -183,7 +183,9 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
       }
       if (S().slips.length) await ports.notify.notice(h, `lint · user-language：剛才那段寫成英文了（「${slipHead(S().slips[S().slips.length - 1])}」）→ 重新：下一步用你的語言再說一次`)
       const config = await ports.config.load(h)
-      if (config) {
+      // Only a turn that ended with an answer owes a report: one the person interrupted (or that failed) left
+      // the model no moment to give it (user 2026-11-03), and a report owed from before stays owed.
+      if (config && e.answered) {
         const c = find(config, 'report-before-stop')
         // A report counts its whole text, tables and code included; a Han character counts as two letters.
         const text = S().textAfterTools
@@ -247,8 +249,20 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
       }
       const config = await ports.config.load(h)
       if (!config) return null
+      const look = { runner: ports.runner, h, config }
+      if (e.skill === 'other') {
+        // Any other skill: only the checks whose `on` names it; none → the skill is left as it is.
+        if (!config.checks.some(c => namesSkill(c, e.name))) return null
+        const found = await runMoment(look, S(), 'skill', { skill: e.name })
+        const said = render('skill', `/${e.name}`, found)
+        await ports.notify.notice(h, said)
+        const tail = found.some(f => f.severity === 'error')
+          ? `這是 /${e.name} 開始前跑的檢查。有 error：先把 error 交代給使用者，修好或問過他，再做這個 skill 的事。`
+          : `這是 /${e.name} 開始前跑的檢查；warn 在做完時一起交代。`
+        return { text: `## Lint 紀錄（baransu lint mod，這個版本）\n\n${said}\n\n${tail}` }
+      }
       const manual = e.skill === 'lint'
-      const findings = await runMoment({ runner: ports.runner, h, config }, S(), manual ? 'manual' : 'done')
+      const findings = await runMoment(look, S(), manual ? 'manual' : 'done', { skill: e.name })
       const text = manual ? render('manual', '/lint', findings) : render('done', isReview ? '/review' : '/ship', findings)
       await ports.notify.notice(h, text)
       const errors = findings.some(f => f.severity === 'error')

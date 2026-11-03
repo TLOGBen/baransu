@@ -61,6 +61,7 @@ The baransu mod reads `.claude/lint/` and runs, at each moment, the checks whose
 - **commit** — before a Bash call that runs `git commit` or `git push`: those checks, and the git built-ins.
 - **done** — before `/ship` or `/review` starts: every `done` check, ast-grep on the whole tree, and the session record. The result is written at the top of the skill's text as this version's lint record; for `/ship` an error means stop.
 - **manual** — when this skill is called: every check on files over the whole tree — each `forbid` and `run` whose `on` names `manual`, `edit`, `commit` or `done` — and ast-grep, written at the top of this skill's text. When the text opens with that 「Lint 紀錄」, tell the person what it found in a sentence or two (saying so when it found nothing) before the work they asked for. A check `on = ["manual"]` runs only here.
+- **before a named skill** — a check `on = ["skill:<name>"]` runs, over the whole tree, before that skill starts (`skill:baransu:hypothesis`), its result at the top of the skill's text; a skill no check names is left as it is.
 - **session start** — the worktree built-in.
 - **each user message** — when it reads as a correction, the model is asked, after fixing, whether the mistake can become a check here.
 

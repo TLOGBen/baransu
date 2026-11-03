@@ -21,7 +21,8 @@
   
   結果：updated（涵蓋與雜湊），in step。
   之後兩次 review 的修正（commit 的檢查改在所在的子 repo、`edited` 回傳是否清掉快取、`/lint` 逐檔跑）分類為「沒有影響」：都發生在拿走欠的東西之後，不寫 `$.state`，跨事件狀態沒變；沒有重跑 TLC，只更新雜湊（engine.ts `adea58e89a1e…`、ports.ts `6822c45ff5cf…`）。
-- **重跑**：`cd model && python check.py --quick`（39 個 run，MaxSteps 7，約 10 分鐘；預算 1500 秒）；不加 `--quick` 是 MaxSteps 8，會在預算用完時停下，結論不靠它
+- **重跑**：`cd model && python check.py --quick`（41 個 run，MaxSteps 7，約 14 分鐘；預算 1500 秒）；不加 `--quick` 是 MaxSteps 8，會在預算用完時停下，結論不靠它。關鍵節點：`python check.py --mutants --quick`（約 26 分鐘，會超過預算停在最後一個，`clear-keeps` 另外跑）
+- **維護紀錄（8.40.2，2026-11-03）**：一輪結束分成「答完」與「被打斷」，被打斷的不欠交代（使用者 2026-11-03），模型的 `TurnComplete(answered)` 照改；新增 R12（8.40.1 的規則 A）、R13（答完的 /review 要記下）。重跑 `--quick` 41/41 符合預期（舊版本仍照之前打破，新版本守住 R1–R13，植入 bug 各被抓到）；`review-ignored` 突變現在打破 R13。
 
 ## 問題帳
 
@@ -55,6 +56,8 @@
 | R9 | 不能發生 | 收尾紀錄在改過檔的 session 說「沒有改檔」 | `sessionRecord` | 第一版被打破（P8）；之後守住 |
 | R10 | 不能發生 | 一輪第一個動作前沒文字，卻沒被標出「先說明」 | `explain-before-edit.toml` | 第一版被打破（P9）；之後守住 |
 | R11 | 不能發生 | 主迴圈的刪除，在模型拿到預覽之前就執行（同一次回覆裡的另一份相同指令被放行）——**未經確認** | 0917b911 的 review；`destructive-preview` 的頁尾「確認沒錯，再下一次」 | 第一版、0917b911 被打破（P17）；現在守住 |
+| R12 | 不能發生 | 這一輪動作前已經說過話（畫面上看到的），卻被標「先說明」 | 使用者 2026-11-03（規則 A） | 8.40.1 起守住（說話以 thinking 送出也算） |
+| R13 | 不能發生 | 改檔後答完過 /review，收尾紀錄卻說沒 review | 使用者 2026-11-03 | 現在守住；突變 `review-ignored` 會打破它 |
 
 上層規範：無
 
@@ -120,9 +123,9 @@
 | 刪除先暫停預覽（`no-hold`） | R6 | rm 被暫停、F3、F4 |
 | 做了事就忘掉之前的交代（`work-keeps-report`） | R4 | F8 |
 | turn.complete 記下欠交代（`no-owe`） | R4 | Q2 |
-| 答完的 /review 被記下（`review-ignored`） | **無** | — |
+| 答完的 /review 被記下（`review-ignored`） | R13（8.40.2 補上；之前**無**） | — |
 
-讀法：打破越多規則的節點越關鍵；「沒有測試」的格子是單元測試該補的地方。`review-ignored` 沒打破任何規則，表示規則有洞，不是節點不重要：R8 只禁止「宣稱 review 過卻沒有」，沒有規則要求「review 過就要記下」，所以收尾紀錄把做過的 review 說成沒做（誤擋 /ship）在模型裡抓不到。補一條反向規則要使用者確認。
+讀法：打破越多規則的節點越關鍵；「沒有測試」的格子是單元測試該補的地方。`review-ignored` 原本沒打破任何規則，表示規則有洞：R8 只禁止「宣稱 review 過卻沒有」，沒有規則要求「review 過就要記下」。使用者 2026-11-03 確認補上 R13，`review-ignored` 現在打破 R13。8.40.2 補上表裡三個「沒有測試」的格子（reload 後的 R1、R4，`/clear` 後的 R5、R6、R8，新一輪的 R10），每個測試都在弄壞對應程式時變紅。
 
 ## 獨立推導
 

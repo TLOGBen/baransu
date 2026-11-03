@@ -37,6 +37,7 @@ export function checkFrom(id: string, raw: RawCheck): Check | undefined {
   return {
     id,
     on: list(t.on).filter((m): m is Moment => (MOMENTS as readonly string[]).includes(m)),
+    skills: list(t.on).filter(m => m.startsWith('skill:')).map(m => m.slice('skill:'.length)).filter(Boolean),
     severity: t.severity === 'error' ? 'error' : 'warn',
     files: list(t.files),
     ignores: list(t.ignores),
@@ -52,6 +53,11 @@ export const BUILTINS: readonly Builtin[] = [
   'git-facts', 'secret-files', 'built-before-commit', 'up-to-date', 'session-record', 'worktree-cleanup',
   'destructive-preview', 'explain-before-edit', 'report-before-stop', 'correction-to-lint', 'user-language',
 ]
+
+/** Whether a check runs before the skill invoked as `name`: `skill:baransu:hypothesis` names it exactly, and
+ *  `skill:hypothesis` names it by its own part after the plugin. Pure. */
+export const namesSkill = (c: Check, name: string): boolean =>
+  c.skills.some(s => s === name || name.endsWith(`:${s}`))
 
 /** The built-in a check runs, or undefined when its action is not a built-in. */
 export const builtinOf = (c: Check): string | undefined => (c.action.kind === 'builtin' ? c.action.name : undefined)

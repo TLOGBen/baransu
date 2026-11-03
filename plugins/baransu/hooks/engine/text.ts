@@ -5,7 +5,7 @@
 
 import type { Card, Check, Finding } from './types'
 
-export const MOMENT = { edit: '改檔後', commit: 'commit 前', done: '收尾前', bash: '指令前', manual: '手動' } as const
+export const MOMENT = { edit: '改檔後', commit: 'commit 前', done: '收尾前', bash: '指令前', manual: '手動', skill: 'skill 前' } as const
 
 /** `lint · <moment> · <where>：N error、M warn` and one line per finding. */
 export function render(moment: keyof typeof MOMENT, where: string, findings: readonly Finding[]): string {
@@ -45,5 +45,6 @@ export function slipHead(text: string): string {
   return `${text.split('\n')[0].slice(0, 40)}…`
 }
 
-/** Does what the person typed read as a correction (又犯、不是這樣、again、wrong …). */
-export const CORRECTION = /又犯|又錯|又忘|又來了|不是這樣|(?<!對)不對(?!勁)|錯了|說過了?|講過|跟你說|別再|不要再|為什麼又|\bagain\b|\bwrong\b|told you|\bstop doing\b|don'?t do that/i
+/** Does what the person typed read as a correction (又犯、不是這樣、again、wrong …). 說過／講過 followed by 話 is
+ *  talk about speech (查說過話的 bug), not "I told you already". */
+export const CORRECTION = /又犯|又錯|又忘|又來了|不是這樣|(?<!對)不對(?!勁)|錯了|說過(?!話)|講過(?!話)|跟你說|別再|不要再|為什麼又|\bagain\b|\bwrong\b|told you|\bstop doing\b|don'?t do that/i

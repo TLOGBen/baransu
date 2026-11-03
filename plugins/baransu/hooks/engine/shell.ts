@@ -42,6 +42,28 @@ export function isGitWrite(command: string): boolean {
 }
 
 /**
+ * Where a `git push` sends what, read from its refspecs: `git push origin tmp:dev` sends tmp to dev, `git push
+ * origin feature` sends feature to feature, `+HEAD:refs/heads/main` sends HEAD to main; a delete (`:old`) sends
+ * nothing. null when the command names no refspec (`git push`, `git push origin`): the branch's upstream decides,
+ * as git does. Flags are skipped. Pure.
+ */
+export function pushRefs(command: string): { remote: string; src: string; dst: string }[] | null {
+  const m = /\bgit(?:\s+-C\s+\S+)?\s+push\b([^\n|;&]*)/.exec(command)
+  if (!m) return null
+  const args = m[1].trim().split(/\s+/).filter(t => t && !t.startsWith('-')).map(t => t.replace(/^["']|["']$/g, ''))
+  if (args.length < 2) return null
+  const [remote, ...specs] = args
+  const out: { remote: string; src: string; dst: string }[] = []
+  for (const spec of specs) {
+    const s = spec.replace(/^\+/, '')
+    const [src, dst = src] = s.includes(':') ? s.split(':', 2) : [s, s]
+    if (!src) continue
+    out.push({ remote, src, dst: dst.replace(/^refs\/heads\//, '') })
+  }
+  return out
+}
+
+/**
  * The directory each `git commit` / `git push` in this command runs in, one entry per git write, in order:
  * `cwd`, moved by each `cd` / `pushd` / `Set-Location` / `Push-Location [-Path|-LiteralPath]` before it (a
  * `cd` inside `( … )` stays inside), then by that segment's `git -C <dir>`. Relative paths resolve against the

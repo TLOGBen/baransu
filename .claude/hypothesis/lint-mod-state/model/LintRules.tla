@@ -70,6 +70,9 @@ R9 == ev = "Ship" => (claimNoEdit => ~editedG)
 \* R10: the first main-loop edit or command of a turn, with no text before it, is flagged.
 R10 == (ev = "MainAct" /\ actsTurnG = 1 /\ ~spokeTurnG) => explainNow
 
+\* R13 (user 2026-11-03): the /ship record says "reviewed after the last edit" whenever a review did answer after it.
+R13 == ev = "Ship" => ((editedG /\ reviewedAfterG) => claimReviewed)
+
 \* R12 (rule A, user 2026-11-03): an act is never flagged "explain first" when the main loop wrote words the
 \* person saw earlier this turn.
 R12 == (ev = "MainAct" /\ explainNow) => ~spokeTurnG

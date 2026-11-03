@@ -21,7 +21,7 @@ TLC = shutil.which("tlc") or str(Path.home() / ".local" / "bin" / "tlc")
 TIME_LIMIT = 120  # seconds per run
 BUDGET = 1500     # seconds for the whole list
 
-INVARIANTS = {"R1", "R2", "R4", "R6", "R7", "R8", "R9", "R10", "R11", "R12"}
+INVARIANTS = {"R1", "R2", "R4", "R6", "R7", "R8", "R9", "R10", "R11", "R12", "R13"}
 PROPERTIES = {"R3", "R5"}
 
 # (version, break, rule, expected)  expected: "held" or "violated"
@@ -31,7 +31,7 @@ V2_BROKEN = {"R1", "R4", "R5", "R6", "R7", "R8", "R11"}  # what the review of 09
 RUNS = (
     [("v1", "none", r, "held" if r == "R3" else "violated") for r in ALL]
     + [("v2", "none", r, "violated" if r in V2_BROKEN else "held") for r in ALL]
-    + [("now", "none", r, "held") for r in ALL]
+    + [("now", "none", r, "held") for r in ALL + ["R12", "R13"]]
     # the checks can say no: one planted bug per rule the newest source keeps that it would otherwise hold
     + [("now", r, r, "violated") for r in ["R2", "R3", "R5", "R7", "R8", "R11"]]
 )

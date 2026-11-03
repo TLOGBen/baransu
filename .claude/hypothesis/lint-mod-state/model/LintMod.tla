@@ -280,14 +280,16 @@ SubAct(kind) ==
 
 \* lint.ts turn.complete (main loop). The fixes also clear a report owed from before when this turn reported.
 \* Every streamed row is appended before the turn ends.
-TurnComplete ==
+\* answered: the turn ended with an answer; FALSE when the person interrupted it. Since 8.40.2 the newest source
+\* judges the report only for an answered turn (user 2026-11-03: an interrupted turn owes none).
+TurnComplete(answered) ==
   /\ Step /\ inTurn /\ Idle /\ late = "none" /\ ev' = "TurnComplete" /\ actor' = "host" /\ NoOut /\ NoClaim /\ NoLast /\ NoHold
   /\ inTurn' = FALSE
   /\ pendingReport' = IF Break = "R5" THEN TRUE
-                      ELSE IF M("no-owe") THEN pendingReport
+                      ELSE IF M("no-owe") \/ (N /\ ~answered) THEN pendingReport
                       ELSE IF Fix /\ textLong THEN FALSE
                       ELSE pendingReport \/ (tools /\ ~textLong)
-  /\ reportOwedG' = IF reportG THEN FALSE ELSE (reportOwedG \/ workG)
+  /\ reportOwedG' = IF ~answered THEN reportOwedG ELSE IF reportG THEN FALSE ELSE (reportOwedG \/ workG)
   /\ UNCHANGED <<wrongG, restated, reportEmits, explainFlags, editedG, reviewedAfterG, cmdAfterG,
                  spokeTurnG, actsTurnG, spoke, slips, tools, textLong, previewed, editSeq, reviewedAt, cmdSeqs,
                  langKnown, trackedCwd, stepC, pc, snap, seen, beginStep, cwdG, userSpokeG, nextBlock, workG, reportG, late>>
@@ -352,7 +354,7 @@ Next ==
   \/ \E c \in Calls : MainBegin(c)
   \/ \E c \in Calls, k \in ActKinds, o \in Outcomes : MainEnd(c, k, o)
   \/ \E k \in ActKinds : SubAct(k)
-  \/ TurnComplete
+  \/ \E a \in BOOLEAN : TurnComplete(a)
   \/ \E a \in BOOLEAN : Review(a)
   \/ Ship
   \/ Reload

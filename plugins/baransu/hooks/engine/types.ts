@@ -32,6 +32,8 @@ export type CheckAction =
 export type Check = {
   readonly id: string
   readonly on: readonly Moment[]
+  /** The skills it runs before, from `on = ["skill:<name>"]` (`skill:hypothesis` also names `baransu:hypothesis`). */
+  readonly skills: readonly string[]
   readonly severity: Severity
   readonly files: readonly string[]
   readonly ignores: readonly string[]
@@ -112,8 +114,9 @@ export type TurnEndEvent = Actor & { readonly answered: boolean }
 export type SpokenEvent = Actor & { readonly text: string }
 /** A whole assistant row as it is kept (session.append) — counts as speaking and is read for its language. */
 export type ReplyEvent = Actor & { readonly text: string }
-/** A skill that reads lint's record before its own text: /ship and /review (the done moment), /lint (the manual run). */
-export type DoneSkillEvent = { readonly skill: 'ship' | 'review' | 'lint' }
+/** A skill starting. `skill`: /ship and /review read the done moment's record, /lint the manual run; any other
+ *  skill ('other') gets a record only from the checks whose `on` names it. `name` is the skill as invoked. */
+export type DoneSkillEvent = { readonly skill: 'ship' | 'review' | 'lint' | 'other'; readonly name: string }
 
 // ---------------------------------------------------------------- verdicts
 

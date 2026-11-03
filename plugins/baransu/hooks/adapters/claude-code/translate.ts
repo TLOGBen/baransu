@@ -78,8 +78,8 @@ export const turnStartEvent = (e: Args<'turn.start'>): TurnStartEvent => ({ ...a
 export const turnEndEvent = (e: Args<'turn.complete'>): TurnEndEvent => ({ ...actorOf(e as any), answered: (e as any).reason === 'answer' })
 export const skillEvent = (e: Args<'skill.prompt'>): DoneSkillEvent | null => {
   const name = (e as any).skill
-  const skill = Object.hasOwn(DONE_SKILLS, name) ? DONE_SKILLS[name] : undefined
-  return skill ? { skill } : null
+  if (typeof name !== 'string' || !name) return null
+  return { skill: Object.hasOwn(DONE_SKILLS, name) ? DONE_SKILLS[name] : 'other', name }
 }
 
 /** Pass each chunk on unchanged, calling `see` on the way, and return the generator's own return value. */
