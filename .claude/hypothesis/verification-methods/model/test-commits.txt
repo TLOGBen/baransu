@@ -1,0 +1,148 @@
+aa7cad7a|feat(ui): 先寫主敘事、6 : 3 : 1 層級、題材點子與必做截圖自評，附 A/B 盲評工具組（7.7.0）
+2574bc67|fix: Windows 路徑分隔符——/ship worktree 清理、transfer 與 health 輸出改用 POSIX 路徑，修好 4 個 Windows 測試（7.6.1）
+98b033ea|feat(draw): Seed Hunter 三份種子盲選一份精修、brief 路由行只讀值並同步 Codex 版（7.6.0）
+a7d72f57|feat(draw): 步驟指引＋書目索引、只畫單件並自動交棒 /ui、完整收錄 anatomy、修好 Windows 帳戶鎖定（7.5.0）
+c43cee89|feat(draw): 新增 6 : 3 : 1 畫面層級原則（composition.md）並接入草稿、key card 與評分卡（7.4.1）
+6db3791f|feat(draw): 流程改為 preflight→形式→畫法→產製→檢查，motion 重組為五階段與技術手冊（7.4.0）
+0b5f62b0|feat(codex-skill-transfer): 改為手動並列維護的移植對照與檢查清單，對齊 Claude Code 2.1.293／Codex CLI 0.161.0（7.3.0）
+10e7bfe1|feat(draw): motion lane 7.2.0 — on-screen vocabulary, formats, studio gates, 631 composition (#13)
+b3e84954|feat(draw): seek overlay — a diagram-design diagram with a scrubbable time axis (7.1.0)
+037a3a36|feat(draw): replace /book with the self-contained /draw visual skill (7.0.0)
+59d7a3bb|fix(read): peek 失敗字串統一、/learn eval 改指向 /read --save、圖片守門測試放寬（6.2.1）
+2ea8d6b7|feat(read): /read 預設只讀不存，--save 才存離線檔；/learn 改以 --save 擷取（6.2.0）
+d5c75dc4|fix(codex-skill-transfer): when_to_use 併入 Codex description、未知 frontmatter 欄位一律回報不再無聲丟棄，6.1.1
+c2c17dcf|feat(codex-skill-transfer): 對齊 Codex 現行格式——portable root plugin.json、$plugin:skill 命名空間提及、保留 SessionEnd hook；退役 wiki-sync，6.1.0
+0123fc1e|fix(ship): Step 1 早停改為四項檢查，工作樹乾淨但有未落地 commit 時照樣推送，6.0.3
+e7e538c7|feat(ship): commit 前先在本地整合上游（stash → pull → pop → 解衝突），6.0.1
+733a6bfd|merge: origin/main（write 直接用語規則 5.6.2）併入 6.0.0（via /ship）
+ff9e8c5f|feat!: /design 重做並更名 /ui，取代 frontend-design，6.0.0
+c45c11f7|fix(write): integrate main and release direct-language rules in 5.6.2
+8b9e5a7b|fix(write): enforce direct language and clarification boundary, 5.5.1
+4890dbc2|revert(contract,seal): 回歸 5.4.1 形——G4 錯不起表面重獲模板錨，seal-agent 回役，5.6.1
+fee63af1|revert!: book/design/write 脫離 kamishibai，回復 5.2.0 手寫 HTML 形，5.6.0
+288f13dc|feat!: think/contract/seal/review 改以 Common Lab 定稿為本體，輸出回歸 .claude/ 慣例，5.5.0
+c4a87d8f|fix(write): 封緘修繕——防撞守衛前置+位置斷言+停手句釘+殘句收殮，5.4.1
+b0331521|feat(write): proofread 改道 kamishibai render——表頭隨遷+紅線保留
+9d62eb7f|fix(evolve,build): 封緘修繕——evolve 入口漏網行、ship-check 閘、凍結宣告限定句
+a3629262|feat(book,design): 5.3.0 薄提示 stub——kamishibai plugin 承接，6.0.0 實體退役預告
+ad8a88b1|feat!: think 重作為判決機——三路（存廢判決/選型判決/對焦交棒）共用先對焦紀律，五段計畫與 Lightweight 退役讓渡 contract/wayfinder，transfer think adapter 與 AskUserQuestion 分類器同步 Input-only 語義，鏡像重生，v5.0.0
+6f831a5e|feat!: 退役 /analyze 與 7 個 pipeline agent——Large band 改組合鏈（contract/seal 切片＋可選 wayfinder/delegate/strategic-advance），Gate 11 隨 green_proof 發行面歸零退役，上限 15→14，鏡像重生，v4.0.0
+10dde3be|feat(codex-skill-transfer): /other-skill 呼叫提及改寫為 Codex $other-skill mention——命名空間形式一律轉、裸形式限已知 sibling skill，路徑/URL 免疫，鏡像同步重生，v3.4.1
+ad90c69c|feat(skills): 強化白話診斷、反證決策與蒸餾門檻，升版 3.3.2
+4acee9d3|fix(hooks): Windows Codex seal-guard 原生化——新增 seal-guard.ps1（PS 5.1 六情境真機驗證）＋ transfer 同名 .ps1 commandWindows 規則與 no-op 後備，升版 3.3.1
+dd68db30|feat(write): 吸收 human-writing 模型寫作慣性提點（翻案腔動作偵測/假細節防護/六條節奏詞彙指紋）並升版 3.3.0
+f5276faa|feat(lifecycle): TASK-lifecycle-06 發行面同步與 3.2.0（CLAUDE.md/baseline/CHANGELOG/README/codex 鏡像＋INV-8 保險句＋A6 錨＋路由表 Medium 列同步）
+ccb13428|test(lifecycle): TASK-lifecycle-05 合約生命週期字面斷言 suite（30 斷言＋A5e 主詞綁定負錨）
+358dc35d|feat(lifecycle): TASK-lifecycle-03 新增 seal-agent（verify-only）
+1803b1d7|test: seal 補釘死套件與 A9 註解字面修正（mifb 吸收 v2 封緘）
+aea8faf9|feat: 吸收 make-interfaces-feel-better 工藝原則至 design/book（v3.1.11）
+c32b372d|feat: 將 AskUserQuestion 映射至 request_user_input
+7a6d601e|feat: book 產出單檔自足化＋Kami 版面放寬與圖表 lightbox（v3.1.9）
+41f6194e|fix(ship): keep archived work local-only
+423f10a7|fix(seal): restore path detection and Codex continuation
+216e6357|fix: 清除 /execute 裁撤殘留並補上被裁指令掃描閘
+ae79766c|feat: 讓 ship 根據變更產生提交摘要
+087cf77a|chore: 歸檔工作檔案並提交本次變更
+392419d2|fix: 完成 Codex plugin 內容閉包
+dae214ca|chore: 歸檔工作檔案並提交本次變更
+34a7f04a|feat: v3.1.0 — premise-confidence gates, evidence-based dissent (R10), Critical hard-stop, zero-test-layer seal mandates
+4ba7957c|feat(evolve): weekly local auto-evolve — 10/14 adopted → v3.0.4
+07ddfa2e|feat(codex-skill-transfer): mirror plugin hook outcomes
+017adde9|feat(evolve): contract/seal 各過一輪棘輪並採納(v3.0.2)
+a07da46e|feat(telemetry): 遙測帳本集中至 user scope — ~/.claude/baransu/telemetry/{專案}/{類型}-{YYYY-MM}.jsonl (v3.0.1)
+68df8683|fix(review): 最終審查修正 — seal-log 生產端閉環 + Phase 錨正名 + compile 計數歸零 + 修憲殘留
+edc67cfa|feat(restructure): Phase 1 段③ — 版本 3.0.0、三頻段路由、CHANGELOG、seal-guard hook 出貨即生效(預設阻擋)、遙測慣例
+6c094dd2|feat(restructure): Phase 1 段② — 新增 /seal、修憲 14→15(15 對 15 全綠)
+93d775f0|feat(restructure): Phase 1 段① — 合併 analyze+execute、新增 /contract、Gate 10/11 錨點同段遷移(14 進 14 出)
+4c20418a|feat(think): Stage G handoff artifact becomes a seven-section executor prompt (v2.13.0)
+bdbe5f73|feat(codex-skill-transfer): rewrite repo-internal path refs on Codex port
+32c99a1b|chore(release): v2.11.0 — 全席 evolve ratchet 七席採納(4 觸點 + mirror)
+980f5f0b|fix(book): 實地煙霧發現修復 — inline 範例 GATE-C 全修 + 4 契約歧義收口
+ede6bedb|test(smoke),fix(evals): 煙霧閘門常備化 + evals 陳舊案例體檢修正
+d76d6969|chore(release): v2.10.0 — design/book 遞延美學功能八候選落地(mirror regen + 4 觸點)
+2dab5985|feat(design): 尺寸反比權重梯 + 質感/動效表達軸 + CJK 文字適配三件組
+87ebbd4f|feat(book): 圖表目錄 14→17 + 維護型圖表 trio 契約 + 架構板規模級
+c7413d33|chore(release): v2.9.0 — 美學基底 + 出廠修復 + hunt 快徑(PR #3/#4/#5 合併收斂)
+567298d2|fix(design,book): 煙霧測試 4 high 出廠級缺陷收口 — preset 自 gate、schema 欄 regex、SVG 崩潰、pptx 依賴
+84c05942|docs(claude-md,evals): session invariant 入冊 + evals 體檢 + review target-pin 三表面統一
+178fa24a|fix(codex-skill-transfer,_shared,agents): 覆蓋完成審計收口 — 21 項修復 + Gate 10 豁免刪除
+d9d518fb|feat(verify): 慣性知識機械化 — verify-skills.py 新增兩個結構閘門（TDD, 18 tests）
+931473a4|fix(tests): 版本釘測試同步 2.8.0（bump 第 4 觸點,上一 commit 的 pipe 吞掉 make test 失敗狀態）
+280c2353|fix(write,design,book,health,evolve): 慣性帳本鏡頭綜合審計修正 — 3 high + 37 medium + 中央註冊
+f9fe14af|fix(review-agent): 對齊 review-agent.md rationale 為 AskUserQuestion 硬缺席框架, v2.7.7
+faea4017|feat(skills): subagent 巢狀 fan-out — 被托管 dispatcher 照常派 worker, v2.7.6
+e8c7863e|feat(review,think): 覆蓋錯置防護 — mock 掉的那層覆蓋率為零, v2.7.5
+7e9bf9b0|refactor(review,think,analyze): de-overfit — 移除 .NET 專用機器, 蒸餾為 7 條跨生態系行為紀律, v2.7.4
+4078d352|feat(review): fact-count.sh 執行器＋template-deviation 規則 — 計數名詞紀律機械化, v2.7.3
+f1a0d0ad|feat(review): 量化宣稱 ✔/✘ 處置帳本＋hard-stop 擴充＋Stage 1.5 正向觸發 — opus 召回補強, v2.7.2
+de943fdf|chore: 歸檔工作檔案並提交本次變更
+e8be5189|fix(codex-transfer): 替換串去冠詞 — 'exactly ONE … round' 名詞位全型通順
+bcc8d65a|fix(codex-transfer): 其餘三條 AskUserQuestion 替換串改名詞短語 — unclassified/cosmetic/input-gate/think 同病同修
+a1f8c759|feat(review): domain grounding — 第五視角 domain-reviewer 抓非自然測案與覆蓋缺口, v2.7.0
+dc34d939|feat(skills): バランス audit sweep — 28 verified findings fixed, net -264 lines, v2.6.0
+4961be1f|feat(skills): encode Fable-5 thinking patterns as steps — evidence audit, anomaly-first, learnings, fresh-eyes
+b5df727f|feat(health): baseline working-principles coverage check + promote general principles to user scope
+6d46e3f3|chore(release): bump 2.5.18 → 2.5.19, evolve one-round sweep rollup (11 skills) + codex mirror regen
+382110dc|chore(release): bump 2.5.17 → 2.5.18, official-docs全skill優化 rollup + codex mirror regen (think/review/execute/evolve)
+c35a927b|refactor(skills): ship — items ship-1 (Step 5 teardown scriptified into cleanup-worktree.sh: merge-base gate, three-tier chain with INV-6 + registry guard before rm -rf, branch -D; fixture-repo shell test)
+c7e73eb4|refactor(skills): hunt — dedupe bisect gates, front-load Core constraints, move hunt-search.py to scripts/, add pytest, unify instrument term
+d9b981ab|refactor(skills): health — items health-1, health-2, health-4, health-7
+93273f6c|test(scripts): B2 pw-1/pw-3/pw-4/pw-8 — verify-skills checks + negative fixtures
+4349539c|chore: 歸檔工作檔案並提交本次變更
+904e41d9|chore(release): bump 2.5.16 → 2.5.17, evidence-discipline transplant rollup + codex mirror regen via transfer.py
+702156f4|chore: bump version 2.5.15 → 2.5.16 + CHANGELOG, fix post-ship test coupling
+0f381c7b|chore: 歸檔工作檔案並提交本次變更
+f9bfa085|feat(think,review,analyze,execute): mechanism-necessity 原則 + loaded-context 自審慣性 gotchas
+9236d4eb|feat(design): gen 吸收 frontend-design 生成力 + 版本化 canonical schema → v2.5.14
+7e4b5be8|feat(design,book): aesthetic + correctness fixes, bump 2.5.12
+8228c0cd|docs: simplify README, remove LICENSE, bump to 2.5.11
+956363a0|docs(refs): add ToC to >100-line reference files + fix book diagram-types reachability → v2.5.10
+882272dd|feat(evolve): daily cron auto-evolve round 7 — 6/14 adopted (learn gate-reverted) → v2.5.9
+f5c67907|feat(evolve): daily cron auto-evolve round 6 — converging, 2/14 adopted → v2.5.8
+ef7222d7|feat(evolve): daily cron auto-evolve round 5 — 6/14 adopted under guard → v2.5.7
+63815d00|feat(evolve): daily cron auto-evolve round 4 — convergence guard live, 5/14 adopted → v2.5.6
+e8757709|feat(evolve): daily cron auto-evolve round 3 — 14-skill structure-axis refinements → v2.5.5
+1a6110b3|feat(evolve): daily cron auto-evolve round 2 — 14-skill structure-axis refinements → v2.5.4
+0d7b6f8a|feat(evolve): standing-auth auto-adopt under loop/ultracode + 14-skill structure-axis refinements → v2.5.3
+7d7990c5|feat(evolve): ultracode assist→overlap; split loop-contract §4 into per-skill references → v2.5.2
+11c553ca|feat(write): add argument-hint param tooltip + user-invocable → v2.5.1
+a8c4607a|feat(write): add Proofread mode + /evolve ratchet hardening → v2.5.0
+4bc61a92|refactor(evolve): /evolve dogfood — fix Stage 3 false-fail gate + Stage 7 card landing → v2.4.5
+7879dd7d|feat(ship): expand archive allowlist, add ship-to-branch, ancestor-safe worktree teardown → v2.4.4
+c2ccbd1d|refactor(skills): English-ify all agent-facing prose; codify English-body convention → v2.4.3
+501b7f25|chore(release): /book + /design darwin polish → v2.4.2 + codex mirror regen
+7dd46741|chore(evolve): self-evolution refinements + codex mirror regen (v2.4.1)
+e36b0299|feat(evolve): add skill-evolver as 14th governance skill
+f7382477|feat(codex-transfer): preserve anti-inertia gates
+e284322d|fix(skills): reference-wiring audit — turn reachable-but-untriggered aux refs into read triggers; bump 2.2.2
+7eb70c1b|fix(loop-contract): inline PAUSE taxonomy and wire invocation-time reference; bump 2.2.1
+471de2e4|fix(health): repo-level health-audit fixes — AGENTS.md delegation, make test entrypoint, worktree-safe tests
+035ad508|feat(governance): philosophy section w/ anchored clauses, 13-skill ceiling, routing column, 3-face version check, 12→13 test ripple
+ad0a817c|test(slim): wave-5 verify — verify-skills.py validator, negative fixture, suite pruning
+d438dd19|chore(slim): wave-4 distribution — manifests/CLAUDE.md/README sync to 12 skills, version 2.0.0
+1b5c3451|feat(slim): wave-3 automation — loop-contract, orchestration-interface refs, dual-axis annotations
+c06579d6|feat(slim): wave-2 contract — Outcome Contract four-line headers across all 12 skills
+fc1babfc|chore(slim): wave-1 cut — remove grade/triage/bridge/dev skills, harness hooks/scripts, telemetry schemas, coupled tests
+efc4fe38|chore: 歸檔工作檔案並提交本次變更
+339678bb|feat(book): add --format flag with PDF/PPTX pipelines, SVG precision, 1.1.19
+329fe4e0|chore: 歸檔工作檔案並提交本次變更
+55425817|chore: 歸檔工作檔案並提交本次變更
+33fc8420|chore: 歸檔工作檔案並提交本次變更
+81e0dd03|chore: 歸檔工作檔案並提交本次變更
+c90ba78a|feat(harness-followup): integration — INV-7 partition lint + bridge corpus_size 20→50
+bcaedde2|feat(harness-followup): enforcement — push-gate.sh + render-auto-fix-prompt.py + /triage SKILL wiring
+51cbfd90|feat(harness-followup): scripts — polarity reversal + grade-collector RMW atomic
+c5b389f6|merge(harness-followup): Level 0 hooks — 5-token regex + drop→mask
+56d88e40|feat(harness-followup): hooks — 5-token regex + drop→mask
+bb8f3b50|feat(harness-followup): shared — schema partition + writer attribution
+f6c4c23b|feat(harness): integration layer — CLAUDE.md + CRON runbook + invariants check
+81d848fd|feat(harness): /triage SKILL.md — orchestration + auto-fix sub-flow
+eb87d577|merge(harness): integrate Level 2 bridge skill
+9a8443da|feat(harness): /bridge SKILL.md + corpus inconclusive handling
+733f762c|feat(harness): /grade SKILL.md + tune_review_due chain
+9b6968be|merge(harness): integrate Level 1 agents layer
+d6d4d4ef|merge(harness): integrate Level 1 scripts layer
+19b506b9|feat(harness): scripts layer — grade-collector + triage-cluster + bridge-replay
+20cdbf2b|feat(harness): investigator-agent.md (perspective class, read-only)
+e4561d5a|feat(harness): hooks layer — UserPromptSubmit + PostToolUse + Stop + reaper
+095078dc|feat(harness): shared schemas + .gitignore + initial state.json
