@@ -1,8 +1,7 @@
 // Where each card is drawn: the one place that decides it. A card kept under a call hangs on that call's row
 // (a tool call, the Agent or Workflow call that started a subagent — one card per subagent — the Skill call that
-// loaded a skill); a card with no call is drawn in the band above the prompt until the person's next message
-// enters, every card the band keeps (a band taller than its rows scrolls), and is written as a plain row as well
-// (view/port.ts) for the surfaces and moments the band does not reach.
+// loaded a skill) where the surface draws that row; a card with no call is a plain row (view/port.ts). Nothing
+// is forced into view: a folded group stays folded (purpose over display, user 2026-11-04).
 
 import { lintOf } from '../instance'
 import { drawCard } from './card'
@@ -34,24 +33,5 @@ export function registerView(on: On) {
     if (!d?.replace) return next(e)
     const { Box } = $.ui.resolve(e) as any
     return h(Box, null) as any
-  })
-
-  // A folded group drawn as one line hides its rows, so one holding a call with a card unfolds (user 2026-11-03, Q1-b).
-  on('ui.render', { component: 'ToolGroup' }, async ($, e: any, next) => {
-    if (e.props?.isExpanded) return next(e)
-    const lint = await lintOf($)
-    const carded = (e.props?.calls ?? []).some((c: any) => c.tool_use_id
-      && (lint.cardFor(c.tool_use_id) || lint.cardFor(`${c.tool_use_id}#answer`) || lint.agentCardsUnder(c.tool_use_id).length))
-    return next(carded ? { ...e, props: { ...e.props, isExpanded: true } } : e)
-  })
-
-  // The cards with no call: a stop held, a file changed outside Claude, a wait run out, a compaction, a skill the
-  // person typed. A survey holding the band comes first (the plain row covers that time).
-  on('ui.render', { component: 'AbovePrompt' }, async ($, e: any, next) => {
-    if (e.props?.hasSurvey) return next(e)
-    const cards = (await lintOf($)).bandCards()
-    if (!cards.length) return next(e)
-    const { Box } = $.ui.resolve(e) as any
-    return h(Box, { flexDirection: 'column', gap: 1 }, ...cards.map(d => drawCard($, e, d))) as any
   })
 }

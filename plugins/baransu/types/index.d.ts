@@ -35,8 +35,6 @@ export type LintState = {
   // Where userLanguage came from: the user-language check's own `language`, the host's language setting, or a guess
   // from the person's messages. Only a guess is replaced by the next message.
   languageFrom?: 'check' | 'setting' | 'guess'
-  // Cards with no call of their own, drawn above the prompt; at most 5, cleared when the person sends a message.
-  band?: LintCard[]
   // The Skill calls in flight, by the skill's name (`baransu:lint`): a skill loaded in one hangs its card under it.
   // Set when the call starts, removed when it ends; two calls at once each keep their own.
   skillCalls?: Record<string, string>

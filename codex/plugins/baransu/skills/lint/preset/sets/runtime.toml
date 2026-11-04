@@ -41,7 +41,7 @@ message = "同一個錯不該讓使用者糾正第二次"
 severity = "check"
 strict = "check"
 builtin = "destructive-preview"
-message = "先看上面列出會動到的東西；確定沒錯，再下一次同樣的指令"
+message = "會動到的東西都列在上面，確認是要動的"
 
 # Before /ship or /review: was the change built, tested, linted and reviewed after the last edit?
 [check.session-record]

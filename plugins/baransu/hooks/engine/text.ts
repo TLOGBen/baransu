@@ -33,7 +33,7 @@ export function summarize(moment: string, findings: readonly Finding[], o: { edi
   return { kind: errors ? 'error' : warns ? 'warn' : redos ? 'retry' : 'note', meta, lines: shown }
 }
 
-/** A card as the plain row a surface without the band shows: its head, one line per finding, its footer. */
+/** A card as a plain row, for a moment with no call: its head, one line per finding, its footer. */
 export function cardText(d: Card): string {
   const mark = { error: '✖', check: '⏸', warn: '⚠', retry: '↻', note: '·' } as const
   return [

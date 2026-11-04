@@ -97,8 +97,7 @@ export const register: Register = on => {
 
   on('prompt.submit', async ($, e, next) => {
     const ev = promptEvent(e)
-    // A message the person sent with no text (an image alone) still moves the band on; one they did not type does not.
-    if (!ev) return (e as any).isMeta ? next(e) : (await engine.ready(hostOf($))).messageSent(() => next(e), droppedPrompt)
+    if (!ev) return next(e)
     const lint = await engine.ready(hostOf($))
     return lint.promptSubmit(ev, notes => next(withContext(e, notes)), droppedPrompt)
   }).catch(($, e, next) => next(e))

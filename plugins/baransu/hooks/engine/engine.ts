@@ -160,27 +160,13 @@ function keepCard(s: LintState, id: string, d: Card) {
   for (const old of ids.slice(0, Math.max(0, ids.length - 500))) delete s.cards[old]
 }
 
-/** Cards with no call of their own kept at once (the band above the prompt). */
-const BAND_MAX = 20
-
-/** The band's cards when a message of the person's arrives: they were for the message before, and go once that
- *  message enters the conversation (a message refused below never entered, so they stay). Cards posted while the
- *  message was taken in (a correction's) are not among them and stay. */
-function bandShown<H>(memory: Memory<H>): ReadonlySet<Card> {
-  return new Set(memory.s.band ?? [])
-}
-function clearShown<H>(h: H, memory: Memory<H>, shown: ReadonlySet<Card>) {
-  if (!shown.size) return
-  memory.s.band = (memory.s.band ?? []).filter(c => !shown.has(c))
-  memory.save(h)
-}
-
-/** Every timing's card for the person: kept under its call when it has one, else in the band; then drawn by the
- *  view. Kept and saved before the view is called, so a redraw finds it. */
+/** Every timing's card for the person: kept under its call when it has one, so a redraw finds it; a moment with
+ *  no call is said as a plain row and kept nowhere (purpose over display, 2026-11-04). */
 async function post<H>(h: H, ports: Ports<H>, memory: Memory<H>, card: Card, at?: string) {
-  if (at) keepCard(memory.s, at, card)
-  else memory.s.band = [...(memory.s.band ?? []), card].slice(-BAND_MAX)
-  memory.save(h)
+  if (at) {
+    keepCard(memory.s, at, card)
+    memory.save(h)
+  }
   try {
     await ports.view.show(h, card, at)
   } catch {}
@@ -278,16 +264,8 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
 
     promptSubmit<R>(e: PromptEvent, proceed: (notes: readonly string[]) => Promise<R>, dropped: (r: R) => boolean): Promise<R> {
       // Not async: the take below runs before anything is awaited.
-      const shown = bandShown(memory)
       const taken = memory.take(h, e.opensTurnNow ? 'prompt' : 'offer')
-      return submitAfterTake(h, ports, memory, taken, e, proceed, dropped, shown)
-    },
-
-    async messageSent<R>(proceed: () => Promise<R>, dropped: (r: R) => boolean): Promise<R> {
-      const shown = bandShown(memory)
-      const r = await proceed()
-      if (!dropped(r)) clearShown(h, memory, shown)
-      return r
+      return submitAfterTake(h, ports, memory, taken, e, proceed, dropped)
     },
 
     turnStarted(e: TurnStartEvent) {
@@ -379,13 +357,15 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
       const due = config.checks.filter(c => c.action.kind !== 'builtin' && runsAt(c, at))
       if (!due.length) return
       const findings = (await runMoment(lookOf(ports, h, config), S(), at)).filter(f => f.severity !== 'note' || f.quiet)
+      // An answer that passed needs nothing from anyone: no card.
+      if (!findings.length) return
       const errors = findings.filter(f => f.severity === 'error').length
       const warns = findings.filter(f => f.severity === 'warn').length
       S().answerCard = {
         kind: errors ? 'scanError' : warns ? 'scanWarn' : 'scan',
         title: errors || warns ? '回答還有問題' : '回答檢查過了',
         meta: `lint · 回應後 · ${due.length} 條檢查${errors ? ` · ${errors} error` : ''}${warns ? ` · ${warns} warn` : ''}`,
-        lines: findings.length ? findings : due.map(c => ({ id: c.id, severity: 'note' as const, text: '通過' })),
+        lines: findings,
       }
       save()
     },
@@ -439,7 +419,9 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
       const text = render(label, where, findings)
       // A skill cannot be refused: a hold is an instruction in its text to stop first (timing.ts pre:skill).
       const held = settle(manual ? 'manual' : 'pre:skill', findings).gate === 'hold'
-      await post(h, ports, memory, skillCard(text.split('\n')[0], findings, e.skill === 'ship' && held, isReview), S().skillCalls?.[e.name])
+      // /lint was asked for its result, found or not; before another skill a clean run needs no card (the skill's
+      // text still carries the record).
+      if (manual || findings.length) await post(h, ports, memory, skillCard(text.split('\n')[0], findings, e.skill === 'ship' && held, isReview), S().skillCalls?.[e.name])
       const tailLine = manual
         ? '這是叫 /lint 時先跑的全部檢查。先把結果用一兩句話交代給使用者（沒有發現也說），再做使用者這次要求的事。'
         : isReview
@@ -464,10 +446,6 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
 
     cardFor(callId: string): Card | undefined {
       return S().cards[callId]
-    },
-
-    bandCards(): readonly Card[] {
-      return S().band ?? []
     },
 
     agentCardsUnder(callId: string): readonly Card[] {
@@ -515,7 +493,9 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
       // It ends: what is left for the model waits for its next step.
       const gaveUp = s.gate === 'hold' ? `這一輪已經擋了 ${STOP_HOLDS} 次還沒過，放行；請你看一下` : undefined
       enqueue(memory, h, told('stop', '', { ...t0, line: [...t0.line, ...t0.fix, ...t0.redo], fix: [], redo: [] }).lines)
-      await post(h, ports, memory, cardOf('結束這一輪前', findings, gaveUp ? { kind: 'warn', footer: gaveUp } : {}))
+      // What was shown when the turn was held is not said again as it ends.
+      const left = findings.filter(f => !(once(f) && heldBefore(f)))
+      if (left.length || gaveUp) await post(h, ports, memory, cardOf('結束這一輪前', left, gaveUp ? { kind: 'warn', footer: gaveUp } : {}))
       return { kind: 'stop' }
     },
 
@@ -684,7 +664,7 @@ async function wake<H>(h: H, ports: Ports<H>, memory: Memory<H>) {
 
 async function submitAfterTake<H, R>(
   h: H, ports: Ports<H>, memory: Memory<H>, taken: Taken, e: PromptEvent,
-  proceed: (notes: readonly string[]) => Promise<R>, dropped: (r: R) => boolean, shown: ReadonlySet<Card>,
+  proceed: (notes: readonly string[]) => Promise<R>, dropped: (r: R) => boolean,
 ): Promise<R> {
   const S = () => memory.s
   try {
@@ -712,7 +692,6 @@ async function submitAfterTake<H, R>(
     }
     memory.save(h)
     const r = await proceed(notes)
-    if (!dropped(r)) clearShown(h, memory, shown)
     // The prompt did not enter (a hook or a settings hook below refused it): what it took is still owed.
     if (dropped(r)) taken.giveBack()
     // It entered with what it carried (a slash command's copy is delivered when its turn starts).
@@ -816,6 +795,7 @@ async function callAfterTake<H, R>(
   let headSnap: HeadSnap | undefined
   let store: Store | undefined
   let touchedFile: string | undefined
+  let previewCard: (c: Card) => Card = c => c
   try {
     config = await ports.config.load(h)
     if (!config) {
@@ -934,6 +914,8 @@ async function callAfterTake<H, R>(
     const withPreview = (lines: Finding[]) => (preview.length
       ? { lines: [...lines.filter(f => f.id !== previewId), ...preview.filter(t => !t.row).map(t => ({ id: '', severity: 'note' as const, text: t.text }))], ...(rows.length ? { paths: rows } : {}) }
       : { lines })
+    // A card made after the act carries the preview as its path list too.
+    previewCard = c => (c.lines.some(f => f.id === previewId) ? { ...c, ...withPreview(c.lines) } : c)
     if (s.gate === 'hold') {
       if (s.redo.some(f => f.id === explain?.id)) redo.push('explain')
       // An explain-before-edit at error holds every file change until the model has said how: the turn has
@@ -942,6 +924,8 @@ async function callAfterTake<H, R>(
       const card = summarize(label, pre) ?? { kind: 'error' as const, meta: `lint · ${label}`, lines: pre }
       return refuse({ ...card, ...withPreview(card.lines), title: gitWrite ? (pushes && !commits ? '沒有 push' : '沒有 commit') : '沒有執行', footer }, `${render(isEdit ? 'edit' : gitWrite ? 'commit' : 'bash', isEdit ? file : '', pre)}\n${footer}。`)
     }
+    // What a hold-once showed when it held: once the act passes, neither the person nor the model hears it again.
+    let shownOnce: Finding[] = []
     if (s.gate === 'hold-once') {
       // The same act by the same actor in a later response of this turn passes: it has read the list.
       const heldKey = `${e.agent ?? 'main'}|${isEdit ? `edit|${file}#${hash(e.kind === 'edit' ? e.text : '')}` : `${e.kind === 'shell' ? e.shell : ''}|${cwdNow}|${command}`}`
@@ -956,6 +940,7 @@ async function callAfterTake<H, R>(
           `${render(isEdit ? 'edit' : gitWrite ? 'commit' : 'bash', isEdit ? file : '', pre)}\n確認沒錯，下一次回應再送一次同樣的動作就會執行。`,
         )
       }
+      shownOnce = pre.filter(f => f.severity === 'check' || f.id === previewId)
     }
     // It goes on: the model hears each finding as its level says there.
     for (const f of s.redo) {
@@ -969,8 +954,8 @@ async function callAfterTake<H, R>(
         context.push(`baransu lint（${f.id}，重新）：${f.text}`)
       }
     }
-    const plain = s.line.filter(f => !s.redo.includes(f))
-    inline.push(...plain, ...s.card.filter(f => f.quiet && !plain.includes(f)))
+    const plain = s.line.filter(f => !s.redo.includes(f) && !shownOnce.includes(f))
+    inline.push(...plain, ...s.card.filter(f => f.quiet && !plain.includes(f) && !shownOnce.includes(f)))
     if (plain.length) context.push(render(isEdit ? 'edit' : gitWrite ? 'commit' : 'bash', isEdit ? file : '', plain))
 
     // Snapshots for around:<act>, and Claude's own write for post:file — both only when a check reads them.
@@ -1104,7 +1089,7 @@ async function callAfterTake<H, R>(
     const act = isEdit ? '改檔' : gitWrite ? 'commit' : '指令'
     const side = hadAfter ? (inline.length > afterCount() ? '前後' : '後') : '前'
     const d = summarize(`${act}${side}${isEdit ? ` · ${file}` : ''}`, inline, { edited: isEdit })
-    keepCard(S(), e.id, d ?? { kind: 'warn', meta: 'lint', lines: inline })
+    keepCard(S(), e.id, previewCard(d ?? { kind: 'warn', meta: 'lint', lines: inline }))
     save()
   }
   const notes = [...(o.ran && !o.isError ? context : []), ...(o.ran ? afterLines : [])]

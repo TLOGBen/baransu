@@ -113,7 +113,9 @@ export function drawCard($: Dollar, e: any, d: Card): any {
             ...(r.meta ? [h(Text, { size: 'footnote', bold: !!r.warn, color: r.warn ? strong : meta }, r.meta)] : []))),
         ]))]
     : []
-  return h(Box, { flexDirection: 'row', gap: 'md', borderStyle: 'round', borderColor: terminal ? strong : p.border, backgroundColor: terminal ? undefined : p.bg, padding: 'md' },
+  // A card of one row centres the 28px icon on it; with more rows the icon stays at the top, by the title.
+  const oneRow = !d.lines.length && !list.length && !d.footer
+  return h(Box, { flexDirection: 'row', gap: 'md', alignItems: oneRow ? 'center' : undefined, borderStyle: 'round', borderColor: terminal ? strong : p.border, backgroundColor: terminal ? undefined : p.bg, padding: 'md' },
     pic(iconSvg(d.kind), 28, d.title ?? d.meta, TERMINAL_ICON[d.kind], strong),
     h(Box, { flexDirection: 'column', gap: 'sm', flexShrink: 1 },
       d.title

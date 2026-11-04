@@ -26,7 +26,7 @@ export type Host = {
   readonly append: (text: string) => Promise<any>
   /** Claude Code's `language` setting, merged over every settings source; undefined when none sets it. */
   readonly language: () => Promise<string | undefined>
-  /** Asks the host to draw this plugin's rows and band again, so a card kept just now shows. */
+  /** Asks the host to draw this plugin's rows again, so a card kept just now shows. */
   readonly invalidate: () => void
   readonly pluginRoot: () => string
 }

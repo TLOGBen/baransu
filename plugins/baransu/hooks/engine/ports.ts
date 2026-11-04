@@ -69,9 +69,8 @@ export interface StateStore<H> {
 }
 
 /**
- * Every timing's result for the person is one Card. The engine has already kept it (under `at`, the call it
- * belongs to, or in the band of cards with no call); the view only draws it where it goes: on that call's row,
- * or above the prompt, or as a plain row where no surface draws that band. Never throws.
+ * Every timing's result for the person is one Card. With a call (`at`) the engine has kept it and the view asks
+ * for that call's row to be drawn again; with none, the view says it as a plain row. Never throws.
  */
 export interface View<H> {
   show(h: H, card: Card, at?: string): Promise<void>
@@ -189,10 +188,6 @@ export interface Lint<H> {
    *  throws or `dropped(result)` says the prompt never entered. */
   promptSubmit<R>(e: PromptEvent, proceed: (notes: readonly string[]) => Promise<R>, dropped: (r: R) => boolean): Promise<R>
 
-  /** A message of the person's with nothing for the checks to read (an image alone): runs `proceed`, and once it
-   *  entered, the band's cards from before it go, as promptSubmit does. */
-  messageSent<R>(proceed: () => Promise<R>, dropped: (r: R) => boolean): Promise<R>
-
   turnStarted(e: TurnStartEvent): void
   turnCompleted(e: TurnEndEvent): Promise<void>
   /** /clear: what was owed belongs to the old conversation. */
@@ -211,9 +206,6 @@ export interface Lint<H> {
   /** A Skill call loading the skill `name` starts (callId) or ends (undefined), so its card hangs under that call. */
   skillCalling(name: string, callId: string | undefined): void
   cardFor(callId: string): Card | undefined
-  /** The cards with no call of their own (a stop, a file changed outside, a wait, a compaction, a skill the
-   *  person typed), oldest first; cleared when the person sends the next message. */
-  bandCards(): readonly Card[]
   /** The cards of the subagents an Agent or Workflow call started, one per subagent, in the order they ended. */
   agentCardsUnder(callId: string): readonly Card[]
 

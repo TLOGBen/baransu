@@ -85,7 +85,7 @@ What a level does:
 
 Exceptions, each a fact of the host:
 
-- `pre:stop`: holding means the turn may not end yet — the model goes on in the same turn with the reason. `error` holds at most three times a turn, then lets the turn end and tells the person; `check` and `retry` hold once a turn each, and once held are shown on the card only. A stop that ends the turn queues what it still has for the model's next step.
+- `pre:stop`: holding means the turn may not end yet — the model goes on in the same turn with the reason. `error` holds at most three times a turn, then lets the turn end and tells the person; `check` and `retry` hold once a turn each, and once held are not said again when the turn ends. A stop that ends the turn queues what it still has for the model's next step.
 - `post:agent`, `around:agent`, `post:file`, `after:*`: only `warn` and `info` (`error` reads as `warn` at `post:file`). A subagent does not go on when held, and a file changed outside Claude or a wait has no act to stop. Their lines wait for the model's next step. The host's own compaction agent is not a subagent here.
 - `pre:compact`: only `warn` and `info` — refusing a compaction would leave the conversation full. The mod writes what is still owed (a 重新, a queued line) into the compaction's instructions, so the summary keeps it.
 - `post:compact`: no `retry`. `post:retry`: no `retry` (it would ask again for every answer), and its `warn` stays on the card.
