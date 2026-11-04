@@ -1,4 +1,3 @@
-# baransu-preset@8.46.2
 # baransu lint 設定。
 # sets/baransu/ 是 baransu 的預設合集：/lint sync 會整包換成新版，不要手改；要改哪條，在下面用 [check.<id>] 寫要改的欄位。
 # sets/local/ 是這個 repo 自己的合集，sync 不會動。
