@@ -69,12 +69,12 @@ export interface StateStore<H> {
 }
 
 /**
- * A notice row the person sees in the session, not tied to one call's card. Earns its place because its
- * order against the host's own step is behaviour: the correction notice lands before the user's prompt row,
- * the worktree list at session start, the record before /ship's text. Never throws.
+ * Every timing's result for the person is one Card. The engine has already kept it (under `at`, the call it
+ * belongs to, or in the band of cards with no call); the view only draws it where it goes: on that call's row,
+ * or above the prompt, or as a plain row where no surface draws that band. Never throws.
  */
-export interface Notify<H> {
-  notice(h: H, text: string): Promise<void>
+export interface View<H> {
+  show(h: H, card: Card, at?: string): Promise<void>
 }
 
 /** Reads one set file's text into raw fields. Throws with a short message the person reads. */
@@ -88,8 +88,10 @@ export type Ports<H> = {
   readonly config: ConfigSource<H>
   readonly runner: Runner<H>
   readonly state: StateStore<H>
-  readonly notify: Notify<H>
+  readonly view: View<H>
   readonly clock: Clock<H>
+  /** The host's own setting for the language the person is answered in (Claude Code's `language`), or undefined. */
+  readonly languageSetting: (h: H) => Promise<string | undefined>
   /** Where the what-now skill file is, for report-before-stop's default redo text. */
   readonly whatNowSkill: (h: H) => string
   /** For a check's `when` guards. */
@@ -187,6 +189,10 @@ export interface Lint<H> {
    *  throws or `dropped(result)` says the prompt never entered. */
   promptSubmit<R>(e: PromptEvent, proceed: (notes: readonly string[]) => Promise<R>, dropped: (r: R) => boolean): Promise<R>
 
+  /** A message of the person's with nothing for the checks to read (an image alone): runs `proceed`, and once it
+   *  entered, the band's cards from before it go, as promptSubmit does. */
+  messageSent<R>(proceed: () => Promise<R>, dropped: (r: R) => boolean): Promise<R>
+
   turnStarted(e: TurnStartEvent): void
   turnCompleted(e: TurnEndEvent): Promise<void>
   /** /clear: what was owed belongs to the old conversation. */
@@ -202,7 +208,14 @@ export interface Lint<H> {
   toolCall<R>(e: ToolCallEvent, proceed: () => Promise<R>, outcome: (r: R) => Outcome): Promise<ToolVerdict<R>>
 
   skillPrompt(e: DoneSkillEvent): Promise<SkillPreface>
+  /** A Skill call loading the skill `name` starts (callId) or ends (undefined), so its card hangs under that call. */
+  skillCalling(name: string, callId: string | undefined): void
   cardFor(callId: string): Card | undefined
+  /** The cards with no call of their own (a stop, a file changed outside, a wait, a compaction, a skill the
+   *  person typed), oldest first; cleared when the person sends the next message. */
+  bandCards(): readonly Card[]
+  /** The cards of the subagents an Agent or Workflow call started, one per subagent, in the order they ended. */
+  agentCardsUnder(callId: string): readonly Card[]
 
   /** The main loop wants to end its turn: pre:stop. A hold re-prompts the model in the same turn. */
   stopping(e: StopEvent): Promise<StopVerdict>

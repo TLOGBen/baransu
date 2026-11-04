@@ -1,6 +1,6 @@
 ---- MODULE CardRender ----
 (* The transcript's rows and lint's cards, one action per step the platform or lint takes.
-   Sources: plugins/baransu/hooks/adapters/claude-code/hooks.ts (ui.render hooks), card.ts (drawCard),
+   Sources: plugins/baransu/hooks/adapters/claude-code/view/hooks.ts (ui.render hooks), view/card.ts (drawCard),
    engine/engine.ts (keepCard and its trim, cardFor, cleared, callAfterTake: the card is kept before the
    tool.call hook returns, lines 371 and 513-518); the platform from claude-code.d.ts (ToolUse / ToolResult /
    ToolGroup) and what HUNT-2026-002 measured (a folded group's rows draw through ToolUse, no ToolResult).

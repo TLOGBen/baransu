@@ -109,8 +109,9 @@ async function runCheck<H>(look: Look<H>, c: Check, argv0: readonly string[], fi
   const argv = argv0.map(a => (file ? a.split('{file}').join(file) : a))
   const r = await run(look, argv, 120000, env)
   if (r.exitCode === 0) return []
-  if (r.exitCode === -1) return [{ id: c.id, severity: 'warn', text: `${r.stderr}（沒有檢查到）` }]
-  return [{ id: c.id, ...level(c), text: `${c.message}\n${tail(r.stdout + '\n' + r.stderr)}` }]
+  const where = file ? `${file} ` : ''
+  if (r.exitCode === -1) return [{ id: c.id, severity: 'warn', text: `${where}${r.stderr}（沒有檢查到）` }]
+  return [{ id: c.id, ...level(c), text: `${where}${c.message}\n${tail(r.stdout + '\n' + r.stderr)}` }]
 }
 /** A `run` holding {file}, once per file the scope selects. A whole-tree scope is listed first (the files a
  *  forbid would search). MAX_TARGETS (scope/types.ts) is the only cap. A list the scope already cut is noted

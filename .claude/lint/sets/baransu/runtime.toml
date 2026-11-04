@@ -2,7 +2,7 @@
 from = "baransu-preset"
 
 # 重新: a reply written in another language than the user's is said again in the user's language, the way /huh restates.
-# Set language = "zh-TW" to pin it; unset, the mod reads it from the user's latest message.
+# Set language = "zh-TW" to pin it; unset, Claude Code's own `language` setting, else the user's latest message.
 [check.user-language]
 severity = "retry"
 strict = "retry"

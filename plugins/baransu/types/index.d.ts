@@ -1,9 +1,17 @@
 // The lint mod's session state, kept in $.state so a reload of the mod does not lose it.
 // quiet: drawn on the card for the person, never sent to the model (a scope's skip note, a cut list).
 export type LintFinding = { id: string; severity: 'error' | 'check' | 'warn' | 'retry' | 'note'; text: string; quiet?: boolean }
-// A card drawn under a tool call: what happened, which moment, the findings, what to do next.
-// 'answer' (lint-scope sketch): the result of checking the model's answer to a 重新 — drawn for the person only.
-export type LintCard = { kind: 'check' | 'error' | 'warn' | 'retry' | 'answer'; title?: string; meta: string; lines: LintFinding[]; footer?: string; replace?: boolean }
+// One path a command would touch, as the delete preview read it: the action, file / folder / missing / unknown
+// (a variable, a glob, unreadable), the root-relative path (a folder ends in /), and what to look at; warn marks
+// a meta the person must not miss (missing, would overwrite).
+export type LintPathRow = { verb: string; kind: 'file' | 'folder' | 'missing' | 'unknown'; path: string; to?: string; meta?: string; warn?: boolean }
+// A card: what happened, which moment, the findings, what to do next — one per timing, as the design canvas
+// "Lint 卡片設計" draws them. 'edited': an error after an edit (the file is already changed). 'note': info findings
+// only, for the person. 'stop': the turn held at its end, or /ship told to stop. 'record': a subagent's end, the
+// record before /review. 'scan' / 'scanWarn' / 'scanError': every check run (a skill, /lint, the model's answer to
+// a 重新), with nothing found, warns, or an error.
+// paths: the delete preview's rows, drawn as a grouped list.
+export type LintCard = { kind: 'check' | 'error' | 'edited' | 'warn' | 'retry' | 'note' | 'stop' | 'record' | 'scan' | 'scanWarn' | 'scanError'; title?: string; meta: string; lines: LintFinding[]; paths?: LintPathRow[]; footer?: string; replace?: boolean }
 export type LintState = {
   editSeq: number
   reviewedAt: number
@@ -24,6 +32,17 @@ export type LintState = {
   textAfterTools: string
   gitFacts?: string
   cards: Record<string, LintCard>
+  // Where userLanguage came from: the user-language check's own `language`, the host's language setting, or a guess
+  // from the person's messages. Only a guess is replaced by the next message.
+  languageFrom?: 'check' | 'setting' | 'guess'
+  // Cards with no call of their own, drawn above the prompt; at most 5, cleared when the person sends a message.
+  band?: LintCard[]
+  // The Skill calls in flight, by the skill's name (`baransu:lint`): a skill loaded in one hangs its card under it.
+  // Set when the call starts, removed when it ends; two calls at once each keep their own.
+  skillCalls?: Record<string, string>
+  // The Agent call that started each running subagent, by subagent id: its card hangs under that call. At most
+  // MAX_SPANS; taken (removed) when the subagent ends.
+  agentCalls?: Record<string, string>
   // 重新 requests delivered and not yet answered (lint-scope sketch; Answering in hooks/engine/scope/types.ts).
   // Taken in replyAppended, with the save, before its first await.
   answering?: { id: number; kinds: ('restate' | 'explain' | 'report' | 'retry')[]; step: number }[]

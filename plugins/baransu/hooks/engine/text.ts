@@ -3,7 +3,7 @@
 // shell.ts's preview lines); the adapter keeps only the words of its own failures (config.ts 「設定讀不懂：…」,
 // ports.ts 「無法執行：…」), the same words as today. All pure.
 
-import type { Card, Check, Finding } from './types'
+import type { Card, Check, Finding, PathRow } from './types'
 
 export const MOMENT = { edit: '改檔', commit: 'commit 前', done: '收尾前', bash: '指令', manual: '手動', skill: 'skill 前', reply: '回應後', stop: '結束這一輪前', agent: 'subagent 結束後', compact: '壓縮', file: 'Claude 之外改檔後', after: '時間到' } as const
 
@@ -19,15 +19,80 @@ export function render(moment: keyof typeof MOMENT, where: string, all: readonly
 }
 
 /** The card for a set of findings, notes left out except quiet ones (they exist for the card); null when
- *  nothing is left to show. A card of quiet notes alone is a warn card. */
-export function summarize(moment: string, findings: readonly Finding[]): Card | null {
+ *  nothing is left to show. A card of quiet notes alone is the 只給你看 card (`note`). `edited`: the act already
+ *  changed the file, so an error there is the 已改 card. */
+export function summarize(moment: string, findings: readonly Finding[], o: { edited?: boolean } = {}): Card | null {
   const shown = findings.filter(f => f.severity !== 'note' || f.quiet)
   if (!shown.length) return null
   const errors = shown.filter(f => f.severity === 'error').length
   const warns = shown.filter(f => f.severity === 'warn').length
   const redos = shown.filter(f => f.severity === 'retry').length
   const counts = [errors ? `${errors} error` : '', warns ? `${warns} warn` : '', redos ? `${redos} 重新` : ''].filter(Boolean).join('、')
-  return { kind: errors ? 'error' : warns ? 'warn' : 'retry', meta: `lint · ${moment} · ${counts}`, lines: shown }
+  const meta = `lint · ${moment}${counts ? ` · ${counts}` : ''}`
+  if (errors && o.edited) return { kind: 'edited', title: '改好了，但這個檔有 error', meta, lines: shown, footer: '下一步先修這裡' }
+  return { kind: errors ? 'error' : warns ? 'warn' : redos ? 'retry' : 'note', meta, lines: shown }
+}
+
+/** A card as the plain row a surface without the band shows: its head, one line per finding, its footer. */
+export function cardText(d: Card): string {
+  const mark = { error: '✖', check: '⏸', warn: '⚠', retry: '↻', note: '·' } as const
+  return [
+    d.title ? `${d.meta}：${d.title}` : d.meta,
+    ...d.lines.map(f => `${mark[f.severity]} ${f.id ? `${f.id}：` : ''}${f.text}`),
+    ...(d.paths ?? []).map(r => `  ${r.verb} ${r.path}${r.to ? ` → ${r.to}` : ''}${r.meta ? `（${r.meta}）` : ''}`),
+    ...(d.footer ? [`→ ${d.footer}`] : []),
+  ].join('\n')
+}
+
+/** The card for a set of findings, the same as summarize, or a card of its notes when summarize leaves nothing. */
+export function cardOf(moment: string, findings: readonly Finding[], o: { kind?: Card['kind']; title?: string; footer?: string } = {}): Card {
+  const d = summarize(moment, findings) ?? { kind: 'note' as const, meta: `lint · ${moment}`, lines: [...findings] }
+  return { ...d, ...(o.kind ? { kind: o.kind } : {}), ...(o.title ? { title: o.title } : {}), ...(o.footer ? { footer: o.footer } : {}) }
+}
+
+/** The card of every check run before a skill or at /lint, as the design canvas draws it: /ship told to stop, the
+ *  record before /review, or what the run found. `head` is render()'s first line (`lint · 收尾前 · /ship：…`). */
+export function skillCard(head: string, findings: readonly Finding[], stop: boolean, review: boolean): Card {
+  const meta = head.replace('：', ' · ')
+  const lines = [...findings]
+  if (stop) return { kind: 'stop', title: '停下，不要 commit', meta, lines, footer: '把 error 回報給使用者，修好再收尾' }
+  if (review) return { kind: 'record', title: 'Lint 紀錄', meta, lines, footer: '照 review 自己的判定規則讀' }
+  const loud = findings.filter(f => !f.quiet)
+  const errors = loud.filter(f => f.severity === 'error').length
+  const warns = loud.filter(f => f.severity === 'warn').length
+  if (errors) return { kind: 'scanError', title: `跑完，發現 ${errors} 個 error${warns ? `、${warns} 個 warn` : ''}`, meta, lines }
+  if (warns) return { kind: 'scanWarn', title: `跑完，發現 ${warns} 個 warn`, meta, lines }
+  return { kind: 'scan', title: '跑完，沒有發現', meta, lines }
+}
+
+/** The delete preview's rows as the design canvas "Lint 卡片設計" groups them: one header per action and
+ *  destination, in the order first met, counting folders and files; under a destination, a folder every row
+ *  shares moves up into the header (`from`), so each row shows only what differs. A row splits into its folder
+ *  part, drawn quiet, and its name, drawn strong. */
+export type PathGroup = { verb: string; count: string; from?: string; to?: string; rows: { kind: PathRow['kind']; dir: string; name: string; meta?: string; warn?: boolean }[] }
+export function pathGroups(rows: readonly PathRow[]): PathGroup[] {
+  const groups: { verb: string; to?: string; rows: PathRow[] }[] = []
+  for (const r of rows) {
+    const g = groups.find(x => x.verb === r.verb && x.to === r.to)
+    if (g) g.rows.push(r)
+    else groups.push({ verb: r.verb, ...(r.to !== undefined ? { to: r.to } : {}), rows: [r] })
+  }
+  const split = (p: string) => {
+    const m = /^(.*\/)?([^/]+\/?)$/.exec(p)
+    return { dir: m?.[1] ?? '', name: m?.[2] ?? p }
+  }
+  return groups.map(g => {
+    const parts = g.rows.map(r => ({ r, ...split(r.path) }))
+    const shared = g.to !== undefined && parts.every(x => x.dir && x.dir === parts[0].dir) ? parts[0].dir : ''
+    const folders = g.rows.filter(r => r.kind === 'folder').length
+    const files = g.rows.filter(r => r.kind === 'file' || r.kind === 'missing').length
+    const other = g.rows.length - folders - files
+    const count = [folders ? `${folders} 個資料夾` : '', files ? `${files} 個檔案` : '', other ? `${other} 項` : ''].filter(Boolean).join('、')
+    return {
+      verb: g.verb, count, ...(shared ? { from: shared } : {}), ...(g.to !== undefined ? { to: g.to } : {}),
+      rows: parts.map(({ r, dir, name }) => ({ kind: r.kind, dir: shared ? '' : dir, name, ...(r.meta ? { meta: r.meta } : {}), ...(r.warn ? { warn: true } : {}) })),
+    }
+  })
 }
 
 /** Han characters and letters, code / links / identifiers left out. */

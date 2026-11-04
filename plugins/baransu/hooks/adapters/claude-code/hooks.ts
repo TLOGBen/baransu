@@ -8,20 +8,13 @@
 // The engine's `H` is `hostOf($)`, built in each hook from that hook's `$` (ports.ts says why it is not `$`).
 
 import type { Register } from 'claude-code'
-import { createEngine } from '../../engine'
-import { drawCard } from './card'
-import { hostConfig } from './config'
-import { LANGUAGES } from '../../util/languages'
-import { hostMachine } from './machine'
-import { hostClock, hostNotify, hostOf, hostRunner, hostState, whatNowSkill, type Dollar, type Host } from './ports'
+import { engine } from './instance'
+import { hostOf, type Dollar } from './ports'
+import { registerView } from './view/hooks'
 import {
   actorOf, agentStopEvent, appendedReply, compactSummary, droppedPrompt, fileChangedEvent, isLintTool, outcomeOf, promptEvent,
   skillEvent, stopEvent, stopResult, streamedText, tap, toolEvent, toolResult, turnEndEvent, turnStartEvent, withContext,
 } from './translate'
-
-const engine = createEngine<Host>({
-  config: hostConfig(), runner: hostRunner, state: hostState, notify: hostNotify, clock: hostClock, whatNowSkill, machine: hostMachine, languages: LANGUAGES,
-})
 
 /** `$.session.cwd()`, the actor's own shell directory, read inside the hook. '' when it cannot be read. */
 async function cwdOf($: Dollar): Promise<string> {
@@ -73,7 +66,7 @@ export const register: Register = on => {
 
   on('agent.spawn', async ($, e: any, next) => {
     const r: any = await next(e)
-    if (r?.agentId) await (await engine.ready(hostOf($))).agentStarted({ agent: String(r.agentId), agentType: String(e.subagentType ?? '') })
+    if (r?.agentId) await (await engine.ready(hostOf($))).agentStarted({ agent: String(r.agentId), agentType: String(e.subagentType ?? ''), ...(e.tool_use_id ? { callId: String(e.tool_use_id) } : {}) })
     return r
   }).catch(($, e, next) => next(e))
 
@@ -104,7 +97,8 @@ export const register: Register = on => {
 
   on('prompt.submit', async ($, e, next) => {
     const ev = promptEvent(e)
-    if (!ev) return next(e)
+    // A message the person sent with no text (an image alone) still moves the band on; one they did not type does not.
+    if (!ev) return (e as any).isMeta ? next(e) : (await engine.ready(hostOf($))).messageSent(() => next(e), droppedPrompt)
     const lint = await engine.ready(hostOf($))
     return lint.promptSubmit(ev, notes => next(withContext(e, notes)), droppedPrompt)
   }).catch(($, e, next) => next(e))
@@ -133,6 +127,17 @@ export const register: Register = on => {
   }).catch(($, e, next) => next(e))
 
   on('tool.call', async ($, e: any, next) => {
+    // A skill the model loads: its card hangs under this call (skill.prompt runs inside it).
+    if (e.tool === 'Skill' && e.tool_use_id && typeof e.skill === 'string') {
+      const lint = await engine.ready(hostOf($))
+      const name = e.skill.replace(/^\//, '')
+      lint.skillCalling(name, String(e.tool_use_id))
+      try {
+        return await next(e)
+      } finally {
+        lint.skillCalling(name, undefined)
+      }
+    }
     if (!isLintTool(e)) return next(e)
     const ev = toolEvent(e, await cwdOf($))
     if (!ev) return next(e)
@@ -140,36 +145,7 @@ export const register: Register = on => {
     return toolResult(await lint.toolCall(ev, () => next(e), outcomeOf)) as any
   }).catch(($, e, next) => next(e))
 
-  // A card is drawn on the call's row (ToolUse), the one place every row passes: a standalone row and a row inside a
-  // folded group alike (HUNT-2026-002: a folded group's rows draw their result inline, with no ToolResult). A held
-  // call's card stands in place of its error text, so that text is emptied in the row and in a standalone result.
-  on('ui.render', { component: 'ToolUse' }, async ($, e: any, next) => {
-    const lint = await engine.ready(hostOf($))
-    const d = lint.cardFor(e.props?.tool_use_id)
-    // The check of the model's answer to a 重新, drawn on the next call's row (there is no row of its own).
-    const answer = lint.cardFor(`${e.props?.tool_use_id}#answer`)
-    if ((!d && !answer) || e.props?.isRunning) return next(e)
-    const row = await next(d?.replace ? { ...e, props: { ...e.props, output: '' } } : e)
-    const { Box } = $.ui.resolve(e) as any
-    return h(Box, { flexDirection: 'column', gap: 1 }, ...(answer ? [drawCard($, e, answer)] : []), row, ...(d ? [drawCard($, e, d)] : [])) as any
-  })
-
-  // A standalone held call: its card is on the row above, so its result draws nothing (an errored ToolResult draws
-  // the error text whatever its output says, so the result is answered here rather than rewritten).
-  on('ui.render', { component: 'ToolResult' }, async ($, e: any, next) => {
-    const d = (await engine.ready(hostOf($))).cardFor(e.props?.tool_use_id)
-    if (!d?.replace) return next(e)
-    const { Box } = $.ui.resolve(e) as any
-    return h(Box, null) as any
-  })
-
-  // A folded group drawn as one line hides its rows, so one holding a call with a card unfolds (user 2026-11-03, Q1-b).
-  on('ui.render', { component: 'ToolGroup' }, async ($, e: any, next) => {
-    if (e.props?.isExpanded) return next(e)
-    const lint = await engine.ready(hostOf($))
-    const carded = (e.props?.calls ?? []).some((c: any) => c.tool_use_id && (lint.cardFor(c.tool_use_id) || lint.cardFor(`${c.tool_use_id}#answer`)))
-    return next(carded ? { ...e, props: { ...e.props, isExpanded: true } } : e)
-  })
+  registerView(on)
 
   on('skill.prompt', async ($, e, next) => {
     const result = await next(e)

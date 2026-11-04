@@ -6,6 +6,7 @@ and whether that matches the expected verdict.
 
   uv run python check.py           # full list
   uv run python check.py --quick   # MaxSteps 5 (same expected verdicts)
+  uv run python check.py --quick --from R13   # resume at a rule after the budget stopped a run
 """
 import os
 import re
@@ -145,7 +146,12 @@ def main() -> int:
     bad = 0
     traces = HERE / "traces"
     traces.mkdir(exist_ok=True)
+    # --from R13: start at that rule's first run, to finish a list a budget stopped (the earlier runs already passed).
+    start = sys.argv[sys.argv.index("--from") + 1] if "--from" in sys.argv else None
     for fix, brk, rule, expected in RUNS:
+        if start and rule != start:
+            continue
+        start = None
         if spent > BUDGET:
             print(f"budget spent ({spent:.0f}s): stopping before {rule} {fix} break={brk}")
             return 2

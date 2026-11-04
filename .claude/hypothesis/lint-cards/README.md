@@ -1,15 +1,40 @@
 # 假說：lint 的卡片，在畫面的任何畫法與任何事件順序下，都畫在它那一列
 
-- **使用者要拿它做什麼**：決定卡片的修正要涵蓋哪些情況，修完後不必再一個一個撞到才發現（HUNT-2026-002 的後續）。
-- **理想**：lint 為一次呼叫存了卡片，只要那次呼叫出現在畫面上，就看得到那張卡片，只出現一張，出現在那一列。
+## 2026-11-04 擴充：每個時機都有一張看得到的卡片
+
+- **使用者要拿它做什麼**：確認卡片改成「每個時機都畫」之後，有沒有該出現卻沒出現、或哪個時機沒有卡片，修完再 commit。
+- **理想**：lint 有結果要給你看時，一定有一張卡片，出現在對的位置，留到你該看的時候，而且只出現一次。
+- **主張與量詞**：在所有事件順序下（同一次回應裡的多個呼叫、Agent 呼叫比 subagent 先結束、skill 由模型載入或由你打、兩則訊息之間的多個無呼叫事件、mod 重新載入），每個時機給人看的結果都是一張看得到的卡片：有呼叫的掛在那次呼叫底下，沒呼叫的畫在輸入框上方、留到你送出下一則訊息，沒有畫面能畫那條時改送一行文字。
+- **已證明**（往上推）：修正後，E1–E7 在 18 個情境上全部守住（`model/view-judge.test.ts`，真程式、測試複本，範圍內）；review 的 F1（卡片寫出還有幾條、工具輸出末 3 行）、F2（同一個 Workflow 的 subagent 各一張）由 `model/view-more.test.ts` 守住。每個修正都由故意改壞的版本確認抓得到（`model/view_mutants.py`，12/12）。修正前同一個檢查器打破 7 個情境（P4–P9），每條路徑先紅後綠。
+- **最好可能**（往下壓）：理想本身，修正版在範圍內達到。W2 靠「同時送一行文字」達到（問卷佔著那條時 hook 必須讓），代價是終端機與桌面版看得到卡片和文字兩份，使用者 2026-11-04 選了這個代價。
+- **差距**：範圍內相遇。範圍外：輸入框上方超過 20 張時最舊的仍會被丟（W1 的讀法下仍算消失，要兩則訊息之間 21 個無呼叫事件）；第二推導的 E3-b、E5-b 沒在真程式重現。
+- **規則確認**：E1–E7 與讀法 W1–W3（都算違反）使用者 2026-11-04 確認；W4（自己收起那條）當作正常，只回報。
+- **涵蓋的對象**：`engine/engine.ts`（`post`、`keepCard`、`promptSubmit` 清 band、`skillPrompt`、`skillCalling`、`bandCards`、`agentStarted`／`agentStopped` 的 `agentCalls`、各時機改用 `post`）、`engine/text.ts`（`cardOf`、`skillCard`、`cardText`）、`adapters/claude-code/hooks.ts`（Skill 的 `tool.call`、`agent.spawn`）、`instance.ts`、`view/hooks.ts`、`view/port.ts`、`view/card.ts`。
+- **描述的版本**：8.45.0（未 commit 的工作樹，2026-11-04）。
+- **定稿雜湊（修正後）**：engine.ts `4a6586c2cf41…`、text.ts `10d741721123…`、engine/ports.ts `e4b22e015c35…`、adapters hooks.ts `b0784a8e5f63…`、adapters ports.ts `c00ddf1c07c2…`、instance.ts `7cce2e5c7b73…`、view/hooks.ts `3a6d544bbeab…`、view/port.ts `8834e3237f37…`、view/card.ts `31828d1835ef…`、view-judge.test.ts `19acbcb49b14…`、view-more.test.ts `af864842ad71…`、view_mutants.py `986588c96782…`。12 組改壞測試跑在加入「讀 Claude Code 語言設定」之前的 engine.ts 上；那次改動不碰卡片與 band，加入後全部測試（316 個，含兩個檢查器）重跑全過。修正前凍結的版本：engine.ts `e681b0e7a1fa…`，檢查器 `b538a495c560…`。
+- **重跑**：`model/view-judge.test.ts`、`model/view-more.test.ts` 複製到測試複本的 `hooks/`，`claude plugin test .`（20 個情境，約 5 秒）；說得出不：`python model/view_mutants.py <測試複本>`（12 組，約 15 分鐘）。
+- **第二推導**：獨立 agent 只讀原始碼，找到 E3、E4（W1）、W2、W3 與我們相同，另外找到 E4-b（P8）、E5-a（P9），補進檢查器後確認；E1-a（`/lint help`、`show` 沒卡片）是讀法：那兩個不跑任何檢查，沒有結果，不算違反；E3-b（重新載入時 `skillCall` 留舊值）、E5-b（Stop 檢查還在跑時你送出訊息，卡片晚到）需要平台允許那種順序，沒有在真程式重現，列為開著的問題。
+
+| # | 類型 | 規則 | 結果 |
+|---|---|---|---|
+| E1 | 不能發生 | 某個時機有結果要給人看，卻沒有卡片；skill 開始前與 `/lint` 一定有一張 | 修正前：兩個 skill 同時載入時打破（P4）；修正後守住 |
+| E2 | 不能發生 | 卡片掛在 Agent／Skill 呼叫底下，那一列在畫面上卻看不到 | 守住（背景 subagent 比 Agent 呼叫晚結束也守住） |
+| E3 | 不能發生 | 卡片掛錯呼叫 | 修正前打破（P4）；修正後守住（用 skill 名稱對回呼叫） |
+| E4 | 不能發生 | 沒呼叫的卡片在你送出下一則訊息前就消失（W1：存了沒畫也算） | 修正前打破（P5、P8）；修正後守住（上限 20、全畫、訊息真的送出才清） |
+| E5 | 不能發生 | 你送出下一則訊息後，上一則的卡片還在 | 修正前只貼圖片打破（P9）；修正後守住 |
+| E6 | 不能發生 | 同一張卡片同時在呼叫底下和輸入框上方 | 守住 |
+| E7 | 不能發生 | 沒有畫面能畫那條時沒改送文字（W2 問卷、W3 手機都算） | 修正前 W2（P6）、W3（P7）打破；修正後守住（沒呼叫的卡片一律同時送文字） |
+
+## 2026-11-03 原始主張
 - **已證明**（往上推）：修正版（模型 `Variant = "new"`）在範圍內（2 次呼叫、MaxSteps 8、卡片上限 1 與 2）守住 A、B、D、Q1；24 種「顯示方式 × 呼叫結果 × 桌面／終端機」在真的 lint 程式碼上全過。現在的程式（`"old"`）打破 A、B、Q1，24 種錯 12 種。
 - **最好可能**（往下壓）：理想本身——修正版在範圍內達到。
 - **差距**：範圍內相遇；但修正版靠兩個還沒在真的 App 驗證的前提（見前提表的「假設」），以及一條開著的讀法（UserClose）。
 - **主張與量詞**：在所有事件順序下（呼叫開始、結束、存卡片、收進組、展開或收合、捲動重畫、重新載入、卡片超過上限被刪、`/clear`），以及每種顯示方式（獨立列、組裡展開的列、收成一行的組），每張還在的卡片都畫在它那一列。
 - **規則確認**：A、B、D、Q1 已確認（使用者 2026-11-03：Q1 選 b「我還是想看到」、Q2 上限 500 刪掉的不算、Q3 只在 session 內）。UserClose **未確認**，是開著的讀法。
-- **涵蓋的對象**：`plugins/baransu/hooks/adapters/claude-code/hooks.ts`（`ui.render` 的 ToolResult hook；修正版在測試複本加 ToolUse、ToolGroup hook）、`card.ts`（`drawCard`）、`engine/engine.ts`（`keepCard` 與上限、`cardFor`、`cleared`、`callAfterTake` 存卡片的時機）。
-- **描述的版本**：8.40.1（修正已套進 repo 的 `hooks.ts`；被擋下的獨立列，ToolResult 直接回空區塊，不靠改寫 output）。
-- **定稿雜湊**：hooks.ts `909559c47184…`、card.ts `535c5751c881…`、engine.ts `71b10179253b…`、CardRules.tla `b84dc49e0d00…`、CardRender.tla `f08f96f07e53…`、check.py `d28538e2a686…`
+- **涵蓋的對象**：`plugins/baransu/hooks/adapters/claude-code/view/hooks.ts`（`ui.render` 的 ToolUse、ToolResult、ToolGroup hook；8.45.0 從 `hooks.ts` 搬來，判斷不變，ToolUse 多畫同一次呼叫底下各 subagent 的卡片）、`view/card.ts`（`drawCard`）、`engine/engine.ts`（`keepCard` 與上限、`cardFor`、`cleared`、`callAfterTake` 存卡片的時機）。
+- **描述的版本**：8.45.0（未 commit 的工作樹，2026-11-04；被擋下的獨立列，ToolResult 直接回空區塊，不靠改寫 output）。
+- **定稿雜湊（8.45.0）**：view/hooks.ts `3a6d544bbeab…`、view/card.ts `31828d1835ef…`、engine.ts `4a6586c2cf41…`、CardRules.tla `b84dc49e0d00…`、CardRender.tla `2df7aa4b996c…`（只改了來源路徑的註解）、check.py `d28538e2a686…`
+- **維護紀錄**：2026-11-04 `--maintain`（8.45.0，卡片改照 11/03 的設計稿「Lint 卡片設計」）：`card.ts` 換了顏色與圖示，多了「已改」「只給你看」兩種卡片，刪除預覽改畫成分組的路徑清單；`engine.ts` 存的卡片多了 `paths`，種類多了 `edited`、`note`。模型描述的是卡片畫在哪一列、會不會漏畫或畫兩次，這些都沒變（`keepCard`、`cardFor`、ToolUse／ToolResult／ToolGroup 三個 hook 沒動），分類為「沒有影響」。重跑 `--quick` 0 unexpected（47 秒），`cards.test.ts` 24 個全過。結果：in step。同日稍晚，三個 hook 搬進 `view/hooks.ts`（判斷不變；ToolUse 多畫同一次呼叫底下各 subagent 的卡片，ToolGroup 展開時也算它們），再重跑 `--quick` 0 unexpected（47 秒），`cards.test.ts` 24 個全過。結果：in step。
 - **重跑**：`cd model && python check.py --quick`（MaxSteps 6，約 45 秒）；`python check.py`（MaxSteps 8，約 50 秒）。情境判斷：測試複本 `claude plugin test .` 的 `cards.test.ts`（24 個，約 3 秒）。
 
 ## 問題帳

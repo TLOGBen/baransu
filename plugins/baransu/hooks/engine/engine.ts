@@ -9,8 +9,8 @@ import { commitLook, gitFacts, runMoment, worktreeCleanup, type Look } from './m
 import type { Engine, Lint, Ports } from './ports'
 import { runsAt } from './scope/evaluate'
 import type { Occurrence, RedoKind } from './scope/types'
-import { commitDirs, deletedPaths, destructivePreview, gitWrites, isGitWrite, pushRefs, removedWorktrees, writesFiles } from './shell'
-import { CORRECTION, hanShare, render, restateNote, slipHead, summarize } from './text'
+import { commitDirs, deletedPaths, destructivePreview, gitWrites, isGitWrite, pushRefs, removedWorktrees, writesFiles, type PreviewLine } from './shell'
+import { cardOf, CORRECTION, hanShare, render, restateNote, skillCard, slipHead, summarize } from './text'
 import { settle, STOP_HOLDS, type AfterKey, type Settled, type TimingKey } from './timing'
 import type {
   Actor, Card, Check, Config, DoneSkillEvent, Finding, LintState, Outcome, PromptEvent, ReplyEvent, SkillPreface, SpokenEvent,
@@ -160,6 +160,55 @@ function keepCard(s: LintState, id: string, d: Card) {
   for (const old of ids.slice(0, Math.max(0, ids.length - 500))) delete s.cards[old]
 }
 
+/** Cards with no call of their own kept at once (the band above the prompt). */
+const BAND_MAX = 20
+
+/** The band's cards when a message of the person's arrives: they were for the message before, and go once that
+ *  message enters the conversation (a message refused below never entered, so they stay). Cards posted while the
+ *  message was taken in (a correction's) are not among them and stay. */
+function bandShown<H>(memory: Memory<H>): ReadonlySet<Card> {
+  return new Set(memory.s.band ?? [])
+}
+function clearShown<H>(h: H, memory: Memory<H>, shown: ReadonlySet<Card>) {
+  if (!shown.size) return
+  memory.s.band = (memory.s.band ?? []).filter(c => !shown.has(c))
+  memory.save(h)
+}
+
+/** Every timing's card for the person: kept under its call when it has one, else in the band; then drawn by the
+ *  view. Kept and saved before the view is called, so a redraw finds it. */
+async function post<H>(h: H, ports: Ports<H>, memory: Memory<H>, card: Card, at?: string) {
+  if (at) keepCard(memory.s, at, card)
+  else memory.s.band = [...(memory.s.band ?? []), card].slice(-BAND_MAX)
+  memory.save(h)
+  try {
+    await ports.view.show(h, card, at)
+  } catch {}
+}
+
+/** The person's language: the user-language check's own `language`, else the host's language setting (Claude
+ *  Code's `language`); with neither, what a guess from the person's messages left stands (submitAfterTake). */
+async function settleLanguage<H>(h: H, ports: Ports<H>, memory: Memory<H>, lang: Check | undefined) {
+  const s = memory.s
+  if (lang?.language) {
+    s.userLanguage = lang.language
+    s.languageFrom = 'check'
+    return
+  }
+  let setting: string | undefined
+  try {
+    setting = await ports.languageSetting(h)
+  } catch {}
+  if (setting) {
+    s.userLanguage = setting
+    s.languageFrom = 'setting'
+  } else if (s.languageFrom === 'setting' || s.languageFrom === 'check') {
+    // The setting or the check's language was removed: guess again from the next message.
+    s.userLanguage = undefined
+    s.languageFrom = undefined
+  }
+}
+
 /** A short stable hash (FNV-1a), for the held key of an edit: the same file with other text is another act. */
 function hash(text: string): string {
   let x = 0x811c9dc5
@@ -195,11 +244,10 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
       const wt = config.git ? find(config, 'worktree-cleanup') : undefined
       if (wt) {
         const f = await worktreeCleanup(look, wt)
-        if (f.length) await ports.notify.notice(h, `lint · session 開始 · 沒清掉的 worktree\n${f.map(x => `⚠ ${x.text}`).join('\n')}`)
+        if (f.length) await post(h, ports, memory, cardOf('session 開始 · 沒清掉的 worktree', f))
       }
       if (config.git && find(config, 'git-facts')) S().gitFacts = (await gitFacts(look)).text
-      const lang = find(config, 'user-language')
-      if (lang?.language) S().userLanguage = lang.language
+      await settleLanguage(h, ports, memory, find(config, 'user-language'))
       save()
       // The around store keeps every snapshot it was given: what is older than two days no act still reads.
       const store = await storePath(h, ports)
@@ -209,12 +257,15 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
 
     async systemNotes(): Promise<SystemNote[]> {
       const add: SystemNote[] = []
+      const config = await ports.config.load(h)
+      // The setting may have changed since the session started: read it again for each prompt.
+      if (config) await settleLanguage(h, ports, memory, find(config, 'user-language'))
       const s = S()
       if (s.gitFacts) add.push({ id: 'baransu:lint-git', text: `這個 repo 的 git 習慣（baransu lint）。commit、push、開分支前照這些：\n${s.gitFacts}` })
-      if (s.userLanguage) add.push({ id: 'baransu:lint-language', text: `使用者的慣用語言：${s.userLanguage}。寫給使用者看的文字一律用這個語言。` })
+      // Claude Code's own setting is already in its system prompt (its language section): not said twice.
+      if (s.userLanguage && s.languageFrom !== 'setting') add.push({ id: 'baransu:lint-language', text: `使用者的慣用語言：${s.userLanguage}。寫給使用者看的文字一律用這個語言。` })
       // remind = true: the rule is known before the act, not only after a slip. Read from the config each time,
       // so a check added or turned off mid-session counts at the next prompt.
-      const config = await ports.config.load(h)
       const reminds = (config?.checks ?? []).filter(c => c.remind && c.message)
       if (reminds.length) add.push({ id: 'baransu:lint-remind', text: `這個 repo 的 lint 規則（baransu lint，事前提醒）：\n${reminds.map(c => `- ${c.id}：${c.message}`).join('\n')}` })
       return add
@@ -227,8 +278,16 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
 
     promptSubmit<R>(e: PromptEvent, proceed: (notes: readonly string[]) => Promise<R>, dropped: (r: R) => boolean): Promise<R> {
       // Not async: the take below runs before anything is awaited.
+      const shown = bandShown(memory)
       const taken = memory.take(h, e.opensTurnNow ? 'prompt' : 'offer')
-      return submitAfterTake(h, ports, memory, taken, e, proceed, dropped)
+      return submitAfterTake(h, ports, memory, taken, e, proceed, dropped, shown)
+    },
+
+    async messageSent<R>(proceed: () => Promise<R>, dropped: (r: R) => boolean): Promise<R> {
+      const shown = bandShown(memory)
+      const r = await proceed()
+      if (!dropped(r)) clearShown(h, memory, shown)
+      return r
     },
 
     turnStarted(e: TurnStartEvent) {
@@ -270,12 +329,15 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
         ports.config.reload()
       }
       save()
-      if (unseen) await ports.notify.notice(h, [unseen.meta, ...unseen.lines.map(l => `${l.severity === 'error' ? '✖' : l.severity === 'warn' ? '⚠' : '·'} ${l.id ? `${l.id}：` : ''}${l.text}`)].join('\n'))
-      if (S().slips.length) await ports.notify.notice(h, `lint · user-language：剛才那段寫成英文了（「${slipHead(S().slips[S().slips.length - 1])}」）→ 重新：下一步用你的語言再說一次`)
+      if (unseen) await post(h, ports, memory, unseen)
+      if (S().slips.length) {
+        const lang = 'user-language'
+        await post(h, ports, memory, { kind: 'retry', meta: `lint · ${lang}`, lines: [{ id: lang, severity: 'retry', text: `剛才那段寫成英文了（「${slipHead(S().slips[S().slips.length - 1])}」）→ 重新：下一步用你的語言再說一次` }] })
+      }
     },
 
     cleared() {
-      memory.s = { ...freshState(), userLanguage: S().userLanguage, gitFacts: S().gitFacts, timers: S().timers, objects: S().objects }
+      memory.s = { ...freshState(), userLanguage: S().userLanguage, languageFrom: S().languageFrom, gitFacts: S().gitFacts, timers: S().timers, objects: S().objects }
       save()
     },
 
@@ -320,7 +382,7 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
       const errors = findings.filter(f => f.severity === 'error').length
       const warns = findings.filter(f => f.severity === 'warn').length
       S().answerCard = {
-        kind: errors ? 'error' : warns ? 'warn' : 'answer',
+        kind: errors ? 'scanError' : warns ? 'scanWarn' : 'scan',
         title: errors || warns ? '回答還有問題' : '回答檢查過了',
         meta: `lint · 回應後 · ${due.length} 條檢查${errors ? ` · ${errors} error` : ''}${warns ? ` · ${warns} warn` : ''}`,
         lines: findings.length ? findings : due.map(c => ({ id: c.id, severity: 'note' as const, text: '通過' })),
@@ -373,10 +435,11 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
       const at: Occurrence = manual ? { key: 'manual' } : { key: 'pre:skill', skill: e.name }
       const findings = await runMoment(look, S(), at)
       const label = manual ? 'manual' : e.skill === 'other' ? 'skill' : 'done'
-      const text = render(label, manual ? '/lint' : `/${e.name}`, findings)
-      await ports.notify.notice(h, text)
+      const where = manual ? '/lint' : `/${e.name}`
+      const text = render(label, where, findings)
       // A skill cannot be refused: a hold is an instruction in its text to stop first (timing.ts pre:skill).
       const held = settle(manual ? 'manual' : 'pre:skill', findings).gate === 'hold'
+      await post(h, ports, memory, skillCard(text.split('\n')[0], findings, e.skill === 'ship' && held, isReview), S().skillCalls?.[e.name])
       const tailLine = manual
         ? '這是叫 /lint 時先跑的全部檢查。先把結果用一兩句話交代給使用者（沒有發現也說），再做使用者這次要求的事。'
         : isReview
@@ -391,8 +454,25 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
       return { text: `## Lint 紀錄（baransu lint mod，這個版本）\n\n${text}\n\n${tailLine}` }
     },
 
+    skillCalling(name: string, callId: string | undefined) {
+      const calls = { ...(S().skillCalls ?? {}) }
+      if (callId) calls[name] = callId
+      else delete calls[name]
+      S().skillCalls = calls
+      save()
+    },
+
     cardFor(callId: string): Card | undefined {
       return S().cards[callId]
+    },
+
+    bandCards(): readonly Card[] {
+      return S().band ?? []
+    },
+
+    agentCardsUnder(callId: string): readonly Card[] {
+      const prefix = `${callId}#agent:`
+      return Object.entries(S().cards).filter(([k]) => k.startsWith(prefix)).map(([, d]) => d)
     },
 
     async stopping(e): Promise<StopVerdict> {
@@ -429,17 +509,25 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
         const t = told('stop', '', t0)
         save()
         if (t.redo) deliver(memory, h, t0.redo.some(f => f.id === rc?.id) ? ['report'] : ['retry'])
-        await ports.notify.notice(h, `${shown}\n→ 這一輪還不能結束，已請 Claude 接著做`)
+        await post(h, ports, memory, cardOf('結束這一輪前', findings, { kind: 'stop', title: '還不能結束，已請 Claude 接著做' }))
         return { kind: 'hold', reason: [...t.lines, ...(s.gate === 'hold' ? ['修好上面的 error 再結束這一輪。'] : [])].join('\n\n') || shown }
       }
       // It ends: what is left for the model waits for its next step.
-      const gaveUp = s.gate === 'hold' ? `\n→ 這一輪已經擋了 ${STOP_HOLDS} 次還沒過，放行；請你看一下` : ''
+      const gaveUp = s.gate === 'hold' ? `這一輪已經擋了 ${STOP_HOLDS} 次還沒過，放行；請你看一下` : undefined
       enqueue(memory, h, told('stop', '', { ...t0, line: [...t0.line, ...t0.fix, ...t0.redo], fix: [], redo: [] }).lines)
-      await ports.notify.notice(h, shown + gaveUp)
+      await post(h, ports, memory, cardOf('結束這一輪前', findings, gaveUp ? { kind: 'warn', footer: gaveUp } : {}))
       return { kind: 'stop' }
     },
 
     async agentStarted(e) {
+      // The Agent call that started it, so its card hangs under that call's row.
+      if (e.callId) {
+        const calls = { ...(S().agentCalls ?? {}), [e.agent]: e.callId }
+        const ids = Object.keys(calls)
+        for (const old of ids.slice(0, Math.max(0, ids.length - MAX_SPANS))) delete calls[old]
+        S().agentCalls = calls
+        save()
+      }
       const config = await ports.config.load(h)
       if (!config || !wantsAround(config.checks, 'agent')) return
       const snap = await snapTree(lookOf(ports, h, config), await storeOf(h, ports, memory, config.root))
@@ -461,6 +549,13 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
         S().spans = spans
         save()
       }
+      const callId = S().agentCalls?.[e.agent]
+      if (callId) {
+        const calls = { ...S().agentCalls }
+        delete calls[e.agent]
+        S().agentCalls = calls
+        save()
+      }
       const config = await ports.config.load(h)
       if (!config) return
       const look = lookOf(ports, h, config)
@@ -475,7 +570,8 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
       if (!findings.length) return
       const s = settle('post:agent', findings)
       enqueue(memory, h, told('agent', e.agentType, s).lines.map(l => `（subagent ${e.agentType} 結束後）${l}`))
-      await ports.notify.notice(h, render('agent', e.agentType, findings))
+      // Several agents of one Workflow share its call: each keeps its own card under it.
+      await post(h, ports, memory, cardOf(`subagent 結束後 · ${e.agentType}`, findings, { kind: 'record' }), callId ? `${callId}#agent:${e.agent}` : undefined)
     },
 
     compacting<R>(e: { instructions: string }, proceed: (instructions: string) => Promise<R>, skipped: (r: R) => boolean, summary: (r: R) => string): Promise<R> {
@@ -498,7 +594,7 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
       if (!shown.length) return
       const s = settle('post:file', shown)
       enqueue(memory, h, told('file', file, s).lines.map(l => `（${file} 在 Claude 之外被改了）${l}`))
-      await ports.notify.notice(h, render('file', file, shown))
+      await post(h, ports, memory, cardOf(`Claude 之外改檔後 · ${file}`, shown))
     },
   }
 }
@@ -580,9 +676,7 @@ async function wake<H>(h: H, ports: Ports<H>, memory: Memory<H>) {
     const findings = await runMoment(lookOf(ports, h, only), memory.s, { key })
     if (!findings.length) continue
     enqueue(memory, h, told('after', key, settle(key, findings)).lines)
-    try {
-      await ports.notify.notice(h, render('after', key, findings))
-    } catch {}
+    await post(h, ports, memory, cardOf(`時間到 · ${key}`, findings))
   }
 }
 
@@ -590,7 +684,7 @@ async function wake<H>(h: H, ports: Ports<H>, memory: Memory<H>) {
 
 async function submitAfterTake<H, R>(
   h: H, ports: Ports<H>, memory: Memory<H>, taken: Taken, e: PromptEvent,
-  proceed: (notes: readonly string[]) => Promise<R>, dropped: (r: R) => boolean,
+  proceed: (notes: readonly string[]) => Promise<R>, dropped: (r: R) => boolean, shown: ReadonlySet<Card>,
 ): Promise<R> {
   const S = () => memory.s
   try {
@@ -600,20 +694,25 @@ async function submitAfterTake<H, R>(
       return proceed([])
     }
     const lang = find(config, 'user-language')
-    if (lang && !lang.language) {
+    if (lang) await settleLanguage(h, ports, memory, lang)
+    if (lang && S().languageFrom !== 'check' && S().languageFrom !== 'setting') {
       const han = (e.typed.match(/\p{Script=Han}/gu) ?? []).length
       const letters = (e.typed.match(/\p{L}/gu) ?? []).length
-      if (letters) S().userLanguage = han / letters > 0.2 ? '中文（照使用者用的字，繁體或簡體）' : 'English'
+      if (letters) {
+        S().userLanguage = han / letters > 0.2 ? '中文（照使用者用的字，繁體或簡體）' : 'English'
+        S().languageFrom = 'guess'
+      }
     }
     const notes: string[] = [...taken.queued]
     if (lang && lang.severity !== 'info') notes.push(...taken.slips.map(t => restateNote(lang, S().userLanguage, t)))
     const fix = find(config, 'correction-to-lint')
     if (fix && CORRECTION.test(e.typed)) {
-      await ports.notify.notice(h, `lint · ${fix.id}：這像是在糾正，修完後會評估能不能寫成 lint`)
+      await post(h, ports, memory, cardOf('你的訊息', [{ id: fix.id, severity: 'note', quiet: true, text: '這像是在糾正，修完後會評估能不能寫成 lint' }]))
       if (fix.severity !== 'info') notes.push(`baransu lint（${fix.id}）：使用者在糾正你。先照他說的修好，再判斷這個錯能不能寫成檢查：能，就交給 /baransu:lint 新增（附上這次錯在哪、怎麼修、出錯的 commit）；不能，用一句話說明為什麼。${fix.message}`)
     }
     memory.save(h)
     const r = await proceed(notes)
+    if (!dropped(r)) clearShown(h, memory, shown)
     // The prompt did not enter (a hook or a settings hook below refused it): what it took is still owed.
     if (dropped(r)) taken.giveBack()
     // It entered with what it carried (a slash command's copy is delivered when its turn starts).
@@ -643,7 +742,7 @@ async function compactAfterTake<H, R>(
         ...(lang ? taken.slips.map(t => restateNote(lang, memory.s.userLanguage, t)) : []),
         ...told('compact', '', settle('pre:compact', pre)).lines,
       ]
-      if (pre.length) await ports.notify.notice(h, render('compact', '壓縮前', pre))
+      if (pre.length) await post(h, ports, memory, cardOf('壓縮 · 壓縮前', pre))
       if (owed.length) carry = `\n\n摘要裡要保留下面這些還沒做完的要求（baransu lint），壓縮後照做：\n${owed.map(o => `- ${o}`).join('\n')}`
     }
   } catch {
@@ -666,10 +765,10 @@ async function compactAfterTake<H, R>(
   // post:compact: never throws past this point (the compaction already happened).
   try {
     if (config) {
-      const post = await runMoment(lookOf(ports, h, config), memory.s, { key: 'post:compact', text: summary(r) })
-      if (post.length) {
-        enqueue(memory, h, told('compact', '壓縮後', settle('post:compact', post)).lines)
-        await ports.notify.notice(h, render('compact', '壓縮後', post))
+      const postFindings = await runMoment(lookOf(ports, h, config), memory.s, { key: 'post:compact', text: summary(r) })
+      if (postFindings.length) {
+        enqueue(memory, h, told('compact', '壓縮後', settle('post:compact', postFindings)).lines)
+        await post(h, ports, memory, cardOf('壓縮 · 壓縮後', postFindings))
       }
     }
   } catch {}
@@ -774,14 +873,14 @@ async function callAfterTake<H, R>(
     if (e.kind === 'edit' && insideRepo) pre.push(...(await runMoment(look, S(), { key: 'pre:edit', file, text: e.text })))
 
     // Before any shell command: checks that read the command line, its deletes and the worktrees it removes.
-    let preview: string[] = []
+    let preview: PreviewLine[] = []
     if (e.kind === 'shell') {
       pre.push(...(await runMoment(look, S(), { key: 'pre:bash', command, deletes: deletedPaths(command, cwdNow, root), worktrees: removedWorktrees(command) })))
       // The delete preview: what a command that deletes, moves or discards will touch.
       const dp = find(config, 'destructive-preview')
       if (dp) {
         preview = await destructivePreview(ports.runner, h, root, command, cwdNow)
-        if (preview.length) pre.push({ id: dp.id, severity: dp.severity === 'info' ? 'note' : dp.severity, ...(dp.severity === 'info' ? { quiet: true } : {}), text: `這個指令會動到\n${preview.map(t => `  ${t}`).join('\n')}${dp.message ? `\n${dp.message}` : ''}` })
+        if (preview.length) pre.push({ id: dp.id, severity: dp.severity === 'info' ? 'note' : dp.severity, ...(dp.severity === 'info' ? { quiet: true } : {}), text: `這個指令會動到\n${preview.map(t => `  ${t.text}`).join('\n')}${dp.message ? `\n${dp.message}` : ''}` })
       }
     }
 
@@ -829,12 +928,19 @@ async function callAfterTake<H, R>(
     const s = settle(key, pre)
     const label = isEdit ? `改檔前 · ${file}` : gitWrite ? 'commit 前' : '指令前'
     const footer = gitWrite ? '修好 error 再 commit／push' : isEdit ? '照上面改好要寫的內容再寫' : '照上面改寫這個指令再跑'
+    // On the card the delete preview is its path list; a preview line that names no path stays a line.
+    const previewId = find(config!, 'destructive-preview')?.id
+    const rows = preview.flatMap(t => (t.row ? [t.row] : []))
+    const withPreview = (lines: Finding[]) => (preview.length
+      ? { lines: [...lines.filter(f => f.id !== previewId), ...preview.filter(t => !t.row).map(t => ({ id: '', severity: 'note' as const, text: t.text }))], ...(rows.length ? { paths: rows } : {}) }
+      : { lines })
     if (s.gate === 'hold') {
       if (s.redo.some(f => f.id === explain?.id)) redo.push('explain')
       // An explain-before-edit at error holds every file change until the model has said how: the turn has
       // still said nothing.
       if (explain?.severity === 'error') S().spoke = false
-      return refuse({ ...(summarize(label, pre) ?? { kind: 'error', meta: `lint · ${label}`, lines: pre }), title: gitWrite ? (pushes && !commits ? '沒有 push' : '沒有 commit') : '沒有執行', footer }, `${render(isEdit ? 'edit' : gitWrite ? 'commit' : 'bash', isEdit ? file : '', pre)}\n${footer}。`)
+      const card = summarize(label, pre) ?? { kind: 'error' as const, meta: `lint · ${label}`, lines: pre }
+      return refuse({ ...card, ...withPreview(card.lines), title: gitWrite ? (pushes && !commits ? '沒有 push' : '沒有 commit') : '沒有執行', footer }, `${render(isEdit ? 'edit' : gitWrite ? 'commit' : 'bash', isEdit ? file : '', pre)}\n${footer}。`)
     }
     if (s.gate === 'hold-once') {
       // The same act by the same actor in a later response of this turn passes: it has read the list.
@@ -843,9 +949,10 @@ async function callAfterTake<H, R>(
       if (!(seen && seen.step < at.step)) {
         if (!seen) S().held.push({ key: heldKey, step: at.step })
         if (s.redo.some(f => f.id === explain?.id)) redo.push('explain')
-        const once = pre.filter(f => f.severity === 'check' || f.id === find(config!, 'destructive-preview')?.id)
+        const once = pre.filter(f => f.severity === 'check' || f.id === previewId)
+        const onlyPreview = preview.length > 0 && once.every(f => f.id === previewId)
         return refuse(
-          { kind: 'check', title: preview.length && once.every(f => f.id === find(config!, 'destructive-preview')?.id) ? '先確認會動到的東西' : '先確認一次', meta: `lint · ${label}`, lines: preview.length ? [...pre.filter(f => !once.includes(f)), ...preview.map(t => ({ id: '', severity: 'note' as const, text: t }))] : pre, footer: '確認沒錯，再下一次同樣的動作就會執行' },
+          { kind: 'check', title: onlyPreview ? '先確認會動到的東西' : '先確認一次', meta: onlyPreview ? 'lint · 刪除前預覽' : `lint · ${label}`, ...withPreview(pre), footer: `確認沒錯，再下一次同樣的${isEdit ? '動作' : '指令'}就會執行` },
           `${render(isEdit ? 'edit' : gitWrite ? 'commit' : 'bash', isEdit ? file : '', pre)}\n確認沒錯，下一次回應再送一次同樣的動作就會執行。`,
         )
       }
@@ -996,7 +1103,7 @@ async function callAfterTake<H, R>(
   if (inline.length && o.ran) {
     const act = isEdit ? '改檔' : gitWrite ? 'commit' : '指令'
     const side = hadAfter ? (inline.length > afterCount() ? '前後' : '後') : '前'
-    const d = summarize(`${act}${side}${isEdit ? ` · ${file}` : ''}`, inline)
+    const d = summarize(`${act}${side}${isEdit ? ` · ${file}` : ''}`, inline, { edited: isEdit })
     keepCard(S(), e.id, d ?? { kind: 'warn', meta: 'lint', lines: inline })
     save()
   }

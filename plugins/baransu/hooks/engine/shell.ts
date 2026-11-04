@@ -3,6 +3,7 @@
 
 import { relTo } from './check'
 import type { Runner } from './ports'
+import type { PathRow } from './types'
 
 const GIT_WRITE = /\bgit\b[^|;&\n]*\b(commit|push)\b/
 
@@ -198,16 +199,22 @@ function noRedirects(w: string[]): string[] {
   return out
 }
 
-async function describePath<H>(runner: Runner<H>, h: H, root: string, p: string): Promise<string> {
+/** One line of the delete preview: the sentence the model reads, and, for a path, the row the card draws. */
+export type PreviewLine = { text: string; row?: PathRow }
+
+type Described = { text: string; kind: PathRow['kind']; path: string; meta?: string; warn?: boolean }
+async function describePath<H>(runner: Runner<H>, h: H, root: string, p: string): Promise<Described> {
   const shown = relTo(root, p)
-  if (/[~$%]/.test(p)) return `${shown}（含 ~ 或變數，mod 無法展開：改寫成實際路徑再刪）`
-  if (/[*?[]/.test(p)) return `${shown}（萬用字元：先 ls 看實際範圍）`
+  if (/[~$%]/.test(p)) return { text: `${shown}（含 ~ 或變數，mod 無法展開：改寫成實際路徑再刪）`, kind: 'unknown', path: shown, meta: '含 ~ 或變數，無法展開', warn: true }
+  if (/[*?[]/.test(p)) return { text: `${shown}（萬用字元：先 ls 看實際範圍）`, kind: 'unknown', path: shown, meta: '萬用字元：先 ls 看範圍', warn: true }
   const at = await runner.probe(h, p)
-  if (at.kind === 'missing') return `${shown}（不存在）`
-  if (at.kind === 'dir') return `${shown}/（資料夾，第一層 ${at.entries} 項）`
-  if (at.kind === 'file') return `${shown}（檔案）`
-  return `${shown}（讀不到）`
+  if (at.kind === 'missing') return { text: `${shown}（不存在）`, kind: 'missing', path: shown, meta: '不存在', warn: true }
+  if (at.kind === 'dir') return { text: `${shown}/（資料夾，第一層 ${at.entries} 項）`, kind: 'folder', path: `${shown}/`, meta: `連同裡面 ${at.entries} 項` }
+  if (at.kind === 'file') return { text: `${shown}（檔案）`, kind: 'file', path: shown }
+  return { text: `${shown}（讀不到）`, kind: 'unknown', path: shown, meta: '讀不到', warn: true }
 }
+const rowOf = (verb: string, d: Described, to?: string): PathRow =>
+  ({ verb, kind: d.kind, path: d.path, ...(to !== undefined ? { to } : {}), ...(d.meta ? { meta: d.meta } : {}), ...(d.warn ? { warn: true } : {}) })
 
 /**
  * lint-scope sketch: the root-relative paths a command deletes or moves away, for `actions = ["delete"]`
@@ -274,8 +281,9 @@ function deletedAbsolute(command: string, cwd: string): string[] {
  * Paths are probed with runner.probe; `find`, `git clean -n`, `git status` … run with runner.run.
  * Runs twice: same answer for the same tree. Stops halfway: no effect, it only reads.
  */
-export async function destructivePreview<H>(runner: Runner<H>, h: H, root: string, command: string, cwd: string): Promise<string[]> {
-  const out: string[] = []
+export async function destructivePreview<H>(runner: Runner<H>, h: H, root: string, command: string, cwd: string): Promise<PreviewLine[]> {
+  const out: PreviewLine[] = []
+  const say = (...texts: string[]) => out.push(...texts.map(text => ({ text })))
   const lines = async (argv: string[], max = 15) =>
     String((await runner.run(h, argv, { cwd, timeoutMs: 30000 })).stdout).trim().split(/\r?\n/).filter(Boolean).slice(0, max)
   // Relative paths start from where the shell is; a `cd` earlier in the same command moves it.
@@ -296,37 +304,50 @@ export async function destructivePreview<H>(runner: Runner<H>, h: H, root: strin
       const action = w.findIndex(x => /^-(delete|exec|execdir|ok)$/.test(x))
       const r = await runner.run(h, ['find', ...w.slice(1, action), '-print'], { cwd: base, timeoutMs: 30000 })
       const hit = r.exitCode === 0 ? String(r.stdout).trim().split(/\r?\n/).filter(Boolean) : []
-      out.push(...(hit.length ? [`find 會刪 ${hit.length} 項：`, ...hit.slice(0, 15).map(x => `  ${relTo(root, at(x).replace(/\/\.\//g, '/'))}`)] : ['find 會刪除符合條件的檔案，但列不出清單：先把刪除動作換成 -print 跑一次']))
+      say(...(hit.length ? [`find 會刪 ${hit.length} 項：`, ...hit.slice(0, 15).map(x => `  ${relTo(root, at(x).replace(/\/\.\//g, '/'))}`)] : ['find 會刪除符合條件的檔案，但列不出清單：先把刪除動作換成 -print 跑一次']))
     } else if (cmd === 'xargs' && /^(rm|rmdir|del|remove-item)$/i.test(w.find((x, i) => i > 0 && !x.startsWith('-')) ?? '')) {
-      out.push(`xargs ${w.slice(1).join(' ')}：要刪什麼由前一個指令的輸出決定，無法事先列出；先單獨跑前一段看清單`)
+      say(`xargs ${w.slice(1).join(' ')}：要刪什麼由前一個指令的輸出決定，無法事先列出；先單獨跑前一段看清單`)
     } else if ((cmd === 'cd' || cmd === 'set-location') && args[0]) {
       base = at(args[0])
     } else if (['rm', 'rmdir', 'rd', 'del', 'remove-item', 'ri', 'erase', 'rimraf'].includes(cmd)) {
-      for (const a of args.filter(x => !/^\/[a-z]$/i.test(x))) out.push(`刪除 ${await describe(at(a))}`)
+      for (const a of args.filter(x => !/^\/[a-z]$/i.test(x))) {
+        const d = await describe(at(a))
+        out.push({ text: `刪除 ${d.text}`, row: rowOf('刪除', d) })
+      }
     } else if (['mv', 'move-item', 'move'].includes(cmd) && args.length >= 2) {
-      const dest = args[args.length - 1]
-      for (const a of args.slice(0, -1)) out.push(`搬移 ${await describe(at(a))} → ${await describe(at(dest))}`)
+      const dest = await describe(at(args[args.length - 1]))
+      for (const a of args.slice(0, -1)) {
+        const src = await describe(at(a))
+        // Into a folder the source keeps its name; onto a file it replaces it. Either way an existing target is lost.
+        const target = dest.kind === 'folder' ? (await runner.probe(h, at(`${args[args.length - 1]}/${a.replace(/\/+$/, '').split(/[\\/]/).pop()}`))).kind : dest.kind
+        const lost = target === 'file'
+        const row = rowOf('搬移', lost ? { ...src, meta: '已有同名檔，會蓋掉', warn: true } : src, dest.path)
+        out.push({ text: `搬移 ${src.text} → ${dest.text}${lost ? '（已有同名檔，會蓋掉）' : ''}`, row })
+      }
     } else if (cmd === 'git') {
       const sub = w[1]
       const rest = w.slice(2)
       if (sub === 'rm' && !rest.includes('--cached')) {
-        for (const a of rest.filter(x => !x.startsWith('-'))) out.push(`git rm 刪除 ${await describe(at(a))}`)
+        for (const a of rest.filter(x => !x.startsWith('-'))) {
+          const d = await describe(at(a))
+          out.push({ text: `git rm 刪除 ${d.text}`, row: rowOf('git rm 刪除', d) })
+        }
       } else if (sub === 'clean') {
         const flags = ['-n', ...(rest.some(a => /^-[a-z]*d/.test(a)) ? ['-d'] : []), ...(rest.some(a => /^-[a-z]*x/i.test(a)) ? ['-x'] : [])]
         const hit = await lines(['git', 'clean', ...flags])
-        out.push(...(hit.length ? hit.map(x => `git clean 會刪：${x.replace(/^Would remove /, '')}`) : ['git clean：沒有要刪的檔案']))
+        say(...(hit.length ? hit.map(x => `git clean 會刪：${x.replace(/^Would remove /, '')}`) : ['git clean：沒有要刪的檔案']))
       } else if (sub === 'reset' && rest.includes('--hard')) {
         const hit = await lines(['git', 'status', '--short'])
-        out.push(...(hit.length ? hit.map(x => `reset --hard 會丟掉：${x}`) : ['reset --hard：工作樹沒有未 commit 的改動']))
+        say(...(hit.length ? hit.map(x => `reset --hard 會丟掉：${x}`) : ['reset --hard：工作樹沒有未 commit 的改動']))
       } else if ((sub === 'checkout' && rest.includes('--')) || sub === 'restore') {
         const paths = rest.slice(rest.indexOf('--') + 1).filter(a => !a.startsWith('-'))
         const hit = await lines(['git', 'diff', '--stat', '--', ...paths])
-        out.push(...(hit.length ? hit.map(x => `會丟掉的改動：${x.trim()}`) : ['這些檔案沒有未 commit 的改動']))
+        say(...(hit.length ? hit.map(x => `會丟掉的改動：${x.trim()}`) : ['這些檔案沒有未 commit 的改動']))
       } else if (sub === 'branch' && (rest.includes('-D') || rest.includes('-d') || rest.includes('--delete'))) {
         const merged = new Set(await lines(['git', 'branch', '--merged', 'HEAD', '--format=%(refname:short)'], 500))
         for (const b of rest.filter(a => !a.startsWith('-'))) {
           const log = await lines(['git', 'log', '--oneline', '-3', b], 3)
-          out.push(`刪除分支 ${b}（${merged.has(b) ? '已合併進 HEAD' : '沒有合併進 HEAD'}）：${log.join('；') || '找不到這個分支'}`)
+          say(`刪除分支 ${b}（${merged.has(b) ? '已合併進 HEAD' : '沒有合併進 HEAD'}）：${log.join('；') || '找不到這個分支'}`)
         }
       } else if (sub === 'worktree' && w[2] === 'remove') {
         for (const p of w.slice(3).filter(a => !a.startsWith('-'))) {
@@ -334,11 +355,11 @@ export async function destructivePreview<H>(runner: Runner<H>, h: H, root: strin
           const branch = (await lines(['git', '-C', p, 'rev-parse', '--abbrev-ref', 'HEAD'], 1))[0] ?? ''
           const unpushed = branch && branch !== 'HEAD' ? await lines(['git', '-C', p, 'log', '--oneline', `${branch}`, '--not', '--remotes'], 50) : []
           const pushed = !branch || branch === 'HEAD' ? '沒有分支' : unpushed.length ? `分支 ${branch} 有 ${unpushed.length} 個 commit 不在遠端` : `分支 ${branch} 都在遠端`
-          out.push(`移除 worktree ${p}：${dirty.length ? `還有 ${dirty.length} 個沒 commit 的改動（${dirty.slice(0, 5).join('、')}）` : '乾淨'}；${pushed}`)
+          say(`移除 worktree ${p}：${dirty.length ? `還有 ${dirty.length} 個沒 commit 的改動（${dirty.slice(0, 5).join('、')}）` : '乾淨'}；${pushed}`)
         }
       } else if (sub === 'stash' && (w[2] === 'drop' || w[2] === 'clear')) {
         const list = await lines(['git', 'stash', 'list'])
-        out.push(`stash ${w[2]}：${list.length ? list.join('；') : '沒有 stash'}`)
+        say(`stash ${w[2]}：${list.length ? list.join('；') : '沒有 stash'}`)
       }
     }
   }

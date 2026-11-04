@@ -1,14 +1,14 @@
 TLC2 Version 2026.10.30.154139 (rev: 090e85c)
-Running breadth-first search Model-Checking with fp 7 and seed -3205913370993416001 with 1 worker on 32 cores with 981MB heap and 64MB offheap memory [pid: 28544] (Windows 11 10.0 amd64, Eclipse Adoptium 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
-Parsing file C:\Users\jimts\AppData\Local\Temp\cards-o0huvlgn\CardRender.tla
-Parsing file C:\Users\jimts\AppData\Local\Temp\cards-o0huvlgn\CardRules.tla
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-5012091841108326382\Integers.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-5012091841108326382\_TLCTrace.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-5012091841108326382\Naturals.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-5012091841108326382\FiniteSets.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-5012091841108326382\Sequences.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-5012091841108326382\TLC.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
-Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-5012091841108326382\TLCExt.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Running breadth-first search Model-Checking with fp 84 and seed 9058752144065911692 with 1 worker on 32 cores with 981MB heap and 64MB offheap memory [pid: 43288] (Windows 11 10.0 amd64, Eclipse Adoptium 21.0.13 64bit, MSBDiskFPSet, DiskStateQueue).
+Parsing file C:\Users\jimts\AppData\Local\Temp\cards-jg7r3sq1\CardRender.tla
+Parsing file C:\Users\jimts\AppData\Local\Temp\cards-jg7r3sq1\CardRules.tla
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-5212033024040883643\Integers.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-5212033024040883643\_TLCTrace.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-5212033024040883643\Naturals.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-5212033024040883643\FiniteSets.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-5212033024040883643\Sequences.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-5212033024040883643\TLC.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-5212033024040883643\TLCExt.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
 Semantic processing of module Naturals
 Semantic processing of module Sequences
 Semantic processing of module FiniteSets
@@ -22,9 +22,9 @@ Linting of module CardRules
 Linting of module TLCExt
 Linting of module _TLCTrace
 Linting of module CardRender
-Starting... (2026-11-03 15:08:23)
+Starting... (2026-11-04 14:09:47)
 Computing initial states...
-Finished computing initial states: 2 distinct states generated at 2026-11-03 15:08:24.
+Finished computing initial states: 2 distinct states generated at 2026-11-04 14:09:47.
 Error: Invariant A is violated.
 Error: The behavior up to this point is:
 State 1: <Initial predicate>
@@ -93,6 +93,6 @@ State 4: <KeepLate(1) line 96, col 3 to line 98, col 104 of module CardRender>
 
 137 states generated, 94 distinct states found, 73 states left on queue.
 The depth of the complete state graph search is 4.
-Finished in 01s at (2026-11-03 15:08:24)
-Trace exploration spec path: .\CardRender_TTrace_1793689702.tla
+Finished in 00s at (2026-11-04 14:09:47)
+Trace exploration spec path: .\CardRender_TTrace_1793772586.tla
 Picked up JAVA_TOOL_OPTIONS: -Xmx1g

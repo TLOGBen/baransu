@@ -5,7 +5,7 @@
 // `types/index.d.ts`, which the host requires to import nothing. The engine imports them from there (types
 // only, erased at run time) rather than writing a second copy.
 
-import type { LintCard, LintFinding, LintState } from '../../types'
+import type { LintCard, LintFinding, LintPathRow, LintState } from '../../types'
 
 export type { LintState }
 
@@ -85,6 +85,8 @@ export type Finding = LintFinding
 /** A card drawn under one call. A value only: drawing it is the adapter's job. `replace`: drawn in place of
  *  the call's own error text (a held or refused call). */
 export type Card = LintCard
+/** One path of the delete preview, drawn as a row of the card's path list. */
+export type PathRow = LintPathRow
 
 // ---------------------------------------------------------------- cross-event state
 // `LintState` (re-exported above) is kept in host storage through the StateStore port, unchanged in shape,
@@ -143,7 +145,7 @@ export type DoneSkillEvent = { readonly skill: 'ship' | 'review' | 'lint' | 'oth
  *  is not read: each check's one hold is the engine's own record (an error's hold must not use up the report's). */
 export type StopEvent = { readonly text: string }
 /** A subagent starting (agent.spawn, after the host started it: `agent` is its id). */
-export type AgentStartEvent = { readonly agent: string; readonly agentType: string }
+export type AgentStartEvent = { readonly agent: string; readonly agentType: string; readonly callId?: string }
 /** A subagent ended (classic.SubagentStop). `agentType` '' is the host's own compaction. */
 export type AgentStopEvent = { readonly agent: string; readonly agentType: string; readonly text: string }
 /** A compaction of the main conversation (session.compact; a subagent's own is not one). */

@@ -1,6 +1,6 @@
 // The outbound ports, implemented on Claude Code's `$`. Each is a thin translation; none decides anything.
 
-import type { Clock, LintState, Notify, PathProbe, Runner, RunResult, StateStore } from '../../engine'
+import type { Clock, LintState, PathProbe, Runner, RunResult, StateStore } from '../../engine'
 
 /** The dispatch's `$`. Typed loosely, as 8.39's lint.ts did. Only this adapter's own functions take it. */
 export type Dollar = any
@@ -24,6 +24,10 @@ export type Host = {
   readonly after: (ms: number, fn: () => void) => unknown
   readonly cwd: () => Promise<any>
   readonly append: (text: string) => Promise<any>
+  /** Claude Code's `language` setting, merged over every settings source; undefined when none sets it. */
+  readonly language: () => Promise<string | undefined>
+  /** Asks the host to draw this plugin's rows and band again, so a card kept just now shows. */
+  readonly invalidate: () => void
   readonly pluginRoot: () => string
 }
 
@@ -43,6 +47,11 @@ export function hostOf($: Dollar): Host {
     after: (ms, fn) => $.clock.after(ms, fn),
     cwd: () => $.session.cwd(),
     append: text => $.session.append({ message: { type: 'system', content: [{ type: 'text', text }] } }),
+    language: async () => {
+      const v = await $.settings.read({ key: 'language' })
+      return typeof v === 'string' && v.trim() ? v.trim() : undefined
+    },
+    invalidate: () => $.ui.invalidate('ui.render'),
     pluginRoot: () => String($.plugin.root),
   }
 }
@@ -118,15 +127,6 @@ export const hostClock: Clock<Host> = {
           fn()
         } catch {}
       })
-    } catch {}
-  },
-}
-
-/** A system row in the session. */
-export const hostNotify: Notify<Host> = {
-  async notice(h, text) {
-    try {
-      await h.append(text)
     } catch {}
   },
 }
