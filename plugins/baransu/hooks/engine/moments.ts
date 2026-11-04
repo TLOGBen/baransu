@@ -3,7 +3,7 @@
 
 import { relTo } from './check'
 import type { Language, Machine, Runner } from './ports'
-import { admitted, keysOf, runsAt, subjectOf, targets, touches } from './scope/evaluate'
+import { admitted, keysOf, runsAt, selectsAny, subjectOf, targets, touches } from './scope/evaluate'
 import { openLens, type Lens } from './scope/lens'
 import { toRegExp } from './scope/parse'
 import { relationsFor } from './scope/relations'
@@ -185,7 +185,8 @@ const isGate = (at: Occurrence): boolean =>
  *         built-before-commit / up-to-date, session-record; then forbid over the targets; a `run` without {file}
  *         once (a `diff` / `related` scope only when the change touches it); a `run` with {file} per target path,
  *         only for a `diff` or `related` scope; `changed` notes.
- * manual, pre:skill, after:*: every check on files over its targets, a `run` whether or not the change touched them.
+ * manual, pre:skill, after:*: every check on files over its targets, a `run` whether or not the change touched them
+ *         (one without {file} only when the tree holds a file its folder / file / ext names).
  * A check with no action and a message (not a `changed` note) says its message when it is due and its scope
  * selects something — never at manual.
  */
@@ -255,7 +256,7 @@ export async function runMoment<H>(look: Look<H>, ledger: Readonly<LintState>, a
     // manual, pre:skill, after:*
     if (a.kind === 'forbid') out.push(...(await forbidCheck(look, c, a.pattern, t)))
     else if (a.kind === 'run' && perFile) out.push(...(await runPerFile(look, c, a.argv, t, env)))
-    else if (a.kind === 'run') out.push(...(await runCheck(look, c, a.argv, undefined, env)))
+    else if (a.kind === 'run' && (await selectsAny(c.scope, lens))) out.push(...(await runCheck(look, c, a.argv, undefined, env)))
   }
   // ast-grep rules belong to no check, so they run at the project's own moments: after an edit, at a gate, at
   // /lint — not before another skill, not when a wait runs out, not for a file changed outside Claude.

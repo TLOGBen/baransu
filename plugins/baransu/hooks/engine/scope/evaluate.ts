@@ -138,6 +138,15 @@ async function keep(scope: Scope, lens: Lens, listed: readonly string[]): Promis
   return out
 }
 
+/** Whether the tree holds any file the check's folder / file / ext names; true when it names none. A `run`
+ *  without {file} at /lint, before a skill or after a wait runs whatever the change touched, but not for a
+ *  scope with nothing in it (`file = ["Makefile"]` in a folder with no Makefile). */
+export async function selectsAny(scope: Scope, lens: Lens): Promise<boolean> {
+  const w = scope.where
+  if (!w.folders.length && !w.files.length && !w.exts.length && !w.trees.length) return true
+  return (await keep(scope, lens, await lens.universe())).length > 0
+}
+
 /** Whether the change touches the check's scope — the old `touched`, for a `changed` note and for `diff`
  *  runs. The diff filtered by where/ignores is non-empty. A plain folder outside a commit has no diff, so
  *  this is false (as today). */

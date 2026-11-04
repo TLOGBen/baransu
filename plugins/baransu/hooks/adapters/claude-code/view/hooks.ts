@@ -1,6 +1,7 @@
 // Where each card is drawn: the one place that decides it. A card kept under a call hangs on that call's row
 // (a tool call, the Agent or Workflow call that started a subagent — one card per subagent — the Skill call that
-// loaded a skill) where the surface draws that row; a card with no call is a plain row (view/port.ts). Nothing
+// loaded a skill, the person's own message for a skill they typed) where the surface draws that row; a card with
+// no call is a plain row (view/port.ts). Nothing
 // is forced into view: a folded group stays folded (purpose over display, user 2026-11-04).
 
 import { lintOf } from '../instance'
@@ -33,5 +34,16 @@ export function registerView(on: On) {
     if (!d?.replace) return next(e)
     const { Box } = $.ui.resolve(e) as any
     return h(Box, null) as any
+  })
+
+  // A skill the person typed (`/baransu:lint`) has no call: its card hangs under their message, found by the
+  // skill's name, as the engine kept it (`typed:<name>`).
+  on('ui.render', { component: 'UserMessage' }, async ($, e: any, next) => {
+    const m = /^\s*\/(?:[\w.-]+:)?([\w.-]+)(\s|$)/.exec(String(e.props?.text ?? ''))
+    const d = m ? (await lintOf($)).cardFor(`typed:${m[1]}`) : undefined
+    if (!d) return next(e)
+    const row = await next(e)
+    const { Box } = $.ui.resolve(e) as any
+    return h(Box, { flexDirection: 'column', gap: 1 }, row, drawCard($, e, d)) as any
   })
 }

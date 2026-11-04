@@ -421,7 +421,10 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
       const held = settle(manual ? 'manual' : 'pre:skill', findings).gate === 'hold'
       // /lint was asked for its result, found or not; before another skill a clean run needs no card (the skill's
       // text still carries the record).
-      if (manual || findings.length) await post(h, ports, memory, skillCard(text.split('\n')[0], findings, e.skill === 'ship' && held, isReview), S().skillCalls?.[e.name])
+      // Loaded by a Skill call: under that call. Typed by the person: under their message, matched by the skill's
+      // name (a user row has no id, so the latest card of that name is drawn under each row naming it).
+      const under = S().skillCalls?.[e.name] ?? `typed:${e.name.split(':').pop()}`
+      if (manual || findings.length) await post(h, ports, memory, skillCard(text.split('\n')[0], findings, e.skill === 'ship' && held, isReview), under)
       const tailLine = manual
         ? '這是叫 /lint 時先跑的全部檢查。先把結果用一兩句話交代給使用者（沒有發現也說），再做使用者這次要求的事。'
         : isReview
@@ -864,10 +867,14 @@ async function callAfterTake<H, R>(
       }
     }
 
-    // Before a git commit or push. An ordinary project: once, at the root, whenever isGitWrite reads one.
-    // Otherwise commitDirs alone says which segments write with git, and each write is checked in the repo it
-    // commits in; a write whose repo cannot be told gets a warning that its checks did not run.
-    const plainWrites = isBash && !config.git ? commitDirs(command, cwdNow) : []
+    // Before a git commit or push. An ordinary project: once, at the root, whenever isGitWrite reads one —
+    // unless a write lands outside the root (`git -C <other repo> commit`, `cd <other> && git commit`): then, as in
+    // a plain folder, commitDirs says where each write runs and each is checked in the repo it commits in; a write
+    // whose repo cannot be told gets a warning that its checks did not run.
+    const dirs = isBash ? commitDirs(command, cwdNow) : []
+    const rootDir = root.replace(/\\/g, '/').replace(/\/+$/, '').toLowerCase()
+    const outsideRoot = (d: string) => !`${d.toLowerCase()}/`.startsWith(`${rootDir}/`)
+    const plainWrites = !config.git ? dirs : dirs.some(d => d !== null && outsideRoot(d)) ? dirs.map(d => d ?? root) : []
     gitWrite = isBash && (config.git ? isGitWrite(command) : plainWrites.length > 0)
     const writes = gitWrites(command)
     const pushes = writes.includes('push')
@@ -875,7 +882,7 @@ async function callAfterTake<H, R>(
     const gitAt = (): Occurrence => ({ key: commits || !pushes ? 'pre:commit' : 'pre:push', command, push: pushes ? { refs: pushRefs(command) } : null })
     if (gitWrite) {
       let findings: Finding[]
-      if (config.git) findings = await runMoment(look, S(), gitAt())
+      if (config.git && !plainWrites.length) findings = await runMoment(look, S(), gitAt())
       else {
         findings = []
         const ran = '這次 commit／push 會照常執行，但它的 lint 檢查沒有跑'
@@ -906,7 +913,7 @@ async function callAfterTake<H, R>(
     // Settle everything before the act once: every pre row is the same row (timing.ts PRE).
     const key: TimingKey = isEdit ? 'pre:edit' : gitWrite ? 'pre:commit' : 'pre:bash'
     const s = settle(key, pre)
-    const label = isEdit ? `改檔前 · ${file}` : gitWrite ? 'commit 前' : '指令前'
+    const label = isEdit ? `改檔前 · ${file}` : gitWrite ? (pushes && !commits ? 'push 前' : 'commit 前') : '指令前'
     const footer = gitWrite ? '修好 error 再 commit／push' : isEdit ? '照上面改好要寫的內容再寫' : '照上面改寫這個指令再跑'
     // On the card the delete preview is its path list; a preview line that names no path stays a line.
     const previewId = find(config!, 'destructive-preview')?.id
@@ -1086,7 +1093,8 @@ async function callAfterTake<H, R>(
 
   save()
   if (inline.length && o.ran) {
-    const act = isEdit ? '改檔' : gitWrite ? 'commit' : '指令'
+    const w = gitWrites(command)
+    const act = isEdit ? '改檔' : gitWrite ? (w.includes('push') && !w.includes('commit') ? 'push ' : 'commit ') : '指令'
     const side = hadAfter ? (inline.length > afterCount() ? '前後' : '後') : '前'
     const d = summarize(`${act}${side}${isEdit ? ` · ${file}` : ''}`, inline, { edited: isEdit })
     keepCard(S(), e.id, previewCard(d ?? { kind: 'warn', meta: 'lint', lines: inline }))
