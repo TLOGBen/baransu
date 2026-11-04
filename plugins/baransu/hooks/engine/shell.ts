@@ -240,6 +240,13 @@ export function deletedPaths(command: string, cwd: string, root: string): string
   return out.length ? out : null
 }
 
+/** Where git's subcommand sits in its words: after git's own options (`-C <dir>`, `-c <k=v>`, `--flags`). Pure. */
+function gitSubAt(w: readonly string[]): number {
+  let i = 1
+  for (; i < w.length && w[i].startsWith('-'); i++) if (w[i] === '-C' || w[i] === '-c') i++
+  return i
+}
+
 /** The worktrees a command removes (`git worktree remove <path>`), as written, for `actions =
  *  ["worktree-remove"]`. Pure; sees through `bash -c` like deletedPaths. null: none. */
 export function removedWorktrees(command: string): string[] | null {
@@ -250,7 +257,10 @@ export function removedWorktrees(command: string): string[] | null {
     const cmd = w[0].toLowerCase()
     const flag = w.findIndex(x => /^(-c|-command|\/c)$/i.test(x))
     if (['bash', 'sh', 'zsh', 'pwsh', 'powershell', 'cmd'].includes(cmd) && flag > 0 && w[flag + 1]) out.push(...(removedWorktrees(w[flag + 1]) ?? []))
-    else if (cmd === 'git' && w[1] === 'worktree' && w[2] === 'remove') out.push(...w.slice(3).filter(a => !a.startsWith('-')))
+    else if (cmd === 'git') {
+      const i = gitSubAt(w)
+      if (w[i] === 'worktree' && w[i + 1] === 'remove') out.push(...w.slice(i + 2).filter(a => !a.startsWith('-')))
+    }
   }
   return out.length ? out : null
 }
@@ -269,7 +279,11 @@ function deletedAbsolute(command: string, cwd: string): string[] {
     else if ((cmd === 'cd' || cmd === 'set-location') && args[0]) base = at(args[0])
     else if (['rm', 'rmdir', 'rd', 'del', 'remove-item', 'ri', 'erase', 'rimraf'].includes(cmd)) out.push(...args.filter(x => !/^\/[a-z]$/i.test(x)).map(at))
     else if (['mv', 'move-item', 'move'].includes(cmd) && args.length >= 2) out.push(...args.slice(0, -1).map(at))
-    else if (cmd === 'git' && w[1] === 'rm' && !w.includes('--cached')) out.push(...w.slice(2).filter(x => !x.startsWith('-')).map(at))
+    else if (cmd === 'git') {
+      const i = gitSubAt(w)
+      const dir = w.slice(1, i).reduce((d, x, k, all) => (all[k - 1] === '-C' ? joinPath(d, x) : d), base)
+      if (w[i] === 'rm' && !w.includes('--cached')) out.push(...w.slice(i + 1).filter(x => !x.startsWith('-')).map(p => joinPath(dir, p)))
+    }
   }
   return out
 }
@@ -284,10 +298,12 @@ function deletedAbsolute(command: string, cwd: string): string[] {
 export async function destructivePreview<H>(runner: Runner<H>, h: H, root: string, command: string, cwd: string): Promise<PreviewLine[]> {
   const out: PreviewLine[] = []
   const say = (...texts: string[]) => out.push(...texts.map(text => ({ text })))
-  const lines = async (argv: string[], max = 15) =>
-    String((await runner.run(h, argv, { cwd, timeoutMs: 30000 })).stdout).trim().split(/\r?\n/).filter(Boolean).slice(0, max)
-  // Relative paths start from where the shell is; a `cd` earlier in the same command moves it.
+  // Relative paths start from where the shell is; a `cd` earlier in the same command moves it. A git
+  // command runs where `git -C <dir>` puts it, from there.
   let base = cwd.replace(/\\/g, '/').replace(/\/$/, '')
+  let gitDir = base
+  const lines = async (argv: string[], max = 15) =>
+    String((await runner.run(h, argv, { cwd: gitDir, timeoutMs: 30000 })).stdout).trim().split(/\r?\n/).filter(Boolean).slice(0, max)
   const at = (p: string) => joinPath(base, p)
   const describe = (p: string) => describePath(runner, h, root, p)
   for (const seg of segments(command)) {
@@ -325,11 +341,14 @@ export async function destructivePreview<H>(runner: Runner<H>, h: H, root: strin
         out.push({ text: `搬移 ${src.text} → ${dest.text}${lost ? '（已有同名檔，會蓋掉）' : ''}`, row })
       }
     } else if (cmd === 'git') {
-      const sub = w[1]
-      const rest = w.slice(2)
+      // git's own options come before its subcommand; -C <dir> moves it.
+      const i = gitSubAt(w)
+      gitDir = w.slice(1, i).reduce((d, x, k, all) => (all[k - 1] === '-C' ? joinPath(d, x) : d), base)
+      const sub = w[i]
+      const rest = w.slice(i + 1)
       if (sub === 'rm' && !rest.includes('--cached')) {
         for (const a of rest.filter(x => !x.startsWith('-'))) {
-          const d = await describe(at(a))
+          const d = await describe(joinPath(gitDir, a))
           out.push({ text: `git rm 刪除 ${d.text}`, row: rowOf('git rm 刪除', d) })
         }
       } else if (sub === 'clean') {
@@ -349,17 +368,17 @@ export async function destructivePreview<H>(runner: Runner<H>, h: H, root: strin
           const log = await lines(['git', 'log', '--oneline', '-3', b], 3)
           say(`刪除分支 ${b}（${merged.has(b) ? '已合併進 HEAD' : '沒有合併進 HEAD'}）：${log.join('；') || '找不到這個分支'}`)
         }
-      } else if (sub === 'worktree' && w[2] === 'remove') {
-        for (const p of w.slice(3).filter(a => !a.startsWith('-'))) {
+      } else if (sub === 'worktree' && rest[0] === 'remove') {
+        for (const p of rest.slice(1).filter(a => !a.startsWith('-'))) {
           const dirty = await lines(['git', '-C', p, 'status', '--short'])
           const branch = (await lines(['git', '-C', p, 'rev-parse', '--abbrev-ref', 'HEAD'], 1))[0] ?? ''
           const unpushed = branch && branch !== 'HEAD' ? await lines(['git', '-C', p, 'log', '--oneline', `${branch}`, '--not', '--remotes'], 50) : []
           const pushed = !branch || branch === 'HEAD' ? '沒有分支' : unpushed.length ? `分支 ${branch} 有 ${unpushed.length} 個 commit 不在遠端` : `分支 ${branch} 都在遠端`
           say(`移除 worktree ${p}：${dirty.length ? `還有 ${dirty.length} 個沒 commit 的改動（${dirty.slice(0, 5).join('、')}）` : '乾淨'}；${pushed}`)
         }
-      } else if (sub === 'stash' && (w[2] === 'drop' || w[2] === 'clear')) {
+      } else if (sub === 'stash' && (rest[0] === 'drop' || rest[0] === 'clear')) {
         const list = await lines(['git', 'stash', 'list'])
-        say(`stash ${w[2]}：${list.length ? list.join('；') : '沒有 stash'}`)
+        say(`stash ${rest[0]}：${list.length ? list.join('；') : '沒有 stash'}`)
       }
     }
   }
