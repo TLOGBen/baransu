@@ -348,24 +348,31 @@ export async function gitFacts<H>(look: Look<H>): Promise<{ text: string; author
 async function gitFactsAtCommit<H>(look: Look<H>, c: Check, command: string): Promise<Finding[]> {
   const f = await gitFacts(look)
   const out: Finding[] = []
-  const known = (email: string) => f.authors.some(a => a.toLowerCase().includes(`<${email}>`))
+  // An identity is this repo's when it wrote any commit in `base`'s history, not only one of the last 30: someone
+  // who committed 200 times but not lately is still themself (2026-11-05, ga_agent: 115 commits back). A push
+  // reads the remote side as base, since the commits it sends are already in HEAD's history.
+  // (f.authors is read from HEAD, so it would count a push's own commits: it is not consulted here.)
+  const known = async (email: string, base: string): Promise<boolean> =>
+    String((await runGit(look, ['git', 'log', '-1', '-i', '-F', `--author=<${email}>`, '--format=%h', base], 30000)).stdout).trim() !== ''
   const refs = /\bpush\b/.test(command) ? pushRefs(command) : null
   if (/\bcommit\b/.test(command)) {
-    // `git -c user.email=X commit` commits as X whatever the config says.
-    const override = /-c\s+["']?user\.email=["']?([^"'\s]+)/.exec(command)?.[1]
+    // `git commit --author="N <X>"` and `git -c user.email=X commit` write X as the author whatever the config says.
+    const author = /--author[=\s]+["']?[^"'<]*<([^>"'\s]+)>/.exec(command)?.[1]
+    const override = author ?? /-c\s+["']?user\.email=["']?([^"'\s]+)/.exec(command)?.[1]
     const email = (override ?? String((await runGit(look, ['git', 'config', 'user.email'])).stdout)).trim().toLowerCase()
-    if (f.commits >= 5 && email && !known(email))
-      out.push({ id: c.id, ...level(c), text: `目前的 git 身分 <${email}> 不在這個 repo 的近期作者裡。${c.message}\n${f.text}` })
+    if (f.commits >= 5 && email && !(await known(email, 'HEAD')))
+      out.push({ id: c.id, ...level(c), text: `目前的 git 身分 <${email}> 在這個分支的歷史裡沒有 commit 過。${c.message}\n${f.text}` })
   } else if (/\bpush\b/.test(command)) {
     // A push makes no commit: what matters is who wrote the commits it sends. A refspec (`tmp:dev`) sends what
     // the source has and the remote's destination lacks; without one, the branch's own upstream decides.
-    const ranges = refs ? refs.map(r => [`${r.remote}/${r.dst}..${r.src}`]) : [['@{u}..HEAD']]
-    const sent: string[] = []
-    for (const [range] of ranges)
-      sent.push(...String((await runGit(look, ['git', 'log', range, '--format=%ae'])).stdout).split(/\r?\n/).map(s => s.trim().toLowerCase()).filter(Boolean))
-    const strangers = [...new Set(sent.filter(e => !known(e)))]
+    const ranges = refs ? refs.map(r => [`${r.remote}/${r.dst}`, r.src]) : [['@{u}', 'HEAD']]
+    const strangers: string[] = []
+    for (const [base, tip] of ranges) {
+      const sent = String((await runGit(look, ['git', 'log', `${base}..${tip}`, '--format=%ae'])).stdout).split(/\r?\n/).map(s => s.trim().toLowerCase()).filter(Boolean)
+      for (const e of new Set(sent)) if (!strangers.includes(e) && !(await known(e, base))) strangers.push(e)
+    }
     if (f.commits >= 5 && strangers.length)
-      out.push({ id: c.id, ...level(c), text: `要推上去的 commit 裡有不屬於這個 repo 近期作者的身分：${strangers.join('、')}。${c.message}` })
+      out.push({ id: c.id, ...level(c), text: `要推上去的 commit 裡有在這個 repo 從沒出現過的身分：${strangers.join('、')}。${c.message}` })
   }
   if (/\bcommit\b/.test(command) && /Co-Authored-By:/i.test(command) && f.coAuthor === 0 && f.commits >= 5)
     out.push({ id: c.id, ...level(c), text: `這個 repo 近 30 個 commit 都沒有 Co-Authored-By，這次卻加了。${c.message}` })
