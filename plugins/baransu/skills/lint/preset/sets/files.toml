@@ -28,10 +28,12 @@ run = ["python", ".claude/lint/scripts/py-utf8-out.py", "{file}"]
 message = "這支 Python 會印出中文：在 main 開頭加 sys.stdout.reconfigure(encoding=\"utf-8\")，Windows 的 cp950 才不會報錯或變亂碼"
 
 # Source: /ship requires every structured file it touched to still parse.
+# The when guards keep a machine without jq / yq to one note on the card, not a warning to the model on every edit.
 [check.json-parses]
 severity = "error"
 strict = "error"
 on = ["post:edit"]
+when = ["tool:jq"]
 ext = ["json"]
 ignores = ["tsconfig*.json", "jsconfig*.json", ".vscode/**", "devcontainer.json", ".devcontainer/**"]
 run = ["jq", "empty", "{file}"]
@@ -42,6 +44,7 @@ message = "改完的 JSON 解析失敗；修好語法（帶註解的 JSONC 請�
 severity = "error"
 strict = "error"
 on = ["post:edit"]
+when = ["tool:yq"]
 ext = ["toml"]
 run = ["yq", "-p", "toml", ".", "{file}"]
 message = "改完的 TOML 解析失敗；修好語法"
@@ -51,6 +54,7 @@ message = "改完的 TOML 解析失敗；修好語法"
 severity = "error"
 strict = "error"
 on = ["post:edit"]
+when = ["tool:yq"]
 ext = ["yml", "yaml"]
 ignores = ["**/templates/**"]
 run = ["yq", ".", "{file}"]
