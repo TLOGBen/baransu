@@ -175,6 +175,12 @@ in place.
    (not in winget, nor in mise's registry, checked 2026-10-24), so it is always this
    report: download `tla2tools.jar` from https://github.com/tlaplus/tlaplus/releases
    into a tools folder and pass its path to `java -cp`.
+   Known case — Lean for `/hypothesis`: `elan`, which brings `lean` and `lake`, has an
+   official one-step install (winget `Lean.Elan`, or `elan-init` from
+   https://github.com/leanprover/elan elsewhere), so that is the repair. Mathlib is not a
+   tool install but a per-project dependency, so it is always this report: in a folder of
+   the user's choosing run `lake new <name> math`, then `lake exe cache get` inside it
+   before any build — a build without the cache compiles Mathlib from source for hours.
 4. **Fixed receipt** (always emitted, success or not):
    `ENV_DOCTOR ｜ tool: {name} ｜ before: missing ｜ action: {install command | none} ｜ after: {version | still-missing＋原因} ｜ shell: {interactive|login-retry}`
 
