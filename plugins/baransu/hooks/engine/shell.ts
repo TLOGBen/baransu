@@ -7,11 +7,14 @@ import type { PathRow } from './types'
 
 const GIT_WRITE = /\bgit\b[^|;&\n]*\b(commit|push)\b/
 
-/** Split on && || ; | and newlines outside quotes, so `node -e "…"` stays one command. Pure. */
+/** Split on && || ; | and newlines outside quotes, so `node -e "…"` stays one command. A heredoc's body
+ *  (`<<EOF`, `<<'EOF'`, `<<-EOF`, up to its closing line) is text fed to a command, not commands: it is left
+ *  out. Pure. */
 export function segments(command: string): string[] {
   const out: string[] = []
   let cur = ''
   let quote = ''
+  const bodies: { end: string; tabs: boolean }[] = []
   for (let i = 0; i < command.length; i++) {
     const ch = command[i]
     if (quote) {
@@ -20,6 +23,26 @@ export function segments(command: string): string[] {
     } else if (ch === '"' || ch === "'") {
       quote = ch
       cur += ch
+    } else if (ch === '<' && command[i + 1] === '<' && command[i + 2] !== '<' && command[i - 1] !== '<') {
+      const m = /^<<(-?)\s*(?:'([^'\n]*)'|"([^"\n]*)"|\\?([A-Za-z_][\w.-]*))/.exec(command.slice(i))
+      if (m) bodies.push({ end: m[2] ?? m[3] ?? m[4], tabs: m[1] === '-' })
+      const taken = m ? m[0] : ch
+      cur += taken
+      i += taken.length - 1
+    } else if (ch === '\n' && bodies.length) {
+      // Skip each pending body, in order, through its closing line.
+      let j = i + 1
+      for (const { end, tabs } of bodies.splice(0)) {
+        while (j < command.length) {
+          const nl = command.indexOf('\n', j)
+          const line = command.slice(j, nl === -1 ? command.length : nl).replace(/\r$/, '')
+          j = nl === -1 ? command.length : nl + 1
+          if ((tabs ? line.replace(/^\t+/, '') : line) === end) break
+        }
+      }
+      out.push(cur)
+      cur = ''
+      i = j - 1
     } else if (ch === ';' || ch === '\n' || ch === '|' || (ch === '&' && command[i + 1] === '&')) {
       if (ch === '&' || (ch === '|' && command[i + 1] === '|')) i++
       out.push(cur)
@@ -370,6 +393,13 @@ export async function destructivePreview<H>(runner: Runner<H>, h: H, root: strin
         }
       } else if (sub === 'worktree' && rest[0] === 'remove') {
         for (const p of rest.slice(1).filter(a => !a.startsWith('-'))) {
+          // A folder that is not a worktree's own top answers `git -C` with the repo around it: say so instead
+          // of describing that repo as the worktree.
+          const prefix = await lines(['git', '-C', p, 'rev-parse', '--show-prefix'], 1)
+          if (prefix.length !== 0 && prefix[0] !== '') {
+            say(`移除 worktree ${p}：git 沒有登記這個 worktree（它在 repo 裡的位置是 ${prefix[0].replace(/\/$/, '')}，不是 worktree 的根目錄）`)
+            continue
+          }
           const dirty = await lines(['git', '-C', p, 'status', '--short'])
           const branch = (await lines(['git', '-C', p, 'rev-parse', '--abbrev-ref', 'HEAD'], 1))[0] ?? ''
           const unpushed = branch && branch !== 'HEAD' ? await lines(['git', '-C', p, 'log', '--oneline', `${branch}`, '--not', '--remotes'], 50) : []

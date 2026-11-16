@@ -36,9 +36,11 @@ def flagged(path: str) -> str | None:
             target = ast.unparse(f.value)
             if f.attr == "write" and target in ("sys.stdout", "sys.stderr"):
                 prints = True
-            # sys.stdout.reconfigure(encoding="utf-8"), or on a loop variable over the streams
-            if f.attr == "reconfigure" and any(k.arg == "encoding" and utf8(k.value) for k in n.keywords):
-                fixed = True
+        # sys.stdout.reconfigure(encoding="utf-8"), on a loop variable over the streams, or through a name bound
+        # by getattr(sys.stdout, "reconfigure", None)
+        callee = f.attr if isinstance(f, ast.Attribute) else f.id if isinstance(f, ast.Name) else None
+        if callee == "reconfigure" and any(k.arg == "encoding" and utf8(k.value) for k in n.keywords):
+            fixed = True
         # sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
         name = ast.unparse(f)
         if name.endswith("TextIOWrapper") and any(k.arg == "encoding" and utf8(k.value) for k in n.keywords):
