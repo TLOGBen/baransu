@@ -414,7 +414,6 @@ Diagram system (vendored diagram-design): types, tokens, primitives, layout, siz
 - `diagram-readme-import` — Import — § Import
 - `diagram-checks` — Diagram checks: self_check.py and type verifiers — § Export and checks
 - `diagram-readme-commands` — Commands — § Commands
-- `diagram-readme-upstream-skin-note` — Upstream skin note — § Upstream skin note
 
 ### `references/diagram/seek-overlay.md`
 
@@ -570,10 +569,16 @@ Diagram system (vendored diagram-design): types, tokens, primitives, layout, siz
 ### `references/diagram/type-dependency.md`
 
 - `type-dependency` — Dependency Graph — § Dependency Graph
-- `type-dependency-layout-conventions` — Layout conventions — § Layout conventions
 - `type-dependency-complexity-budget` — Complexity budget — § Complexity budget
-- `type-dependency-anti-patterns` — Anti-patterns — § Anti-patterns
 - `type-dependency-examples` — Examples — § Examples
+- `type-dependency-layout-conventions` — Layout conventions — § Layout conventions
+- `type-dependency-anti-patterns` — Anti-patterns — § Anti-patterns
+- `type-dependency-arc-diagram` — Arc diagram — § Arc diagram
+- `type-dependency-arc-diagram-layout-conventions` — Layout conventions — § Layout conventions
+- `type-dependency-colour` — Colour — § Colour
+- `type-dependency-honest-data-rule` — Honest-data rule — § Honest-data rule
+- `type-dependency-declaring-values` — Declaring the values — § Declaring the values
+- `type-dependency-arc-diagram-anti-patterns` — Anti-patterns — § Anti-patterns
 
 ### `references/diagram/type-deployment.md`
 
@@ -966,6 +971,12 @@ Diagram system (vendored diagram-design): types, tokens, primitives, layout, siz
 - `type-scatter-beeswarm-declaring-the-values` — Declaring the values — § Declaring the values
 - `type-scatter-beeswarm-anti-patterns` — Anti-patterns — § Anti-patterns
 - `type-scatter-examples` — Examples — § Examples
+- `type-scatter-box-plot` — Box plot — § Box plot
+- `type-scatter-box-plot-layout-conventions` — Layout conventions — § Layout conventions
+- `type-scatter-box-plot-colour` — Colour — § Colour
+- `type-scatter-box-plot-honest-data-rule` — Honest-data rule — § Honest-data rule
+- `type-scatter-declaring-values` — Declaring the values — § Declaring the values
+- `type-scatter-box-plot-anti-patterns` — Anti-patterns — § Anti-patterns
 
 ### `references/diagram/type-sequence.md`
 
@@ -1116,6 +1127,74 @@ Diagram system (vendored diagram-design): types, tokens, primitives, layout, siz
 - `type-service-blueprint-anti-patterns` — Anti-patterns — § Anti-patterns
 - `type-service-blueprint-honesty-rules` — Honesty rules — § Honesty rules
 - `type-service-blueprint-examples` — Examples — § Examples
+
+### `references/diagram/import-plantuml.md`
+
+- `import-plantuml` — Import from PlantUML — § Import from PlantUML
+- `import-plantuml-trigger` — Trigger — § Trigger
+- `import-plantuml-step-1-extract-ir` — Step 1 — Extract the IR — § Step 1 — Extract the IR
+- `import-plantuml-step-2-set-four-dials` — Step 2 — Set the four dials — § Step 2 — Set the four dials
+- `import-plantuml-step-3-pick-target-type` — Step 3 — Pick the target type — § Step 3 — Pick the target type
+- `import-plantuml-step-4-build-semantic-model` — Step 4 — Build the semantic model — § Step 4 — Build the semantic model
+- `import-plantuml-step-5-redraw` — Step 5 — Redraw — § Step 5 — Redraw
+- `import-plantuml-step-6-deliver` — Step 6 — Deliver — § Step 6 — Deliver
+- `import-plantuml-worked-example` — Worked example — § Worked example
+- `import-plantuml-multi-block-files` — Multi-block files — § Multi-block files
+- `import-plantuml-trust-boundary` — Trust boundary — § Trust boundary
+- `import-plantuml-edge-cases` — Edge cases — § Edge cases
+- `import-plantuml-anti-patterns` — Anti-patterns — § Anti-patterns
+
+### `references/diagram/type-event-modeling.md`
+
+- `type-event-modeling` — Event modeling — § Event modeling
+- `type-event-modeling-layout-grammar` — Layout grammar — § Layout grammar
+- `type-event-modeling-machine-readable-contract` — Machine-readable contract — § Machine-readable contract
+- `type-event-modeling-complexity-budget` — Complexity budget — § Complexity budget
+- `type-event-modeling-anti-patterns` — Anti-patterns — § Anti-patterns
+- `type-event-modeling-examples` — Examples — § Examples
+
+### `references/diagram/type-requirement-traceability.md`
+
+- `type-requirement-traceability` — Requirement traceability — § Requirement traceability
+- `type-requirement-traceability-layout-conventions` — Layout conventions — § Layout conventions
+- `type-requirement-traceability-machine-readable-contract` — Machine-readable contract — § Machine-readable contract
+- `type-requirement-traceability-complexity-budget` — Complexity budget — § Complexity budget
+- `type-requirement-traceability-anti-patterns` — Anti-patterns — § Anti-patterns
+- `type-requirement-traceability-examples` — Examples — § Examples
+
+### `references/diagram/type-sbgn.md`
+
+- `type-sbgn` — SBGN — § SBGN
+- `type-sbgn-layout-conventions` — Layout conventions — § Layout conventions
+- `type-sbgn-glyphs-pd-subset` — Glyphs (PD subset) — § Glyphs (PD subset)
+- `type-sbgn-budget` — Budget — § Budget
+- `type-sbgn-anti-patterns` — Anti-patterns — § Anti-patterns
+- `type-sbgn-examples` — Examples — § Examples
+
+### `references/diagram/type-steps.md`
+
+- `type-steps` — Steps — § Steps
+- `type-steps-1-inputs` — 1. Inputs — § 1. Inputs
+- `type-steps-2-layout-grammar` — 2. Layout grammar — § 2. Layout grammar
+- `type-steps-rail` — Rail — § Rail
+- `type-steps-number-guide` — Number and guide — § Number and guide
+- `type-steps-icon-medallion` — Icon medallion — § Icon medallion
+- `type-steps-copy-block` — Copy block — § Copy block
+- `type-steps-3-focal-color-rules` — 3. Focal and color rules — § 3. Focal and color rules
+- `type-steps-4-legend` — 4. Legend — § 4. Legend
+- `type-steps-5-reproducibility-checklist` — 5. Reproducibility checklist — § 5. Reproducibility checklist
+- `type-steps-6-what-verify-steps-py-requires` — 6. What verify-steps.py requires — § 6. What `verify-steps.py` requires
+- `type-steps-7-anti-patterns` — 7. Anti-patterns — § 7. Anti-patterns
+
+### `references/diagram/type-unit-grid.md`
+
+- `type-unit-grid` — Unit Grid — § Unit Grid
+- `type-unit-grid-input-contract` — Input contract — § Input contract
+- `type-unit-grid-layout-conventions` — Layout conventions — § Layout conventions
+- `type-unit-grid-honest-data-rule` — Honest-data rule — § Honest-data rule
+- `type-unit-grid-complexity-budget` — Complexity budget — § Complexity budget
+- `type-unit-grid-anti-patterns` — Anti-patterns — § Anti-patterns
+- `type-unit-grid-examples` — Examples — § Examples
 
 ## map
 
@@ -1869,6 +1948,7 @@ Mechanism approach: the vendored Anatomy skill — workflow, craft, motion, veri
 - `anatomy-webgl-inside-drawing` — WebGL inside the drawing — § WebGL inside the drawing
 - `anatomy-3d-figures-turn` — 3D: figures that turn (beta) — § 3D: figures that turn (beta)
 - `anatomy-references` — References — § References
+- `anatomy-printable-sheets-a4` — Printable sheets (A4) — § Printable sheets (A4)
 
 ### `scripts/anatomy/references/3d.md`
 
@@ -2025,6 +2105,15 @@ Mechanism approach: the vendored Anatomy skill — workflow, craft, motion, veri
 - `webgl-shaders-turning-group` — 8b. Shaders on a turning group — § 8b. Shaders on a turning group
 - `webgl-verify` — 9. Verify — § 9. Verify
 - `webgl-performance` — 10. Performance — § 10. Performance
+
+### `scripts/anatomy/references/print.md`
+
+- `print` — Printable sheets (A4) — § Printable sheets (A4)
+- `print-three-formats` — The three formats — § The three formats
+- `print-spec` — The spec — § The spec
+- `print-check-it` — Check it — § Check it
+- `print-pdf-link-figure` — A PDF link on the figure — § A PDF link on the figure
+- `print-longer-detailed-sheets` — Longer detailed sheets — § Longer detailed sheets
 
 ## kit
 

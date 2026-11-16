@@ -53,4 +53,4 @@ Either way the static frame is complete without JavaScript and under reduced mot
 
 ## Export
 
-PNG or SVG only when the user asks: `references/diagram/export.md` and `scripts/diagram/export_svg.py`. The file to export is the one this run built; a missing export tool is installed, not reported.
+PNG or SVG only when the user asks: `references/diagram/export.md`, `scripts/diagram/export_png.py` and `scripts/diagram/export_svg.py`. The file to export is the one this run built; a missing export tool is installed, not reported.
