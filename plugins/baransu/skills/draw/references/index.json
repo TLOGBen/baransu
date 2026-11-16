@@ -4116,19 +4116,6 @@
    "heading": "Commands"
   },
   {
-   "id": "diagram-readme-upstream-skin-note",
-   "title": "Upstream skin note",
-   "area": "diagram",
-   "keywords": [
-    "upstream",
-    "skin",
-    "note",
-    "readme"
-   ],
-   "file": "references/diagram/README.md",
-   "heading": "Upstream skin note"
-  },
-  {
    "id": "seek-overlay",
    "title": "Seek overlay — a diagram-design diagram with a time axis",
    "area": "diagram",
@@ -5633,18 +5620,6 @@
    "heading": "Dependency Graph"
   },
   {
-   "id": "type-dependency-layout-conventions",
-   "title": "Layout conventions",
-   "area": "diagram",
-   "keywords": [
-    "layout",
-    "conventions",
-    "type-dependency"
-   ],
-   "file": "references/diagram/type-dependency.md",
-   "heading": "Layout conventions"
-  },
-  {
    "id": "type-dependency-complexity-budget",
    "title": "Complexity budget",
    "area": "diagram",
@@ -5657,17 +5632,6 @@
    "heading": "Complexity budget"
   },
   {
-   "id": "type-dependency-anti-patterns",
-   "title": "Anti-patterns",
-   "area": "diagram",
-   "keywords": [
-    "anti-patterns",
-    "type-dependency"
-   ],
-   "file": "references/diagram/type-dependency.md",
-   "heading": "Anti-patterns"
-  },
-  {
    "id": "type-dependency-examples",
    "title": "Examples",
    "area": "diagram",
@@ -5677,6 +5641,106 @@
    ],
    "file": "references/diagram/type-dependency.md",
    "heading": "Examples"
+  },
+  {
+   "id": "type-dependency-layout-conventions",
+   "title": "Layout conventions",
+   "area": "diagram",
+   "keywords": [
+    "conventions",
+    "layout",
+    "type-dependency"
+   ],
+   "file": "references/diagram/type-dependency.md",
+   "heading": "Layout conventions",
+   "parent": "Dependency Graph"
+  },
+  {
+   "id": "type-dependency-anti-patterns",
+   "title": "Anti-patterns",
+   "area": "diagram",
+   "keywords": [
+    "anti",
+    "patterns",
+    "type-dependency"
+   ],
+   "file": "references/diagram/type-dependency.md",
+   "heading": "Anti-patterns",
+   "parent": "Dependency Graph"
+  },
+  {
+   "id": "type-dependency-arc-diagram",
+   "title": "Arc diagram",
+   "area": "diagram",
+   "keywords": [
+    "arc",
+    "diagram",
+    "type-dependency"
+   ],
+   "file": "references/diagram/type-dependency.md",
+   "heading": "Arc diagram"
+  },
+  {
+   "id": "type-dependency-arc-diagram-layout-conventions",
+   "title": "Layout conventions",
+   "area": "diagram",
+   "keywords": [
+    "conventions",
+    "layout",
+    "type-dependency"
+   ],
+   "file": "references/diagram/type-dependency.md",
+   "heading": "Layout conventions",
+   "parent": "Arc diagram"
+  },
+  {
+   "id": "type-dependency-colour",
+   "title": "Colour",
+   "area": "diagram",
+   "keywords": [
+    "colour",
+    "type-dependency"
+   ],
+   "file": "references/diagram/type-dependency.md",
+   "heading": "Colour"
+  },
+  {
+   "id": "type-dependency-honest-data-rule",
+   "title": "Honest-data rule",
+   "area": "diagram",
+   "keywords": [
+    "data",
+    "honest",
+    "rule",
+    "type-dependency"
+   ],
+   "file": "references/diagram/type-dependency.md",
+   "heading": "Honest-data rule"
+  },
+  {
+   "id": "type-dependency-declaring-values",
+   "title": "Declaring the values",
+   "area": "diagram",
+   "keywords": [
+    "declaring",
+    "type-dependency",
+    "values"
+   ],
+   "file": "references/diagram/type-dependency.md",
+   "heading": "Declaring the values"
+  },
+  {
+   "id": "type-dependency-arc-diagram-anti-patterns",
+   "title": "Anti-patterns",
+   "area": "diagram",
+   "keywords": [
+    "anti",
+    "patterns",
+    "type-dependency"
+   ],
+   "file": "references/diagram/type-dependency.md",
+   "heading": "Anti-patterns",
+   "parent": "Arc diagram"
   },
   {
    "id": "type-deployment",
@@ -9634,6 +9698,83 @@
    ],
    "file": "references/diagram/type-scatter.md",
    "heading": "Examples"
+  },
+  {
+   "id": "type-scatter-box-plot",
+   "title": "Box plot",
+   "area": "diagram",
+   "keywords": [
+    "box",
+    "plot",
+    "type-scatter"
+   ],
+   "file": "references/diagram/type-scatter.md",
+   "heading": "Box plot"
+  },
+  {
+   "id": "type-scatter-box-plot-layout-conventions",
+   "title": "Layout conventions",
+   "area": "diagram",
+   "keywords": [
+    "conventions",
+    "layout",
+    "type-scatter"
+   ],
+   "file": "references/diagram/type-scatter.md",
+   "heading": "Layout conventions",
+   "parent": "Box plot"
+  },
+  {
+   "id": "type-scatter-box-plot-colour",
+   "title": "Colour",
+   "area": "diagram",
+   "keywords": [
+    "colour",
+    "type-scatter"
+   ],
+   "file": "references/diagram/type-scatter.md",
+   "heading": "Colour",
+   "parent": "Box plot"
+  },
+  {
+   "id": "type-scatter-box-plot-honest-data-rule",
+   "title": "Honest-data rule",
+   "area": "diagram",
+   "keywords": [
+    "data",
+    "honest",
+    "rule",
+    "type-scatter"
+   ],
+   "file": "references/diagram/type-scatter.md",
+   "heading": "Honest-data rule",
+   "parent": "Box plot"
+  },
+  {
+   "id": "type-scatter-declaring-values",
+   "title": "Declaring the values",
+   "area": "diagram",
+   "keywords": [
+    "declaring",
+    "type-scatter",
+    "values"
+   ],
+   "file": "references/diagram/type-scatter.md",
+   "heading": "Declaring the values",
+   "parent": "Box plot"
+  },
+  {
+   "id": "type-scatter-box-plot-anti-patterns",
+   "title": "Anti-patterns",
+   "area": "diagram",
+   "keywords": [
+    "anti",
+    "patterns",
+    "type-scatter"
+   ],
+   "file": "references/diagram/type-scatter.md",
+   "heading": "Anti-patterns",
+   "parent": "Box plot"
   },
   {
    "id": "type-sequence",
@@ -19135,6 +19276,19 @@
    "heading": "References"
   },
   {
+   "id": "anatomy-printable-sheets-a4",
+   "title": "Printable sheets (A4)",
+   "area": "anatomy",
+   "keywords": [
+    "ANATOMY-SKILL",
+    "a4",
+    "printable",
+    "sheets"
+   ],
+   "file": "scripts/anatomy/ANATOMY-SKILL.md",
+   "heading": "Printable sheets (A4)"
+  },
+  {
    "id": "3d",
    "title": "3D: parts that turn in the drawing",
    "area": "anatomy",
@@ -25788,6 +25942,701 @@
    ],
    "file": "references/diagram/type-service-blueprint.md",
    "heading": "Examples"
+  },
+  {
+   "id": "import-plantuml",
+   "title": "Import from PlantUML",
+   "area": "diagram",
+   "keywords": [
+    "from",
+    "import",
+    "import-plantuml",
+    "plantuml"
+   ],
+   "file": "references/diagram/import-plantuml.md",
+   "heading": "Import from PlantUML",
+   "overview": true
+  },
+  {
+   "id": "import-plantuml-trigger",
+   "title": "Trigger",
+   "area": "diagram",
+   "keywords": [
+    "import-plantuml",
+    "trigger"
+   ],
+   "file": "references/diagram/import-plantuml.md",
+   "heading": "Trigger"
+  },
+  {
+   "id": "import-plantuml-step-1-extract-ir",
+   "title": "Step 1 — Extract the IR",
+   "area": "diagram",
+   "keywords": [
+    "1",
+    "extract",
+    "import-plantuml",
+    "ir",
+    "step"
+   ],
+   "file": "references/diagram/import-plantuml.md",
+   "heading": "Step 1 — Extract the IR"
+  },
+  {
+   "id": "import-plantuml-step-2-set-four-dials",
+   "title": "Step 2 — Set the four dials",
+   "area": "diagram",
+   "keywords": [
+    "2",
+    "dials",
+    "four",
+    "import-plantuml",
+    "set",
+    "step"
+   ],
+   "file": "references/diagram/import-plantuml.md",
+   "heading": "Step 2 — Set the four dials"
+  },
+  {
+   "id": "import-plantuml-step-3-pick-target-type",
+   "title": "Step 3 — Pick the target type",
+   "area": "diagram",
+   "keywords": [
+    "3",
+    "import-plantuml",
+    "pick",
+    "step",
+    "target",
+    "type"
+   ],
+   "file": "references/diagram/import-plantuml.md",
+   "heading": "Step 3 — Pick the target type"
+  },
+  {
+   "id": "import-plantuml-step-4-build-semantic-model",
+   "title": "Step 4 — Build the semantic model",
+   "area": "diagram",
+   "keywords": [
+    "4",
+    "build",
+    "import-plantuml",
+    "model",
+    "semantic",
+    "step"
+   ],
+   "file": "references/diagram/import-plantuml.md",
+   "heading": "Step 4 — Build the semantic model"
+  },
+  {
+   "id": "import-plantuml-step-5-redraw",
+   "title": "Step 5 — Redraw",
+   "area": "diagram",
+   "keywords": [
+    "5",
+    "import-plantuml",
+    "redraw",
+    "step"
+   ],
+   "file": "references/diagram/import-plantuml.md",
+   "heading": "Step 5 — Redraw"
+  },
+  {
+   "id": "import-plantuml-step-6-deliver",
+   "title": "Step 6 — Deliver",
+   "area": "diagram",
+   "keywords": [
+    "6",
+    "deliver",
+    "import-plantuml",
+    "step"
+   ],
+   "file": "references/diagram/import-plantuml.md",
+   "heading": "Step 6 — Deliver"
+  },
+  {
+   "id": "import-plantuml-worked-example",
+   "title": "Worked example",
+   "area": "diagram",
+   "keywords": [
+    "example",
+    "import-plantuml",
+    "worked"
+   ],
+   "file": "references/diagram/import-plantuml.md",
+   "heading": "Worked example"
+  },
+  {
+   "id": "import-plantuml-multi-block-files",
+   "title": "Multi-block files",
+   "area": "diagram",
+   "keywords": [
+    "block",
+    "files",
+    "import-plantuml",
+    "multi"
+   ],
+   "file": "references/diagram/import-plantuml.md",
+   "heading": "Multi-block files"
+  },
+  {
+   "id": "import-plantuml-trust-boundary",
+   "title": "Trust boundary",
+   "area": "diagram",
+   "keywords": [
+    "boundary",
+    "import-plantuml",
+    "trust"
+   ],
+   "file": "references/diagram/import-plantuml.md",
+   "heading": "Trust boundary"
+  },
+  {
+   "id": "import-plantuml-edge-cases",
+   "title": "Edge cases",
+   "area": "diagram",
+   "keywords": [
+    "cases",
+    "edge",
+    "import-plantuml"
+   ],
+   "file": "references/diagram/import-plantuml.md",
+   "heading": "Edge cases"
+  },
+  {
+   "id": "import-plantuml-anti-patterns",
+   "title": "Anti-patterns",
+   "area": "diagram",
+   "keywords": [
+    "anti",
+    "import-plantuml",
+    "patterns"
+   ],
+   "file": "references/diagram/import-plantuml.md",
+   "heading": "Anti-patterns"
+  },
+  {
+   "id": "type-event-modeling",
+   "title": "Event modeling",
+   "area": "diagram",
+   "keywords": [
+    "event",
+    "modeling",
+    "type-event-modeling"
+   ],
+   "file": "references/diagram/type-event-modeling.md",
+   "heading": "Event modeling"
+  },
+  {
+   "id": "type-event-modeling-layout-grammar",
+   "title": "Layout grammar",
+   "area": "diagram",
+   "keywords": [
+    "grammar",
+    "layout",
+    "type-event-modeling"
+   ],
+   "file": "references/diagram/type-event-modeling.md",
+   "heading": "Layout grammar"
+  },
+  {
+   "id": "type-event-modeling-machine-readable-contract",
+   "title": "Machine-readable contract",
+   "area": "diagram",
+   "keywords": [
+    "contract",
+    "machine",
+    "readable",
+    "type-event-modeling"
+   ],
+   "file": "references/diagram/type-event-modeling.md",
+   "heading": "Machine-readable contract"
+  },
+  {
+   "id": "type-event-modeling-complexity-budget",
+   "title": "Complexity budget",
+   "area": "diagram",
+   "keywords": [
+    "budget",
+    "complexity",
+    "type-event-modeling"
+   ],
+   "file": "references/diagram/type-event-modeling.md",
+   "heading": "Complexity budget"
+  },
+  {
+   "id": "type-event-modeling-anti-patterns",
+   "title": "Anti-patterns",
+   "area": "diagram",
+   "keywords": [
+    "anti",
+    "patterns",
+    "type-event-modeling"
+   ],
+   "file": "references/diagram/type-event-modeling.md",
+   "heading": "Anti-patterns"
+  },
+  {
+   "id": "type-event-modeling-examples",
+   "title": "Examples",
+   "area": "diagram",
+   "keywords": [
+    "examples",
+    "type-event-modeling"
+   ],
+   "file": "references/diagram/type-event-modeling.md",
+   "heading": "Examples"
+  },
+  {
+   "id": "type-requirement-traceability",
+   "title": "Requirement traceability",
+   "area": "diagram",
+   "keywords": [
+    "requirement",
+    "traceability",
+    "type-requirement-traceability"
+   ],
+   "file": "references/diagram/type-requirement-traceability.md",
+   "heading": "Requirement traceability"
+  },
+  {
+   "id": "type-requirement-traceability-layout-conventions",
+   "title": "Layout conventions",
+   "area": "diagram",
+   "keywords": [
+    "conventions",
+    "layout",
+    "type-requirement-traceability"
+   ],
+   "file": "references/diagram/type-requirement-traceability.md",
+   "heading": "Layout conventions"
+  },
+  {
+   "id": "type-requirement-traceability-machine-readable-contract",
+   "title": "Machine-readable contract",
+   "area": "diagram",
+   "keywords": [
+    "contract",
+    "machine",
+    "readable",
+    "type-requirement-traceability"
+   ],
+   "file": "references/diagram/type-requirement-traceability.md",
+   "heading": "Machine-readable contract"
+  },
+  {
+   "id": "type-requirement-traceability-complexity-budget",
+   "title": "Complexity budget",
+   "area": "diagram",
+   "keywords": [
+    "budget",
+    "complexity",
+    "type-requirement-traceability"
+   ],
+   "file": "references/diagram/type-requirement-traceability.md",
+   "heading": "Complexity budget"
+  },
+  {
+   "id": "type-requirement-traceability-anti-patterns",
+   "title": "Anti-patterns",
+   "area": "diagram",
+   "keywords": [
+    "anti",
+    "patterns",
+    "type-requirement-traceability"
+   ],
+   "file": "references/diagram/type-requirement-traceability.md",
+   "heading": "Anti-patterns"
+  },
+  {
+   "id": "type-requirement-traceability-examples",
+   "title": "Examples",
+   "area": "diagram",
+   "keywords": [
+    "examples",
+    "type-requirement-traceability"
+   ],
+   "file": "references/diagram/type-requirement-traceability.md",
+   "heading": "Examples"
+  },
+  {
+   "id": "type-sbgn",
+   "title": "SBGN",
+   "area": "diagram",
+   "keywords": [
+    "sbgn",
+    "type-sbgn"
+   ],
+   "file": "references/diagram/type-sbgn.md",
+   "heading": "SBGN"
+  },
+  {
+   "id": "type-sbgn-layout-conventions",
+   "title": "Layout conventions",
+   "area": "diagram",
+   "keywords": [
+    "conventions",
+    "layout",
+    "type-sbgn"
+   ],
+   "file": "references/diagram/type-sbgn.md",
+   "heading": "Layout conventions"
+  },
+  {
+   "id": "type-sbgn-glyphs-pd-subset",
+   "title": "Glyphs (PD subset)",
+   "area": "diagram",
+   "keywords": [
+    "glyphs",
+    "pd",
+    "subset",
+    "type-sbgn"
+   ],
+   "file": "references/diagram/type-sbgn.md",
+   "heading": "Glyphs (PD subset)"
+  },
+  {
+   "id": "type-sbgn-budget",
+   "title": "Budget",
+   "area": "diagram",
+   "keywords": [
+    "budget",
+    "type-sbgn"
+   ],
+   "file": "references/diagram/type-sbgn.md",
+   "heading": "Budget"
+  },
+  {
+   "id": "type-sbgn-anti-patterns",
+   "title": "Anti-patterns",
+   "area": "diagram",
+   "keywords": [
+    "anti",
+    "patterns",
+    "type-sbgn"
+   ],
+   "file": "references/diagram/type-sbgn.md",
+   "heading": "Anti-patterns"
+  },
+  {
+   "id": "type-sbgn-examples",
+   "title": "Examples",
+   "area": "diagram",
+   "keywords": [
+    "examples",
+    "type-sbgn"
+   ],
+   "file": "references/diagram/type-sbgn.md",
+   "heading": "Examples"
+  },
+  {
+   "id": "type-steps",
+   "title": "Steps",
+   "area": "diagram",
+   "keywords": [
+    "steps",
+    "type-steps"
+   ],
+   "file": "references/diagram/type-steps.md",
+   "heading": "Steps",
+   "overview": true
+  },
+  {
+   "id": "type-steps-1-inputs",
+   "title": "1. Inputs",
+   "area": "diagram",
+   "keywords": [
+    "1",
+    "inputs",
+    "type-steps"
+   ],
+   "file": "references/diagram/type-steps.md",
+   "heading": "1. Inputs"
+  },
+  {
+   "id": "type-steps-2-layout-grammar",
+   "title": "2. Layout grammar",
+   "area": "diagram",
+   "keywords": [
+    "2",
+    "grammar",
+    "layout",
+    "type-steps"
+   ],
+   "file": "references/diagram/type-steps.md",
+   "heading": "2. Layout grammar"
+  },
+  {
+   "id": "type-steps-rail",
+   "title": "Rail",
+   "area": "diagram",
+   "keywords": [
+    "rail",
+    "type-steps"
+   ],
+   "file": "references/diagram/type-steps.md",
+   "heading": "Rail"
+  },
+  {
+   "id": "type-steps-number-guide",
+   "title": "Number and guide",
+   "area": "diagram",
+   "keywords": [
+    "guide",
+    "number",
+    "type-steps"
+   ],
+   "file": "references/diagram/type-steps.md",
+   "heading": "Number and guide"
+  },
+  {
+   "id": "type-steps-icon-medallion",
+   "title": "Icon medallion",
+   "area": "diagram",
+   "keywords": [
+    "icon",
+    "medallion",
+    "type-steps"
+   ],
+   "file": "references/diagram/type-steps.md",
+   "heading": "Icon medallion"
+  },
+  {
+   "id": "type-steps-copy-block",
+   "title": "Copy block",
+   "area": "diagram",
+   "keywords": [
+    "block",
+    "copy",
+    "type-steps"
+   ],
+   "file": "references/diagram/type-steps.md",
+   "heading": "Copy block"
+  },
+  {
+   "id": "type-steps-3-focal-color-rules",
+   "title": "3. Focal and color rules",
+   "area": "diagram",
+   "keywords": [
+    "3",
+    "color",
+    "focal",
+    "rules",
+    "type-steps"
+   ],
+   "file": "references/diagram/type-steps.md",
+   "heading": "3. Focal and color rules"
+  },
+  {
+   "id": "type-steps-4-legend",
+   "title": "4. Legend",
+   "area": "diagram",
+   "keywords": [
+    "4",
+    "legend",
+    "type-steps"
+   ],
+   "file": "references/diagram/type-steps.md",
+   "heading": "4. Legend"
+  },
+  {
+   "id": "type-steps-5-reproducibility-checklist",
+   "title": "5. Reproducibility checklist",
+   "area": "diagram",
+   "keywords": [
+    "5",
+    "checklist",
+    "reproducibility",
+    "type-steps"
+   ],
+   "file": "references/diagram/type-steps.md",
+   "heading": "5. Reproducibility checklist"
+  },
+  {
+   "id": "type-steps-6-what-verify-steps-py-requires",
+   "title": "6. What verify-steps.py requires",
+   "area": "diagram",
+   "keywords": [
+    "6",
+    "py",
+    "requires",
+    "steps",
+    "type-steps",
+    "verify",
+    "what"
+   ],
+   "file": "references/diagram/type-steps.md",
+   "heading": "6. What `verify-steps.py` requires"
+  },
+  {
+   "id": "type-steps-7-anti-patterns",
+   "title": "7. Anti-patterns",
+   "area": "diagram",
+   "keywords": [
+    "7",
+    "anti",
+    "patterns",
+    "type-steps"
+   ],
+   "file": "references/diagram/type-steps.md",
+   "heading": "7. Anti-patterns"
+  },
+  {
+   "id": "type-unit-grid",
+   "title": "Unit Grid",
+   "area": "diagram",
+   "keywords": [
+    "grid",
+    "type-unit-grid",
+    "unit"
+   ],
+   "file": "references/diagram/type-unit-grid.md",
+   "heading": "Unit Grid"
+  },
+  {
+   "id": "type-unit-grid-input-contract",
+   "title": "Input contract",
+   "area": "diagram",
+   "keywords": [
+    "contract",
+    "input",
+    "type-unit-grid"
+   ],
+   "file": "references/diagram/type-unit-grid.md",
+   "heading": "Input contract"
+  },
+  {
+   "id": "type-unit-grid-layout-conventions",
+   "title": "Layout conventions",
+   "area": "diagram",
+   "keywords": [
+    "conventions",
+    "layout",
+    "type-unit-grid"
+   ],
+   "file": "references/diagram/type-unit-grid.md",
+   "heading": "Layout conventions"
+  },
+  {
+   "id": "type-unit-grid-honest-data-rule",
+   "title": "Honest-data rule",
+   "area": "diagram",
+   "keywords": [
+    "data",
+    "honest",
+    "rule",
+    "type-unit-grid"
+   ],
+   "file": "references/diagram/type-unit-grid.md",
+   "heading": "Honest-data rule"
+  },
+  {
+   "id": "type-unit-grid-complexity-budget",
+   "title": "Complexity budget",
+   "area": "diagram",
+   "keywords": [
+    "budget",
+    "complexity",
+    "type-unit-grid"
+   ],
+   "file": "references/diagram/type-unit-grid.md",
+   "heading": "Complexity budget"
+  },
+  {
+   "id": "type-unit-grid-anti-patterns",
+   "title": "Anti-patterns",
+   "area": "diagram",
+   "keywords": [
+    "anti",
+    "patterns",
+    "type-unit-grid"
+   ],
+   "file": "references/diagram/type-unit-grid.md",
+   "heading": "Anti-patterns"
+  },
+  {
+   "id": "type-unit-grid-examples",
+   "title": "Examples",
+   "area": "diagram",
+   "keywords": [
+    "examples",
+    "type-unit-grid"
+   ],
+   "file": "references/diagram/type-unit-grid.md",
+   "heading": "Examples"
+  },
+  {
+   "id": "print",
+   "title": "Printable sheets (A4)",
+   "area": "anatomy",
+   "keywords": [
+    "a4",
+    "print",
+    "printable",
+    "sheets"
+   ],
+   "file": "scripts/anatomy/references/print.md",
+   "heading": "Printable sheets (A4)"
+  },
+  {
+   "id": "print-three-formats",
+   "title": "The three formats",
+   "area": "anatomy",
+   "keywords": [
+    "formats",
+    "print",
+    "three"
+   ],
+   "file": "scripts/anatomy/references/print.md",
+   "heading": "The three formats"
+  },
+  {
+   "id": "print-spec",
+   "title": "The spec",
+   "area": "anatomy",
+   "keywords": [
+    "print",
+    "spec"
+   ],
+   "file": "scripts/anatomy/references/print.md",
+   "heading": "The spec"
+  },
+  {
+   "id": "print-check-it",
+   "title": "Check it",
+   "area": "anatomy",
+   "keywords": [
+    "check",
+    "it",
+    "print"
+   ],
+   "file": "scripts/anatomy/references/print.md",
+   "heading": "Check it"
+  },
+  {
+   "id": "print-pdf-link-figure",
+   "title": "A PDF link on the figure",
+   "area": "anatomy",
+   "keywords": [
+    "figure",
+    "link",
+    "pdf",
+    "print"
+   ],
+   "file": "scripts/anatomy/references/print.md",
+   "heading": "A PDF link on the figure"
+  },
+  {
+   "id": "print-longer-detailed-sheets",
+   "title": "Longer detailed sheets",
+   "area": "anatomy",
+   "keywords": [
+    "detailed",
+    "longer",
+    "print",
+    "sheets"
+   ],
+   "file": "scripts/anatomy/references/print.md",
+   "heading": "Longer detailed sheets"
   }
  ]
 }

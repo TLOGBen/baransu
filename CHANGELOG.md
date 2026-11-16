@@ -2,6 +2,17 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.48.0] - 2026-11-16
+
+### Changed（draw：跟上三個上游）
+- 圖表系統跟上 diagram-design 2.6.164（原本 2.6.99）：
+  - 圖型從 45 種變成 50 種，新增步驟圖、單位方格圖、SBGN 生化流程圖、需求追溯圖、事件建模圖；散佈圖多了盒鬚圖，依賴圖多了弧線圖。每種都附範例和專屬驗證腳本。
+  - 可以匯入 PlantUML 的循序圖和類別圖重畫。
+  - Mermaid、draw.io、Excalidraw 匯入修了二十多個讀錯或漏讀的情況；匯出 SVG 不再弄壞 CSS 字串和字元參照。
+  - PNG 匯出改成獨立腳本 `scripts/diagram/export_png.py`，防止 Windows 帳號被鎖的設定跟著搬過去；版面幾何檢查 `verify_geometry.py` 也放進 skill 裡，可以直接跑。
+- 互動架構圖跟上 archify 3.2.0（原本 3.1.0）：多了阿拉伯文介面、時間軸跨日光節約時間的刻度修正、Windows 上找得到 Edge。archify 新的「一頁式解答」頁面隨套件附上，但 draw 不會用它，整頁的版面仍交給 `/ui`。
+- 機構圖跟上 anatomy 1482e84（原本 bc943e4）：可以把做好的圖印成 A4 或 Letter 的 PDF（海報、工程圖、詳解三種），並修了曲線取樣、截圖和自動操作卡住的問題；新的 PDF 列印同樣加上防鎖帳號的設定。
+
 ## [8.45.0] - 2026-11-04
 
 ### Changed（lint：卡片照新設計稿）
