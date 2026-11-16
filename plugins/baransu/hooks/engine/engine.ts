@@ -882,8 +882,15 @@ async function callAfterTake<H, R>(
     const gitAt = (): Occurrence => ({ key: commits || !pushes ? 'pre:commit' : 'pre:push', command, push: pushes ? { refs: pushRefs(command) } : null })
     if (gitWrite) {
       let findings: Finding[]
-      if (config.git && !plainWrites.length) findings = await runMoment(look, S(), gitAt())
-      else {
+      if (config.git && !plainWrites.length) {
+        findings = await runMoment(look, S(), gitAt())
+        // A write whose folder cannot be read may land in any repo: it is checked here, the likeliest place, but
+        // facts that may be another repo's never hold it.
+        if (dirs.includes(null))
+          findings = findings.map(f => (f.severity === 'error' || f.severity === 'check' || f.severity === 'retry'
+            ? { ...f, severity: 'warn' as const, text: `看不出這次 commit／push 在哪個 repo（路徑用了 ~、變數、cd -、popd，或 git 包在別的指令裡），以 ${root} 的資料判斷，只提醒不擋：${f.text}` }
+            : f))
+      } else {
         findings = []
         const ran = '這次 commit／push 會照常執行，但它的 lint 檢查沒有跑'
         const general = new Set([
