@@ -24,6 +24,17 @@ def flagged(path: str) -> str | None:
         for n in ast.walk(tree)
     )
     utf8 = lambda node: isinstance(node, ast.Constant) and str(node.value).lower().replace("-", "").replace("_", "") == "utf8"
+    # Names bound by getattr(sys.stdout, "reconfigure", None): calling one reconfigures that stream.
+    bound = {
+        t.id
+        for n in ast.walk(tree)
+        if isinstance(n, ast.Assign) and isinstance(n.value, ast.Call) and isinstance(n.value.func, ast.Name)
+        and n.value.func.id == "getattr" and len(n.value.args) >= 2
+        and ast.unparse(n.value.args[0]) in ("sys.stdout", "sys.stderr")
+        and isinstance(n.value.args[1], ast.Constant) and n.value.args[1].value == "reconfigure"
+        for t in n.targets
+        if isinstance(t, ast.Name)
+    }
     prints = False
     fixed = False
     for n in ast.walk(tree):
@@ -37,9 +48,9 @@ def flagged(path: str) -> str | None:
             if f.attr == "write" and target in ("sys.stdout", "sys.stderr"):
                 prints = True
         # sys.stdout.reconfigure(encoding="utf-8"), on a loop variable over the streams, or through a name bound
-        # by getattr(sys.stdout, "reconfigure", None)
-        callee = f.attr if isinstance(f, ast.Attribute) else f.id if isinstance(f, ast.Name) else None
-        if callee == "reconfigure" and any(k.arg == "encoding" and utf8(k.value) for k in n.keywords):
+        # by getattr above; an unrelated function that happens to be named reconfigure does not count
+        reconfigures = (isinstance(f, ast.Attribute) and f.attr == "reconfigure") or (isinstance(f, ast.Name) and f.id in bound)
+        if reconfigures and any(k.arg == "encoding" and utf8(k.value) for k in n.keywords):
             fixed = True
         # sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
         name = ast.unparse(f)

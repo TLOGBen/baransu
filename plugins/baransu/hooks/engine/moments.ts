@@ -9,7 +9,7 @@ import { toRegExp } from './scope/parse'
 import { relationsFor } from './scope/relations'
 import type { Occurrence, Targets } from './scope/types'
 import { MAX_TARGETS } from './scope/types'
-import { isGitWrite, pushRefs } from './shell'
+import { gitWrites, isGitWrite, pushRefs, withoutBodies } from './shell'
 import type { Check, Config, Finding, LintState } from './types'
 
 /**
@@ -354,15 +354,19 @@ async function gitFactsAtCommit<H>(look: Look<H>, c: Check, command: string): Pr
   // (f.authors is read from HEAD, so it would count a push's own commits: it is not consulted here.)
   const known = async (email: string, base: string): Promise<boolean> =>
     String((await runGit(look, ['git', 'log', '-1', '-i', '-F', `--author=<${email}>`, '--format=%h', base], 30000)).stdout).trim() !== ''
-  const refs = /\bpush\b/.test(command) ? pushRefs(command) : null
-  if (/\bcommit\b/.test(command)) {
+  // Which write this is, and the flags it carries, come from the commands themselves: a heredoc or a here-string
+  // that only mentions `commit`, `push` or `--author` is text, not the write.
+  const writes = gitWrites(command)
+  const text = withoutBodies(command)
+  const refs = writes.includes('push') ? pushRefs(command) : null
+  if (writes.includes('commit')) {
     // `git commit --author="N <X>"` and `git -c user.email=X commit` write X as the author whatever the config says.
-    const author = /--author[=\s]+["']?[^"'<]*<([^>"'\s]+)>/.exec(command)?.[1]
-    const override = author ?? /-c\s+["']?user\.email=["']?([^"'\s]+)/.exec(command)?.[1]
+    const author = /--author[=\s]+["']?[^"'<]*<([^>"'\s]+)>/.exec(text)?.[1]
+    const override = author ?? /-c\s+["']?user\.email=["']?([^"'\s]+)/.exec(text)?.[1]
     const email = (override ?? String((await runGit(look, ['git', 'config', 'user.email'])).stdout)).trim().toLowerCase()
     if (f.commits >= 5 && email && !(await known(email, 'HEAD')))
       out.push({ id: c.id, ...level(c), text: `目前的 git 身分 <${email}> 在這個分支的歷史裡沒有 commit 過。${c.message}\n${f.text}` })
-  } else if (/\bpush\b/.test(command)) {
+  } else if (writes.includes('push')) {
     // A push makes no commit: what matters is who wrote the commits it sends. A refspec (`tmp:dev`) sends what
     // the source has and the remote's destination lacks; without one, the branch's own upstream decides.
     const ranges = refs ? refs.map(r => [`${r.remote}/${r.dst}`, r.src]) : [['@{u}', 'HEAD']]
@@ -374,11 +378,12 @@ async function gitFactsAtCommit<H>(look: Look<H>, c: Check, command: string): Pr
     if (f.commits >= 5 && strangers.length)
       out.push({ id: c.id, ...level(c), text: `要推上去的 commit 裡有在這個 repo 從沒出現過的身分：${strangers.join('、')}。${c.message}` })
   }
-  if (/\bcommit\b/.test(command) && /Co-Authored-By:/i.test(command) && f.coAuthor === 0 && f.commits >= 5)
+  // The trailer is read from the whole command: a `git commit -F - <<EOF` message is the heredoc's body.
+  if (writes.includes('commit') && /Co-Authored-By:/i.test(command) && f.coAuthor === 0 && f.commits >= 5)
     out.push({ id: c.id, ...level(c), text: `這個 repo 近 30 個 commit 都沒有 Co-Authored-By，這次卻加了。${c.message}` })
   // The branch a push lands on: each refspec's destination, else the current branch.
   const targets = refs ? refs.map(r => r.dst) : [(await runGit(look, ['git', 'rev-parse', '--abbrev-ref', 'HEAD'])).stdout.trim()]
-  if (/\bpush\b/.test(command) && f.prHabit && targets.includes(f.defaultBranch))
+  if (writes.includes('push') && f.prHabit && targets.includes(f.defaultBranch))
     out.push({ id: c.id, ...level(c), text: `這個 repo 習慣透過 PR/MR 合併，這次卻直接 push 到 ${f.defaultBranch}。${c.message}` })
   return out
 }

@@ -7,27 +7,45 @@ import type { PathRow } from './types'
 
 const GIT_WRITE = /\bgit\b[^|;&\n]*\b(commit|push)\b/
 
-/** Split on && || ; | and newlines outside quotes, so `node -e "…"` stays one command. A heredoc's body
- *  (`<<EOF`, `<<'EOF'`, `<<-EOF`, up to its closing line) is text fed to a command, not commands: it is left
- *  out. Pure. */
-export function segments(command: string): string[] {
-  const out: string[] = []
-  let cur = ''
+/** The program a command's first word names, the one way every reader here compares it: `git.exe`, `GIT` and
+ *  a subshell's `(git` all name `git`. Pure. */
+function program(word: string | undefined): string {
+  return (word ?? '').replace(/^\(+/, '').toLowerCase().replace(/\.exe$/, '')
+}
+
+/**
+ * The command with the text it feeds to a command taken out: a heredoc's body (`<<EOF`, `<<'EOF'`, `<<"EOF"`,
+ * `<<-EOF`, `<< -EOF`, up to its closing line) and a PowerShell here-string (`@'` / `@"` ending its line, up to
+ * `'@` / `"@` at a line start, left as `''`). That text is data, not commands; every reader of a command line
+ * starts here. Pure.
+ */
+export function withoutBodies(command: string): string {
+  let out = ''
   let quote = ''
+  // Inside `(( … ))` / `$(( … ))`, `<<` is a shift (`1<<2`, `x <<= 1`), never a heredoc.
+  let arith = 0
   const bodies: { end: string; tabs: boolean }[] = []
   for (let i = 0; i < command.length; i++) {
     const ch = command[i]
     if (quote) {
       if (ch === quote) quote = ''
-      cur += ch
+      out += ch
+    } else if ((ch === '(' && command[i + 1] === '(') || (ch === ')' && command[i + 1] === ')' && arith > 0)) {
+      arith += ch === '(' ? 1 : -1
+      out += ch + ch
+      i++
+    } else if (ch === '@' && (command[i + 1] === "'" || command[i + 1] === '"') && /^[ \t]*\r?\n/.test(command.slice(i + 2))) {
+      const close = command.slice(i + 2).search(command[i + 1] === "'" ? /\n'@/ : /\n"@/)
+      out += "''"
+      i = close === -1 ? command.length : i + 2 + close + 2
     } else if (ch === '"' || ch === "'") {
       quote = ch
-      cur += ch
-    } else if (ch === '<' && command[i + 1] === '<' && command[i + 2] !== '<' && command[i - 1] !== '<') {
-      const m = /^<<(-?)\s*(?:'([^'\n]*)'|"([^"\n]*)"|\\?([A-Za-z_][\w.-]*))/.exec(command.slice(i))
+      out += ch
+    } else if (arith === 0 && ch === '<' && command[i + 1] === '<' && command[i + 2] !== '<' && command[i - 1] !== '<') {
+      const m = /^<<(-?)[ \t]*(?:'([^'\n]*)'|"([^"\n]*)"|\\?([^\s;&|<>()'"`]+))/.exec(command.slice(i))
       if (m) bodies.push({ end: m[2] ?? m[3] ?? m[4], tabs: m[1] === '-' })
       const taken = m ? m[0] : ch
-      cur += taken
+      out += taken
       i += taken.length - 1
     } else if (ch === '\n' && bodies.length) {
       // Skip each pending body, in order, through its closing line.
@@ -40,11 +58,30 @@ export function segments(command: string): string[] {
           if ((tabs ? line.replace(/^\t+/, '') : line) === end) break
         }
       }
-      out.push(cur)
-      cur = ''
+      out += '\n'
       i = j - 1
-    } else if (ch === ';' || ch === '\n' || ch === '|' || (ch === '&' && command[i + 1] === '&')) {
-      if (ch === '&' || (ch === '|' && command[i + 1] === '|')) i++
+    } else out += ch
+  }
+  return out
+}
+
+/** Split on && || ; | and newlines outside quotes, so `node -e "…"` stays one command; heredoc and
+ *  here-string bodies are not commands (withoutBodies). Pure. */
+export function segments(command: string): string[] {
+  const text = withoutBodies(command)
+  const out: string[] = []
+  let cur = ''
+  let quote = ''
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i]
+    if (quote) {
+      if (ch === quote) quote = ''
+      cur += ch
+    } else if (ch === '"' || ch === "'") {
+      quote = ch
+      cur += ch
+    } else if (ch === ';' || ch === '\n' || ch === '|' || (ch === '&' && text[i + 1] === '&')) {
+      if (ch === '&' || (ch === '|' && text[i + 1] === '|')) i++
       out.push(cur)
       cur = ''
     } else cur += ch
@@ -55,7 +92,7 @@ export function segments(command: string): string[] {
 
 /** A shell command that writes files counts as an edit: sed -i, tee, a redirect, Set-Content, git apply, patch. Pure. */
 export function writesFiles(command: string): boolean {
-  const unquoted = command.replace(/"[^"]*"|'[^']*'/g, '""')
+  const unquoted = withoutBodies(command).replace(/"[^"]*"|'[^']*'/g, '""')
   return /\bsed\s+(-[a-zA-Z]*i|--in-place)|\btee\b|\b(Set-Content|Add-Content|Out-File)\b|\bgit\s+apply\b|\bpatch\s/i.test(unquoted) ||
     /(^|[^0-9&>])>>?\s*(?!&|\/dev\/null|\$null\b|nul\b)[^\s|;&]/i.test(unquoted)
 }
@@ -78,7 +115,7 @@ export function gitWrites(command: string): ('commit' | 'push')[] {
     let w = bare(words(seg.trim()))
     while (w.length && /^(do|then|else|elif|\{|!|\(+)$/.test(w[0])) w = bare(w.slice(1))
     if (!w.length) continue
-    const cmd = w[0].replace(/^\(+/, '').toLowerCase()
+    const cmd = program(w[0])
     const flag = w.findIndex(x => /^(-c|-command|\/c)$/i.test(x))
     if (['bash', 'sh', 'zsh', 'pwsh', 'powershell', 'cmd'].includes(cmd) && flag > 0 && w[flag + 1]) {
       for (const x of gitWrites(w[flag + 1])) out.add(x)
@@ -100,7 +137,7 @@ export function gitWrites(command: string): ('commit' | 'push')[] {
  * as git does. Flags are skipped. Pure.
  */
 export function pushRefs(command: string): { remote: string; src: string; dst: string }[] | null {
-  const m = /\bgit(?:\s+-C\s+\S+)?\s+push\b([^\n|;&]*)/.exec(command)
+  const m = /\bgit(?:\s+-C\s+\S+)?\s+push\b([^\n|;&]*)/.exec(withoutBodies(command))
   if (!m) return null
   const args = m[1].trim().split(/\s+/).filter(t => t && !t.startsWith('-')).map(t => t.replace(/^["']|["']$/g, ''))
   if (args.length < 2) return null
@@ -163,7 +200,7 @@ export function commitDirs(command: string, cwd: string): (string | null)[] {
       const to = target(w)
       dir = to === undefined ? null : resolve(dir, to)
     } else if (/^(popd|Pop-Location)$/i.test(w[0] ?? '')) dir = null
-    if (/^git(\.exe)?$/i.test(w[0] ?? '')) {
+    if (program(w[0]) === 'git') {
       // The subcommand is the first word after git's own options (-C <dir>, -c <k=v>, --flags):
       // `git log --grep commit` is not a write.
       let here: string | null = dir
@@ -173,7 +210,7 @@ export function commitDirs(command: string, cwd: string): (string | null)[] {
         else if (w[i] === '-c') i++
       }
       if (w[i] === 'commit' || w[i] === 'push') dirs.push(here)
-    } else if (/^(bash|sh|zsh|pwsh|powershell|cmd)(\.exe)?$/i.test(w[0] ?? '') && /^(-c|-Command|\/c)$/i.test(w[1] ?? '') && GIT_WRITE.test(w.slice(2).join(' '))) {
+    } else if (['bash', 'sh', 'zsh', 'pwsh', 'powershell', 'cmd'].includes(program(w[0])) && /^(-c|-Command|\/c)$/i.test(w[1] ?? '') && GIT_WRITE.test(w.slice(2).join(' '))) {
       // A git write inside another shell: its directory is that shell's business; say so.
       dirs.push(null)
     }
@@ -277,7 +314,7 @@ export function removedWorktrees(command: string): string[] | null {
   for (const seg of segments(command)) {
     const w = bare(words(seg.trim()))
     if (!w.length) continue
-    const cmd = w[0].toLowerCase()
+    const cmd = program(w[0])
     const flag = w.findIndex(x => /^(-c|-command|\/c)$/i.test(x))
     if (['bash', 'sh', 'zsh', 'pwsh', 'powershell', 'cmd'].includes(cmd) && flag > 0 && w[flag + 1]) out.push(...(removedWorktrees(w[flag + 1]) ?? []))
     else if (cmd === 'git') {
@@ -295,7 +332,7 @@ function deletedAbsolute(command: string, cwd: string): string[] {
   for (const seg of segments(command)) {
     const w = noRedirects(bare(words(seg.trim())))
     if (!w.length) continue
-    const cmd = w[0].toLowerCase()
+    const cmd = program(w[0])
     const args = w.slice(1).filter(a => !a.startsWith('-'))
     const flag = w.findIndex(x => /^(-c|-command|\/c)$/i.test(x))
     if (['bash', 'sh', 'zsh', 'pwsh', 'powershell', 'cmd'].includes(cmd) && flag > 0 && w[flag + 1]) out.push(...deletedAbsolute(w[flag + 1], base))
@@ -332,7 +369,7 @@ export async function destructivePreview<H>(runner: Runner<H>, h: H, root: strin
   for (const seg of segments(command)) {
     const w = noRedirects(bare(words(seg.trim())))
     if (!w.length) continue
-    const cmd = w[0].toLowerCase()
+    const cmd = program(w[0])
     const args = w.slice(1).filter(a => !a.startsWith('-'))
     const script = ['bash', 'sh', 'zsh', 'pwsh', 'powershell'].includes(cmd) ? w[w.findIndex(x => /^-(c|command)$/i.test(x)) + 1] : cmd === 'cmd' ? w[w.findIndex(x => /^\/c$/i.test(x)) + 1] : undefined
     if (script && w.some(x => /^(-c|-command|\/c)$/i.test(x))) {
@@ -393,11 +430,11 @@ export async function destructivePreview<H>(runner: Runner<H>, h: H, root: strin
         }
       } else if (sub === 'worktree' && rest[0] === 'remove') {
         for (const p of rest.slice(1).filter(a => !a.startsWith('-'))) {
-          // A folder that is not a worktree's own top answers `git -C` with the repo around it: say so instead
-          // of describing that repo as the worktree.
-          const prefix = await lines(['git', '-C', p, 'rev-parse', '--show-prefix'], 1)
-          if (prefix.length !== 0 && prefix[0] !== '') {
-            say(`移除 worktree ${p}：git 沒有登記這個 worktree（它在 repo 裡的位置是 ${prefix[0].replace(/\/$/, '')}，不是 worktree 的根目錄）`)
+          // Only a worktree's own top describes the worktree: a folder git cannot read (missing, outside any repo)
+          // prints nothing, and a folder inside a repo answers `git -C` with the repo around it, so say which.
+          const top = await lines(['git', '-C', p, 'rev-parse', '--show-toplevel', '--show-prefix'], 2)
+          if (top.length !== 1) {
+            say(`移除 worktree ${p}：git 沒有登記這個 worktree（${top.length === 0 ? '路徑不存在或不在任何 git repo 裡' : `它在 repo 裡的位置是 ${top[1].replace(/\/$/, '')}，不是 worktree 的根目錄`}）`)
             continue
           }
           const dirty = await lines(['git', '-C', p, 'status', '--short'])
