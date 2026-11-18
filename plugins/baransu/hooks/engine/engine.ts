@@ -13,7 +13,7 @@ import { commitDirs, deletedPaths, destructivePreview, gitWrites, isGitWrite, pu
 import { cardOf, CORRECTION, hanShare, render, restateNote, skillCard, slipHead, summarize } from './text'
 import { settle, STOP_HOLDS, type AfterKey, type Settled, type TimingKey } from './timing'
 import type {
-  Actor, Card, Check, Config, DoneSkillEvent, Finding, LintState, Outcome, PromptEvent, ReplyEvent, SkillPreface, SpokenEvent,
+  Actor, CallStart, Card, Check, Config, DoneSkillEvent, Finding, LintState, Outcome, PendingCall, PendingCompact, PromptEvent, ReplyEvent, SkillPreface, SpokenEvent,
   StopVerdict, SystemNote, ToolCallEvent, ToolVerdict, TurnEndEvent, TurnStartEvent,
 } from './types'
 
@@ -274,6 +274,7 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
       s.spoke = false
       s.tools = 0
       s.textAfterTools = ''
+      s.stopFrom = 0
       s.held = []
       s.stopHolds = 0
       s.touched = []
@@ -371,22 +372,31 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
     },
 
     toolCall<R>(e: ToolCallEvent, proceed: () => Promise<R>, outcome: (r: R) => Outcome): Promise<ToolVerdict<R>> {
-      // Not async: the take and the two readings that must belong to the moment the call arrived happen here.
-      const main = !e.agent
-      const taken = memory.take(h, main ? 'call' : 'none')
-      const at = { editSeq: S().editSeq, step: S().steps[e.agent ?? 'main'] ?? 0 }
-      // The check of the last answer to a 重新 is drawn on this call's row; what post:retry tells the model
-      // (timing.ts: an error as a fix, its warn on the card only) reaches it as lines.
-      const answer = main ? takeAnswerCard(S()) : undefined
-      if (answer) {
-        keepCard(S(), `${e.id}#answer`, answer)
-        save()
-      }
-      const toldAnswer = answer ? settle('post:retry', answer.lines.filter(l => l.severity !== 'note')) : undefined
-      const answerNote = toldAnswer
-        ? [...toldAnswer.fix, ...toldAnswer.line].map(l => `baransu lint（${l.id}）：剛才的回答 ${l.text}`).join('\n')
-        : ''
-      return callAfterTake(h, ports, memory, taken, at, e, proceed, outcome, answerNote || undefined)
+      const { taken, at, answerNote } = arrive(e)
+      return callAfterTake(h, ports, memory, taken, at, e, proceed, outcome, answerNote)
+    },
+
+    async toolBefore(e: ToolCallEvent): Promise<CallStart> {
+      const { taken, at, answerNote } = arrive(e)
+      const r = await callBefore(h, ports, memory, taken, at, e, answerNote)
+      return r.kind === 'deny' ? r : { kind: 'go', pending: r.pending }
+    },
+
+    toolAfter(p: PendingCall, o: Outcome): Promise<readonly string[]> {
+      return callAfter(h, ports, memory, p, o)
+    },
+
+    toolAbandoned(p: PendingCall) {
+      abandonCall(memory, h, p)
+    },
+
+    toolRefused(p: PendingCall): readonly string[] {
+      // As a refusal in callBefore: what the call carries rides on the refusal's reason, so it is delivered,
+      // not given back; the file it would have written is not Claude's own.
+      if (p.touchedFile) S().touched = (S().touched ?? []).filter(t => t !== p.touchedFile)
+      save()
+      if (!p.noConfig) deliver(memory, h, p.redo)
+      return p.context
     },
 
     async skillPrompt(e: DoneSkillEvent): Promise<SkillPreface> {
@@ -461,8 +471,13 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
       if (!config) return { kind: 'stop' }
       const look = lookOf(ports, h, config)
       // What the person saw last: Opus 5.5 says its words in thinking, which last_assistant_message leaves out.
-      const said = e.text.length >= S().textAfterTools.length ? e.text : S().textAfterTools
-      const findings = await runMoment(look, S(), { key: 'pre:stop', text: said })
+      const longer = (a: string, b: string) => (a.length >= b.length ? a : b)
+      const said = longer(e.text, S().textAfterTools)
+      // After a hold, the checks read the answer given since (the held one already got its findings): an answer
+      // fixed in place is not held again for what it no longer says. The report check below reads it all.
+      const from = S().stopFrom ?? 0
+      const answer = from > 0 ? longer(e.text, S().textAfterTools.slice(from)) : said
+      const findings = await runMoment(look, S(), { key: 'pre:stop', text: answer })
       // report-before-stop: work was done this turn and nothing was reported after the last tool.
       const rc = find(config, 'report-before-stop')
       if (rc && S().tools > 0) {
@@ -487,6 +502,7 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
       if (hold) {
         if (s.gate === 'hold') S().stopHolds = holds + 1
         for (const f of fresh) S().held.push({ key: `stop|${f.id}`, step: S().steps.main ?? 0 })
+        S().stopFrom = S().textAfterTools.length
         const t = told('stop', '', t0)
         save()
         if (t.redo) deliver(memory, h, t0.redo.some(f => f.id === rc?.id) ? ['report'] : ['retry'])
@@ -564,6 +580,23 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
       return compactAfterTake(h, ports, memory, taken, e.instructions, proceed, skipped, summary)
     },
 
+    compactBefore(e: { instructions: string }): Promise<PendingCompact> {
+      const taken = memory.take(h, 'call')
+      return compactBefore(h, ports, memory, taken, e.instructions).then(r => r.pending)
+    },
+
+    compactAfter(p: PendingCompact, summary: string) {
+      return compactAfter(h, ports, memory, p, summary)
+    },
+
+    compactAbandoned(p: PendingCompact) {
+      giveBackTaken(memory, h, p)
+    },
+
+    wake() {
+      return wake(h, ports, memory)
+    },
+
     async fileChanged(e) {
       const config = await ports.config.load(h)
       if (!config || e.change === 'unlink') return
@@ -576,9 +609,28 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
       const shown = findings.filter(f => f.id !== '' && !config.problems.includes(f))
       if (!shown.length) return
       const s = settle('post:file', shown)
-      enqueue(memory, h, told('file', file, s).lines.map(l => `（${file} 在 Claude 之外被改了）${l}`))
-      await post(h, ports, memory, cardOf(`Claude 之外改檔後 · ${file}`, shown))
+      enqueue(memory, h, told('file', file, s).lines.map(l => `（${file} 在這個對話之外被改了）${l}`))
+      await post(h, ports, memory, cardOf(`對話之外改檔後 · ${file}`, shown))
     },
+  }
+
+  /** A call arrives. Synchronous: the take and the two readings that must belong to the moment the call arrived. */
+  function arrive(e: ToolCallEvent): { taken: Taken; at: { editSeq: number; step: number }; answerNote?: string } {
+    const main = !e.agent
+    const taken = memory.take(h, main ? 'call' : 'none')
+    const at = { editSeq: S().editSeq, step: S().steps[e.agent ?? 'main'] ?? 0 }
+    // The check of the last answer to a 重新 is drawn on this call's row; what post:retry tells the model
+    // (timing.ts: an error as a fix, its warn on the card only) reaches it as lines.
+    const answer = main ? takeAnswerCard(S()) : undefined
+    if (answer) {
+      keepCard(S(), `${e.id}#answer`, answer)
+      save()
+    }
+    const toldAnswer = answer ? settle('post:retry', answer.lines.filter(l => l.severity !== 'note')) : undefined
+    const answerNote = toldAnswer
+      ? [...toldAnswer.fix, ...toldAnswer.line].map(l => `baransu lint（${l.id}）：剛才的回答 ${l.text}`).join('\n')
+      : ''
+    return { taken, at, ...(answerNote ? { answerNote } : {}) }
   }
 }
 
@@ -707,10 +759,32 @@ async function submitAfterTake<H, R>(
   }
 }
 
+/** Before, compact, after — the one-process host's compaction (Claude Code's session.compact). */
 async function compactAfterTake<H, R>(
   h: H, ports: Ports<H>, memory: Memory<H>, taken: Taken, instructions: string,
   proceed: (instructions: string) => Promise<R>, skipped: (r: R) => boolean, summary: (r: R) => string,
 ): Promise<R> {
+  const { pending: p, config } = await compactBefore(h, ports, memory, taken, instructions)
+  let r: R
+  try {
+    r = await proceed(instructions + p.carry)
+  } catch (err) {
+    giveBackTaken(memory, h, p)
+    throw err
+  }
+  if (skipped(r)) {
+    giveBackTaken(memory, h, p)
+    return r
+  }
+  await compactAfter(h, ports, memory, p, summary(r), config)
+  return r
+}
+
+/** pre:compact, and what is owed written as the lines the summary must keep. Nothing owed: what was taken goes
+ *  back at once, and the record holds nothing to give back later. */
+async function compactBefore<H>(
+  h: H, ports: Ports<H>, memory: Memory<H>, taken: Taken, instructions: string,
+): Promise<{ pending: PendingCompact; config: Config | null }> {
   let config: Config | null = null
   let carry = ''
   try {
@@ -730,35 +804,48 @@ async function compactAfterTake<H, R>(
   } catch {
     // The compaction must go on whatever the checks did.
   }
-  if (!carry) taken.giveBack()
-  let r: R
-  try {
-    r = await proceed(instructions + carry)
-  } catch (err) {
+  if (!carry) {
     taken.giveBack()
-    throw err
+    return { pending: { slips: [], queued: [], carry: '' }, config }
   }
-  if (skipped(r)) {
-    taken.giveBack()
-    return r
-  }
+  return { pending: { slips: taken.slips, queued: taken.queued, carry }, config }
+}
+
+/** The compaction happened: the restates it carried are delivered, then post:compact on its summary. Never
+ *  throws (the compaction already happened). `known`: the config the before half read, when the same process. */
+async function compactAfter<H>(h: H, ports: Ports<H>, memory: Memory<H>, p: PendingCompact, summary: string, known?: Config | null) {
   // The restates rode into the summary: delivered, so the model's answer to them is checked (R14).
-  if (carry && taken.slips.length) deliver(memory, h, ['restate'])
-  // post:compact: never throws past this point (the compaction already happened).
+  if (p.carry && p.slips.length) deliver(memory, h, ['restate'])
   try {
+    const config = known !== undefined ? known : await ports.config.load(h)
     if (config) {
-      const postFindings = await runMoment(lookOf(ports, h, config), memory.s, { key: 'post:compact', text: summary(r) })
+      const postFindings = await runMoment(lookOf(ports, h, config), memory.s, { key: 'post:compact', text: summary })
       if (postFindings.length) {
         enqueue(memory, h, told('compact', '壓縮後', settle('post:compact', postFindings)).lines)
         await post(h, ports, memory, cardOf('壓縮 · 壓縮後', postFindings))
       }
     }
   } catch {}
-  return r
+}
+
+/** Put back what a main call or a compaction took (a call-mode take): restates first, then the queued lines
+ *  ahead of any queued since. Synchronous, saves. Once per record: the caller drops it after. */
+function giveBackTaken<H>(memory: Memory<H>, h: H, p: { readonly slips: readonly string[]; readonly queued: readonly string[] }) {
+  memory.s.slips.unshift(...p.slips)
+  memory.s.queued = [...p.queued, ...(memory.s.queued ?? [])].slice(-MAX_QUEUED)
+  memory.save(h)
+}
+
+/** A call whose after half never comes (cancelled, refused by another hook, its host process gone): what it
+ *  took goes back, and the file it said it would write is no longer Claude's own. */
+function abandonCall<H>(memory: Memory<H>, h: H, p: PendingCall) {
+  if (p.touchedFile) memory.s.touched = (memory.s.touched ?? []).filter(t => t !== p.touchedFile)
+  if (!p.noConfig) giveBackTaken(memory, h, p)
+  else memory.save(h)
 }
 
 /**
- * Before, run, after. The pre half may refuse; once `proceed` has run nothing throws out of here (the hook's
+ * Before, run, after — the one-process host's call (Claude Code's tool.call). The pre half may refuse; once `proceed` has run nothing throws out of here (the hook's
  * `.catch` would hand the call on a second time and the notes and card of the first would be lost): the post
  * half catches its own failure and says so on the card.
  *
@@ -780,6 +867,25 @@ async function callAfterTake<H, R>(
   h: H, ports: Ports<H>, memory: Memory<H>, taken: Taken, at: { editSeq: number; step: number },
   e: ToolCallEvent, proceed: () => Promise<R>, outcome: (r: R) => Outcome, answerNote?: string,
 ): Promise<ToolVerdict<R>> {
+  const before = await callBefore(h, ports, memory, taken, at, e, answerNote)
+  if (before.kind === 'deny') return before
+  const p = before.pending
+  let result: R
+  try {
+    result = await proceed()
+  } catch (err) {
+    abandonCall(memory, h, p)
+    throw err
+  }
+  const notes = await callAfter(h, ports, memory, p, outcome(result), before.config)
+  return { kind: 'ran', result, notes }
+}
+
+/** The half of a call before the act: refuse it, or say how it goes on — plain data the after half reads. */
+async function callBefore<H>(
+  h: H, ports: Ports<H>, memory: Memory<H>, taken: Taken, at: { editSeq: number; step: number },
+  e: ToolCallEvent, answerNote?: string,
+): Promise<{ kind: 'deny'; reason: string } | { kind: 'go'; pending: PendingCall; config: Config | null }> {
   const S = () => memory.s
   const save = () => memory.save(h)
   const main = !e.agent
@@ -798,19 +904,18 @@ async function callAfterTake<H, R>(
   let headSnap: HeadSnap | undefined
   let store: Store | undefined
   let touchedFile: string | undefined
-  let previewCard: (c: Card) => Card = c => c
+  let preview: PreviewLine[] = []
+  const pending = (): PendingCall => ({
+    e, slips: [...taken.slips], queued: [...taken.queued], at, context, inline, redo, gitWrite, file,
+    ...(editSnap ? { editSnap } : {}), ...(treeSnap ? { treeSnap } : {}), ...(headSnap ? { headSnap } : {}),
+    ...(store ? { store } : {}), ...(touchedFile ? { touchedFile } : {}), preview,
+  })
   try {
     config = await ports.config.load(h)
     if (!config) {
       taken.giveBack()
       // Nothing is checked without .claude/lint/, but edits still count for a /lint set up later this session.
-      const r = await proceed()
-      const o = outcome(r)
-      if (o.ran && !o.isError && (isEdit || (isBash && writesFiles(command)))) {
-        S().editSeq++
-        save()
-      }
-      return { kind: 'ran', result: r, notes: [] }
+      return { kind: 'go', pending: { ...pending(), slips: [], queued: [], noConfig: true }, config }
     }
     const root = config.root
     const look = lookOf(ports, h, config)
@@ -819,7 +924,7 @@ async function callAfterTake<H, R>(
     file = e.kind === 'edit' ? relTo(root, e.file) : ''
     const insideRepo = file !== '' && !/^([A-Za-z]:)?\//.test(file)
     // A refused call still hands the model what it is owed: the notes ride on the refusal.
-    const refuse = (d: Card, deny: string): ToolVerdict<R> => {
+    const refuse = (d: Card, deny: string): { kind: 'deny'; reason: string } => {
       keepCard(S(), e.id, { ...d, replace: true })
       save()
       deliver(memory, h, redo)
@@ -856,7 +961,6 @@ async function callAfterTake<H, R>(
     if (e.kind === 'edit' && insideRepo) pre.push(...(await runMoment(look, S(), { key: 'pre:edit', file, text: e.text })))
 
     // Before any shell command: checks that read the command line, its deletes and the worktrees it removes.
-    let preview: PreviewLine[] = []
     if (e.kind === 'shell') {
       pre.push(...(await runMoment(look, S(), { key: 'pre:bash', command, deletes: deletedPaths(command, cwdNow, root), worktrees: removedWorktrees(command) })))
       // The delete preview: what a command that deletes, moves or discards will touch.
@@ -928,8 +1032,6 @@ async function callAfterTake<H, R>(
     const withPreview = (lines: Finding[]) => (preview.length
       ? { lines: [...lines.filter(f => f.id !== previewId), ...preview.filter(t => !t.row).map(t => ({ id: '', severity: 'note' as const, text: t.text }))], ...(rows.length ? { paths: rows } : {}) }
       : { lines })
-    // A card made after the act carries the preview as its path list too.
-    previewCard = c => (c.lines.some(f => f.id === previewId) ? { ...c, ...withPreview(c.lines) } : c)
     if (s.gate === 'hold') {
       if (s.redo.some(f => f.id === explain?.id)) redo.push('explain')
       // An explain-before-edit at error holds every file change until the model has said how: the turn has
@@ -989,20 +1091,51 @@ async function callAfterTake<H, R>(
     taken.giveBack()
     throw err
   }
+  return { kind: 'go', pending: pending(), config }
+}
 
-  // ---------------------------------------------------------------- the act
-  let result: R
-  try {
-    result = await proceed()
-  } catch (err) {
-    taken.giveBack()
-    if (touchedFile) S().touched = (S().touched ?? []).filter(t => t !== touchedFile)
-    save()
-    throw err
+/**
+ * The half of a call after the act: the after-moment, and what the model hears. Never throws. `known` is the
+ * config the before half read, when the same process runs both (Claude Code); a host that runs them apart
+ * (Codex) reads it again.
+ */
+async function callAfter<H>(
+  h: H, ports: Ports<H>, memory: Memory<H>, p: PendingCall, o: Outcome, known?: Config | null,
+): Promise<string[]> {
+  const S = () => memory.s
+  const save = () => memory.save(h)
+  const { e, at, context, inline, redo, gitWrite, file, editSnap, treeSnap, headSnap, store, touchedFile, preview } = p
+  const main = !e.agent
+  const isEdit = e.kind === 'edit'
+  const isBash = e.kind === 'shell'
+  const command = e.kind === 'shell' ? e.command : ''
+  if (p.noConfig) {
+    if (o.ran && !o.isError && (isEdit || (isBash && writesFiles(command)))) {
+      S().editSeq++
+      save()
+    }
+    return []
   }
+  let config: Config | null
+  try {
+    config = known !== undefined ? known : await ports.config.load(h)
+  } catch {
+    config = null
+  }
+  if (!config) {
+    // The rules went away between the two halves: what was taken still reaches the model when the act ran.
+    if (!o.ran || o.isError) giveBackTaken(memory, h, p)
+    return o.ran && !o.isError ? [...context] : []
+  }
+  const taken = { giveBack: () => giveBackTaken(memory, h, p) }
+  // A card made after the act carries the delete preview as its path list too.
+  const previewId = find(config, 'destructive-preview')?.id
+  const rows = preview.flatMap(t => (t.row ? [t.row] : []))
+  const previewCard = (c: Card): Card => (preview.length && c.lines.some(f => f.id === previewId)
+    ? { ...c, lines: [...c.lines.filter(f => f.id !== previewId), ...preview.filter(t => !t.row).map(t => ({ id: '', severity: 'note' as const, text: t.text }))], ...(rows.length ? { paths: rows } : {}) }
+    : c)
 
   // ---------------------------------------------------------------- after (never throws)
-  const o = outcome(result)
   const afterLines: string[] = []
   const afterFound = new Set<Finding>()
   let hadAfter = false
@@ -1016,6 +1149,7 @@ async function callAfterTake<H, R>(
     if (main && o.ran && !o.isReadOnly) {
       S().tools++
       S().textAfterTools = ''
+      S().stopFrom = 0
     }
     // While /lint runs, a command may have rewritten the rules: the next load reads them again.
     if (isBash && main && o.ran && S().lintTurn) ports.config.reload()
@@ -1107,8 +1241,7 @@ async function callAfterTake<H, R>(
     keepCard(S(), e.id, previewCard(d ?? { kind: 'warn', meta: 'lint', lines: inline }))
     save()
   }
-  const notes = [...(o.ran && !o.isError ? context : []), ...(o.ran ? afterLines : [])]
-  return { kind: 'ran', result, notes }
+  return [...(o.ran && !o.isError ? context : []), ...(o.ran ? afterLines : [])]
 
   function afterCount() {
     return inline.filter(f => afterFound.has(f)).length

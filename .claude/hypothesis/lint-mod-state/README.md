@@ -8,8 +8,16 @@
 - **主張與量詞**：在所有事件順序下（prompt.submit 的各種訊息、turn.start、turn.step、session.append、主迴圈與 subagent 的 tool.call、turn.complete、skill.prompt、mod 重新載入、`/clear` 任意交錯）
 - **規則確認**：R1–R10 已確認（使用者 2026-11-02；讀法 D1 選 B、D2 選 A）。R11 **未經確認**：它把 R6 收緊成「看過預覽才放行」，來自 0917b911 的 review（使用者要求全部修好），沒有另外請使用者確認這條文字。 R4、R5 的 8.43 改寫，以及 R19、R21，已確認（使用者 2026-11-04）。
 - **涵蓋的對象**：`plugins/baransu/hooks/engine/engine.ts` 的狀態（`Memory`：`ready` 載入、`take`／`giveBack`、`save`）與讀寫它的方法：`promptSubmit`、`turnStarted`、`stepBegan`／`textStreamed`、`replyAppended`、`cleared`、`toolCall`、`turnCompleted`、`skillPrompt`、`cardFor`，8.43 起加上 `stopping`（`classic.Stop`）與 `enqueue`／`queued`；平台事件到這些方法的翻譯 `hooks/adapters/claude-code/hooks.ts`、`translate.ts`；存取 `$.state` 的 `ports.ts`（`hostState`）；`hooks/main.ts` 註冊的 `turn.step`；型別 `plugins/baransu/types/index.d.ts`。模型的每個動作原本對應 lint.ts 的一個 hook，現在對應一個引擎方法（一對一，見 Q6）。8.43 新增、但模型沒有描述的入口：`agentStarted`／`agentStopped`（spans）、`compacting`、`fileChanged`、`bump`／`rearm`／`wake`（timers），R18、R20 只靠論證
-- **描述的版本**：8.45.0（commit `c0d8ba13`；engine.ts sha256 `4a6586c2cf41…`）
+- **描述的版本**：8.49.0 工作樹，還沒 commit（engine.ts sha256 `6990010f069c…`）：a741eba5 加上工具呼叫拆成前後兩半（TLC 55 個 run 已重跑），壓縮拆成前後兩半、新增 `wake()` 和 `toolRefused()`，以及 `stopFrom`（被留住之後 pre:stop 的檢查只讀新的回答；模型的 `textLong` 只管「有沒有交代現況」，那一項仍然讀整段，所以 `stopFrom` 不在模型裡；加了這個欄位之後重跑 `--quick` 55/55 符合預期，2026-11-18）。後面這些沒有重跑 TLC：它們只是把同一段邏輯分成兩個函式、多一個入口，Claude Code 走的路徑由新舊引擎比對證實逐字相同（壓縮略過、出錯、正常、沒有欠帳四種，`.claude/prove-it/records/2026-11-18-codex-lint-pilot.md`）。拆分前一版是 engine.ts sha256 `95aae7a99e22…`。上一版是 8.45.0（commit `c0d8ba13`；engine.ts sha256 `4a6586c2cf41…`）。
 - **定稿雜湊（8.45.0）**：LintRules.tla `0efaf38df2b2…`、LintMod.tla `74501647702a…`（兩個都沒變）、check.py `148453ec0cb6…`（加了 `--from`）、engine.ts `4a6586c2cf41…`、timing.ts `ea961ab7e008…`、adapters hooks.ts `b0784a8e5f63…`、translate.ts `cc2ca5999cfe…`、engine/ports.ts `e4b22e015c35…`、types/index.d.ts `2987bb06a0cd…`
+- **維護紀錄（Codex adapter 試點，2026-11-18）**：
+  - 改動：`toolCall` 拆成 `callBefore`／`callAfter`，Claude Code 照樣在同一次呼叫裡把兩半接起來。另外新增 `toolBefore`／`toolAfter`／`toolAbandoned` 給 Codex 用。
+  - 分類：「沒有影響」。拿走欠帳（`arrive` 裡的 `memory.take`）、還回去（`giveBackTaken`／`abandonCall`，邏輯和原本 `Taken.giveBack` 的 call 模式相同）、送達（`deliver`）的時機和順序都沒變，`LintState` 的形狀也沒變。
+  - 證據：
+    - 拆分前（HEAD）和拆分後的引擎跑同一組 12 個情境，`toolCall`／`stopping` 的結果、卡片和最後存下的狀態逐字相同。
+    - `--quick` 全部 55 個 run 符合預期。共分三次跑完：預算兩次在中途用完，第三次用腳本只跑剩下的 run。
+  - Codex 那一邊的狀態另有 `codex-lint-state` 負責。
+  - 結果：in step。
 - **維護紀錄（8.45.0，2026-11-04）**：`LintState` 多了 `band`（沒有呼叫的卡片）、`skillCalls`（skill 名稱 → 呼叫）、`agentCalls`（卡片要掛的呼叫）、`languageFrom`（使用者語言的來源：檢查、Claude Code 設定或從訊息猜），卡片種類多了 `edited`、`note`、`stop`、`record`、`scan*`；各時機原本 `notify.notice` 送文字，改成 `post` 存卡片再交給 view。這些只決定卡片畫在哪，模型描述的欠帳（slips、queued、answering、held）的拿走與交付沒變，分類為「沒有影響」。卡片顯示的規則由 `lint-cards` 的 2026-11-04 擴充檢查。語言改讀 Claude Code 設定，在 `submitAfterTake` 拿走欠帳之後多了一次 await，拿走與交付的順序沒變，也是「沒有影響」。重跑 `--quick`：R1–R12 全部符合預期（1576 秒時用完時間上限），再用 `--from R13` 接著跑 R13–R21，全部符合預期（720 秒）。結果：in step。
 - **定稿雜湊（8.44.0）**：LintRules.tla `0efaf38df2b2…`、LintMod.tla `74501647702a…`、check.py `a66c593a3261…`（三個都沒變）、engine.ts `124de9ee6cc5…`、timing.ts `ea961ab7e008…`、hooks.ts `1747353b9c73…`、translate.ts `cc2ca5999cfe…`、ports.ts `c07639f6d396…`、types/index.d.ts `26c1ac14ec06…`
 - **維護紀錄（8.44.0 合集版面，2026-11-04，`--maintain`）**：

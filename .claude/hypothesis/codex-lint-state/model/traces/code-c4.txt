@@ -1,0 +1,388 @@
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+Running breadth-first search Model-Checking with fp 80 and seed 1739399276524097423 with 1 worker on 32 cores with 1820MB heap and 64MB offheap memory [pid: 16768] (Windows 11 10.0 amd64, Eclipse Adoptium 21.0.13 64bit, MSBDiskFPSet, DiskStateQueue).
+Parsing file C:\Users\jimts\AppData\Local\Temp\codex-lint-code-c4-26fpunjv\CodexHooks.tla
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-11563536403224294540\Naturals.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-11563536403224294540\FiniteSets.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-11563536403224294540\_TLCTrace.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\codex-lint-code-c4-26fpunjv\CodexRules.tla
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-11563536403224294540\Sequences.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-11563536403224294540\TLC.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-11563536403224294540\TLCExt.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Parsing file C:\Users\jimts\AppData\Local\Temp\tlc-11563536403224294540\Integers.tla (jar:file:/C:/Users/jimts/.local/share/formal/tla/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Integers
+Semantic processing of module TLCExt
+Semantic processing of module _TLCTrace
+Semantic processing of module CodexRules
+Semantic processing of module CodexHooks
+Linting of module TLCExt
+Linting of module _TLCTrace
+Linting of module CodexRules
+Linting of module CodexHooks
+Starting... (2026-11-18 14:46:31)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-11-18 14:46:31.
+Error: Invariant C4 is violated.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+/\ extra = [i1 |-> 0, i2 |-> 0]
+/\ outI = [ pre1 |-> {},
+  pre2 |-> {},
+  pre3 |-> {},
+  post1 |-> {},
+  post2 |-> {},
+  post3 |-> {},
+  stop |-> {},
+  prompt |-> {} ]
+/\ stalled = {}
+/\ releaseOut = {}
+/\ generated = {"i1"}
+/\ stallsUsed = 0
+/\ loc = [ pre1 |->
+      [ owed |-> {"i1"},
+        pend |-> <<{}, {}, {}>>,
+        hasPend |-> {},
+        held |-> {},
+        ver |-> 0 ],
+  pre2 |->
+      [ owed |-> {"i1"},
+        pend |-> <<{}, {}, {}>>,
+        hasPend |-> {},
+        held |-> {},
+        ver |-> 0 ],
+  pre3 |->
+      [ owed |-> {"i1"},
+        pend |-> <<{}, {}, {}>>,
+        hasPend |-> {},
+        held |-> {},
+        ver |-> 0 ],
+  post1 |->
+      [ owed |-> {"i1"},
+        pend |-> <<{}, {}, {}>>,
+        hasPend |-> {},
+        held |-> {},
+        ver |-> 0 ],
+  post2 |->
+      [ owed |-> {"i1"},
+        pend |-> <<{}, {}, {}>>,
+        hasPend |-> {},
+        held |-> {},
+        ver |-> 0 ],
+  post3 |->
+      [ owed |-> {"i1"},
+        pend |-> <<{}, {}, {}>>,
+        hasPend |-> {},
+        held |-> {},
+        ver |-> 0 ],
+  stop |->
+      [ owed |-> {"i1"},
+        pend |-> <<{}, {}, {}>>,
+        hasPend |-> {},
+        held |-> {},
+        ver |-> 0 ],
+  prompt |->
+      [ owed |-> {"i1"},
+        pend |-> <<{}, {}, {}>>,
+        hasPend |-> {},
+        held |-> {},
+        ver |-> 0 ] ]
+/\ delivered = [i1 |-> 0, i2 |-> 0]
+/\ pc = [ pre1 |-> "idle",
+  pre2 |-> "idle",
+  pre3 |-> "idle",
+  post1 |-> "idle",
+  post2 |-> "idle",
+  post3 |-> "idle",
+  stop |-> "idle",
+  prompt |-> "idle" ]
+/\ file = [ owed |-> {"i1"},
+  pend |-> <<{}, {}, {}>>,
+  hasPend |-> {},
+  held |-> {},
+  ver |-> 0 ]
+/\ gaveUpDead = FALSE
+/\ kills = 0
+/\ promptOk = FALSE
+/\ holder = "free"
+/\ rel = [ pre1 |-> FALSE,
+  pre2 |-> FALSE,
+  pre3 |-> FALSE,
+  post1 |-> FALSE,
+  post2 |-> FALSE,
+  post3 |-> FALSE,
+  stop |-> FALSE,
+  prompt |-> FALSE ]
+/\ holdOut = {}
+/\ lostG = FALSE
+/\ promptSeen = {}
+/\ reaper = "free"
+/\ ans = [ pre1 |-> "none",
+  pre2 |-> "none",
+  pre3 |-> "none",
+  post1 |-> "none",
+  post2 |-> "none",
+  post3 |-> "none",
+  stop |-> "none",
+  prompt |-> "none" ]
+/\ answered = [ pre1 |-> "none",
+  pre2 |-> "none",
+  pre3 |-> "none",
+  post1 |-> "none",
+  post2 |-> "none",
+  post3 |-> "none",
+  stop |-> "none",
+  prompt |-> "none" ]
+/\ failDeny = FALSE
+/\ rver = [ pre1 |-> 0,
+  pre2 |-> 0,
+  pre3 |-> 0,
+  post1 |-> 0,
+  post2 |-> 0,
+  post3 |-> 0,
+  stop |-> 0,
+  prompt |-> 0 ]
+
+State 2: <Start("pre1") line 116, col 3 to line 120, col 23 of module CodexHooks>
+/\ extra = [i1 |-> 0, i2 |-> 0]
+/\ outI = [ pre1 |-> {},
+  pre2 |-> {},
+  pre3 |-> {},
+  post1 |-> {},
+  post2 |-> {},
+  post3 |-> {},
+  stop |-> {},
+  prompt |-> {} ]
+/\ stalled = {}
+/\ releaseOut = {}
+/\ generated = {"i1"}
+/\ stallsUsed = 0
+/\ loc = [ pre1 |->
+      [ owed |-> {"i1"},
+        pend |-> <<{}, {}, {}>>,
+        hasPend |-> {},
+        held |-> {},
+        ver |-> 0 ],
+  pre2 |->
+      [ owed |-> {"i1"},
+        pend |-> <<{}, {}, {}>>,
+        hasPend |-> {},
+        held |-> {},
+        ver |-> 0 ],
+  pre3 |->
+      [ owed |-> {"i1"},
+        pend |-> <<{}, {}, {}>>,
+        hasPend |-> {},
+        held |-> {},
+        ver |-> 0 ],
+  post1 |->
+      [ owed |-> {"i1"},
+        pend |-> <<{}, {}, {}>>,
+        hasPend |-> {},
+        held |-> {},
+        ver |-> 0 ],
+  post2 |->
+      [ owed |-> {"i1"},
+        pend |-> <<{}, {}, {}>>,
+        hasPend |-> {},
+        held |-> {},
+        ver |-> 0 ],
+  post3 |->
+      [ owed |-> {"i1"},
+        pend |-> <<{}, {}, {}>>,
+        hasPend |-> {},
+        held |-> {},
+        ver |-> 0 ],
+  stop |->
+      [ owed |-> {"i1"},
+        pend |-> <<{}, {}, {}>>,
+        hasPend |-> {},
+        held |-> {},
+        ver |-> 0 ],
+  prompt |->
+      [ owed |-> {"i1"},
+        pend |-> <<{}, {}, {}>>,
+        hasPend |-> {},
+        held |-> {},
+        ver |-> 0 ] ]
+/\ delivered = [i1 |-> 0, i2 |-> 0]
+/\ pc = [ pre1 |-> "wait",
+  pre2 |-> "idle",
+  pre3 |-> "idle",
+  post1 |-> "idle",
+  post2 |-> "idle",
+  post3 |-> "idle",
+  stop |-> "idle",
+  prompt |-> "idle" ]
+/\ file = [ owed |-> {"i1"},
+  pend |-> <<{}, {}, {}>>,
+  hasPend |-> {},
+  held |-> {},
+  ver |-> 0 ]
+/\ gaveUpDead = FALSE
+/\ kills = 0
+/\ promptOk = FALSE
+/\ holder = "free"
+/\ rel = [ pre1 |-> FALSE,
+  pre2 |-> FALSE,
+  pre3 |-> FALSE,
+  post1 |-> FALSE,
+  post2 |-> FALSE,
+  post3 |-> FALSE,
+  stop |-> FALSE,
+  prompt |-> FALSE ]
+/\ holdOut = {}
+/\ lostG = FALSE
+/\ promptSeen = {}
+/\ reaper = "free"
+/\ ans = [ pre1 |-> "none",
+  pre2 |-> "none",
+  pre3 |-> "none",
+  post1 |-> "none",
+  post2 |-> "none",
+  post3 |-> "none",
+  stop |-> "none",
+  prompt |-> "none" ]
+/\ answered = [ pre1 |-> "none",
+  pre2 |-> "none",
+  pre3 |-> "none",
+  post1 |-> "none",
+  post2 |-> "none",
+  post3 |-> "none",
+  stop |-> "none",
+  prompt |-> "none" ]
+/\ failDeny = FALSE
+/\ rver = [ pre1 |-> 0,
+  pre2 |-> 0,
+  pre3 |-> 0,
+  post1 |-> 0,
+  post2 |-> 0,
+  post3 |-> 0,
+  stop |-> 0,
+  prompt |-> 0 ]
+
+State 3: <Kill("pre1") line 283, col 3 to line 291, col 23 of module CodexHooks>
+/\ extra = [i1 |-> 0, i2 |-> 0]
+/\ outI = [ pre1 |-> {},
+  pre2 |-> {},
+  pre3 |-> {},
+  post1 |-> {},
+  post2 |-> {},
+  post3 |-> {},
+  stop |-> {},
+  prompt |-> {} ]
+/\ stalled = {}
+/\ releaseOut = {}
+/\ generated = {"i1"}
+/\ stallsUsed = 0
+/\ loc = [ pre1 |->
+      [ owed |-> {"i1"},
+        pend |-> <<{}, {}, {}>>,
+        hasPend |-> {},
+        held |-> {},
+        ver |-> 0 ],
+  pre2 |->
+      [ owed |-> {"i1"},
+        pend |-> <<{}, {}, {}>>,
+        hasPend |-> {},
+        held |-> {},
+        ver |-> 0 ],
+  pre3 |->
+      [ owed |-> {"i1"},
+        pend |-> <<{}, {}, {}>>,
+        hasPend |-> {},
+        held |-> {},
+        ver |-> 0 ],
+  post1 |->
+      [ owed |-> {"i1"},
+        pend |-> <<{}, {}, {}>>,
+        hasPend |-> {},
+        held |-> {},
+        ver |-> 0 ],
+  post2 |->
+      [ owed |-> {"i1"},
+        pend |-> <<{}, {}, {}>>,
+        hasPend |-> {},
+        held |-> {},
+        ver |-> 0 ],
+  post3 |->
+      [ owed |-> {"i1"},
+        pend |-> <<{}, {}, {}>>,
+        hasPend |-> {},
+        held |-> {},
+        ver |-> 0 ],
+  stop |->
+      [ owed |-> {"i1"},
+        pend |-> <<{}, {}, {}>>,
+        hasPend |-> {},
+        held |-> {},
+        ver |-> 0 ],
+  prompt |->
+      [ owed |-> {"i1"},
+        pend |-> <<{}, {}, {}>>,
+        hasPend |-> {},
+        held |-> {},
+        ver |-> 0 ] ]
+/\ delivered = [i1 |-> 0, i2 |-> 0]
+/\ pc = [ pre1 |-> "dead",
+  pre2 |-> "idle",
+  pre3 |-> "idle",
+  post1 |-> "idle",
+  post2 |-> "idle",
+  post3 |-> "idle",
+  stop |-> "idle",
+  prompt |-> "idle" ]
+/\ file = [ owed |-> {"i1"},
+  pend |-> <<{}, {}, {}>>,
+  hasPend |-> {},
+  held |-> {},
+  ver |-> 0 ]
+/\ gaveUpDead = FALSE
+/\ kills = 1
+/\ promptOk = FALSE
+/\ holder = "free"
+/\ rel = [ pre1 |-> FALSE,
+  pre2 |-> FALSE,
+  pre3 |-> FALSE,
+  post1 |-> FALSE,
+  post2 |-> FALSE,
+  post3 |-> FALSE,
+  stop |-> FALSE,
+  prompt |-> FALSE ]
+/\ holdOut = {}
+/\ lostG = FALSE
+/\ promptSeen = {}
+/\ reaper = "free"
+/\ ans = [ pre1 |-> "none",
+  pre2 |-> "none",
+  pre3 |-> "none",
+  post1 |-> "none",
+  post2 |-> "none",
+  post3 |-> "none",
+  stop |-> "none",
+  prompt |-> "none" ]
+/\ answered = [ pre1 |-> "none",
+  pre2 |-> "none",
+  pre3 |-> "none",
+  post1 |-> "none",
+  post2 |-> "none",
+  post3 |-> "none",
+  stop |-> "none",
+  prompt |-> "none" ]
+/\ failDeny = FALSE
+/\ rver = [ pre1 |-> 0,
+  pre2 |-> 0,
+  pre3 |-> 0,
+  post1 |-> 0,
+  post2 |-> 0,
+  post3 |-> 0,
+  stop |-> 0,
+  prompt |-> 0 ]
+
+6 states generated, 6 distinct states found, 3 states left on queue.
+The depth of the complete state graph search is 3.
+Finished in 00s at (2026-11-18 14:46:31)
+Trace exploration spec path: .\CodexHooks_TTrace_1794984391.tla
+Picked up JAVA_TOOL_OPTIONS: -Xmx2g

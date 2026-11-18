@@ -128,7 +128,7 @@ const WHY: Partial<Record<TimingKey | 'manual', string>> = {
   'around:agent': 'subagent 結束後擋不住它，也沒辦法要它重做，只能 warn 或 info',
   'pre:compact': '擋下壓縮會讓對話塞滿，也沒有一步可以重做，只能 warn 或 info',
   'post:compact': '壓縮後沒有一步可以重做',
-  'post:file': '檔案是在 Claude 之外改的，只能 warn 或 info',
+  'post:file': '檔案是在對話之外改的，只能 warn 或 info',
   'post:retry': '回答「重新」之後再要它重做，會一直要下去；用 error 或 warn',
   'pre:skill': 'skill 只叫一次，沒有「下一次同樣的動作」可以放行或重做；要它先停下就用 error',
   'after:edit': '時間到了只能提醒，只能 warn 或 info',

@@ -2,6 +2,27 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.49.0] - 2026-11-18
+
+### Added（lint：Codex 也受同一份規則約束）
+- Codex 版 plugin 帶了 lint 的 hook。用 Codex（CLI 或 desktop）的人在有 `.claude/lint/` 的專案裡工作時，跑的是和 Claude Code 同一份規則、同一個引擎：
+  - `apply_patch` 和 shell 指令的前、後檢查：寫進禁用的寫法會被擋下，改完有 error 會被要求修正，刪除和 `check` 等級照樣先擋一次。patch 刪檔或搬檔走刪除檢查。
+  - 回合結束前的檢查、回合被中斷（中斷那一輪跑的 review 不算數）、subagent 結束後、壓縮前後、`after:*` 到期、檔案在模型之外被改、使用者送出訊息時的檢查。subagent 的任務訊息不算使用者的訊息。
+  - `remind` 規則、git 習慣、使用者語言在 session 開頭給模型，壓縮後和規則改變時再給一次。
+  - 打 `$baransu:lint`、`$baransu:review` 等 skill，或模型自己讀某個 skill 的 `SKILL.md` 時，跑 `manual`／`pre:skill`。
+- Codex 上沒有卡片，所有結果都用文字交給模型。檔案在模型之外被改、到期檢查、模型說的話，要等下一次 hook 被觸發時才看得到。
+- `run` 檢查只在 Codex 已信任的專案裡執行。
+- hook 要用 PATH 上的 Node（18 以上）；找不到時，session 開頭會說「baransu lint 沒在跑：找不到 Node」。Codex desktop 自帶的 Node 不在 PATH 上，用不到。
+- 第一次使用（以及每次更新版本）時，Codex 會請你檢閱並信任這組 hook。
+
+### Changed
+- lint 引擎把「一次工具呼叫」和「一次壓縮」各拆成前後兩半，讓兩次 hook 分在不同程式執行的宿主也能用。Claude Code 的行為不變。
+- `make parity-check` 會檢查 Codex 版的 `hooks/lint.mjs` 是不是由現在的原始碼打包出來的；改了引擎沒有重跑 `make codex-lint` 就會失敗。
+
+### Fixed
+- 回合結束前被留住之後，模型把回答改好了，卻還是被留住到用完 3 次：檢查一直讀到被留住的那段舊回答。現在被留住之後只看新的回答；「結束前要交代現況」仍然看整段，所以只用一句話改掉錯的地方不會再被要求交代一次。Claude Code 和 Codex 都適用。
+- 檔案在對話之外被改時，提醒寫成「在 Claude 之外被改了」，Codex 上用詞不對；改成「在這個對話之外被改了」。
+
 ## [8.48.0] - 2026-11-16
 
 ### Changed（draw：跟上三個上游）

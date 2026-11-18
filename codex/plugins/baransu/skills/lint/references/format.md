@@ -16,7 +16,7 @@ The folder:
   sgconfig.yml          # ast-grep's config
 ```
 
-The mod reads the folder once and keeps what it read in memory: it reads it again when `$baransu:lint` is called and when a file under the folder is edited (dot folders are not rules). Nothing is written into the folder.
+On Codex the hook reads the folder again at every event (dot folders are not rules); SKILL.md, "What the hook does", says what runs when. Nothing is written into the folder.
 
 `config.toml` is the one fixed path. Its parts:
 

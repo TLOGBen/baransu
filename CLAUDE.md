@@ -27,6 +27,7 @@ plugins/
       engine/                  # the lint engine: events in, verdicts out; knows nothing of Claude Code or files
       util/converters/         # set readers, chosen by name in .claude/lint/config.toml [settings] (toml today)
       adapters/claude-code/    # the only code touching `$`: hooks, event translation, config, state, cards
+      adapters/codex/          # the Codex hook: one node process per Codex hook event; bundled by `make codex-lint`
     rules/
       anti-patterns.md         # cross-skill behavioral guardrails
     agents/
@@ -105,7 +106,7 @@ These have each caused regressions — do not "optimize" them away:
 
 ## Verification
 
-此 plugin 不寫單元測試，但測試照做。A skill working well has nothing to do with unit tests, a skill failing has nothing to do with them, and when skills change it is the tests that break, not the skills — so since v8.0.0 the repo deliberately keeps no unit tests, ships no build toolchain, and keeps A/B blind-evaluation material out of the repo. Testing still happens, in the forms that do track whether a skill works:
+此 plugin 不寫單元測試，但測試照做。A skill working well has nothing to do with unit tests, a skill failing has nothing to do with them, and when skills change it is the tests that break, not the skills — so since v8.0.0 the repo deliberately keeps no unit tests, ships no build toolchain, and keeps A/B blind-evaluation material out of the repo. The one build step is `make codex-lint`, which bundles the Codex lint hook (`docs/adr/0001-codex-lint-bundle.md`); rerun it after changing `plugins/baransu/hooks/{engine,util,adapters/codex}/` and commit its output. Testing still happens, in the forms that do track whether a skill works:
 
 - `make test` — the single stable entrypoint; runs only `scripts/verify-skills.py`, the structural verifier. It is the mechanism anchor the principles above bind to, not a unit test.
 - `make parity-check` — runs `scripts/verify-codex-parity.py`, the Codex parity gate.

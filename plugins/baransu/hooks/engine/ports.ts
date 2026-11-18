@@ -7,7 +7,7 @@
 import type {
   Config, DoneSkillEvent, LintState, Outcome, PromptEvent, RawCheck, ReplyEvent, SkillPreface,
   SpokenEvent, SystemNote, ToolCallEvent, ToolVerdict, TurnEndEvent, TurnStartEvent, Card, Actor,
-  AgentStartEvent, AgentStopEvent, CompactEvent, FileChangedEvent, StopEvent, StopVerdict,
+  AgentStartEvent, AgentStopEvent, CompactEvent, FileChangedEvent, StopEvent, StopVerdict, CallStart, PendingCall, PendingCompact,
 } from './types'
 
 // ================================================================ portOut
@@ -201,6 +201,15 @@ export interface Lint<H> {
   /** TAKES. Gates the call, runs `proceed` unless denied, then runs the after-moment. Gives back what it took
    *  when the call is denied further down, errors, or anything throws. */
   toolCall<R>(e: ToolCallEvent, proceed: () => Promise<R>, outcome: (r: R) => Outcome): Promise<ToolVerdict<R>>
+  /** toolCall's two halves, for a host that runs the act's before and after in separate processes (Codex).
+   *  TAKES in toolBefore; the record it returns goes to exactly one of toolAfter (the act ran or failed) or
+   *  toolAbandoned (no after will come: cancelled, refused by another hook, the process gone). */
+  toolBefore(e: ToolCallEvent): Promise<CallStart>
+  toolAfter(p: PendingCall, o: Outcome): Promise<readonly string[]>
+  toolAbandoned(p: PendingCall): void
+  /** A call that passed its before half but will not run because the same act was refused for another part (a
+   *  patch whose other file is refused): its notes, for the refusal's reason, and they count as delivered. */
+  toolRefused(p: PendingCall): readonly string[]
 
   skillPrompt(e: DoneSkillEvent): Promise<SkillPreface>
   /** A Skill call loading the skill `name` starts (callId) or ends (undefined), so its card hangs under that call. */
@@ -218,6 +227,15 @@ export interface Lint<H> {
   /** A compaction: pre:compact before `proceed`, post:compact after it with the summary `summary(r)` reads.
    *  TAKES what is owed and writes it into the instructions; gives it back when `skipped(r)`. */
   compacting<R>(e: CompactEvent, proceed: (instructions: string) => Promise<R>, skipped: (r: R) => boolean, summary: (r: R) => string): Promise<R>
+  /** compacting's two halves, for a host whose compaction starts and ends in separate processes (Codex). TAKES
+   *  in compactBefore; its `carry` is what the conversation after the compaction must be told. The record goes
+   *  to exactly one of compactAfter (it happened, with its summary) or compactAbandoned (it did not). */
+  compactBefore(e: CompactEvent): Promise<PendingCompact>
+  compactAfter(p: PendingCompact, summary: string): Promise<void>
+  compactAbandoned(p: PendingCompact): void
   /** A file changed: post:file for a file Claude did not write this turn. */
   fileChanged(e: FileChangedEvent): Promise<void>
+  /** Run every after:* whose deadline has passed, for a host that arms no waits (Clock.after does nothing) and
+   *  calls this at each event instead. */
+  wake(): Promise<void>
 }

@@ -1,0 +1,138 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/hooks/lint.mjs\"",
+            "timeout": 120,
+            "statusMessage": "baransu lint",
+            "additionalContextLimit": 0
+          },
+          {
+            "type": "command",
+            "command": "if command -v node >/dev/null 2>&1; then printf '{}'; else printf '%s' '{\"systemMessage\":\"baransu lint \\u6c92\\u5728\\u8dd1\\uff1a\\u627e\\u4e0d\\u5230 Node\\u3002\\u88dd Node\\uff0818 \\u4ee5\\u4e0a\\uff09\\u4e26\\u653e\\u4e0a PATH\\uff0c\\u9019\\u500b\\u5c08\\u6848\\u7684 lint \\u898f\\u5247\\u624d\\u6703\\u88ab\\u6aa2\\u67e5\\u3002\",\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"baransu lint \\u6c92\\u5728\\u8dd1\\uff1a\\u627e\\u4e0d\\u5230 Node\\u3002\\u88dd Node\\uff0818 \\u4ee5\\u4e0a\\uff09\\u4e26\\u653e\\u4e0a PATH\\uff0c\\u9019\\u500b\\u5c08\\u6848\\u7684 lint \\u898f\\u5247\\u624d\\u6703\\u88ab\\u6aa2\\u67e5\\u3002\"}}'; fi",
+            "commandWindows": "powershell.exe -NoProfile -NonInteractive -EncodedCommand JABQAHIAbwBnAHIAZQBzAHMAUAByAGUAZgBlAHIAZQBuAGMAZQAgAD0AIAAnAFMAaQBsAGUAbgB0AGwAeQBDAG8AbgB0AGkAbgB1AGUAJwA7ACAAaQBmACAAKABHAGUAdAAtAEMAbwBtAG0AYQBuAGQAIABuAG8AZABlACAALQBDAG8AbQBtAGEAbgBkAFQAeQBwAGUAIABBAHAAcABsAGkAYwBhAHQAaQBvAG4AIAAtAEUAcgByAG8AcgBBAGMAdABpAG8AbgAgAFMAaQBsAGUAbgB0AGwAeQBDAG8AbgB0AGkAbgB1AGUAKQAgAHsAIABbAEMAbwBuAHMAbwBsAGUAXQA6ADoATwB1AHQALgBXAHIAaQB0AGUAKAAnAHsAfQAnACkAIAB9ACAAZQBsAHMAZQAgAHsAIABbAEMAbwBuAHMAbwBsAGUAXQA6ADoATwB1AHQALgBXAHIAaQB0AGUAKAAnAHsAIgBzAHkAcwB0AGUAbQBNAGUAcwBzAGEAZwBlACIAOgAiAGIAYQByAGEAbgBzAHUAIABsAGkAbgB0ACAAXAB1ADYAYwA5ADIAXAB1ADUANwAyADgAXAB1ADgAZABkADEAXAB1AGYAZgAxAGEAXAB1ADYAMgA3AGUAXAB1ADQAZQAwAGQAXAB1ADUAMgAzADAAIABOAG8AZABlAFwAdQAzADAAMAAyAFwAdQA4ADgAZABkACAATgBvAGQAZQBcAHUAZgBmADAAOAAxADgAIABcAHUANABlAGUANQBcAHUANABlADAAYQBcAHUAZgBmADAAOQBcAHUANABlADIANgBcAHUANgA1ADMAZQBcAHUANABlADAAYQAgAFAAQQBUAEgAXAB1AGYAZgAwAGMAXAB1ADkAMAAxADkAXAB1ADUAMAAwAGIAXAB1ADUAYwAwADgAXAB1ADYAOAA0ADgAXAB1ADcANgA4ADQAIABsAGkAbgB0ACAAXAB1ADgAOQA4AGYAXAB1ADUAMgA0ADcAXAB1ADYAMgA0AGQAXAB1ADYANwAwADMAXAB1ADgAOABhAGIAXAB1ADYAYQBhADIAXAB1ADYANwBlADUAXAB1ADMAMAAwADIAIgAsACIAaABvAG8AawBTAHAAZQBjAGkAZgBpAGMATwB1AHQAcAB1AHQAIgA6AHsAIgBoAG8AbwBrAEUAdgBlAG4AdABOAGEAbQBlACIAOgAiAFMAZQBzAHMAaQBvAG4AUwB0AGEAcgB0ACIALAAiAGEAZABkAGkAdABpAG8AbgBhAGwAQwBvAG4AdABlAHgAdAAiADoAIgBiAGEAcgBhAG4AcwB1ACAAbABpAG4AdAAgAFwAdQA2AGMAOQAyAFwAdQA1ADcAMgA4AFwAdQA4AGQAZAAxAFwAdQBmAGYAMQBhAFwAdQA2ADIANwBlAFwAdQA0AGUAMABkAFwAdQA1ADIAMwAwACAATgBvAGQAZQBcAHUAMwAwADAAMgBcAHUAOAA4AGQAZAAgAE4AbwBkAGUAXAB1AGYAZgAwADgAMQA4ACAAXAB1ADQAZQBlADUAXAB1ADQAZQAwAGEAXAB1AGYAZgAwADkAXAB1ADQAZQAyADYAXAB1ADYANQAzAGUAXAB1ADQAZQAwAGEAIABQAEEAVABIAFwAdQBmAGYAMABjAFwAdQA5ADAAMQA5AFwAdQA1ADAAMABiAFwAdQA1AGMAMAA4AFwAdQA2ADgANAA4AFwAdQA3ADYAOAA0ACAAbABpAG4AdAAgAFwAdQA4ADkAOABmAFwAdQA1ADIANAA3AFwAdQA2ADIANABkAFwAdQA2ADcAMAAzAFwAdQA4ADgAYQBiAFwAdQA2AGEAYQAyAFwAdQA2ADcAZQA1AFwAdQAzADAAMAAyACIAfQB9ACcAKQAgAH0A",
+            "timeout": 30,
+            "statusMessage": "baransu lint: Node"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/hooks/lint.mjs\"",
+            "timeout": 120,
+            "statusMessage": "baransu lint",
+            "additionalContextLimit": 0
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "^(apply_patch|Bash)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/hooks/lint.mjs\"",
+            "timeout": 120,
+            "statusMessage": "baransu lint",
+            "additionalContextLimit": 0
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "^(apply_patch|Bash)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/hooks/lint.mjs\"",
+            "timeout": 120,
+            "statusMessage": "baransu lint",
+            "additionalContextLimit": 0
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/hooks/lint.mjs\"",
+            "timeout": 120,
+            "statusMessage": "baransu lint"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/hooks/lint.mjs\"",
+            "timeout": 120,
+            "statusMessage": "baransu lint",
+            "additionalContextLimit": 0
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/hooks/lint.mjs\"",
+            "timeout": 120,
+            "statusMessage": "baransu lint"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/hooks/lint.mjs\"",
+            "timeout": 120,
+            "statusMessage": "baransu lint"
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/hooks/lint.mjs\"",
+            "timeout": 120,
+            "statusMessage": "baransu lint"
+          }
+        ]
+      }
+    ],
+    "Interrupt": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/hooks/lint.mjs\"",
+            "timeout": 120,
+            "statusMessage": "baransu lint"
+          }
+        ]
+      }
+    ]
+  }
+}

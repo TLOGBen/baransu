@@ -30,6 +30,9 @@ export type LintState = {
   offered?: { slips: string[] }
   tools: number
   textAfterTools: string
+  /** Where the answer after the turn's last pre:stop hold begins in textAfterTools: pre:stop's checks read the
+   *  text from here (the held answer already got its findings); report-before-stop still reads it all. */
+  stopFrom?: number
   gitFacts?: string
   cards: Record<string, LintCard>
   // Where userLanguage came from: the user-language check's own `language`, the host's language setting, or a guess

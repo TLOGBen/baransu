@@ -6,6 +6,9 @@
 // only, erased at run time) rather than writing a second copy.
 
 import type { LintCard, LintFinding, LintPathRow, LintState } from '../../types'
+import type { EditSnap, HeadSnap, Store, TreeSnap } from './around'
+import type { RedoKind } from './scope/types'
+import type { PreviewLine } from './shell'
 
 export type { LintState }
 
@@ -157,6 +160,38 @@ export type FileChangedEvent = { readonly file: string; readonly change: 'change
 export type StopVerdict = { readonly kind: 'stop' } | { readonly kind: 'hold'; readonly reason: string }
 
 // ---------------------------------------------------------------- verdicts
+
+/**
+ * What the half of a call before the act leaves for the half after it: plain data (JSON), so a host that runs
+ * the two halves in separate processes (Codex's PreToolUse and PostToolUse) keeps it on disk between them.
+ * `slips`/`queued`: what the call took, given back when the act did not run. `noConfig`: no lint here.
+ */
+export type PendingCall = {
+  readonly e: ToolCallEvent
+  readonly slips: readonly string[]
+  readonly queued: readonly string[]
+  readonly at: { readonly editSeq: number; readonly step: number }
+  readonly context: string[]
+  readonly inline: Finding[]
+  readonly redo: RedoKind[]
+  readonly gitWrite: boolean
+  readonly file: string
+  readonly editSnap?: EditSnap
+  readonly treeSnap?: TreeSnap
+  readonly headSnap?: HeadSnap
+  readonly store?: Store
+  readonly touchedFile?: string
+  readonly preview: readonly PreviewLine[]
+  readonly noConfig?: boolean
+}
+
+/** What a compaction's before half leaves for its after half: plain data, like PendingCall. `slips`/`queued`:
+ *  what it took, given back when the compaction does not happen. `carry`: the lines the summary must keep, ''
+ *  when nothing was owed (then it holds nothing to give back). */
+export type PendingCompact = { readonly slips: readonly string[]; readonly queued: readonly string[]; readonly carry: string }
+
+/** The before half's answer: refuse, or go on with the record the after half reads. */
+export type CallStart = { readonly kind: 'deny'; readonly reason: string } | { readonly kind: 'go'; readonly pending: PendingCall }
 
 /** tool.call's answer. A deny's card is already kept in state under the call id. */
 export type ToolVerdict<R> =

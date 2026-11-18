@@ -19,9 +19,11 @@ codex/plugins/baransu/           # Codex 版（手動維護，Codex 的正本）
   plugin.json
   skills/                        # 與 Claude 版逐檔對應；可多出 agents/openai.yaml
   .codex-agents/                 # agent 的 TOML 版
+  hooks/hooks.json               # lint 的 Codex hook：十個 hook 事件都跑 `node lint.mjs`；另有一個 SessionStart 檢查找不到 Node 時說出來
+  hooks/lint.mjs                 # 產物：`make codex-lint` 由 plugins/baransu/hooks 的 engine＋adapters/codex 打包，不手改
 scripts/
   verify-skills.py               # 結構驗證器（含 README 理念錨點檢查）
-  verify-codex-parity.py         # Claude／Codex 逐檔配對＋版本一致
+  verify-codex-parity.py         # Claude／Codex 逐檔配對＋版本一致＋lint.mjs 和原始碼一致
 docs/                            # 本文件
 ```
 
@@ -38,6 +40,7 @@ docs/                            # 本文件
 這些是 baransu 自己的規定，不是平台規則。
 
 - **檔案逐一對應**：`plugins/baransu/skills/**` 和 `codex/plugins/baransu/skills/**` 同路徑一對一。只有 `agents/openai.yaml` 和 `assets/icon-*.png` 可以只存在於 Codex 版。共用檔留在 `skills/_shared/`，不要複製進個別 skill；也不要為了 Codex 把 skill 改成自給自足的結構。
+- **lint 的 hook**：Codex 版沒有手寫的 hook 程式。lint 引擎和兩個 adapter 都在 `plugins/baransu/hooks/`，Codex 版的 `hooks/lint.mjs` 是打包出來的產物（`docs/adr/0001-codex-lint-bundle.md`）。改了 `engine/`、`util/` 或 `adapters/codex/` 之後，在同一次變更裡重跑 `make codex-lint`；`lint.mjs` 第一行記著原始碼的雜湊，`make parity-check` 會比對。Claude Code 的事件在 Codex 上對應哪個 hook，寫在 `adapters/codex/main.ts` 的 `handle()`；Codex 版 `lint/SKILL.md` 的「What the hook does」照 Codex 的實際行為寫，和 Claude 版那一節刻意不同。
 - **agent**：`plugins/baransu/agents/<name>.md` 對應 `codex/plugins/baransu/.codex-agents/<name>.toml`（`name`、`description`、`developer_instructions`）。Codex plugin 不會自動註冊 agent，所以會派 agent 的 skill，在 Codex 版加一段「Codex Port Adapter - Bundled Agent Resolution」：把 TOML 的路徑交給一般 subagent，並且不帶 parent 的對話紀錄（`fork_turns="none"`；`spawn_agent` 預設會繼承整段對話）。
 - **呼叫語法**：`/baransu:x`，以及指 baransu skill 的 `/x`，改成 `$baransu:x`；references 和 scripts 裡的字串也要改。
 - **skill 自己的工作目錄**：`.claude/<skill>/` 改成 `.codex/<skill>/`。但路徑如果是 skill 處理的**對象**，就照原樣不改，例如 `/health` 要稽核的 `~/.claude/projects/<slug>/memory/`、`.claude/settings.local.json`。`CLAUDE.md` 也一樣：指「agent 讀的指令檔」時改成 `AGENTS.md`，指 Claude Code 的設定檔時不改。
