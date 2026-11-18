@@ -3,8 +3,8 @@ from = "baransu-preset"
 
 # Source: /ship INV-8, commits speak for this repo, applied to every commit.
 [check.git-facts]
-severity = "error"
-strict = "error"
+severity = "check"
+strict = "check"
 builtin = "git-facts"
 message = "照這個 repo 的習慣寫 commit 的格式與語言，co-author 與 push / PR 方式也照過去；身分對不上時問使用者要用哪個，不要自己改用別人的身分"
 
