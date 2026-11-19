@@ -56,3 +56,13 @@ file = ["plugins/baransu/skills/**/*.md", "codex/plugins/baransu/skills/**/*.md"
 ignores = ["**/NOTICE.md"]
 forbid = '(?i)pstack|Lauren Tan|cursor/plugins'
 message = "上游來源只寫在該 skill 的 NOTICE.md；本文和 references 不點名、不寫授權"
+
+# Source: owner, 2026-11-19 — .claude/ and .codex/ hold working folders that stay out of git (hypothesis, prove-it,
+# dogfood were untracked in d85a8018, d1d1eedc). An allowlist, not a list of what is banned: a working folder added
+# later is held too. Only .claude/lint/ and .claude/settings.json are tracked. The owner's preference, not a hard
+# rule: held once so the model asks, sent again after a yes. Deletions pass, so untracking is never held.
+[check.working-folders-not-in-git]
+on = ["pre:commit"]
+severity = "check"
+run = ["git", "diff", "--cached", "--quiet", "--diff-filter=AMR", "--", ".claude", ".codex", ":(exclude).claude/lint", ":(exclude).claude/settings.json"]
+message = ".claude/ 或 .codex/ 底下只有 .claude/lint/ 與 .claude/settings.json 進 git；暫存區有其他工作資料夾的檔案，使用者偏好不進 git。先問使用者，要放進去再重送（或把它加進這條的白名單）；不要就 git restore --staged 拿掉"
