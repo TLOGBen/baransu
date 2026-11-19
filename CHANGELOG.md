@@ -2,6 +2,11 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.50.2] - 2026-11-19
+
+### Fixed
+- Codex 載入 baransu 的 hook 時警告「clamping Interrupt hook timeout to 3s」：Codex 規定回合被中斷時的 hook 最多跑 3 秒。`hooks.json` 的 Interrupt 逾時改寫成 3 秒；這個 hook 等鎖最多 1.5 秒（其他事件仍是 5 秒），趕在 3 秒內回答。
+
 ## [8.50.1] - 2026-11-19
 
 ### Fixed（lint：Codex 上的 hook 根本沒有載入）

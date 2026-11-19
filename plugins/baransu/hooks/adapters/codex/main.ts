@@ -14,6 +14,8 @@ import { codexPorts, nodeRunner, type Hook } from './ports'
 import { pruneOld, SessionFile, type Saved } from './store'
 
 const LOCK_WAIT_MS = 5000
+/** Codex clamps an Interrupt hook to 3 s (codex-rs hooks discovery.rs): wait less, so the hook answers before it. */
+const INTERRUPT_LOCK_WAIT_MS = 1500
 
 type Input = {
   hook_event_name?: string
@@ -411,7 +413,7 @@ async function main() {
   const data = slash(process.env.PLUGIN_DATA || `${homedir()}/.codex/plugins/data/baransu`)
   const file = new SessionFile(`${data}/lint`, String(input.session_id ?? 'none'))
   if (input.hook_event_name === 'SessionStart' && input.source === 'startup') pruneOld(`${data}/lint`)
-  if (!(await file.lock(LOCK_WAIT_MS))) return answer({})
+  if (!(await file.lock(input.hook_event_name === 'Interrupt' ? INTERRUPT_LOCK_WAIT_MS : LOCK_WAIT_MS))) return answer({})
   try {
     const saved = file.read()
     if (saved.lint) hook.saved = saved.lint

@@ -128,7 +128,7 @@
           {
             "type": "command",
             "command": "node \"${PLUGIN_ROOT}/hooks/lint.mjs\"",
-            "timeout": 120,
+            "timeout": 3,
             "statusMessage": "baransu lint"
           }
         ]
