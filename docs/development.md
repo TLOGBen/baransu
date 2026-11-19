@@ -16,7 +16,7 @@ plugins/baransu/                 # Claude 版（Claude Code 的正本）
   agents/                        # 派遣用 agent：review 的 reviewer 與 verifier、health inspector、evolve
   rules/anti-patterns.md         # 跨 skill 行為護欄
 codex/plugins/baransu/           # Codex 版（手動維護，Codex 的正本）
-  plugin.json
+  .codex-plugin/plugin.json      # manifest（不放根目錄、不帶 $schema，否則 Codex 不載入 hook）
   skills/                        # 與 Claude 版逐檔對應；可多出 agents/openai.yaml
   .codex-agents/                 # agent 的 TOML 版
   hooks/hooks.json               # lint 的 Codex hook：十個 hook 事件都跑 `node lint.mjs`；另有一個 SessionStart 檢查找不到 Node 時說出來
@@ -46,7 +46,7 @@ docs/                            # 本文件
 - **skill 自己的工作目錄**：`.claude/<skill>/` 改成 `.codex/<skill>/`。但路徑如果是 skill 處理的**對象**，就照原樣不改，例如 `/health` 要稽核的 `~/.claude/projects/<slug>/memory/`、`.claude/settings.local.json`。`CLAUDE.md` 也一樣：指「agent 讀的指令檔」時改成 `AGENTS.md`，指 Claude Code 的設定檔時不改。
 - **frontmatter**：Codex 只讀 `name`、`description`、`metadata.short-description`。`when_to_use` 要併進 `description`，觸發詞一個都不能少，因為 Codex 只靠 `description` 判斷要不要叫出 skill。`compatibility: Designed for Claude Code; ported to Codex.` 和 `metadata.version: 0.1.0-codex` 是舊慣例，Codex 不會讀，目前有些 skill 有、有些沒有；要保留還是統一拿掉，還沒決定。
 - **防慣性停點**：Claude 版有 AskUserQuestion 輸入停點的 skill，Codex 版要加「Codex Port Adapter - Request User Input Gate」段（寫法照 `think` 的 Codex 版）：有 `request_user_input` 就用，沒有就用文字提問，然後停下來等回答。授權停點一律是硬停。
-- **manifest**：`codex/plugins/baransu/plugin.json` 是 root 形式，介面設定放在 `extensions."com.openai".interface`；`version` 要和 Claude 版一致。
+- **manifest**：`codex/plugins/baransu/.codex-plugin/plugin.json`，不帶 `$schema`；介面設定放在最外層的 `interface`（`extensions."com.openai"` 留著給 `onboardingSkill` 之類的欄位）；`version` 要和 Claude 版一致。不用根目錄帶 `agent-plugins.org` `$schema` 的 `plugin.json`：Codex 會把它當成 Agent Plugin，而 Agent Plugin 的 `hooks/hooks.json` 一律不載入，lint 就不會跑（codex-rs `core-plugins/src/loader.rs`；8.50.0 實測）。`make parity-check` 會擋。
 
 ## 驗證
 

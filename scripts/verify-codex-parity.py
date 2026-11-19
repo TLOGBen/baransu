@@ -6,7 +6,7 @@ Codex 版（codex/plugins/baransu/）是手動維護的；本腳本只檢查「�
 
   1. plugins/baransu/skills/** 每個檔案在 codex/plugins/baransu/skills/** 有同路徑對應，
      反之亦然；CODEX_ONLY 樣式（skill 內的 agents/openai.yaml 與 assets/icon-*.png）允許只存在於 Codex 版。
-  2. Claude 版 plugin.json 與 Codex 版 plugin.json 的 version 相同。
+  2. Claude 版 plugin.json 與 Codex 版 .codex-plugin/plugin.json 的 version 相同；Codex 版根目錄不能有帶 agent-plugins $schema 的 plugin.json（Codex 會因此不載入 hook）。
   3. Codex 版的 hooks/lint.mjs 第一行記的原始碼雜湊，等於 lint 引擎與 Codex adapter 現在的原始碼
      （plugins/baransu/hooks/{engine,util,adapters/codex}/ 的 .ts）；不等就是改了原始碼沒重跑 make codex-lint。
 
@@ -93,7 +93,13 @@ def check(claude_plugin: Path, codex_plugin: Path) -> list[str]:
         if not any(fnmatch.fnmatch(rel, pat) for pat in CODEX_ONLY):
             v.append(f"Codex 版多出（Claude 版沒有）：skills/{rel}")
     cv = read_version(claude_plugin / ".claude-plugin" / "plugin.json")
-    xv = read_version(codex_plugin / "plugin.json")
+    # The Codex manifest lives at .codex-plugin/plugin.json. A root plugin.json carrying the agent-plugins
+    # $schema makes Codex load the plugin as an Agent Plugin, and Codex loads no hooks from one
+    # (codex-rs core-plugins loader.rs: AgentPlugin → no hook sources): the lint hook would never run.
+    root_manifest = codex_plugin / "plugin.json"
+    if root_manifest.is_file() and "agent-plugins.org" in root_manifest.read_text(encoding="utf-8"):
+        v.append("Codex 版根目錄的 plugin.json 帶 agent-plugins 的 $schema：Codex 會因此不載入 hooks/hooks.json，lint 不會跑")
+    xv = read_version(codex_plugin / ".codex-plugin" / "plugin.json")
     if cv != xv:
         v.append(f"version 不一致：Claude {cv!r} vs Codex {xv!r}")
     bundle = codex_plugin / "hooks" / "lint.mjs"

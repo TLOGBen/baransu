@@ -64,7 +64,7 @@ AGENTS_DIR = REPO_ROOT / "plugins" / "baransu" / "agents"
 PLUGIN_MANIFEST = REPO_ROOT / "plugins" / "baransu" / ".claude-plugin" / "plugin.json"
 MARKETPLACE_MANIFEST = REPO_ROOT / ".claude-plugin" / "marketplace.json"
 CLAUDE_MD = REPO_ROOT / "CLAUDE.md"
-CODEX_MANIFEST = REPO_ROOT / "codex" / "plugins" / "baransu" / "plugin.json"
+CODEX_MANIFEST = REPO_ROOT / "codex" / "plugins" / "baransu" / ".codex-plugin" / "plugin.json"
 
 BODY_LINE_ADVISORY_LIMIT = 500
 

@@ -2,6 +2,13 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.50.1] - 2026-11-19
+
+### Fixed（lint：Codex 上的 hook 根本沒有載入）
+- Codex 版 plugin 的 manifest 放在根目錄、帶著 `agent-plugins.org` 的 `$schema`，Codex 因此把它當成 Agent Plugin，而 Agent Plugin 的 `hooks/hooks.json` 一律不載入：8.49.0 起的 Codex lint 在正式安裝的 plugin 上一次都沒跑過（試點用的測試 plugin 沒有這一行，所以沒發現）。manifest 改放 `.codex-plugin/plugin.json`、拿掉 `$schema`、介面設定移到最外層的 `interface`；skill 照樣全部找得到。
+- `make parity-check` 會擋回根目錄帶 `agent-plugins` `$schema` 的 manifest。
+- 更新到這一版後，Codex 會請你檢閱並信任 baransu 的 hook（「檢閱 hook」視窗，來源是 baransu 這個 plugin、指令是 `node ".../hooks/lint.mjs"`）。不信任的 hook 不會跑。
+
 ## [8.50.0] - 2026-11-19
 
 ### Changed（lint：git 身分改成抓「用錯自己的帳號」）
