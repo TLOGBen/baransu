@@ -10,7 +10,7 @@ import type { Engine, Lint, Ports } from './ports'
 import { runsAt } from './scope/evaluate'
 import type { Occurrence, RedoKind } from './scope/types'
 import { commitDirs, deletedPaths, destructivePreview, gitWrites, isGitWrite, pushRefs, removedWorktrees, writesFiles, type PreviewLine } from './shell'
-import { cardOf, CORRECTION, hanShare, render, restateNote, skillCard, slipHead, summarize } from './text'
+import { cardOf, CORRECTION, hanShare, MOMENT, render, restateNote, skillCard, slipHead, summarize } from './text'
 import { settle, STOP_HOLDS, type AfterKey, type Settled, type TimingKey } from './timing'
 import type {
   Actor, CallStart, Card, Check, Config, DoneSkillEvent, Finding, LintState, Outcome, PendingCall, PendingCompact, PromptEvent, ReplyEvent, SkillPreface, SpokenEvent,
@@ -1024,7 +1024,8 @@ async function callBefore<H>(
     // Settle everything before the act once: every pre row is the same row (timing.ts PRE).
     const key: TimingKey = isEdit ? 'pre:edit' : gitWrite ? 'pre:commit' : 'pre:bash'
     const s = settle(key, pre)
-    const label = isEdit ? `改檔前 · ${file}` : gitWrite ? (pushes && !commits ? 'push 前' : 'commit 前') : '指令前'
+    const gitMoment = pushes && !commits ? 'push' : 'commit'
+    const label = isEdit ? `改檔前 · ${file}` : gitWrite ? MOMENT[gitMoment] : '指令前'
     const footer = gitWrite ? '修好 error 再 commit／push' : isEdit ? '照上面改好要寫的內容再寫' : '照上面改寫這個指令再跑'
     // On the card the delete preview is its path list; a preview line that names no path stays a line.
     const previewId = find(config!, 'destructive-preview')?.id
@@ -1038,7 +1039,7 @@ async function callBefore<H>(
       // still said nothing.
       if (explain?.severity === 'error') S().spoke = false
       const card = summarize(label, pre) ?? { kind: 'error' as const, meta: `lint · ${label}`, lines: pre }
-      return refuse({ ...card, ...withPreview(card.lines), title: gitWrite ? (pushes && !commits ? '沒有 push' : '沒有 commit') : '沒有執行', footer }, `${render(isEdit ? 'edit' : gitWrite ? 'commit' : 'bash', isEdit ? file : '', pre)}\n${footer}。`)
+      return refuse({ ...card, ...withPreview(card.lines), title: gitWrite ? (pushes && !commits ? '沒有 push' : '沒有 commit') : '沒有執行', footer }, `${render(isEdit ? 'edit' : gitWrite ? gitMoment : 'bash', isEdit ? file : '', pre)}\n${footer}。`)
     }
     // What a hold-once showed when it held: once the act passes, neither the person nor the model hears it again.
     let shownOnce: Finding[] = []
@@ -1053,7 +1054,7 @@ async function callBefore<H>(
         const onlyPreview = preview.length > 0 && once.every(f => f.id === previewId)
         return refuse(
           { kind: 'check', title: onlyPreview ? '先確認會動到的東西' : '先確認一次', meta: onlyPreview ? 'lint · 刪除前預覽' : `lint · ${label}`, ...withPreview(pre), footer: `確認沒錯，再下一次同樣的${isEdit ? '動作' : '指令'}就會執行` },
-          `${render(isEdit ? 'edit' : gitWrite ? 'commit' : 'bash', isEdit ? file : '', pre)}\n確認沒錯，下一次回應再送一次同樣的動作就會執行。`,
+          `${render(isEdit ? 'edit' : gitWrite ? gitMoment : 'bash', isEdit ? file : '', pre)}\n確認沒錯，下一次回應再送一次同樣的動作就會執行。`,
         )
       }
       shownOnce = pre.filter(f => f.severity === 'check' || f.id === previewId)
@@ -1072,7 +1073,7 @@ async function callBefore<H>(
     }
     const plain = s.line.filter(f => !s.redo.includes(f) && !shownOnce.includes(f))
     inline.push(...plain, ...s.card.filter(f => f.quiet && !plain.includes(f) && !shownOnce.includes(f)))
-    if (plain.length) context.push(render(isEdit ? 'edit' : gitWrite ? 'commit' : 'bash', isEdit ? file : '', plain))
+    if (plain.length) context.push(render(isEdit ? 'edit' : gitWrite ? gitMoment : 'bash', isEdit ? file : '', plain))
 
     // Snapshots for around:<act>, and Claude's own write for post:file — both only when a check reads them.
     const aroundEdit = isEdit && insideRepo && wantsAround(config.checks, 'edit')
@@ -1212,7 +1213,7 @@ async function callAfter<H>(
     for (const [k, found] of [[postKey, post], [gitPost.length ? (gitWrites(command).includes('commit') ? 'post:commit' : 'post:push') : postKey, gitPost]] as const) {
       if (!found.length) continue
       const s = settle(k, found)
-      const t = told(isEdit ? 'edit' : k.endsWith('commit') || k.endsWith('push') ? 'commit' : 'bash', isEdit ? file : '', s, isEdit ? '修好 error；warn 判斷要不要改。' : '')
+      const t = told(isEdit ? 'edit' : k.endsWith('commit') ? 'committed' : k.endsWith('push') ? 'pushed' : 'bash', isEdit ? file : '', s, isEdit ? '修好 error；warn 判斷要不要改。' : '')
       for (const f of s.card.filter(f => f.severity !== 'note' || f.quiet)) {
         inline.push(f)
         afterFound.add(f)

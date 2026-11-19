@@ -2,6 +2,11 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.51.1] - 2026-11-19
+
+### Fixed
+- lint 擋下只有 push 的指令時，送給模型的文字寫成「commit 前」，只有 Claude Code 的卡片標題寫對；Codex 沒有卡片，看到的都是錯的標題。現在文字也寫「push 前」。commit、push 跑完之後的檢查原本也標成「commit 前」，現在分別寫「commit 後」「push 後」。
+
 ## [8.51.0] - 2026-11-19
 
 ### Added

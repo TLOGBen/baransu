@@ -5,7 +5,7 @@
 
 import type { Card, Check, Finding, PathRow } from './types'
 
-export const MOMENT = { edit: '改檔', commit: 'commit 前', done: '收尾前', bash: '指令', manual: '手動', skill: 'skill 前', reply: '回應後', stop: '結束這一輪前', agent: 'subagent 結束後', compact: '壓縮', file: '對話之外改檔後', after: '時間到' } as const
+export const MOMENT = { edit: '改檔', commit: 'commit 前', push: 'push 前', committed: 'commit 後', pushed: 'push 後', done: '收尾前', bash: '指令', manual: '手動', skill: 'skill 前', reply: '回應後', stop: '結束這一輪前', agent: 'subagent 結束後', compact: '壓縮', file: '對話之外改檔後', after: '時間到' } as const
 
 /** `lint · <moment> · <where>：N error、M warn` and one line per finding. */
 export function render(moment: keyof typeof MOMENT, where: string, all: readonly Finding[]): string {
