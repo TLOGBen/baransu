@@ -46,9 +46,12 @@
 .claude/show-me/
 .codex/show-me/
 .claude/research/
-# /hypothesis working folder (models, traces, READMEs): local only, kept in place (/ship does not archive it), never tracked.
+# Working folders kept in place for the skills that read them (/ship does not archive them), never tracked:
+# /hypothesis models and READMEs, the /prove-it recipe and records, dogfood notes. (.claude/lint/ stays tracked.)
 .claude/hypothesis/
 .codex/hypothesis/
+.claude/prove-it/
+.claude/dogfood/
 .claude/loop-state.json
 .claude/loop-final-report.md
 
