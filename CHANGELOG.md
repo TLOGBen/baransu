@@ -2,6 +2,14 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.51.0] - 2026-11-19
+
+### Added
+- `/lint init` 選的合集有 `runtime` 時，會問一次回答要用哪個語言（預設是宿主自己的語言設定，沒有就用這段對話的語言），寫進 `config.toml` 的 `[check.user-language]` `language`。固定之後不再從訊息去猜。`config.toml` 是整個專案共用的，成員語言不一致的專案就留空。
+
+### Fixed
+- Codex 上只送出一個 skill 連結（`[$baransu:lint](C:\…\SKILL.md)`）時，使用者語言被判成 English：連結裡的路徑被當成使用者打的字。現在連結只留它的文字再判斷；一則只有 skill 連結的訊息不改變已判定的語言。要完全不猜，在 `[check.user-language]` 寫 `language = "…"`。
+
 ## [8.50.2] - 2026-11-19
 
 ### Fixed

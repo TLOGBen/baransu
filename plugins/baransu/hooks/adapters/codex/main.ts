@@ -287,7 +287,9 @@ async function handle(i: Input, lint: Lint<Hook>, saved: Saved, hook: Hook, cwd:
       const parts: string[] = []
       const said: string[] = []
       if (prompt.trim()) {
-        const typed = prompt.replace(/(?<![\w$])\$[A-Za-z][\w:-]*/g, ' ')
+        // What the person typed: Codex writes a mentioned skill as a link, `[$baransu:lint](C:\…\SKILL.md)`; a link
+        // keeps only its text, so a path's letters are not read as the person's language.
+        const typed = prompt.replace(/\[([^\]\n]*)\]\([^)\n]*\)/g, ' $1 ').replace(/(?<![\w$])\$[A-Za-z][\w:-]*/g, ' ')
         await lint.promptSubmit({ typed, opensTurnNow: true }, async n => void said.push(...n), () => false)
       }
       // prompt.compose is built after the prompt went in (its language guess counts) and read again each time:
