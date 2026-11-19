@@ -2,6 +2,19 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.50.0] - 2026-11-19
+
+### Changed（lint：git 身分改成抓「用錯自己的帳號」）
+- `git-facts` 要防的是：你有兩個以上的帳號（例如私人信箱和公司信箱），commit 時用錯了。原本的判斷是「這個身分有沒有在分支歷史裡出現過」，但多人專案的歷史裡什麼人都有，新同事又一定沒出現過，常把自己卡在外面。現在改看信箱網域：
+  - 這個 repo 的作者大多用哪個網域，或遠端主機的網域（`git.abc.def` 對得上 `@abc.def`）。作者的網域不一樣就提醒。
+  - 你在這個 clone 最近用哪個身分（HEAD reflog 最近 20 筆裡最常出現的那個，本機每次 commit、checkout、pull 都會記下操作的人）。網域不一樣就提醒。之前那個身分如果本身就跟 repo 的網域不合，就不拿它來比。只看最近 20 筆，所以 clone 時用錯帳號、之後改回來，大約 10 次操作後就不再被提醒；偶爾一次用錯仍然抓得到。
+  - 外包用自己公司的帳號推甲方 repo，網域跟甲方多數人不同，會被提醒（不擋）；這是為了也抓到「從第一天就用錯帳號」的情況。
+  - 用 TLA+ 列舉所有帳號組合、Lean 證明對任意長度歷史成立，紀錄在 `.claude/hypothesis/git-account/`。
+  - 只比網域、不比完整信箱，所以同網域的同事 commit 不會被誤報。
+  - commit 看這次的作者，push 看每個要推上去的 commit 的作者。
+- 預設等級從 `check` 改成 `warn`：看得到，但不擋 commit 和 push；嚴格等級仍是 `check`。
+- session 開頭給模型的 git 習慣多了「這個 clone 之前用的身分」和「作者常用的信箱網域」。
+
 ## [8.49.0] - 2026-11-18
 
 ### Added（lint：Codex 也受同一份規則約束）

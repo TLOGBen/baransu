@@ -2,11 +2,14 @@
 from = "baransu-preset"
 
 # Source: /ship INV-8, commits speak for this repo, applied to every commit.
+# It guards against committing under the wrong one of your own accounts: an author's mail domain is compared
+# with the one most of the repo's authors use (or the remote's host) and with the address this clone was worked
+# under before. Not the repo's history: in a shared repo everyone is in it, and holding a newcomer locked people out.
 [check.git-facts]
-severity = "check"
+severity = "warn"
 strict = "check"
 builtin = "git-facts"
-message = "照這個 repo 的習慣寫 commit 的格式與語言，co-author 與 push / PR 方式也照過去；身分對不上時問使用者要用哪個，不要自己改用別人的身分"
+message = "照這個 repo 的習慣寫 commit 的格式與語言，co-author 與 push / PR 方式也照過去；作者不是平常的身分時，確認是不是用錯了，不要自己改用別人的身分"
 
 # Source: /ship INV-7, the secret-file stop, applied to every commit.
 [check.secret-files]

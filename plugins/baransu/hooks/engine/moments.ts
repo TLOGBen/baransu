@@ -310,7 +310,7 @@ export async function subjectFindings<H>(look: Look<H>, at: Occurrence, env?: Re
 }
 
 /** The repo's git facts: text for the model plus what commit-time checks compare against. */
-export async function gitFacts<H>(look: Look<H>): Promise<{ text: string; authors: string[]; commits: number; coAuthor: number; prHabit: boolean; defaultBranch: string }> {
+export async function gitFacts<H>(look: Look<H>): Promise<{ text: string; authors: string[]; commits: number; coAuthor: number; prHabit: boolean; defaultBranch: string; self: string; remote: string }> {
   const out = async (argv: string[]): Promise<string> => String((await runGit(look, argv, 30000)).stdout).trim()
   const remote = await out(['git', 'remote', 'get-url', 'origin'])
   let visibility = '未知'
@@ -335,25 +335,70 @@ export async function gitFacts<H>(look: Look<H>): Promise<{ text: string; author
   const head = await out(['git', 'symbolic-ref', '--short', 'refs/remotes/origin/HEAD'])
   const defaultBranch = head.replace(/^origin\//, '') || 'main'
   const branch = await out(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
+  const self = await selfIdentity(look)
+  const domain = await commonDomain(look, 'HEAD')
   const text = [
     `遠端：${remote || '（沒有 origin）'}（${visibility}）`,
-    `目前身分：${name} <${email}>；近期作者：${authors.slice(0, 3).join('、') || '（沒有歷史）'}`,
+    `目前身分：${name} <${email}>；這個 clone 之前用的身分：${self ? `<${self}>` : '（看不出來）'}；作者常用的信箱網域：${domain ? `@${domain}` : '（沒有多數）'}；近期作者：${authors.slice(0, 3).join('、') || '（沒有歷史）'}`,
     `近期 commit 標題：\n${subjects.map(s => `  - ${s}`).join('\n')}`,
     `近 30 個 commit 有 Co-Authored-By 的：${coAuthor} 個`,
     `目前分支：${branch}；主分支：${defaultBranch}；主線最近 ${line.length} 個 commit 裡來自 PR/MR 合併的：${prMerges} 個（${prHabit ? '習慣開 PR/MR' : '習慣直接 push'}）`,
   ].join('\n')
-  return { text, authors: [...counts.keys()], commits: authorLines.length, coAuthor, prHabit, defaultBranch }
+  return { text, authors: [...counts.keys()], commits: authorLines.length, coAuthor, prHabit, defaultBranch, self, remote }
+}
+
+const domainOf = (email: string): string => email.slice(email.lastIndexOf('@') + 1).toLowerCase()
+/** The host a remote URL points at: https://host/…, ssh://user@host:port/…, user@host:path. */
+const hostOf = (remote: string): string =>
+  (/^[a-z+]+:\/\/(?:[^@/]*@)?([^/:]+)/i.exec(remote)?.[1] ?? /^[^@/]+@([^:/]+):/.exec(remote)?.[1] ?? '').toLowerCase()
+
+/** The mail domain most of this repo's authors use, counted by distinct address so one busy author does not
+ *  outweigh the team; '' when no domain holds more than half. Read at `ref`: a push reads the remote side, so the
+ *  commits it sends do not vote for themselves. */
+async function commonDomain<H>(look: Look<H>, ref: string): Promise<string> {
+  const emails = new Set(String((await runGit(look, ['git', 'log', '-500', '--format=%ae', ref], 30000)).stdout).split(/\r?\n/).map(s => s.trim().toLowerCase()).filter(s => s.includes('@')))
+  const counts = new Map<string, number>()
+  for (const e of emails) counts.set(domainOf(e), (counts.get(domainOf(e)) ?? 0) + 1)
+  const [top] = [...counts.entries()].sort((a, b) => b[1] - a[1])
+  return top && top[1] * 2 > emails.size ? top[0] : ''
+}
+
+/**
+ * Why an author address may be the wrong one of the person's accounts (a personal and a work address, say);
+ * empty when nothing points that way. Two signals, compared by domain so a colleague on the same domain is not
+ * flagged:
+ * - the repo's: the domain most authors use, or the remote's host (git.abc.def fits @abc.def);
+ * - the person's: the address this clone was worked under before. It can itself be the wrong account, so it is
+ *   used only when it fits the repo's signal, or the repo gives none.
+ */
+function wrongAccount(email: string, f: { domain: string; host: string; self: string }): string[] {
+  const fits = (d: string): boolean | undefined =>
+    f.host && (f.host === d || f.host.endsWith(`.${d}`)) ? true : f.domain ? d === f.domain : undefined
+  const d = domainOf(email)
+  const why: string[] = []
+  if (fits(d) === false) why.push(`這個 repo 的作者大多用 @${f.domain}`)
+  if (f.self && domainOf(f.self) !== d && fits(domainOf(f.self)) !== false) why.push(`你在這個 clone 之前用 <${f.self}>`)
+  return why
+}
+
+/** Who works in this clone: the identity most often among HEAD's last 20 reflog entries, which record whoever
+ *  ran each local commit, checkout, pull or reset. In a shared repo the history holds everyone; the reflog holds
+ *  this person. Recent, not all: after the person corrects a clone made under the wrong account, a count over
+ *  hundreds of entries kept the old one for hundreds of steps (.claude/hypothesis/git-account P1); one slip is
+ *  still one entry in 20, so the next slip is still caught. */
+async function selfIdentity<H>(look: Look<H>): Promise<string> {
+  const lines = String((await runGit(look, ['git', 'log', '-g', '-20', '--format=%ge'], 30000)).stdout).split(/\r?\n/)
+  const counts = new Map<string, number>()
+  for (const l of lines.map(s => s.trim().toLowerCase()).filter(Boolean)) counts.set(l, (counts.get(l) ?? 0) + 1)
+  return [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? ''
 }
 
 async function gitFactsAtCommit<H>(look: Look<H>, c: Check, command: string): Promise<Finding[]> {
   const f = await gitFacts(look)
   const out: Finding[] = []
-  // An identity is this repo's when it wrote any commit in `base`'s history, not only one of the last 30: someone
-  // who committed 200 times but not lately is still themself (2026-11-05, ga_agent: 115 commits back). A push
-  // reads the remote side as base, since the commits it sends are already in HEAD's history.
-  // (f.authors is read from HEAD, so it would count a push's own commits: it is not consulted here.)
-  const known = async (email: string, base: string): Promise<boolean> =>
-    String((await runGit(look, ['git', 'log', '-1', '-i', '-F', `--author=<${email}>`, '--format=%h', base], 30000)).stdout).trim() !== ''
+  // What this guards is the person committing under the wrong one of their own accounts. Whether an address is in
+  // the history is no test of that: in a shared repo everyone is, and a newcomer is not (wrongAccount).
+  const host = hostOf(f.remote)
   // Which write this is, and the flags it carries, come from the commands themselves: a heredoc or a here-string
   // that only mentions `commit`, `push` or `--author` is text, not the write.
   const writes = gitWrites(command)
@@ -364,19 +409,22 @@ async function gitFactsAtCommit<H>(look: Look<H>, c: Check, command: string): Pr
     const author = /--author[=\s]+["']?[^"'<]*<([^>"'\s]+)>/.exec(text)?.[1]
     const override = author ?? /-c\s+["']?user\.email=["']?([^"'\s]+)/.exec(text)?.[1]
     const email = (override ?? String((await runGit(look, ['git', 'config', 'user.email'])).stdout)).trim().toLowerCase()
-    if (f.commits >= 5 && email && !(await known(email, 'HEAD')))
-      out.push({ id: c.id, ...level(c), text: `目前的 git 身分 <${email}> 在這個分支的歷史裡沒有 commit 過。${c.message}\n${f.text}` })
+    const why = email.includes('@') ? wrongAccount(email, { domain: await commonDomain(look, 'HEAD'), host, self: f.self }) : []
+    if (why.length) out.push({ id: c.id, ...level(c), text: `這次 commit 的作者是 <${email}>，但${why.join('；')}。${c.message}` })
   } else if (writes.includes('push')) {
     // A push makes no commit: what matters is who wrote the commits it sends. A refspec (`tmp:dev`) sends what
     // the source has and the remote's destination lacks; without one, the branch's own upstream decides.
     const ranges = refs ? refs.map(r => [`${r.remote}/${r.dst}`, r.src]) : [['@{u}', 'HEAD']]
-    const strangers: string[] = []
+    const odd: string[] = []
     for (const [base, tip] of ranges) {
-      const sent = String((await runGit(look, ['git', 'log', `${base}..${tip}`, '--format=%ae'])).stdout).split(/\r?\n/).map(s => s.trim().toLowerCase()).filter(Boolean)
-      for (const e of new Set(sent)) if (!strangers.includes(e) && !(await known(e, base))) strangers.push(e)
+      const domain = await commonDomain(look, base)
+      const sent = String((await runGit(look, ['git', 'log', `${base}..${tip}`, '--format=%ae'])).stdout).split(/\r?\n/).map(s => s.trim().toLowerCase()).filter(s => s.includes('@'))
+      for (const e of new Set(sent)) {
+        const why = wrongAccount(e, { domain, host, self: f.self })
+        if (why.length && !odd.some(o => o.startsWith(`<${e}>`))) odd.push(`<${e}>（${why.join('；')}）`)
+      }
     }
-    if (f.commits >= 5 && strangers.length)
-      out.push({ id: c.id, ...level(c), text: `要推上去的 commit 裡有在這個 repo 從沒出現過的身分：${strangers.join('、')}。${c.message}` })
+    if (odd.length) out.push({ id: c.id, ...level(c), text: `要推上去的 commit 裡，作者可能用錯帳號：${odd.join('、')}。${c.message}` })
   }
   // The trailer is read from the whole command: a `git commit -F - <<EOF` message is the heredoc's body.
   if (writes.includes('commit') && /Co-Authored-By:/i.test(command) && f.coAuthor === 0 && f.commits >= 5)
