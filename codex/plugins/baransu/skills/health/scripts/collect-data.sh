@@ -8,7 +8,7 @@
 #   jq not installed        -> conversation extract and signals print "(unavailable)"; treat as [INSUFFICIENT DATA]
 #   python3 not on PATH     -> MCP/hooks/allowedTools sections print "(unavailable)"; do not flag those areas
 #   settings.local.json absent -> hooks, MCP, allowedTools all show "(unavailable)"; normal for global-settings-only projects
-#   MEMORY.md path          -> built via sed on pwd; unusual chars produce wrong project key; verify manually if (none) seems wrong
+#   MEMORY.md path          -> found by the "cwd" recorded in ~/.claude/projects/*/*.jsonl (needs python3); with no transcript left, falls back to a derived folder name only if it holds memory/, and the section says so
 #   Conversation scope      -> 2 most recent PREVIOUS .jsonl sampled (live session skipped); fewer than 2 = [LOW CONFIDENCE]
 #   MCP token estimate      -> assumes ~25 tools/server, ~200 tokens/tool; treat as directional, not precise
 #   project_files           -> non-git fallback walk can count .next/, __pycache__, .turbo/; the count is informational
@@ -28,7 +28,41 @@ case "$MODE" in
   summary|deep|signals) ;;
   *) MODE="summary" ;;
 esac
-PROJECT_KEY=$(printf '%s' "$P" | sed 's|[/_]|-|g; s|^-||')
+# Claude Code keeps a project's transcripts and memory in ~/.claude/projects/<folder>. Its naming rule
+# is undocumented, so the folder is found by the "cwd" the transcripts record (find_project_dir.py).
+# Transcripts get pruned while memory/ stays, so a path no transcript matches falls back to a folder
+# name derived from the path, taken only if that folder exists and holds memory/.
+# Git Bash's pwd (/c/Users/x) is turned back into the native path first.
+native_path() {
+  case "$1" in
+    /*) if command -v cygpath >/dev/null 2>&1; then cygpath -w "$1"; return; fi ;;
+  esac
+  printf '%s' "$1"
+}
+PROJECTS_ROOT="$HOME/.claude/projects"
+# find_project_dir [--memory] <path>...: "<full folder path><TAB><cwd|name>" for the first path that
+# has a folder; empty if none.
+find_project_dir() {
+  local flag="" found=""
+  if [ "${1:-}" = "--memory" ]; then flag="--memory"; shift; fi
+  if [ -d "$PROJECTS_ROOT" ] && command -v python3 >/dev/null 2>&1; then
+    found="$(python3 "$SCRIPT_DIR/find_project_dir.py" ${flag:+"$flag"} "$(native_path "$PROJECTS_ROOT")" "$@" 2>/dev/null || true)"
+  fi
+  [ -n "$found" ] && printf '%s' "$PROJECTS_ROOT/$found"
+  return 0
+}
+# Memory belongs to the main repo: a worktree or a subfolder shares the main checkout's memory.
+MAIN_ROOT=""
+if common="$(git -C "$P" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)"; then
+  MAIN_ROOT="$(dirname "$common")"
+fi
+if [ -n "$MAIN_ROOT" ]; then
+  found="$(find_project_dir --memory "$(native_path "$MAIN_ROOT")" "$(native_path "$P")")"
+else
+  found="$(find_project_dir --memory "$(native_path "$P")")"
+fi
+MEMORY_DIR="${found%%$'\t'*}"
+MEMORY_FOUND_BY="${found##*$'\t'}"
 # Codex keeps conversations as rollouts under $CODEX_HOME/sessions/YYYY/MM/DD/ and
 # $CODEX_HOME/archived_sessions/, one rollout-*.jsonl (or .jsonl.zst) per thread; the
 # first line's session_meta payload carries the thread's cwd (codex-rs rollout/recorder.rs,
@@ -674,8 +708,13 @@ fi
 echo "[7/12] HANDOFF.md + MEMORY.md..."
 echo "=== HANDOFF.md ===" ; cat "$P/HANDOFF.md" 2>/dev/null || echo "(none)"
 echo "=== MEMORY.md ==="
-if [ -f "$HOME/.claude/projects/-${PROJECT_KEY}/memory/MEMORY.md" ]; then
-  head -50 "$HOME/.claude/projects/-${PROJECT_KEY}/memory/MEMORY.md"
+if [ -n "$MEMORY_DIR" ] && [ -f "$MEMORY_DIR/memory/MEMORY.md" ]; then
+  if [ "$MEMORY_FOUND_BY" = "name" ]; then
+    echo "(source: $MEMORY_DIR — no transcript left to match, so this folder was found by a name derived from the path; less certain: confirm it belongs to this project before relying on it)"
+  else
+    echo "(source: $MEMORY_DIR — matched by transcript cwd)"
+  fi
+  head -50 "$MEMORY_DIR/memory/MEMORY.md"
 else
   echo "(none)"
 fi

@@ -2,7 +2,6 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# Let the Python checker run the doc-ref checker as a subprocess; keep the env
-# var so existing callers depending on this delegation keep working.
-export DOC_REF_CHECKER="${DOC_REF_CHECKER:-$SCRIPT_DIR/check-doc-refs.sh}"
+# check_maintainability.py runs the doc-reference check itself, with its own interpreter
+# (a DOC_REF_CHECKER already in the environment is still honoured).
 exec python3 "$SCRIPT_DIR/check_maintainability.py" "$@"

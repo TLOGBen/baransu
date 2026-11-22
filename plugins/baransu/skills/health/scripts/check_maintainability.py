@@ -241,6 +241,26 @@ def scan_markdown_links(files: list[Path], root: Path) -> list[str]:
     return missing
 
 
+def doc_ref_command(checker: str | None, root: Path) -> list[str] | None:
+    """The doc-reference check, run with this interpreter (sys.executable), never a bare
+    "bash"/"python" that Windows may resolve to another install (System32's bash.exe is WSL's).
+    DOC_REF_CHECKER is still honoured: unset, or naming the bundled check-doc-refs.sh wrapper,
+    runs the bundled check_doc_refs.py; a .py runs with this interpreter; any other file is a
+    caller-supplied shell checker and runs under bash, the only way to run it."""
+    bundled = Path(__file__).resolve().with_name("check_doc_refs.py")
+    if checker:
+        given = Path(checker)
+        if not given.is_file():
+            return None
+        if given.resolve() != bundled.with_name("check-doc-refs.sh"):
+            if given.suffix == ".py":
+                return [sys.executable, str(given), str(root)]
+            return ["bash", str(given), str(root)]
+    if not bundled.is_file():
+        return None
+    return [sys.executable, str(bundled), str(root)]
+
+
 def verification_surface(
     root: Path, instruction_files: list[Path]
 ) -> tuple[list[str], list[str], set[str], set[str]]:
@@ -460,11 +480,14 @@ def main() -> int:
 
     doc_ref_status = "unavailable"
     doc_ref_detail = ""
-    checker = os.environ.get("DOC_REF_CHECKER")
-    if checker and Path(checker).is_file():
+    doc_ref_cmd = doc_ref_command(os.environ.get("DOC_REF_CHECKER"), root)
+    if doc_ref_cmd:
         proc = subprocess.run(
-            ["bash", checker, str(root)],
+            doc_ref_cmd,
             text=True,
+            encoding="utf-8",
+            errors="replace",
+            env={**os.environ, "PYTHONIOENCODING": "utf-8"},
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             check=False,

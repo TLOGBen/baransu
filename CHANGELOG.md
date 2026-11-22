@@ -2,6 +2,13 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.51.2] - 2026-11-22
+
+### Fixed（health：找專案記憶改看實際資料；doc 參照檢查不再找錯 bash）
+- `/health` 找不到專案的 MEMORY.md 和對話樣本：SKILL.md 和 `collect-data.sh` 把 `~/.claude/projects/` 底下的資料夾名稱當成「路徑把 `/`、`_` 換成 `-`」算出來，但這條規則是從 Unix 例子猜的，Claude Code 並沒有公開。實際上 Windows 是 `C--Users-x`，路徑裡有 `.`、空白或中文時，Mac／Linux 上也會對不到，所以 Windows 永遠顯示 `(none)`、`(no conversation files)`。現在改成看資料：新增的 `find_project_dir.py` 讀每個資料夾最新幾份 transcript（`*.jsonl`）開頭記錄的 `"cwd"`，找出等於專案根目錄的那個資料夾（Git Bash 的路徑先轉回原生寫法；比對時統一分隔符號，Windows 上不分大小寫）。記憶仍然對應到主 repo，worktree 不會有自己的一份。Claude Code 會定期清掉舊的 transcript，但 `memory/` 會留著；這種專案沒有 `cwd` 可以比對時，記憶改用從路徑推出來的名稱去找（每個非英數字元換成 `-`，規則是對照實際資料確認的）。推出來的資料夾要確實存在、而且裡面有 `memory/` 才會採用。MEMORY.md 段落開頭會多一行 `(source: …)`，寫明這份記憶是用 `cwd` 對到的，還是用名稱推出來、比較不確定的。SKILL.md 的「Locating the store」也改成這個做法：先用 harness 指令裡給的記憶目錄，沒有的話才用 `cwd` 去找，名稱推算只當後備，用推算找到的結果要當成未經確認。Codex 版一起修正，也把原本誤寫的 `~/.codex/projects` 改回 `~/.claude/projects`。
+- 在 Windows 上 `broken_doc_references` 誤報 `fail`：`check_maintainability.py` 用裸名稱 `bash` 跑 doc 參照檢查，Windows 會先找到 `System32` 裡 WSL 的 `bash.exe`，而 WSL 看不到 `C:/` 路徑。現在改用自己的直譯器（`sys.executable`）直接跑 `check_doc_refs.py`，所以直接從 Python 或 pwsh 呼叫也有結果。原本 `DOC_REF_CHECKER` 指向 `check-doc-refs.sh` 的呼叫方式照樣可以用。
+- `docs/development.md` 補上兩條寫法：腳本呼叫另一支腳本時，要用自己正在跑的直譯器；外部工具沒有公開的命名規則，不要自己推算。
+
 ## [8.51.1] - 2026-11-19
 
 ### Fixed
