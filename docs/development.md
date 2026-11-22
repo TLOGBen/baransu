@@ -43,7 +43,7 @@ docs/                            # 本文件
 - **lint 的 hook**：Codex 版沒有手寫的 hook 程式。lint 引擎和兩個 adapter 都在 `plugins/baransu/hooks/`，Codex 版的 `hooks/lint.mjs` 是打包出來的產物（`docs/adr/0001-codex-lint-bundle.md`）。改了 `engine/`、`util/` 或 `adapters/codex/` 之後，在同一次變更裡重跑 `make codex-lint`；`lint.mjs` 第一行記著原始碼的雜湊，`make parity-check` 會比對。Claude Code 的事件在 Codex 上對應哪個 hook，寫在 `adapters/codex/main.ts` 的 `handle()`；Codex 版 `lint/SKILL.md` 的「What the hook does」照 Codex 的實際行為寫，和 Claude 版那一節刻意不同。
 - **agent**：`plugins/baransu/agents/<name>.md` 對應 `codex/plugins/baransu/.codex-agents/<name>.toml`（`name`、`description`、`developer_instructions`）。Codex plugin 不會自動註冊 agent，所以會派 agent 的 skill，在 Codex 版加一段「Codex Port Adapter - Bundled Agent Resolution」：把 TOML 的路徑交給一般 subagent，並且不帶 parent 的對話紀錄（`fork_turns="none"`；`spawn_agent` 預設會繼承整段對話）。
 - **呼叫語法**：`/baransu:x`，以及指 baransu skill 的 `/x`，改成 `$baransu:x`；references 和 scripts 裡的字串也要改。
-- **skill 自己的工作目錄**：`.claude/<skill>/` 改成 `.codex/<skill>/`。但路徑如果是 skill 處理的**對象**，就照原樣不改，例如 `/health` 要稽核的 `~/.claude/projects/<slug>/memory/`、`.claude/settings.local.json`。`CLAUDE.md` 也一樣：指「agent 讀的指令檔」時改成 `AGENTS.md`，指 Claude Code 的設定檔時不改。
+- **skill 自己的工作目錄**：`.claude/<skill>/` 改成 `.codex/<skill>/`。但路徑如果是 skill 處理的**對象**，就照原樣不改，例如 `/health` 要稽核的 `~/.claude/projects/*/memory/`、`.claude/settings.local.json`。`CLAUDE.md` 也一樣：指「agent 讀的指令檔」時改成 `AGENTS.md`，指 Claude Code 的設定檔時不改。
 - **frontmatter**：Codex 只讀 `name`、`description`、`metadata.short-description`。`when_to_use` 要併進 `description`，觸發詞一個都不能少，因為 Codex 只靠 `description` 判斷要不要叫出 skill。`compatibility: Designed for Claude Code; ported to Codex.` 和 `metadata.version: 0.1.0-codex` 是舊慣例，Codex 不會讀，目前有些 skill 有、有些沒有；要保留還是統一拿掉，還沒決定。
 - **防慣性停點**：Claude 版有 AskUserQuestion 輸入停點的 skill，Codex 版要加「Codex Port Adapter - Request User Input Gate」段（寫法照 `think` 的 Codex 版）：有 `request_user_input` 就用，沒有就用文字提問，然後停下來等回答。授權停點一律是硬停。
 - **manifest**：`codex/plugins/baransu/.codex-plugin/plugin.json`，不帶 `$schema`；介面設定放在最外層的 `interface`（`extensions."com.openai"` 留著給 `onboardingSkill` 之類的欄位）；`version` 要和 Claude 版一致。不用根目錄帶 `agent-plugins.org` `$schema` 的 `plugin.json`：Codex 會把它當成 Agent Plugin，而 Agent Plugin 的 `hooks/hooks.json` 一律不載入，lint 就不會跑（codex-rs `core-plugins/src/loader.rs`；8.50.0 實測）。`make parity-check` 會擋。
@@ -80,6 +80,8 @@ make ship-check   # test ＋ parity-check，發佈前跑這個
 - 允許的繁體中文只有：使用者看到的輸出（完成、錯誤、狀態訊息與輸出範本）、frontmatter `description` 與易混淆表中的觸發語、示範中文內容的範例產物、`/write` 的雙語寫作內容。
 - 使用者看到的輸出一律繁體中文。
 - 給使用者讀的文件（README、`docs/`）用繁體中文。
+- **腳本呼叫另一支腳本時，用自己正在跑的直譯器**：Python 用 `sys.executable`，bash 直接 `source` 或用 `"$BASH"`。不要在腳本裡用裸名稱呼叫 `bash` 或 `python`：Windows 上可能解析到別的安裝，例如 `C:\Windows\System32\bash.exe` 是 WSL 的 bash，看不到 `C:/` 路徑（8.51.2 的 `/health` doc 參照誤報就是這樣來的）。
+- **不要自己推算外部工具的命名規則**：例如 Claude Code 的 `~/.claude/projects/<資料夾>` 怎麼命名沒有公開，要先從實際資料去找（transcript 記錄的 `cwd`）。資料不在時才推算，而且只能當後備：推出來的結果要先確認確實存在才採用，輸出也要標明是推出來的（`/health` 的 MEMORY.md 段落就是這樣做）。
 
 ## 不要「優化」掉的不變量
 
