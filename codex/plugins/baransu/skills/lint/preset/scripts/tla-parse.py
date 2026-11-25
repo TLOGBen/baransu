@@ -48,6 +48,31 @@ def definitions(text: str) -> list[tuple[str, int, str]]:
     return [(n, i, "\n".join(body)) for n, i, body in defs]
 
 
+def without_enabled(body: str) -> str:
+    """Drop each ENABLED and the expression it applies to: a name with its arguments, or one parenthesised group."""
+    out, i = [], 0
+    for m in re.finditer(r"\bENABLED\b", body):
+        if m.start() < i:
+            continue
+        out.append(body[i:m.start()])
+        j = m.end()
+        while j < len(body) and body[j].isspace():
+            j += 1
+        name = re.match(r"[A-Za-z_]\w*", body[j:])
+        if name:
+            j += name.end()
+        if j < len(body) and body[j] == "(":
+            depth = 0
+            while j < len(body):
+                depth += {"(": 1, ")": -1}.get(body[j], 0)
+                j += 1
+                if depth == 0:
+                    break
+        i = j
+    out.append(body[i:])
+    return "".join(out)
+
+
 def contradictions(text: str) -> list[str]:
     defs = definitions(text)
     tuples = {}
@@ -63,10 +88,12 @@ def contradictions(text: str) -> list[str]:
             else:
                 yield n
 
-    # A variable primed in a definition this one uses (Step == n' = n + 1) is primed here too.
+    # A variable primed in a definition this one uses (Step == n' = n + 1) is primed here too. What follows ENABLED
+    # only asks whether that action could be taken now and changes nothing, so it is left out.
     names = {n for n, _, _ in defs}
-    direct = {n: set(re.findall(r"\b([A-Za-z_]\w*)'", b)) for n, _, b in defs}
-    uses = {n: set(re.findall(r"\b([A-Za-z_]\w*)\b", b.split("==", 1)[1])) & names - {n} for n, _, b in defs}
+    bodies = {n: without_enabled(b) for n, _, b in defs}
+    direct = {n: set(re.findall(r"\b([A-Za-z_]\w*)'", b)) for n, b in bodies.items()}
+    uses = {n: set(re.findall(r"\b([A-Za-z_]\w*)\b", b.split("==", 1)[1])) & names - {n} for n, b in bodies.items()}
 
     def primes(n, seen=()):
         out = set(direct.get(n, ()))

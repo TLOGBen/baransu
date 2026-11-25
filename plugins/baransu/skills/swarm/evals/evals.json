@@ -1,0 +1,48 @@
+{
+  "skill_name": "swarm",
+  "note": "Trigger-routing and behaviour fixtures. No built-in runner; run through `claude plugin eval` or a fresh-session dogfood. The protocol itself is checked by the hypothesis under .claude/hypothesis/swarm-protocol/.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "自動化下去 swarm 下去 3~5 隻，後端、前端、E2E 分開做，你只做決定和盯進度",
+      "should_trigger": true,
+      "expected_skill": "swarm",
+      "expected_behavior": "Lays out the board under .claude/swarm/<slug>/tasks.jsonl (tasks with dependencies, paths, sizes; no cycle) and names the first crew in one line with pinned model and effort; the task others depend on goes first and writes its interface; each bee builds in paths it alone owns, build output included; the queen does no task herself, fills a seat the moment one frees, and shows one status line counted from the board after each change."
+    },
+    {
+      "id": 2,
+      "prompt": "/swarm 同一個 prompt 丟給三隻各寫一版 parser，取最快通過測試的",
+      "should_trigger": true,
+      "expected_skill": "swarm",
+      "expected_behavior": "Says how the best is picked (first to pass) before the bees start; each bee writes its own report file with the commands it ran and their output; a report without them sends the task back for one more attempt, then it is a gap, never verified."
+    },
+    {
+      "id": 3,
+      "prompt": "效能比較：分頭量測 main 和這個分支各自的 p95",
+      "should_trigger": true,
+      "expected_skill": "swarm",
+      "expected_behavior": "Measurers run one at a time on a frozen tree; each brief names the exact version and the method (sample count, what one sample is, order)."
+    },
+    {
+      "id": 4,
+      "prompt": "這個 swarm 跑到後面只剩一隻在做，其他都閒著，怎麼回事",
+      "should_trigger": true,
+      "expected_skill": "swarm",
+      "expected_behavior": "Applies the loop: when more tasks can start than seats are free, starts first the one with the longest chain behind it; when a seat is free and nothing can start, finds work — splits the largest task not yet started, sends a scout ahead, or prepares checks — before waiting; a task too big for one bee is split across, not along."
+    },
+    {
+      "id": 5,
+      "prompt": "把這個小 lint 修正丟給便宜一點的模型做就好",
+      "should_trigger": false,
+      "expected_skill": "delegate",
+      "expected_behavior": "One bounded task for a cheaper model is delegation, not a swarm."
+    },
+    {
+      "id": 6,
+      "prompt": "幫我 review 一下這個 PR",
+      "should_trigger": false,
+      "expected_skill": "review",
+      "expected_behavior": "A read-only review routes to /review."
+    }
+  ]
+}

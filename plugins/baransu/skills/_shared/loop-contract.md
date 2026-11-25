@@ -196,3 +196,4 @@ Outcome Contract still applies.
 | /draft | `../draft/references/loop-pauses.md` |
 | /prove-it | `../prove-it/references/loop-pauses.md` |
 | /hypothesis | `../hypothesis/references/loop-pauses.md` |
+| /swarm | `../swarm/references/loop-pauses.md` |

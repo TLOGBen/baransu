@@ -83,10 +83,11 @@ message = "heredoc 裡有反斜線跳脫或 Windows 路徑，多一層跳脫容�
 # Source: owner, 2026-11-25 — the same session ran `sed -i` with a backslash in its script twice and both failed:
 # once the pattern silently matched nothing (a TLA+ `/\` and `\in`), once sed stopped with "unknown option to `s'".
 # A backslash in an in-place sed script is a second layer of escaping, the same trap as the heredoc check above.
-# At error the command is held before it runs, so the model edits with the Edit tool instead.
+# At error the command is held before it runs, so the model edits with the Edit tool instead. Only the first quoted
+# script after `sed -i` is read: a backslash elsewhere on the line (a grep after `&&`) is not a sed escape (8.53.0).
 [check.sed-inplace-backslash]
 severity = "error"
 strict = "error"
 on = ["pre:bash"]
-forbid = '\bsed\s+(?:-[A-Za-z]+\s+)*-[A-Za-z]*i[A-Za-z]*\b[^\n]*\\'
+forbid = '\bsed\s+(?:-[A-Za-z]+\s+)*-[A-Za-z]*i[A-Za-z]*\b(?:\s+-[A-Za-z]+)*\s+([\x27"])(?:(?!\1).)*\\'
 message = "sed -i 的式子裡有反斜線，多一層跳脫常改不到或直接報錯；改用 Edit 工具，或把替換內容寫成檔案再用腳本讀"

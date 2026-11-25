@@ -196,3 +196,4 @@ Outcome Contract still applies.
 | $baransu:draft | `../draft/references/loop-pauses.md` |
 | $baransu:prove-it | `../prove-it/references/loop-pauses.md` |
 | $baransu:hypothesis | `../hypothesis/references/loop-pauses.md` |
+| $baransu:swarm | `../swarm/references/loop-pauses.md` |
