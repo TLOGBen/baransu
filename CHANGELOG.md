@@ -2,6 +2,15 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.56.0] - 2026-11-25
+
+### Added（/swarm：決策紀錄與定期回報）
+- 蜂后的決定改寫進決策紀錄 `.claude/swarm/<slug>/decisions.tsv`，取代原本「記在任務那一行」：一個決定一行，六欄（時間、階段、決定、原因、證據、結果），證據只放指向（回報檔、`file:line`、commit、截圖），只能往後加，判斷錯了加一行取代；新的 session 接手時第一行寫 `start`。
+- 新的 `scripts/log.mjs` 負責寫一行：蓋時間、第一次加表頭、把每格壓成一行，開頭是 `=`、`+`、`-`、`@` 的格子前面加引號，免得試算表把它當公式執行。
+- 定期回報：每次派工有變，把上次回報後新增的紀錄整理成表格給使用者，放在狀態行下面。
+- 收尾前先拿紀錄對照這個 session 自己的對話稽核一次，再請另一家模型看紀錄，挑出證據薄弱、沒實證的驗證、事後看來冒險的選擇和漏記；報告附整份紀錄，最後是「注意事項」，第一行寫出看紀錄的模型。
+- 改編自 pstack `show-me-your-work`，NOTICE 只標這一部分。
+
 ## [8.55.0] - 2026-11-25
 
 ### Changed（/swarm：ship 之前蜂后自己決定、記下來）

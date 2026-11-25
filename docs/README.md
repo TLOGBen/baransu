@@ -66,6 +66,7 @@ repo 根目錄目前沒有授權檔。以下子模組 vendored 自第三方專�
 - `/draft`：改編自 Cursor pstack 的 architect、arena（MIT，Lauren Tan），mattpocock/skills 的 codebase-design、improve-codebase-architecture（MIT，Matt Pocock），以及 ponytail（MIT，DietrichGebert），`plugins/baransu/skills/draft/NOTICE.md` 附出處與授權全文。
 - `/write`：去 AI 腔的部分規則改編自 Cursor pstack 的 unslop，技術寫作規則（`references/technical-writing.md`）改編自 technical-writing（MIT），見 `plugins/baransu/skills/write/NOTICE.md`。
 - `/think`：開頭的「認識用詞」與「深化」改編自 Cursor pstack 的 reframe、sharpen（MIT，Lauren Tan），`plugins/baransu/skills/think/NOTICE.md` 附出處與授權全文。
+- `/swarm` 的決策紀錄：改編自 Cursor pstack 的 show-me-your-work（MIT，Lauren Tan），`plugins/baransu/skills/swarm/NOTICE.md` 附出處與授權全文；其餘是本 repo 自己的設計。
 - `/what-now` 的 `--video`：改編自 Cursor pstack 的 ketchup-video（MIT，Lauren Tan），見同一份 `NOTICE.md`。
 
 ## 圖片

@@ -14,16 +14,16 @@ Write to the user in the user's language.
 ## Outcome Contract
 
 - **Outcome**: The job done by bees, every task ending verified or named as a gap, and one report.
-- **Done when**: Every task on the board is `verified` or `gap`; the merged work went through one independent review and one check of its fixes; the report has been given.
-- **Evidence**: The board `.claude/swarm/<slug>/tasks.jsonl` and the bees' reports under `.claude/swarm/<slug>/reports/`, each verified task's report holding the commands its bee ran with their output.
-- **Output**: The bees' changes in the tree (uncommitted unless the user asked), the board and reports, and the report in the conversation. `/ship` archives `.claude/swarm/`.
+- **Done when**: Every task on the board is `verified` or `gap`; the merged work went through one independent review and one check of its fixes; the decision log was audited against the transcript and read by a reviewer on another model; the report has been given.
+- **Evidence**: The board `.claude/swarm/<slug>/tasks.jsonl`, the bees' reports under `.claude/swarm/<slug>/reports/` — each verified task's report holding the commands its bee ran with their output — and the decision log `.claude/swarm/<slug>/decisions.tsv`, audited against the transcript and read by a reviewer on another model.
+- **Output**: The bees' changes in the tree (uncommitted unless the user asked), the board, reports and decision log, a report to the user each time the crew changes, and the closing report in the conversation. `/ship` archives `.claude/swarm/`.
 - **Automation**: ultracode=neutral, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 PAUSE classification for non-interactive drivers: `references/loop-pauses.md`.
 
 ## The board
 
-The board is `.claude/swarm/<slug>/tasks.jsonl`, one line per task: id, title, kind, owner, paths, depends on, waits for, state, attempt, and for the current attempt whether its bee was already resumed once and how many questions it has asked, whether the task's environment was already fixed, what it awaits — the queen or the user, with the question, and whether the user has been shown it — the decisions the queen took for it, and evidence. `.claude/swarm/` belongs to the queen alone: she writes the board, bees leave reports, and she moves the board from them.
+The board is `.claude/swarm/<slug>/tasks.jsonl`, one line per task: id, title, kind, owner, paths, depends on, waits for, state, attempt, and for the current attempt whether its bee was already resumed once and how many questions it has asked, whether the task's environment was already fixed, what it awaits — the queen or the user, with the question, and whether the user has been shown it — and evidence. `.claude/swarm/` belongs to the queen alone: she writes the board, bees leave reports, and she moves the board from them.
 
 The board is the swarm's memory. Every report the queen has read moves from `reports/` to `reports/read/`, so a file still in `reports/` is one she has not acted on. After a compaction or in a new session, read the board and `reports/`, never the conversation; treat every `running` task with an unread report, or whose bee is no longer running, as if its bee had just ended; and show the user again every question still awaiting them.
 
@@ -42,6 +42,12 @@ The board is the swarm's memory. Every report the queen has read moves from `rep
 | `gap` | could not be done or shown | — |
 
 After every change, show the user one line counted from the board: verified, running, blocked (and how many wait on the user), gaps.
+
+## The decision log
+
+What the queen decides, and what each step of the run settled, goes into `.claude/swarm/<slug>/decisions.tsv`: one row per decision, six single-line columns — `ts`, `phase` (a task id, or `board`, `crew`, `start`), `decision`, `why`, `evidence`, `result`. Write each row with `node <this skill>/scripts/log.mjs <logfile> <phase> <decision> <why> <evidence> <result>`; it stamps the time, writes the header, keeps every cell on one line, and stops a spreadsheet from reading a cell as a formula. Say each row the way you would tell a teammate what you did. Evidence is a pointer — a report path, `file:line`, a commit, a screenshot — never prose. Log a fork chosen with its alternative, a task verified, a pivot or revert with what triggered it, a step waiting on the user, each crew; not every action. The log is append-only: a wrong call gets a new row that supersedes it. When a new session picks the swarm up, its first row has phase `start` and names the rows it did not write.
+
+Each time the crew changes, report to the user: the rows added since the last report, as a table, under the status line.
 
 ## The crew
 
@@ -74,7 +80,7 @@ The bee's last act is its report, a new file in `reports/` named for its task an
 
 ## Whose call it is
 
-A swarm ends before anything ships, so nearly every decision in it can still be changed. The queen makes it — a choice of approach, design or taste, and every step inside the run: restarting a process the run started, freeing memory, retrying, reordering, splitting again — and records it in the task's line on the board: what she chose, why, and the alternative. The user reviews those records before shipping. Only a step that cannot be undone or reaches outside the run waits for the user: deleting data the run did not make, an account, a deploy, a message to anyone. A host permission prompt is not a decision: the queen approves the step on her side; if the host still asks, she tells the user where the click is waiting, and when the same prompt keeps coming she shows the exact allow rule, never editing the user's settings herself.
+A swarm ends before anything ships, so nearly every decision in it can still be changed. The queen makes it — a choice of approach, design or taste, and every step inside the run: restarting a process the run started, freeing memory, retrying, reordering, splitting again — and logs it as a row in the decision log: what she chose, why, and the alternative. The user reviews those records before shipping. Only a step that cannot be undone or reaches outside the run waits for the user: deleting data the run did not make, an account, a deploy, a message to anyone. A host permission prompt is not a decision: the queen approves the step on her side; if the host still asks, she tells the user where the click is waiting, and when the same prompt keeps coming she shows the exact allow rule, never editing the user's settings herself.
 
 ## When something goes wrong
 
@@ -90,7 +96,9 @@ A swarm ends before anything ships, so nearly every decision in it can still be 
 
 ## Report
 
-Each task with its state and evidence in one line, the decisions the queen took with their alternatives so the user can change any before shipping, the gaps and why, the review verdict, the cost of one end-to-end run when paid calls were made, and what waits on the user.
+First check the decision log told the truth. Walk this session's own transcript — never another conversation — against the rows this session wrote: every row a real decision or action, every evidence pointer showing what its row claims, every fork, pivot or abandoned approach that shaped the work logged. Correct the log with rows that supersede, never by editing. Then have one bee on a model family other than the queen's read the log and the transcript and flag what the user should look at: decisions with weak or no evidence, verification claimed but not shown in the transcript, choices that look risky in hindsight, and gaps a quick read would miss.
+
+The report: each task with its state and evidence in one line, the decision log as a table so the user can change any decision before shipping, the gaps and why, the review verdict, the cost of one end-to-end run when paid calls were made, and what waits on the user. It ends with an Attention section whose first line names the model that read the log — `reviewed by <model>` — then each flag pointing at its rows; "no flags", in the user's language, is a valid value, a missing model name is not.
 
 ## Not-for boundaries
 
