@@ -45,8 +45,8 @@
     "plugins/baransu/hooks/util/languages/rust.ts": "c5fd0991293764ec1731b61b13ca9362eb26f63ae209b9db2934aff2339bbe63",
     "plugins/baransu/hooks/util/languages/typescript.ts": "e513d85a85fef5ef8b3459107027e4bcd07c38fb15a70dcaa3fceb447f90ee5d"
    },
-   "head": "c275deb511d5afe514d09a1d46fa030584b42442",
-   "when": "2026-11-25T08:04:35+00:00"
+   "head": "78d756a4d7deba3c4c65fb1325602944730b48b6",
+   "when": "2026-11-25T08:05:50+00:00"
   }
  }
 }

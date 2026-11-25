@@ -160,7 +160,7 @@ def read_record(c, key):
 def write_record(root, c, key, value):
     data = read_records(c)
     data.setdefault(c.cid, {})[key] = value
-    (c.folder / RECORD).write_text(json.dumps(data, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    (c.folder / RECORD).write_text(json.dumps(data, indent=1, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     return rel(root, c.folder / RECORD)
 
 
@@ -224,7 +224,7 @@ def write_stamp(root, c, code, secs, out, digest, files):
     d = results_dir(root)
     d.mkdir(parents=True, exist_ok=True)
     if not (d / ".gitignore").exists():
-        (d / ".gitignore").write_text("*\n", encoding="utf-8")
+        (d / ".gitignore").write_text("*\n", encoding="utf-8", newline="\n")
     stamp = {
         "id": c.id,
         "exit": code,
@@ -234,8 +234,8 @@ def write_stamp(root, c, code, secs, out, digest, files):
         "fingerprint": digest,
         "files": files,
     }
-    stamp_path(root, c, "json").write_text(json.dumps(stamp, indent=1), encoding="utf-8")
-    stamp_path(root, c, "log").write_text(out, encoding="utf-8")
+    stamp_path(root, c, "json").write_text(json.dumps(stamp, indent=1), encoding="utf-8", newline="\n")
+    stamp_path(root, c, "log").write_text(out, encoding="utf-8", newline="\n")
 
 
 def rel(root, p):
