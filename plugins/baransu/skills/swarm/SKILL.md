@@ -23,7 +23,7 @@ PAUSE classification for non-interactive drivers: `references/loop-pauses.md`.
 
 ## The board
 
-The board is `.claude/swarm/<slug>/tasks.jsonl`, one line per task: id, title, kind, owner, paths, depends on, waits for, state, attempt, and for the current attempt whether its bee was already resumed once and how many questions it has asked, whether the task's environment was already fixed, what it awaits — the queen or the user, with the question, and whether the user has been shown it — and evidence. `.claude/swarm/` belongs to the queen alone: she writes the board, bees leave reports, and she moves the board from them.
+The board is `.claude/swarm/<slug>/tasks.jsonl`, one line per task: id, title, kind, owner, paths, depends on, waits for, state, attempt, and for the current attempt whether its bee was already resumed once and how many questions it has asked, whether the task's environment was already fixed, what it awaits — the queen or the user, with the question, and whether the user has been shown it — the decisions the queen took for it, and evidence. `.claude/swarm/` belongs to the queen alone: she writes the board, bees leave reports, and she moves the board from them.
 
 The board is the swarm's memory. Every report the queen has read moves from `reports/` to `reports/read/`, so a file still in `reports/` is one she has not acted on. After a compaction or in a new session, read the board and `reports/`, never the conversation; treat every `running` task with an unread report, or whose bee is no longer running, as if its bee had just ended; and show the user again every question still awaiting them.
 
@@ -59,7 +59,7 @@ Prepare credentials, and anything else that raises a permission prompt, once bef
 
 ## The loop
 
-1. **Lay out the board.** Start from what is already in place: the roles, rules and running work the user set up before this run — a resident guard, a rule about who may touch what, bees still working — each gets its place on the board, or the reason it has none is said. Then say what done looks like, write the tasks with their dependencies, paths and sizes, and show the user the board and the first crew. When several bees try the same task to keep the best, say how the best is picked before they start. Start; stop only for a decision that is the user's.
+1. **Lay out the board.** Start from what is already in place: the roles, rules and running work the user set up before this run — a resident guard, a rule about who may touch what, bees still working — each gets its place on the board, or the reason it has none is said. Then say what done looks like, write the tasks with their dependencies, paths and sizes, and show the user the board and the first crew. When several bees try the same task to keep the best, say how the best is picked before they start. Start without waiting; only a step that waits for the user, as Whose call it is draws it, holds its own task.
 2. **Fill every free seat.** Start each task that can start — `ready`, an attempt left, none of its paths held — the moment a seat is free, never waiting for the rest of a round. When more can start than there are seats, start first the one with the longest chain of tasks behind it; otherwise the run ends on one long chain with one bee working.
 3. **When nothing can start and a seat is free, find work** before waiting: split the largest task not yet started, send a scout to read ahead for a task still waiting on another, or prepare the checks for what is done.
 4. **Wait** only when every seat is busy or nothing at all can move without an answer. The next event — a bee ending, the user answering, the user adding a task — brings the queen back.
@@ -68,16 +68,20 @@ Prepare credentials, and anything else that raises a permission prompt, once bef
 
 ## What a bee gets and gives back
 
-The brief stands alone: the task and what done looks like, the files to read first, the paths it owns, the interface it reads or writes, the repo's own rules, no commit unless the user asked, how to check its work by running the real thing — for a measurement, the exact version and the method — and where its report goes. It also says that the bee never writes the board or anything else under `.claude/swarm/`, that a change it needs outside its paths is a question for the queen, and that a step that is destructive or held by a permission check is a question too, never worked around.
+The brief stands alone: the task and what done looks like, the files to read first, the paths it owns, the interface it reads or writes, the repo's own rules, no commit unless the user asked, how to check its work by running the real thing — for a measurement, the exact version and the method — and where its report goes. It also says that the bee never writes the board or anything else under `.claude/swarm/`, that a change it needs outside its paths is a question for the queen, and that so is a step it must not take alone — destructive, irreversible, or held by a permission check — never worked around.
 
-The bee's last act is its report, a new file in `reports/` named for its task and attempt, saying one of: done, with the commands it ran and what they printed; done without that; a question for the queen; a question for the user; the environment is broken. It does not finish while a job it started is still running, and its report says so.
+The bee's last act is its report, a new file in `reports/` named for its task and attempt, saying one of: done, with the commands it ran and what they printed; done without that; a question for the queen; the environment is broken. It does not finish while a job it started is still running, and its report says so.
+
+## Whose call it is
+
+A swarm ends before anything ships, so nearly every decision in it can still be changed. The queen makes it — a choice of approach, design or taste, and every step inside the run: restarting a process the run started, freeing memory, retrying, reordering, splitting again — and records it in the task's line on the board: what she chose, why, and the alternative. The user reviews those records before shipping. Only a step that cannot be undone or reaches outside the run waits for the user: deleting data the run did not make, an account, a deploy, a message to anyone. A host permission prompt is not a decision: the queen approves the step on her side; if the host still asks, she tells the user where the click is waiting, and when the same prompt keeps coming she shows the exact allow rule, never editing the user's settings herself.
 
 ## When something goes wrong
 
 - **No evidence.** The task goes back to `ready` for a second attempt by a fresh bee.
 - **No report.** The bee is resumed once to write it; ending without one again is a failed attempt. Before another bee takes the task's paths, stop anything the vanished bee left running there.
-- **A question for the queen** is answered, and the same bee is resumed in a free seat.
-- **A question for the user** is asked once and never answered on the user's behalf, and the board says what is awaited from whom; every other task keeps going, and the bee is resumed on the answer. The user's time is the scarcest in the swarm, so questions waiting at the same moment go out together, each with the queen's pick, the evidence for it and its risk.
+- **A question for the queen** is decided and recorded as Whose call it is lays out, and the same bee is resumed in a free seat.
+- **A step that waits for the user** — one that cannot be undone or reaches outside the run — is asked once and never taken on the user's behalf, and the board says what is awaited from whom; every other task keeps going, and the bee is resumed on the answer. Steps waiting at the same moment go out together, each with the queen's pick, the evidence for it and its risk.
 - **A second question in one attempt** means the bee is stuck: the attempt fails and a fresh bee takes the task.
 - **A broken environment** is not the bee's failure: the queen puts the fix on the board and its cause to the lint bee, then resumes the bee once the fix is done; the attempt is not spent. The same task failing on its environment again is a failed attempt.
 - **A mistake seen twice**, in any bee's work or the queen's own, goes to the lint bee as a check, so a third bee cannot make it.
@@ -86,7 +90,7 @@ The bee's last act is its report, a new file in `reports/` named for its task an
 
 ## Report
 
-Each task with its state and evidence in one line, the gaps and why, the review verdict, the cost of one end-to-end run when paid calls were made, and what waits on the user.
+Each task with its state and evidence in one line, the decisions the queen took with their alternatives so the user can change any before shipping, the gaps and why, the review verdict, the cost of one end-to-end run when paid calls were made, and what waits on the user.
 
 ## Not-for boundaries
 

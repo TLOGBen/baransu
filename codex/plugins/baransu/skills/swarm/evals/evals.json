@@ -31,6 +31,13 @@
       "expected_behavior": "Applies the loop: when more tasks can start than seats are free, starts first the one with the longest chain behind it; when a seat is free and nothing can start, finds work — splits the largest task not yet started, sends a scout ahead, or prepares checks — before waiting; a task too big for one bee is split across, not along."
     },
     {
+      "id": 7,
+      "prompt": "美術那隻回報：生成程式卡住了，要重啟它才能繼續，但重啟被權限提示擋下，等你決定",
+      "should_trigger": true,
+      "expected_skill": "swarm",
+      "expected_behavior": "The queen decides the restart herself — a process the run started, inside the run, undoable — and records it on the task's line with why and the alternative; she does not ask the user to decide. If the host permission prompt still appears, she tells the user where the click is waiting and, if it repeats, shows the exact allow rule, without approving it for them or editing their settings."
+    },
+    {
       "id": 5,
       "prompt": "把這個小 lint 修正丟給便宜一點的模型做就好",
       "should_trigger": false,
