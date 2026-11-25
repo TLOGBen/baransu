@@ -9,10 +9,10 @@
   },
   "synced": {
    "files": {
-    "plugins/baransu/hooks/engine/moments.ts": "d549bb88da4ae13973d4e62ec68cc8774d69cbc68d945d49e2ee4c18efa691c8"
+    "plugins/baransu/hooks/engine/moments.ts": "1dca0e71a4d2ef74c48f23141d453fe958457cbdd685bdafaae6c5744db315ba"
    },
-   "head": "80259a58c910f7ecc0022eace4b8c0f21a468f99",
-   "when": "2026-11-25T07:50:38+00:00"
+   "head": "c275deb511d5afe514d09a1d46fa030584b42442",
+   "when": "2026-11-25T08:04:35+00:00"
   }
  }
 }

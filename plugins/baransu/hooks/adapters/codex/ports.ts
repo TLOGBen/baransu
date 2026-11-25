@@ -32,6 +32,14 @@ function fold(path: string): string {
   return out.join('/')
 }
 
+/** Whether a Windows name is a .cmd/.bat shim (npm CLIs) that only cmd can start. Without one the program is
+ *  missing: going through cmd anyway would turn "not found" into an ordinary failing exit. */
+function shimOnPath(name: string): boolean {
+  const names = ['.cmd', '.bat'].map(ext => `${name}${ext}`)
+  if (/[\\/]/.test(name)) return names.some(n => existsSync(n))
+  return (process.env.PATH ?? '').split(';').filter(Boolean).some(dir => names.some(n => existsSync(`${dir}/${n}`)))
+}
+
 /** Runs a program. Never throws. On Windows a name that is a .cmd/.bat shim (npm CLIs) runs through cmd. */
 export const nodeRunner: Runner<Hook> = {
   run(_h, argv, { cwd, timeoutMs = 120000, env }): Promise<RunResult> {
@@ -62,10 +70,10 @@ export const nodeRunner: Runner<Hook> = {
         child.stderr?.on('data', d => (err += d))
         child.on('error', (e: any) => {
           clearTimeout(timer)
-          if (!useShell && e?.code === 'ENOENT' && process.platform === 'win32') {
+          if (!useShell && e?.code === 'ENOENT' && process.platform === 'win32' && shimOnPath(argv[0])) {
             done = true
             start(true)
-          } else finish({ exitCode: -1, stdout: out, stderr: `無法執行：${e?.message ?? e}` })
+          } else finish({ exitCode: -1, stdout: out, stderr: `無法執行：${e?.message ?? e}`, ...(e?.code === 'ENOENT' ? { missing: true as const } : {}) })
         })
         child.on('close', code => {
           clearTimeout(timer)

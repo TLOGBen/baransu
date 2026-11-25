@@ -25,7 +25,8 @@ export interface ConfigSource<H> {
   reload(): void
 }
 
-export type RunResult = { exitCode: number; stdout: string; stderr: string }
+/** `missing`: the command could not start because its program is not on PATH (`exitCode` -1). */
+export type RunResult = { exitCode: number; stdout: string; stderr: string; missing?: true }
 export type PathProbe =
   | { kind: 'missing' }
   | { kind: 'file' }
@@ -34,8 +35,8 @@ export type PathProbe =
 
 /** The outside world the checks look at: commands (git, ast-grep, a check's own `run`) and paths. */
 export interface Runner<H> {
-  /** Never throws: a command that cannot start is `exitCode: -1` with `無法執行：<reason>` in stderr. `env`
-   *  is added to the command's environment (LINT_TEXT, LINT_CHANGED, LINT_BEFORE). */
+  /** Never throws: a command that cannot start is `exitCode: -1` with `無法執行：<reason>` in stderr, plus
+   *  `missing` when the reason is that its program is not on PATH. `env` is added to the command's environment (LINT_TEXT, LINT_CHANGED, LINT_BEFORE). */
   run(h: H, argv: readonly string[], opts: { cwd: string; timeoutMs?: number; env?: Readonly<Record<string, string>> }): Promise<RunResult>
   /** What is at an absolute path, for the delete preview. Never throws. */
   probe(h: H, path: string): Promise<PathProbe>

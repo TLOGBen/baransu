@@ -11,18 +11,18 @@
    "files": {
     ".claude/prove-it/fixtures/codex-lint/checks.toml": "a71bf06b372f9a3cb412076f6d015b2664edda672039f2eac8e248d43ff40247",
     "codex/plugins/baransu/hooks/hooks.json": "ae54b1e0616d3892550dbd91c1b4a086b74fe1f274cae779856e745e4cfd788e",
-    "codex/plugins/baransu/hooks/lint.mjs": "514ca6a294ca2e962933ae3823442d6d795a963760016452e6ffc9d83782fa49",
+    "codex/plugins/baransu/hooks/lint.mjs": "6f97dc9788f9fd0707088ee9e3e4fb17a12caff75c5c7255e4ccc3cc63f95f08",
     "plugins/baransu/hooks/adapters/codex/main.ts": "76fc61f18dd13693a81223cafd8108c102e7d7d0b6641042e093feceb91b8411",
     "plugins/baransu/hooks/adapters/codex/patch.ts": "0d7d996a85f97e15be1f8b2cd37662ecb0eb60f9c2935663d80f0a38283c7b24",
-    "plugins/baransu/hooks/adapters/codex/ports.ts": "6289ba614632d16f848da7242a54dec8c40989f022af28866036382c1704239c",
+    "plugins/baransu/hooks/adapters/codex/ports.ts": "59d12f03b6a7314dfa9ed07e0d74207facc5693905dd0db8311dffa0e0f8ac63",
     "plugins/baransu/hooks/adapters/codex/store.ts": "dcbd73bf335f74b693a88b0080e73a17f5844161035c476bbe2a5730678c9b91",
     "plugins/baransu/hooks/engine/around.ts": "6aa4fecadc8d2bda79154da724845bea5125451f0b8d02503e062147c50754eb",
     "plugins/baransu/hooks/engine/check.ts": "ad3be8dd5024a5b68d9c0f0e7653ea47fa876a3684a934dbf80eb0702b8a1042",
     "plugins/baransu/hooks/engine/engine.ts": "0a0d8081e228fd47367175b94191c14fac2bc6f5bb070fa6640d68cc78c7de82",
     "plugins/baransu/hooks/engine/folder.ts": "8604a32b87817115d0b078534e31a6218a70196aed0a318ad3865d604d511239",
     "plugins/baransu/hooks/engine/index.ts": "2091f958c8dbe76d736747028c9bdfc813b596ba828a0de5823e37094d7f9e73",
-    "plugins/baransu/hooks/engine/moments.ts": "d549bb88da4ae13973d4e62ec68cc8774d69cbc68d945d49e2ee4c18efa691c8",
-    "plugins/baransu/hooks/engine/ports.ts": "af44ba42a5e0bfdb28ccf1fb544f33e9597a4f02723400444c0eda6694487165",
+    "plugins/baransu/hooks/engine/moments.ts": "1dca0e71a4d2ef74c48f23141d453fe958457cbdd685bdafaae6c5744db315ba",
+    "plugins/baransu/hooks/engine/ports.ts": "a923839cfced2ca3905c1b5af819a4442826e229c8ad5fc6ace23d7c291be376",
     "plugins/baransu/hooks/engine/scope/evaluate.ts": "2a295a2fb0281163c8cc81a73b32244a418d7bd438a95d9ef5bb10da8bc76db8",
     "plugins/baransu/hooks/engine/scope/glob.ts": "f4b62af7d3da7fcd3ee9a954ebaaff2a22ab63dd6543d6f9bc96e15b47597b61",
     "plugins/baransu/hooks/engine/scope/lens.ts": "9d7929a7d8931d2ad5f02377c53120e10b10980975b814cced7f99630cf7c09d",
@@ -45,8 +45,8 @@
     "plugins/baransu/hooks/util/languages/rust.ts": "c5fd0991293764ec1731b61b13ca9362eb26f63ae209b9db2934aff2339bbe63",
     "plugins/baransu/hooks/util/languages/typescript.ts": "e513d85a85fef5ef8b3459107027e4bcd07c38fb15a70dcaa3fceb447f90ee5d"
    },
-   "head": "80259a58c910f7ecc0022eace4b8c0f21a468f99",
-   "when": "2026-11-25T07:50:38+00:00"
+   "head": "c275deb511d5afe514d09a1d46fa030584b42442",
+   "when": "2026-11-25T08:04:35+00:00"
   }
  }
 }

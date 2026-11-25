@@ -2,6 +2,15 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.57.1] - 2026-11-25
+
+### Fixed（lint：Mac 上找不到 python、ast-grep）
+- 在 Mac 上，`run = ["python", …]` 的檢查每個檔都報一行「無法執行：找不到 python」，commit 卡片被洗成一整面；ast-grep 沒裝時也一樣。根因有兩個：引擎只認寫死的程式名稱（Mac 只有 `python3`），而且把「程式不存在」當成每個檔各自的失敗。
+- 引擎執行指令時，`python` 和 `python3` 互相代替，這台機器有哪個就用哪個；檢查和使用者專案裡的寫法都不用改。
+- 兩個名稱都找不到的程式，每張卡片只說一次：一行警告列出因此沒檢查到的 check（或 ast-grep 的 `rules/`）和安裝方式；沒跑的檢查不會被當成通過。執行器多回報「程式不在 PATH」這件事（`missing`），Claude Code 與 Codex 兩邊都會設。
+- Codex 在 Windows 上原本找不到程式時會改走 cmd，cmd 回傳 1，於是每個檔都被誤報成「檢查失敗」，ast-grep 則被當成沒有發現。現在只有 PATH 上真的有 `.cmd`／`.bat` 包裝程式（npm 的 CLI）才走 cmd，其他一律視為找不到。
+- `/lint` 的 `references/format.md` 補上 `run` 的程式名稱與缺工具時的說法；Codex 版 lint hook 重新打包。
+
 ## [8.57.0] - 2026-11-25
 
 ### Added（/hypothesis、/prove-it：把判斷留成新 session 或沒有 AI 的人也能重跑的回歸檢查）
