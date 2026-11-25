@@ -37,7 +37,7 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 <td>
 <h3><a href="docs/skills/plan.md">構想</a></h3>
 <p><i>動手之前，先把「要什麼」和「怎樣才算做完」說清楚。</i></p>
-<b><code>/baransu:think</code></b>：復述對焦、借鏡、表態、兩向攻擊，留一份計畫，不寫程式<br>
+<b><code>/baransu:think</code></b>：慢想——先找出答案取決於什麼（決定性的未知按分支各估一份），再教業界用詞、深化題目，再復述對焦、表態、兩向攻擊，留一份計畫，不寫程式<br>
 <b><code>/baransu:draft</code></b>：方向定了、形狀還不明顯時，先寫呼叫端用法，兩個互相看不到的設計者各畫一版，選定後把骨架（型別、簽名、未實作的本體）寫進 repo，當作實作的合約<br>
 <b><code>/baransu:sayagain</code></b>：用白話重述你的目標和想解決的問題，讓你確認它懂了<br>
 <b><code>/baransu:domain-modeling</code></b>：邊設計邊把專案用詞磨精確、寫進 <code>CONTEXT.md</code>，難回頭的決定記成 ADR
@@ -71,12 +71,12 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 <p><i>先把原文完整讀進來，再決定要不要消化成自己的筆記。</i></p>
 <b><code>/baransu:read</code></b>：網頁、檔案、搜尋結果轉成 Markdown；加 <code>--save</code> 才存檔<br>
 <b><code>/baransu:learn</code></b>：評分篩選來源，整理成五欄摘要或完整大綱筆記<br>
-<b><code>/baransu:how</code></b>：講清楚一塊程式怎麼運作：流程、關鍵概念、檔案位置、陷阱<br>
-<b><code>/baransu:why</code></b>：從 git 紀錄、計畫與對話查出程式為什麼長這樣，每條主張標信心、寫明查不到什麼<br>
+<b><code>/baransu:how</code></b>：派一個唯讀子代理，講清楚一塊程式怎麼運作<br>
+<b><code>/baransu:why</code></b>：從 commit、PR 與計畫查出程式為什麼長這樣：作者寫的附出處、推論標明、寫明紀錄回答不了什麼<br>
 <b><code>/baransu:teach-me</code></b>：用對話把一塊程式或一份筆記教到你真的懂，一次一層<br>
 <b><code>/baransu:show-me</code></b>：用最小的一張圖把當下的重點畫出來（流程、結構、差異），只能手動叫用<br>
 <b><code>/baransu:huh</code></b>：把上一則訊息用白話重講一次，不用術語<br>
-<b><code>/baransu:what-now</code></b>：你離開一陣子回來時，白話講清楚這段期間變了什麼，再把等你決定的事逐項列好（附建議、根據與風險），只能手動叫用
+<b><code>/baransu:what-now</code></b>：你離開一陣子回來時，白話講清楚這段期間變了什麼，再把等你決定的事逐項列好（附建議、根據與風險）；加 <code>--video</code> 改用一段無聲投影片影片；只能手動叫用
 </td>
 </tr>
 <tr>

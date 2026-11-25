@@ -23,13 +23,13 @@ Claude Code：`/baransu:ship`　Codex：`$baransu:ship`
 1. 偵測：沒有 git 的專案在搬任何檔案之前就直接失敗（否則歸檔的檔案沒有 commit 可錨定）。
 2. 歸檔：`.claude/` 下的 baransu 工作目錄（`read`／`learn`／`draw`／`design` 的成品除外），搬到主工作樹的 `.claude/archived/`（在 worktree 裡跑也一樣，拆 worktree 時不會被一起刪掉）；這個目錄透過 repo 共用的 `.git/info/exclude` 忽略，只留本機。只有名稱衝突時才加時間戳。
 3. commit 前先在本機整合上游。
-4. commit：身分依這個 repo 最近的 commit 作者和遠端的主機、擁有者判斷，跟 git config 不一致時以判斷結果為準、判斷不出來就停下來問；訊息沿用 repo 過去的格式和語言，不加 `Co-Authored-By`。
+4. commit：身分依這個 repo 最近的 commit 作者和遠端的主機、擁有者判斷，跟 git config 不一致時以判斷結果為準、判斷不出來就停下來問；訊息沿用 repo 過去的格式和語言，不加 `Co-Authored-By`；擬好後照 `/write` 的技術寫作規則（`references/technical-writing.md` 的 commit message 與句子兩節，加上 writing-principles）逐句修過，修完的才是要 commit 的版本。
 5. push 目前分支；有目標分支時，逐一併入並 push。合併有衝突就在那次合併裡自己解（兩邊都要的都留、算得出來的值重算），通過跟步驟 3 同一套檢查才 commit；只有兩邊意圖互相矛盾時才停下來，說明哪個檔、哪一段、兩邊各想做什麼。一律 merge，不 rebase。
 6. 在 worktree 中執行且工作已確認在 origin 上：移除 worktree，並以 `git branch -D` 刪掉分支（push 後本機分支視為未合併，`-d` 一定失敗）。
 
 **產出**　主工作樹 `.claude/archived/` 下的本機歸檔、有非歸檔變更時的一筆 commit、繁中收工報告（歸檔數、commit 身分、commit 訊息或「跳過」、上游整合結果、push 目標與每個目標的併入結果、worktree 清理狀態）。
 
-**不適用**　寫文案 → `/write`；審查產出 → `/review`。`/ship` 只做收尾。
+**不適用**　寫文案 → `/write`；審查產出 → `/review`。`/ship` 只做收尾，除了修 commit message 不寫作。
 
 **非互動驅動**　`loop=assisted`。
 

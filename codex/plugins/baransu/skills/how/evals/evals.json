@@ -7,21 +7,21 @@
       "prompt": "$baransu:how scripts/verify-skills.py 怎麼檢查 skill 表和技能目錄有沒有對上？",
       "should_trigger": true,
       "expected_skill": "how",
-      "expected_behavior": "Simple path: no agents dispatched; names check_skill_table and discover_skills with file:line, explains that the CLAUDE.md '## Skills' table rows are compared as a set against the skill directories (excluding _shared)."
+      "expected_behavior": "One read-only subagent explains; the answer names check_skill_table and discover_skills and explains that the CLAUDE.md Skills table rows are compared as a set against the skill directories (excluding _shared)."
     },
     {
       "id": 2,
       "prompt": "帶我看 $baransu:draw 這整塊是怎麼運作的",
       "should_trigger": true,
       "expected_skill": "how",
-      "expected_behavior": "Complex path: entry points read first, then 2 to 4 read-only explorers on distinct angles; the answer uses 概觀／關鍵概念／怎麼運作／東西放在哪／陷阱 and every named file was read in this run."
+      "expected_behavior": "One read-only subagent explores the whole of $baransu:draw and its explanation is presented with only light edits; a senior engineer could start working in it from the answer."
     },
     {
       "id": 3,
       "prompt": "新的 hook 腳本應該放在哪一層？",
       "should_trigger": true,
       "expected_skill": "how",
-      "expected_behavior": "Placement answered from existing layering and the nearest precedent; if it is a tradeoff rather than a precedent, says so and points to $baransu:think."
+      "expected_behavior": "Placement answered from the existing layering the subagent finds; a choice that is a tradeoff rather than a precedent points to $baransu:think."
     },
     {
       "id": 4,

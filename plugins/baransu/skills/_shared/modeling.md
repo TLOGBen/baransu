@@ -1,6 +1,6 @@
 # modeling — mathematics as the working language, plain language for people
 
-> Shared by `/think` (the 借鏡 step and the cost-against-effect question), `/review`'s
+> Shared by `/think` (the sharpen step and the cost-against-effect question), `/review`'s
 > tests principle (a declared tolerance and the n a comparison rests on) and `/health` (the relative size index).
 > Mathematics is the precise language the work is done in; the person reads one sentence.
 > Cue for every user-facing line: 「對人陳述時用白話」.

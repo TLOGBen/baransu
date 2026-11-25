@@ -14,9 +14,7 @@ The design screen is `../review/references/principles/structure.md`, `taste.md`,
 
 Arguments the user may give after `$baransu:draft`: `[change | plan path] [--deepen [area]]`.
 
-## Codex Port Adapter - Independent Designers
-
-Step 2 dispatches each designer with `spawn_agent` and `fork_turns="none"`: by default a spawned agent inherits this whole conversation, which would show it the session's preference and the other candidates. Pass the brief, the principle file paths, and the output location as the task input.
+Step 2 starts each designer so it does not see this conversation, passing only the brief, the principle file paths and the output location.
 
 All user-facing output is in Traditional Chinese; code, identifiers, and paths stay as they are.
 

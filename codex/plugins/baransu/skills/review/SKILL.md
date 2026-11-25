@@ -10,39 +10,7 @@ metadata:
 
 Arguments the user may give after `$baransu:review`: `<diff | PR | file | plan | quoted claim> [--full] [--model <m>] [--effort <e>]`.
 
-## Codex Port Adapter - Bundled Agent Resolution
-
-This plugin does not assume package-local TOMLs are auto-registered as custom
-agents. The required definitions for this skill are bundled at
-`../../.codex-agents/<agent-name>.toml`: `reviewer`, `verifier`.
-
-Before every named-agent dispatch:
-
-1. Resolve the exact bundled TOML from this `SKILL.md` directory (strip a
-   leading `baransu:` namespace from the requested name).
-2. Verify the file exists, then pass its absolute path and the task input to a
-   generic Codex subagent. The first instruction to that subagent is to read
-   the TOML's `developer_instructions` completely before doing any task work
-   and to treat relative paths as relative to the TOML file.
-3. If the TOML is missing or unreadable, stop with
-   `AGENT_DEFINITION_MISSING: <path>`. Never invent, summarize, or substitute a
-   role from the agent name.
-
-Paths this skill hands to an agent are absolute, resolved from this `SKILL.md`
-directory — for example the principles directory is the absolute path of
-`references/principles/`.
-
-`--model` and `--effort` map to `spawn_agent`'s `model` and `reasoning_effort`
-parameters. When the runtime's `spawn_agent` does not expose them, or rejects
-the value, report that in the limits; never substitute another model or effort.
-
-
-## Codex Port Adapter - Review Isolation
-
-This skill is countering the model's inertia to rubber-stamp its own prior work, so "fresh" means a context that never saw the authoring conversation. Spawn every reviewer and verifier without parent history: `fork_turns="none"` on `spawn_agent` (`fork_context=false` on the older tool; `spawn_agent` otherwise inherits the whole conversation by default). The task message carries only what the steps below hand over. If `spawn_agent` is unavailable or cannot start without parent history, run the agent in an independent Codex invocation or session that writes its result to a file, and read the result from that file; if neither is possible, the pass is a same-context pass and the report says so.
-
-Do not simulate independent review by asking the same conversation context several times in sequence. Authorization PAUSE remains a hard stop; only input-selection PAUSE may degrade to direct text questions.
-
+The reviewer and verifier are defined in `../../.codex-agents/<name>.toml` (`reviewer`, `verifier`) and are not registered: start each as a subagent that does not see this conversation, whose first instruction is to read that file's `developer_instructions`. A missing file stops the run with `AGENT_DEFINITION_MISSING: <path>`. Paths handed to an agent are absolute. `--model` and `--effort` set the subagent's model and reasoning effort; a value the runtime rejects is reported, never substituted.
 
 A change is right when every place that owns, restates, or relies on what it changed still holds with it. The first of those places is the user's goal. A place holds in three ways, and a problem is a place that fails one:
 
@@ -83,7 +51,7 @@ This step is done once, before any place is judged — by the reviewer itself in
 **The change map.** Read the change as `git diff -W` prints it — each touched function whole, since its unchanged lines now run with the change — and go through it from its first edit to its last and list each fact it alters: a name, a value, a rule, a signature, an output, a behaviour, a promise in prose. A changed line that only reads a state — a condition, a guard, a branch — changes when that state matters: list the state as a fact. Beside it, list what the goal requires. Every edit serves a goal item or serves none; every goal item has its edit or lacks it. A plan has no diff: go through its sections or steps from first to last the same way (`principles/goal.md` #7 names a plan's sections), list each fact one says it will alter, and put each place the plan cites on the walk with the plan's claim about it — what it says the code there does today — as that place's question.
 
 **The walk.** For each fact, list where else it lives, and for each place the question it must answer — what it states, or what it needs. Use the method of `$baransu:why` and `$baransu:how` on this change rather than running those skills:
-- **History** (the `$baransu:why` anchor): `git log` and `git blame` of the changed lines' previous versions, the commit and PR messages, plans and decisions they cite, earlier fixes or reverts in the same area. A decision already made is a place the change must hold with; a mistake this repo has made twice is where to look first.
+- **History** (the record `$baransu:why` reads): `git log` and `git blame` of the changed lines' previous versions, the commit and PR messages, plans and decisions they cite, earlier fixes or reverts in the same area. A decision already made is a place the change must hold with; a mistake this repo has made twice is where to look first.
 - **Lifecycle** (the `$baransu:how` flow): each fact from where it is born to where its result is finally taken, as `blast-radius.md` lays out.
 - **Copies and contracts**: every other statement of the fact under each form it takes — its name, its old value, the words a description would use — in code, prose, tables, examples, expected results, and mirrors; and for each file the change touches, the rules that govern that file — the schema, loader, adapter, or tool that reads it.
 - **Records and environments**: the author's run records of this version (CI, attached output) and the environments they ran in.

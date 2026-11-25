@@ -21,7 +21,7 @@
       "prompt": "我想幫 App 加上離線同步，怎麼設計比較好？",
       "should_trigger": true,
       "expected_skill": "think",
-      "expected_behavior": "Design question on a long-lived feature: restatement rounds, a 借鏡 block (verbs → discipline → instrument → outside judge → what it changes), a stance answering the goal behind the goal / aesthetic / cost-against-effect, then a five-section plan file."
+      "expected_behavior": "Design question on a long-lived feature: a 用詞 block (8–12 ranked terms each with a confirmed link, 2–3 neighbouring fields with where the analogy breaks, what is missing, a rewrite) accepted by the user, then a 深化 block (professional's move → raw material → instruments → outside judge → rewritten request), restatement rounds, a stance answering the goal behind the goal / aesthetic / cost-against-effect, then a five-section plan file."
     },
     {
       "id": 4,
@@ -42,14 +42,28 @@
       "prompt": "這個通知系統有沒有更好、更漂亮的做法？",
       "should_trigger": true,
       "expected_skill": "think",
-      "expected_behavior": "A 'better / more elegant way' ask on a core path: the borrow step is mandatory (name the discipline and its instrument), the stance names the design's one idea and its 我不是什麼 list; no code."
+      "expected_behavior": "A 'better / more elegant way' ask on a core path: reframe and sharpen both run (terms, neighbouring fields, the professional's move and its instrument), the stance names the design's one idea and its 我不是什麼 list; no code."
     },
     {
       "id": 7,
       "prompt": "cache TTL 設 5 分鐘還是 1 小時？",
       "should_trigger": false,
       "expected_skill": null,
-      "expected_behavior": "A parameter choice inside a settled shape is answered directly, not deliberated; if /think is invoked anyway, its alignment exit answers in a line and skips the borrow step and the plan file."
+      "expected_behavior": "A parameter choice inside a settled shape is answered directly, not deliberated; if /think is invoked anyway, reframe and sharpen are skipped with one line each, and its alignment exit answers in a line without a plan file."
+    },
+    {
+      "id": 8,
+      "prompt": "我想做一個東西，可以把我每天在 Claude 的對話整理起來，下次開新對話時它自己知道我之前在幹嘛",
+      "should_trigger": true,
+      "expected_skill": "think",
+      "expected_behavior": "A vague description that could name more than one problem: reframe first lists two or three candidate problems (e.g. session memory, retrieval-augmented context, activity summarisation) each with its term and a telling sign, picks one with a reason, teaches ranked terms with links it opened, and hands back a rewrite for the user to correct before sharpen and the restatement."
+    },
+    {
+      "id": 9,
+      "prompt": "客戶是一家銀行，要我們評估人天：串接他們自己的 LLM API，用他們已經建好的內部知識庫、各部門的 RAG 和向量 DB，做 (1) 用 AI 比對內部資料並做成儀表板、(2) 各部門的知識庫問答助手。他們已經有一套全公司在用、能碰到內部資料的 AI 助手，也提過一個外部廠商的 AI 方案。",
+      "should_trigger": true,
+      "expected_skill": "think",
+      "expected_behavior": "Step back runs before any vocabulary or design: the fast answer (API integration plus data cleaning) is written and set aside; widening the frame names the bank's security review for any outside AI touching internal data, the assistant already in use as proof that such a path has been opened before, and which stretch is ours; the decisive unknown is whether the client has already cleared the path for us (integrate only) or not (we carry the whole path, security review and data preparation included), with the client as the one who answers, and the estimate is given per branch; the outside vendor's option is ruled out with its reason (it cannot reach internal data under those rules). No estimate assumes a branch."
     }
   ]
 }

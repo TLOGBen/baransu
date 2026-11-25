@@ -4,6 +4,8 @@
 
 What was kept: the upstream text — catching up from the user's last message, the read-only gather, what counts as an action item, the reply order (one opening sentence, pictures, one line per request, then the calls), the shapes for one item, shared calls, and options, and the rules for visuals — and, from the upstream frontmatter, invocation by the user only. What changed: the skill is renamed `/what-now`; the voice is `/huh`'s instead of `/bro`'s; visuals draw on `/show-me`'s views instead of `/visualize`; word budgets are restated as Traditional Chinese character budgets and the examples are in Traditional Chinese; the PR-body playbook reference was dropped; a Traditional Chinese output line, an Outcome Contract, and Not-for boundaries were added in this repo's format.
 
+The `--video` section is adapted from the `ketchup-video` skill in the same plugin (`pstack/skills/ketchup-video/`, as of commit `ab1f702`, 2026-10-27), by the same author, under the same license. What was kept, in this skill's own words: the window starting at the last user message before the call, the reply shape (opening sentence, video, one line of remaining work, the calls), naming options by the video's names, the slide rules, the reading-time hold of one second per three words, and checking one frame per slide in the rendered file. What changed: the video is a flag on `/what-now` instead of its own skill, the render goes through `/draw`'s film lane, and the hold for Chinese is counted in characters.
+
 ```
 MIT License
 

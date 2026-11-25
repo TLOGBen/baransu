@@ -28,10 +28,10 @@ Pick the few things the person should understand by the end. Choose them from wh
 
 ## 2. Gather the material; do not redo it
 
-- **Code in this repo** (a subsystem, a change, a diff): read enough to get your bearings, then run `$baransu:how` (`../how/SKILL.md`) for how it works and `$baransu:why` (`../why/SKILL.md`) for why it is that way. Size it to the question: a subsystem usually needs both, a small change often one. Keep `$baransu:why` narrow unless the reasons are the point: give it a scoped question and let it stop at the repo record and the written decision records (ADRs, plans, memory), without transcripts or connectors.
+- **Code in this repo** (a subsystem, a change, a diff): read enough to get your bearings, then run `$baransu:how` (`../how/SKILL.md`) for how it works and `$baransu:why` (`../why/SKILL.md`) for why it is that way. Size it to the question: a subsystem usually needs both, a small change often one.
 - **A topic outside the repo**: teach from a `$baransu:learn` note. Use a brief or digest already under `.codex/learn/` when one covers it; otherwise run `$baransu:learn --brief` on the topic first.
 
-What `$baransu:how` and `$baransu:why` return is your material, not the reply: do not present their sections. Their findings are another matter: `$baransu:why`'s tiers, and a note's 信度評分 and 來源矛盾點, are findings, not style. Reword everything else freely for teaching, but carry each of those as wording exactly as sure or as unsure as the source made it (「commit 訊息寫明…」「看起來是…，但沒有紀錄」), without printing tier labels.
+What `$baransu:how` and `$baransu:why` return is your material, not the reply: do not present their sections. Their findings are another matter: what `$baransu:why` marks as inference or as unanswered by the record, and a note's 信度評分 and 來源矛盾點, are findings, not style. Reword everything else freely for teaching, but carry each of those as wording exactly as sure or as unsure as the source made it (「commit 訊息寫明…」「看起來是…，但沒有紀錄」), without printing tier labels.
 
 ## 3. Build it up
 

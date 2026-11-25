@@ -207,6 +207,8 @@ COMMIT_MESSAGE="chore: 收尾本次工作"
 - The message carries no `Co-Authored-By` or other attribution trailer unless the user asked for one.
 - Archive files are ignored by INV-9 and therefore must never influence the staged outcome or commit subject.
 
+Then refine the draft as `$baransu:write` refines technical text: read the Commit messages and Sentences sections of `../write/references/technical-writing.md`, and the shared section and the message language's section of `../write/references/writing-principles.md`, check every sentence of the draft against them, and rewrite each one that breaks a rule, keeping the repo's format. The refined message is the one committed.
+
 Commit using the selected message (with the identity `-c` pair when the identity check called for it):
 
 ```bash

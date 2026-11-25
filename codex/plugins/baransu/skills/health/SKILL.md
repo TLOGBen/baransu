@@ -9,31 +9,7 @@ compatibility: Designed for Claude Code; ported to Codex.
 
 # health — agent-assisted engineering health audit
 
-## Codex Port Adapter - Bundled Agent Resolution
-
-This plugin does not assume package-local TOMLs are auto-registered as custom
-agents. The required definitions for this skill are bundled at
-`../../.codex-agents/<agent-name>.toml`: `health-inspector-context`, `health-inspector-control`, `health-inspector-maintainability`.
-
-Before every named-agent dispatch:
-
-1. Resolve the exact bundled TOML from this `SKILL.md` directory (strip a
-   leading `baransu:` namespace from the requested name).
-2. Verify the file exists, then pass its absolute path and the task input to a
-   generic Codex subagent. The first instruction to that subagent is to read
-   the TOML's `developer_instructions` completely before doing any task work
-   and to treat relative paths as relative to the TOML file.
-3. If the TOML is missing or unreadable, stop with
-   `AGENT_DEFINITION_MISSING: <path>`. Never invent, summarize, or substitute a
-   role from the agent name.
-
-
-## Codex Port Adapter - Inspector Isolation
-
-This skill is countering the model's inertia to treat same-context self-audit as independent evidence. Before using inspector subagents for deep audits, run or consult a `codex-isolation-probe.md` conclusion for this Codex runtime. If native Codex subagents are isolated, use them directly. If not, run each inspector perspective in an independent Codex invocation or session, write the raw findings to files, then merge from those artifacts.
-
-Do not treat same-context sequential prompts as independent inspection. Authorization PAUSE remains a hard stop; only input-selection PAUSE may degrade to direct text questions.
-
+The inspector agents are defined in `../../.codex-agents/<name>.toml` (`health-inspector-context`, `health-inspector-control`, `health-inspector-maintainability`) and are not registered: start each as a subagent that does not see this conversation, whose first instruction is to read that file's `developer_instructions`. A missing file stops the run with `AGENT_DEFINITION_MISSING: <path>`.
 
 Audit the current project's agent setup and AI coding maintainability against this five-layer framework:
 

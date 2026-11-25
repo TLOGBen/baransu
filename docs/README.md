@@ -36,7 +36,7 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 | [學習](skills/learn.md) | [`/read`](skills/learn.md#read) | 任何來源轉成 Markdown 讀進對話 |
 | | [`/learn`](skills/learn.md#learn) | 評分篩選來源，整理成學習筆記 |
 | | [`/how`](skills/learn.md#how) | 講清楚一塊程式怎麼運作 |
-| | [`/why`](skills/learn.md#why) | 查出程式為什麼長這樣，每條主張標信心 |
+| | [`/why`](skills/learn.md#why) | 查出程式為什麼長這樣，作者寫的附出處、推論標明 |
 | | [`/teach-me`](skills/learn.md#teach-me) | 用對話把一塊程式或一份筆記教懂 |
 | | [`/show-me`](skills/learn.md#show-me) | 用最小的一張圖把當下的重點畫出來 |
 | | [`/what-now`](skills/learn.md#what-now) | 回來時講清楚變了什麼，列出等你決定的事 |
@@ -63,7 +63,9 @@ repo 根目錄目前沒有授權檔。以下子模組 vendored 自第三方專�
 - `/lint`、`/evolve`：只取構想、不含原文，各自的 `NOTICE.md` 致謝來源。
 - `/hypothesis`：早期版本改編自 Cursor pstack 的 create-formal-verification-skill、maintain-formal-verification-skill（Lauren Tan）；之後已整份重寫，不再含原文，`plugins/baransu/skills/hypothesis/NOTICE.md` 只留致謝。
 - `/draft`：改編自 Cursor pstack 的 architect、arena（MIT，Lauren Tan），mattpocock/skills 的 codebase-design、improve-codebase-architecture（MIT，Matt Pocock），以及 ponytail（MIT，DietrichGebert），`plugins/baransu/skills/draft/NOTICE.md` 附出處與授權全文。
-- `/write`：去 AI 腔的部分規則改編自 Cursor pstack 的 unslop（MIT），見 `plugins/baransu/skills/write/NOTICE.md`。
+- `/write`：去 AI 腔的部分規則改編自 Cursor pstack 的 unslop，技術寫作規則（`references/technical-writing.md`）改編自 technical-writing（MIT），見 `plugins/baransu/skills/write/NOTICE.md`。
+- `/think`：開頭的「認識用詞」與「深化」改編自 Cursor pstack 的 reframe、sharpen（MIT，Lauren Tan），`plugins/baransu/skills/think/NOTICE.md` 附出處與授權全文。
+- `/what-now` 的 `--video`：改編自 Cursor pstack 的 ketchup-video（MIT，Lauren Tan），見同一份 `NOTICE.md`。
 
 ## 圖片
 

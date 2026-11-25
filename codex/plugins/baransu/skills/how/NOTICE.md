@@ -1,8 +1,8 @@
 # Third-party notice — $baransu:how
 
-`$baransu:how` is adapted from the `how` skill in Cursor's pstack plugin ([cursor/plugins](https://github.com/cursor/plugins), `pstack/skills/how/`, retrieved 2026-10-17), by Lauren Tan, under the MIT License reproduced below.
+`$baransu:how` is adapted from the `how` skill in Cursor's pstack plugin ([cursor/plugins](https://github.com/cursor/plugins), `pstack/skills/how/`, as of commit `bf0c7cd`, 2026-11-15), by Lauren Tan, under the MIT License reproduced below.
 
-What was kept, in this skill's own words: answering a narrow question directly and splitting a broad one into 2 to 4 explored slices, the explorer report shape, and the answer's sections (overview, key concepts, how it works, where things live, gotchas). What changed: the model-assignment rule file was dropped; the main session reads the entry points first and decides the split from what is left, instead of sizing the question up front; a narrow question is answered by the main session instead of a spawned explainer; explorers are read-only agents and the main session reconciles their findings; read-only runs and throwaway experiments count as reading; an open-questions section was added; placement questions defer to `$baransu:think` when they are a tradeoff. No upstream file is copied.
+What was kept: upstream's one-subagent method and its brief, quoted with one added sentence asking for Traditional Chinese, and presenting the output with only light edits. What changed: the subagent is the host's read-only explorer (in Codex a native subagent instructed not to write), the session does it itself on a host without subagents, and this repo's Outcome Contract was added.
 
 ```
 MIT License

@@ -156,6 +156,8 @@ Apply the rule set for the detected language (zh rules or en rules from the embe
 
 Also read `references/writing-principles.md` — the shared section plus the detected language's section — and, for each principle listed there, apply it if and only if the input contains at least one matching instance; when a principle matches, it MUST emit a style tag to the 修正說明 (e.g., `動詞直用`、`具象優先`、`Cut filler`、`Short words`) — a principle that matched but produced no tag is a missed application. One change carries one tag: when several principles motivate the same edit, use the most specific, and a sentence cut whole carries the tag that cut it.
 
+When the text is technical — a README, doc page, RFC, technical article, PR description or commit message — also read `references/technical-writing.md` and apply it the same way, tagging each change with the rule it applied (e.g., `一句一事`、`條件在前`、`真名`、`Pick the mode`).
+
 Additionally, read context cues (salutation style, register of existing vocabulary, audience implied by content) to derive tone, then apply that tone by substituting **register-bearing tokens only** — salutations, closings, and modal/politeness words (e.g. 您好／嗨、敬上／掰、請／麻煩；Dear/Hi, Regards/Cheers, kindly/please). Do NOT alter content nouns or verbs (the words that carry the message's subject matter and actions) for tone reasons — those change only when a mechanical rule dictates it. This bounds tone adjustment to a determinate edit set: the Formal/Conversational Signal→Tone mapping rewrites only the register-bearing slots, never the substance. Derive tone by applying the **same Signal→Tone mapping as Stage 3's Tone-detection table** (no separate criterion): a 正式／商務／business signal → Formal; a 朋友／輕鬆／casual／口語 signal → Conversational; no signal → leave word choice unchanged and apply the mechanical rules only. Tone adjustment is supplementary — it does not override mechanical rule application.
 
 **Long input handling**: when the input has ≥ 5 paragraphs OR ≥ 800 characters (zh) / ≥ 500 words (en), apply rule changes only to the most-impacted instance per rule, not to every match. Example: if the writing-principles entry 「的」克制 finds three sentences each with ≥ 3 「的」, change only the densest sentence and leave the other two alone. This preserves long-form rhythm and prevents the over-trim ("省詞略字") symptom from rule cascades.
@@ -207,7 +209,7 @@ If no rules were triggered and no tone adjustment is needed, output:
 
 ## Stage 3 — Execute: Generate path
 
-Before generating, read `references/writing-principles.md` — the shared section plus the detected language's section. Apply those principles while composing — do not generate first and revise after.
+Before generating, read `references/writing-principles.md` — the shared section plus the detected language's section — and, when the piece is technical (a README, doc page, RFC, technical article, PR description or commit message), `references/technical-writing.md`, picking its mode before the first sentence. Apply those principles while composing — do not generate first and revise after.
 
 **Format detection** from topic keywords in the request:
 

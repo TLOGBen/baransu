@@ -96,10 +96,12 @@ Claude Code：`/baransu:write`　Codex：`$baransu:write`
 
 **底線規則**　中文禁對仗句、禁排比、禁名詞化；英文另禁 em dash。
 
+**技術文字**　README、文件頁、RFC、技術文章、PR 說明、commit message 另外照 `references/technical-writing.md`：先選文件類型（教學、操作步驟、參考、說明，一份只一種），句子一句一事、條件放在步驟前、寫真實名稱；`/ship` 寫 commit message 時也讀它，格式仍以 repo 自己的歷史為準。
+
 **不適用**
 - 寫完要 commit／push 的收尾 → `/ship`
 - 把來源消化成筆記 → `/learn`、`/read`
 
 **非互動驅動**　`loop=drivable`。
 
-**來源**　去 AI 腔的部分（Direct language 段的「講機制不講感覺」、writing-principles 的中英共通五條與 en 7–10）改編自 Cursor pstack 的 unslop（MIT），見 `plugins/baransu/skills/write/NOTICE.md`。
+**來源**　去 AI 腔的部分（Direct language 段的「講機制不講感覺」、writing-principles 的中英共通五條與 en 7–10）改編自 Cursor pstack 的 unslop；技術寫作規則改編自 technical-writing（MIT），見 `plugins/baransu/skills/write/NOTICE.md`。

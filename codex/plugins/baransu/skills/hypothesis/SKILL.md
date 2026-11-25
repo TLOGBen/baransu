@@ -20,15 +20,9 @@ The defaults this corrects: the model asks only how bad things can get and never
 
 All user-facing output is in Traditional Chinese; identifiers, paths, model code and quoted source stay as they are. A rule is 守住 or 被打破.
 
-## Codex Port Adapter - Request User Input Gate
+The §2 confirmation ends the turn until the user answers; never answer it on the user's behalf.
 
-Codex can expose the structured `request_user_input` runtime tool. In Default mode it is currently gated by `[features] default_mode_request_user_input = true`; a skill cannot enable that user configuration itself. The rules an answer is held to are the owner's to agree, so use the strongest gate available in the current runtime.
-
-When `request_user_input` is exposed, call it once at §2's confirmation — the ideal, every rule, every question, and every part left out — then wait for the structured answer before continuing. When it is unavailable, present the same content as plain numbered text and stop until the user answers. When no one can answer, follow §2: go on with the rules as written, check both readings of every open question, and mark the report 未經確認 (`references/loop-pauses.md`).
-
-## Codex Port Adapter - Fresh Agents
-
-`spawn_agent` inherits the parent's conversation by default. Every fresh agent this skill sends — the second derivation, its recheck after a fix, and the reader of an argument a bound rests on — must not see this run's model, answer or reasoning beyond what `references/second-derivation.md` gives it, so spawn each with `fork_turns="none"` and hand it only its filled brief.
+Every fresh agent this skill sends — the second derivation, its recheck after a fix, and the reader of an argument a bound rests on — is started so it does not see this conversation, and sees only its filled brief.
 
 ## Outcome Contract
 

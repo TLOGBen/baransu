@@ -2,6 +2,26 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.52.0] - 2026-11-25
+
+跟進上游 pstack 到 11/24 的更新。
+
+### Added
+- **`/think` 走慢想：最前面先「看全局」**：快想回答被問的問題，慢想先找出答案取決於什麼。三步：把第一個答案寫下來放一邊；一層一層往外看（這個東西 → 它所在的系統 → 那個系統所在的世界），每層只問「這裡有沒有東西會改變、禁止、或已經包含答案」，再往外也不改變決定時就停；找出會改變工作種類或大小的未知，不自己假設，問能回答的人，估算按分支各給一份，規則下行不通的選項直接劃掉。
+- **`/think` 接著「認識用詞」再「深化」**：先教你這個想法在業界叫什麼——描述可能是好幾種問題時先列出來，8–12 個依影響排序的術語，每個附實際點開確認過的實例連結，2–3 個相鄰學門與類比斷在哪，你沒提但該在意的事——用新詞改寫你的描述，來回改到你認可；再把題目深化而不做大：頂尖專業者會多做什麼、最原始的材料、方法與工具、誰能證明做對。實驗能決定的選擇不問你、寫成實驗。原本的「借鏡」併進深化。改編自 pstack `reframe`、`sharpen`。
+- **`/what-now --video`**：「發生了什麼」改成一段無聲橫式投影片影片（最多 10 張、同一張圖一路變化、每張讀得完），交 `/draw` 的影片流程在 repo 外渲染。改編自 pstack `ketchup-video`。
+- **`/write` 新增 `references/technical-writing.md`**：README、文件、RFC、技術文章、PR 說明、commit message 先選文件類型（教學／操作步驟／參考／說明），句子一句一事、條件在前、寫真實名稱；`/ship` commit 前多一步：擬好的訊息照這份規則和 writing-principles 逐句修過才 commit，格式仍以 repo 歷史為準。改編自 pstack `technical-writing`。
+
+### Changed
+- **`/why`、`/how` 跟著上游縮短**：`/why` 只剩一段做法——從紀錄回答不從程式碼猜，讀 commit 與 PR 討論，線索少再查計畫、ADR、記憶、對話紀錄，作者寫的附出處、推論標明、說出紀錄回答不了什麼；五級信心、四類證據與調查代理拿掉。`/how` 改成派一個唯讀子代理一次讀完寫說明，主 session 照原樣呈現。`references/` 的 epistemics、investigator-prompt、sources、explorer-prompt 刪除。`/teach-me`、`/review` 指到舊內容的句子跟著改。
+- **statechart 程式同步到上游 `0b46ec3`**：上游已原生支援 Windows（`kill.ts` 用 `taskkill`、讀 TLC 的 `\r\n`），我們的四處 Windows 補丁退掉，只留背景子程序的 `windowsHide`；SANY 讀不懂 spec 時改報行與欄；Mermaid 圖從外面進父狀態的箭頭停在邊框。CDATA 修正與中文圖例保留。
+- **Codex 版拿掉所有「Codex Port Adapter」段落與執行環境的工具名**（`request_user_input`、`spawn_agent`、`fork_turns`、`wait_agent`）：這些提醒對模型沒有幫助。停下來等使用者回答改用一句白話寫；派 agent 改寫成「開一個看不到這段對話的子代理」，agent 定義檔的路徑照寫。涉及 think、hypothesis、draft、health、review、evolve、how、draw、read；`docs/development.md` 的移植規則跟著改。
+- **lint 預設 runtime 合集新增 `sed-inplace-backslash`**：`sed -i` 的式子裡有反斜線就先擋下，改用 Edit 工具。多一層跳脫常讓替換悄悄沒改到、或直接報錯，同一個 session 裡就發生了兩次。
+
+### 沒有跟的
+- `/draft`：上游 architect 縮成兩句，拿掉的是模型路由與 red-flags 清單；我們本來就沒有模型路由，紅旗引用 review 原則，「畫兩版」「workaround 重複就重畫」已在。
+- 上游的模型路由、poteto-mode、principle-* 縮寫：與 baransu 無關或已自寫。
+
 ## [8.51.2] - 2026-11-22
 
 ### Fixed（health：找專案記憶改看實際資料；doc 參照檢查不再找錯 bash）

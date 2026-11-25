@@ -1,8 +1,8 @@
 # Third-party notice — $baransu:why
 
-`$baransu:why` is adapted from the `why` skill in Cursor's pstack plugin ([cursor/plugins](https://github.com/cursor/plugins), `pstack/skills/why/`, retrieved 2026-10-17), by Lauren Tan, under the MIT License reproduced below.
+`$baransu:why` is adapted from the `why` skill in Cursor's pstack plugin ([cursor/plugins](https://github.com/cursor/plugins), `pstack/skills/why/`, as of commit `bf0c7cd`, 2026-11-15), by Lauren Tan, under the MIT License reproduced below.
 
-What was kept, in this skill's own words: the five confidence tiers and their phrasing rules, the investigator report shape, the coverage rule that every source is searched or its skip is explained, and the answer's sections. What changed: the Cursor MCP discovery and the seven vendor categories became four evidence classes found on a Claude Code / Codex machine (repo record, agent decision record, connected doc sources, upstream material); the model-assignment rule file and the separate synthesizer agent were dropped, so the main session weighs the evidence; investigators run as read-only agents, and only for classes outside the local files. The vendor playbooks (Linear, Notion, Slack, Datadog, Sentry, Databricks) are not included. No upstream file is copied.
+What was kept: upstream's one-paragraph method — answer from the record, not the code; read the commits and PR discussions behind the target and each later change, then other sources when that trail is thin; cite what the authors wrote, mark inferences, and say what the record does not answer. What changed: the other sources are named for a Claude Code / Codex machine (plans under `.codex/` and `.claude/`, ADRs, memory, session transcripts, connected docs), the answer is in Traditional Chinese, and this repo's Outcome Contract was added.
 
 ```
 MIT License

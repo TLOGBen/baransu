@@ -8,24 +8,7 @@ metadata:
 
 # evolve — optimize a SKILL.md like you train a model
 
-## Codex Port Adapter - Bundled Agent Resolution
-
-This plugin does not assume package-local TOMLs are auto-registered as custom
-agents. The required definitions for this skill are bundled at
-`../../.codex-agents/<agent-name>.toml`: `evolve-diagnostician`, `evolve-judge`.
-
-Before every named-agent dispatch:
-
-1. Resolve the exact bundled TOML from this `SKILL.md` directory (strip a
-   leading `baransu:` namespace from the requested name).
-2. Verify the file exists, then pass its absolute path and the task input to a
-   generic Codex subagent. The first instruction to that subagent is to read
-   the TOML's `developer_instructions` completely before doing any task work
-   and to treat relative paths as relative to the TOML file.
-3. If the TOML is missing or unreadable, stop with
-   `AGENT_DEFINITION_MISSING: <path>`. Never invent, summarize, or substitute a
-   role from the agent name.
-
+The diagnostician and judge are defined in `../../.codex-agents/<name>.toml` (`evolve-diagnostician`, `evolve-judge`) and are not registered: start each as a subagent that does not see this conversation, whose first instruction is to read that file's `developer_instructions`. A missing file stops the run with `AGENT_DEFINITION_MISSING: <path>`.
 
 The deliverable is an **evolution package**: a target SKILL.md made measurably better through a ratchet that can only turn forward. The rubric is the fixed selection environment, the target SKILL.md is the gene, and an external benchmark is the yardstick. Every change runs one chain — **phenomenon → impact → root → bedrock → verification**: something observed, the user outcome it fails, the clause that causes it, that clause restated as a positive definition where the decision is made, and the evidence that shows the restatement worked. Each link is written or scored by someone who cannot see the answer the next link is judged against.
 

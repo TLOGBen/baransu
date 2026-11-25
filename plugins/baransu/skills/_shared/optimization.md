@@ -1,7 +1,7 @@
 # optimization — decompose, transform each part into a kind, then the instrument, the proof, and the re-check
 
 > Shared by every skill asked to make something better — faster, smaller, cheaper, fewer:
-> `/think` (the 借鏡 step), `/hypothesis` (solving for a design, `../hypothesis/SKILL.md` §3,
+> `/think` (the sharpen step), `/hypothesis` (solving for a design, `../hypothesis/SKILL.md` §3,
 > which `/draft` hands a protocol choice to) and `/review` (`principles/performance.md`), and
 > reached from `modeling.md` whenever a model shows a cost the user named. `modeling.md` §1
 > names a problem's class for a design argument; this file owns what to do once the request

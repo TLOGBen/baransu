@@ -41,11 +41,11 @@ docs/                            # 本文件
 
 - **檔案逐一對應**：`plugins/baransu/skills/**` 和 `codex/plugins/baransu/skills/**` 同路徑一對一。只有 `agents/openai.yaml` 和 `assets/icon-*.png` 可以只存在於 Codex 版。共用檔留在 `skills/_shared/`，不要複製進個別 skill；也不要為了 Codex 把 skill 改成自給自足的結構。
 - **lint 的 hook**：Codex 版沒有手寫的 hook 程式。lint 引擎和兩個 adapter 都在 `plugins/baransu/hooks/`，Codex 版的 `hooks/lint.mjs` 是打包出來的產物（`docs/adr/0001-codex-lint-bundle.md`）。改了 `engine/`、`util/` 或 `adapters/codex/` 之後，在同一次變更裡重跑 `make codex-lint`；`lint.mjs` 第一行記著原始碼的雜湊，`make parity-check` 會比對。Claude Code 的事件在 Codex 上對應哪個 hook，寫在 `adapters/codex/main.ts` 的 `handle()`；Codex 版 `lint/SKILL.md` 的「What the hook does」照 Codex 的實際行為寫，和 Claude 版那一節刻意不同。
-- **agent**：`plugins/baransu/agents/<name>.md` 對應 `codex/plugins/baransu/.codex-agents/<name>.toml`（`name`、`description`、`developer_instructions`）。Codex plugin 不會自動註冊 agent，所以會派 agent 的 skill，在 Codex 版加一段「Codex Port Adapter - Bundled Agent Resolution」：把 TOML 的路徑交給一般 subagent，並且不帶 parent 的對話紀錄（`fork_turns="none"`；`spawn_agent` 預設會繼承整段對話）。
+- **agent**：`plugins/baransu/agents/<name>.md` 對應 `codex/plugins/baransu/.codex-agents/<name>.toml`（`name`、`description`、`developer_instructions`）。Codex plugin 不會自動註冊 agent，所以會派 agent 的 skill，在 Codex 版用一句話寫出 TOML 的路徑，並說開一個看不到這段對話的 subagent、第一步先讀那份檔的 `developer_instructions`。不另開「Codex Port Adapter」段，也不寫 `spawn_agent`、`fork_turns` 這類執行環境的工具名：對模型沒有幫助，平台會自己對應。
 - **呼叫語法**：`/baransu:x`，以及指 baransu skill 的 `/x`，改成 `$baransu:x`；references 和 scripts 裡的字串也要改。
 - **skill 自己的工作目錄**：`.claude/<skill>/` 改成 `.codex/<skill>/`。但路徑如果是 skill 處理的**對象**，就照原樣不改，例如 `/health` 要稽核的 `~/.claude/projects/*/memory/`、`.claude/settings.local.json`。`CLAUDE.md` 也一樣：指「agent 讀的指令檔」時改成 `AGENTS.md`，指 Claude Code 的設定檔時不改。
 - **frontmatter**：Codex 只讀 `name`、`description`、`metadata.short-description`。`when_to_use` 要併進 `description`，觸發詞一個都不能少，因為 Codex 只靠 `description` 判斷要不要叫出 skill。`compatibility: Designed for Claude Code; ported to Codex.` 和 `metadata.version: 0.1.0-codex` 是舊慣例，Codex 不會讀，目前有些 skill 有、有些沒有；要保留還是統一拿掉，還沒決定。
-- **防慣性停點**：Claude 版有 AskUserQuestion 輸入停點的 skill，Codex 版要加「Codex Port Adapter - Request User Input Gate」段（寫法照 `think` 的 Codex 版）：有 `request_user_input` 就用，沒有就用文字提問，然後停下來等回答。授權停點一律是硬停。
+- **停點**：Claude 版有輸入停點的 skill，Codex 版用一句白話寫明「問使用者的問題要停下來等回答，不代答」，不點名 `request_user_input` 之類的工具。授權停點一律是硬停。
 - **manifest**：`codex/plugins/baransu/.codex-plugin/plugin.json`，不帶 `$schema`；介面設定放在最外層的 `interface`（`extensions."com.openai"` 留著給 `onboardingSkill` 之類的欄位）；`version` 要和 Claude 版一致。不用根目錄帶 `agent-plugins.org` `$schema` 的 `plugin.json`：Codex 會把它當成 Agent Plugin，而 Agent Plugin 的 `hooks/hooks.json` 一律不載入，lint 就不會跑（codex-rs `core-plugins/src/loader.rs`；8.50.0 實測）。`make parity-check` 會擋。
 
 ## 驗證

@@ -1,6 +1,7 @@
 ---
 name: what-now
-description: "Catches the user up on what changed in this conversation since their last message, in plain words and small visuals, then lists every call waiting on them with enough to decide it from the reply alone. Trigger On '/what-now', '現在呢', '我回來了', '進度到哪', '剛剛發生什麼', 'catch me up'. Not for restating the last message (/huh) or the user's goal (/sayagain)."
+description: "Catches the user up on what changed in this conversation since their last message, in plain words and small visuals — or, with --video, a short silent video of slides — then lists every call waiting on them with enough to decide it from the reply alone. Trigger On '/what-now', '現在呢', '我回來了', '進度到哪', '剛剛發生什麼', 'catch me up'. Not for restating the last message (/huh) or the user's goal (/sayagain)."
+argument-hint: "[--video]"
 disable-model-invocation: true
 ---
 
@@ -17,7 +18,7 @@ All user-facing output is in Traditional Chinese.
 - **Outcome**: The user knows what changed since their last message, and every call waiting on them is laid out with a pick, the evidence for it, and its risk, decidable from the reply alone.
 - **Done when**: Every piece of work since that message is either summarised or left out because it changed nothing for the user; every pending call, including one raised before that message and still open, appears as an action item; every number shown was checked against the fact it comes from.
 - **Evidence**: The current state of each PR, CI run, or agent this conversation touched, read this turn; the links named in the action items.
-- **Output**: The reply only; no file is written.
+- **Output**: The reply only; no file is written, except the video and its working files under `--video`, kept outside the repo.
 - **Automation**: ultracode=neutral, loop=not-drivable（it answers the person who just came back）
 
 ## Gather what changed
@@ -51,6 +52,19 @@ When something is easier to grasp as a picture than as sentences, draw it: how a
 Keep each visual small enough to read at a glance: at most six boxes, with at most eight words in each. Write labels as plain words a person would say, not tags like 「測試：通過」. A fact that needs a sentence belongs in the text, or nowhere.
 
 Embed screenshots and videos when the change is visible, not only as links. If a visible change has none, mark its summary line 「還沒有截圖」 and say there what changed on screen. Draw diagrams and charts from facts you have: how things connect, or a chart for numbers. Draw them with the host's inline drawing tool whenever it offers one, loading it first if it is only listed as deferred. Write a Mermaid block only when the host has no such tool and renders Mermaid; otherwise use a text form from `../show-me/SKILL.md`. Never invent a number, and never draw or generate a picture of a screen you did not capture. Link only artifacts that exist.
+
+## `--video` — what happened as a short silent video
+
+Everything above holds, with three changes. The window starts at the last message the user wrote before this `/what-now --video`, even if an earlier `/what-now` came after it. What happened is shown as a video in place of the pictures and the summary lines. Making and rendering that video, outside the repo, is the one exception to the read-only rule. The reply is the opening sentence, the video, one line naming any work left that you can do yourself, and the action items. When the video shows a call's options, call each option in the action items by the name the video gives it. If the render fails, say so in one line and give only the action items.
+
+**Slides.** Before drawing, write the one sentence the user should leave with and one line per slide; neither goes in the reply. Drop each slide that does not change what the user knows; at most 10 slides, fewer is better. Build from what the work produced — screenshots, recordings, diffs, data — not from the chat's prose about them.
+
+- Each slide makes one point. Keep one picture and change it from slide to slide rather than cutting to an unrelated one; a color or shape means the same thing on every slide.
+- Show the work as pictures under the Visuals rules above: how a system works, a PR stack with each PR's state, a before and after of a fix, options side by side. Point at what changed with arrows, highlights and motion. A slide is never a bullet list, a status list, a table, or unconnected boxes.
+- Keep text to the minimum: each label on the thing it names, in words a person would say. Never caption what a picture already shows, and never give a fact twice, across slides or in the text under the video.
+- Show what came of each thing the user asked for and whether it is done, still running, failed, or not checked; never show something done that still waits on the user. Show any bug found and fixed on the way. A visible change with no screenshot says so on its slide and names what changed on screen. Draw only from facts you have.
+
+**Render.** Hand the slide plan to `/draw --lane film --format 16:9 --out <a new folder in the session's scratchpad or the system temp>`: one silent landscape mp4, every frame the slide itself edge to edge, made from the slides and never by recording a screen, with motion between slides. Hold each slide at least one second for every three words it adds (zh: every six characters); words inside a screenshot do not count. Before embedding, look at one frame from each slide in the rendered file and check its words against its hold; fix any slide that cannot be read in that time and render again. Embed the mp4 the way the host shows a file inline (in the Claude desktop app, `SendUserFile` with `display: "render"`).
 
 ## Not-for boundaries
 
