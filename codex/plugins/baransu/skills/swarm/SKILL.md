@@ -54,12 +54,13 @@ Each round, name the crew in one line — kind, count, model and effort, and why
 | Worker | builds one task inside its paths | Codex for work given as a goal and its acceptance; Claude for exact procedure or structured output | one per task that can start, three to five at once |
 | Guard | the independent review at the end | a model family other than the one that wrote the code | one, through `$baransu:review` |
 | Measurer | benchmarks and end-to-end runs | any; it runs on a frozen tree | one at a time |
+| Lint | turns a mistake seen twice — in any bee's work or the queen's — and the cause of a broken environment into a check through `$baransu:lint`; owns `.claude/lint/` | the cheapest model that writes a check reliably | one, on the crew for the whole run whenever the project keeps `.claude/lint/` |
 
 Prepare credentials, and anything else that raises a permission prompt, once before the first bee. For work repeated over many items, send one bee first, turn what it did into the brief, then send rounds that double, and stop a round when fewer than two in three succeed.
 
 ## The loop
 
-1. **Lay out the board.** Say what done looks like, write the tasks with their dependencies, paths and sizes, and show the user the board and the first crew. When several bees try the same task to keep the best, say how the best is picked before they start. Start; stop only for a decision that is the user's.
+1. **Lay out the board.** Start from what is already in place: the roles, rules and running work the user set up before this run — a resident guard, a rule about who may touch what, bees still working — each gets its place on the board, or the reason it has none is said. Then say what done looks like, write the tasks with their dependencies, paths and sizes, and show the user the board and the first crew. When several bees try the same task to keep the best, say how the best is picked before they start. Start; stop only for a decision that is the user's.
 2. **Fill every free seat.** Start each task that can start — `ready`, an attempt left, none of its paths held — the moment a seat is free, never waiting for the rest of a round. When more can start than there are seats, start first the one with the longest chain of tasks behind it; otherwise the run ends on one long chain with one bee working.
 3. **When nothing can start and a seat is free, find work** before waiting: split the largest task not yet started, send a scout to read ahead for a task still waiting on another, or prepare the checks for what is done.
 4. **Wait** only when every seat is busy or nothing at all can move without an answer. The next event — a bee ending, the user answering, the user adding a task — brings the queen back.
@@ -79,7 +80,8 @@ The bee's last act is its report, a new file in `reports/` named for its task an
 - **A question for the queen** is answered, and the same bee is resumed in a free seat.
 - **A question for the user** is asked once and never answered on the user's behalf, and the board says what is awaited from whom; every other task keeps going, and the bee is resumed on the answer. The user's time is the scarcest in the swarm, so questions waiting at the same moment go out together, each with the queen's pick, the evidence for it and its risk.
 - **A second question in one attempt** means the bee is stuck: the attempt fails and a fresh bee takes the task.
-- **A broken environment** is the queen's to fix: fix it, write the cause as a check through `$baransu:lint`, resume the bee; the attempt is not spent. The same task failing on its environment again is a failed attempt.
+- **A broken environment** is not the bee's failure: the queen puts the fix on the board and its cause to the lint bee, then resumes the bee once the fix is done; the attempt is not spent. The same task failing on its environment again is a failed attempt.
+- **A mistake seen twice**, in any bee's work or the queen's own, goes to the lint bee as a check, so a third bee cannot make it.
 - **Too big** — half done, out of time — the task is split, not retried whole; a second bee on the same task falls into the same hole.
 - **Two failed attempts** make the task a `gap`, and so does depending on a gap.
 
