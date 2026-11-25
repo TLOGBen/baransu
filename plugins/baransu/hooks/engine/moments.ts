@@ -36,8 +36,46 @@ export function level(c: Check): Pick<Finding, 'severity' | 'quiet'> {
   return c.severity === 'info' ? { severity: 'note', quiet: true } : { severity: c.severity }
 }
 
-function run<H>(look: Look<H>, argv: readonly string[], timeoutMs = 120000, env?: Readonly<Record<string, string>>) {
-  return look.runner.run(look.h, argv, { cwd: look.config.root, timeoutMs, ...(env ? { env } : {}) })
+/** Program names that stand for one another: a Mac has `python3` and no `python`; a python.org install on
+ *  Windows has `python` and may have no `python3`. A check names either, and the one this machine has runs. */
+const SAME_PROGRAM: Readonly<Record<string, readonly string[]>> = { python: ['python3'], python3: ['python'] }
+/** How to get a program a check needs, said when it is missing. */
+const INSTALL: Readonly<Record<string, string>> = {
+  python: 'macOS 用 brew install python，Windows 用 winget install Python.Python.3.13',
+  python3: 'macOS 用 brew install python，Windows 用 winget install Python.Python.3.13',
+  'ast-grep': 'brew install ast-grep，或 npm i -g @ast-grep/cli',
+}
+
+/** A command at the lint root. A program not on PATH is tried under the names it also goes by (SAME_PROGRAM);
+ *  when none starts, the first result is returned, still `missing`. */
+async function run<H>(look: Look<H>, argv: readonly string[], timeoutMs = 120000, env?: Readonly<Record<string, string>>) {
+  const opts = { cwd: look.config.root, timeoutMs, ...(env ? { env } : {}) }
+  const r = await look.runner.run(look.h, argv, opts)
+  if (!r.missing) return r
+  for (const name of SAME_PROGRAM[argv[0]] ?? []) {
+    const again = await look.runner.run(look.h, [name, ...argv.slice(1)], opts)
+    if (!again.missing) return again
+  }
+  return r
+}
+
+/**
+ * The programs a moment could not find, each with what it left unchecked (check ids, or `rules/`). A missing
+ * program is said once per moment, as one warning naming every check it stopped and how to install it —
+ * not once per file, and never dropped: a check that did not run must not read as passed.
+ */
+type Lacks = Map<string, string[]>
+function lack(lacks: Lacks, program: string, what: string) {
+  const l = lacks.get(program) ?? []
+  if (!l.includes(what)) l.push(what)
+  lacks.set(program, l)
+}
+function lacking(lacks: Lacks): Finding[] {
+  return [...lacks].map(([program, what]) => {
+    const also = SAME_PROGRAM[program]?.length ? `（${SAME_PROGRAM[program].join('、')} 也沒有）` : ''
+    const how = INSTALL[program] ? `。安裝：${INSTALL[program]}` : ''
+    return { id: program, severity: 'warn' as const, text: `找不到 ${program}${also}：${what.join('、')} 沒有檢查到${how}` }
+  })
 }
 /** A git command about the repo itself (identity, staged files, upstream, status): in the commit's repo when
  *  there is one, else at the lint root. */
@@ -105,10 +143,14 @@ async function forbidCheck<H>(look: Look<H>, c: Check, pattern: string, t: Targe
     .slice(0, 10)
     .map(h => ({ id: c.id, ...level(c), text: `${h.path}:${h.line} ${c.message}` }))
 }
-async function runCheck<H>(look: Look<H>, c: Check, argv0: readonly string[], file?: string, env?: Readonly<Record<string, string>>): Promise<Finding[]> {
+async function runCheck<H>(look: Look<H>, lacks: Lacks, c: Check, argv0: readonly string[], file?: string, env?: Readonly<Record<string, string>>): Promise<Finding[]> {
   const argv = argv0.map(a => (file ? a.split('{file}').join(file) : a))
   const r = await run(look, argv, 120000, env)
   if (r.exitCode === 0) return []
+  if (r.missing) {
+    lack(lacks, argv[0], c.id)
+    return []
+  }
   const where = file ? `${file} ` : ''
   if (r.exitCode === -1) return [{ id: c.id, severity: 'warn', text: `${where}${r.stderr}（沒有檢查到）` }]
   return [{ id: c.id, ...level(c), text: `${where}${c.message}\n${tail(r.stdout + '\n' + r.stderr)}` }]
@@ -116,7 +158,7 @@ async function runCheck<H>(look: Look<H>, c: Check, argv0: readonly string[], fi
 /** A `run` holding {file}, once per file the scope selects. A whole-tree scope is listed first (the files a
  *  forbid would search). MAX_TARGETS (scope/types.ts) is the only cap. A list the scope already cut is noted
  *  by runMoment; only a cut this listing makes is noted here, so a cut is said once. */
-async function runPerFile<H>(look: Look<H>, c: Check, argv: readonly string[], t: Targets, env?: Readonly<Record<string, string>>): Promise<Finding[]> {
+async function runPerFile<H>(look: Look<H>, lacks: Lacks, c: Check, argv: readonly string[], t: Targets, env?: Readonly<Record<string, string>>): Promise<Finding[]> {
   if (t.kind === 'none') return []
   let files: readonly string[]
   let dropped = 0
@@ -131,7 +173,10 @@ async function runPerFile<H>(look: Look<H>, c: Check, argv: readonly string[], t
     dropped = Math.max(0, all.length - MAX_TARGETS)
   }
   const out: Finding[] = []
-  for (const f of files) out.push(...(await runCheck(look, c, argv, f, env)))
+  for (const f of files) {
+    out.push(...(await runCheck(look, lacks, c, argv, f, env)))
+    if (lacks.get(argv[0])?.includes(c.id)) break // the program is missing: every other file would say so again
+  }
   if (dropped) out.push({ id: c.id, severity: 'note', quiet: true, text: `範圍內還有 ${dropped} 個檔沒有檢查（上限 ${MAX_TARGETS}）` })
   return out
 }
@@ -141,11 +186,15 @@ function chunk<T>(xs: readonly T[], n: number): T[][] {
   return out
 }
 
-async function astGrep<H>(look: Look<H>, file?: string): Promise<Finding[]> {
+async function astGrep<H>(look: Look<H>, lacks: Lacks, file?: string): Promise<Finding[]> {
   const cfg = look.config.sgconfig
   if (!cfg) return []
   if ((await look.runner.probe(look.h, `${look.config.root}/${cfg}`)).kind === 'missing') return []
   const r = await run(look, ['ast-grep', 'scan', '-c', cfg, '--json=compact', ...(file ? [file] : [])])
+  if (r.missing) {
+    lack(lacks, 'ast-grep', 'rules/')
+    return []
+  }
   if (r.exitCode === -1) return [{ id: 'ast-grep', severity: 'warn', text: `${r.stderr}（rules/ 沒有檢查到）` }]
   let items: any[]
   try {
@@ -193,6 +242,7 @@ const isGate = (at: Occurrence): boolean =>
 export async function runMoment<H>(look: Look<H>, ledger: Readonly<LintState>, at: Occurrence, env?: Readonly<Record<string, string>>): Promise<Finding[]> {
   if (readsText(at)) return subjectFindings(look, at, env)
   const out: Finding[] = [...look.config.problems]
+  const lacks: Lacks = new Map()
   const lens = lensFor(look, at)
   const keys = keysOf(at)
   const command = 'command' in at ? at.command : ''
@@ -240,8 +290,8 @@ export async function runMoment<H>(look: Look<H>, ledger: Readonly<LintState>, a
     if (ownFiles) {
       if (t.kind === 'none') continue
       if (a.kind === 'forbid') out.push(...(await forbidCheck(look, c, a.pattern, t)))
-      else if (a.kind === 'run' && perFile) out.push(...(await runPerFile(look, c, a.argv, t, env)))
-      else if (a.kind === 'run') out.push(...(await runCheck(look, c, a.argv, undefined, env)))
+      else if (a.kind === 'run' && perFile) out.push(...(await runPerFile(look, lacks, c, a.argv, t, env)))
+      else if (a.kind === 'run') out.push(...(await runCheck(look, lacks, c, a.argv, undefined, env)))
       continue
     }
     if (isGate(at)) {
@@ -249,20 +299,20 @@ export async function runMoment<H>(look: Look<H>, ledger: Readonly<LintState>, a
       if (c.changed && touched) out.push({ id: c.id, severity: 'note', text: c.changed })
       if (a.kind === 'forbid') out.push(...(await forbidCheck(look, c, a.pattern, t)))
       else if (a.kind === 'run' && perFile) {
-        if (narrowed) out.push(...(await runPerFile(look, c, a.argv, t, env)))
-      } else if (a.kind === 'run' && (!narrowed || t.kind !== 'none')) out.push(...(await runCheck(look, c, a.argv, undefined, env)))
+        if (narrowed) out.push(...(await runPerFile(look, lacks, c, a.argv, t, env)))
+      } else if (a.kind === 'run' && (!narrowed || t.kind !== 'none')) out.push(...(await runCheck(look, lacks, c, a.argv, undefined, env)))
       continue
     }
     // manual, pre:skill, after:*
     if (a.kind === 'forbid') out.push(...(await forbidCheck(look, c, a.pattern, t)))
-    else if (a.kind === 'run' && perFile) out.push(...(await runPerFile(look, c, a.argv, t, env)))
-    else if (a.kind === 'run' && (await selectsAny(c.scope, lens))) out.push(...(await runCheck(look, c, a.argv, undefined, env)))
+    else if (a.kind === 'run' && perFile) out.push(...(await runPerFile(look, lacks, c, a.argv, t, env)))
+    else if (a.kind === 'run' && (await selectsAny(c.scope, lens))) out.push(...(await runCheck(look, lacks, c, a.argv, undefined, env)))
   }
   // ast-grep rules belong to no check, so they run at the project's own moments: after an edit, at a gate, at
   // /lint — not before another skill, not when a wait runs out, not for a file changed outside Claude.
-  if (at.key === 'post:edit') out.push(...(await astGrep(look, at.file)))
-  else if (atCommit || atDone || at.key === 'manual') out.push(...(await astGrep(look, look.repo?.rel || undefined)))
-  return out
+  if (at.key === 'post:edit') out.push(...(await astGrep(look, lacks, at.file)))
+  else if (atCommit || atDone || at.key === 'manual') out.push(...(await astGrep(look, lacks, look.repo?.rel || undefined)))
+  return [...out, ...lacking(lacks)]
 }
 
 /**
@@ -276,6 +326,7 @@ export async function runMoment<H>(look: Look<H>, ledger: Readonly<LintState>, a
 export async function subjectFindings<H>(look: Look<H>, at: Occurrence, env?: Readonly<Record<string, string>>): Promise<Finding[]> {
   const lens = lensFor(look, at)
   const out: Finding[] = []
+  const lacks: Lacks = new Map()
   for (const c of look.config.checks) {
     if (c.action.kind === 'builtin' || !runsAt(c, at)) continue
     const subject = subjectOf(c.scope, at)
@@ -290,7 +341,7 @@ export async function subjectFindings<H>(look: Look<H>, at: Occurrence, env?: Re
       continue
     }
     if (c.action.kind === 'run') {
-      out.push(...(await runCheck(look, c, c.action.argv, undefined, { ...env, LINT_TEXT: subject.lines.join('\n') })))
+      out.push(...(await runCheck(look, lacks, c, c.action.argv, undefined, { ...env, LINT_TEXT: subject.lines.join('\n') })))
       continue
     }
     let re: RegExp
@@ -306,7 +357,7 @@ export async function subjectFindings<H>(look: Look<H>, at: Occurrence, env?: Re
     const where = c.scope.actions.length || at.key.startsWith('around:') ? `${hit.slice(0, 200)}：` : ''
     out.push({ id: c.id, ...level(c), text: `${where}${c.message}` })
   }
-  return out
+  return [...out, ...lacking(lacks)]
 }
 
 /** The repo's git facts: text for the model plus what commit-time checks compare against. */

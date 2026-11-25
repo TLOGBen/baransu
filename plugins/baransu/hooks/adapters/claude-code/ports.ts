@@ -86,7 +86,10 @@ export const hostRunner: Runner<Host> = {
     try {
       return await h.run(argv, { cwd, timeoutMs, ...(env ? { env } : {}) })
     } catch (err) {
-      return { exitCode: -1, stdout: '', stderr: `無法執行：${(err as Error).message}` }
+      const message = (err as Error).message
+      // The host says `failed to start: ENOENT: Executable not found in $PATH` for a program it cannot find.
+      const missing = (err as any)?.code === 'ENOENT' || /\bENOENT\b/.test(message)
+      return { exitCode: -1, stdout: '', stderr: `無法執行：${message}`, ...(missing ? { missing: true as const } : {}) }
     }
   },
   async probe(h, path): Promise<PathProbe> {
