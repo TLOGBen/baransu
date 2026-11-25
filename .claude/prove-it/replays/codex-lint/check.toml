@@ -1,0 +1,20 @@
+[[check]]
+id = "journeys"
+promise = "On Codex the lint hook decides each journey the same way: a remind rule reaches the session at its start, a BeanUtils patch and a delete under keep/ are refused, a check-level command is held until a later response, a TODO answer holds the turn, a println edit is told to be fixed, and a run check runs only where Codex trusts the project"
+source = ".claude/prove-it/features/codex-lint.md (Sub-features table: DTO-7, PE-5, RM-6, KP-8, ST-9, RN-1); fixture .claude/prove-it/fixtures/codex-lint/checks.toml"
+covers = [
+  "plugins/baransu/hooks/adapters/codex/**",
+  "plugins/baransu/hooks/engine/**",
+  "plugins/baransu/hooks/util/**",
+  "codex/plugins/baransu/hooks/lint.mjs",
+  "codex/plugins/baransu/hooks/hooks.json",
+  ".claude/prove-it/fixtures/codex-lint/checks.toml",
+]
+tier = "quick"
+cmd = ["python", "replay.py"]
+needs = ["node", "git"]
+timeout = 120
+[check.admission]
+fault = "journeys/4-remove-held-once.json: the rollout line between the second and third Remove-Item turned from token_usage_record into event_msg, so the hook never sees a new response"
+red = "red RM-6 step 6 PreToolUse: expected {\"decision\": \"none\", \"codes\": [], \"marks\": []}, got {\"decision\": \"deny\", \"codes\": [\"RM-6\"], \"marks\": [\"⏸ confirm-remove\"]}"
+runs = 5

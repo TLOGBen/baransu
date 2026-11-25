@@ -1,0 +1,128 @@
+{
+  "id": "RM-6",
+  "promise": "a check-level command is held, held again in the same response, and runs when sent in a later response",
+  "session": "replay-rm6",
+  "steps": [
+    {
+      "rollout": {
+        "type": "turn_context"
+      }
+    },
+    {
+      "hook": {
+        "hook_event_name": "SessionStart",
+        "session_id": "{session}",
+        "transcript_path": "{transcript}",
+        "cwd": "{cwd}",
+        "source": "startup"
+      },
+      "expect": {
+        "decision": "context",
+        "codes": [
+          "DTO-7"
+        ],
+        "marks": []
+      }
+    },
+    {
+      "hook": {
+        "hook_event_name": "PreToolUse",
+        "session_id": "{session}",
+        "turn_id": "t1",
+        "transcript_path": "{transcript}",
+        "cwd": "{cwd}",
+        "tool_name": "Bash",
+        "tool_use_id": "call-1",
+        "tool_input": {
+          "command": "Remove-Item -LiteralPath tmp.txt"
+        }
+      },
+      "expect": {
+        "decision": "deny",
+        "codes": [
+          "RM-6"
+        ],
+        "marks": [
+          "⏸ confirm-remove"
+        ]
+      }
+    },
+    {
+      "hook": {
+        "hook_event_name": "PreToolUse",
+        "session_id": "{session}",
+        "turn_id": "t1",
+        "transcript_path": "{transcript}",
+        "cwd": "{cwd}",
+        "tool_name": "Bash",
+        "tool_use_id": "call-2",
+        "tool_input": {
+          "command": "Remove-Item -LiteralPath tmp.txt"
+        }
+      },
+      "expect": {
+        "decision": "deny",
+        "codes": [
+          "RM-6"
+        ],
+        "marks": [
+          "⏸ confirm-remove"
+        ]
+      }
+    },
+    {
+      "rollout": {
+        "type": "token_usage_record"
+      }
+    },
+    {
+      "hook": {
+        "hook_event_name": "PreToolUse",
+        "session_id": "{session}",
+        "turn_id": "t1",
+        "transcript_path": "{transcript}",
+        "cwd": "{cwd}",
+        "tool_name": "Bash",
+        "tool_use_id": "call-3",
+        "tool_input": {
+          "command": "Remove-Item -LiteralPath tmp.txt"
+        }
+      },
+      "expect": {
+        "decision": "none",
+        "codes": [],
+        "marks": []
+      }
+    },
+    {
+      "hook": {
+        "hook_event_name": "PostToolUse",
+        "session_id": "{session}",
+        "turn_id": "t1",
+        "transcript_path": "{transcript}",
+        "cwd": "{cwd}",
+        "tool_name": "Bash",
+        "tool_use_id": "call-3",
+        "tool_input": {
+          "command": "Remove-Item -LiteralPath tmp.txt"
+        },
+        "tool_response": "Exit code: 0\nOutput:\n"
+      },
+      "expect": {
+        "decision": "none",
+        "codes": [],
+        "marks": []
+      }
+    }
+  ],
+  "state": {
+    "pending": 0,
+    "held": [
+      "main|<shell>|<P>|Remove-Item -LiteralPath tmp.txt"
+    ],
+    "steps": {
+      "main": 2
+    },
+    "locks": 0
+  }
+}

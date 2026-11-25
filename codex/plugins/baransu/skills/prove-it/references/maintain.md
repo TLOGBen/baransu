@@ -1,6 +1,6 @@
-# maintain — keeping the recipe and feature map honest
+# maintain — keeping the recipe, feature map and replays honest
 
-A feature map rots the moment the app changes. This pass keeps `.codex/prove-it/` true to the app. The unit of rigor is the feature: every feature file is covered from source and every feature is driven live once, without proving every sentence.
+A feature map, and the replays drawn from it, rot the moment the app changes. This pass keeps `.codex/prove-it/` true to the app. The unit of rigor is the feature: every feature file is covered from source and every feature is driven live once, without proving every sentence.
 
 ## Outcome
 
@@ -12,14 +12,15 @@ Say which one, with the coverage reached:
 
 ## Edit scope
 
-Edit only `.codex/prove-it/` — the recipe, the feature map, and any helper scripts it owns. Never edit product code: behaviour the map describes that the app no longer has is either the map being out of date (fix the map) or the app being broken (report it, and leave the map describing what the app should do).
+Edit only `.codex/prove-it/` — the recipe, the feature map, the replays, and any helper scripts it owns. Never edit product code: behaviour the map describes that the app no longer has is either the map being out of date (fix the map) or the app being broken (report it, and leave the map describing what the app should do).
 
 ## Pass
 
-1. **Index.** Read the map's README and its sibling files; fix missing, extra, duplicate, or dead entries.
+1. **Index.** When the project keeps `.claude/verify/run.py`, start with `python .claude/verify/run.py status`: each replay not `ok` names a feature this pass must drive, and a stale one the covered files that changed. Read the map's README and its sibling files; fix missing, extra, duplicate, or dead entries.
 2. **From source.** For each feature file, read how the feature works from the code and flag where the file no longer matches, with citations; a file without its closing line of covered source files and last-driven commit gets one; each reader returns the feature in brief, its entry points in source, the likely drift or none, and one recipe for driving it live. Readers never drive the app and never edit. Several features can be read in parallel by read-only subagents.
 3. **Reconcile.** Merge overlapping drives into as few app states as practical. Spot-check cited drift. Look through recent changes for user-facing surfaces the map lacks — name a concrete source path before calling one missing.
 4. **Live.** Required even when the source looks clean; each feature driven records the commit it was driven at; one coordinator does all driving, following the recipe's own launch model. Hold three rules throughout: run the doctor before the first drive and after anything surprising, and reset or relaunch where the doctor cannot see the fault; evidence captured so far survives every cleanup, checked at its location; nothing a drive started outlives its use. A doctor failure caused by the recipe itself is drift: fix it and retry once before calling the pass blocked. A feature that cannot be reached is recorded with its prerequisite and the route tried; if the map omits that prerequisite, that is drift too.
 5. **Sort.** Wrong or missing description from the user's side → fix the map. Working behaviour the drive cannot reach → fix the recipe, and drive it again before keeping the fix. Behaviour that is actually broken → a finding for the user, kept out of the map.
+6. **Replays.** Each replay not `ok` is brought in step only after its journeys were driven live in step 4. A live run that passed is the one source of new expected read-backs: update the journeys from it, then run `python .claude/verify/run.py sync <feature>/<id>`, and `admit <feature>/<id>` when it is still a draft, else `quick <feature>/<id>`. A live run that failed is a finding under step 5, and the replay keeps its expected values — never edit a replay to pass.
 
 Keep short run notes — features covered, unreachable prerequisites, confirmed drift, outcome — in a scratch location; they are not committed.

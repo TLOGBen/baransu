@@ -21,7 +21,7 @@ All user-facing output is in Traditional Chinese; keep commands, paths, identifi
 - **Outcome**: Each claim in scope ends as proved, disproved, or unreachable on this version, shown by driving the real app along its user's path — and, for a claim about every case, by the hypothesis that covers it (`$baransu:hypothesis`) — with evidence that survives cleanup.
 - **Done when**: Every claim is written as one sentence a run or a hypothesis can settle; the recipe's doctor passed before the first drive; every claim has a verdict and its evidence; nothing was weakened to reach a verdict; everything the run started is torn down and the evidence is still at its named location.
 - **Evidence**: The record — commit and working-tree state, platform, every command run, and per claim the action driven, the resulting state, and the side effects captured; for an every-case claim, the hypothesis's area and the version its README names, the rerun command and its output, and each path replayed on the app.
-- **Output**: Traditional Chinese report in the conversation; the record at `.codex/prove-it/records/<short-sha>-<slug>.md` with its evidence beside it (`$baransu:ship` archives `records/` out of Git; the recipe and feature map stay); the run recipe at `.codex/prove-it/recipe.md` and its feature map under `.codex/prove-it/features/`. Hypotheses are `$baransu:hypothesis`'s, under `.codex/hypothesis/`; this skill reads them and never writes them.
+- **Output**: Traditional Chinese report in the conversation; the record at `.codex/prove-it/records/<short-sha>-<slug>.md` with its evidence beside it, which the project's git does not keep and `$baransu:ship` archives; the run recipe at `.codex/prove-it/recipe.md`, its feature map under `.codex/prove-it/features/`, and the replays kept under `.codex/prove-it/replays/` (§5), all kept in the project's git. Hypotheses are `$baransu:hypothesis`'s, under `.codex/hypothesis/`; this skill reads them and never writes them.
 - **Automation**: ultracode=neutral, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics; anything reaching outside this machine still needs the person or a standing authorization that names it）
 
 PAUSE classification for non-interactive drivers: `references/loop-pauses.md`.
@@ -69,9 +69,20 @@ A failure of the app is a finding for the user: report it, never edit product co
 Close with one line:
 「prove-it 完成：{P} 項證實、{D} 項推翻、{U} 項無法到達；紀錄：{record path}；版本：{short-sha}{，工作目錄有未提交改動}。」
 
-## 5. Keep the recipe honest (`--maintain`)
+## 5. Kept as a replay, when the person wants it
 
-The recipe and feature map rot as the app changes. Unnamed, `--maintain` turns on per `../_shared/auto-flags.md` for what the run is about to rely on: before the first drive, each feature file the claims reach whose recorded commit predates a change to the files it covers gets its part of this pass first, and the whole pass runs when the doctor fails because of the recipe itself. Under `--maintain`, follow `references/maintain.md` (a hypothesis whose covered code changed is `$baransu:hypothesis --maintain`'s, not this pass's): cover every feature from source and drive every feature live once, then sort each gap as the map being out of date, the recipe unable to reach working behaviour, or the app being broken — only the first two are fixed here; the third is reported.
+When a proved journey can be replayed without a model — a script starts the program the host would start, feeds it the host's input and reads the result back as data, with no agent and no person deciding anything on the way — offer once, after the report, to keep it as a replay a new session or a person with no AI can rerun; never do it unasked. On a yes, follow `../_shared/regression.md`, building the replay as `references/replay.md` says:
+
+- Write `.codex/prove-it/replays/<feature>/`: the replay script, its journeys with their inputs and expected read-backs, and `check.toml` — the promise from the proved claims and its source in the feature file, `covers` from the feature file's covered source files, and the admission: the planted fault that turned it red and the line that showed it.
+- A quick replay finishes within 420 seconds from a cold start. When it does not, cut a smaller scope or move it to `full`; never raise the limit.
+- Copy `../_shared/scripts/verify-run.py` to `.claude/verify/run.py` when that file is absent or its `VERSION` is older, then, with the replay passing on the code as it is now, run `python .claude/verify/run.py sync <feature>/<id>` and `admit <feature>/<id>`; the runner records both. In the same step, when the project's `.claude/lint/` lacks the two runner checks, hand them to `$baransu:lint` (its "The runner's two checks"), so a broken or unchecked promise stops `$baransu:ship`.
+- Create or update the project skill `.agents/skills/verification/SKILL.md` from `../_shared/regression-skill.md`, listing each replay by its id and folder.
+
+Tell the person plainly, and say it in the project skill too: a replay proves only what its script feeds the program and reads back. Whatever a model or a person decides on the path — what an agent chooses to do next, whether a screen reads right — is outside it and stays a live `$baransu:prove-it` run.
+
+## 6. Keep the recipe honest (`--maintain`)
+
+The recipe, feature map and replays rot as the app changes. Unnamed, `--maintain` turns on per `../_shared/auto-flags.md` for what the run is about to rely on: before the first drive, each feature file the claims reach whose recorded commit predates a change to the files it covers gets its part of this pass first, and the whole pass runs when the doctor fails because of the recipe itself. Under `--maintain`, follow `references/maintain.md` (a hypothesis whose covered code changed is `$baransu:hypothesis --maintain`'s, not this pass's): cover every feature from source and drive every feature live once, then sort each gap as the map being out of date, the recipe unable to reach working behaviour, or the app being broken — only the first two are fixed here; the third is reported.
 
 ## Not-for boundaries
 

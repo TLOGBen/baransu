@@ -1,0 +1,14 @@
+[[check]]
+id = "protocol"
+promise = "In every order of events (a bee reports with or without evidence, vanishes, needs a decision, a late task arrives, a dependency becomes a gap), up to three tasks and two bees: a task is never marked verified without evidence (R1), only the queen changes the board (R2), no path belongs to two tasks at once (R3), the board always matches what the bees reported (R4), the swarm never stalls silently (R5), a task is not reported finished while a job it started still runs (R9), no task runs a third time (R11), what a bee left on the board survives the queen being compacted (R10), and a free seat with a ready task is never left idle (R12)"
+source = ".claude/hypothesis/swarm-protocol/README.md (rules R1-R12; confirmed by the user 2026-11-25); plugins/baransu/skills/swarm/SKILL.md"
+covers = ["plugins/baransu/skills/swarm/SKILL.md", "plugins/baransu/skills/swarm/scripts/board.mjs", "plugins/baransu/skills/swarm/references/board.md"]
+tier = "quick"
+cwd = "model"
+cmd = ["python", "quick.py", "quick-base.cfg", "MC.tla"]
+needs = ["python", "tlc"]
+timeout = 150
+[check.admission]
+fault = "planted in the model, run separately: quick-fault.cfg sets Variant noPathCheck (the queen gives one path to two tasks)"
+red = "Error: Invariant R3 is violated."
+runs = 3

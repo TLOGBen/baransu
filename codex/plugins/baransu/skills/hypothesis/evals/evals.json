@@ -19,6 +19,8 @@
     { "id": 8, "prompt": "程式一直報錯，幫我查一下", "should_trigger": false, "expected_skill": "hunt",
       "expected_behavior": "A plain error with no ordering signal routes to $baransu:hunt, not $baransu:hypothesis." },
     { "id": 9, "prompt": "實際把 app 跑起來，證明這個修好了", "should_trigger": false, "expected_skill": "prove-it",
-      "expected_behavior": "Proving on the running app is $baransu:prove-it; it may read a hypothesis but does not write one." }
+      "expected_behavior": "Proving on the running app is $baransu:prove-it; it may read a hypothesis but does not write one." },
+    { "id": 10, "prompt": "好，這個假說收錄成回歸檢查，之後沒有 AI 也要能重跑", "should_trigger": true, "expected_skill": "hypothesis",
+      "expected_behavior": "Writes .codex/hypothesis/<area>/check.toml per _shared/regression.md — promise and source from the rules, covers from the README, the planted fault that turned it red, a quick scope within 420 s; copies the runner to .claude/verify/run.py when absent or older, runs admit, creates or updates .agents/skills/<area>-formal-verification/SKILL.md, and says the model guards the design, not the code." }
   ]
 }

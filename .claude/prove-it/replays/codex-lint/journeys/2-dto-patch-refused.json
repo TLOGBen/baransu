@@ -1,0 +1,78 @@
+{
+  "id": "DTO-7",
+  "promise": "a patch writing BeanUtils is refused before it lands; a clean patch goes through",
+  "session": "replay-dto7",
+  "steps": [
+    {
+      "rollout": {
+        "type": "turn_context"
+      }
+    },
+    {
+      "hook": {
+        "hook_event_name": "SessionStart",
+        "session_id": "{session}",
+        "transcript_path": "{transcript}",
+        "cwd": "{cwd}",
+        "source": "startup"
+      },
+      "expect": {
+        "decision": "context",
+        "codes": [
+          "DTO-7"
+        ],
+        "marks": []
+      }
+    },
+    {
+      "hook": {
+        "hook_event_name": "PreToolUse",
+        "session_id": "{session}",
+        "turn_id": "t1",
+        "transcript_path": "{transcript}",
+        "cwd": "{cwd}",
+        "tool_name": "apply_patch",
+        "tool_use_id": "call-1",
+        "tool_input": {
+          "command": "*** Begin Patch\n*** Update File: A.java\n@@\n-class A {}\n+class A { void copy(Object a, Object b) { BeanUtils.copyProperties(a, b); } }\n*** End Patch\n"
+        }
+      },
+      "expect": {
+        "decision": "deny",
+        "codes": [
+          "DTO-7"
+        ],
+        "marks": [
+          "✖ remind-dto"
+        ]
+      }
+    },
+    {
+      "hook": {
+        "hook_event_name": "PreToolUse",
+        "session_id": "{session}",
+        "turn_id": "t1",
+        "transcript_path": "{transcript}",
+        "cwd": "{cwd}",
+        "tool_name": "apply_patch",
+        "tool_use_id": "call-2",
+        "tool_input": {
+          "command": "*** Begin Patch\n*** Update File: A.java\n@@\n-class A {}\n+class A { int count; }\n*** End Patch\n"
+        }
+      },
+      "expect": {
+        "decision": "none",
+        "codes": [],
+        "marks": []
+      }
+    }
+  ],
+  "state": {
+    "pending": 1,
+    "held": [],
+    "steps": {
+      "main": 1
+    },
+    "locks": 0
+  }
+}

@@ -2,6 +2,23 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.57.0] - 2026-11-25
+
+### Added（/hypothesis、/prove-it：把判斷留成新 session 或沒有 AI 的人也能重跑的回歸檢查）
+- 單元測試會爛，也會誤導 AI：測試驗的是「某個函式現在這樣算」，程式一改它先紅，AI 就跟著改測試，沒人再問承諾還在不在。這次換個做法：留下的是承諾本身，加一個不靠 AI 就能跑的裁判，和一份「這個承諾管哪些程式」的指紋。三樣缺一不收。
+- `/hypothesis` 新增 §10、`/prove-it` 新增 §5：報告之後問一次要不要把這次的裁判留下來，你說好才做，不問不做。假說的裁判（凍結的模型或答案，裡面沒有 agent）寫成 `.claude/hypothesis/<area>/check.toml`；`/prove-it` 證明過、不靠模型就能重播的路徑寫成 `.claude/prove-it/replays/<feature>/`（重播腳本、每條路徑的輸入與預期、`check.toml`），新增 `references/replay.md` 講怎麼建。
+- 一個入口跑全部：`.claude/verify/run.py`（`status`／`quick`／`full`／`sync`／`admit`），從 `_shared/scripts/verify-run.py` 複製，只用 Python 3.11 以上的標準庫；結束碼 0 全過、1 程式壞了、2 裁判或工具過期，人、排程或 CI 都用同一支。快速檢查要在 420 秒內跑完，整層 10 分鐘內，超過就切小範圍、不放寬限制。
+- 「這個裁判描述的是哪一版程式」由執行器記，不靠人填：裁判跟上程式之後跑 `sync`，執行器把涵蓋檔案的內容指紋寫進檢查旁的 `record.json`；之後程式一改，`status` 就說「synced 之後改過」，重跑幾次都不會消，只有 `--maintain` 把裁判補上、再 `sync` 才會。換行統一後才比，不需要 git，也不怕 commit 前的改動卡住收尾。
+- 收進來之前要先看它會紅：故意弄壞（程式、打包好不能改時改輸入、模型就用壞掉的變體）讓它變紅，記在 `check.toml`；`admit` 連跑幾次（重播至少 5 次）要結果一樣、量最慢的一次，通過才由執行器自己寫進 `record.json`。沒收進來的檢查是草稿，列出來、不算進結束碼。它說的是設計守住了，不替程式背書。
+- 專案 skill 給下一個 session 看怎麼重跑、結果怎麼讀、這個檢查證明不了什麼：每個假說領域一個 `<area>-formal-verification`，所有重播共用一個 `verification`，放 `.claude/skills/<名稱>/`（Codex 放 `.agents/skills/<名稱>/`）；模板是 `_shared/regression-skill.md`，約定全文在 `_shared/regression.md`。第一次把執行器放進專案時，順手把兩條 lint 檢查交給 `/lint`；裁判自己的輸出資料夾（`traces/`、`states/`）建立時就放一個內容是 `*` 的 `.gitignore`。
+- 這個 repo 自己：git-account（Lean＋TLC）、verification-methods 和 Codex lint 重播（8 條路徑、不靠 AI、約 15 秒）已收進來，各有專案 skill；codex-lint-state、lint-cards、lint-mod-state、swarm-protocol 的模型描述的是較舊的程式，先留草稿，等 `--maintain` 補上再收。
+
+### Changed
+- 假說領域、`/prove-it` 的食譜、功能地圖與重播、`.claude/verify/run.py` 改成進專案的 git，跟 `.claude/lint/` 一樣；每次執行留下的東西不進：`/prove-it` 的執行紀錄、`.claude/verify/results/` 的印章、TLC 的輸出。`/ship` 不歸檔 `verify/` 與 `prove-it/replays/`。
+- `/lint`：不再為每份假說註冊一條 TLA+ 檢查；專案有 `.claude/verify/run.py` 時，任何等級的 init、sync 都補上兩條只讀印章的檢查，commit 前提醒（warn）、`/ship` 前攔下（error）；lint 自己不跑模型。full 層只有失敗才擋收尾，過期由排程處理。
+- `/health`：驗證面多列 `run.py status` 回報的過期、失敗、裁判壞掉、從沒跑過的檢查，以及有承諾卻沒有檢查可重跑的假說領域與重播。
+- `/swarm`：看板改由程式 `scripts/board.mjs` 寫，指令就是 TLA+ 模型裡的合法動作（`init`／`add`／`split`／`dispatch`／`ask`／`answer`／`resume`／`accept`／`fail`／`show`，對照表在 `references/board.md`）。實際跑時蜂后手寫看板，偏掉的剛好都是只寫在文字裡的規則：排完看板沒給你看、決策用散文報、把新工作塞給已回報的蜜蜂、沒有回報檔就標成驗收、每份回報用 `mv` 搬都被 lint 擋下；有程式的決策紀錄一個都沒出錯。現在沒有回報檔 `accept` 直接拒絕、看板一個位元都不變；`resume` 只帶得走這次提問的答案，新工作只能 `add`；每次派工印出上次回報後的決策表。回報檔不再搬動：讀過的由程式記在 `board.json`（記內容雜湊，同名覆寫會重新變成未讀），沒有東西要手動搬，也就不需要擋手動搬的 lint。路徑在加入看板時就統一寫法、拒絕 glob，派工撞到被佔用的路徑直接拒絕、看板不動；太大的任務可以從蜜蜂的回報直接拆。另加一句：你的話有兩種讀法、會改到不同檔案時，蜂后問你，不自己挑；非互動執行時這是停點。
+
 ## [8.56.0] - 2026-11-25
 
 ### Added（/swarm：決策紀錄與定期回報）

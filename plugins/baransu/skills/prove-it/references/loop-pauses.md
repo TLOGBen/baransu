@@ -12,3 +12,5 @@ PAUSE classification for non-interactive drivers; semantics in `../../_shared/lo
 | A claim whose prerequisite is out of reach (auth, platform, external state) | Input | Record it unreachable with the prerequisite and the route tried, and continue with the other claims |
 | Recipe gap — the app works but the drive cannot reach it | Input | Fix the recipe and drive again before any verdict, as the skill does when a person is present |
 | An every-case claim no hypothesis covers, and no one is there to confirm the rules `/hypothesis` writes for it | Input | `/hypothesis` goes on with the rules as written and marks its report 未經確認 (`../../hypothesis/references/loop-pauses.md`); read the claim against it as usual, carry 未經確認 into this claim's verdict, and continue with the other claims |
+
+§5's offer to keep a journey as a replay is not a pause: without the person, nothing is kept.

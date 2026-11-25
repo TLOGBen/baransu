@@ -1,0 +1,43 @@
+[[check]]
+id = "invariants"
+promise = "In every order of events up to seven steps (prompts, steps, tool calls, replies, stops, skills, reloads, clears), the lint mod owes the model each message at most once and no later than the user's next message: a wrong-language passage is asked to be restated, once (R1, R2); a turn that did work without accounting for it is asked to (R4); a delete or move never runs on its first try and a preview never lets a different target through (R6, R7, R11); the closing record never claims a review or run that did not happen nor denies edits that did (R8, R9, R13); the mod's own checks read only the right reply, once (R10, R12, R14 to R17); a turn is held at most four times (R19); and a queued line is sent exactly once (R21)"
+source = ".claude/hypothesis/lint-mod-state/README.md (rules R1-R21; confirmed by the user 2026-11-02 to 2026-11-04)"
+covers = [
+  "plugins/baransu/hooks/engine/engine.ts",
+  "plugins/baransu/hooks/engine/ports.ts",
+  "plugins/baransu/hooks/adapters/claude-code/hooks.ts",
+  "plugins/baransu/hooks/adapters/claude-code/translate.ts",
+  "plugins/baransu/hooks/main.ts",
+  "plugins/baransu/types/index.d.ts",
+]
+tier = "quick"
+cwd = "model"
+cmd = ["python", "quick.py", "quick-base.cfg", "LintMod.tla"]
+needs = ["python", "tlc"]
+timeout = 180
+[check.admission]
+fault = "planted in the model, run separately: quick-fault.cfg sets Break=R11 (a delete let through by a twin command before its preview was read)"
+red = "Error: Invariant R11 is violated."
+runs = 3
+
+[[check]]
+id = "actions"
+promise = "In every order of events up to seven steps, a subagent's text or action never triggers the main loop's restate request (R3), and a turn is never asked to account for its work when nothing is owed, nor a second time in the same turn (R5)"
+source = ".claude/hypothesis/lint-mod-state/README.md (rules R3 and R5; confirmed by the user 2026-11-02 and rewritten at 8.43)"
+covers = [
+  "plugins/baransu/hooks/engine/engine.ts",
+  "plugins/baransu/hooks/engine/ports.ts",
+  "plugins/baransu/hooks/adapters/claude-code/hooks.ts",
+  "plugins/baransu/hooks/adapters/claude-code/translate.ts",
+  "plugins/baransu/hooks/main.ts",
+  "plugins/baransu/types/index.d.ts",
+]
+tier = "quick"
+cwd = "model"
+cmd = ["python", "quick.py", "quick-props.cfg", "LintMod.tla"]
+needs = ["python", "tlc"]
+timeout = 180
+[check.admission]
+fault = "planted in the model, run separately: quick-fault-R5.cfg sets Break=R5 (an account request when nothing is owed)"
+red = "Error: Action property R5 is violated."
+runs = 3

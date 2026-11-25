@@ -1,0 +1,18 @@
+[[check]]
+id = "verdicts"
+promise = "Over the 50 recorded defects of this repo, none is caught only by a unit test: TLA+ or a real run catches every one (R1); and of the 140 recorded reds of red-green tests, fewer than half caught a regression (B)"
+source = ".claude/hypothesis/verification-methods/README.md (claims A, B, rules R1-R3, readings W1-W4; confirmed by the user 2026-11-04)"
+covers = [
+  ".claude/hypothesis/verification-methods/model/corpus.csv",
+  ".claude/hypothesis/verification-methods/model/tests.csv",
+  ".claude/hypothesis/verification-methods/model/criteria.md",
+]
+tier = "quick"
+cwd = "model"
+cmd = ["python", "quick.py"]
+needs = ["python"]
+timeout = 60
+[check.admission]
+fault = "planted in the data: a copy of corpus.csv and tests.csv with defect MS-P3 set to tla,no,no,yes,no (only a unit test catches it), checked with python quick.py on that copy"
+red = "R1 plain  broken by 1: ['MS-P3']"
+runs = 3

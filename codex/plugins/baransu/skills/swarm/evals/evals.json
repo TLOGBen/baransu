@@ -7,7 +7,7 @@
       "prompt": "自動化下去 swarm 下去 3~5 隻，後端、前端、E2E 分開做，你只做決定和盯進度",
       "should_trigger": true,
       "expected_skill": "swarm",
-      "expected_behavior": "Lays out the board under .codex/swarm/<slug>/tasks.jsonl (tasks with dependencies, paths, sizes; no cycle) and names the first crew in one line with pinned model and effort; the task others depend on goes first and writes its interface; each bee builds in paths it alone owns, build output included; the queen does no task herself, fills a seat the moment one frees, and shows one status line counted from the board after each change."
+      "expected_behavior": "Lays out the board under .codex/swarm/<slug>/ only through scripts/board.mjs (init, then add each task after the tasks it depends on, with its paths), gives the user show's output and names the first crew in one line with pinned model and effort; the task others depend on goes first and writes its interface; each bee builds in paths it alone owns, build output included; the queen does no task herself, dispatches what the status line lists under can start the moment a seat frees, and passes on the status line the program prints after each change."
     },
     {
       "id": 2,
@@ -35,7 +35,14 @@
       "prompt": "美術那隻回報：生成程式卡住了，要重啟它才能繼續，但重啟被權限提示擋下，等你決定",
       "should_trigger": true,
       "expected_skill": "swarm",
-      "expected_behavior": "The queen decides the restart herself — a process the run started, inside the run, undoable — and records it on the task's line with why and the alternative; she does not ask the user to decide. If the host permission prompt still appears, she tells the user where the click is waiting and, if it repeats, shows the exact allow rule, without approving it for them or editing their settings."
+      "expected_behavior": "The queen decides the restart herself — a process the run started, inside the run, undoable — and records it as a decision-log row with why and the alternative, then answers and resumes the bee through the board program; she does not ask the user to decide. If the host permission prompt still appears, she tells the user where the click is waiting and, if it repeats, shows the exact allow rule, without approving it for them or editing their settings."
+    },
+    {
+      "id": 8,
+      "prompt": "（無人值守跑 swarm）文件那隻回報：使用者說「把設定說明搬到 docs」，可以是搬進 docs/setup.md，也可以是在 docs/ 下開新檔，兩種改的檔不同，要哪一種？",
+      "should_trigger": true,
+      "expected_skill": "swarm",
+      "expected_behavior": "What the user meant is not the queen's call even with no one to answer: she does not pick a reading or take a default. The task goes to blocked through `ask user` with the question and both readings on the board, every other task keeps going, and the run reports needs input with that question; the step is logged as waiting on the user."
     },
     {
       "id": 5,

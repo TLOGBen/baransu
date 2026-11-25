@@ -59,10 +59,27 @@ message = "上游來源只寫在該 skill 的 NOTICE.md；本文和 references �
 
 # Source: owner, 2026-11-19 — .claude/ and .codex/ hold working folders that stay out of git (hypothesis, prove-it,
 # dogfood were untracked in d85a8018, d1d1eedc). An allowlist, not a list of what is banned: a working folder added
-# later is held too. Only .claude/lint/ and .claude/settings.json are tracked. The owner's preference, not a hard
-# rule: held once so the model asks, sent again after a yes. Deletions pass, so untracking is never held.
+# later is held too. Tracked: .claude/lint/, .claude/settings.json, the runner .claude/verify/*.py (its results/ is a
+# run's leftovers), .claude/hypothesis/ (areas with their check.toml; traces/, states/, *.bin and *_TTrace_* are
+# git-ignored) and the kept parts of .claude/prove-it/ (recipe.md, features/, fixtures/, replays/; records/ is not).
+# The owner's preference, not a hard rule: held once so the model asks, sent again after a yes. Deletions pass,
+# so untracking is never held.
 [check.working-folders-not-in-git]
 on = ["pre:commit"]
 severity = "check"
-run = ["git", "diff", "--cached", "--quiet", "--diff-filter=AMR", "--", ".claude", ".codex", ":(exclude).claude/lint", ":(exclude).claude/settings.json"]
-message = ".claude/ 或 .codex/ 底下只有 .claude/lint/ 與 .claude/settings.json 進 git；暫存區有其他工作資料夾的檔案，使用者偏好不進 git。先問使用者，要放進去再重送（或把它加進這條的白名單）；不要就 git restore --staged 拿掉"
+run = ["git", "diff", "--cached", "--quiet", "--diff-filter=AMR", "--", ".claude", ".codex", ":(exclude).claude/lint", ":(exclude).claude/settings.json", ":(exclude,glob).claude/verify/*", ":(exclude).claude/hypothesis", ":(exclude).claude/prove-it/recipe.md", ":(exclude).claude/prove-it/features", ":(exclude).claude/prove-it/fixtures", ":(exclude).claude/prove-it/replays", ":(exclude).claude/skills"]
+message = ".claude/ 或 .codex/ 底下只有 .claude/lint/、.claude/settings.json、.claude/verify/run.py、.claude/hypothesis/、.claude/skills/ 與 .claude/prove-it/ 的 recipe、features、fixtures、replays 進 git；暫存區有其他工作資料夾的檔案（含 .claude/verify/results/、.claude/prove-it/records/），使用者偏好不進 git。先問使用者，要放進去再重送（或把它加進這條的白名單）；不要就 git restore --staged 拿掉"
+
+# Source: plugins/baransu/skills/_shared/regression.md §8 — lint only reads the stamps the runner leaves; the judges run outside the session.
+# A warning before each commit (a hold on every commit gets turned off); an error before /ship, so work does not close on a promise nobody checked against this code.
+[check.verify-before-commit]
+on = ["pre:commit"]
+severity = "warn"
+run = ["python", ".claude/verify/run.py", "status"]
+message = "有驗證過時、失敗或沒跑過；在 session 外跑 python .claude/verify/run.py quick，再照輸出修；synced 之後過時的，先 /baransu:hypothesis --maintain 或 prove-it --maintain，再 run.py sync"
+
+[check.verify-before-ship]
+on = ["pre:skill:ship"]
+severity = "error"
+run = ["python", ".claude/verify/run.py", "status"]
+message = "驗證沒有全部通過且跟上目前的程式，不能收尾；先在 session 外跑 python .claude/verify/run.py quick，照 status 輸出：1 修程式，2 重跑或修檢查；synced 之後過時的，先 /baransu:hypothesis --maintain 或 prove-it --maintain，再 run.py sync"

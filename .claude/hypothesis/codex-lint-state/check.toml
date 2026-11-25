@@ -1,0 +1,18 @@
+[[check]]
+id = "state"
+promise = "On Codex, where every hook event starts a new process and parallel hooks share one state file through a lock, with any hook process killed or stalled at any step: one hook's write is never overwritten by another's (C1), an owed message reaches the model once, at most one resend after a kill (C2), what a call took before an edit is delivered by the user's next message even if the call never finishes (C3), a hook that fails, times out or cannot take the lock never blocks the user (C5), and a lock left by a dead or stalled process is always taken back in finite time (C6); a once-only action is not let through by an identical twin before the model saw why it was stopped, whenever the hooks answer Codex (C4)"
+source = ".claude/hypothesis/codex-lint-state/README.md (rules C1-C6, claim and quantifiers; confirmed by the user 2026-11-18)"
+covers = [
+  "plugins/baransu/hooks/adapters/codex/main.ts",
+  "plugins/baransu/hooks/adapters/codex/store.ts",
+  "plugins/baransu/hooks/engine/engine.ts",
+]
+tier = "quick"
+cwd = "model"
+cmd = ["python", "quick.py"]
+needs = ["python", "tlc"]
+timeout = 120
+[check.admission]
+fault = "planted in the model, in the same run: nineteen TLC runs, each broken variant must break its own rule: code-stall-noguard (no lock check before answering Codex or before the write-back, with a stalled holder) breaks C1; timeout-break and no-lock break C1, no-reclaim breaks C6, write-first-c3 breaks C3, giveup-deny breaks C5, and design-c4 and code-c4 (a hook process dying before it answers Codex) break C4"
+red = "OK  code-stall-noguard expected=C1 got=C1 states=3172"
+runs = 3

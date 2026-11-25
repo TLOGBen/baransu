@@ -1,0 +1,21 @@
+[[check]]
+id = "cards"
+promise = "In any order of events, a finished call that has a lint card shows it on its own row and never loses it (A); a held or refused call shows the card and not the card plus the red error text (B); the same card is never drawn twice on one row (D); and a collapsed group that holds a call with a card is not left as one line (Q1)"
+source = ".claude/hypothesis/lint-cards/README.md (rules A, B, D, Q1; the card layer of 8.45.0, rules not rerun on 8.46.0 as the README says)"
+covers = [
+  "plugins/baransu/hooks/engine/engine.ts",
+  "plugins/baransu/hooks/engine/text.ts",
+  "plugins/baransu/hooks/engine/timing.ts",
+  "plugins/baransu/skills/lint/preset/sets/runtime.toml",
+  "plugins/baransu/hooks/adapters/claude-code/view/hooks.ts",
+  "plugins/baransu/hooks/adapters/claude-code/view/card.ts",
+]
+tier = "quick"
+cwd = "model"
+cmd = ["python", "quick.py"]
+needs = ["python", "tlc"]
+timeout = 180
+[check.admission]
+fault = "planted in the model, in the same run: variant old (the source before the card fix) must break A, B and Q1; nogroup breaks Q1, noempty breaks B, double breaks D"
+red = "ok  old        KeepFirst=True  Cap=2 broken: A, B, Q1 (expected A, B, Q1)"
+runs = 3

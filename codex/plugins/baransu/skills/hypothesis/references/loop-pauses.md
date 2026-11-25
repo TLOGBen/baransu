@@ -12,4 +12,4 @@ One, an Input PAUSE in the loop contract's classes, with a default:
 
 ## Never a pause
 
-The second derivation, every check and its estimate, `model/check.py`'s refusal of a run past the budget (it switches to a smaller scope, symmetry, or a proof), freezing, §6, writing the README, and `--maintain` all run unattended. A rule 被打破 is a finding, not a pause.
+The second derivation, every check and its estimate, `model/check.py`'s refusal of a run past the budget (it switches to a smaller scope, symmetry, or a proof), freezing, §6, writing the README, and `--maintain` all run unattended. A rule 被打破 is a finding, not a pause. §10's offer to keep the claim as a regression check is not a pause either: without the person, nothing is kept.

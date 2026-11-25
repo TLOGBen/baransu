@@ -1,0 +1,59 @@
+{
+  "id": "KP-8",
+  "promise": "a patch deleting a file under keep/ is refused",
+  "session": "replay-kp8",
+  "steps": [
+    {
+      "rollout": {
+        "type": "turn_context"
+      }
+    },
+    {
+      "hook": {
+        "hook_event_name": "SessionStart",
+        "session_id": "{session}",
+        "transcript_path": "{transcript}",
+        "cwd": "{cwd}",
+        "source": "startup"
+      },
+      "expect": {
+        "decision": "context",
+        "codes": [
+          "DTO-7"
+        ],
+        "marks": []
+      }
+    },
+    {
+      "hook": {
+        "hook_event_name": "PreToolUse",
+        "session_id": "{session}",
+        "turn_id": "t1",
+        "transcript_path": "{transcript}",
+        "cwd": "{cwd}",
+        "tool_name": "apply_patch",
+        "tool_use_id": "call-1",
+        "tool_input": {
+          "command": "*** Begin Patch\n*** Delete File: keep/x.txt\n*** End Patch\n"
+        }
+      },
+      "expect": {
+        "decision": "deny",
+        "codes": [
+          "KP-8"
+        ],
+        "marks": [
+          "✖ keep-folder"
+        ]
+      }
+    }
+  ],
+  "state": {
+    "pending": 0,
+    "held": [],
+    "steps": {
+      "main": 1
+    },
+    "locks": 0
+  }
+}

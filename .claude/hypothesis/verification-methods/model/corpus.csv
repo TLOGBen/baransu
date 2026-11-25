@@ -1,0 +1,51 @@
+﻿id,source,description,found_by,e2e,tla,kit,lint,evidence
+MS-P1,lint-mod-state P1,a subagent's Bash clears the main loop's pending restate,tla,yes,yes,yes,no,lint-mod-state/paths/README.md P1; ask the model to write English then start a subagent that runs Bash
+MS-P2,lint-mod-state P2,a held call drops the pending restate,tla,yes,yes,yes,no,P2; force push held after an English block
+MS-P3,lint-mod-state P3,two parallel Bash calls both ask for the same restate (clear after await),tla,rare,yes,yes,no,P3; needs two calls to interleave inside the mod's await - not forceable from the app
+MS-P4,lint-mod-state P4,a slash-command prompt skips the restate and report,tla,yes,yes,yes,no,P4; type /baransu:ship after an English block
+MS-P5,lint-mod-state P5,a delete previewed in an earlier turn runs without a preview,tla,yes,yes,yes,no,P5; rm twice across turns
+MS-P6,lint-mod-state P6,the same rm string in another folder after cd runs unpreviewed,tla,yes,yes,yes,no,P6
+MS-P7,lint-mod-state P7,sed -i is not counted as an edit,tla,yes,transcribe,yes,no,P7; the fault is the classifier writesFiles (which commands write)
+MS-P8,lint-mod-state P8,after a mod reload the ship record says no edit (state in a module variable),tla,rare,yes,yes,yes,P8; reload is not forceable mid-session; CLAUDE.md invariant 'state lives in $.state never in a module variable' is a syntax shape (module-level let in hooks/)
+MS-P9,lint-mod-state P9,a reload mid-turn lets an edit pass without words (module variable),tla,rare,yes,yes,yes,P9; same shape as P8
+MS-P10,lint-mod-state P10,a plan update after the report resets it and asks for another report,tla,yes,yes,yes,no,P10
+MS-P11,lint-mod-state P11,a skill name without a namespace carries no restate,tla,yes,transcribe,yes,no,P11; the fault is the test name.includes(':')
+MS-P12,lint-mod-state P12,same as P11 for the owed report,tla,yes,transcribe,yes,no,P12
+MS-P13,lint-mod-state P13,a held delete counts as work done,tla,yes,yes,yes,no,P13
+MS-P14,lint-mod-state P14,/clear keeps the old conversation's previews,tla,yes,yes,yes,no,P14
+MS-P15,lint-mod-state R7 path,the shell moved after cd b && a failing command,tla,yes,yes,yes,no,lint.test.ts 'P15 R7'
+MS-P16,lint-mod-state R8 path,a review the user stopped counts as reviewed,tla,yes,yes,yes,no,lint.test.ts 'P16 R8'
+MS-P17,lint-mod-state R11 path,two identical deletes in one response,tla,yes,yes,yes,no,lint.test.ts 'P17 R11'; the model can send two in one response
+LC-P1,lint-cards P1,a held call folded into a group shows only red text,user-real,yes,yes,no,no,HUNT-2026-002; the kit drew ToolResult for grouped rows (premise wrong)
+LC-P2,lint-cards P2,a warn card disappears once its call is grouped,user-real,yes,yes,no,no,same premise
+LC-P3,lint-cards P3,a folded group hides a held call's card,user-real,yes,yes,no,no,terminal folds read groups
+LC-P4,lint-cards P4,two skills loaded at once hang their cards under the wrong call,kit,yes,yes,yes,no,view-judge E3; parallel Skill calls are possible
+LC-P5,lint-cards P5,band cards stored but not all drawn,kit,yes,yes,yes,no,view-judge E4 W1; band removed in 8.46.0
+LC-P6,lint-cards P6,a survey holding the band hides the card,kit,rare,yes,yes,no,view-judge E7 W2; a survey cannot be summoned on purpose
+LC-P7,lint-cards P7,a phone never sees band cards,kit,yes,yes,yes,no,E7 W3; the user opens the session on the phone
+LC-P8,lint-cards P8,a message refused by another plugin still clears the band,reading,rare,yes,yes,no,second derivation E4-b; needs another plugin that drops prompts
+LC-P9,lint-cards P9,an image-only message does not clear the band,reading,yes,transcribe,yes,no,second derivation E5-a; promptEvent returns null on empty text
+LC-P10,lint-cards P10,a hold-once check is redrawn and retold when it passes,kit,yes,yes,yes,no,card-content sweep; reproduced in the sandbox for deletes
+LC-P11,lint-cards P11,the delete preview drawn as plain text saying 'send it again' after it ran,kit,yes,transcribe,yes,no,card-content sweep; the user's screenshot 2026-11-04
+LC-P12,lint-cards P12,preview at warn/info says 'send it again' though it ran,kit,yes,no,yes,yes,the preset message text; a forbid on preset messages could flag 'next time' wording
+LC-P13,lint-cards P13,a stop held once is drawn again when the turn ends,kit,yes,yes,yes,no,card-content sweep
+LC-P14,lint-cards P14,a passing 重新 answer draws a card,kit,yes,yes,yes,no,card-content sweep
+S-push,8.46.1 f1e54a87,a refused push is titled 'commit 前',e2e-model,yes,transcribe,yes,no,sandbox S4
+S-make,8.46.1 f1e54a87,/lint runs a run-check whose file scope matches nothing,e2e-model,yes,yes,yes,no,sandbox /lint
+S-gitC,8.46.1 f1e54a87,git -C <other repo> commit is checked with this repo's identity,e2e-model,yes,yes,yes,no,this session's sandbox commit
+S-branch,8.46.4 c9c257ec,the branch-delete preview reads the wrong repo after cd / git -C,e2e-model,yes,transcribe,yes,no,this session deleting sync-company
+S-notice,8.46.x premise,the desktop does not draw a mod's system notice row,user-real,yes,no,no,no,user screenshots 2026-11-04; kit tests E7 passed
+S-typed,8.46.1 f1e54a87,a /lint the user types shows no card on desktop,user-real,yes,no,no,no,user screenshot; follows from S-notice
+S-icon,8.46.0,the one-row card's icon sits below the text,user-real,yes,no,no,no,user screenshot; layout is not in the kit
+OP-think,c6a1d4c0,Opus 5.5 speaks in thinking blocks so 'explain first' misfired,user-real,yes,no,no,no,8.40.1; a premise about the model's output
+SL-1,f2dd20bb,statusline drawn wrong on desktop,user-real,yes,no,no,no,8.38.1 desktop look
+SL-2,c49b0b77,statusline duplicated the app's own fields,user-real,yes,no,no,no,8.38.2
+SL-3,bbf01477,statusline bar missing below width 80 / blank space,user-real,yes,no,no,no,8.38.3
+PV-1,d136fbd4,the delete preview misreads Git Bash /c/ paths and paths after cd and 2>&1,e2e-model,yes,transcribe,yes,no,8.44.1; real Windows use
+WIN-1,2574bc67,transfer.py exemption never matches on Windows (str(path) with backslashes),kit,yes,transcribe,yes,yes,4 Windows tests; an ast-grep rule can flag str(Path) compared with a '/' literal
+WIN-2,2574bc67,cleanup-worktree.sh tier-3 guard compares C:/ and /c/ forms and always refuses,kit,yes,transcribe,yes,no,Windows test; tier 3 runs only when worktree remove and --force both fail - the model can force that on purpose (second derivation: graze not a break)
+WIN-3,2574bc67,health prints backslash paths,kit,yes,no,yes,no,Windows test
+DRAW-1,779b6889,sfx.mjs mixes 44.1 kHz into 48 kHz; peak check on the wrong file,e2e-model,yes,no,yes,no,the documented pipeline did not run through
+ICON-1,d8b7c420,Codex skill icon path wrong,user-real,yes,no,yes,yes,a path-exists check over manifests is static
+VER-1,931473a4,a release missed the fourth version touchpoint,kit,yes,no,yes,yes,the version test caught it; verify-skills now checks the three surfaces statically
+SHIP-1,0123fc1e,/ship stops early with unpushed commits,e2e-model,yes,yes,yes,no,6.0.2 left a commit unpushed in real use

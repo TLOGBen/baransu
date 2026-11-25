@@ -249,18 +249,32 @@ Checks the mod computes itself, because they are about the session or the repo r
 | `user-language` | every reply (default `retry`) | 重新. Checks what the model actually wrote: when the user writes Chinese (`language = "..."` when set, else Claude Code's own `language` setting, else read from the user's latest message, a slash command's arguments included) and a block the model sends is English prose — code and backticks left out — identifiers such as `session.start` or `camelCase` left out too — the person sees it flagged and the model restates each such block once, the way `/huh` does, by the user's next message at the latest. A reminder in the system prompt alone did not stop the slip, so this reads the output. At `info` the block is flagged on the card only, and nothing is asked of the model. |
 | `built-before-commit`, `up-to-date`, … | | Every built-in's state, the cards drawn and the git facts included, is kept in the session (`$.state`), so a reload of the mod forgets nothing; a `/clear` starts it over. The rules this state keeps in every order of events are checked by a TLA+ model in baransu's repo, `.claude/hypothesis/lint-mod-state/`. |
 
-## A TLA+ model as a check
+## A hypothesis or a replay as a check
 
-`/lint init` writes these only at the 嚴格 level. This is how a state the code must keep — a state machine's rules, an order that must never happen — stays true while the code keeps changing. A `/hypothesis` judge registers as a `run` check: `on = ["pre:skill:ship", "pre:skill:review"]`, `file` the code the hypothesis covers with `scope = "diff"`, `run` the TLC command its README gives, `severity = "error"`. The check runs only when the covered code changed. TLC exits 0 when every rule holds and non-zero on a violation or a deadlock, so a broken rule stops `/ship`.
-
-TLC checks the spec, not the code: when the code changed and the spec did not, TLC still passes. So the check carries a `changed` note that sends the model to `/hypothesis --maintain` whenever the covered code moved, pass or fail; maintenance redraws the model from the changed code and reruns the judge. The check's own TLC run catches a spec edit that breaks a rule.
+This is how a promise the code must keep — a state machine's rule (a `/hypothesis` model), a path a user takes (a `/prove-it` replay) — stays checked while the code keeps changing. Each judge is registered in its own folder's `check.toml` and run by the project's runner, `.claude/verify/run.py`; the contract is `../../_shared/regression.md`. Lint registers the runner, never a judge: two checks in a set under `sets/local/`, written at any level, whenever `.claude/verify/run.py` exists and they are absent: by `/lint init` and `/lint sync`, or by `/lint` when `/hypothesis` or `/prove-it` hands them over as it first copies the runner.
 
 ```toml
-on = ["pre:skill:ship", "pre:skill:review"]
+[check.verify-before-commit]
+on = ["pre:commit"]
+severity = "warn"
+run = ["python", ".claude/verify/run.py", "status"]
+message = "有驗證過時、失敗或沒跑過；在 session 外跑 python .claude/verify/run.py quick，再照輸出修"
+
+[check.verify-before-ship]
+on = ["pre:skill:ship"]
 severity = "error"
-file = ["src/billing/**"]
-scope = "diff"
-run = ["tlc", "-workers", "1", "-config", ".claude/hypothesis/billing/Billing.cfg", ".claude/hypothesis/billing/Billing.tla"]
-changed = "billing 的程式改了：先跑 /baransu:hypothesis --maintain，讓模型跟上程式再驗證"
-message = "billing 的假說有規則被打破；照 .claude/hypothesis/billing/README.md 的出錯路徑修"
+run = ["python", ".claude/verify/run.py", "status"]
+message = "驗證沒有全部通過且跟上目前的程式，不能收尾；照 run.py status 的輸出：1 修程式，2 重跑或修檢查"
 ```
+
+Lint only reads the stamps. A hook command waits at most 120 s, and the quick tier may take minutes, so the run happens outside the session: a person, a schedule or CI runs `python .claude/verify/run.py quick` (`full` for every tier), which writes one stamp per check. `status` runs no judge; it compares each check's fingerprint — the files its `covers` matches and its own folder — with its stamp, in seconds. A warning before each commit, because a hold on every commit gets turned off; an error before `/ship`, so work does not close on a promise nobody has checked against this code.
+
+What `status` exits with, one line per check in its output:
+
+- `0` — every check passed on the files as they are now.
+- `1` — a judge said no: the code breaks a promise (`failing`). Fix the code; the line names the check and its promise.
+- `2` — the check cannot vouch for this code: a stamp is `stale` (the line lists the covered files that changed since), a check is `never-run`, or a judge or tool is missing or out of date (`broken-judge`). Rerun `run.py quick` outside the session, or fix the check.
+
+`1` wins over `2`. Lint shows any non-zero exit as a finding and does not tell them apart; the output does.
+
+TLC checks the spec, not the code: when the covered code changed and the model did not, a rerun still passes. Staleness is the only link between them. A line `stale` since `synced` therefore sends the model to `/hypothesis --maintain <area>` — maintenance redraws the model from the code, then `run.py sync` records that it describes these files — and no rerun clears it, so the old model cannot be stamped as current. A replay drives the real code: a passing rerun shows it still holds, and `sync` after it says so.

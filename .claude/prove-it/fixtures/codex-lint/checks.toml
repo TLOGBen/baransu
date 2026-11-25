@@ -1,0 +1,69 @@
+# The checks a Codex lint proof runs against. Each message carries a code (DTO-7, PE-5 …) the model is asked to
+# repeat, so its answer shows which line reached it. Copied into the scratch project as sets/local/checks.toml.
+
+[check.remind-dto]
+on = ["pre:edit"]
+severity = "error"
+remind = true
+forbid = 'BeanUtils'
+message = "DTO 之間複製一律用逐欄位 setter，不要用 BeanUtils（規則代號 DTO-7）"
+
+[check.no-println]
+on = ["post:edit"]
+severity = "error"
+ext = ["java"]
+forbid = 'System\.out\.println'
+message = "不要用 System.out.println，拿掉它（規則代號 PE-5）"
+
+[check.confirm-remove]
+on = ["pre:bash"]
+severity = "check"
+forbid = 'Remove-Item'
+message = "刪除前先確認一次要刪的東西（規則代號 RM-6）"
+
+[check.keep-folder]
+severity = "error"
+actions = ["delete"]
+folder = "keep"
+forbid = '.'
+message = "keep 底下的檔不能刪（規則代號 KP-8）"
+
+[check.stop-no-todo]
+on = ["pre:stop"]
+severity = "error"
+forbid = 'TODO'
+message = "最後的回答不能留 TODO（規則代號 ST-9）"
+
+[check.user-language]
+builtin = "user-language"
+severity = "retry"
+message = "用使用者的語言回答"
+
+[check.before-review]
+on = ["pre:skill:review"]
+severity = "warn"
+message = "review 前先確認 build 過了（規則代號 RV-3）"
+
+[check.outside]
+on = ["post:file"]
+severity = "warn"
+forbid = 'FIXME'
+message = "在 Codex 之外改的檔留了 FIXME（規則代號 PF-1）"
+
+[check.after-compact]
+on = ["post:compact"]
+severity = "warn"
+forbid = '.'
+message = "壓縮後先重讀 PLAN.md（規則代號 PC-2）"
+
+[check.after-agent]
+on = ["post:agent"]
+severity = "warn"
+forbid = '.'
+message = "subagent 結束後先檢查它改了什麼（規則代號 AG-4）"
+
+[check.runner]
+on = ["pre:commit"]
+severity = "warn"
+run = ["node", "-e", "process.exit(1)"]
+message = "commit 前的 run 檢查跑了（規則代號 RN-1）"

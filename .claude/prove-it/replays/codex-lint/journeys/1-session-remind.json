@@ -1,0 +1,36 @@
+{
+  "id": "SS-remind",
+  "promise": "a remind rule is in the session's context from its start (DTO-7 at SessionStart)",
+  "session": "replay-ss-remind",
+  "steps": [
+    {
+      "rollout": {
+        "type": "turn_context"
+      }
+    },
+    {
+      "hook": {
+        "hook_event_name": "SessionStart",
+        "session_id": "{session}",
+        "transcript_path": "{transcript}",
+        "cwd": "{cwd}",
+        "source": "startup"
+      },
+      "expect": {
+        "decision": "context",
+        "codes": [
+          "DTO-7"
+        ],
+        "marks": []
+      }
+    }
+  ],
+  "state": {
+    "pending": 0,
+    "held": [],
+    "steps": {
+      "main": 1
+    },
+    "locks": 0
+  }
+}

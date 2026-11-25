@@ -102,7 +102,7 @@ Before moving any item, enforce the local-only boundary:
 
 **Archive allowlist** — exactly the Step 1 `ARCHIVE_DIRS` value, in the same order: `tmp`, `think`, `draft`, `hunt-report`, `evolve`, `review`, `write`, `swarm`, `prove-it/records`. The two lists MUST stay identical; a dir detected in Step 1 but absent here would leave Step 1's detect output unconsumed.
 
-**Never archived**: the `read`, `learn`, `draw`, `design`, `hypothesis` and `lint` dirs, the prove-it recipe and feature map (`prove-it/recipe.md`, `prove-it/features/`), and a legacy 8.15.0 `prove-it/formal/`, kept in place, are kept products and stay in place. Claude Code infrastructure (`worktrees/`, `projects/`, `jobs/`, `plugins/`, `settings*.json`, …) is never touched — the allowlist is explicit precisely so infra is never swept up.
+**Never archived**: the `read`, `learn`, `draw`, `design`, `hypothesis`, `lint` and `verify` dirs, the prove-it recipe, feature map and replays (`prove-it/recipe.md`, `prove-it/features/`, `prove-it/replays/`), and a legacy 8.15.0 `prove-it/formal/` are kept products and stay in place. The hypothesis areas, the prove-it recipe, features and replays, and `.claude/verify/run.py` are tracked in the project's git, so Step 3 commits a change to them like any other change; `.claude/verify/results/` holds this machine's stamps and is never committed (`../_shared/regression.md`). Claude Code infrastructure (`worktrees/`, `projects/`, `jobs/`, `plugins/`, `settings*.json`, …) is never touched — the allowlist is explicit precisely so infra is never swept up.
 
 For each dir in the allowlist, for each item directly inside the source directory `.claude/{dir}` of the tree /ship runs in:
 - Destination: `$ARCHIVE_ROOT/{item_name}`
@@ -171,7 +171,6 @@ git fetch origin
 **Lint record** — when this skill's text opens with a 「Lint 紀錄」 block (the baransu mod writes it in a project with `.claude/lint/`) and it lists an error, stop before staging: output 「lint 未通過：{列出 error}；已停止，未 commit。」. Warnings go into the session end output.
 
 **Secret gate (INV-7)** — run immediately before `git add -A`: run `git status --porcelain` and match each untracked/modified path's filename against this fixed, closed pattern list: `.env`, `.env.*`, `*.pem`, `*.key`, `id_rsa*`, `*.p12`, `credentials*.json`. If any path matches → output 「偵測到疑似機敏檔案：{列出檔名}，已停止 commit；請確認內容、加入 .gitignore 或手動處理後再重跑 /ship。」 and stop. If none match → proceed to `git add -A` unchanged.
-
 **Identity (INV-8)** — decide whose commit this is from the repo, not from this machine. The git config can belong to another repo's account: a global config switched for one repo has put a personal identity on a company repo and the reverse.
 
 ```bash

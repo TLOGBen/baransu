@@ -1,0 +1,14 @@
+[[check]]
+id = "account"
+promise = "A commit made with the account the person has used all along, whose domain matches the repo, is never reminded (R1); switching to an account of another domain is always reminded, apart from the known blind spot (R2); an author whose domain matches neither the repo's majority domain nor the remote host is reminded (R4); and nothing is ever blocked"
+source = ".claude/hypothesis/git-account/README.md (rules R1, R2, R4; confirmed by the user 2026-11-19)"
+covers = ["plugins/baransu/hooks/engine/moments.ts"]
+tier = "quick"
+cwd = "model"
+cmd = ["python", "quick.py"]
+needs = ["python", "lean", "tlc"]
+timeout = 120
+[check.admission]
+fault = "planted in the model, run separately from variants/ with TLC: AlwaysWarn.tla (always remind) and NoSelf.tla (drop the comparison with the account used since the clone)"
+red = "Error: Invariant R1_Quiet is violated by the initial state (AlwaysWarn, exit 12); Error: Invariant R2_Catch is violated by the initial state (NoSelf, exit 12)"
+runs = 3

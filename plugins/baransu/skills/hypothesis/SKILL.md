@@ -22,7 +22,7 @@ All user-facing output is in Traditional Chinese; identifiers, paths, model code
 - **Outcome**: one claim with its ideal, its proven and best-possible bounds, the gap between them and what would close it, each bound backed by evidence a person can check without redoing the work, and each finding handed on to where it is acted on.
 - **Done when**: the ideal and the rules were written before any answer, the rules confirmed or marked 未經確認 when no one could answer; every question in the README's tables is closed — proven, refuted, or holding within a stated scope — or left open with the reason it cannot change the verdict; the judge ran before any answer code and was calibrated; the answer was frozen and §6 ran on it, the sealed second derivation opened only there — or, when one run settles the claim (§ When), that run was calibrated and shown once to say no, and nothing else of §3 to §6 was needed; the README holds the ledger, the coverage, the version and both commands; no background process of this run is left.
 - **Evidence**: each question's evidence — the judge's and `model/check.py`'s output on the frozen answer, the arguments and what their readers found, the checks that said no, the second derivation's comparison — and the hashes recorded at freezing.
-- **Output**: a Traditional Chinese report in the conversation and `.claude/hypothesis/<area>/` (README, `model/`, `variants/`, `paths/`), never archived by `/ship`; no product code edited.
+- **Output**: a Traditional Chinese report in the conversation and `.claude/hypothesis/<area>/` (README, `model/`, `variants/`, `paths/`, and `check.toml` once kept as a regression check, §10), a folder the project keeps in git — the run's scratch under `model/traces/` and `model/states/` is not (§8) — and `/ship` never archives; no product code edited.
 - **Automation**: ultracode=neutral, loop=assisted（the one stop is §2's confirmation; without a person the run goes on with the rules as written and marks the report 未經確認 — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 - **Telemetry**: on invocation, append one selection record per `../_shared/selection-telemetry.md`.
 
@@ -127,7 +127,7 @@ Fixing is not this skill's work; the report hands each finding on and names wher
 
 ## 8. Write it down
 
-`.claude/hypothesis/<area>/` holds `README.md` (from `templates/README.md`), `model/`, `variants/`, and `paths/`. The README opens with the claim, the ideal, the two bounds and the gap, whether its rules were confirmed or are 未經確認, what it covers (file and symbol), the version it describes, the hashes recorded at freezing, and two commands: a quick check and the full one, each with its running time; the closed ledger follows. Its pictures are Mermaid blocks; for order, each is the chart a program draws from the model through one view (`references/model.md`). For order: the normal path with at most seven states, each next picture adding one part, the last numbering every path as `paths/` does; never the whole state graph, which grows with the states. For other kinds: the smallest picture of the answer — a timeline, a table of scenarios, a curve, the two bounds and the answer between them. That is the whole record: whoever reads it later sees whether the covered code changed since that version, and reruns the command.
+`.claude/hypothesis/<area>/` holds `README.md` (from `templates/README.md`), `model/`, `variants/`, and `paths/`. A run's scratch — the checker's `model/traces/` and `model/states/`, and any binary output — is not the record: the folder this skill creates for it gets a `.gitignore` containing `*`, so `/ship`'s `git add -A` never carries a trace with a personal path. The README opens with the claim, the ideal, the two bounds and the gap, whether its rules were confirmed or are 未經確認, what it covers (file and symbol), the version it describes, the hashes recorded at freezing, and two commands: a quick check and the full one, each with its running time; the closed ledger follows. Its pictures are Mermaid blocks; for order, each is the chart a program draws from the model through one view (`references/model.md`). For order: the normal path with at most seven states, each next picture adding one part, the last numbering every path as `paths/` does; never the whole state graph, which grows with the states. For other kinds: the smallest picture of the answer — a timeline, a table of scenarios, a curve, the two bounds and the answer between them. That is the whole record: whoever reads it later sees whether the covered code changed since that version, and reruns the command.
 
 ## 9. Report
 
@@ -143,6 +143,17 @@ The report exists so the person understands the result well enough to judge it a
 Before handing back, stop every background process this run started. Close with one line:
 
 「hypothesis 完成：{area}｜理想：{一句}｜已證明：{值、對哪一類成立、依據}｜最好可能：{值、哪一類、依據}｜差距：{大小與性質：還能改進／還不知道，或「相遇」}（{證明／範圍內}）｜{N} 條規則，{F} 條被打破（{paths}），其餘只對模型裡有的守住（模型外：{…}）｜前提：實測 {m}、讀出 {r}、假設 {a}｜描述的版本：{version}」
+
+## 10. Kept as a regression check, when the person wants it
+
+When the claim's judge runs without AI — a command over the frozen model or answer, no agent inside it — offer once, after the report, to keep it as a check a new session or a person with no AI can rerun; never do it unasked. On a yes, follow `../_shared/regression.md`:
+
+- Write `.claude/hypothesis/<area>/check.toml`: the promise and its source from §2's rules, `covers` from the README's 涵蓋的對象, and the admission — the variant or planted fault of §6 that turned it red and the line that showed it.
+- A quick check finishes within 420 seconds. When the README's quick command does not, cut a smaller scope as its own configuration that still turns that fault red; never raise the limit.
+- Copy `../_shared/scripts/verify-run.py` to `.claude/verify/run.py` when that file is absent or its `VERSION` is older. When the frozen model describes the covered code as it is now, run `python .claude/verify/run.py sync <area>/<id>`, then `admit <area>/<id>`; the runner records both. A model that describes older code stays a draft until `--maintain` brings it in step. In the same step, when the project's `.claude/lint/` lacks the two runner checks, hand them to `/lint` (its "The runner's two checks"), so a broken or unchecked promise stops `/ship`.
+- Create or update the project skill `.claude/skills/<area>-formal-verification/SKILL.md` from `../_shared/regression-skill.md` (under Codex, `.agents/skills/<area>-formal-verification/SKILL.md`), and point the README's 重跑 line at `run.py quick`.
+
+Tell the person plainly, as the project skill does: the model guards the design, not the code. Its only link to the code is the fingerprint over the covered files — when one changes, `run.py status` reports the check possibly stale, and `--maintain` brings it back in step.
 
 ## Keeping it in step
 

@@ -1,0 +1,75 @@
+{
+  "id": "ST-9",
+  "promise": "a final answer with TODO holds the turn; the fixed answer ends it",
+  "session": "replay-st9",
+  "steps": [
+    {
+      "rollout": {
+        "type": "turn_context"
+      }
+    },
+    {
+      "hook": {
+        "hook_event_name": "SessionStart",
+        "session_id": "{session}",
+        "transcript_path": "{transcript}",
+        "cwd": "{cwd}",
+        "source": "startup"
+      },
+      "expect": {
+        "decision": "context",
+        "codes": [
+          "DTO-7"
+        ],
+        "marks": []
+      }
+    },
+    {
+      "hook": {
+        "hook_event_name": "Stop",
+        "session_id": "{session}",
+        "turn_id": "t1",
+        "transcript_path": "{transcript}",
+        "cwd": "{cwd}",
+        "last_assistant_message": "Plan noted. TODO: write tests later."
+      },
+      "expect": {
+        "decision": "block",
+        "codes": [
+          "ST-9"
+        ],
+        "marks": [
+          "✖ stop-no-todo"
+        ]
+      }
+    },
+    {
+      "rollout": {
+        "type": "token_usage_record"
+      }
+    },
+    {
+      "hook": {
+        "hook_event_name": "Stop",
+        "session_id": "{session}",
+        "turn_id": "t1",
+        "transcript_path": "{transcript}",
+        "cwd": "{cwd}",
+        "last_assistant_message": "Plan noted."
+      },
+      "expect": {
+        "decision": "none",
+        "codes": [],
+        "marks": []
+      }
+    }
+  ],
+  "state": {
+    "pending": 0,
+    "held": [],
+    "steps": {
+      "main": 2
+    },
+    "locks": 0
+  }
+}

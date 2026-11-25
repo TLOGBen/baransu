@@ -1,0 +1,19 @@
+{
+  "id": "PE-5",
+  "promise": "an edit that leaves System.out.println in a Java file is told to be fixed right after it lands",
+  "session": "replay-pe5",
+  "trusted": true,
+  "steps": [
+    {"rollout": {"type": "turn_context"}},
+    {"hook": {"hook_event_name": "SessionStart", "session_id": "{session}", "transcript_path": "{transcript}", "cwd": "{cwd}", "source": "startup"},
+     "expect": {"decision": "context", "codes": ["DTO-7"], "marks": []}},
+    {"hook": {"hook_event_name": "PreToolUse", "session_id": "{session}", "turn_id": "t1", "transcript_path": "{transcript}", "cwd": "{cwd}", "tool_name": "apply_patch", "tool_use_id": "call-1",
+              "tool_input": {"command": "*** Begin Patch\n*** Update File: A.java\n@@\n-class A {}\n+class A { void run() { System.out.println(\"copied\"); } }\n*** End Patch\n"}},
+     "expect": {"decision": "none", "codes": [], "marks": []}},
+    {"write": "A.java", "text": "class A { void run() { System.out.println(\"copied\"); } }\n"},
+    {"hook": {"hook_event_name": "PostToolUse", "session_id": "{session}", "turn_id": "t1", "transcript_path": "{transcript}", "cwd": "{cwd}", "tool_name": "apply_patch", "tool_use_id": "call-1",
+              "tool_input": {"command": "*** Begin Patch\n*** Update File: A.java\n@@\n-class A {}\n+class A { void run() { System.out.println(\"copied\"); } }\n*** End Patch\n"}, "tool_response": "Success. Updated the following files:\nM A.java\n"},
+     "expect": {"decision": "context", "codes": ["PE-5"], "marks": ["✖ no-println"]}}
+  ],
+  "state": {"pending": 0, "held": [], "steps": {"main": 1}, "locks": 0}
+}
