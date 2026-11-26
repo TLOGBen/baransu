@@ -79,6 +79,10 @@ export type Config = {
   readonly problems: readonly Finding[]
   /** ast-grep's config path, relative to root. Whether the file exists is asked when ast-grep is about to run (per moment, as today), not when the config is read. */
   readonly sgconfig?: string
+  /** Folders inside root that are links (a symlink or a Windows junction) to a folder outside it: `at`
+   *  root-relative, `real` absolute with forward slashes. A file named by its real path is mapped back to
+   *  `at`, so it is checked as if it had been named through the link. */
+  readonly links?: readonly { readonly at: string; readonly real: string }[]
 }
 
 // ---------------------------------------------------------------- what the engine says

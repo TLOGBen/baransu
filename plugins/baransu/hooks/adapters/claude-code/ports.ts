@@ -17,7 +17,7 @@ export type Host = {
   readonly stateSet: (value: unknown) => unknown
   readonly run: (argv: readonly string[], opts?: { cwd: string; timeoutMs: number; env?: Readonly<Record<string, string>> }) => Promise<any>
   readonly exists: (path: string) => Promise<any>
-  readonly stat: (path: string) => Promise<any>
+  readonly stat: (path: string, options?: { resolve: boolean }) => Promise<any>
   readonly list: (path: string) => Promise<any>
   readonly read: (path: string) => Promise<any>
   readonly now: () => Promise<number>
@@ -40,7 +40,7 @@ export function hostOf($: Dollar): Host {
     stateSet: value => $.state.set(STATE_REF, value),
     run: (argv, opts) => (opts ? $.process.run(argv, opts) : $.process.run(argv)),
     exists: path => $.fs.exists(path),
-    stat: path => $.fs.stat(path),
+    stat: (path, options) => (options ? $.fs.stat(path, options) : $.fs.stat(path)),
     list: path => $.fs.list(path),
     read: path => $.fs.read(path),
     now: () => $.clock.now(),

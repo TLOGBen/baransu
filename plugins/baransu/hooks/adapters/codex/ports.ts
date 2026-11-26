@@ -1,7 +1,7 @@
 // The outbound ports on Codex: plain Node, one hook process per event. `H` is the hook's own context.
 
 import { spawn } from 'node:child_process'
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from 'node:fs'
 import { homedir } from 'node:os'
 import {
   configFromFiles, type Clock, type Config, type ConfigSource, type Finding, type LintState, type PathProbe, type Ports,
@@ -162,6 +162,32 @@ export function nodeConfig(): ConfigSource<Hook> {
     walk(base, '')
     return files
   }
+  /** Folders in the root's first two levels that link outside it, as hostConfig finds them on Claude Code. */
+  function linksUnder(root: string): { at: string; real: string }[] {
+    const links: { at: string; real: string }[] = []
+    const walk = (dir: string, key: string, depth: number) => {
+      let entries
+      try {
+        entries = readdirSync(dir, { withFileTypes: true })
+      } catch {
+        return
+      }
+      for (const ent of entries) {
+        if (ent.name.startsWith('.') || ent.name === 'node_modules') continue
+        const at = key ? `${key}/${ent.name}` : ent.name
+        // A junction reads as a symbolic link here too.
+        if (ent.isSymbolicLink()) {
+          try {
+            const real = slash(realpathSync(`${dir}/${ent.name}`))
+            if (statSync(real).isDirectory() && !(real.toLowerCase() + '/').startsWith(root.toLowerCase() + '/')) links.push({ at, real })
+          } catch {}
+        } else if (ent.isDirectory() && depth < 2) walk(`${dir}/${ent.name}`, at, depth + 1)
+      }
+    }
+    walk(root, '', 1)
+    return links
+  }
+
   return {
     async load(h) {
       if (kept !== undefined) return kept
@@ -181,7 +207,8 @@ export function nodeConfig(): ConfigSource<Hook> {
         checks = checks.filter(c => c.action.kind !== 'run')
         problems.push({ id: 'config.toml', severity: 'warn', text: `Codex 還沒信任這個專案，會執行程式的檢查先不跑：${runs.map(c => c.id).join('、')}` })
       }
-      return (kept = { root: found.root, git: found.git, checks, problems: [...problems, ...r.problems], sgconfig })
+      const links = linksUnder(found.root)
+      return (kept = { root: found.root, git: found.git, checks, problems: [...problems, ...r.problems], sgconfig, ...(links.length ? { links } : {}) })
     },
     reload() {
       kept = undefined

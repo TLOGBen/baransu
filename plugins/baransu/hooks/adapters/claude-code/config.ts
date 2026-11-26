@@ -87,6 +87,32 @@ export function hostConfig(): ConfigSource<Host> {
     return files
   }
 
+  /** Folders in the root's first two levels that link outside it (dot folders and node_modules not entered). */
+  async function linksUnder(h: Host, root: string): Promise<{ at: string; real: string }[]> {
+    const links: { at: string; real: string }[] = []
+    const walk = async (dir: string, key: string, depth: number) => {
+      let entries: any[]
+      try {
+        entries = await h.list(dir)
+      } catch {
+        return
+      }
+      for (const entry of entries) {
+        const name = String(entry.name)
+        if (name.startsWith('.') || name === 'node_modules') continue
+        const at = key ? `${key}/${name}` : name
+        // $.fs.list calls a link (a symlink or a junction) `other`; stat says where it lands.
+        if (entry.kind === 'other') {
+          const s = await h.stat(`${dir}/${name}`, { resolve: true }).catch(() => undefined)
+          const real = s?.isLink && s.kind === 'dir' && typeof s.realPath === 'string' ? s.realPath.replace(/\\/g, '/').replace(/\/+$/, '') : ''
+          if (real && !(real.toLowerCase() + '/').startsWith(root.toLowerCase() + '/')) links.push({ at, real })
+        } else if (entry.kind === 'dir' && depth < 2) await walk(`${dir}/${name}`, at, depth + 1)
+      }
+    }
+    await walk(root, '', 1)
+    return links
+  }
+
   return {
     async load(h) {
       const found = await rootOf(h)
@@ -102,7 +128,8 @@ export function hostConfig(): ConfigSource<Host> {
         problems.push({ id: 'config.toml', severity: 'warn', text: `設定讀不懂：config.toml：[settings] sgconfig 指到專案外面（${r.settings.sgconfig}），改用預設的 sgconfig.yml` })
         sgconfig = `${LINT_DIR}/sgconfig.yml`
       }
-      const value: Config = { root, git, checks: r.checks, problems: [...problems, ...r.problems], sgconfig }
+      const links = await linksUnder(h, root)
+      const value: Config = { root, git, checks: r.checks, problems: [...problems, ...r.problems], sgconfig, ...(links.length ? { links } : {}) }
       kept = { root, value }
       return value
     },

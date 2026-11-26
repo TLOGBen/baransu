@@ -4,7 +4,7 @@
 // queue). Nothing here names a host event; adapters/claude-code translates.
 
 import { addedLines, aroundEnv, diffHead, diffTree, headBefore, MAX_SPANS, snapEdit, snapHead, snapTree, treeBefore, wantsAround, type HeadSnap, type Store, type TreeSnap } from './around'
-import { builtinOf, namesSkill, relTo } from './check'
+import { builtinOf, fileIn, namesSkill, relTo } from './check'
 import { commitLook, gitFacts, runMoment, worktreeCleanup, type Look } from './moments'
 import type { Engine, Lint, Ports } from './ports'
 import { runsAt } from './scope/evaluate'
@@ -600,7 +600,7 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
     async fileChanged(e) {
       const config = await ports.config.load(h)
       if (!config || e.change === 'unlink') return
-      const file = relTo(config.root, e.file)
+      const file = fileIn(config, e.file)
       // Outside the root and git's own files are no change of the person's.
       if (/^([A-Za-z]:)?\//.test(file) || file.startsWith('.git/')) return
       // Claude's own write this turn is not a change made outside Claude.
@@ -921,7 +921,7 @@ async function callBefore<H>(
     const look = lookOf(ports, h, config)
     // Where this call's shell is: the session's own directory, read inside the hook (a subagent's own).
     const cwdNow = e.cwd || root
-    file = e.kind === 'edit' ? relTo(root, e.file) : ''
+    file = e.kind === 'edit' ? fileIn(config, e.file) : ''
     const insideRepo = file !== '' && !/^([A-Za-z]:)?\//.test(file)
     // A refused call still hands the model what it is owed: the notes ride on the refusal.
     const refuse = (d: Card, deny: string): { kind: 'deny'; reason: string } => {

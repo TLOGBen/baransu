@@ -5,7 +5,7 @@
 import { FACTS } from './scope/lens'
 import { scopeFrom, TIMING_OF } from './scope/parse'
 import { INVALID, parseTiming, timingText, verdictOf, type Timing, type TimingKey } from './timing'
-import type { Builtin, Check, CheckAction, RawCheck, Severity } from './types'
+import type { Builtin, Check, CheckAction, Config, RawCheck, Severity } from './types'
 
 /** What readCheck makes of one check file. */
 export type CheckRead =
@@ -151,4 +151,16 @@ export const builtinOf = (c: Check): string | undefined => (c.action.kind === 'b
 export function relTo(root: string, file: string): string {
   const f = file.replace(/\\/g, '/')
   return f.toLowerCase().startsWith(root.toLowerCase() + '/') ? f.slice(root.length + 1) : f
+}
+
+/** A file's path relative to the project root, also when it is named through the real path of a folder that
+ *  a link inside the root points to (`<SYS_GA>/x` → `src/x` when `src` links to SYS_GA); else unchanged. */
+export function fileIn(config: Pick<Config, 'root' | 'links'>, file: string): string {
+  const f = relTo(config.root, file)
+  if (!/^([A-Za-z]:)?\//.test(f)) return f
+  for (const l of config.links ?? []) {
+    const inner = relTo(l.real, f)
+    if (inner !== f) return `${l.at}/${inner}`
+  }
+  return f
 }
