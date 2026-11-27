@@ -84,7 +84,7 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 <td>
 <h3><a href="docs/skills/ops.md">維運</a></h3>
 <p><i>讓工作跑完、收好每一輪、照顧工具本身。</i></p>
-<b><code>/baransu:ship</code></b>：歸檔工作檔、commit、push、清理 worktree<br>
+<b><code>/baransu:wrap</code></b>：歸檔工作檔、commit、push、清理 worktree<br>
 <b><code>/baransu:swarm</code></b>：很多蜜蜂、一隻蜂后：排看板、每輪選兵種，有空位就派、太大就拆，沒證據不算完成<br>
 <b><code>/baransu:health</code></b>：體檢專案的 agent 配置與 AI 可維護性，依證據與風險、不依 repo 大小；同一個錯一直被糾正時，找出那類錯、在 repo 裡用結構或檢查擋掉，並在過去出錯那一版證明擋得住<br>
 <b><code>/baransu:evolve</code></b>：對固定標準一輪輪磨 SKILL.md，把肇事條文重寫成正面定義而非加規則，找回不輸、花費不增才保留<br>
@@ -101,7 +101,7 @@ Codex skill 圖示放在各 skill 的 `assets/`，由 `agents/openai.yaml` 引�
 大　多個互相依賴的模組 →  畫成決策圖、切片  →  每片走「中」
 ```
 
-方向未定先 `/think`，形狀不明顯先 `/draft`，出錯了 `/hunt`，想要第二雙眼睛 `/review`，要實際跑一次證明 `/prove-it`，核心模組不能出錯或文件要查矛盾就寫下假說 `/hypothesis`，收工 `/ship`。小任務不硬上全套，大任務不偷走輕量路。完整說明：[三頻段路由](docs/routing.md)。
+方向未定先 `/think`，形狀不明顯先 `/draft`，出錯了 `/hunt`，想要第二雙眼睛 `/review`，要實際跑一次證明 `/prove-it`，核心模組不能出錯或文件要查矛盾就寫下假說 `/hypothesis`，收工 `/wrap`。小任務不硬上全套，大任務不偷走輕量路。完整說明：[三頻段路由](docs/routing.md)。
 
 ## 快速開始
 

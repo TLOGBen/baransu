@@ -1,7 +1,7 @@
 # regression — verifications a new session, or a person with no AI, can rerun
 
 > Shared by `$baransu:hypothesis` (a model's judge kept as a check), `$baransu:prove-it` (an E2E path kept as a replay),
-> `$baransu:lint` (the stamp checked before a commit and before `$baransu:ship`) and `$baransu:health` (stale or missing checks listed).
+> `$baransu:lint` (the stamp checked before a commit and before `$baransu:wrap`) and `$baransu:health` (stale or missing checks listed).
 > The runner template is `scripts/verify-run.py`; the project skill template is `regression-skill.md`.
 
 ## 1. One idea: three or nothing
@@ -148,7 +148,7 @@ blind:
 
 Lint never runs a judge; a hook waits at most 120 s. Two checks call the runner's `status`, each
 `run = ["python", ".claude/verify/run.py", "status"]`: `on = ["pre:commit"]` at `warn`, and
-`on = ["pre:skill:ship"]` at `error`. Any non-zero exit is a finding; the output tells 1 from 2.
+`on = ["pre:skill:wrap"]` at `error`. Any non-zero exit is a finding; the output tells 1 from 2.
 The tables are in `../lint/references/format.md`. The first time a skill copies the runner into a
 project, it hands these two checks to `$baransu:lint`; a runner nothing calls guards nothing.
 

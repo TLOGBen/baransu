@@ -10,7 +10,7 @@ import type {
 
 const EDIT_TOOLS = new Set(['Edit', 'Write', 'MultiEdit', 'NotebookEdit'])
 const SHELL_TOOLS = new Set(['Bash', 'PowerShell'])
-const DONE_SKILLS: Record<string, DoneSkillEvent['skill']> = { ship: 'ship', 'baransu:ship': 'ship', review: 'review', 'baransu:review': 'review', lint: 'lint', 'baransu:lint': 'lint' }
+const DONE_SKILLS: Record<string, DoneSkillEvent['skill']> = { wrap: 'wrap', 'baransu:wrap': 'wrap', review: 'review', 'baransu:review': 'review', lint: 'lint', 'baransu:lint': 'lint' }
 
 export const actorOf = (e: { agentId?: string }): Actor => (e.agentId ? { agent: e.agentId } : {})
 

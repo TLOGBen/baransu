@@ -420,7 +420,7 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
       if (!config) return null
       const look = lookOf(ports, h, config)
       const manual = e.skill === 'lint'
-      // Any skill but /lint, /ship and /review: only the checks naming it; none → the skill is left as it is.
+      // Any skill but /lint, /wrap and /review: only the checks naming it; none → the skill is left as it is.
       if (e.skill === 'other' && !config.checks.some(c => namesSkill(c, e.name))) return null
       const at: Occurrence = manual ? { key: 'manual' } : { key: 'pre:skill', skill: e.name }
       const findings = await runMoment(look, S(), at)
@@ -434,12 +434,12 @@ function bind<H>(h: H, ports: Ports<H>, memory: Memory<H>): Lint<H> {
       // Loaded by a Skill call: under that call. Typed by the person: under their message, matched by the skill's
       // name (a user row has no id, so the latest card of that name is drawn under each row naming it).
       const under = S().skillCalls?.[e.name] ?? `typed:${e.name.split(':').pop()}`
-      if (manual || findings.length) await post(h, ports, memory, skillCard(text.split('\n')[0], findings, e.skill === 'ship' && held, isReview), under)
+      if (manual || findings.length) await post(h, ports, memory, skillCard(text.split('\n')[0], findings, e.skill === 'wrap' && held, isReview), under)
       const tailLine = manual
         ? '這是叫 /lint 時先跑的全部檢查。先把結果用一兩句話交代給使用者（沒有發現也說），再做使用者這次要求的事。'
         : isReview
           ? '這是 review 開始前、作者這一端跑的 lint 紀錄，照 review 的判定規則讀。'
-          : e.skill === 'ship'
+          : e.skill === 'wrap'
             ? held
               ? '有 error：停下，不要 commit；把上面的 error 回報給使用者。'
               : '沒有 error，可以繼續；warn 要在收尾報告裡提到。'

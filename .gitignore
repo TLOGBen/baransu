@@ -5,7 +5,7 @@
 # strategic-advance campaign state — local only.
 .strategic-advance/
 
-# Archived session work files (baransu /ship output — local only).
+# Archived session work files (baransu /wrap output — local only).
 .claude/archived/
 /.claude/archived/
 /.codex/archived/
@@ -13,7 +13,7 @@
 # /ui A/B blind-comparison runs (builds, screenshots, mappings) — local only; the kit and results live in tests/ab/.
 /.claude/ab/
 
-# Transient baransu workspace dirs — local only, archived by /ship into .claude/archived/.
+# Transient baransu workspace dirs — local only, archived by /wrap into .claude/archived/.
 .claude/dev/
 .claude/think/
 .claude/evolve/

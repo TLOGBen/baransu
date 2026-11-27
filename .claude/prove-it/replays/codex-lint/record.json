@@ -11,17 +11,17 @@
    "files": {
     ".claude/prove-it/fixtures/codex-lint/checks.toml": "a71bf06b372f9a3cb412076f6d015b2664edda672039f2eac8e248d43ff40247",
     "codex/plugins/baransu/hooks/hooks.json": "ae54b1e0616d3892550dbd91c1b4a086b74fe1f274cae779856e745e4cfd788e",
-    "codex/plugins/baransu/hooks/lint.mjs": "d3f139e45efc7de604cb430e1de99718d445f4c56fa1861e24801eb2f4b14bac",
-    "plugins/baransu/hooks/adapters/codex/main.ts": "76fc61f18dd13693a81223cafd8108c102e7d7d0b6641042e093feceb91b8411",
+    "codex/plugins/baransu/hooks/lint.mjs": "5a0ec6b45c290ecb667babbcb55f14f8be209637987bfdd9330f615b5c5bbbaf",
+    "plugins/baransu/hooks/adapters/codex/main.ts": "bb3011eb23770742300a2cc1ccce498b409a74b20b045a87b31b274dee4fb281",
     "plugins/baransu/hooks/adapters/codex/patch.ts": "0d7d996a85f97e15be1f8b2cd37662ecb0eb60f9c2935663d80f0a38283c7b24",
     "plugins/baransu/hooks/adapters/codex/ports.ts": "686dd79dcd4b076484f3af6b8c9bb6b472eddefdc140e69590f6a7854fd3a76e",
     "plugins/baransu/hooks/adapters/codex/store.ts": "dcbd73bf335f74b693a88b0080e73a17f5844161035c476bbe2a5730678c9b91",
     "plugins/baransu/hooks/engine/around.ts": "6aa4fecadc8d2bda79154da724845bea5125451f0b8d02503e062147c50754eb",
     "plugins/baransu/hooks/engine/check.ts": "cd8bafa62d587c3aaca46df09791d3958da7c7f96ca74dff5064a9fd830eec9a",
-    "plugins/baransu/hooks/engine/engine.ts": "3e73de5726de7a8b18bbd046249272bf67dd9a9c1f18313cbe0842a6bf5cdf87",
+    "plugins/baransu/hooks/engine/engine.ts": "a672d1b597db4ea8b7e0e2298ab0cd474600abe635c60863385046ad6716fd8b",
     "plugins/baransu/hooks/engine/folder.ts": "8604a32b87817115d0b078534e31a6218a70196aed0a318ad3865d604d511239",
     "plugins/baransu/hooks/engine/index.ts": "2091f958c8dbe76d736747028c9bdfc813b596ba828a0de5823e37094d7f9e73",
-    "plugins/baransu/hooks/engine/moments.ts": "1dca0e71a4d2ef74c48f23141d453fe958457cbdd685bdafaae6c5744db315ba",
+    "plugins/baransu/hooks/engine/moments.ts": "ac7411e2891a8c466bee4c85210579a1bc17dc190fd3ff90d4292c29c6bf1fda",
     "plugins/baransu/hooks/engine/ports.ts": "a923839cfced2ca3905c1b5af819a4442826e229c8ad5fc6ace23d7c291be376",
     "plugins/baransu/hooks/engine/scope/evaluate.ts": "2a295a2fb0281163c8cc81a73b32244a418d7bd438a95d9ef5bb10da8bc76db8",
     "plugins/baransu/hooks/engine/scope/glob.ts": "f4b62af7d3da7fcd3ee9a954ebaaff2a22ab63dd6543d6f9bc96e15b47597b61",
@@ -32,9 +32,9 @@
     "plugins/baransu/hooks/engine/scope/types.ts": "e99c4baee9ede64e97b0b527a8bad4211baec18ee1196fd800ea6fe635a56d38",
     "plugins/baransu/hooks/engine/sets.ts": "9168733d87d39a18dda8c2852acc969aec3ffecb586608ded3c41772c09de3d0",
     "plugins/baransu/hooks/engine/shell.ts": "7e457a3c0ca7c40a1d5d85b04c72bb75b4e94749cd174f3c7ae1c03169a18c95",
-    "plugins/baransu/hooks/engine/text.ts": "a9b92cf823d63c7542be68c7c166e896ff6d36c9e5b00fa9e7881ffc364d635f",
-    "plugins/baransu/hooks/engine/timing.ts": "ca49cf3d9a3beea90f75b46b06dadc93387af5fc851b49c44253f7c8b45fa80e",
-    "plugins/baransu/hooks/engine/types.ts": "4ad62147e8ce03da17073bd301ac384631a86b0becc2752c3dfb40db935a99ac",
+    "plugins/baransu/hooks/engine/text.ts": "2fdf45ebf18ecdb14c61c9ad582eaeb79189422b58e2b26e565c00d294340562",
+    "plugins/baransu/hooks/engine/timing.ts": "afbaa711ed03f90ee5a3902600f875364c359a0b6361b1c4bd749d9bbc3d99c9",
+    "plugins/baransu/hooks/engine/types.ts": "7747b675e8c2a62134d5b21e00050d53b3d04fa85b15954b33de8295a2295861",
     "plugins/baransu/hooks/util/converters/index.ts": "6128ec5ce7b3d4bdff034130ef121570c58a62c83e1d21d222bd8dc0057dd3a7",
     "plugins/baransu/hooks/util/converters/toml.ts": "0895c3a9a2700c7055b667a39bf05a4bc9030cf019f65878d1b74368e918567b",
     "plugins/baransu/hooks/util/languages/csharp.ts": "ec665c768c000d77df2143403dde30d52e4733e42adc0980be60aff1ba4acb8a",
@@ -45,8 +45,8 @@
     "plugins/baransu/hooks/util/languages/rust.ts": "c5fd0991293764ec1731b61b13ca9362eb26f63ae209b9db2934aff2339bbe63",
     "plugins/baransu/hooks/util/languages/typescript.ts": "e513d85a85fef5ef8b3459107027e4bcd07c38fb15a70dcaa3fceb447f90ee5d"
    },
-   "head": "afb8529fee8643e3f69c5955ebf77049f3002ec2",
-   "when": "2026-11-26T06:16:11+00:00"
+   "head": "66e474469e79475e7484d1c2dc61230b1359f3f8",
+   "when": "2026-11-27T03:09:14+00:00"
   }
  }
 }

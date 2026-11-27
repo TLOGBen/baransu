@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# cleanup-worktree.sh — /baransu:ship Step 5 worktree teardown.
+# cleanup-worktree.sh — /baransu:wrap Step 5 worktree teardown.
 #
 # Usage: bash cleanup-worktree.sh WORKTREE_PATH BRANCH SAFE_REF MAIN_REPO
 #
@@ -15,7 +15,7 @@
 #
 # CLAUDE.md Non-obvious Invariants — quoted verbatim, enforced by the code
 # below; do not "optimize" either away:
-# - **`/ship` branch deletion uses `-D` not `-d`**: after push the branch is unmerged locally, so `-d` always fails. Both steps need `git -C "$MAIN_REPO" branch -D`.
+# - **`/wrap` branch deletion uses `-D` not `-d`**: after push the branch is unmerged locally, so `-d` always fails. Both steps need `git -C "$MAIN_REPO" branch -D`.
 # - Keep the three-tier `||` chain ordering and the `branch -D` intact:
 #   `worktree remove` → `worktree remove --force` → INV-6-guarded `rm -rf` + prune.
 

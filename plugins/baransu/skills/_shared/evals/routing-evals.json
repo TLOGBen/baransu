@@ -77,19 +77,19 @@
     },
     {
       "id": 8,
-      "pair": "write/ship",
+      "pair": "write/wrap",
       "prompt": "潤稿這段 release note",
       "expected_skill": "write",
       "should_not_trigger": [
-        "ship"
+        "wrap"
       ],
       "expected_behavior": "Copy refinement."
     },
     {
       "id": 9,
-      "pair": "write/ship",
+      "pair": "write/wrap",
       "prompt": "都改完了，收工 push",
-      "expected_skill": "ship",
+      "expected_skill": "wrap",
       "should_not_trigger": [
         "write"
       ],

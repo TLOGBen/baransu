@@ -2,6 +2,21 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/)，版本號遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
 
+## [8.58.0] - 2026-11-27
+
+### Added（共用模型表）
+- 新增 `_shared/models.md`：會派其他家模型的 skill 都從這一張表挑模型。表上有兩家，Claude 用 host 自己的 agent，OpenAI 的 GPT 用 `codex exec`；依工作分列：給人讀的文字、獨立審閱、長而難的推理、照目標施工、便宜的唯讀掃描。
+- 先後照各家額度與長處排：複雜問題的思考和給人讀的文字用 Claude Opus 或 Fable；照目標精準施工用 Codex Sol，難的用 Astra；唯讀掃描用 GPT，因為它的額度最閒。要「另一家」時換另一家。
+- GPT 寫的程式碼較難讀、也會防不會發生的情況，所以派給 GPT 的任務要附上該照著寫的形狀（現有的程式或 `/draft` 骨架），並說明驗收以外的檢查不需要；它的 diff 要先由 Claude 看過形狀和多餘的防禦才算數。
+- 不派 Gemini：Antigravity 條款第 6 節不准第三方工具存取這個服務，Google 論壇的回覆也明說，別家的 AI 助理替你跑 `agy -p` 不被允許，每個任務都先核准也一樣。要加回 Gemini 得用 AI Studio 或 Vertex 的 API key。
+- 模型 id 以當下的清單為準：表上的 id 下架了，就換成同一列同一家最新的模型，並在報告裡寫出來；每份報告都寫明實際跑的模型與 effort。
+- `/draft` 的候選設計者、`/swarm` 的組員與決策紀錄審閱者、`/review --full` 的驗證者都改成照這張表挑。Codex 版同步。
+
+### Changed（`/ship` 改名為 `/wrap`）
+- Claude Code 內建了一個也叫 `/ship` 的指令，兩個常常撞名，所以 baransu 的收尾 skill 改叫 `/wrap`（Codex 版是 `$baransu:wrap`），做的事完全不變。
+- lint 的關卡跟著改名：`pre:skill:ship` 改成 `pre:skill:wrap`，preset 和 `/lint` 說明同步。專案自己 `sets/local/` 裡寫了 `pre:skill:ship` 的檢查要手動改成 `pre:skill:wrap`，不然收尾前不會跑；preset 的部分跑一次 `/lint sync` 就會換新。
+- lint mod 的程式（收尾前的關卡、收尾紀錄）改認 `wrap`；Codex 版 lint hook 重新打包。git-account 與 Codex lint 重播在新程式上重跑通過後重新 sync。
+
 ## [8.57.1] - 2026-11-25
 
 ### Fixed（lint：Mac 上找不到 python、ast-grep）

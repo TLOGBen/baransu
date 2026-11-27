@@ -123,7 +123,7 @@ export function parseTiming(written: string): { ok: true; timing: Timing } | { o
   if (!Object.hasOwn(TABLE, key)) return { ok: false, problem: `沒有「${key}」這個時機` }
   const arg = rest.join(':')
   if (key === 'pre:skill') {
-    if (!arg) return { ok: false, problem: 'pre:skill 要寫 skill 名字，例如 pre:skill:ship' }
+    if (!arg) return { ok: false, problem: 'pre:skill 要寫 skill 名字，例如 pre:skill:wrap' }
     return { ok: true, timing: { key, skill: arg, written: w } }
   }
   if (side === 'after') {
@@ -143,7 +143,7 @@ export function verdictOf(key: TimingKey | 'manual', severity: Severity): Verdic
   return key === 'manual' ? PRE[severity] : TABLE[key][severity]
 }
 
-/** A Timing as the person wrote it (`pre:skill:ship`, `after:edit:90s`), for messages and /lint show. */
+/** A Timing as the person wrote it (`pre:skill:wrap`, `after:edit:90s`), for messages and /lint show. */
 export const timingText = (t: Timing): string => t.written
 
 // ---------------------------------------------------------------- settling an act

@@ -183,7 +183,7 @@ Outcome Contract still applies.
 | /review | `../review/references/loop-pauses.md` |
 | /hunt | `../hunt/references/loop-pauses.md` |
 | /learn | `../learn/references/loop-pauses.md` |
-| /ship | `../ship/references/loop-pauses.md` |
+| /wrap | `../wrap/references/loop-pauses.md` |
 | /evolve | `../evolve/references/loop-pauses.md` |
 | /think | `../think/references/loop-pauses.md` |
 | /write | `../write/references/loop-pauses.md` |

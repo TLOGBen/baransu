@@ -85,7 +85,7 @@ function callsOf(i: Input, cwd: string): ToolCallEvent[] {
 // ---------------------------------------------------------------- skills
 
 /** Claude Code's DONE_SKILLS (adapters/claude-code/translate.ts): the skills whose start reads a record. */
-const DONE: Record<string, DoneSkillEvent['skill']> = { ship: 'ship', review: 'review', lint: 'lint' }
+const DONE: Record<string, DoneSkillEvent['skill']> = { wrap: 'wrap', review: 'review', lint: 'lint' }
 const skillEvent = (name: string, args: string): DoneSkillEvent =>
   ({ skill: DONE[name.replace(/^baransu:/, '')] ?? 'other', name, args })
 

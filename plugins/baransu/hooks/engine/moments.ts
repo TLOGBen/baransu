@@ -217,10 +217,10 @@ export function lensFor<H>(look: Look<H>, at: Occurrence): Lens {
 /** Whether an occurrence's checks read text (subjectOf) rather than files. Pure. */
 export const readsText = (at: Occurrence): boolean => subjectOf({ base: { kind: 'all' }, where: { folders: [], files: [], trees: [], exts: [] }, ignores: [], actions: [], when: [] }, at) !== undefined
 
-/** What a commit-time or a gate moment is: before a commit or push, or before /ship or /review. A gate checks
+/** What a commit-time or a gate moment is: before a commit or push, or before /wrap or /review. A gate checks
  *  what this change touched; every other file timing checks its targets whether or not they changed. */
 const isGate = (at: Occurrence): boolean =>
-  at.key === 'pre:commit' || at.key === 'pre:push' || (at.key === 'pre:skill' && /(^|:)(ship|review)$/.test(at.skill))
+  at.key === 'pre:commit' || at.key === 'pre:push' || (at.key === 'pre:skill' && /(^|:)(wrap|review)$/.test(at.skill))
 
 /**
  * One occurrence's findings: text checks (subjectFindings) for a timing that reads text, else the file checks,
@@ -230,7 +230,7 @@ const isGate = (at: Occurrence): boolean =>
  * Which files: targets() — the whole tree as pathspecs, this change, or this change and its relatives, narrowed
  * by folder / file / ext and ignores; an act that names its files (an edit, post:file) checks those.
  * An act's own files (post:edit, post:file): forbid on them; `run` once, with {file} per path.
- * A gate (pre:commit / pre:push / pre:skill:ship / pre:skill:review): built-ins git-facts / secret-files /
+ * A gate (pre:commit / pre:push / pre:skill:wrap / pre:skill:review): built-ins git-facts / secret-files /
  *         built-before-commit / up-to-date, session-record; then forbid over the targets; a `run` without {file}
  *         once (a `diff` / `related` scope only when the change touches it); a `run` with {file} per target path,
  *         only for a `diff` or `related` scope; `changed` notes.

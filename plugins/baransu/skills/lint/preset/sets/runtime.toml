@@ -43,7 +43,7 @@ strict = "check"
 builtin = "destructive-preview"
 message = "會動到的東西都列在上面，確認是要動的"
 
-# Before /ship or /review: was the change built, tested, linted and reviewed after the last edit?
+# Before /wrap or /review: was the change built, tested, linted and reviewed after the last edit?
 [check.session-record]
 severity = "warn"
 strict = "warn"

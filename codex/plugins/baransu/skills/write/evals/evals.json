@@ -55,8 +55,8 @@
       "id": 8,
       "prompt": "文章寫完了，收工 commit push",
       "should_trigger": false,
-      "expected_skill": "ship",
-      "expected_behavior": "Committing/pushing finished text is session wrap-up — /ship."
+      "expected_skill": "wrap",
+      "expected_behavior": "Committing/pushing finished text is session wrap-up — /wrap."
     },
     {
       "id": 9,

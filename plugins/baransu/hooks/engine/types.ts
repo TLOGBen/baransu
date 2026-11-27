@@ -143,10 +143,10 @@ export type ReplyEvent = Actor & {
    *  The redo checks run on this, not on `text` (lint-scope sketch, postcondition 12). Required once filled. */
   readonly visible: string
 }
-/** A skill starting. `skill`: /ship and /review read the done moment's record, /lint the manual run; any other
+/** A skill starting. `skill`: /wrap and /review read the done moment's record, /lint the manual run; any other
  *  skill ('other') gets a record only from the checks whose `on` names it. `name` is the skill as invoked;
  *  `args` what was typed after it (`/lint help` → 'help'), '' when nothing was. */
-export type DoneSkillEvent = { readonly skill: 'ship' | 'review' | 'lint' | 'other'; readonly name: string; readonly args: string }
+export type DoneSkillEvent = { readonly skill: 'wrap' | 'review' | 'lint' | 'other'; readonly name: string; readonly args: string }
 
 /** The main loop wants to end its turn (classic.Stop). `text`: last_assistant_message. The host's stop_hook_active
  *  is not read: each check's one hold is the engine's own record (an error's hold must not use up the report's). */
@@ -204,5 +204,5 @@ export type ToolVerdict<R> =
 
 export type SystemNote = { readonly id: string; readonly text: string }
 
-/** What /ship or /review reads before its own text. null: no lint here. */
+/** What /wrap or /review reads before its own text. null: no lint here. */
 export type SkillPreface = { readonly text: string } | null

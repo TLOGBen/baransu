@@ -10,7 +10,7 @@ Cross-skill behavioral guardrails for all baransu skills and agents.
 ## Layering
 
 - **Cross-skill cases** are collected in this container: inertias that any skill / agent might trip over.
-- **Skill-specific invariants** stay where they are (CLAUDE.md Non-obvious Invariants, which AGENTS.md defers to, or each SKILL.md); this container does not collect or duplicate them — for example `$baransu:ship`'s `-D` flag and `plugin.json`'s no-skills-array.
+- **Skill-specific invariants** stay where they are (CLAUDE.md Non-obvious Invariants, which AGENTS.md defers to, or each SKILL.md); this container does not collect or duplicate them — for example `$baransu:wrap`'s `-D` flag and `plugin.json`'s no-skills-array.
 
 ## First Entries
 

@@ -8,12 +8,12 @@ Writing a kept mutation back into the target SKILL.md is an **Authorization PAUS
 
 - **Interactive use**: present the diff + score delta, wait for explicit user adoption. No standing authorization, no auto-write.
 - **Non-interactive drive WITHOUT a standing authorization** (e.g. bare `/ultracode`, a loop/cron prompt that does not mention adoption): an Input PAUSE would legally degrade to "take the recommended default" — that path is forbidden here. Adoption MUST halt and report `needs input`. evolve never writes a mutation to disk on a default.
-- **Non-interactive drive WITH a standing authorization** (the loop/cron prompt or approved plan explicitly authorizes adoption / the evolve→ship sweep): auto-adopt is permitted, but ONLY for changes that clear **every** precondition below. A change failing any precondition is restored (Gate 2), never written. This is explicit up-front human authorization, not a default substitution.
+- **Non-interactive drive WITH a standing authorization** (the loop/cron prompt or approved plan explicitly authorizes adoption / the evolve→wrap sweep): auto-adopt is permitted, but ONLY for changes that clear **every** precondition below. A change failing any precondition is restored (Gate 2), never written. This is explicit up-front human authorization, not a default substitution.
   1. **Structure gate passes** (Gate 4) — exit 0, no `⚠️ ADVISORY`.
   2. **Blind-judge bar tightened to 3/3** strict_improvement (not the interactive 2/3) — automation has no human backstop, so the panel must be unanimous.
   3. **File-level snapshot retained** (Gate 2) for one-command rollback.
   4. **Audit**: every auto-adopted change is logged to `log.md` with `decision: standing-auth auto-adopt`, the votes, and the snapshot path.
-  5. **End-state verification is the final arbiter**: after the run's adoptions, the driver's end-state check — the structure gate, `python3 scripts/verify-skills.py` in repo mode — decides go/no-go for downstream steps (e.g. $baransu:ship). A red end-state must block the ship and surface the failing files, not proceed.
+  5. **End-state verification is the final arbiter**: after the run's adoptions, the driver's end-state check — the structure gate, `python3 scripts/verify-skills.py` in repo mode — decides go/no-go for downstream steps (e.g. $baransu:wrap). A red end-state must block the ship and surface the failing files, not proceed.
 
 Diagnosis, mutation-into-a-scratch-copy, scoring, and rollback are *not* Authorization PAUSEs — only the write-back of an adopted change is.
 

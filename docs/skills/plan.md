@@ -28,7 +28,7 @@ Claude Code：`/baransu:think`　Codex：`$baransu:think`
 - 對話中：用詞區塊與你認可的改寫、深化區塊、確認過的復述、立場與押注、前提查證標記。
 - 可落地的工作：`.claude/think/<slug>.md`，最上面是復述，下面五段計畫；成功條件是可檢查的條件而非時長，切成多片時第一片指名為 pilot。
 - 判決（Kill / Pivot）或拷問既有決定：只給立場，不寫計畫檔。
-- `/ship` 收工時會歸檔 `.claude/think/`。
+- `/wrap` 收工時會歸檔 `.claude/think/`。
 
 **不適用**
 - 排查既有錯誤 → `/hunt`
@@ -54,7 +54,7 @@ Claude Code：`/baransu:draft`　Codex：`$baransu:draft`
 
 **產出**
 - repo 裡未 commit 的骨架改動（型別、簽名、模組圖、未實作的本體）。
-- 說明頁：`.claude/draft/<slug>.md`（問題、用法、形狀、選擇、後置條件、接受的取捨、待決問題、第一步）；各候選版在 `.claude/draft/<slug>/`。`/ship` 收工時會歸檔 `.claude/draft/`。
+- 說明頁：`.claude/draft/<slug>.md`（問題、用法、形狀、選擇、後置條件、接受的取捨、待決問題、第一步）；各候選版在 `.claude/draft/<slug>/`。`/wrap` 收工時會歸檔 `.claude/draft/`。
 
 **不適用**
 - 方向未定、值不值得做 → `/think`

@@ -16,7 +16,7 @@ Write to the user in the user's language.
 - **Outcome**: The job done by bees, every task ending verified or named as a gap, and one report.
 - **Done when**: Every task on the board is `verified` or `gap`; the merged work went through one independent review and one check of its fixes; the decision log was audited against the transcript and read by a reviewer on another model; the report has been given.
 - **Evidence**: The board `.claude/swarm/<slug>/`, kept by `scripts/board.mjs`; the bees' reports under its `reports/` — each verified task's report holding the commands its bee ran with their output — and the decision log `decisions.tsv` beside them, audited against the transcript and read by a reviewer on another model.
-- **Output**: The bees' changes in the tree (uncommitted unless the user asked), the board, reports and decision log, a report to the user each time the crew changes, and the closing report in the conversation. `/ship` archives `.claude/swarm/`.
+- **Output**: The bees' changes in the tree (uncommitted unless the user asked), the board, reports and decision log, a report to the user each time the crew changes, and the closing report in the conversation. `/wrap` archives `.claude/swarm/`.
 - **Automation**: ultracode=neutral, loop=assisted（when driven non-interactively — /loop, cron, Workflow — read `../_shared/loop-contract.md` first and apply its PAUSE semantics）
 
 PAUSE classification for non-interactive drivers: `references/loop-pauses.md`.
@@ -37,11 +37,11 @@ What the queen decides, and what each step of the run settled, goes into `.claud
 
 ## The crew
 
-Each round, name the crew in one line — kind, count, model and effort, and why — and pin model and effort on every bee; `dispatch` takes both, since an unpinned bee runs on the queen's model. Use what this session actually has: the host's own agents, and Codex and Claude workers through the common suite's `delegate` when it is installed.
+Each round, name the crew in one line — kind, count, model and effort, and why — and pin model and effort on every bee; `dispatch` takes both, since an unpinned bee runs on the queen's model. Use what this session actually has: the host's own agents, and Codex and Claude workers through the common suite's `delegate` when it is installed; which model fits each kind is in `../_shared/models.md`.
 
 | Kind | Does | Pick | How many |
 |---|---|---|---|
-| Scout | read-only sweeps and lookups that come back as a list with locations; understanding them stays with the queen | the cheapest model that reads reliably — a Codex low tier spends the subscription rather than Claude budget | one per separate place to read |
+| Scout | read-only sweeps and lookups that come back as a list with locations; understanding them stays with the queen | the cheapest model that reads reliably — a Codex low tier spends the least-used subscription rather than Claude budget | one per separate place to read |
 | Worker | builds one task inside its paths | Codex for work given as a goal and its acceptance; Claude for exact procedure or structured output | one per task that can start, three to five at once |
 | Guard | the independent review at the end | a model family other than the one that wrote the code | one, through `/review` |
 | Measurer | benchmarks and end-to-end runs | any; it runs on a frozen tree | one at a time |
@@ -79,7 +79,7 @@ A swarm ends before anything ships, so nearly every decision in it can still be 
 
 ## Report
 
-First check the decision log told the truth. Walk this session's own transcript — never another conversation — against the rows this session wrote: every row a real decision or action, every evidence pointer showing what its row claims, every fork, pivot or abandoned approach that shaped the work logged. Correct the log with rows that supersede, never by editing. Then have one bee on a model family other than the queen's read the log and the transcript and flag what the user should look at: decisions with weak or no evidence, verification claimed but not shown in the transcript, choices that look risky in hindsight, and gaps a quick read would miss.
+First check the decision log told the truth. Walk this session's own transcript — never another conversation — against the rows this session wrote: every row a real decision or action, every evidence pointer showing what its row claims, every fork, pivot or abandoned approach that shaped the work logged. Correct the log with rows that supersede, never by editing. Then have one bee on a model family other than the queen's (`../_shared/models.md`, the independent-reader row) read the log and the transcript and flag what the user should look at: decisions with weak or no evidence, verification claimed but not shown in the transcript, choices that look risky in hindsight, and gaps a quick read would miss.
 
 The report: `show`'s table — each task with its state and evidence — the decision log as a table so the user can change any decision before shipping, the gaps and why, the review verdict, the cost of one end-to-end run when paid calls were made, and what waits on the user. It ends with an Attention section whose first line names the model that read the log — `reviewed by <model>` — then each flag pointing at its rows; "no flags", in the user's language, is a valid value, a missing model name is not.
 

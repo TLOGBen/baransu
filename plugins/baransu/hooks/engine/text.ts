@@ -50,8 +50,8 @@ export function cardOf(moment: string, findings: readonly Finding[], o: { kind?:
   return { ...d, ...(o.kind ? { kind: o.kind } : {}), ...(o.title ? { title: o.title } : {}), ...(o.footer ? { footer: o.footer } : {}) }
 }
 
-/** The card of every check run before a skill or at /lint, as the design canvas draws it: /ship told to stop, the
- *  record before /review, or what the run found. `head` is render()'s first line (`lint · 收尾前 · /ship：…`). */
+/** The card of every check run before a skill or at /lint, as the design canvas draws it: /wrap told to stop, the
+ *  record before /review, or what the run found. `head` is render()'s first line (`lint · 收尾前 · /wrap：…`). */
 export function skillCard(head: string, findings: readonly Finding[], stop: boolean, review: boolean): Card {
   const meta = head.replace('：', ' · ')
   const lines = [...findings]

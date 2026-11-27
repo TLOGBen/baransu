@@ -4,7 +4,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "/why 為什麼 /ship 刪分支要用 git branch -D 而不是 -d？",
+      "prompt": "/why 為什麼 /wrap 刪分支要用 git branch -D 而不是 -d？",
       "should_trigger": true,
       "expected_skill": "why",
       "expected_behavior": "Known answer: CLAUDE.md Non-obvious Invariants states that after push the branch is unmerged locally so -d always fails. Cited with file and line as what the authors wrote; anything beyond it is marked as inference."

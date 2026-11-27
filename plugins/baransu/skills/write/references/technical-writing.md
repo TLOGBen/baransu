@@ -1,6 +1,6 @@
 # technical-writing — docs, technical articles, PR bodies, commit messages
 
-Read this file, together with `writing-principles.md`, whenever the text is technical: a README, a doc page, an RFC or design note, a technical article or blog post, an answer that explains code, a PR description, or a commit message. `/ship` reads the commit-message section when it writes its message. `writing-principles.md` still owns the anti-AI-voice catalog; this file adds the structure and sentence rules technical text needs on top of it.
+Read this file, together with `writing-principles.md`, whenever the text is technical: a README, a doc page, an RFC or design note, a technical article or blog post, an answer that explains code, a PR description, or a commit message. `/wrap` reads the commit-message section when it writes its message. `writing-principles.md` still owns the anti-AI-voice catalog; this file adds the structure and sentence rules technical text needs on top of it.
 
 The aim: a tired engineer understands it on the first read.
 
@@ -53,7 +53,7 @@ Every section above except the mode table applies. A PR body is a briefing a rev
 
 ## Commit messages
 
-The repo's own history decides the format and the language (`/ship` INV-8); these rules govern the words inside that format.
+The repo's own history decides the format and the language (`/wrap` INV-8); these rules govern the words inside that format.
 
 - The subject names the outcome the commit ships, in the repo's form: what now works, what is fixed, what changed for a user. Never the mechanics ("update files", "apply changes", 「收尾」).
 - The subject is one thought. When the repo's subjects carry a reason after a dash or a clause, give the concrete cause and its effect, as specific as the sentence rules above require.

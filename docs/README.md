@@ -40,7 +40,7 @@ baransu 是一個簡單的練習：把「該輕的任務走輕量路徑、該重
 | | [`/teach-me`](skills/learn.md#teach-me) | 用對話把一塊程式或一份筆記教懂 |
 | | [`/show-me`](skills/learn.md#show-me) | 用最小的一張圖把當下的重點畫出來 |
 | | [`/what-now`](skills/learn.md#what-now) | 回來時講清楚變了什麼，列出等你決定的事 |
-| [維運](skills/ops.md) | [`/ship`](skills/ops.md#ship) | 歸檔、commit、push、清 worktree |
+| [維運](skills/ops.md) | [`/wrap`](skills/ops.md#wrap) | 歸檔、commit、push、清 worktree |
 | | [`/swarm`](skills/ops.md#swarm) | 很多蜜蜂、一隻蜂后：看板只有蜂后寫，有空位就派，沒證據不算完成 |
 | | [`/health`](skills/ops.md#health) | 體檢專案的 agent 配置與 AI 可維護性 |
 | | [`/lint`](skills/ops.md#lint) | 抓到一次的錯寫成檢查，mod 在改檔、commit、收尾時自動跑 |

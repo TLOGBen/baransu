@@ -7,7 +7,7 @@ export type LintFinding = { id: string; severity: 'error' | 'check' | 'warn' | '
 export type LintPathRow = { verb: string; kind: 'file' | 'folder' | 'missing' | 'unknown'; path: string; to?: string; meta?: string; warn?: boolean }
 // A card: what happened, which moment, the findings, what to do next — one per timing, as the design canvas
 // "Lint 卡片設計" draws them. 'edited': an error after an edit (the file is already changed). 'note': info findings
-// only, for the person. 'stop': the turn held at its end, or /ship told to stop. 'record': a subagent's end, the
+// only, for the person. 'stop': the turn held at its end, or /wrap told to stop. 'record': a subagent's end, the
 // record before /review. 'scan' / 'scanWarn' / 'scanError': every check run (a skill, /lint, the model's answer to
 // a 重新), with nothing found, warns, or an error.
 // paths: the delete preview's rows, drawn as a grouped list.

@@ -1,7 +1,7 @@
 # baransu 合集：Git：身分、機敏檔、推送與 hook
 from = "baransu-preset"
 
-# Source: /ship INV-8, commits speak for this repo, applied to every commit.
+# Source: /wrap INV-8, commits speak for this repo, applied to every commit.
 # It guards against committing under the wrong one of your own accounts: an author's mail domain is compared
 # with the one most of the repo's authors use (or the remote's host) and with the address this clone was worked
 # under before. Not the repo's history: in a shared repo everyone is in it, and holding a newcomer locked people out.
@@ -11,7 +11,7 @@ strict = "check"
 builtin = "git-facts"
 message = "照這個 repo 的習慣寫 commit 的格式與語言，co-author 與 push / PR 方式也照過去；作者不是平常的身分時，確認是不是用錯了，不要自己改用別人的身分"
 
-# Source: /ship INV-7, the secret-file stop, applied to every commit.
+# Source: /wrap INV-7, the secret-file stop, applied to every commit.
 [check.secret-files]
 severity = "error"
 strict = "error"
@@ -32,7 +32,7 @@ strict = "error"
 builtin = "built-before-commit"
 message = "改檔之後還沒 build 或測試過；盡量先跑過再 commit"
 
-# Source: /ship never force-pushes; a force push rewrites what others may have pulled.
+# Source: /wrap never force-pushes; a force push rewrites what others may have pulled.
 # A refspec led by + (git push origin +main) forces that one ref, so it counts too.
 [check.no-force-push]
 severity = "error"
@@ -51,11 +51,11 @@ on = ["pre:bash"]
 forbid = '\bgit\b[^\n]*(--no-verify|--no-gpg-sign|-c\s+commit\.gpgsign=false)|\bgit\b[^\n|;&"\x27]*\bcommit\b[^\n|;&"\x27]*\s-n(\s|$)'
 message = "不要跳過 git hook 或簽章；hook 失敗就查原因修好"
 
-# Source: /ship Step 2b item 5 greps for these before committing.
+# Source: /wrap Step 2b item 5 greps for these before committing.
 [check.conflict-markers]
 severity = "error"
 strict = "error"
-on = ["pre:commit", "pre:push", "pre:skill:ship", "pre:skill:review"]
+on = ["pre:commit", "pre:push", "pre:skill:wrap", "pre:skill:review"]
 scope = "diff"
 ignores = [".claude/**"]
 forbid = '^(<<<<<<<|\|{7}|>>>>>>>)( |$)'

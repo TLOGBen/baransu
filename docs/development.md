@@ -88,11 +88,11 @@ make ship-check   # test ＋ parity-check，發佈前跑這個
 這些都曾造成迴歸，完整說明見 [CLAUDE.md · Non-obvious Invariants](../CLAUDE.md#non-obvious-invariants)：
 
 - `plugin.json` 不放 `skills` 陣列。
-- `/ship` 刪分支用 `-D` 不用 `-d`。
+- `/wrap` 刪分支用 `-D` 不用 `-d`。
 - `/learn` 完整筆記以批判層四段結尾，沒有矛盾也要明寫。
 - `/read` 的 `raw/` 不可變。
 - `verify-skills.py` Gate 10 是 loop-pauses 註冊表的契約；Gate 11 已退役，編號不再使用。
-- 沒有 git 的專案，`/ship` 在任何歸檔搬移之前就失敗。
+- 沒有 git 的專案，`/wrap` 在任何歸檔搬移之前就失敗。
 - 跨 skill 的行為護欄放在 `plugins/baransu/rules/anti-patterns.md`。
 
 ## 新增或退役 skill

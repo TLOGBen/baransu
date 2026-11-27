@@ -5,7 +5,7 @@
 # next adapter would have to fake Claude Code to reuse it.
 [check.engine-no-host]
 severity = "error"
-on = ["post:edit", "pre:commit", "pre:push", "pre:skill:ship", "pre:skill:review"]
+on = ["post:edit", "pre:commit", "pre:push", "pre:skill:wrap", "pre:skill:review"]
 file = ["plugins/baransu/hooks/engine/**", "plugins/baransu/hooks/util/**"]
 forbid = '\$\.[a-z]'
 message = "引擎和 util 不碰平台：把需要的東西加成 engine/ports.ts 的 portOut，由 adapters/claude-code 實作"
@@ -32,9 +32,9 @@ message = "plugin.json 不放 skills 陣列；skill 由檔案系統探索"
 [check.ship-branch-delete-capital-d]
 on = ["post:edit", "pre:commit", "pre:push"]
 severity = "error"
-file = ["plugins/baransu/skills/ship/**", "codex/plugins/baransu/skills/ship/**"]
+file = ["plugins/baransu/skills/wrap/**", "codex/plugins/baransu/skills/wrap/**"]
 forbid = '\bbranch -d\b'
-message = "/ship 刪分支要用 git -C \"$MAIN_REPO\" branch -D；-d 在 push 後一定失敗"
+message = "/wrap 刪分支要用 git -C \"$MAIN_REPO\" branch -D；-d 在 push 後一定失敗"
 
 # Source: 2026-11-03, LintMod.tla Deliver: `ansStepG' = IF d THEN s ELSE ansStepG /\ checksG' = ...` on one line.
 # ELSE reaches to the end of the expression, so the next conjunct became part of the ELSE branch; TLC failed
@@ -71,15 +71,15 @@ run = ["git", "diff", "--cached", "--quiet", "--diff-filter=AMR", "--", ".claude
 message = ".claude/ 或 .codex/ 底下只有 .claude/lint/、.claude/settings.json、.claude/verify/run.py、.claude/hypothesis/、.claude/skills/ 與 .claude/prove-it/ 的 recipe、features、fixtures、replays 進 git；暫存區有其他工作資料夾的檔案（含 .claude/verify/results/、.claude/prove-it/records/），使用者偏好不進 git。先問使用者，要放進去再重送（或把它加進這條的白名單）；不要就 git restore --staged 拿掉"
 
 # Source: plugins/baransu/skills/_shared/regression.md §8 — lint only reads the stamps the runner leaves; the judges run outside the session.
-# A warning before each commit (a hold on every commit gets turned off); an error before /ship, so work does not close on a promise nobody checked against this code.
+# A warning before each commit (a hold on every commit gets turned off); an error before /wrap, so work does not close on a promise nobody checked against this code.
 [check.verify-before-commit]
 on = ["pre:commit"]
 severity = "warn"
 run = ["python", ".claude/verify/run.py", "status"]
 message = "有驗證過時、失敗或沒跑過；在 session 外跑 python .claude/verify/run.py quick，再照輸出修；synced 之後過時的，先 /baransu:hypothesis --maintain 或 prove-it --maintain，再 run.py sync"
 
-[check.verify-before-ship]
-on = ["pre:skill:ship"]
+[check.verify-before-wrap]
+on = ["pre:skill:wrap"]
 severity = "error"
 run = ["python", ".claude/verify/run.py", "status"]
 message = "驗證沒有全部通過且跟上目前的程式，不能收尾；先在 session 外跑 python .claude/verify/run.py quick，照 status 輸出：1 修程式，2 重跑或修檢查；synced 之後過時的，先 /baransu:hypothesis --maintain 或 prove-it --maintain，再 run.py sync"

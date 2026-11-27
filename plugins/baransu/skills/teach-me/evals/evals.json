@@ -4,7 +4,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "/teach-me 教我 /ship 收 worktree 那一段到底在做什麼",
+      "prompt": "/teach-me 教我 /wrap 收 worktree 那一段到底在做什麼",
       "should_trigger": true,
       "expected_skill": "teach-me",
       "expected_behavior": "Runs the /how pass (and a narrow /why pass if reasons come up); first reply is a plain definition tied to this repo in one or two sentences, then stops with an offer to go deeper; no quiz, no 「這裡是重點」, no wall of text."

@@ -2,7 +2,7 @@
 """
 hunt-search.py — search hunt cases under .claude/hunt-report/ and .claude/archived/
 
-/ship archives case files flat into .claude/archived/, so by default both
+/wrap archives case files flat into .claude/archived/, so by default both
 locations are searched to keep the cross-session memory loop alive.
 
 Usage:
@@ -41,7 +41,7 @@ DEFAULT_DIRS = [".claude/hunt-report", ".claude/archived"]
 def load_cases(report_dirs: list[Path]) -> list[tuple[Path, dict]]:
     cases = []
     for report_dir in report_dirs:
-        # "*.md-*" catches /ship's collision rename ({item_name}-{unix_timestamp}),
+        # "*.md-*" catches /wrap's collision rename ({item_name}-{unix_timestamp}),
         # which drops the .md suffix; the hunt_id frontmatter check stays the gate.
         candidates = set(report_dir.glob("*.md")) | set(report_dir.glob("*.md-*"))
         for path in sorted(candidates):

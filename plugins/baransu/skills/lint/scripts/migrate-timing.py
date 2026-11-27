@@ -4,7 +4,7 @@
   python migrate-timing.py --text < file         print one file's text rewritten (for tests and fixtures)
 
 Per check table (a `[check.<id>]` table, or a whole one-check file):
-  on:       edit → post:edit; bash → pre:bash; commit → pre:commit, pre:push; done → pre:skill:ship,
+  on:       edit → post:edit; bash → pre:bash; commit → pre:commit, pre:push; done → pre:skill:wrap,
             pre:skill:review; skill:<x> → pre:skill:<x>; reply → post:retry; manual stays
   actions:  push → on pre:push; redo → on post:retry; the rest (delete) stays; an empty list goes
   built-ins: `on` goes (their timing is fixed); levels whose meaning moved are renamed —
@@ -24,7 +24,7 @@ OLD = {
     "edit": ["post:edit"],
     "bash": ["pre:bash"],
     "commit": ["pre:commit", "pre:push"],
-    "done": ["pre:skill:ship", "pre:skill:review"],
+    "done": ["pre:skill:wrap", "pre:skill:review"],
     "reply": ["post:retry"],
     "manual": ["manual"],
 }

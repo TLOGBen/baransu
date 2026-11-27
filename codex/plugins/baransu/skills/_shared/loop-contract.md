@@ -183,7 +183,7 @@ Outcome Contract still applies.
 | $baransu:review | `../review/references/loop-pauses.md` |
 | $baransu:hunt | `../hunt/references/loop-pauses.md` |
 | $baransu:learn | `../learn/references/loop-pauses.md` |
-| $baransu:ship | `../ship/references/loop-pauses.md` |
+| $baransu:wrap | `../wrap/references/loop-pauses.md` |
 | $baransu:evolve | `../evolve/references/loop-pauses.md` |
 | $baransu:think | `../think/references/loop-pauses.md` |
 | $baransu:write | `../write/references/loop-pauses.md` |

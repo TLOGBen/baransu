@@ -1,33 +1,33 @@
 {
-  "skill_name": "ship",
+  "skill_name": "wrap",
   "note": "Data-only trigger-routing fixtures (plugin-wide-6 / batch C4). There is no built-in eval runner; these cases are the fresh-session A/B baseline corpus recorded BEFORE the C1 description POV batch. Post-run user-verification artifact, not a merge gate.",
   "evals": [
     {
       "id": 1,
       "prompt": "收工",
       "should_trigger": true,
-      "expected_skill": "ship",
+      "expected_skill": "wrap",
       "expected_behavior": "Session wrap-up: archive .claude/ working dirs into the main working tree's local-only archive root, commit non-archive changes under the repo's own identity and message style, push."
     },
     {
       "id": 2,
       "prompt": "結束這輪，上傳收尾",
       "should_trigger": true,
-      "expected_skill": "ship",
+      "expected_skill": "wrap",
       "expected_behavior": "Wrap up the session and push pending changes."
     },
     {
       "id": 3,
-      "prompt": "/ship main",
+      "prompt": "/wrap main",
       "should_trigger": true,
-      "expected_skill": "ship",
+      "expected_skill": "wrap",
       "expected_behavior": "Wrap up, push the current branch, merge it into main, then tear down the worktree once the branch is safely on origin."
     },
     {
       "id": 7,
-      "prompt": "/ship uat main",
+      "prompt": "/wrap uat main",
       "should_trigger": true,
-      "expected_skill": "ship",
+      "expected_skill": "wrap",
       "expected_behavior": "Push the current branch, then merge it one-way into uat and into main separately (never main into uat or either back into the branch), resolving mechanical conflicts in each merge and stopping only on contradicting intent."
     },
     {
@@ -35,7 +35,7 @@
       "prompt": "幫我潤稿這段公告",
       "should_trigger": false,
       "expected_skill": "write",
-      "expected_behavior": "Copy refinement routes to /write; /ship only wraps up."
+      "expected_behavior": "Copy refinement routes to /write; /wrap only wraps up."
     },
     {
       "id": 5,
